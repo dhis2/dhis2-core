@@ -65,6 +65,7 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -124,7 +125,7 @@ public class HibernateUserStore
     @Override
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
-        Query userQuery = getUserQuery( params, orders, false );
+        Query<?> userQuery = getUserQuery( params, orders, false );
 
         return extractUserQueryUsers( userQuery.list() );
     }
@@ -184,7 +185,7 @@ public class HibernateUserStore
         return users;
     }
 
-    private Query getUserQuery( UserQueryParams params, List<String> orders, boolean count )
+    private Query<?> getUserQuery( UserQueryParams params, List<String> orders, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -216,9 +217,14 @@ public class HibernateUserStore
             hql += "left join u.groups g ";
         }
 
-        if ( params.hasOrganisationUnits() )
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
-            hql += "left join u.organisationUnits ou ";
+            String opProperty = Map.of(
+                UserOrgUnitType.DATA_CAPTURE, "organisationUnits",
+                UserOrgUnitType.DATA_OUTPUT, "dataViewOrganisationUnits",
+                UserOrgUnitType.TEI_SEARCH, "teiSearchOrganisationUnits" )
+                .getOrDefault( params.getOrgUnitBoundary(), "organisationUnits" );
+            hql += "left join u." + opProperty + " ou ";
 
             if ( params.isIncludeOrgUnitChildren() )
             {
@@ -234,48 +240,6 @@ public class HibernateUserStore
             else
             {
                 hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
-            }
-        }
-
-        if ( params.hasDataViewOrganisationUnits() )
-        {
-            hql += "left join u.dataViewOrganisationUnits dwou ";
-
-            if ( params.isIncludeOrgUnitChildren() )
-            {
-                hql += hlp.whereAnd() + " (";
-
-                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
-                {
-                    hql += format( "dwou.path like :dwOu%s or ", ou.getUid() );
-                }
-
-                hql = TextUtils.removeLastOr( hql ) + ")";
-            }
-            else
-            {
-                hql += hlp.whereAnd() + " dwou.id in (:dwOuIds) ";
-            }
-        }
-
-        if ( params.hasTeiSearchOrganisationUnits() )
-        {
-            hql += "left join u.teiSearchOrganisationUnits tsou ";
-
-            if ( params.isIncludeOrgUnitChildren() )
-            {
-                hql += hlp.whereAnd() + " (";
-
-                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
-                {
-                    hql += format( "tsou.path like :tsOu%s or ", ou.getUid() );
-                }
-
-                hql = TextUtils.removeLastOr( hql ) + ")";
-            }
-            else
-            {
-                hql += hlp.whereAnd() + " tsou.id in (:tsOuIds) ";
             }
         }
 
@@ -378,7 +342,7 @@ public class HibernateUserStore
 
         log.debug( "User query HQL: '{}'", hql );
 
-        Query query = getQuery( hql );
+        Query<?> query = getQuery( hql );
 
         if ( params.getQuery() != null )
         {
@@ -433,7 +397,7 @@ public class HibernateUserStore
             query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
 
-        if ( params.hasOrganisationUnits() )
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
@@ -447,42 +411,6 @@ public class HibernateUserStore
                 Collection<Long> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "ouIds", ouIds );
-            }
-        }
-
-        if ( params.hasDataViewOrganisationUnits() )
-        {
-            if ( params.isIncludeOrgUnitChildren() )
-            {
-                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
-                {
-                    query.setParameter( format( "dwOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
-                }
-            }
-            else
-            {
-                Collection<Long> ouIds = IdentifiableObjectUtils
-                    .getIdentifiers( params.getDataViewOrganisationUnits() );
-
-                query.setParameterList( "dwOuIds", ouIds );
-            }
-        }
-
-        if ( params.hasTeiSearchOrganisationUnits() )
-        {
-            if ( params.isIncludeOrgUnitChildren() )
-            {
-                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
-                {
-                    query.setParameter( format( "tsOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
-                }
-            }
-            else
-            {
-                Collection<Long> ouIds = IdentifiableObjectUtils
-                    .getIdentifiers( params.getTeiSearchOrganisationUnits() );
-
-                query.setParameterList( "tsOuIds", ouIds );
             }
         }
 
@@ -511,7 +439,7 @@ public class HibernateUserStore
         return query;
     }
 
-    private void setQueryCacheRegionName( Query query )
+    private void setQueryCacheRegionName( Query<?> query )
     {
         if ( query.isCacheable() )
         {

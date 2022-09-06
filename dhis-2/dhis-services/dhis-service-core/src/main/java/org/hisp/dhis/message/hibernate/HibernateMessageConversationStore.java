@@ -61,7 +61,7 @@ public class HibernateMessageConversationStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
     public HibernateMessageConversationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
@@ -88,7 +88,6 @@ public class HibernateMessageConversationStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
         boolean followUpOnly, boolean unreadOnly,
         Integer first, Integer max )
@@ -119,7 +118,7 @@ public class HibernateMessageConversationStore
 
         hql += "order by mc.lastMessage desc ";
 
-        Query query = getQuery( hql );
+        Query<?> query = getQuery( hql );
 
         if ( status != null )
         {
@@ -132,7 +131,7 @@ public class HibernateMessageConversationStore
             query.setMaxResults( max );
         }
 
-        return (List<MessageConversation>) query.list()
+        return query.list()
             .stream()
             .map( o -> mapRowToMessageConversations( (Object[]) o ) )
             .collect( Collectors.toList() );

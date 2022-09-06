@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
@@ -342,26 +343,16 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return partition.isLatestPartition() ? Lists.newArrayList()
-            : Lists.newArrayList(
-                "yearly = '" + partition.getYear() + "'",
-                "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
-                "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "yearly";
+        return partition.isLatestPartition() ? emptyList() : List.of( "yearly = '" + partition.getYear() + "'" );
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final Program program = partition.getMasterTable().getProgram();
-        final String start = DateUtils.getLongDateString( partition.getStartDate() );
-        final String end = DateUtils.getLongDateString( partition.getEndDate() );
-        final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
+        Program program = partition.getMasterTable().getProgram();
+        String start = DateUtils.getLongDateString( partition.getStartDate() );
+        String end = DateUtils.getLongDateString( partition.getEndDate() );
+        String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
             : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
                 + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
@@ -520,7 +511,7 @@ public class JdbcEventAnalyticsTableManager
 
         if ( databaseInfo.isSpatialSupport() )
         {
-            final String geoSql = selectForInsert( attribute,
+            String geoSql = selectForInsert( attribute,
                 "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                 ColumnDataType.GEOMETRY, geoSql )
@@ -528,8 +519,8 @@ public class JdbcEventAnalyticsTableManager
         }
 
         // Add org unit name column
-        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        final String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
 
         columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
             .withSkipIndex( true ) );
@@ -554,8 +545,8 @@ public class JdbcEventAnalyticsTableManager
         }
 
         // Add org unit name column
-        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
-        final String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
+        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+        String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
 
         columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
             .withSkipIndex( true ) );

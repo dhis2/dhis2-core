@@ -16,7 +16,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
         INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
@@ -38,6 +38,16 @@ pipeline {
             post {
                 always {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
+                }
+
+                failure {
+                    script {
+                        slack.sendMessage(
+                            '#ff0000',
+                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                            'team-backend'
+                        )
+                    }
                 }
             }
         }

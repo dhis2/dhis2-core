@@ -57,11 +57,10 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
         if ( importOptions == null || importOptions.isFirstRowIsHeader() )
         {
             readNext(); // Ignore the first row: assume header row
-            String dataSetId = getString( 11 );
-            if ( isNotEmpty( dataSetId ) )
-            {
-                set.setDataSet( dataSetId );
-            }
+        }
+        if ( importOptions != null && isNotEmpty( importOptions.getDataSet() ) )
+        {
+            set.setDataSet( importOptions.getDataSet() );
         }
         return set;
     }

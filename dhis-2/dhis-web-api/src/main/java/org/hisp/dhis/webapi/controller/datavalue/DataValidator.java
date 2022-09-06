@@ -397,22 +397,22 @@ public class DataValidator
      * Validate if the DataSet or DataElement is locked based on the input
      * arguments.
      *
-     * @param user the current User.
      * @param dataElement the {@link DataElement}.
      * @param period the {@link Period}.
      * @param dataSet the {@link DataSet}.
      * @param organisationUnit the {@link OrganisationUnit}.
      * @param attributeOptionCombo the CategoryOptionCombo.
+     * @param user the current User.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateDataSetNotLocked( User user, DataElement dataElement, Period period,
-        DataSet dataSet, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
+    public void validateDataSetNotLocked( DataElement dataElement, Period period,
+        DataSet dataSet, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, User user )
     {
         if ( dataSet == null
-            ? !dataSetService.getLockStatus( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            ? !dataSetService.getLockStatus( dataElement, period, organisationUnit, attributeOptionCombo, user, null )
                 .isOpen()
-            : !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo,
-                null ).isOpen() )
+            : !dataSetService.getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo,
+                user, null ).isOpen() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }
@@ -448,19 +448,20 @@ public class DataValidator
      * @throws WebMessageException if any validation fails.
      */
     public FileResource validateAndSetAssigned( String fileResourceUid, ValueType valueType,
-        ValueTypeOptions valueTypeOptions )
+        ValueTypeOptions valueTypeOptions, String fileResourceOwner )
         throws WebMessageException
     {
         Preconditions.checkNotNull( fileResourceUid );
 
-        final FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+        FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
 
         if ( fileResource == null || fileResource.getDomain() != DATA_VALUE )
         {
             throw new WebMessageException( notFound( FileResource.class, fileResourceUid ) );
         }
 
-        if ( fileResource.isAssigned() )
+        if ( fileResource.getFileResourceOwner() != null
+            && !fileResource.getFileResourceOwner().equals( fileResourceOwner ) )
         {
             throw new IllegalQueryException( ErrorCode.E2026 );
         }
@@ -477,7 +478,11 @@ public class DataValidator
             }
         }
 
-        fileResource.setAssigned( true );
+        if ( !fileResource.isAssigned() || fileResource.getFileResourceOwner() == null )
+        {
+            fileResource.setAssigned( true );
+            fileResource.setFileResourceOwner( fileResourceOwner );
+        }
 
         return fileResource;
     }

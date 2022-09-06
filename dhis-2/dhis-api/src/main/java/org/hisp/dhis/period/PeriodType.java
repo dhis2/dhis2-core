@@ -38,6 +38,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -53,7 +54,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -132,7 +132,7 @@ public abstract class PeriodType
     /**
      * All period types enumerated in descending order according to frequency.
      */
-    public static final List<PeriodType> PERIOD_TYPES = Lists.newArrayList(
+    public static final List<PeriodType> PERIOD_TYPES = List.of(
         new DailyPeriodType(),
         new WeeklyPeriodType(),
         new WeeklyWednesdayPeriodType(),
@@ -169,7 +169,20 @@ public abstract class PeriodType
      */
     public static List<PeriodType> getAvailablePeriodTypes()
     {
-        return new ArrayList<>( PERIOD_TYPES );
+        return PERIOD_TYPES;
+    }
+
+    /**
+     * Returns an immutable list of the names of all period types in their
+     * natural order.
+     *
+     * @return an immutable list of the names of all period types.
+     */
+    public static List<String> getAvailablePeriodTypeNames()
+    {
+        return PERIOD_TYPES.stream()
+            .map( PeriodType::getName )
+            .collect( Collectors.toUnmodifiableList() );
     }
 
     /**

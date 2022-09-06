@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALI
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -347,12 +346,7 @@ public class JdbcEventAnalyticsManager
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
             .add( "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
-                "lastupdatedbydisplayname", "lastupdated" );
-
-        if ( params.containsScheduledDatePeriod() )
-        {
-            cols.add( SCHEDULED_DATE.getTimeField().getField() );
-        }
+                "lastupdatedbydisplayname", "lastupdated", "duedate" );
 
         if ( params.getProgram().isRegistration() )
         {

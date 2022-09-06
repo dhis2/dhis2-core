@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,7 +67,6 @@ import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
@@ -98,7 +98,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -137,9 +136,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected QueryService queryService;
 
     @Autowired
-    private QueryParser queryParser;
-
-    @Autowired
     protected FieldFilterService oldFieldFilterService;
 
     @Autowired
@@ -153,6 +149,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Autowired
     protected AttributeService attributeService;
+
+    @Autowired
+    protected CsvMapper csvMapper;
 
     // --------------------------------------------------------------------------
     // Hooks
@@ -334,33 +333,44 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             schema = schema.withHeader();
         }
 
-        CsvMapper csvMapper = new CsvMapper();
-        csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
-
         try ( StringWriter strW = new StringWriter() )
         {
-            SequenceWriter seqW = csvMapper.writer()
+            SequenceWriter seqW = csvMapper.writer( schema )
                 .writeValues( strW );
-            if ( !skipHeader )
-            {
-                seqW.write( obj2valueByProperty.keySet().toArray() );
-            }
+
             Object[] row = new Object[obj2valueByProperty.size()];
+
             for ( T e : entities )
             {
                 int i = 0;
+
                 for ( Function<T, Object> toValue : obj2valueByProperty.values() )
                 {
-                    row[i++] = toValue.apply( e );
+                    Object o = toValue.apply( e );
+
+                    if ( o instanceof Collection )
+                    {
+                        row[i++] = ((Collection<?>) o).stream()
+                            .map( String::valueOf )
+                            .collect( Collectors.joining( arraySeparator ) );
+                    }
+                    else
+                    {
+                        row[i++] = o;
+                    }
                 }
+
                 seqW.write( row );
             }
+
             seqW.close();
+
             return ResponseEntity.ok( strW.toString() );
         }
         catch ( CsvWriteException ex )
         {
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
             throw new WebMessageException( conflict(
                 "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
                 ex.getMessage() ) );
@@ -370,8 +380,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     private static List<String> getCollectionValue( Object obj, Property property )
     {
         Object value = ReflectionUtils.invokeMethod( obj, property.getGetterMethod() );
+
         @SuppressWarnings( "unchecked" )
         Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
+
         return collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
     }
 

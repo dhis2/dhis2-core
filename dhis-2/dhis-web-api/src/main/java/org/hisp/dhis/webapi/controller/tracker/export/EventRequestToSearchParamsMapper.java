@@ -25,10 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,9 +46,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -59,14 +56,12 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -75,20 +70,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerEventCriteriaMapper;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-@Component
+@Component( "org.hisp.dhis.webapi.controller.tracker.export.EventRequestToSearchParamsMapper" )
 @RequiredArgsConstructor
-public class RequestToSearchParamsMapper
+class EventRequestToSearchParamsMapper
 {
     private final CurrentUserService currentUserService;
 
@@ -108,9 +97,6 @@ public class RequestToSearchParamsMapper
 
     private final SchemaService schemaService;
 
-    private final static TrackerEventCriteriaMapper TRACKER_EVENT_CRITERIA_MAPPER = Mappers
-        .getMapper( TrackerEventCriteriaMapper.class );
-
     private Schema schema;
 
     @PostConstruct
@@ -122,61 +108,32 @@ public class RequestToSearchParamsMapper
         }
     }
 
-    public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
-        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
-        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
-        Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
-        CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
-        boolean includeAttributes,
-        Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserSelectionMode,
-        Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
-        boolean includeDeleted )
+    public EventSearchParams map( TrackerEventCriteria eventCriteria )
     {
-        return map( program, programStage, programStatus, followUp, orgUnit, orgUnitSelectionMode,
-            trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
-            lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, orders, gridOrders, includeAttributes, events, null, skipEventId,
-            assignedUserSelectionMode, assignedUsers, filters, dataElements, includeAllDataElements, includeDeleted );
-    }
-
-    public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
-        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
-        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
-        Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
-        CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
-        boolean includeAttributes,
-        Set<String> events, Set<String> programInstances, Boolean skipEventId,
-        AssignedUserSelectionMode assignedUserSelectionMode,
-        Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
-        boolean includeDeleted )
-    {
-        User user = currentUserService.getCurrentUser();
-
         EventSearchParams params = new EventSearchParams();
 
+        String program = eventCriteria.getProgram();
         Program pr = programService.getProgram( program );
-
         if ( !StringUtils.isEmpty( program ) && pr == null )
         {
             throw new IllegalQueryException( "Program is specified but does not exist: " + program );
         }
 
+        String programStage = eventCriteria.getProgramStage();
         ProgramStage ps = programStageService.getProgramStage( programStage );
-
         if ( !StringUtils.isEmpty( programStage ) && ps == null )
         {
             throw new IllegalQueryException( "Program stage is specified but does not exist: " + programStage );
         }
 
+        String orgUnit = eventCriteria.getOrgUnit();
         OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnit );
-
         if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
         {
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
 
+        User user = currentUserService.getCurrentUser();
         if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
@@ -187,14 +144,18 @@ public class RequestToSearchParamsMapper
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
 
+        String trackedEntityInstance = eventCriteria.getTrackedEntity();
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
-
         if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {
             throw new IllegalQueryException(
                 "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
 
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            eventCriteria.getAttributeCc(),
+            eventCriteria.getAttributeCos(),
+            true );
         if ( attributeOptionCombo != null && !user.isSuper()
             && !aclService.canDataRead( user, attributeOptionCombo ) )
         {
@@ -202,14 +163,15 @@ public class RequestToSearchParamsMapper
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
-        if ( !CollectionUtils.isEmpty( events ) && !CollectionUtils.isEmpty( filters ) )
+        Set<String> eventIds = eventCriteria.getEvents();
+        Set<String> filters = eventCriteria.getFilter();
+        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
         {
             throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
         }
-
-        if ( events == null )
+        if ( eventIds == null )
         {
-            events = new HashSet<>();
+            eventIds = new HashSet<>();
         }
 
         if ( filters != null )
@@ -226,6 +188,8 @@ public class RequestToSearchParamsMapper
             }
         }
 
+        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+        Set<String> dataElements = dataElementOrders.keySet();
         if ( dataElements != null )
         {
             for ( String de : dataElements )
@@ -236,20 +200,23 @@ public class RequestToSearchParamsMapper
             }
         }
 
-        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
+        AssignedUserSelectionMode assignedUserSelectionMode = eventCriteria.getAssignedUserMode();
+        Set<String> assignedUserIds = eventCriteria.getAssignedUsers();
+        if ( assignedUserSelectionMode != null && assignedUserIds != null && !assignedUserIds.isEmpty()
             && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
-        if ( assignedUsers != null )
+        if ( assignedUserIds != null )
         {
-            assignedUsers = assignedUsers.stream()
+            assignedUserIds = assignedUserIds.stream()
                 .filter( CodeGenerator::isValidUid )
                 .collect( Collectors.toSet() );
         }
 
+        Set<String> programInstances = eventCriteria.getEnrollments();
         if ( programInstances != null )
         {
             programInstances = programInstances.stream()
@@ -258,16 +225,42 @@ public class RequestToSearchParamsMapper
         }
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
-            .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
-            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUsers )
-            .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
-            .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
-            .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )
-            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( idSchemes ).setPage( page )
-            .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
-            .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
-            .setIncludeAllDataElements( includeAllDataElements ).setOrders( orders ).setGridOrders( gridOrders )
-            .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
+            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
+            .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
+            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUserIds )
+            .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
+            .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
+            .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
+            .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
+            .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
+            .setEventStatus( eventCriteria.getStatus() )
+            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
+            .setPage( eventCriteria.getPage() )
+            .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
+            .setSkipPaging( eventCriteria.isSkipPaging() )
+            .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
+            .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
+            .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
+            .setEvents( eventIds ).setProgramInstances( programInstances )
+            .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+    }
+
+    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
+    {
+        Map<String, SortDirection> dataElements = new HashMap<>();
+
+        if ( allOrders != null )
+        {
+            for ( OrderCriteria orderCriteria : allOrders )
+            {
+                DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
+                if ( de != null )
+                {
+                    dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
+                }
+            }
+        }
+        return dataElements;
     }
 
     private QueryItem getQueryItem( String item )
@@ -305,54 +298,6 @@ public class RequestToSearchParamsMapper
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 
-    public EventSearchParams map( EventCriteria eventCriteria )
-    {
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getAttributeCc(),
-            eventCriteria.getAttributeCos(),
-            true );
-
-        Set<String> eventIds = eventCriteria.getEvents();
-        Set<String> assignedUserIds = eventCriteria.getAssignedUsers();
-        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
-
-        return map( eventCriteria.getProgram(),
-            eventCriteria.getProgramStage(),
-            eventCriteria.getProgramStatus(),
-            eventCriteria.getFollowUp(),
-            eventCriteria.getOrgUnit(),
-            eventCriteria.getOuMode(),
-            eventCriteria.getTrackedEntityInstance(),
-            eventCriteria.getStartDate(),
-            eventCriteria.getEndDate(),
-            eventCriteria.getDueDateStart(),
-            eventCriteria.getDueDateEnd(),
-            eventCriteria.getLastUpdatedStartDate() != null ? eventCriteria.getLastUpdatedStartDate()
-                : eventCriteria.getLastUpdated(),
-            eventCriteria.getLastUpdatedEndDate(),
-            eventCriteria.getLastUpdatedDuration(),
-            eventCriteria.getStatus(),
-            attributeOptionCombo,
-            eventCriteria.getIdSchemes(),
-            eventCriteria.getPage(),
-            eventCriteria.getPageSize(),
-            eventCriteria.isTotalPages(),
-            eventCriteria.isSkipPaging(),
-            getOrderParams( eventCriteria.getOrder() ),
-            getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
-            false,
-            eventIds,
-            eventCriteria.getProgramInstances(),
-            eventCriteria.getSkipEventId(),
-            eventCriteria.getAssignedUserMode(),
-            assignedUserIds,
-            eventCriteria.getFilter(),
-            dataElementOrders.keySet(),
-            false,
-            eventCriteria.isIncludeDeleted() );
-    }
-
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
     {
         if ( order != null && !order.isEmpty() )
@@ -375,28 +320,5 @@ public class RequestToSearchParamsMapper
                 .direction( dataElementOrders.get( orderCriteria.getField() ) )
                 .build() )
             .collect( Collectors.toList() );
-    }
-
-    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
-    {
-        Map<String, SortDirection> dataElements = new HashMap<>();
-
-        if ( allOrders != null )
-        {
-            for ( OrderCriteria orderCriteria : allOrders )
-            {
-                DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
-                if ( de != null )
-                {
-                    dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
-                }
-            }
-        }
-        return dataElements;
-    }
-
-    public EventSearchParams map( TrackerEventCriteria eventCriteria )
-    {
-        return map( TRACKER_EVENT_CRITERIA_MAPPER.toEventCriteria( eventCriteria ) );
     }
 }
