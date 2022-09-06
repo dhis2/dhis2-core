@@ -80,13 +80,6 @@ public class DefaultCompleteDataSetRegistrationService
 
     private final MessageService messageService;
 
-    /*
-     * public void setCompleteDataSetRegistrationStore(
-     * CompleteDataSetRegistrationStore completeDataSetRegistrationStore ) {
-     * this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
-     * }
-     */
-
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
