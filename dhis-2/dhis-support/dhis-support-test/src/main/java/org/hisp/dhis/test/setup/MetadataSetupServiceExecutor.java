@@ -244,7 +244,7 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private Category createCategory( CategorySetup setup, Objects<CategorySetup> categories )
     {
-        if ( "default".equals( setup.getName() ) )
+        if ( DEFAULT_NAME.equals( setup.getName() ) )
         {
             return categoryService.getDefaultCategory();
         }
@@ -259,7 +259,7 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
 
     private CategoryCombo createCategoryCombo( CategoryComboSetup setup )
     {
-        if ( "default".equals( setup.getName() ) )
+        if ( DEFAULT_NAME.equals( setup.getName() ) )
         {
             return categoryService.getDefaultCategoryCombo();
         }
@@ -274,7 +274,7 @@ public class MetadataSetupServiceExecutor implements MetadataSetupExecutor
     private CategoryOptionCombo createCategoryOptionCombo( CategoryOptionComboSetup setup,
         Objects<CategoryOptionComboSetup> optionCombos )
     {
-        if ( "default".equals( setup.getName() ) )
+        if ( DEFAULT_NAME.equals( setup.getName() ) )
         {
             return categoryService.getDefaultCategoryOptionCombo();
         }
