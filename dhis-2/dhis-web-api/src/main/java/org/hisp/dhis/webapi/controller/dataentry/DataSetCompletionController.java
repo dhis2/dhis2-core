@@ -61,7 +61,7 @@ public class DataSetCompletionController
 
     @PostMapping( "/dataSetCompletion" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void saveDataSetCompleteRegistration( @RequestBody DataSetCompletionDto dto )
+    public void saveDataSetCompletion( @RequestBody DataSetCompletionDto dto )
     {
         DataSet ds = dataValidator.getAndValidateDataSet( dto.getDataSet() );
         Period pe = dataValidator.getAndValidatePeriod( dto.getPeriod() );
