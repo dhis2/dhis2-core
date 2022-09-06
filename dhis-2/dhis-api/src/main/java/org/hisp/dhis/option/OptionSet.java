@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -120,6 +121,16 @@ public class OptionSet
     public void removeAllOptions()
     {
         options.clear();
+    }
+
+    public void removeOption( Option option )
+    {
+        if ( options == null || CollectionUtils.isEmpty( options ) )
+        {
+            return;
+        }
+
+        options.remove( option );
     }
 
     @Override
