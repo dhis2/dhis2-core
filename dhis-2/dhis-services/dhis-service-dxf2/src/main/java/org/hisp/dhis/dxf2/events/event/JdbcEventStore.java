@@ -1109,6 +1109,15 @@ public class JdbcEventStore implements EventStore
                 .append( ":program_status " );
         }
 
+        if ( params.getEnrollmentEnrolledBefore() != null )
+        {
+            mapSqlParameterSource.addValue( "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(),
+                Types.TIMESTAMP );
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (pi.enrollmentdate <= :enrollmentEnrolledBefore ) " );
+        }
+
         if ( params.getEnrollmentEnrolledAfter() != null )
         {
             mapSqlParameterSource.addValue( "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(),

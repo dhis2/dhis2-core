@@ -237,6 +237,7 @@ class EventRequestToSearchParamsMapper
             .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
             .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
             .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
+            .setEnrollmentEnrolledBefore( eventCriteria.getEnrollmentEnrolledBefore() )
             .setEventStatus( eventCriteria.getStatus() )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
             .setPage( eventCriteria.getPage() )

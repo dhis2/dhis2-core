@@ -93,6 +93,8 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Date enrollmentEnrolledAfter;
 
+    private Date enrollmentEnrolledBefore;
+
     private EventStatus status;
 
     private String attributeCc;

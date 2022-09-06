@@ -143,6 +143,8 @@ public class EventSearchParams
 
     private Date enrollmentEnrolledAfter;
 
+    private Date enrollmentEnrolledBefore;
+
     private CategoryOptionCombo categoryOptionCombo;
 
     private IdSchemes idSchemes = new IdSchemes();
@@ -523,6 +525,17 @@ public class EventSearchParams
     public EventSearchParams setEnrollmentEnrolledAfter( Date enrollmentEnrolledAfter )
     {
         this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
+        return this;
+    }
+
+    public Date getEnrollmentEnrolledBefore()
+    {
+        return enrollmentEnrolledBefore;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledBefore( Date enrollmentEnrolledBefore )
+    {
+        this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
         return this;
     }
 
