@@ -90,7 +90,6 @@ public class DefaultCompleteDataSetRegistrationService
     {
         Date date = new Date();
 
-        registration.setDate( date );
         registration.setLastUpdated( date );
 
         if ( !registration.hasStoredBy() )

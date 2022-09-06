@@ -62,9 +62,9 @@ public class CompleteDataSetRegistration
 
     private CategoryOptionCombo attributeOptionCombo;
 
-    private Date date; // TODO rename to created
+    private Date date; // TO-DO rename to created
 
-    private String storedBy; // TODO rename to createdBy
+    private String storedBy; // TO-DO rename to createdBy
 
     private Date lastUpdated;
 
