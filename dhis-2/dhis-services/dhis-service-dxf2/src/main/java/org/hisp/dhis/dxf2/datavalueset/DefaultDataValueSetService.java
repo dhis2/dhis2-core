@@ -210,6 +210,13 @@ public class DefaultDataValueSetService
                 urlParams.getDataElementGroup() ) );
         }
 
+        if ( !isEmpty( urlParams.getDataElement() ) )
+        {
+            params.getDataElements().addAll( identifiableObjectManager.getObjects(
+                DataElement.class, IdentifiableProperty.in( inputIdSchemes, IdSchemes::getDataElementIdScheme ),
+                urlParams.getDataElement() ) );
+        }
+
         if ( !isEmpty( urlParams.getPeriod() ) )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( urlParams.getPeriod() ) ) );
