@@ -113,27 +113,27 @@ public abstract class AbstractJdbcTableManager
 
     public static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
-    protected IdentifiableObjectManager idObjectManager;
+    protected final IdentifiableObjectManager idObjectManager;
 
-    protected OrganisationUnitService organisationUnitService;
+    protected final OrganisationUnitService organisationUnitService;
 
-    protected CategoryService categoryService;
+    protected final CategoryService categoryService;
 
-    protected SystemSettingManager systemSettingManager;
+    protected final SystemSettingManager systemSettingManager;
 
-    protected DataApprovalLevelService dataApprovalLevelService;
+    protected final DataApprovalLevelService dataApprovalLevelService;
 
-    protected ResourceTableService resourceTableService;
+    protected final ResourceTableService resourceTableService;
 
-    private AnalyticsTableHookService tableHookService;
+    private final AnalyticsTableHookService tableHookService;
 
-    protected StatementBuilder statementBuilder;
+    protected final StatementBuilder statementBuilder;
 
-    protected PartitionManager partitionManager;
+    protected final PartitionManager partitionManager;
 
-    protected DatabaseInfo databaseInfo;
+    protected final DatabaseInfo databaseInfo;
 
-    protected JdbcTemplate jdbcTemplate;
+    protected final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
