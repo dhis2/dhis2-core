@@ -110,6 +110,11 @@ public class CompleteDataSetRegistration
     // Logic
     // -------------------------------------------------------------------------
 
+    public boolean hasDate()
+    {
+        return date != null;
+    }
+
     public boolean hasStoredBy()
     {
         return storedBy != null;
