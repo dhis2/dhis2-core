@@ -249,7 +249,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingEnrollmentDates()
+    void testMappingEnrollmentEnrolledAtDates()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
@@ -260,8 +260,24 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertEquals( enrolledAfter, params.getEnrollmentEnrolledAfter() );
         assertEquals( enrolledBefore, params.getEnrollmentEnrolledBefore() );
+        assertEquals( enrolledAfter, params.getEnrollmentEnrolledAfter() );
+    }
+
+    @Test
+    void testMappingEnrollmentOcurredAtDates()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        Date enrolledBefore = date( "2022-01-01" );
+        eventCriteria.setEnrollmentOccurredBefore( enrolledBefore );
+        Date enrolledAfter = date( "2022-02-01" );
+        eventCriteria.setEnrollmentOccurredAfter( enrolledAfter );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertEquals( enrolledBefore, params.getEnrollmentOccurredBefore() );
+        assertEquals( enrolledAfter, params.getEnrollmentOccurredAfter() );
     }
 
     @Test
