@@ -95,14 +95,14 @@ public class DefaultCompleteDataSetRegistrationService
             registration.setDate( date );
         }
 
-        if ( !registration.hasLastUpdated() )
-        {
-            registration.setLastUpdated( date );
-        }
-
         if ( !registration.hasStoredBy() )
         {
             registration.setStoredBy( currentUserService.getCurrentUsername() );
+        }
+
+        if ( !registration.hasLastUpdated() )
+        {
+            registration.setLastUpdated( date );
         }
 
         if ( !registration.hasLastUpdatedBy() )
