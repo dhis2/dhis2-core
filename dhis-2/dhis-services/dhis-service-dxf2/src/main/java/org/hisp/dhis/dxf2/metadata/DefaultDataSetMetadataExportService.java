@@ -87,7 +87,7 @@ public class DefaultDataSetMetadataExportService
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
-        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
+        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet,description";
 
     private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator,indicatorType[factor]";
 
