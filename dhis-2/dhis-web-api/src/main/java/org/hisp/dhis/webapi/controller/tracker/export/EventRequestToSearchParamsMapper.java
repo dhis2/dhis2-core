@@ -81,7 +81,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventRequestToSearchParamsMapper
 {
-    public static final Stream<String> NON_EVENT_ORDER_PROPERTIES = Stream.of( "enrolledAt" );
 
     private final CurrentUserService currentUserService;
 
@@ -322,7 +321,8 @@ class EventRequestToSearchParamsMapper
             .map( Property::getName );
         // Other properties that we allow to order by that are not in the Event
         // schema have to be specified in JdbcEventStore.QUERY_PARAM_COL_MAP
-        Set<String> allowedProperties = Stream.concat( eventProperties, NON_EVENT_ORDER_PROPERTIES )
+        Stream<String> nonEventProperties = Stream.of( "enrolledAt" );
+        Set<String> allowedProperties = Stream.concat( eventProperties, nonEventProperties )
             .collect( Collectors.toSet() );
 
         requestProperties.removeAll( allowedProperties );
