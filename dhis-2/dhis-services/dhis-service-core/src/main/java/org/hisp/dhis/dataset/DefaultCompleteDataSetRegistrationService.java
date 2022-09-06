@@ -95,7 +95,10 @@ public class DefaultCompleteDataSetRegistrationService
             registration.setDate( date );
         }
 
-        registration.setLastUpdated( date );
+        if ( !registration.hasLastUpdated() )
+        {
+            registration.setLastUpdated( date );
+        }
 
         if ( !registration.hasStoredBy() )
         {

@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -110,16 +111,25 @@ public class CompleteDataSetRegistration
     // Logic
     // -------------------------------------------------------------------------
 
+    @JsonIgnore
     public boolean hasDate()
     {
         return date != null;
     }
 
+    @JsonIgnore
     public boolean hasStoredBy()
     {
         return storedBy != null;
     }
 
+    @JsonIgnore
+    public boolean hasLastUpdated()
+    {
+        return lastUpdated != null;
+    }
+
+    @JsonIgnore
     public boolean hasLastUpdatedBy()
     {
         return lastUpdatedBy != null;
