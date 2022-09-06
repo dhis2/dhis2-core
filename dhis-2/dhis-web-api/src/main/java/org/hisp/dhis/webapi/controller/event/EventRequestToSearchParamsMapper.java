@@ -365,10 +365,8 @@ class EventRequestToSearchParamsMapper
             .stream()
             .filter( Objects::nonNull )
             .filter( orderCriteria -> dataElementOrders.containsKey( orderCriteria.getField() ) )
-            .map( orderCriteria -> OrderParam.builder()
-                .field( orderCriteria.getField() )
-                .direction( dataElementOrders.get( orderCriteria.getField() ) )
-                .build() )
+            .map( orderCriteria -> new OrderParam( orderCriteria.getField(),
+                dataElementOrders.get( orderCriteria.getField() ) ) )
             .collect( Collectors.toList() );
     }
 
