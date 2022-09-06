@@ -68,20 +68,19 @@ public class DataSetCompletionController
         OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
         CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo( dto.getAttribute() );
 
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( ds, pe, ou,
-            aoc );
+        CompleteDataSetRegistration cdr = registrationService.getCompleteDataSetRegistration( ds, pe, ou, aoc );
 
-        if ( registration != null )
+        if ( cdr != null )
         {
-            registration.setCompleted( true );
+            cdr.setCompleted( true );
 
-            registrationService.updateCompleteDataSetRegistration( registration );
+            registrationService.updateCompleteDataSetRegistration( cdr );
         }
         else
         {
-            registration = new CompleteDataSetRegistration( ds, pe, ou, aoc );
+            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc );
 
-            registrationService.saveCompleteDataSetRegistration( registration );
+            registrationService.saveCompleteDataSetRegistration( cdr );
         }
     }
 }
