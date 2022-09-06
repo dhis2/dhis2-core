@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -56,9 +56,9 @@ import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Service( "org.hisp.dhis.dataset.CompleteDataSetRegistrationService" )
+@RequiredArgsConstructor
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService
 {
@@ -66,7 +66,7 @@ public class DefaultCompleteDataSetRegistrationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
+    private final CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
 
     private final CategoryService categoryService;
 
@@ -80,33 +80,12 @@ public class DefaultCompleteDataSetRegistrationService
 
     private final MessageService messageService;
 
-    public DefaultCompleteDataSetRegistrationService( CompleteDataSetRegistrationStore completeDataSetRegistrationStore,
-        CategoryService categoryService, DataValueService dataValueService,
-        DataSetNotificationEventPublisher notificationEventPublisher, AggregateAccessManager accessManager,
-        CurrentUserService currentUserService, MessageService messageService )
-    {
-
-        checkNotNull( completeDataSetRegistrationStore );
-        checkNotNull( categoryService );
-        checkNotNull( dataValueService );
-        checkNotNull( notificationEventPublisher );
-        checkNotNull( accessManager );
-        checkNotNull( currentUserService );
-        checkNotNull( messageService );
-
-        this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
-        this.categoryService = categoryService;
-        this.dataValueService = dataValueService;
-        this.notificationEventPublisher = notificationEventPublisher;
-        this.accessManager = accessManager;
-        this.currentUserService = currentUserService;
-        this.messageService = messageService;
-    }
-
-    public void setCompleteDataSetRegistrationStore( CompleteDataSetRegistrationStore completeDataSetRegistrationStore )
-    {
-        this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
-    }
+    /*
+     * public void setCompleteDataSetRegistrationStore(
+     * CompleteDataSetRegistrationStore completeDataSetRegistrationStore ) {
+     * this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
+     * }
+     */
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService
@@ -116,6 +95,21 @@ public class DefaultCompleteDataSetRegistrationService
     @Transactional
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
+        Date date = new Date();
+
+        registration.setDate( date );
+        registration.setLastUpdated( date );
+
+        if ( !registration.hasStoredBy() )
+        {
+            registration.setStoredBy( currentUserService.getCurrentUsername() );
+        }
+
+        if ( !registration.hasLastUpdatedBy() )
+        {
+            registration.setLastUpdatedBy( currentUserService.getCurrentUsername() );
+        }
+
         if ( registration.getAttributeOptionCombo() == null )
         {
             registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
@@ -135,6 +129,13 @@ public class DefaultCompleteDataSetRegistrationService
     @Transactional
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
+        registration.setLastUpdated( new Date() );
+
+        if ( !registration.hasLastUpdatedBy() )
+        {
+            registration.setLastUpdatedBy( currentUserService.getCurrentUsername() );
+        }
+
         completeDataSetRegistrationStore.updateCompleteDataSetRegistration( registration );
     }
 

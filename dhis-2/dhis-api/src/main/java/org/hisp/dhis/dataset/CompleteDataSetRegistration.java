@@ -64,7 +64,7 @@ public class CompleteDataSetRegistration
 
     private Date date; // TODO rename to created
 
-    private String storedBy;
+    private String storedBy; // TODO rename to createdBy
 
     private Date lastUpdated;
 
@@ -104,6 +104,20 @@ public class CompleteDataSetRegistration
         this.lastUpdated = lastUpdated;
         this.lastUpdatedBy = lastUpdatedBy;
         this.completed = completed;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasStoredBy()
+    {
+        return storedBy != null;
+    }
+
+    public boolean hasLastUpdatedBy()
+    {
+        return lastUpdatedBy != null;
     }
 
     // -------------------------------------------------------------------------
