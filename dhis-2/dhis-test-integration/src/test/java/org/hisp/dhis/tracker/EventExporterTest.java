@@ -243,7 +243,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
@@ -266,7 +266,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStatus( ProgramStatus.ACTIVE );
         params.setProgramStage( programStage );
 
@@ -290,7 +290,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramType( ProgramType.WITH_REGISTRATION );
         params.setProgramStage( programStage );
 
@@ -313,7 +313,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
@@ -336,7 +336,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u", "TvctPPhpD8z" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         DataElement datael00001 = dataElement( "DATAEL00001" );
@@ -358,7 +358,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
         params.setProgram( program );
 
@@ -413,7 +413,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -436,7 +436,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u", "TvctPPhpD8z" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -459,7 +459,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -528,7 +528,7 @@ class EventExporterTest extends TrackerTest
 
         assertAll( () -> assertNotNull( enrollments ),
             () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "TvctPPhpD8z", "TvctPPhpD8u" ), enrollments ) );
+            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
     }
 
     @Test
@@ -543,7 +543,7 @@ class EventExporterTest extends TrackerTest
 
         assertAll( () -> assertNotNull( enrollments ),
             () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "TvctPPhpD8u", "TvctPPhpD8z" ), enrollments ) );
+            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
     }
 
     private DataElement dataElement( String uid )
