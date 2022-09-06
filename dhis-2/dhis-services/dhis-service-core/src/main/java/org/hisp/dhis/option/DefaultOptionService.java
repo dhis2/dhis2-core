@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -105,11 +106,15 @@ public class DefaultOptionService
     public void validateOptionSet( OptionSet optionSet )
         throws IllegalQueryException
     {
-        if ( optionSet.getValueType() == ValueType.MULTI_TEXT && optionSet.getOptions().stream().anyMatch(
-            option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
+        if (optionSet.getValueType() != ValueType.MULTI_TEXT)
+        {
+            return;
+        }
+        List<Option> options = optionStore.getByUid( IdentifiableObjectUtils.getUids( optionSet.getOptions() ) );
+        if ( options.stream().anyMatch(option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1118, optionSet.getUid(),
-                optionSet.getOptions().stream().map( Option::getCode )
+                options.stream().map( Option::getCode )
                     .filter( code -> code.contains( ValueType.MULTI_TEXT_SEPARATOR ) )
                     .findFirst().orElse( "" ) ) );
         }
