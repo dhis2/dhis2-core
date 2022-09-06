@@ -60,10 +60,7 @@ public class OrderCriteria
 
     public OrderParam toOrderParam()
     {
-        return OrderParam.builder()
-            .field( field )
-            .direction( direction )
-            .build();
+        return new OrderParam( field, direction );
     }
 
     public static List<OrderCriteria> fromOrderString( String source )
