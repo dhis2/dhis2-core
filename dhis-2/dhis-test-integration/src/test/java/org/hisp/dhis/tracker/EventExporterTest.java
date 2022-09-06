@@ -28,6 +28,9 @@
 package org.hisp.dhis.tracker;
 
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -59,6 +62,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -469,6 +473,77 @@ class EventExporterTest extends TrackerTest
         assertAll( () -> assertNotNull( events ),
             () -> assertEquals( 1, events.size() ),
             () -> assertEquals( List.of( "D9PbzJY8bJO" ), events ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterGreaterThanLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testOrderByEnrolledAtDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "TvctPPhpD8z", "TvctPPhpD8u" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByEnrolledAtAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "TvctPPhpD8u", "TvctPPhpD8z" ), enrollments ) );
     }
 
     private DataElement dataElement( String uid )
