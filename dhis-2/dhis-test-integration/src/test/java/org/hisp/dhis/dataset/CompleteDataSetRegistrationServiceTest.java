@@ -186,9 +186,7 @@ class CompleteDataSetRegistrationServiceTest extends SingleSetupIntegrationTestB
             optionCombo );
         assertNotNull( registration );
         assertNotNull( registration.getDate() );
-        assertNotNull( registration.getStoredBy() );
         assertNotNull( registration.getLastUpdated() );
-        assertNotNull( registration.getLastUpdatedBy() );
     }
 
     @Test
