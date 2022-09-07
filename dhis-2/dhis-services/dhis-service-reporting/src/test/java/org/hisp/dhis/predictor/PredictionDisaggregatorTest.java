@@ -117,7 +117,7 @@ class PredictionDisaggregatorTest
 
     // Period 2 where Data Element A has option A:
     private final MapMap<Period, DimensionalItemObject, Object> pvMap2a = MapMap.ofEntries(
-        immutableEntry( per1, Map.of(
+        immutableEntry( per2, Map.of(
             deoAa, 256.0,
             deA, 256.0 ) ) );
 
@@ -136,11 +136,11 @@ class PredictionDisaggregatorTest
 
     private final PredictionContext ctx1a = new PredictionContext( cocAa, cocDefault, per1, pvMap1a );
 
-    private final PredictionContext ctx1b = new PredictionContext( cocAa, cocDefault, per1, pvMap1b );
+    private final PredictionContext ctx1b = new PredictionContext( cocAb, cocDefault, per1, pvMap1b );
 
     private final PredictionContext ctx2a = new PredictionContext( cocAa, cocDefault, per2, pvMap2a );
 
-    private final PredictionContext ctx2b = new PredictionContext( cocAa, cocDefault, per2, pvMap2b );
+    private final PredictionContext ctx2b = new PredictionContext( cocAb, cocDefault, per2, pvMap2b );
 
     // List of starting (undisaggregated) prediction contexts
 
@@ -255,8 +255,8 @@ class PredictionDisaggregatorTest
 
     private void assertContextInList( PredictionContext ctx, List<PredictionContext> list )
     {
-        assertTrue( list.contains( ctx1a ), String.format( "\n %s not found in [\n %s ]",
-            formatPredictionContext( ctx1a ), formatPredictionContextList( list ) ) );
+        assertTrue( list.contains( ctx ), String.format( "\n %s not found in [\n %s ]",
+            formatPredictionContext( ctx ), formatPredictionContextList( list ) ) );
     }
 
     private String formatPredictionContextList( List<PredictionContext> list )
