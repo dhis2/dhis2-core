@@ -107,6 +107,12 @@ class ItemPeriodInYearTest
     }
 
     @Test
+    void testEvaluateBiMonthly()
+    {
+        assertEquals( 5, evalWith( "202205B" ) );
+    }
+
+    @Test
     void testEvaluateQuarterly()
     {
         assertEquals( 1, evalWith( "2022Q1" ) );

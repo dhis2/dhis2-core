@@ -29,7 +29,6 @@ package org.hisp.dhis.expression.dataitem;
 
 import static java.lang.Integer.parseInt;
 import static java.util.Calendar.DAY_OF_YEAR;
-import static java.util.Calendar.MONTH;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -40,10 +39,12 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.YearlyPeriodType;
 
 /**
  * Expression item [periodInYear]
@@ -78,11 +79,12 @@ public class ItemPeriodInYear
         {
             return dayOfYear( period );
         }
-        else if ( periodType instanceof MonthlyPeriodType )
+        else if ( periodType instanceof MonthlyPeriodType
+            || periodType instanceof BiMonthlyPeriodType )
         {
-            return monthOfYear( period );
+            return monthOrBiMonthOfYear( period );
         }
-        else if ( periodType.getFrequencyOrder() >= 365 )
+        else if ( periodType.getFrequencyOrder() >= YearlyPeriodType.FREQUENCY_ORDER )
         {
             return 1.0;
         }
@@ -94,25 +96,31 @@ public class ItemPeriodInYear
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Finds the day of the year for a daily period type.
+     */
     private double dayOfYear( Period period )
     {
-        return getCal( period ).get( DAY_OF_YEAR );
-    }
-
-    private double monthOfYear( Period period )
-    {
-        return 1.0 + getCal( period ).get( MONTH );
-    }
-
-    private Calendar getCal( Period period )
-    {
         Calendar cal = Calendar.getInstance();
-
         cal.setTime( period.getStartDate() );
 
-        return cal;
+        return cal.get( DAY_OF_YEAR );
     }
 
+    /**
+     * For Monthly yyyyMM and BiMonthly yyyyMMB types, the period number is in
+     * the fourth and fifth characters of the period's ISO Date.
+     */
+    private double monthOrBiMonthOfYear( Period period )
+    {
+        return parseInt( period.getIsoDate().substring( 4, 6 ) );
+    }
+
+    /**
+     * For many period types, the period number can be found in the trailing
+     * digits of the period's ISO Date, for example Weekly yyyWn, Quarterly
+     * yyyyQn, SixMonthly yyyySn, etc.
+     */
     private double trailingDigits( Period period )
     {
         Matcher m = TRAILING_DIGITS.matcher( period.getIsoDate() );
