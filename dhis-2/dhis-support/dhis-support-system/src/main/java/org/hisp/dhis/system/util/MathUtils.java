@@ -435,7 +435,7 @@ public class MathUtils
             return false;
         }
 
-        return Math.abs( d1 - d2 ) < TOLERANCE;
+        return Math.abs( d1 - d2 ) <= TOLERANCE;
     }
 
     /**
@@ -448,7 +448,7 @@ public class MathUtils
      */
     public static boolean isEqual( double d1, double d2 )
     {
-        return Math.abs( d1 - d2 ) < TOLERANCE;
+        return Math.abs( d1 - d2 ) <= TOLERANCE;
     }
 
     /**

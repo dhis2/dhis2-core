@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -35,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Set;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -258,6 +260,26 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             assertEquals( ouA.getUid(), dv.getOrgUnit() );
             assertEquals( peAUid, dv.getPeriod() );
         }
+    }
+
+    @Test
+    void testExportBasic_FromUrlParamsWithDataElementIds()
+        throws IOException
+    {
+        DataValueSetQueryParams params = DataValueSetQueryParams.builder()
+            .dataElement( Set.of( deA.getCode(), deB.getCode() ) ).inputDataElementIdScheme( IdentifiableProperty.CODE )
+            .orgUnit( singleton( ouA.getCode() ) ).inputOrgUnitIdScheme( IdentifiableProperty.CODE )
+            .period( singleton( peAUid ) )
+            .idScheme( IdentifiableProperty.CODE.name() )
+            .build();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
+        DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
+        assertNotNull( dvs );
+        assertEquals( 4, dvs.getDataValues().size() );
+        assertEquals( Set.of( "DataElementCodeA", "DataElementCodeB" ), dvs.getDataValues().stream()
+            .map( org.hisp.dhis.dxf2.datavalue.DataValue::getDataElement )
+            .collect( toUnmodifiableSet() ) );
     }
 
     @Test

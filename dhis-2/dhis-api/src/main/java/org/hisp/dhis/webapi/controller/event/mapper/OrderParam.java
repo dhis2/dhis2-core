@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 import java.util.Arrays;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
@@ -40,7 +39,6 @@ import lombok.Getter;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Data
-@Builder
 public class OrderParam
 {
     private final String field;
