@@ -27,34 +27,100 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
-import static org.hisp.dhis.expression.ExpressionService.DAYS_DESCRIPTION;
+import static java.lang.Integer.parseInt;
+import static java.util.Calendar.DAY_OF_YEAR;
+import static java.util.Calendar.MONTH;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import java.util.Calendar;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 /**
- * Expression item [days]
+ * Expression item [periodInYear]
  *
  * @author Jim Grace
  */
-public class ItemDays
+public class ItemPeriodInYear
     implements ExpressionItem
 {
+    private static final Pattern TRAILING_DIGITS = Pattern.compile( "\\d+$" );
+
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
-
         return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Double evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Integer days = visitor.getParams().getDays();
+        List<Period> periods = visitor.getParams().getPeriods();
 
-        return days == null ? null : Double.valueOf( days );
+        if ( periods.size() != 1 )
+        {
+            return 0.0; // Not applicable
+        }
+
+        Period period = periods.get( 0 );
+        PeriodType periodType = period.getPeriodType();
+
+        if ( periodType instanceof DailyPeriodType )
+        {
+            return dayOfYear( period );
+        }
+        else if ( periodType instanceof MonthlyPeriodType )
+        {
+            return monthOfYear( period );
+        }
+        else if ( periodType.getFrequencyOrder() >= 365 )
+        {
+            return 1.0;
+        }
+
+        return trailingDigits( period );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private double dayOfYear( Period period )
+    {
+        Calendar cal = Calendar.getInstance();
+
+        cal.setTime( period.getStartDate() );
+
+        return cal.get( DAY_OF_YEAR );
+    }
+
+    private double monthOfYear( Period period )
+    {
+        Calendar cal = Calendar.getInstance();
+
+        cal.setTime( period.getStartDate() );
+
+        return 1 + cal.get( MONTH );
+    }
+
+    private double trailingDigits( Period period )
+    {
+        Matcher m = TRAILING_DIGITS.matcher( period.getIsoDate() );
+
+        if ( m.find() )
+        {
+            return parseInt( m.group() );
+        }
+
+        return 0; // Unexpected
     }
 }

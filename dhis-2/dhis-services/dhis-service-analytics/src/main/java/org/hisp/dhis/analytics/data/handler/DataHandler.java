@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ArrayUtils.remove;
@@ -61,7 +63,9 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValueObject;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.hasPeriod;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isPeriodInPeriods;
+import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.buildYearToDateRows;
 import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.getPeriodOffsetRow;
+import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.isYearToDate;
 import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
@@ -130,6 +134,7 @@ import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
+import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -193,7 +198,7 @@ public class DataHandler
      * Adds performance metrics.
      *
      * @param params the {@link DataQueryParams}.
-     * @param the {@link Grid} to add performance metrics to.
+     * @param grid the {@link Grid} to add performance metrics to.
      */
     void addPerformanceMetrics( DataQueryParams params, Grid grid )
     {
@@ -946,13 +951,26 @@ public class DataHandler
             .build();
 
         Grid grid = dataAggregator.getAggregatedDataValueGrid( dataSourceParams );
-        MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
         if ( isEmpty( grid.getRows() ) )
         {
-            return result;
+            return new ArrayListValuedHashMap<>();
         }
 
+        return getAggregatedValueMapFromGrid( params, items, grid );
+    }
+
+    /**
+     * Gets a mapping between dimension items and values from a grid.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param items the list of {@link DimensionalItemObject}.
+     * @param grid the {@link Grid}.
+     * @return a dimensional items to aggregate values map.
+     */
+    private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedValueMapFromGrid(
+        DataQueryParams params, List<DimensionalItemObject> items, Grid grid )
+    {
         // Derive the Grid indexes for data, value and period based on the first
         // row of the Grid
 
@@ -962,29 +980,70 @@ public class DataHandler
 
         final List<DimensionalItemObject> basePeriods = params.getPeriods();
 
+        MultiValuedMap<String, DimensionItemObjectValue> valueMap = new ArrayListValuedHashMap<>();
+
+        Map<String, List<Object>> yearToDateRows = new HashMap<>();
+
+        // Process the grid rows. If yearToDate, build any yearToDate rows for
+        // adding later. Otherwise, add the row to the result.
+
         for ( List<Object> row : grid.getRows() )
         {
             for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
                 (String) row.get( dataIndex ), items ) )
             {
-                // Check if the current row's Period belongs to the list of
-                // periods from the original Analytics request. The row may
-                // not have a Period if Period is used as filter.
-
-                if ( hasPeriod( row, periodIndex ) )
+                if ( isYearToDate( dimensionalItem ) )
                 {
-                    addItemBasedOnPeriodOffset( result, periodIndex, valueIndex, row, dimensionalItem, basePeriods );
+                    buildYearToDateRows( periodIndex, valueIndex, row, dimensionalItem, basePeriods, yearToDateRows );
                 }
                 else
                 {
-                    result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue(
-                            dimensionalItem, ((Number) row.get( valueIndex )).doubleValue() ) );
+                    addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
                 }
             }
         }
 
-        return result;
+        if ( !yearToDateRows.isEmpty() )
+        {
+            addYearToDateRowsToValueMap( dataIndex, periodIndex, valueIndex, items, basePeriods, yearToDateRows,
+                valueMap );
+        }
+
+        return valueMap;
+    }
+
+    private void addYearToDateRowsToValueMap( int dataIndex, int periodIndex, int valueIndex,
+        List<DimensionalItemObject> items, List<DimensionalItemObject> basePeriods,
+        Map<String, List<Object>> yearToDateRows, MultiValuedMap<String, DimensionItemObjectValue> valueMap )
+    {
+        List<DimensionalItemObject> yearToDateItems = items.stream()
+            .filter( PeriodOffsetUtils::isYearToDate )
+            .collect( toList() );
+
+        for ( List<Object> row : yearToDateRows.values() )
+        {
+            for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
+                (String) row.get( dataIndex ), yearToDateItems ) )
+            {
+                addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
+            }
+        }
+    }
+
+    private void addRowToValueMap( int periodIndex, int valueIndex, List<Object> row,
+        DimensionalItemObject dimensionalItem, List<DimensionalItemObject> basePeriods,
+        MultiValuedMap<String, DimensionItemObjectValue> valueMap )
+    {
+        List<Object> adjustedRow = getAdjustedRow( periodIndex, valueIndex, row, dimensionalItem, basePeriods );
+
+        if ( !isEmpty( adjustedRow ) )
+        {
+            String key = join( remove( adjustedRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
+
+            Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
+
+            valueMap.put( key, new DimensionItemObjectValue( dimensionalItem, value ) );
+        }
     }
 
     /**
@@ -1027,24 +1086,17 @@ public class DataHandler
         }
     }
 
-    /**
-     * Calculates the dimensional item offset and adds to the give result map.
-     *
-     * @param result the map where the values will be added to.
-     * @param periodIndex the current grid row period index.
-     * @param valueIndex the current grid row value index.
-     * @param row the current grid row.
-     * @param dimensionalItemObject the {@link DimensionalItemObject} for the
-     *        current grid row.
-     * @param basePeriods the list of base periods from the parameters.
-     */
-    private void addItemBasedOnPeriodOffset( MultiValuedMap<String, DimensionItemObjectValue> result,
-        int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject,
-        List<DimensionalItemObject> basePeriods )
+    private List<Object> getAdjustedRow( int periodIndex, int valueIndex, List<Object> row,
+        DimensionalItemObject dimensionalItemObject, List<DimensionalItemObject> basePeriods )
     {
+        if ( !hasPeriod( row, periodIndex ) )
+        {
+            return row;
+        }
+
         if ( row.get( valueIndex ) == null )
         {
-            return;
+            return emptyList();
         }
 
         int periodOffset = (dimensionalItemObject.getQueryMods() == null)
@@ -1055,17 +1107,16 @@ public class DataHandler
             ? getPeriodOffsetRow( row, periodIndex, periodOffset )
             : row;
 
+        // Check if the current row's Period belongs to the list of
+        // periods from the original Analytics request. The row may
+        // not have a Period if Period is used as filter.
+
         if ( !isPeriodInPeriods( (String) adjustedRow.get( periodIndex ), basePeriods ) )
         {
-            return;
+            return emptyList();
         }
 
-        // Key is composed of [uid-period]
-        final String key = join( remove( adjustedRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
-
-        final Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
-
-        result.put( key, new DimensionItemObjectValue( dimensionalItemObject, value ) );
+        return adjustedRow;
     }
 
     /**

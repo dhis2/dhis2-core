@@ -121,13 +121,17 @@ class AnalyticsServiceTest
 
     private Period peMar;
 
-    private Period peApril;
+    private Period peApr;
 
     private Period peMay;
 
-    private Period peJune;
+    private Period peJun;
 
-    private Period peJuly;
+    private Period peJul;
+
+    private Period peAug;
+
+    private Period peSep;
 
     private Period quarter;
 
@@ -277,10 +281,12 @@ class AnalyticsServiceTest
         peJan = createPeriod( "2017-01" );
         peFeb = createPeriod( "2017-02" );
         peMar = createPeriod( "2017-03" );
-        peApril = createPeriod( "2017-04" );
+        peApr = createPeriod( "2017-04" );
         peMay = createPeriod( "2017-05" );
-        peJune = createPeriod( "2017-06" );
-        peJuly = createPeriod( "2017-07" );
+        peJun = createPeriod( "2017-06" );
+        peJul = createPeriod( "2017-07" );
+        peAug = createPeriod( "2017-08" );
+        peSep = createPeriod( "2017-09" );
 
         // These periods don't need to be persisted:
         quarter = createPeriod( "2017Q1" );
@@ -289,10 +295,12 @@ class AnalyticsServiceTest
         periodService.addPeriod( peJan );
         periodService.addPeriod( peFeb );
         periodService.addPeriod( peMar );
-        periodService.addPeriod( peApril );
+        periodService.addPeriod( peApr );
         periodService.addPeriod( peMay );
-        periodService.addPeriod( peJune );
-        periodService.addPeriod( peJuly );
+        periodService.addPeriod( peJun );
+        periodService.addPeriod( peJul );
+        periodService.addPeriod( peAug );
+        periodService.addPeriod( peSep );
 
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
@@ -764,7 +772,82 @@ class AnalyticsServiceTest
                 .withOrganisationUnit( ouA )
                 .withIndicators( Lists.newArrayList( indicatorA ) )
                 .withAggregationType( AnalyticsAggregationType.SUM )
-                .withPeriod( peJuly )
+                .withPeriod( peJul )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithYearToDate()
+    {
+        withIndicator( "#{" + deE.getUid() + "}.yearToDate()" );
+
+        assertDataValues(
+            Map.of( "indicatorId-ouabcdefghA-201705", 1.0,
+                "indicatorId-ouabcdefghA-201706", 3.0,
+                "indicatorId-ouabcdefghA-201707", 7.0,
+                "indicatorId-ouabcdefghA-201708", 7.0,
+                "indicatorId-ouabcdefghA-201709", 7.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithPeriodOffsetAndYearToDate()
+    {
+        withIndicator( "#{" + deE.getUid() + "}.periodOffset(-1).yearToDate()" );
+
+        assertDataValues(
+            Map.of( "indicatorId-ouabcdefghA-201706", 1.0,
+                "indicatorId-ouabcdefghA-201707", 3.0,
+                "indicatorId-ouabcdefghA-201708", 7.0,
+                "indicatorId-ouabcdefghA-201709", 7.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithPeriodInYear()
+    {
+        withIndicator( "#{" + deE.getUid() + "}.yearToDate() + [periodInYear]" );
+
+        assertDataValues(
+            Map.of( "indicatorId-ouabcdefghA-201705", 1.0 + 5,
+                "indicatorId-ouabcdefghA-201706", 3.0 + 6,
+                "indicatorId-ouabcdefghA-201707", 7.0 + 7,
+                "indicatorId-ouabcdefghA-201708", 7.0 + 8,
+                "indicatorId-ouabcdefghA-201709", 7.0 + 9 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithYearlyPeriodCount()
+    {
+        withIndicator( "#{" + deE.getUid() + "}.yearToDate() + [yearlyPeriodCount]" );
+
+        assertDataValues(
+            Map.of( "indicatorId-ouabcdefghA-201705", 1.0 + 12,
+                "indicatorId-ouabcdefghA-201706", 3.0 + 12,
+                "indicatorId-ouabcdefghA-201707", 7.0 + 12,
+                "indicatorId-ouabcdefghA-201708", 7.0 + 12,
+                "indicatorId-ouabcdefghA-201709", 7.0 + 12 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peApr, peMay, peJun, peJul, peAug, peSep ) )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
     }
 
@@ -850,7 +933,7 @@ class AnalyticsServiceTest
                 .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE ) )
                 .withDataElements( Lists.newArrayList( deA, deB, deD ) )
                 .withAggregationType( AnalyticsAggregationType.AVERAGE )
-                .withPeriod( peApril )
+                .withPeriod( peApr )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
     }
 
