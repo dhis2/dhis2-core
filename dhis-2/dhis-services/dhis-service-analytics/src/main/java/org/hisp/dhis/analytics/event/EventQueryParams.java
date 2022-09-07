@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -38,8 +37,6 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
-import static org.hisp.dhis.event.EventStatus.ACTIVE;
-import static org.hisp.dhis.event.EventStatus.COMPLETED;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -123,8 +120,6 @@ public class EventQueryParams
 
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
-
-    private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
 
     /**
      * The query items.
