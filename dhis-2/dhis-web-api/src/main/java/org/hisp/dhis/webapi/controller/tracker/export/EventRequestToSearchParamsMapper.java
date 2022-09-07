@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -62,7 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -72,6 +73,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -79,6 +81,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventRequestToSearchParamsMapper
 {
+
     private final CurrentUserService currentUserService;
 
     private final ProgramService programService;
@@ -233,6 +236,7 @@ class EventRequestToSearchParamsMapper
             .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
             .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
             .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
+            .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
             .setEventStatus( eventCriteria.getStatus() )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
             .setPage( eventCriteria.getPage() )
@@ -300,11 +304,34 @@ class EventRequestToSearchParamsMapper
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
     {
-        if ( order != null && !order.isEmpty() )
+        if ( order == null || order.isEmpty() )
         {
-            return QueryUtils.filteredBySchema( order, schema );
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        validateOrderParams( order );
+
+        return OrderParamsHelper.toOrderParams( order );
+    }
+
+    private void validateOrderParams( List<OrderCriteria> order )
+    {
+        Set<String> requestProperties = order.stream().map( OrderCriteria::getField ).collect( Collectors.toSet() );
+
+        Stream<String> eventProperties = schema.getProperties().stream().filter( Property::isSimple )
+            .map( Property::getName );
+        // Other properties that we allow to order by that are not in the Event
+        // schema have to be specified in JdbcEventStore.QUERY_PARAM_COL_MAP
+        Stream<String> nonEventProperties = Stream.of( "enrolledAt" );
+        Set<String> allowedProperties = Stream.concat( eventProperties, nonEventProperties )
+            .collect( Collectors.toSet() );
+
+        requestProperties.removeAll( allowedProperties );
+        if ( !requestProperties.isEmpty() )
+        {
+            throw new IllegalQueryException(
+                String.format( "Order by property `%s` is not supported. Supported are `%s`",
+                    String.join( ", ", requestProperties ), String.join( ", ", allowedProperties ) ) );
+        }
     }
 
     private List<OrderParam> getGridOrderParams( List<OrderCriteria> order,
