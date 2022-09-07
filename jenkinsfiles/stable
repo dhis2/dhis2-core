@@ -2,30 +2,33 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk8'
-    }
-
-    triggers {
-        cron('H 20 * * 1-5')
+        label 'ec2-jdk11'
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '5'))
         timeout(time: 30)
     }
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
+        GITHUB_TOKEN = credentials('github-token')
     }
 
     stages {
+        stage ('Patch') {
+            steps {
+                echo 'Patching DHIS2 ...'
+                sh './run-cve-patcher.sh'
+            }
+        }
+
         stage ('Build') {
             steps {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P jdk8,-default --update-snapshots'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P jdk8,-default --update-snapshots'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
                 }
             }
@@ -36,7 +39,7 @@ pipeline {
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh canary ${GIT_BRANCH}'
+                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
         }
     }
