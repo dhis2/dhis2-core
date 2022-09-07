@@ -25,56 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.predictor;
 
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.common.QueryModifiers;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class OrderParamsHelper
+/**
+ * @author Jim Grace
+ */
+public class PredictionDataFilter
 {
-
-    public static List<OrderParam> toOrderParams( List<OrderCriteria> criteria )
+    private PredictionDataFilter()
     {
-        return Optional.ofNullable( criteria )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( Objects::nonNull )
-            .map( orderCriteria -> new OrderParam( orderCriteria.getField(), orderCriteria.getDirection() ) )
-            .collect( Collectors.toList() );
+        throw new UnsupportedOperationException( "util" );
     }
 
-    public static List<String> validateOrderParams( List<OrderParam> orderParams,
-        Map<String, TrackedEntityAttribute> attributes )
+    /**
+     * Filters prediction data by minDate/maxDate if specified.
+     *
+     * @param data data to be filtered
+     * @return data that passes minDate/maxDate checks
+     */
+    public static PredictionData filter( PredictionData data )
     {
-        List<String> errors = new ArrayList<>();
+        return (data == null)
+            ? null
+            : new PredictionData( data.getOrgUnit(), filterValues( data.getValues() ), data.getOldPredictions() );
+    }
 
-        if ( orderParams == null || orderParams.isEmpty() )
-        {
-            return errors;
-        }
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
-        for ( OrderParam orderParam : orderParams )
-        {
-            if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
-            {
-                errors.add( "Invalid order property: " + orderParam.getField() );
-            }
-        }
+    private static List<FoundDimensionItemValue> filterValues( List<FoundDimensionItemValue> values )
+    {
+        return values.stream()
+            .filter( PredictionDataFilter::isValid )
+            .collect( toList() );
+    }
 
-        return errors;
+    private static boolean isValid( FoundDimensionItemValue item )
+    {
+        QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
+
+        return mods == null
+            || (mods.getMinDate() == null || !mods.getMinDate().after( item.getPeriod().getStartDate() ))
+                && (mods.getMaxDate() == null || !mods.getMaxDate().before( item.getPeriod().getEndDate() ));
     }
 }

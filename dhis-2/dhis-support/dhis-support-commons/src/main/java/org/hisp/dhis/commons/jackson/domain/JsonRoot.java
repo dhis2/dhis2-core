@@ -31,8 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Builder;
-
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -47,7 +45,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 @JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
 public class JsonRoot
 {
-    @Builder.Default
     private final Map<String, Object> properties = new LinkedHashMap<>();
 
     public JsonRoot()

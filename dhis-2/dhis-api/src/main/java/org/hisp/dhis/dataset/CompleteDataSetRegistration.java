@@ -36,6 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -62,9 +63,9 @@ public class CompleteDataSetRegistration
 
     private CategoryOptionCombo attributeOptionCombo;
 
-    private Date date; // TODO rename to created
+    private Date date; // TO-DO rename to created
 
-    private String storedBy;
+    private String storedBy; // TO-DO rename to createdBy
 
     private Date lastUpdated;
 
@@ -83,12 +84,13 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo attributeOptionCombo, Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
         this.source = source;
         this.attributeOptionCombo = attributeOptionCombo;
+        this.completed = completed;
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
@@ -104,6 +106,34 @@ public class CompleteDataSetRegistration
         this.lastUpdated = lastUpdated;
         this.lastUpdatedBy = lastUpdatedBy;
         this.completed = completed;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    @JsonIgnore
+    public boolean hasDate()
+    {
+        return date != null;
+    }
+
+    @JsonIgnore
+    public boolean hasStoredBy()
+    {
+        return storedBy != null;
+    }
+
+    @JsonIgnore
+    public boolean hasLastUpdated()
+    {
+        return lastUpdated != null;
+    }
+
+    @JsonIgnore
+    public boolean hasLastUpdatedBy()
+    {
+        return lastUpdatedBy != null;
     }
 
     // -------------------------------------------------------------------------

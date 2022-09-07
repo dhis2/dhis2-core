@@ -91,9 +91,9 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.2.1</flyway-core.version>
+    <flyway-core.version>9.2.2</flyway-core.version>
     <hibernate.version>5.6.11.Final</hibernate.version>
-    <hibernate-types.version>2.18.0</hibernate-types.version>
+    <hibernate-types.version>2.19.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
@@ -110,7 +110,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.13.3</jackson.version>
+    <jackson.version>2.13.4</jackson.version>
     <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -212,9 +212,9 @@
     <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.11.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.12.0</versions-maven-plugin.version>
     <dependency-check-maven.version>7.1.2</dependency-check-maven.version>
-    <spotbugs-maven-plugin.version>4.7.1.1</spotbugs-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.7.2.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
@@ -575,7 +575,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.7.1</version>
+              <version>4.7.2</version>
             </dependency>
           </dependencies>
           <configuration>

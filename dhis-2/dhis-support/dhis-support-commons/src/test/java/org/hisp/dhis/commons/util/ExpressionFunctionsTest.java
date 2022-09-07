@@ -40,7 +40,7 @@ class ExpressionFunctionsTest
     @Test
     void testDaysBetween()
     {
-        assertEquals( new Long( 1 ), ExpressionFunctions.daysBetween( "2014-03-04", "2014-03-05" ) );
-        assertEquals( new Long( 32 ), ExpressionFunctions.daysBetween( "2015-04-04", "2015-05-06" ) );
+        assertEquals( 1, ExpressionFunctions.daysBetween( "2014-03-04", "2014-03-05" ) );
+        assertEquals( 32, ExpressionFunctions.daysBetween( "2015-04-04", "2015-05-06" ) );
     }
 }
