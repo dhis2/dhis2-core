@@ -227,6 +227,11 @@ public class QueryItem implements GroupableItem
         return legendSet != null;
     }
 
+    public boolean hasAggregationType()
+    {
+        return aggregationType != null;
+    }
+
     public boolean hasOptionSet()
     {
         return optionSet != null;

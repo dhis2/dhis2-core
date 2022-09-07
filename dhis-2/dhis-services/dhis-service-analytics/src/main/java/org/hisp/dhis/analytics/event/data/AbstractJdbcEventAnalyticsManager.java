@@ -795,8 +795,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
-            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
+
+            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
+                programIndicator,
                 startDate, endDate );
+        }
+        else
+        {
+            return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
+        }
+    }
+
+    protected String getSelectSql( QueryFilter filter, QueryItem item, EventQueryParams params )
+    {
+        if ( item.isProgramIndicator() )
+        {
+            return getColumnAndAlias( item, params, false, false ).getColumn();
         }
         else
         {
@@ -1123,8 +1137,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
     {
-        String field = getSelectSql( filter, item, params.getEarliestStartDate(),
-            params.getLatestEndDate() );
+        String field = item.hasAggregationType() ? getSelectSql( filter, item, params )
+            : getSelectSql( filter, item, params.getEarliestStartDate(),
+                params.getLatestEndDate() );
 
         if ( IN.equals( filter.getOperator() ) )
         {
