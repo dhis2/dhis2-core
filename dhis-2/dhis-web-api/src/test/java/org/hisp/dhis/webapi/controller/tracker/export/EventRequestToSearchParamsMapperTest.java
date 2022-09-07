@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +45,7 @@ import java.util.Set;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,12 +54,16 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -138,12 +146,27 @@ class EventRequestToSearchParamsMapperTest
         when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntityInstance );
 
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
+
+        Schema eventSchema = new Schema( Event.class, "event", "events" );
+        Property prop1 = new Property();
+        prop1.setName( "programStage" );
+        prop1.setSimple( true );
+        eventSchema.addProperty( prop1 );
+        Property prop2 = new Property();
+        prop2.setName( "dueDate" );
+        prop2.setSimple( true );
+        eventSchema.addProperty( prop2 );
+        Property prop3 = new Property();
+        prop3.setName( "nonSimple" );
+        prop3.setSimple( false );
+        eventSchema.addProperty( prop3 );
+        when( schemaService.getDynamicSchema( Event.class ) ).thenReturn( eventSchema );
+        requestToSearchParamsMapper.setSchema();
     }
 
     @Test
     void testMappingProgram()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setProgram( "programuid" );
 
@@ -155,7 +178,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingProgramStage()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setProgramStage( "programstageuid" );
 
@@ -167,7 +189,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingTrackedEntity()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setTrackedEntity( "teiuid" );
 
@@ -177,9 +198,8 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingOcurredAfterBefore()
+    void testMappingOccurredAfterBefore()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Date occurredAfter = date( "2020-01-01" );
@@ -196,7 +216,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingScheduledAfterBefore()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Date scheduledAfter = date( "2021-01-01" );
@@ -213,7 +232,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingUpdatedDates()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Date updatedAfter = date( "2022-01-01" );
@@ -233,7 +251,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEnrollments()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
@@ -247,7 +264,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEvents()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
@@ -259,7 +275,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEventsStripsInvalidUid()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setEvent( "invalidUid;M4pNmLabtXl" );
 
@@ -271,7 +286,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingNoEvents()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
@@ -282,7 +296,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingAssignedUsers()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
@@ -294,7 +307,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingAssignedUsersStripsInvalidUid()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
 
@@ -306,7 +318,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingNoAssignedUsers()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
@@ -317,7 +328,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMutualExclusionOfEventsAndFilter()
     {
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
         eventCriteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
@@ -325,6 +335,67 @@ class EventRequestToSearchParamsMapperTest
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
         assertEquals( "Event UIDs and filters can not be specified at the same time", exception.getMessage() );
+    }
+
+    @Test
+    void testOrderByEventSchemaProperties()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertContainsOnly( params.getOrders(),
+            new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
+            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) );
+    }
+
+    @Test
+    void testOrderBySupportedPropertyNotInEventSchema()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setOrder( OrderCriteria.fromOrderString( "enrolledAt:asc" ) );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertContainsOnly( params.getOrders(),
+            new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) );
+    }
+
+    @Test
+    void testOrderFailsForNonSimpleEventProperty()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setOrder( OrderCriteria.fromOrderString( "nonSimple:desc" ) );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+        assertNotNull( exception.getMessage() );
+        String prefix = "Order by property `nonSimple` is not supported";
+        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
+            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+    }
+
+    @Test
+    void testOrderFailsForUnsupportedProperty()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setOrder(
+            OrderCriteria.fromOrderString( "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc" ) );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+        assertNotNull( exception.getMessage() );
+        String prefix = "Order by property `";
+        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
+            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+        // order of properties in exception message might not always be the same
+        String property1 = "unsupportedProperty1";
+        assertTrue( exception.getMessage().contains( property1 ), () -> String
+            .format( "expected message to contain '%s', got '%s' instead", property1, exception.getMessage() ) );
+        String property2 = "unsupportedProperty2";
+        assertTrue( exception.getMessage().contains( property2 ), () -> String
+            .format( "expected message to contain '%s', got '%s' instead", property2, exception.getMessage() ) );
     }
 
     private Date date( String date )
