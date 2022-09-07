@@ -111,6 +111,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -1034,13 +1035,14 @@ public class DataHandler
         DimensionalItemObject dimensionalItem, List<DimensionalItemObject> basePeriods,
         MultiValuedMap<String, DimensionItemObjectValue> valueMap )
     {
-        List<Object> adjustedRow = getAdjustedRow( periodIndex, valueIndex, row, dimensionalItem, basePeriods );
+        Optional<List<Object>> adjustedRow = getAdjustedRow( periodIndex, valueIndex, row, dimensionalItem,
+            basePeriods );
 
-        if ( !isEmpty( adjustedRow ) )
+        if ( adjustedRow.isPresent() )
         {
-            String key = join( remove( adjustedRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
-
-            Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
+            List<Object> aRow = adjustedRow.get();
+            String key = join( remove( aRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
+            Double value = ((Number) aRow.get( valueIndex )).doubleValue();
 
             valueMap.put( key, new DimensionItemObjectValue( dimensionalItem, value ) );
         }
@@ -1086,17 +1088,17 @@ public class DataHandler
         }
     }
 
-    private List<Object> getAdjustedRow( int periodIndex, int valueIndex, List<Object> row,
+    private Optional<List<Object>> getAdjustedRow( int periodIndex, int valueIndex, List<Object> row,
         DimensionalItemObject dimensionalItemObject, List<DimensionalItemObject> basePeriods )
     {
         if ( !hasPeriod( row, periodIndex ) )
         {
-            return row;
+            return Optional.of( row );
         }
 
         if ( row.get( valueIndex ) == null )
         {
-            return emptyList();
+            return Optional.empty();
         }
 
         int periodOffset = (dimensionalItemObject.getQueryMods() == null)
@@ -1113,10 +1115,10 @@ public class DataHandler
 
         if ( !isPeriodInPeriods( (String) adjustedRow.get( periodIndex ), basePeriods ) )
         {
-            return emptyList();
+            return Optional.empty();
         }
 
-        return adjustedRow;
+        return Optional.of( adjustedRow );
     }
 
     /**
