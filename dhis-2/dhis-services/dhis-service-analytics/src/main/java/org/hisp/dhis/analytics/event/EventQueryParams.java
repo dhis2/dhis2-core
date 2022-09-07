@@ -40,7 +40,6 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
-import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -556,11 +555,6 @@ public class EventQueryParams
         {
             dateRangeByDateFilter.put( dateFilter, new DateRange( null, end ) );
         }
-    }
-
-    public boolean containsScheduledDatePeriod()
-    {
-        return dateRangeByDateFilter != null && dateRangeByDateFilter.containsKey( AnalyticsDateFilter.SCHEDULED_DATE );
     }
 
     /**
@@ -1089,30 +1083,6 @@ public class EventQueryParams
         if ( isNotEmpty( eventStatus ) )
         {
             return eventStatus;
-        }
-
-        if ( TimeField.fieldIsValid( timeField ) )
-        {
-            final Optional<TimeField> time = TimeField.of( timeField );
-
-            if ( time.isPresent() )
-            {
-                switch ( time.get() )
-                {
-                case SCHEDULED_DATE:
-                    return Set.of( SCHEDULE );
-                case LAST_UPDATED:
-                    final Set<EventStatus> statuses = new LinkedHashSet<>( DEFAULT_EVENT_STATUS );
-                    statuses.add( SCHEDULE );
-                    return statuses;
-                default:
-                    return DEFAULT_EVENT_STATUS;
-                }
-            }
-        }
-        else if ( containsScheduledDatePeriod() )
-        {
-            return Set.of( SCHEDULE );
         }
 
         return DEFAULT_EVENT_STATUS;
