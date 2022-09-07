@@ -1377,14 +1377,17 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( limit == 0 && !params.isPaging() )
         {
+            if ( teiQueryLimit > 0 )
+            {
+                return limitOffset
+                    .append( LIMIT )
+                    .append( SPACE )
+                    .append( teiQueryLimit )
+                    .append( SPACE )
+                    .toString();
+            }
 
-            return Optional.of( teiQueryLimit ).filter( a -> teiQueryLimit > 0 ).map( a -> limitOffset
-                .append( LIMIT )
-                .append( SPACE )
-                .append( teiQueryLimit )
-                .append( SPACE )
-                .toString() ).orElseGet( limitOffset::toString );
-
+            return limitOffset.toString();
         }
         else if ( limit == 0 && params.isPaging() )
         {
