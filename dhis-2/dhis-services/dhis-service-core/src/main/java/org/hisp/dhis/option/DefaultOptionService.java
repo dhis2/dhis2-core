@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -110,8 +109,12 @@ public class DefaultOptionService
         {
             return;
         }
-        for ( Option option : optionStore.getByUid( IdentifiableObjectUtils.getUids( optionSet.getOptions() ) ) )
+        for ( Option option : optionSet.getOptions() )
         {
+            if ( option.getId() != 0L && option.getCode() == null )
+            {
+                option = optionStore.get( option.getId() );
+            }
             ErrorMessage error = validateOption( optionSet, option );
             if ( error != null )
             {
