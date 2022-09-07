@@ -124,12 +124,10 @@ public class OptionSet
 
     public void removeOption( Option option )
     {
-        if ( options == null || CollectionUtils.isEmpty( options ) )
+        if ( !CollectionUtils.isEmpty( options ) )
         {
-            return;
+            options.remove( option );
         }
-
-        options.remove( option );
     }
 
     @Override
