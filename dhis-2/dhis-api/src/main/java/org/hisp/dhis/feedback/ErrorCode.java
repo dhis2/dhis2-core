@@ -170,6 +170,9 @@ public enum ErrorCode
     E3022( "User already has two factor authentication enabled, disable 2FA before you create a new QR code" ),
     E3023( "Invalid 2FA code" ),
     E3024( "Not allowed to disable 2FA" ),
+    E3025( "User must have a secret" ),
+    E3026( "Could not generate QR code" ),
+    E3027( "No currentUser available" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
