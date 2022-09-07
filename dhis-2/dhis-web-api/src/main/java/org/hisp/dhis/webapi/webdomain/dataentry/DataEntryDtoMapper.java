@@ -25,30 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.LockException;
 
-/**
- * TODO: It should be removed when we will implement new services.
- *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
- */
-@Mapper
-public interface TrackerEventCriteriaMapper
+public class DataEntryDtoMapper
 {
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "occurredAfter", target = "startDate" )
-    @Mapping( source = "occurredBefore", target = "endDate" )
-    @Mapping( source = "scheduledAfter", target = "dueDateStart" )
-    @Mapping( source = "scheduledBefore", target = "dueDateEnd" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollments", target = "programInstances" )
-    EventCriteria toEventCriteria( TrackerEventCriteria from );
+    DataEntryDtoMapper()
+    {
+    }
+
+    /**
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
+     *
+     * @param lockException the {@link LockException}.
+     * @return a {@link LockExceptionDto}.
+     */
+    public static LockExceptionDto toDto( LockException lockException )
+    {
+        return new LockExceptionDto()
+            .setPeriod( lockException.getPeriod().getIsoDate() )
+            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
+            .setDataSet( lockException.getDataSet().getUid() );
+    }
+
+    /**
+     * Converts a {@link CompleteDataSetRegistration} to a
+     * {@link CompleteStatusDto}.
+     *
+     * @param registration the {@link CompleteDataSetRegistration}.
+     * @return a {@link CompleteStatusDto}.
+     */
+    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    {
+        return new CompleteStatusDto()
+            .setComplete( registration.getCompleted() )
+            .setCreated( registration.getDate() )
+            .setCreatedBy( registration.getStoredBy() )
+            .setLastUpdated( registration.getLastUpdated() )
+            .setLastUpdatedBy( registration.getLastUpdatedBy() );
+    }
 }

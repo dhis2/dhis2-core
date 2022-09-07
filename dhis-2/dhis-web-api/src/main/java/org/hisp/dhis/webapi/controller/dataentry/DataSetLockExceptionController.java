@@ -25,26 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
-import com.google.common.collect.ImmutableList;
+import lombok.RequiredArgsConstructor;
 
-class ProgramInstanceQueryParamsTest
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockException;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper;
+import org.hisp.dhis.webapi.webdomain.dataentry.LockExceptionsDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @author Lars Helge Overland
+ */
+@RestController
+@RequiredArgsConstructor
+@RequestMapping( "/dataEntry" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetLockExceptionController
 {
+    private final DataSetService dataSetService;
 
-    @Test
-    void verifyIsSorting()
+    @GetMapping( "/lockExceptions" )
+    public LockExceptionsDto getLockExceptions()
     {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        assertFalse( programInstanceQueryParams.isSorting() );
-        programInstanceQueryParams.setOrder( ImmutableList
-            .of( new OrderParam( "aField", OrderParam.SortDirection.ASC ) ) );
-        assertTrue( programInstanceQueryParams.isSorting() );
+        List<LockException> lockExceptions = dataSetService.getDataWriteLockExceptions();
+
+        return new LockExceptionsDto()
+            .setLockExceptions( mapToList( lockExceptions, DataEntryDtoMapper::toDto ) );
     }
 }

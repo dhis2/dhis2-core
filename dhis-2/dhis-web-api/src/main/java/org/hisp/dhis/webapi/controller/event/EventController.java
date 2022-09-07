@@ -114,7 +114,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -182,7 +181,7 @@ public class EventController
 
     private final SchemaService schemaService;
 
-    private final RequestToSearchParamsMapper requestToSearchParamsMapper;
+    private final EventRequestToSearchParamsMapper requestToSearchParamsMapper;
 
     private final ContextUtils contextUtils;
 

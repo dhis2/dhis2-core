@@ -25,16 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.tracker.TrackerType;
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * DTO which represents the completion status of a form.
+ *
+ * @author Lars Helge Overland
  */
-public interface TrackerDto
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class CompleteStatusDto
 {
-    String getUid();
+    @JsonProperty
+    private boolean complete = false;
 
-    TrackerType getTrackerType();
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private Date lastUpdated;
+
+    @JsonProperty
+    private String lastUpdatedBy;
 }

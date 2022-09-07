@@ -25,26 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.junit.jupiter.api.Test;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.google.common.collect.ImmutableList;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-class ProgramInstanceQueryParamsTest
+/**
+ * DTO which represents lock exceptions.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class LockExceptionsDto
 {
-
-    @Test
-    void verifyIsSorting()
-    {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        assertFalse( programInstanceQueryParams.isSorting() );
-        programInstanceQueryParams.setOrder( ImmutableList
-            .of( new OrderParam( "aField", OrderParam.SortDirection.ASC ) ) );
-        assertTrue( programInstanceQueryParams.isSorting() );
-    }
+    @JsonProperty
+    private List<LockExceptionDto> lockExceptions = new ArrayList<>();
 }

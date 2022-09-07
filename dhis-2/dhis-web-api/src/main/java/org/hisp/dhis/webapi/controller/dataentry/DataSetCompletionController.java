@@ -31,16 +31,15 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
-import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
+import org.hisp.dhis.webapi.webdomain.dataentry.DataSetCompletionDto;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,70 +53,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MinMaxValueController
+public class DataSetCompletionController
 {
-    private final MinMaxDataElementService minMaxValueService;
+    private final CompleteDataSetRegistrationService registrationService;
 
     private final DataValidator dataValidator;
 
-    @PostMapping( "/minMaxValues" )
+    @PostMapping( "/dataSetCompletion" )
     @ResponseStatus( value = HttpStatus.OK )
-    public void saveOrUpdateMinMaxValue( @RequestBody MinMaxValueDto valueDto )
+    public void saveDataSetCompletion( @RequestBody DataSetCompletionDto dto )
     {
-        saveOrUpdateMinMaxDataElement( valueDto );
-    }
-
-    @DeleteMapping( "/minMaxValues" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void removeMinMaxValue( MinMaxValueQueryParams params )
-    {
-        removeMinMaxDataElement( params );
-    }
-
-    /**
-     * Saves or updates a {@link MinMaxDataElement}.
-     *
-     * @param dto the {@link MinMaxValueDto}.
-     */
-    private void saveOrUpdateMinMaxDataElement( MinMaxValueDto dto )
-    {
-        DataElement de = dataValidator.getAndValidateDataElement( dto.getDataElement() );
+        DataSet ds = dataValidator.getAndValidateDataSet( dto.getDataSet() );
+        Period pe = dataValidator.getAndValidatePeriod( dto.getPeriod() );
         OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
-        CategoryOptionCombo coc = dataValidator.getAndValidateCategoryOptionCombo( dto.getCategoryOptionCombo() );
-        dataValidator.validateMinMaxValues( dto.getMinValue(), dto.getMaxValue() );
-        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( ou, de, coc );
+        CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo( dto.getAttribute() );
 
-        if ( value != null )
+        CompleteDataSetRegistration cdr = registrationService.getCompleteDataSetRegistration( ds, pe, ou, aoc );
+
+        if ( cdr != null )
         {
-            value.setMin( dto.getMinValue() );
-            value.setMax( dto.getMaxValue() );
-            value.setGenerated( false );
+            cdr.setCompleted( dto.getCompleted() );
 
-            minMaxValueService.updateMinMaxDataElement( value );
+            registrationService.updateCompleteDataSetRegistration( cdr );
         }
         else
         {
-            value = new MinMaxDataElement( de, ou, coc, dto.getMinValue(), dto.getMaxValue() );
+            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, dto.getCompleted() );
 
-            minMaxValueService.addMinMaxDataElement( value );
-        }
-    }
-
-    /**
-     * Removes a {@link MinMaxDataElement}.
-     *
-     * @param params the {@link MinMaxValueQueryParams}.
-     */
-    private void removeMinMaxDataElement( MinMaxValueQueryParams params )
-    {
-        DataElement de = dataValidator.getAndValidateDataElement( params.getDe() );
-        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
-        CategoryOptionCombo coc = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
-        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( ou, de, coc );
-
-        if ( value != null )
-        {
-            minMaxValueService.deleteMinMaxDataElement( value );
+            registrationService.saveCompleteDataSetRegistration( cdr );
         }
     }
 }

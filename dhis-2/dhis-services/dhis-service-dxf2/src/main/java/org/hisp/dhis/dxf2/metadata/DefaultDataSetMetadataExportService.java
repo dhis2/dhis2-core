@@ -28,15 +28,15 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static com.google.common.collect.Sets.union;
+import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -87,7 +87,7 @@ public class DefaultDataSetMetadataExportService
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
-        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
+        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet,description";
 
     private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator,indicatorType[factor]";
 
@@ -185,10 +185,12 @@ public class DefaultDataSetMetadataExportService
      */
     private Set<OptionSet> getOptionSets( Set<DataElement> dataElements )
     {
-        return dataElements.stream()
-            .map( DataElement::getOptionSet )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() );
+        Set<OptionSet> optionSets = new HashSet<>();
+        dataElements.forEach( de -> {
+            addIfNotNull( optionSets, de.getOptionSet() );
+            addIfNotNull( optionSets, de.getCommentOptionSet() );
+        } );
+        return optionSets;
     }
 
     /**

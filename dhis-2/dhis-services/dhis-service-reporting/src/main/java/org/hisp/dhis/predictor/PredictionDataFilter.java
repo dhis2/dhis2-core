@@ -25,34 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.predictor;
+
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.common.QueryModifiers;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jim Grace
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
+public class PredictionDataFilter
 {
-    List<LockException> getLockExceptions( List<DataSet> dataSets );
+    private PredictionDataFilter()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
 
-    List<LockException> getLockExceptionCombinations();
+    /**
+     * Filters prediction data by minDate/maxDate if specified.
+     *
+     * @param data data to be filtered
+     * @return data that passes minDate/maxDate checks
+     */
+    public static PredictionData filter( PredictionData data )
+    {
+        return (data == null)
+            ? null
+            : new PredictionData( data.getOrgUnit(), filterValues( data.getValues() ), data.getOldPredictions() );
+    }
 
-    void deleteLockExceptions( DataSet dataSet, Period period );
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
-    void deleteLockExceptions( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+    private static List<FoundDimensionItemValue> filterValues( List<FoundDimensionItemValue> values )
+    {
+        return values.stream()
+            .filter( PredictionDataFilter::isValid )
+            .collect( toList() );
+    }
 
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
+    private static boolean isValid( FoundDimensionItemValue item )
+    {
+        QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
 
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
-
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
-
-    boolean anyExists();
+        return mods == null
+            || (mods.getMinDate() == null || !mods.getMinDate().after( item.getPeriod().getStartDate() ))
+                && (mods.getMaxDate() == null || !mods.getMaxDate().before( item.getPeriod().getEndDate() ));
+    }
 }
