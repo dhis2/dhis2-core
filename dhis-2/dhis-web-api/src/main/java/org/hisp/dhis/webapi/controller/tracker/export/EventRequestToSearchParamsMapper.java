@@ -36,7 +36,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -81,6 +80,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventRequestToSearchParamsMapper
 {
+
+    /**
+     * Properties other than the {@link Property#isSimple()} ones on
+     * {@link org.hisp.dhis.dxf2.events.event.Event} which are valid order query
+     * parameter property names. These need to be supported by the underlying
+     * Event store like {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore}
+     * see QUERY_PARAM_COL_MAP.
+     */
+    private static final Set<String> NON_EVENT_SORTABLE_PROPERTIES = Set.of( "enrolledAt", "occurredAt" );
 
     private final CurrentUserService currentUserService;
 
@@ -236,8 +244,10 @@ class EventRequestToSearchParamsMapper
             .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
             .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
             .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
-            .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
             .setEnrollmentEnrolledBefore( eventCriteria.getEnrollmentEnrolledBefore() )
+            .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
+            .setEnrollmentOccurredBefore( eventCriteria.getEnrollmentOccurredBefore() )
+            .setEnrollmentOccurredAfter( eventCriteria.getEnrollmentOccurredAfter() )
             .setEventStatus( eventCriteria.getStatus() )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
             .setPage( eventCriteria.getPage() )
@@ -318,13 +328,9 @@ class EventRequestToSearchParamsMapper
     {
         Set<String> requestProperties = order.stream().map( OrderCriteria::getField ).collect( Collectors.toSet() );
 
-        Stream<String> eventProperties = schema.getProperties().stream().filter( Property::isSimple )
-            .map( Property::getName );
-        // Other properties that we allow to order by that are not in the Event
-        // schema have to be specified in JdbcEventStore.QUERY_PARAM_COL_MAP
-        Stream<String> nonEventProperties = Stream.of( "enrolledAt" );
-        Set<String> allowedProperties = Stream.concat( eventProperties, nonEventProperties )
-            .collect( Collectors.toSet() );
+        Set<String> allowedProperties = schema.getProperties().stream().filter( Property::isSimple )
+            .map( Property::getName ).collect( Collectors.toSet() );
+        allowedProperties.addAll( NON_EVENT_SORTABLE_PROPERTIES );
 
         requestProperties.removeAll( allowedProperties );
         if ( !requestProperties.isEmpty() )

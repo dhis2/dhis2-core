@@ -476,47 +476,6 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
-    void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
-
-        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
-            .collect( Collectors.toList() );
-
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
-    }
-
-    @Test
-    void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
-
-        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
-            .collect( Collectors.toList() );
-
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
-    }
-
-    @Test
-    void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
-
-        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
-            .collect( Collectors.toList() );
-
-        assertIsEmpty( enrollments );
-    }
-
-    @Test
     void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
     {
         EventSearchParams params = new EventSearchParams();
@@ -558,6 +517,129 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
     void testOrderByEnrolledAtDesc()
     {
         EventSearchParams params = new EventSearchParams();
@@ -578,6 +660,36 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByOccurredAtDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByOccurredAtAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
