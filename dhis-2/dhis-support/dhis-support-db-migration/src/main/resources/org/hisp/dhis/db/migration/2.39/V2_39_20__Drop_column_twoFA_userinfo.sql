@@ -1,0 +1,1 @@
+alter table userinfo drop column if exists twoFA;

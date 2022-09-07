@@ -39,6 +39,7 @@ import java.util.List;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -52,6 +53,7 @@ import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -274,8 +276,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testDisable2FAIllegalSameUser()
     {
         switchContextToUser( this.peter );
+        HttpResponse put = PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" );
         assertEquals( "You don't have the proper permissions to update this user.",
-            PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" ).error( HttpStatus.FORBIDDEN )
+            put.error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }
 
@@ -290,8 +293,12 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
         String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
 
+        HttpResponse put = PUT( "/37/users/" + superUser.getUid(), twoFAOn );
+        JsonResponse jsonResponse = put.contentUnchecked();
+        // String content = put.content( "application/json" );
+
         assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
-            PUT( "/37/users/" + superUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+            put.error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }
 
@@ -301,7 +308,8 @@ class UserControllerTest extends DhisControllerConvenienceTest
         // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "ALL" ) );
         newUser.setEmail( "valid@email.com" );
-        newUser.setTwoFA( true );
+        String secret = Base32.random();
+        newUser.setSecret( secret );
         userService.addUser( newUser );
 
         switchContextToUser( newUser );
@@ -309,11 +317,12 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonObject user = GET( "/users/{uid}", newUser.getUid() ).content();
         String userJson = user.toString();
 
-        String twoFAOn = userJson.replaceAll( "\"twoFA\":true", "\"twoFA\":false" );
+        String payload = userJson.replaceAll( "\"secret\":\"" + secret + "\"", "\"secret\":null" );
 
+        HttpResponse put = PUT( "/37/users/" + newUser.getUid(), payload );
         assertEquals(
             "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API",
-            PUT( "/37/users/" + newUser.getUid(), twoFAOn ).error( HttpStatus.FORBIDDEN )
+            put.error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }
 
@@ -323,7 +332,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "TEST" ) );
         newUser.setEmail( "valid@email.com" );
-        newUser.setTwoFA( true );
+        // newUser.setTwoFA( true );
         userService.addUser( newUser );
 
         User superUser = getSuperUser();

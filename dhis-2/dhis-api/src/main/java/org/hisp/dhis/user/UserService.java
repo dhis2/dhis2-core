@@ -512,5 +512,5 @@ public interface UserService
 
     boolean hasTwoFactorRequirementRole( User user );
 
-    void validate2FAUpdate( boolean before, boolean after, User userToModify );
+    void validateTwoFactorUpdate( boolean before, boolean after, User userToModify );
 }

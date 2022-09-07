@@ -125,7 +125,7 @@ public class TwoFactorController
 
         // User already has a secret, throw exception. User need to disable 2FA
         // before enabling again!
-        if ( currentUser.hasTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
+        if ( currentUser.isTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
         {
             throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }

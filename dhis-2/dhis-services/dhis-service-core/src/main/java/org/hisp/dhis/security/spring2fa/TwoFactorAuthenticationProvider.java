@@ -97,7 +97,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         }
 
         // If user has 2FA enabled and tries to authenticate with HTTP Basic
-        if ( user.hasTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails) )
+        if ( user.isTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails) )
         {
             log.info( "User has 2FA enabled" );
             throw new PreAuthenticatedCredentialsNotFoundException(
@@ -107,12 +107,12 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         // If user require 2FA, and it's not enabled/provisioned, redirect to
         // the enrolment page,
         // (via the CustomAuthFailureHandler)
-        if ( !user.hasTwoFactorEnabled() && userService.hasTwoFactorRequirementRole( user ) )
+        if ( !user.isTwoFactorEnabled() && userService.hasTwoFactorRequirementRole( user ) )
         {
             throw new TwoFactorAuthenticationEnrolmentException( "User must setup two factor authentication" );
         }
 
-        if ( user.hasTwoFactorEnabled() )
+        if ( user.isTwoFactorEnabled() )
         {
             validateTwoFactor( details, user );
         }
@@ -157,7 +157,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
     private boolean validateTwoFactorCode( String code, User user )
     {
-        if ( !user.hasTwoFactorEnabled() )
+        if ( !user.isTwoFactorEnabled() )
         {
             throw new IllegalStateException( "User has not enrolled in 2FA" );
         }

@@ -954,7 +954,7 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void validate2FAUpdate( boolean before, boolean after, User userToModify )
+    public void validateTwoFactorUpdate( boolean before, boolean after, User userToModify )
     {
         if ( before == after )
         {
@@ -963,8 +963,6 @@ public class DefaultUserService
 
         if ( !before )
         {
-            // TODO: 13332 When we have 2FA auto provisioning after login, we
-            // can change this.
             throw new UpdateAccessDeniedException( "You can not enable 2FA with this API endpoint, only disable." );
         }
 
@@ -982,11 +980,12 @@ public class DefaultUserService
                 "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
         }
 
-        // As long current is not super, admin can disable any other users 2FA.
-        if ( currentUserDetails.isSuper() )
-        {
-            return;
-        }
+        // // As long current is not super, admin can disable any other users
+        // 2FA.
+        // if ( currentUserDetails.isSuper() )
+        // {
+        // return;
+        // }
 
         // If current user has access to manage this user, they can disable 2FA.
         User currentUser = getUser( currentUserDetails.getUid() );
@@ -996,6 +995,7 @@ public class DefaultUserService
                 String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
                     userToModify ) );
         }
+
         if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
             || !currentUser.canModifyUser( userToModify ) )
         {

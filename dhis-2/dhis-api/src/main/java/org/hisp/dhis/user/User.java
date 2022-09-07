@@ -108,11 +108,6 @@ public class User
     private String password;
 
     /**
-     * Required. Does this user have two factor authentication
-     */
-    private boolean twoFA;
-
-    /**
      * Required. Automatically set in constructor
      */
     private String secret;
@@ -273,7 +268,6 @@ public class User
 
     public User()
     {
-        this.twoFA = false;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
         if ( uuid == null )
@@ -533,7 +527,7 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean hasTwoFactorEnabled()
+    public boolean isTwoFactorEnabled()
     {
         return this.secret != null;
     }
@@ -767,9 +761,6 @@ public class User
         this.settings = settings;
     }
 
-    // -------------------------------------------------------------------------
-    // Two Factor Authentication methods
-    // -------------------------------------------------------------------------
     @Override
     public Collection<GrantedAuthority> getAuthorities()
     {
