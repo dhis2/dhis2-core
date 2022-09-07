@@ -106,7 +106,7 @@ import com.google.common.collect.Lists;
  * Tests aggregation of data in analytics tables.
  *
  * @author Henning Haakonsen (original)
- * @author Jim Grace (break cases into indidual tests)
+ * @author Jim Grace (break cases into individual tests)
  */
 class AnalyticsServiceTest
     extends SingleSetupIntegrationTestBase

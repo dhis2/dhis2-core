@@ -27,45 +27,47 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.analytics.DataQueryParams.DEFAULT_ORG_UNIT_COL;
+import static org.hisp.dhis.analytics.DataQueryParams.ENROLLMENT_OU_COL;
+import static org.hisp.dhis.analytics.DataQueryParams.REGISTRATION_OU_COL;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
- * @author Lars Helge Overland
+ * The type of organisation unit field to use for an event (or enrollment)
+ * analytics query.
+ *
+ * @author Jim Grace
  */
-public enum AnalyticsTableType
+@Getter
+@AllArgsConstructor
+public enum OrgUnitFieldType
 {
-    DATA_VALUE( "analytics", true, true ),
-    COMPLETENESS( "analytics_completeness", true, true ),
-    COMPLETENESS_TARGET( "analytics_completenesstarget", false, false ),
-    ORG_UNIT_TARGET( "analytics_orgunittarget", false, false ),
-    EVENT( "analytics_event", false, true ),
-    ENROLLMENT( "analytics_enrollment", false, false ),
-    OWNERSHIP( "analytics_ownership", false, false ),
-    VALIDATION_RESULT( "analytics_validationresult", true, false );
+    DEFAULT( DEFAULT_ORG_UNIT_COL, DEFAULT_ORG_UNIT_COL ),
+    ATTRIBUTE( null, null ),
+    REGISTRATION( REGISTRATION_OU_COL, REGISTRATION_OU_COL ),
+    ENROLLMENT( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
+    OWNER_AT_START( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
+    OWNER_AT_END( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL );
 
-    private String tableName;
+    /**
+     * The event analytics column name containing the organisation unit UID of
+     * interest (or the backup column name if an ownership type).
+     */
+    private final String eventColumn;
 
-    private boolean periodDimension;
+    /**
+     * The enrollment analytics column name containing the organisation unit UID
+     * of interest (or the backup column name if an ownership type).
+     */
+    private final String enrollmentColumn;
 
-    private boolean latestPartition;
-
-    AnalyticsTableType( String tableName, boolean periodDimension, boolean latestPartition )
+    /**
+     * Returns true if this is an ownership type.
+     */
+    public boolean isOwnership()
     {
-        this.tableName = tableName;
-        this.periodDimension = periodDimension;
-        this.latestPartition = latestPartition;
-    }
-
-    public String getTableName()
-    {
-        return tableName;
-    }
-
-    public boolean hasPeriodDimension()
-    {
-        return periodDimension;
-    }
-
-    public boolean hasLatestPartition()
-    {
-        return latestPartition;
+        return this == OWNER_AT_START || this == OWNER_AT_END;
     }
 }
