@@ -542,9 +542,12 @@ public class JdbcEventAnalyticsManager
                 + ") ";
         }
 
-        sql += hlp.whereAnd() + " psistatus in ("
-            + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-            + ") ";
+        if ( params.hasEventStatus() )
+        {
+            sql += hlp.whereAnd() + " psistatus in ("
+                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
+                + ") ";
+        }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
