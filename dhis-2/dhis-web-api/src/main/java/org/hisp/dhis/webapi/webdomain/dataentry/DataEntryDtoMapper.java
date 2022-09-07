@@ -25,16 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.LockException;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public interface TrackerDto
+public class DataEntryDtoMapper
 {
-    String getUid();
+    DataEntryDtoMapper()
+    {
+    }
 
-    TrackerType getTrackerType();
+    /**
+     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
+     *
+     * @param lockException the {@link LockException}.
+     * @return a {@link LockExceptionDto}.
+     */
+    public static LockExceptionDto toDto( LockException lockException )
+    {
+        return new LockExceptionDto()
+            .setPeriod( lockException.getPeriod().getIsoDate() )
+            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
+            .setDataSet( lockException.getDataSet().getUid() );
+    }
+
+    /**
+     * Converts a {@link CompleteDataSetRegistration} to a
+     * {@link CompleteStatusDto}.
+     *
+     * @param registration the {@link CompleteDataSetRegistration}.
+     * @return a {@link CompleteStatusDto}.
+     */
+    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    {
+        return new CompleteStatusDto()
+            .setComplete( registration.getCompleted() )
+            .setCreated( registration.getDate() )
+            .setCreatedBy( registration.getStoredBy() )
+            .setLastUpdated( registration.getLastUpdated() )
+            .setLastUpdatedBy( registration.getLastUpdatedBy() );
+    }
 }

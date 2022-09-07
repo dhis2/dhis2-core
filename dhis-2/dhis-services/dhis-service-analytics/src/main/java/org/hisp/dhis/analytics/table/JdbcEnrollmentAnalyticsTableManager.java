@@ -122,7 +122,9 @@ public class JdbcEnrollmentAnalyticsTableManager
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
         new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
-            .withIndexType( IndexType.GIST ) );
+            .withIndexType( IndexType.GIST ),
+        new AnalyticsTableColumn( quote( "registrationou" ), CHARACTER_11, NOT_NULL,
+            "coalesce(registrationou.uid,ou.uid)" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -175,6 +177,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "inner join program pr on pi.programid=pr.programid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
+            "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +

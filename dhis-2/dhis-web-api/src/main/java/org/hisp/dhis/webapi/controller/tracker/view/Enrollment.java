@@ -36,7 +36,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Enrollment
-    implements TrackerDto
 {
     @JsonProperty
     private String enrollment;
@@ -126,16 +124,4 @@ public class Enrollment
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
-
-    @Override
-    public String getUid()
-    {
-        return this.enrollment;
-    }
-
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.ENROLLMENT;
-    }
 }

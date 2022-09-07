@@ -214,16 +214,32 @@ public class CollectionUtils
     }
 
     /**
-     * Adds all items not already present in the target collection
+     * Adds an item not already present in the target collection
+     *
+     * @param collection collection to add item to.
+     * @param item item to add.
+     */
+    public static <E> void addUnique( Collection<E> collection, E item )
+    {
+        if ( !collection.contains( item ) )
+        {
+            collection.add( item );
+        }
+    }
+
+    /**
+     * Adds all items not already present in the target collection, preserving
+     * the order of the items added (if the collection preserves them).
      *
      * @param collection collection to add items to.
      * @param items collection of items to add.
      */
-    public static <E> void addAllUnique( Collection<E> collection, Collection<E> items )
+    public static <E> void addAllUnique( Collection<E> collection, Collection<? extends E> items )
     {
-        items.stream()
-            .filter( item -> !collection.contains( item ) )
-            .forEach( item -> collection.add( item ) );
+        for ( E item : items )
+        {
+            addUnique( collection, item );
+        }
     }
 
     /**
@@ -235,6 +251,24 @@ public class CollectionUtils
     public static boolean isEmpty( Collection<?> collection )
     {
         return collection == null || collection.isEmpty();
+    }
+
+    /**
+     * Adds the given object to the given collection if the object is not null.
+     *
+     * @param <T>
+     * @param collection the collection.
+     * @param object the object to add.
+     * @return true if this collection changed as a result of the call.
+     */
+    public static <T> boolean addIfNotNull( Collection<T> collection, T object )
+    {
+        if ( object != null )
+        {
+            return collection.add( object );
+        }
+
+        return false;
     }
 
     /**

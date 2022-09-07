@@ -213,7 +213,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
         assertTrue( queryParams.getOrders().stream().anyMatch( orderParam -> orderParam
-            .equals( OrderParam.builder().field( "created" ).direction( OrderParam.SortDirection.ASC ).build() ) ) );
+            .equals( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) ) );
     }
 
     @Test

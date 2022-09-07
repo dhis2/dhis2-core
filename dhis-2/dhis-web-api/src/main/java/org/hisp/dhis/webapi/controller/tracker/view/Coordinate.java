@@ -32,8 +32,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.system.util.ValidationUtils;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -50,14 +48,4 @@ public class Coordinate
 
     @JsonProperty
     private Double longitude;
-
-    public boolean isValid()
-    {
-        return ValidationUtils.coordinateIsValid( getCoordinateString() );
-    }
-
-    public String getCoordinateString()
-    {
-        return "[" + longitude + "," + latitude + "]";
-    }
 }

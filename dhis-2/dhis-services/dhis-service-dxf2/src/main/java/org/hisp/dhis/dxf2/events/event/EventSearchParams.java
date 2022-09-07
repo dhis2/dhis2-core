@@ -141,6 +141,14 @@ public class EventSearchParams
 
     private Date dueDateEnd;
 
+    private Date enrollmentEnrolledBefore;
+
+    private Date enrollmentEnrolledAfter;
+
+    private Date enrollmentOccurredBefore;
+
+    private Date enrollmentOccurredAfter;
+
     private CategoryOptionCombo categoryOptionCombo;
 
     private IdSchemes idSchemes = new IdSchemes();
@@ -510,6 +518,50 @@ public class EventSearchParams
     public EventSearchParams setDueDateEnd( Date dueDateEnd )
     {
         this.dueDateEnd = dueDateEnd;
+        return this;
+    }
+
+    public Date getEnrollmentEnrolledBefore()
+    {
+        return enrollmentEnrolledBefore;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledBefore( Date enrollmentEnrolledBefore )
+    {
+        this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
+        return this;
+    }
+
+    public Date getEnrollmentEnrolledAfter()
+    {
+        return enrollmentEnrolledAfter;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledAfter( Date enrollmentEnrolledAfter )
+    {
+        this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredBefore()
+    {
+        return enrollmentOccurredBefore;
+    }
+
+    public EventSearchParams setEnrollmentOccurredBefore( Date enrollmentOccurredBefore )
+    {
+        this.enrollmentOccurredBefore = enrollmentOccurredBefore;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredAfter()
+    {
+        return enrollmentOccurredAfter;
+    }
+
+    public EventSearchParams setEnrollmentOccurredAfter( Date enrollmentOccurredAfter )
+    {
+        this.enrollmentOccurredAfter = enrollmentOccurredAfter;
         return this;
     }
 

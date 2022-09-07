@@ -25,19 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.parser.expression.function;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * @author Luciano Fiandesio
+ * Function yearToDate
+ *
+ * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
-public enum UserOrgUnitType
+public class FunctionYearToDate
+    implements ExpressionItem
 {
-    DATA_CAPTURE,
-    DATA_OUTPUT,
-    TEI_SEARCH
+    @Override
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate( true ).build();
+
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
+    }
 }

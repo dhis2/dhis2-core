@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
+import static org.hisp.dhis.predictor.PredictionDataFilter.filter;
 import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.createPredictionDisaggregator;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
@@ -253,7 +254,7 @@ public class DefaultPredictionService
 
             PredictionData data;
 
-            while ( (data = consolidator.getData()) != null )
+            while ( (data = filter( consolidator.getData() )) != null )
             {
                 List<DataValue> predictions = new ArrayList<>();
 

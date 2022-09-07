@@ -25,30 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * TODO: It should be removed when we will implement new services.
- *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
+ * @author Lars Helge Overland
  */
-@Mapper
-public interface TrackerEventCriteriaMapper
+@RestController
+@RequiredArgsConstructor
+@RequestMapping( "/dataEntry" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetMetadataController
 {
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "occurredAfter", target = "startDate" )
-    @Mapping( source = "occurredBefore", target = "endDate" )
-    @Mapping( source = "scheduledAfter", target = "dueDateStart" )
-    @Mapping( source = "scheduledBefore", target = "dueDateEnd" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollments", target = "programInstances" )
-    EventCriteria toEventCriteria( TrackerEventCriteria from );
+    private final DataSetMetadataExportService exportService;
+
+    @GetMapping( "/metadata" )
+    public ResponseEntity<JsonNode> getMetadata()
+    {
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+    }
 }
