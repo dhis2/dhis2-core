@@ -171,7 +171,7 @@ public enum ErrorCode
     E3023( "Invalid 2FA code" ),
     E3024( "Not allowed to disable 2FA" ),
     E3025( "User must have a secret" ),
-    E3026( "Couldn't generate QR code" ),
+    E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
 
     /* Metadata Validation */
