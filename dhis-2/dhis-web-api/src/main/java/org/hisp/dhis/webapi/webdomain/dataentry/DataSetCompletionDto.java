@@ -25,30 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * TODO: It should be removed when we will implement new services.
+ * DTO which represents a complete data set registration.
  *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
+ * @author Lars Helge Overland
  */
-@Mapper
-public interface TrackerEventCriteriaMapper
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataSetCompletionDto
 {
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "occurredAfter", target = "startDate" )
-    @Mapping( source = "occurredBefore", target = "endDate" )
-    @Mapping( source = "scheduledAfter", target = "dueDateStart" )
-    @Mapping( source = "scheduledBefore", target = "dueDateEnd" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollments", target = "programInstances" )
-    EventCriteria toEventCriteria( TrackerEventCriteria from );
+    @JsonProperty
+    private String dataSet;
+
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
+    private Boolean completed;
 }
