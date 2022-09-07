@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.dataentry;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -67,18 +68,19 @@ public class DataSetCompletionController
         Period pe = dataValidator.getAndValidatePeriod( dto.getPeriod() );
         OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
         CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo( dto.getAttribute() );
+        boolean completed = ObjectUtils.firstNonNull( dto.getCompleted(), Boolean.TRUE );
 
         CompleteDataSetRegistration cdr = registrationService.getCompleteDataSetRegistration( ds, pe, ou, aoc );
 
         if ( cdr != null )
         {
-            cdr.setCompleted( dto.getCompleted() );
+            cdr.setCompleted( completed );
 
             registrationService.updateCompleteDataSetRegistration( cdr );
         }
         else
         {
-            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, dto.getCompleted() );
+            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, completed );
 
             registrationService.saveCompleteDataSetRegistration( cdr );
         }
