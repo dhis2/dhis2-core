@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.calendar.DateTimeUnit.fromJdkDate;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -92,31 +93,26 @@ public class ItemYearlyPeriodCount
 
     private double weeksInYear( Period period )
     {
-        String isoDate = period.getIsoDate();
-        String testIsoString = isoDate.replaceAll( "\\d+$", "52" );
-        Period testPeriod = getPeriodFromIsoString( testIsoString );
-        DateTimeUnit testEndDate = fromJdkDate( testPeriod.getEndDate() );
-
-        if ( testEndDate.getMonth() == 12 && testEndDate.getDay() < 28 )
-        {
-            return 53;
-        }
-
-        return 52;
+        return testLastPeriodInYear( period, 52 );
     }
 
     private double biWeeksInYear( Period period )
     {
+        return testLastPeriodInYear( period, 26 );
+    }
+
+    private double testLastPeriodInYear( Period period, int count )
+    {
         String isoDate = period.getIsoDate();
-        String testIsoString = isoDate.replaceAll( "\\d+$", "26" );
+        String testIsoString = isoDate.replaceAll( "\\d+$", valueOf( count ) );
         Period testPeriod = getPeriodFromIsoString( testIsoString );
         DateTimeUnit testEndDate = fromJdkDate( testPeriod.getEndDate() );
 
         if ( testEndDate.getMonth() == 12 && testEndDate.getDay() < 28 )
         {
-            return 27;
+            return 1.0 + count;
         }
 
-        return 26;
+        return count;
     }
 }

@@ -228,7 +228,7 @@ public class PeriodOffsetUtils
 
     /**
      * Shifts a list of periods according to a period offset. The list order is
-     * preserived.
+     * preserved.
      */
     private static List<Period> shiftPeriods( List<DimensionalItemObject> periods, int periodOffset )
     {
@@ -243,7 +243,7 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Finds all periods needed for a year-to-date periods. Periods are added in
+     * Finds all periods needed for a year-to-date period. Periods are added in
      * list order.
      */
     private static List<Period> yearToDatePeriods( List<DimensionalItemObject> periods )
@@ -293,8 +293,8 @@ public class PeriodOffsetUtils
 
         if ( existingRow != null )
         {
-            Double existingValue = ((Number) existingRow.get( valueIndex )).doubleValue();
-            Double newValue = ((Number) targetRow.get( valueIndex )).doubleValue();
+            double existingValue = ((Number) existingRow.get( valueIndex )).doubleValue();
+            double newValue = ((Number) targetRow.get( valueIndex )).doubleValue();
             existingRow.set( valueIndex, existingValue + newValue );
         }
         else

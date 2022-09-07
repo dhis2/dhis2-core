@@ -96,20 +96,21 @@ public class ItemPeriodInYear
 
     private double dayOfYear( Period period )
     {
-        Calendar cal = Calendar.getInstance();
-
-        cal.setTime( period.getStartDate() );
-
-        return cal.get( DAY_OF_YEAR );
+        return getCal( period ).get( DAY_OF_YEAR );
     }
 
     private double monthOfYear( Period period )
+    {
+        return 1.0 + getCal( period ).get( MONTH );
+    }
+
+    private Calendar getCal( Period period )
     {
         Calendar cal = Calendar.getInstance();
 
         cal.setTime( period.getStartDate() );
 
-        return 1 + cal.get( MONTH );
+        return cal;
     }
 
     private double trailingDigits( Period period )
