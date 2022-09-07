@@ -27,20 +27,32 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+
+import javax.sql.rowset.RowSetMetaDataImpl;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -51,6 +63,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,6 +75,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +83,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Lists;
 
@@ -145,7 +162,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
         QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.NUMBER );
+        item.setValueType( NUMBER );
 
         String column = subject.getSelectSql( item, from, to );
 
@@ -339,5 +356,73 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
+    }
+
+    @Test
+    public void testAddGridValueForDoubleObject()
+        throws SQLException
+    {
+        // Given
+        Double doubleObject = 35.5d;
+        int index = 1;
+
+        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "col-1" );
+        metaData.setColumnName( 2, "col-2" );
+
+        ResultSet resultSet = mock( ResultSet.class );
+        when( resultSet.getObject( index ) ).thenReturn( doubleObject );
+        when( resultSet.getMetaData() ).thenReturn( metaData );
+
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .withSkipRounding( false ).build();
+
+        GridHeader header = new GridHeader( "header-1", "column-1", NUMBER, false, false );
+        Grid grid = new ListGrid();
+        grid.addHeader( header );
+        grid.addRow();
+
+        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+
+        // When
+        subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
+
+        // Then
+        assertTrue( grid.getColumn( 0 ).contains( doubleObject ) );
+    }
+
+    @Test
+    public void testAddGridValueForNull()
+        throws SQLException
+    {
+        // Given
+        Double nullObject = null;
+        int index = 1;
+
+        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        metaData.setColumnCount( 2 );
+        metaData.setColumnName( 1, "col-1" );
+        metaData.setColumnName( 2, "col-2" );
+
+        ResultSet resultSet = mock( ResultSet.class );
+        when( resultSet.getObject( index ) ).thenReturn( nullObject );
+        when( resultSet.getMetaData() ).thenReturn( metaData );
+
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .withSkipRounding( false ).build();
+
+        GridHeader header = new GridHeader( "header-1", "column-1", NUMBER, false, false );
+        Grid grid = new ListGrid();
+        grid.addHeader( header );
+        grid.addRow();
+
+        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+
+        // When
+        subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
+
+        // Then
+        assertTrue( grid.getColumn( 0 ).contains( EMPTY ) );
     }
 }
