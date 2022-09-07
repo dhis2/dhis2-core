@@ -25,36 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expression.dataitem;
+package org.hisp.dhis.parser.expression.function;
 
-import static org.hisp.dhis.expression.ExpressionService.DAYS_DESCRIPTION;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * Expression item [days]
+ * Function yearToDate
  *
  * @author Jim Grace
  */
-public class ItemDays
+public class FunctionYearToDate
     implements ExpressionItem
 {
     @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Integer days = visitor.getParams().getDays();
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate( true ).build();
 
-        return days == null ? null : Double.valueOf( days );
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
 }
