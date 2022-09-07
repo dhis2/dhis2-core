@@ -78,8 +78,7 @@ public class DataSetCompletionController
         }
         else
         {
-            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc );
-            cdr.setCompleted( dto.getCompleted() );
+            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, dto.getCompleted() );
 
             registrationService.saveCompleteDataSetRegistration( cdr );
         }

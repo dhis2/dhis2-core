@@ -84,12 +84,13 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo attributeOptionCombo, Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
         this.source = source;
         this.attributeOptionCombo = attributeOptionCombo;
+        this.completed = completed;
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,

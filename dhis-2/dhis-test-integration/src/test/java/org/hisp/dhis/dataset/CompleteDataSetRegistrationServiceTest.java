@@ -180,7 +180,7 @@ class CompleteDataSetRegistrationServiceTest extends SingleSetupIntegrationTestB
     void testSaveAutoProperties()
     {
         CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSetA, periodA, sourceA,
-            optionCombo );
+            optionCombo, true );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registration );
         registration = completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetA, periodA, sourceA,
             optionCombo );

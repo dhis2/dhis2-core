@@ -107,7 +107,7 @@ public class HibernateCompleteDataSetRegistrationStore
 
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root,
-                new CompleteDataSetRegistration( dataSet, storedPeriod, source, attributeOptionCombo ) ) ) );
+                new CompleteDataSetRegistration( dataSet, storedPeriod, source, attributeOptionCombo, null ) ) ) );
     }
 
     @Override
