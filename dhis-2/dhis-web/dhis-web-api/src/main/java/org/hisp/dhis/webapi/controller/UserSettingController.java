@@ -115,7 +115,7 @@ public class UserSettingController
         return result;
     }
 
-    @GetMapping( value = "/{key}" )
+    @GetMapping( value = "/{key}", produces = "text/plain" )
     public String getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
