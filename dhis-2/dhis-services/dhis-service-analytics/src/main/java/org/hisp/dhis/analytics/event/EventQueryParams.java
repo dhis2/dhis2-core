@@ -879,7 +879,7 @@ public class EventQueryParams
 
     public boolean hasEventStatus()
     {
-        return isNotEmpty( eventStatus );
+        return isNotEmpty( getEventStatus() );
     }
 
     public boolean hasValueDimension()
@@ -1080,12 +1080,7 @@ public class EventQueryParams
 
     public Set<EventStatus> getEventStatus()
     {
-        if ( isNotEmpty( eventStatus ) )
-        {
-            return eventStatus;
-        }
-
-        return DEFAULT_EVENT_STATUS;
+        return eventStatus;
     }
 
     public boolean isCollapseDataDimensions()
