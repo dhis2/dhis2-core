@@ -467,8 +467,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY,
-                DimensionType.CATEGORY_OPTION_GROUP_SET ) );
+            Sets.newHashSet( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -476,6 +475,20 @@ public class JdbcEventAnalyticsManager
 
             sql += hlp.whereAnd() + " " + col + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+        }
+
+        dynamicDimensions = params
+            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+
+        for ( DimensionalObject dim : dynamicDimensions )
+        {
+            if ( !dim.isAllItems() )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+
+                sql += hlp.whereAnd() + " " + col + OPEN_IN
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
         }
 
         // ---------------------------------------------------------------------
@@ -529,9 +542,12 @@ public class JdbcEventAnalyticsManager
                 + ") ";
         }
 
-        sql += hlp.whereAnd() + " psistatus in ("
-            + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
-            + ") ";
+        if ( params.hasEventStatus() )
+        {
+            sql += hlp.whereAnd() + " psistatus in ("
+                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
+                + ") ";
+        }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {

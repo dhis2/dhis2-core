@@ -265,13 +265,26 @@ public class JdbcEnrollmentAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+            Sets.newHashSet( DimensionType.CATEGORY ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
 
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+        }
+
+        dynamicDimensions = params
+            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+
+        for ( DimensionalObject dim : dynamicDimensions )
+        {
+            if ( !dim.isAllItems() )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+
+                sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
         }
 
         // ---------------------------------------------------------------------

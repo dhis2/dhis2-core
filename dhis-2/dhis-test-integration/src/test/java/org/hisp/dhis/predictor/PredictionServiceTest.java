@@ -1477,6 +1477,33 @@ class PredictionServiceTest extends IntegrationTestBase
     }
 
     @Test
+    void testPredictMinMaxDate()
+    {
+        useDataValue( dataElementA, makeMonth( 2022, 7 ), sourceA, 1 );
+        useDataValue( dataElementA, makeMonth( 2022, 8 ), sourceA, 2 );
+        useDataValue( dataElementA, makeMonth( 2022, 9 ), sourceA, 4 );
+
+        useDataValue( dataElementB, makeMonth( 2022, 7 ), sourceA, 8 );
+        useDataValue( dataElementB, makeMonth( 2022, 8 ), sourceA, 16 );
+        useDataValue( dataElementB, makeMonth( 2022, 9 ), sourceA, 32 );
+
+        dataValueBatchHandler.flush();
+
+        String expectedValue = String.valueOf( 1 + 2 + 4 + 16 );
+
+        String expr = "sum( #{" + dataElementA.getUid() + "} + #{" +
+            dataElementB.getUid() + "}.minDate(2022-8-1).maxDate(2022-9-1) )";
+
+        Expression expression = new Expression( expr, "description" );
+        Predictor p = createPredictor( dataElementC, null, "P", expression, null, periodTypeMonthly,
+            orgUnitLevel1, 3, 0, 0 );
+
+        predictionService.predict( p, monthStart( 2022, 10 ), monthStart( 2022, 11 ), summary );
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( expectedValue, getDataValue( dataElementC, defaultCombo, sourceA, makeMonth( 2022, 10 ) ) );
+    }
+
+    @Test
     void testOrderWithinPredictorGroup()
     {
         useDataValue( dataElementA, makeMonth( 2021, 12 ), sourceA, defaultCombo, "0" );

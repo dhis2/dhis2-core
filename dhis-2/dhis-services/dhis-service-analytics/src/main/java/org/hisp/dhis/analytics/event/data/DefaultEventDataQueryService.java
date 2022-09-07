@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDA
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -118,6 +119,8 @@ public class DefaultEventDataQueryService
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
 
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
+
+    private static final String COL_NAME_DUEDATE = "duedate";
 
     private final ProgramService programService;
 
@@ -578,6 +581,7 @@ public class DefaultEventDataQueryService
         ENROLLMENT_DATE( ITEM_ENROLLMENT_DATE, COL_NAME_ENROLLMENTDATE ),
         INCIDENT_DATE( ITEM_INCIDENT_DATE, COL_NAME_INCIDENTDATE ),
         EVENT_DATE( ITEM_EVENT_DATE, COL_NAME_EVENTDATE ),
+        SCHEDULED_DATE( ITEM_SCHEDULED_DATE, COL_NAME_DUEDATE ),
         ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME ),
         ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE ),
         PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS_EVENTS, COL_NAME_PROGRAM_STATUS_ENROLLMENTS ),

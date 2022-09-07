@@ -28,35 +28,104 @@
 package org.hisp.dhis.security;
 
 import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
+import static org.hisp.dhis.feedback.ErrorCode.E3025;
+import static org.hisp.dhis.feedback.ErrorCode.E3026;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.function.Consumer;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.user.User;
 import org.jboss.aerogear.security.otp.Totp;
 
 import com.google.common.base.Strings;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 /**
  * @author Henning Håkonsen
  * @author Morten Svanæs
  */
+@Slf4j
 public class TwoFactoryAuthenticationUtils
 {
+    private TwoFactoryAuthenticationUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     private static final String APP_NAME_PREFIX = "DHIS 2 ";
 
     private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
 
     /**
+     * Generate QR code in PNG format based on given qrContent.
+     *
+     * @param qrContent content to be used for generating the QR code.
+     * @param width width of the generated PNG image.
+     * @param height height of the generated PNG image.
+     * @return PNG image as byte array.
+     */
+    public static byte[] generateQRCode( String qrContent, int width, int height, Consumer<ErrorCode> errorCode )
+    {
+        try
+        {
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode( qrContent, BarcodeFormat.QR_CODE, width, height );
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            MatrixToImageWriter.writeToStream( bitMatrix, "PNG", byteArrayOutputStream );
+            return byteArrayOutputStream.toByteArray();
+        }
+        catch ( WriterException | IOException e )
+        {
+            log.error( e.getMessage(), e );
+            errorCode.accept( E3026 );
+            return ArrayUtils.EMPTY_BYTE_ARRAY;
+        }
+    }
+
+    /**
+     * Generate QR content based on given appName and {@link User}
+     *
+     * @param appName app name to be used for generating QR content.
+     * @param user {@link User} which the QR Code is generated for.
+     * @return a String which can be used for generating a QR code by calling
+     *         method
+     *         {@link TwoFactoryAuthenticationUtils#generateQRCode(String, int, int, Consumer)}
+     */
+    public static String generateQrContent( String appName, User user, Consumer<ErrorCode> errorCode )
+    {
+        String secret = user.getSecret();
+
+        if ( Strings.isNullOrEmpty( secret ) )
+        {
+            errorCode.accept( E3025 );
+        }
+
+        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
+
+        return String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+            app, user.getUsername(), secret, app );
+    }
+
+    /**
      * Generates a QR URL using Google chart API.
      *
+     * @deprecated Use {@link #generateQRCode(String, int, int, Consumer)}
      * @param appName the name of the DHIS 2 instance.
      * @param user the user to generate the URL for.
      * @return a QR URL.
      */
+    @Deprecated( since = "2.39" )
     public static String generateQrUrl( String appName, User user )
     {
         String secret = user.getSecret();
@@ -79,6 +148,7 @@ public class TwoFactoryAuthenticationUtils
         }
         catch ( UnsupportedEncodingException ex )
         {
+            log.error( ex.getMessage(), ex );
             throw new RuntimeException( "Failed to encode QR URL", ex );
         }
     }
