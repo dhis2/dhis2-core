@@ -202,6 +202,7 @@ public class JdbcEventStore implements EventStore
         .put( EVENT_PROGRAM_STAGE_ID, "ps_uid" )
         .put( EVENT_ENROLLMENT_ID, "pi_uid" )
         .put( "enrollmentStatus", "pi_status" )
+        .put( "enrolledAt", "pi_enrollmentdate" )
         .put( EVENT_ORG_UNIT_ID, "ou_uid" )
         .put( EVENT_ORG_UNIT_NAME, "ou_name" )
         .put( "trackedEntityInstance", "tei_uid" )
@@ -1015,7 +1016,8 @@ public class JdbcEventStore implements EventStore
             selectBuilder.append( "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
-        selectBuilder.append( "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, " )
+        selectBuilder.append(
+            "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, " )
             .append( "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, " )
             .append(
                 "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive " );
@@ -1105,6 +1107,24 @@ public class JdbcEventStore implements EventStore
             fromBuilder.append( hlp.whereAnd() )
                 .append( " pi.status = " )
                 .append( ":program_status " );
+        }
+
+        if ( params.getEnrollmentEnrolledBefore() != null )
+        {
+            mapSqlParameterSource.addValue( "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(),
+                Types.TIMESTAMP );
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (pi.enrollmentdate <= :enrollmentEnrolledBefore ) " );
+        }
+
+        if ( params.getEnrollmentEnrolledAfter() != null )
+        {
+            mapSqlParameterSource.addValue( "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(),
+                Types.TIMESTAMP );
+            fromBuilder
+                .append( hlp.whereAnd() )
+                .append( " (pi.enrollmentdate >= :enrollmentEnrolledAfter ) " );
         }
 
         if ( params.getFollowUp() != null )

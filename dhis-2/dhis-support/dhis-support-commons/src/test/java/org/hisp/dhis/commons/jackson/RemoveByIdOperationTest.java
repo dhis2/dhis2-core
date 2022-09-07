@@ -31,10 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -48,104 +44,62 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
-/**
- * @author Morten Olav Hansen
- */
-class RemoveOperationTest
+class RemoveByIdOperationTest
 {
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    void testRemoveInvalidKeyShouldThrowException()
+    void testRemoveInvalidProperty()
         throws JsonProcessingException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"remove\", \"path\": \"/aaa\"}" + "]",
+        JsonPatch patch = jsonMapper.readValue(
+            "[" + "{\"op\": \"remove-by-id\", \"path\": \"/aaa\", \"id\":\"id\"}" + "]",
             JsonPatch.class );
         assertNotNull( patch );
         JsonNode root = jsonMapper.createObjectNode();
-        assertFalse( root.has( "aaa" ) );
+        assertFalse( root.has( "organisationUnits" ) );
         assertThrows( JsonPatchException.class, () -> patch.apply( root ) );
     }
 
     @Test
-    void testRemoveProperty()
+    void testRemoveNotExistId()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"remove\", \"path\": \"/aaa\"}" + "]",
+        JsonPatch patch = jsonMapper.readValue(
+            "[" + "{\"op\": \"remove-by-id\", \"path\": \"/organisationUnits\", \"id\":\"pmmYPHSIvaP\"}" + "]",
             JsonPatch.class );
         assertNotNull( patch );
+        ObjectNode orgUnit = jsonMapper.createObjectNode();
+        orgUnit.set( "id", TextNode.valueOf( "MVrhJ3jWCWm" ) );
+        ArrayNode orgUnits = jsonMapper.createArrayNode();
+        orgUnits.add( orgUnit );
         ObjectNode root = jsonMapper.createObjectNode();
-        root.set( "aaa", TextNode.valueOf( "bbb" ) );
-        assertTrue( root.has( "aaa" ) );
-        root = (ObjectNode) patch.apply( root );
-        assertFalse( root.has( "aaa" ) );
+        root.set( "organisationUnits", orgUnits );
+        patch.apply( root );
+
+        // OrgUnit is not removed because the patch id is not the same as the
+        // existing one.
+        assertEquals( 1, root.get( "organisationUnits" ).size() );
+        assertEquals( "MVrhJ3jWCWm", root.get( "organisationUnits" ).get( 0 ).get( "id" ).asText() );
     }
 
     @Test
-    void testRemovePropertyFromMap()
+    void testRemoveByIdOk()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"remove\", \"path\": \"/props/id\"}" + "]",
+        JsonPatch patch = jsonMapper.readValue(
+            "[" + "{\"op\": \"remove-by-id\", \"path\": \"/organisationUnits\", \"id\":\"pmmYPHSIvaP\"}" + "]",
             JsonPatch.class );
         assertNotNull( patch );
-        Map<String, String> map = new HashMap<>();
-        map.put( "id", "123" );
+        ObjectNode orgUnit = jsonMapper.createObjectNode();
+        orgUnit.set( "id", TextNode.valueOf( "pmmYPHSIvaP" ) );
+        ArrayNode orgUnits = jsonMapper.createArrayNode();
+        orgUnits.add( orgUnit );
         ObjectNode root = jsonMapper.createObjectNode();
-        root.set( "props", jsonMapper.valueToTree( map ) );
-        assertTrue( root.has( "props" ) );
-        assertTrue( root.get( "props" ).has( "id" ) );
-        root = (ObjectNode) patch.apply( root );
-        assertTrue( root.has( "props" ) );
-        assertFalse( root.get( "props" ).has( "id" ) );
-    }
-
-    @Test
-    void testRemovePropertyArrayLastIndex()
-        throws JsonProcessingException,
-        JsonPatchException
-    {
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"remove\", \"path\": \"/aaa/2\"}" + "]",
-            JsonPatch.class );
-        assertNotNull( patch );
-        ObjectNode root = jsonMapper.createObjectNode();
-        ArrayNode arrayNode = jsonMapper.createArrayNode();
-        arrayNode.add( 10 );
-        arrayNode.add( 20 );
-        arrayNode.add( 30 );
-        root.set( "aaa", arrayNode );
-        assertTrue( root.has( "aaa" ) );
-        assertEquals( 3, arrayNode.size() );
-        root = (ObjectNode) patch.apply( root );
-        arrayNode = (ArrayNode) root.get( "aaa" );
-        assertNotNull( arrayNode );
-        assertEquals( 2, arrayNode.size() );
-        assertEquals( 10, arrayNode.get( 0 ).asInt() );
-        assertEquals( 20, arrayNode.get( 1 ).asInt() );
-    }
-
-    @Test
-    void testRemovePropertyArray2ndIndex()
-        throws JsonProcessingException,
-        JsonPatchException
-    {
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"remove\", \"path\": \"/aaa/1\"}" + "]",
-            JsonPatch.class );
-        assertNotNull( patch );
-        ObjectNode root = jsonMapper.createObjectNode();
-        ArrayNode arrayNode = jsonMapper.createArrayNode();
-        arrayNode.add( 10 );
-        arrayNode.add( 20 );
-        arrayNode.add( 30 );
-        root.set( "aaa", arrayNode );
-        assertTrue( root.has( "aaa" ) );
-        assertEquals( 3, arrayNode.size() );
-        root = (ObjectNode) patch.apply( root );
-        arrayNode = (ArrayNode) root.get( "aaa" );
-        assertNotNull( arrayNode );
-        assertEquals( 2, arrayNode.size() );
-        assertEquals( 10, arrayNode.get( 0 ).asInt() );
-        assertEquals( 30, arrayNode.get( 1 ).asInt() );
+        root.set( "organisationUnits", orgUnits );
+        patch.apply( root );
+        assertEquals( 0, root.get( "organisationUnits" ).size() );
     }
 }

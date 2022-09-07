@@ -25,45 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.dataentry;
+package org.hisp.dhis.predictor;
 
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dataset.LockException;
+import static java.util.stream.Collectors.toList;
 
-public class DataEntryDtoMapper
+import java.util.List;
+
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.common.QueryModifiers;
+
+/**
+ * @author Jim Grace
+ */
+public class PredictionDataFilter
 {
-    DataEntryDtoMapper()
+    private PredictionDataFilter()
     {
+        throw new UnsupportedOperationException( "util" );
     }
 
     /**
-     * Converts a {@link LockException} object to a {@link LockExceptionDto}.
+     * Filters prediction data by minDate/maxDate if specified.
      *
-     * @param lockException the {@link LockException}.
-     * @return a {@link LockExceptionDto}.
+     * @param data data to be filtered
+     * @return data that passes minDate/maxDate checks
      */
-    public static LockExceptionDto toDto( LockException lockException )
+    public static PredictionData filter( PredictionData data )
     {
-        return new LockExceptionDto()
-            .setPeriod( lockException.getPeriod().getIsoDate() )
-            .setOrgUnit( lockException.getOrganisationUnit().getUid() )
-            .setDataSet( lockException.getDataSet().getUid() );
+        return (data == null)
+            ? null
+            : new PredictionData( data.getOrgUnit(), filterValues( data.getValues() ), data.getOldPredictions() );
     }
 
-    /**
-     * Converts a {@link CompleteDataSetRegistration} to a
-     * {@link CompleteStatusDto}.
-     *
-     * @param registration the {@link CompleteDataSetRegistration}.
-     * @return a {@link CompleteStatusDto}.
-     */
-    public static CompleteStatusDto toDto( CompleteDataSetRegistration registration )
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
+
+    private static List<FoundDimensionItemValue> filterValues( List<FoundDimensionItemValue> values )
     {
-        return new CompleteStatusDto()
-            .setComplete( registration.getCompleted() )
-            .setCreated( registration.getDate() )
-            .setCreatedBy( registration.getStoredBy() )
-            .setLastUpdated( registration.getLastUpdated() )
-            .setLastUpdatedBy( registration.getLastUpdatedBy() );
+        return values.stream()
+            .filter( PredictionDataFilter::isValid )
+            .collect( toList() );
+    }
+
+    private static boolean isValid( FoundDimensionItemValue item )
+    {
+        QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
+
+        return mods == null
+            || (mods.getMinDate() == null || !mods.getMinDate().after( item.getPeriod().getStartDate() ))
+                && (mods.getMaxDate() == null || !mods.getMaxDate().before( item.getPeriod().getEndDate() ));
     }
 }
