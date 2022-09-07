@@ -504,7 +504,7 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
-    void testEnrollmentEnrolledAfterGreaterThanLastEnrolledAtDate()
+    void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
@@ -514,6 +514,47 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
     }
 
     @Test
