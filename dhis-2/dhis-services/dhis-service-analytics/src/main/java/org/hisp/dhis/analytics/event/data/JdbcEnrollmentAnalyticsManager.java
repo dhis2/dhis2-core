@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -128,18 +129,31 @@ public class JdbcEnrollmentAnalyticsManager
 
             for ( GridHeader header : grid.getHeaders() )
             {
-                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
-                else
-                {
-                    grid.addValue( rowSet.getString( index ) );
-                }
-
+                addGridValue( grid, header, index, rowSet, params );
                 index++;
             }
+        }
+    }
+
+    protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet rowSet, EventQueryParams params )
+    {
+        if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+        {
+            Object value = rowSet.getObject( index );
+            boolean isDouble = value instanceof Double;
+
+            if ( value == null || (isDouble && Double.isNaN( (Double) value )) )
+            {
+                grid.addValue( EMPTY );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+            }
+        }
+        else
+        {
+            grid.addValue( rowSet.getString( index ) );
         }
     }
 
@@ -419,7 +433,7 @@ public class JdbcEnrollmentAnalyticsManager
                 "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     /**
