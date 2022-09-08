@@ -301,5 +301,4 @@ public class DefaultDataSetMetadataExportService
 
         return fieldFilterService.toObjectNodes( fieldFilterParams );
     }
-
 }
