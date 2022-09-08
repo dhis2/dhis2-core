@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.Category;
@@ -105,13 +107,13 @@ public class DataSet
     private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
     /**
-     * All DataElements associated with this DataSet.
+     * The DataSetElements associated with this DataSet.
      */
-    private Set<DataSetElement> dataSetElements = new HashSet<>();
+    private SortedSet<DataSetElement> dataSetElements = new TreeSet<>();
 
     /**
-     * Indicators associated with this data set. Indicators are used for view
-     * and output purposes, such as calculated fields in forms and reports.
+     * The Indicators associated with this data set. Indicators are used for
+     * view and output purposes, such as calculated fields in forms and reports.
      */
     private Set<Indicator> indicators = new HashSet<>();
 
@@ -122,7 +124,7 @@ public class DataSet
     private Set<DataElementOperand> compulsoryDataElementOperands = new HashSet<>();
 
     /**
-     * All Sources that register data with this DataSet.
+     * The Sources that register data with this DataSet.
      */
     private Set<OrganisationUnit> sources = new HashSet<>();
 
@@ -641,7 +643,7 @@ public class DataSet
         return dataSetElements;
     }
 
-    public void setDataSetElements( Set<DataSetElement> dataSetElements )
+    public void setDataSetElements( SortedSet<DataSetElement> dataSetElements )
     {
         this.dataSetElements = dataSetElements;
     }
