@@ -28,7 +28,7 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
-    <set name="dataInputPeriods" table="datasetdatainputperiods" cascade="all-delete-orphan">
+    <set name="dataInputPeriods" table="datasetdatainputperiods" cascade="all-delete-orphan" sort="natural">
       <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_datasetdatainputperiods_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataInputPeriod" />
