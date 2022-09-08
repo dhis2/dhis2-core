@@ -277,7 +277,7 @@ public class DefaultDataSetMetadataExportService
     {
         ArrayNode arrayNode = fieldFilterService.createArrayNode();
         Set<String> orgUnits = dataSetOrgUnits.get( dataSet.getUid() );
-        orgUnits.forEach( ou -> arrayNode.add( ou ) );
+        orgUnits.forEach( arrayNode::add );
         return arrayNode;
     }
 
