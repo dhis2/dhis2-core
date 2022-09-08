@@ -447,7 +447,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, rpParameters );
         }
 
-        return ResponseEntity.ok( new StreamingJsonRoot<>( null, null,
+        return ResponseEntity.ok( new StreamingJsonRoot<>( null, entities.size() > 1 ? getSchema().getPlural() : null,
             FieldFilterParams.of( entities, fields ) ) );
     }
 
