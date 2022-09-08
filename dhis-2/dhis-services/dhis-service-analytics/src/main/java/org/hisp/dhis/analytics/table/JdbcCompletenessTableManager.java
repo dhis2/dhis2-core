@@ -28,7 +28,10 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DATE;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -175,12 +178,6 @@ public class JdbcCompletenessTableManager
     {
         return partition.isLatestPartition() ? newArrayList()
             : Lists.newArrayList( "year = " + partition.getYear() + "" );
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
     }
 
     @Override
