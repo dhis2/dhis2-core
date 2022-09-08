@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
@@ -44,7 +45,6 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -78,11 +78,11 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateTables( AnalyticsTableUpdateParams params, JobProgress progress )
     {
-        final Clock clock = new Clock( log ).startClock();
-        final Date lastSuccessfulUpdate = systemSettingManager
+        Clock clock = new Clock( log ).startClock();
+        Date lastSuccessfulUpdate = systemSettingManager
             .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
-        final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
+        Set<AnalyticsTableType> skipTypes = emptyIfNull( params.getSkipTableTypes() );
+        Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
             .map( AnalyticsTableService::getAnalyticsTableType )
             .collect( Collectors.toSet() );
 
@@ -149,7 +149,7 @@ public class DefaultAnalyticsTableGenerator
     @Override
     public void generateResourceTables( JobProgress progress )
     {
-        final Clock clock = new Clock().startClock();
+        Clock clock = new Clock().startClock();
 
         progress.startingProcess( "Generating resource tables" );
         try

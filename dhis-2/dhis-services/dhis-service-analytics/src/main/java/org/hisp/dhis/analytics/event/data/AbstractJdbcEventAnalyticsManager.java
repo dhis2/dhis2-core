@@ -1108,7 +1108,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NEQ:
                 case NE:
                 case NIEQ:
-                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                case NLIKE:
+                case NILIKE:
+                    // This ensures that null values will always match the
+                    // filters above.
+                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
                         + getSqlFilter( filter, item ) + ") ";
                 }
             }

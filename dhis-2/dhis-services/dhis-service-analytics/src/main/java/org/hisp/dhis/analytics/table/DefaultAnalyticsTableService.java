@@ -82,7 +82,7 @@ public class DefaultAnalyticsTableService
     @Override
     public void update( AnalyticsTableUpdateParams params, JobProgress progress )
     {
-        final int processNo = getProcessNo();
+        int processNo = getProcessNo();
 
         int tableUpdates = 0;
 
@@ -103,7 +103,7 @@ public class DefaultAnalyticsTableService
             return;
         }
 
-        final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
+        List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
 
         if ( tables.isEmpty() )
         {
@@ -115,7 +115,7 @@ public class DefaultAnalyticsTableService
         }
 
         clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s",
-            tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
+            tableType.getTableName(), getLongDateString( params.getFromDate() ), params ) );
         progress.startingStage( "Performing pre-create table work" );
         progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
@@ -201,7 +201,6 @@ public class DefaultAnalyticsTableService
      */
     private void dropAllTempTables( final JobProgress progress, final List<AnalyticsTable> tables )
     {
-        dropTempTablesPartitions( tables, progress );
         dropTempTables( tables, progress );
     }
 
@@ -211,18 +210,6 @@ public class DefaultAnalyticsTableService
     private void dropTempTables( final List<AnalyticsTable> tables, final JobProgress progress )
     {
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
-    }
-
-    /**
-     * Drops the given temporary analytics tables.
-     */
-    private void dropTempTablesPartitions( final List<AnalyticsTable> tables, final JobProgress progress )
-    {
-        for ( final AnalyticsTable table : tables )
-        {
-            progress.runStage( table.getTablePartitions(), AnalyticsTablePartition::getTableName,
-                tableManager::dropTempTablePartition );
-        }
     }
 
     /**
