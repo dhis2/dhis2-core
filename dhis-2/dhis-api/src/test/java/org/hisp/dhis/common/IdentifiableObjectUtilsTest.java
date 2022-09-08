@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
@@ -51,7 +52,6 @@ import com.google.common.collect.Lists;
  */
 class IdentifiableObjectUtilsTest
 {
-
     @Test
     void testJoin()
     {
@@ -167,5 +167,22 @@ class IdentifiableObjectUtilsTest
         assertEquals( PeriodType.getPeriodFromIsoString( "2017" ), IdentifiableObjectUtils
             .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017Q1" ), yearly, calendar ) );
         assertNull( PeriodType.getPeriodFromIsoString( "u3847847" ) );
+    }
+
+    @Test
+    void testSortById()
+    {
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        DataElement deC = new DataElement();
+        deA.setId( 1 );
+        deB.setId( 2 );
+        deC.setId( 3 );
+
+        Set<DataElement> set = Set.of( deB, deC, deA );
+
+        List<DataElement> list = IdentifiableObjectUtils.sortByUid( set );
+
+        assertEquals( List.of( deA, deB, deC ), list );
     }
 }
