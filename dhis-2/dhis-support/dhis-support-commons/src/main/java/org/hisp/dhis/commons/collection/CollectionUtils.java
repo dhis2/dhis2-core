@@ -273,32 +273,6 @@ public class CollectionUtils
 
     /**
      * Returns a map of 11 key/value pairs.
-     *
-     * @param k1 the first mapping's key
-     * @param v1 the first mapping's value
-     * @param k2 the second mapping's key
-     * @param v2 the second mapping's value
-     * @param k3 the third mapping's key
-     * @param v3 the third mapping's value
-     * @param k4 the fourth mapping's key
-     * @param v4 the fourth mapping's value
-     * @param k5 the fifth mapping's key
-     * @param v5 the fifth mapping's value
-     * @param k6 the sixth mapping's key
-     * @param v6 the sixth mapping's value
-     * @param k7 the seventh mapping's key
-     * @param v7 the seventh mapping's value
-     * @param k8 the eighth mapping's key
-     * @param v8 the eighth mapping's value
-     * @param k9 the ninth mapping's key
-     * @param v9 the ninth mapping's value
-     * @param k10 the tenth mapping's key
-     * @param v10 the tenth mapping's value
-     * @param k11 the eveventh mapping's key
-     * @param v11 the eleventh mapping's value
-     * @param <K> the Map's key type
-     * @param <V> the Map's value type
-     * @return a Map containing the specified mappings
      */
     public static <K, V> Map<K, V> mapOf(
         K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
