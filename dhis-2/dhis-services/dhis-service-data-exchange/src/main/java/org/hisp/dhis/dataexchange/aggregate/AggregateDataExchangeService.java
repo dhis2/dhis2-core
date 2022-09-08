@@ -38,8 +38,6 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -66,7 +64,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Lars Helge Overland
  */
-@Slf4j
 @Service
 public class AggregateDataExchangeService
 {
@@ -140,33 +137,6 @@ public class AggregateDataExchangeService
             ( success, failed ) -> toStageSummary( success, failed, exchange ) );
 
         return summaries;
-    }
-
-    private static String toStageDescription( AggregateDataExchange exchange )
-    {
-        Target target = exchange.getTarget();
-        Api api = target.getApi();
-        return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
-            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
-    }
-
-    private static String toItemDescription( SourceRequest request )
-    {
-        return format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ),
-            join( ",", request.getPe() ), join( ",", request.getOu() ) );
-    }
-
-    private static String toItemSummary( ImportSummary summary )
-    {
-        return summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
-            ? summary.getDescription()
-            : summary.toCountString();
-    }
-
-    private static String toStageSummary( int success, int failed, AggregateDataExchange exchange )
-    {
-        return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
-            success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
     }
 
     /**
@@ -379,6 +349,59 @@ public class AggregateDataExchangeService
     {
         String password = exchange.getTarget().getApi().getPassword();
         return isPersisted( exchange ) ? encryptor.decrypt( password ) : password;
+    }
+
+    /**
+     * Returns a stage description.
+     *
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return a stage description.
+     */
+    private static String toStageDescription( AggregateDataExchange exchange )
+    {
+        Target target = exchange.getTarget();
+        Api api = target.getApi();
+        return format( "exchange aggregate data %s to %s target %s", exchange.getName(),
+            target.getType().name().toLowerCase(), api == null ? "(local)" : api.getUrl() );
+    }
+
+    /**
+     * Returns an item description.
+     *
+     * @param request the {@link SourceRequest}.
+     * @return an item description.
+     */
+    private static String toItemDescription( SourceRequest request )
+    {
+        return format( "dx: %s; pe: %s; ou: %s", join( ",", request.getDx() ),
+            join( ",", request.getPe() ), join( ",", request.getOu() ) );
+    }
+
+    /**
+     * Returns an item summary.
+     *
+     * @param summary the {@link ItemSummary}.
+     * @return an item summary.
+     */
+    private static String toItemSummary( ImportSummary summary )
+    {
+        return summary.getStatus() == ImportStatus.ERROR && summary.getConflictCount() == 0
+            ? summary.getDescription()
+            : summary.toCountString();
+    }
+
+    /**
+     * Returns a stage summary.
+     *
+     * @param success the number of successful operations.
+     * @param failed the number of failed operations.
+     * @param exchange the {@link AggregateDataExchange}.
+     * @return a stage summary.
+     */
+    private static String toStageSummary( int success, int failed, AggregateDataExchange exchange )
+    {
+        return format( "Aggregate data exchange completed (%d/%d): '%s', type: '%s'",
+            success, (success + failed), exchange.getUid(), exchange.getTarget().getType() );
     }
 
     /**

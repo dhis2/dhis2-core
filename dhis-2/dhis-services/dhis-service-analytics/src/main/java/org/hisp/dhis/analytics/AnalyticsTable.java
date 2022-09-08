@@ -124,7 +124,7 @@ public class AnalyticsTable
 
         if ( program != null )
         {
-            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, program );
         }
 
         return name;
@@ -136,7 +136,7 @@ public class AnalyticsTable
 
         if ( program != null )
         {
-            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, program );
         }
 
         return name;

@@ -49,6 +49,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -822,6 +823,41 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testImportUserLegacyFormat()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/create_user_with_legacy_format.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        assertNotNull( manager.get( User.class, "sPWjoHSY03y" ) );
+    }
+
+    @Test
+    void testImportUserLegacyFormatWithPersistedReferences()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> userRoles = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/userrole.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, userRoles );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        User user = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( user );
+        assertTrue( user.getUserRoles().stream().anyMatch( userRole -> userRole.getUid().equals( "xJZBzAHI88H" ) ) );
+    }
+
+    @Test
     void testImportMapCreateAndUpdate()
         throws IOException
     {
@@ -945,6 +981,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
         assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getSource().getRequests() );
+        SourceRequest srA = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srA );
+        assertNotNull( srA.getName() );
+        assertNotNull( srA.getVisualization() );
         assertNotNull( aeA.getTarget() );
         assertEquals( "iFOyIpQciyk", aeA.getUid() );
         assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
@@ -952,6 +993,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
+        assertNotNull( aeB.getSource().getRequests() );
+        SourceRequest srB = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srB );
+        assertNotNull( srB.getName() );
+        assertNotNull( srB.getVisualization() );
         assertNotNull( aeB.getTarget() );
         assertEquals( "PnWccbwCJLQ", aeB.getUid() );
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
@@ -962,6 +1008,11 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
         assertNotNull( aeC );
         assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getSource().getRequests() );
+        SourceRequest srC = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srC );
+        assertNotNull( srC.getName() );
+        assertNotNull( srC.getVisualization() );
         assertNotNull( aeC.getTarget() );
         assertEquals( "VpQ4qVEseyM", aeC.getUid() );
         assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );

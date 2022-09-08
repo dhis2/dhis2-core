@@ -70,14 +70,5 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
         {
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
-
-        try
-        {
-            dbmsManager.emptyDatabase();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to empty db, reason:" + e.getMessage() );
-        }
     }
 }

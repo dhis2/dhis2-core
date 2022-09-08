@@ -64,7 +64,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PeriodStore periodStore;
+    private final PeriodStore periodStore;
 
     public HibernateDataValueAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, PeriodStore periodStore )

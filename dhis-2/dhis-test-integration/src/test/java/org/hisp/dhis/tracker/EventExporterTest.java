@@ -27,13 +27,24 @@
  */
 package org.hisp.dhis.tracker;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,19 +52,22 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
@@ -70,7 +84,8 @@ class EventExporterTest extends TrackerTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private User userA;
+    @Autowired
+    private DataElementService dataElementService;
 
     private OrganisationUnit orgUnit;
 
@@ -78,31 +93,71 @@ class EventExporterTest extends TrackerTest
 
     private Program program;
 
-    @Autowired
-    private DataElementService dataElementService;
+    final Function<EventSearchParams, List<String>> eventsFunction = ( params ) -> eventService.getEvents( params )
+        .getEvents()
+        .stream().map( Event::getEvent ).sorted().collect( Collectors.toCollection( LinkedList::new ) );
+
+    /**
+     * EVENT_ID is at position 0 in column headers in events grid
+     */
+    final Function<EventSearchParams, List<String>> eventsGridFunction = ( params ) -> eventService
+        .getEventsGrid( params )
+        .getRows()
+        .stream().map( r -> r.get( 0 ).toString() ).sorted().collect( Collectors.toCollection( LinkedList::new ) );
+
+    private TrackedEntityInstance trackedEntityInstance;
 
     @Override
     protected void initTest()
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
-        userA = userService.getUser( "M5zQapPyTZI" );
+        User userA = userService.getUser( "M5zQapPyTZI" );
         assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/event_and_enrollment.json", userA.getUid() ) ) );
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
         program = programStage.getProgram();
+        trackedEntityInstance = manager.get( TrackedEntityInstance.class, "IOR1AXXl24G" );
         manager.flush();
     }
 
-    @Test
-    void testExportEvents()
+    private Stream<Arguments> getEventsFunctions()
+    {
+        return Stream.of(
+            Arguments.of( eventsFunction ),
+            Arguments.of( eventsGridFunction ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEvents( Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 2, events.getEvents().size() );
+        params.setProgramStage( programStage );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 2, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithTotalPages( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setTotalPages( true );
+        params.setProgramStage( programStage );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 2, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events ) );
     }
 
     @Test
@@ -110,18 +165,86 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8z" ) );
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        params.setTrackedEntityInstance( trackedEntityInstance );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+
+        List<String> events = eventsFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsLike()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithExecutionAndUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        params.setStartDate( getDate( 2018, 1, 1 ) );
+        params.setEndDate( getDate( 2020, 1, 1 ) );
+        params.setSkipChangedBefore( getDate( 2018, 1, 1 ) );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithLastUpdateDuration( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        params.setLastUpdatedDuration( "1d" );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWithLastUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        Date date = new Date();
+
+        params.setLastUpdatedStartDate( Date.from(
+            date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
+
+        params.setLastUpdatedEndDate( Date.from(
+            date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
+    }
+
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsLike( Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -129,18 +252,23 @@ class EventExporterTest extends TrackerTest
             new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
                 null, null ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsWithStatusFilter(
+        Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStatus( ProgramStatus.ACTIVE );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -148,18 +276,23 @@ class EventExporterTest extends TrackerTest
             new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
                 null, null ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter(
+        Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramType( ProgramType.WITH_REGISTRATION );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -167,17 +300,21 @@ class EventExporterTest extends TrackerTest
             new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
                 null, null ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsEqual()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsEqual( Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -186,17 +323,21 @@ class EventExporterTest extends TrackerTest
                 null,
                 null ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsIn()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsIn( Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u", "TvctPPhpD8z" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
 
         DataElement datael00001 = dataElement( "DATAEL00001" );
 
@@ -205,9 +346,11 @@ class EventExporterTest extends TrackerTest
                 null,
                 null ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 2, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 2, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events ) );
     }
 
     @Test
@@ -215,7 +358,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
         params.setProgram( program );
 
@@ -228,20 +371,22 @@ class EventExporterTest extends TrackerTest
                 Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00001", dataElement.getValueType(),
                     null, dataElement.getOptionSet() ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventsFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
     @Test
     void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
     {
-        injectSecurityContext( createAndAddUser( false, "user", newHashSet( orgUnit ), newHashSet( orgUnit ),
+        injectSecurityContext( createAndAddUser( false, "user", Set.of( orgUnit ), Set.of( orgUnit ),
             "F_EXPORT_DATA" ) );
 
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8z" ) );
+        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
         params.setProgram( program );
 
@@ -254,17 +399,22 @@ class EventExporterTest extends TrackerTest
                 Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00002", dataElement.getValueType(),
                     null, dataElement.getOptionSet() ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventsFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual(
+        Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
 
@@ -272,18 +422,22 @@ class EventExporterTest extends TrackerTest
             Set.of( new QueryItem( dataElement, QueryOperator.EQ, "option1", dataElement.getValueType(),
                 null, dataElement.getOptionSet() ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
     }
 
-    // TODO
-    @Test
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn(
+        Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u", "TvctPPhpD8z" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
 
@@ -291,17 +445,22 @@ class EventExporterTest extends TrackerTest
             Set.of( new QueryItem( dataElement, QueryOperator.IN, "option1;option2", dataElement.getValueType(),
                 null, dataElement.getOptionSet() ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 2, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 2, events.size() ),
+            () -> assertEquals( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events ) );
     }
 
-    @Test
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike(
+        Function<EventSearchParams, List<String>> eventFunction )
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8u" ) );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
 
@@ -309,13 +468,240 @@ class EventExporterTest extends TrackerTest
             .setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LIKE, "opt", dataElement.getValueType(),
                 null, dataElement.getOptionSet() ) ) );
 
-        Events events = eventService.getEvents( params );
-        assertNotNull( events );
-        assertEquals( 1, events.getEvents().size() );
+        List<String> events = eventFunction.apply( params );
+
+        assertAll( () -> assertNotNull( events ),
+            () -> assertEquals( 1, events.size() ),
+            () -> assertEquals( List.of( "pTzf9KYMk72" ), events ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+    }
+
+    @Test
+    void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertIsEmpty( enrollments );
+    }
+
+    @Test
+    void testOrderByEnrolledAtDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByEnrolledAtAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByOccurredAtDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
+    }
+
+    @Test
+    void testOrderByOccurredAtAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( enrollments ),
+            () -> assertEquals( 2, enrollments.size() ),
+            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
     }
 
     private DataElement dataElement( String uid )
     {
         return dataElementService.getDataElement( uid );
     }
+
 }

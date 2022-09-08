@@ -112,6 +112,7 @@ class CompleteDataSetRegistrationServiceTest extends SingleSetupIntegrationTestB
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
+
     @Override
     public void setUpTest()
     {
@@ -159,6 +160,7 @@ class CompleteDataSetRegistrationServiceTest extends SingleSetupIntegrationTestB
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
+
     @Test
     void testSaveGet()
     {
@@ -172,6 +174,19 @@ class CompleteDataSetRegistrationServiceTest extends SingleSetupIntegrationTestB
             periodA, sourceA, optionCombo ) );
         assertEquals( registrationB, completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetB,
             periodB, sourceA, optionCombo ) );
+    }
+
+    @Test
+    void testSaveAutoProperties()
+    {
+        CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSetA, periodA, sourceA,
+            optionCombo, true );
+        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registration );
+        registration = completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetA, periodA, sourceA,
+            optionCombo );
+        assertNotNull( registration );
+        assertNotNull( registration.getDate() );
+        assertNotNull( registration.getLastUpdated() );
     }
 
     @Test

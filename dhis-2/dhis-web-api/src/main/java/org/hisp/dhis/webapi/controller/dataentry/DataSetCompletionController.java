@@ -29,15 +29,23 @@ package org.hisp.dhis.webapi.controller.dataentry;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.hisp.dhis.webapi.webdomain.dataentry.DataSetCompletionDto;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
@@ -46,13 +54,35 @@ import com.fasterxml.jackson.databind.JsonNode;
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+public class DataSetCompletionController
 {
-    private final DataSetMetadataExportService exportService;
+    private final CompleteDataSetRegistrationService registrationService;
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
+    private final DataValidator dataValidator;
+
+    @PostMapping( "/dataSetCompletion" )
+    @ResponseStatus( value = HttpStatus.OK )
+    public void saveDataSetCompletion( @RequestBody DataSetCompletionDto dto )
     {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+        DataSet ds = dataValidator.getAndValidateDataSet( dto.getDataSet() );
+        Period pe = dataValidator.getAndValidatePeriod( dto.getPeriod() );
+        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
+        CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo( dto.getAttribute() );
+        boolean completed = ObjectUtils.firstNonNull( dto.getCompleted(), Boolean.TRUE );
+
+        CompleteDataSetRegistration cdr = registrationService.getCompleteDataSetRegistration( ds, pe, ou, aoc );
+
+        if ( cdr != null )
+        {
+            cdr.setCompleted( completed );
+
+            registrationService.updateCompleteDataSetRegistration( cdr );
+        }
+        else
+        {
+            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, completed );
+
+            registrationService.saveCompleteDataSetRegistration( cdr );
+        }
     }
 }

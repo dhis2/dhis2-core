@@ -1473,7 +1473,7 @@ public class User
     public UserCredentialsDto getUserCredentials()
     {
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
-        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles", "secret",
+        copyProperties( this, userCredentialsDto, "uid", "userCredentials", "password", "userRoles", "secret",
             "previousPasswords" );
         Set<UserRole> roles = this.getUserRoles();
         if ( roles != null && !roles.isEmpty() )
@@ -1500,7 +1500,7 @@ public class User
         UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
         if ( userCredentialsRaw != null )
         {
-            copyProperties( userCredentialsRaw, user, "password", "userRoles", "secret", "previousPasswords" );
+            copyProperties( userCredentialsRaw, user, "uid", "password", "userRoles", "secret", "previousPasswords" );
             if ( userCredentialsRaw.getPassword() != null )
             {
                 user.setPassword( userCredentialsRaw.getPassword() );

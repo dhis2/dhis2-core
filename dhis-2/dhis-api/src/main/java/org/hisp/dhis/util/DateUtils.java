@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -213,16 +214,25 @@ public class DateUtils
     }
 
     /**
-     * adds 1 day to provided Date and returns it
+     * Adds 1 day to provided Date and returns it.
      *
      * @param date
      * @return day after provided date
      */
     public static Date plusOneDay( Date date )
     {
-        return Date.from( date
-            .toInstant()
-            .plus( 1, ChronoUnit.DAYS ) );
+        return new Date( date.getTime() + MS_PER_DAY );
+    }
+
+    /**
+     * Subtracts 1 day from provided Date and returns it.
+     *
+     * @param date
+     * @return day before provided date
+     */
+    public static Date minusOneDay( Date date )
+    {
+        return new Date( date.getTime() - MS_PER_DAY );
     }
 
     /**
@@ -707,6 +717,20 @@ public class DateUtils
     public static Date parseDate( final String dateString )
     {
         return safeParseDateTime( dateString, DATE_FORMATTER );
+    }
+
+    /**
+     * Create a TimeStamp with Time Zone from an input Date. This can be used as
+     * SQL value {@link java.sql.Types#TIMESTAMP_WITH_TIMEZONE}
+     *
+     * @param date
+     * @return TimeStamp with Time Zone
+     */
+    public static OffsetDateTime offSetDateTimeFrom( final Date date )
+    {
+        return OffsetDateTime.of( date.toInstant()
+            .atZone( ZoneOffset.UTC ).toLocalDateTime(),
+            ZoneOffset.UTC );
     }
 
     /**
