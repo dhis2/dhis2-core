@@ -246,7 +246,7 @@ public class DefaultDataSetMetadataExportService
         List<DataSetElement> elements = toDataSetElementList( dataSetElements );
         ArrayNode arrayNode = fieldFilterService.createArrayNode();
         List<ObjectNode> objectNodes = toObjectNodes( elements, FIELDS_DATA_SET_ELEMENTS, DataSetElement.class );
-        objectNodes.forEach( node -> arrayNode.add( node ) );
+        objectNodes.forEach( arrayNode::add );
         return arrayNode;
     }
 
