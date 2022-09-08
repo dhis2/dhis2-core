@@ -86,7 +86,6 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
-        // "dataSetElements[dataElement[id],categoryCombo[id]],
         "indicators~pluck[id]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
