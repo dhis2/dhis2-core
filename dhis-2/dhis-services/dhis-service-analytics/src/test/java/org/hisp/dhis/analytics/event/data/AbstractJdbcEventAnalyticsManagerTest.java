@@ -41,10 +41,19 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NIEQ;
+import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -62,6 +71,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -297,7 +307,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
@@ -332,7 +341,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
@@ -392,5 +400,87 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         assertThat( whereClause,
             containsString(
                 "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
+    }
+
+    @Test
+    void testGetItemNotLikeFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NLIKE, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not like '%A%') ", result );
+    }
+
+    @Test
+    void testGetItemNotILikeFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not ilike '%A%') ", result );
+    }
+
+    @Test
+    void testGetItemNotEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NEQ, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+
+        queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NE, "A" ) ) ) )
+            .build();
+        result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+    }
+
+    @Test
+    void testGetItemNotIEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
+    }
+
+    private QueryFilter buildQueryFilter( QueryOperator operator, String filter )
+    {
+        return new QueryFilter( operator, filter );
+    }
+
+    private QueryItem buildQueryItem( String item )
+    {
+        return new QueryItem( new BaseDimensionalItemObject( item ) );
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters,
+        ValueType valueType )
+    {
+        QueryItem queryItem = buildQueryItemWithGroupAndFilters( item, filters );
+        queryItem.setValueType( valueType );
+
+        return queryItem;
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters )
+    {
+        QueryItem queryItem = buildQueryItem( item );
+        queryItem.setFilters( new ArrayList<>( filters ) );
+        return queryItem;
     }
 }
