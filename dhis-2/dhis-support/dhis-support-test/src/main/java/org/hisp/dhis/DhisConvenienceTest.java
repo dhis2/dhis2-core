@@ -1562,6 +1562,14 @@ public abstract class DhisConvenienceTest
         return createProgram( uniqueCharacter, null, null );
     }
 
+    public static Program createProgramWithoutRegistration( char uniqueCharacter )
+    {
+        Program program = createProgram( uniqueCharacter, null, null );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+
+        return program;
+    }
+
     public static Program createProgram( char uniqueCharacter, Set<ProgramStage> programStages,
         OrganisationUnit unit )
     {

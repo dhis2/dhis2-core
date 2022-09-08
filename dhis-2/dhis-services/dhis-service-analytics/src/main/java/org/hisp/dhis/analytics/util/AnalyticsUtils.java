@@ -1046,7 +1046,7 @@ public class AnalyticsUtils
     }
 
     /**
-     * Filters a list of {@link DimensionalItemObject} and returns one ore more
+     * Filters a list of {@link DimensionalItemObject} and returns one or more
      * {@link DimensionalItemObject} matching the given identifier.
      *
      * @param dimensionIdentifier the identifier to match.
