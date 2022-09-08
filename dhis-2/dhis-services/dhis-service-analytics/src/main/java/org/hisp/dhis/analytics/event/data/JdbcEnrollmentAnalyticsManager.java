@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -207,7 +208,8 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getFromClause( EventQueryParams params )
     {
-        return " from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " ";
+        return " from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
+            joinOrgUnitTables( params, getAnalyticsType() );
     }
 
     /**
@@ -254,7 +256,8 @@ public class JdbcEnrollmentAnalyticsManager
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {
                 OrganisationUnit unit = (OrganisationUnit) object;
-                sql += "uidlevel" + unit.getLevel() + " = '" + unit.getUid() + "' or ";
+                sql += params.getOrgUnitField().getOrgUnitLevelCol( unit.getLevel(), getAnalyticsType() )
+                    + " = '" + unit.getUid() + "' or ";
             }
 
             sql = removeLastOr( sql ) + ") ";

@@ -63,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
@@ -204,7 +205,7 @@ public class DefaultEventDataQueryService
             .withEventStatuses( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
-            .withOrgUnitField( request.getOrgUnitField() )
+            .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withFallbackCoordinateField(
                 getFallbackCoordinateField( request.getFallbackCoordinateField(), request.getProgram() ) )
