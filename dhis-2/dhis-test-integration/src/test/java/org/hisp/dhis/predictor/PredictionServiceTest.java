@@ -1436,44 +1436,76 @@ class PredictionServiceTest extends IntegrationTestBase
     {
         CategoryOption opA = createCategoryOption( "opA", "CategoryOpA" );
         CategoryOption opB = createCategoryOption( "opB", "CategoryOpB" );
+        CategoryOption opC = createCategoryOption( "opC", "CategoryOpC" );
         categoryService.addCategoryOption( opA );
         categoryService.addCategoryOption( opB );
+        categoryService.addCategoryOption( opC );
 
         Category catA = createCategory( "catA", "CategoryIsA", opA, opB );
+        Category catB = createCategory( "catB", "CategoryIsB", opA, opB );
+        Category catC = createCategory( "catC", "CategoryIsC", opA, opC );
         categoryService.addCategory( catA );
+        categoryService.addCategory( catB );
+        categoryService.addCategory( catC );
 
         CategoryCombo ccA = createCategoryCombo( "ccA", "CatComboIsA", catA );
+        CategoryCombo ccB = createCategoryCombo( "ccB", "CatComboIsB", catB );
+        CategoryCombo ccC = createCategoryCombo( "ccC", "CatComboIsC", catC );
         categoryService.addCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccB );
+        categoryService.addCategoryCombo( ccC );
 
-        CategoryOptionCombo cocA = createCategoryOptionCombo( "cocA", "CatOptCombA", ccA, opA );
-        CategoryOptionCombo cocB = createCategoryOptionCombo( "cocB", "CatOptCombB", ccA, opB );
-        categoryService.addCategoryOptionCombo( cocA );
-        categoryService.addCategoryOptionCombo( cocB );
+        CategoryOptionCombo cocAa = createCategoryOptionCombo( "cocAa", "OptiComboAa", ccA, opA );
+        CategoryOptionCombo cocAb = createCategoryOptionCombo( "cocAb", "OptiComboAb", ccA, opB );
+        CategoryOptionCombo cocBa = createCategoryOptionCombo( "cocBa", "OptiComboBa", ccB, opA );
+        CategoryOptionCombo cocBb = createCategoryOptionCombo( "cocBb", "OptiComboBb", ccB, opB );
+        CategoryOptionCombo cocCa = createCategoryOptionCombo( "cocCa", "OptiComboCa", ccC, opA );
+        CategoryOptionCombo cocCc = createCategoryOptionCombo( "cocCc", "OptiComboCc", ccC, opC );
+        categoryService.addCategoryOptionCombo( cocAa );
+        categoryService.addCategoryOptionCombo( cocAb );
+        categoryService.addCategoryOptionCombo( cocBa );
+        categoryService.addCategoryOptionCombo( cocBb );
+        categoryService.addCategoryOptionCombo( cocCa );
+        categoryService.addCategoryOptionCombo( cocCc );
 
-        ccA.getOptionCombos().add( cocA );
-        ccA.getOptionCombos().add( cocB );
+        ccA.getOptionCombos().addAll( Set.of( cocAa, cocAb ) );
+        ccB.getOptionCombos().addAll( Set.of( cocBa, cocBb ) );
+        ccC.getOptionCombos().addAll( Set.of( cocCa, cocCc ) );
         categoryService.updateCategoryCombo( ccA );
+        categoryService.updateCategoryCombo( ccB );
+        categoryService.updateCategoryCombo( ccC );
 
         DataElement deP = createDataElement( 'P', ccA );
         DataElement deQ = createDataElement( 'Q', ccA );
+        DataElement deR = createDataElement( 'R', ccB );
+        DataElement deS = createDataElement( 'S', ccC );
         dataElementService.addDataElement( deP );
         dataElementService.addDataElement( deQ );
+        dataElementService.addDataElement( deR );
+        dataElementService.addDataElement( deS );
 
         Period per = periodService.reloadPeriod( makeMonth( 2022, 1 ) );
-        dataValueBatchHandler.addObject( createDataValue( deP, per, sourceA, cocA, defaultCombo, "1" ) );
-        dataValueBatchHandler.addObject( createDataValue( deP, per, sourceA, cocB, defaultCombo, "2" ) );
+        dataValueBatchHandler.addObject( createDataValue( deQ, per, sourceA, cocAa, defaultCombo, "1" ) );
+        dataValueBatchHandler.addObject( createDataValue( deQ, per, sourceA, cocAb, defaultCombo, "2" ) );
+        dataValueBatchHandler.addObject( createDataValue( deR, per, sourceA, cocBa, defaultCombo, "4" ) );
+        dataValueBatchHandler.addObject( createDataValue( deR, per, sourceA, cocBb, defaultCombo, "8" ) );
+        dataValueBatchHandler.addObject( createDataValue( deS, per, sourceA, cocCa, defaultCombo, "16" ) );
+        dataValueBatchHandler.addObject( createDataValue( deS, per, sourceA, cocCc, defaultCombo, "32" ) );
         dataValueBatchHandler.flush();
 
-        String expr = "#{" + deP.getUid() + "}";
+        String expectedA = String.valueOf( 1 + 4 + (16 + 32) );
+        String expectedB = String.valueOf( 2 + 8 + (16 + 32) );
+
+        String expr = "#{" + deQ.getUid() + "} + #{" + deR.getUid() + "} + #{" + deS.getUid() + "}";
         Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
         // Output catOptionCombo == null means predict for all disaggregations
-        Predictor p = createPredictor( deQ, null, "P & Q", expression, null, periodTypeMonthly,
+        Predictor p = createPredictor( deP, null, "Disags", expression, null, periodTypeMonthly,
             orgUnitLevel1, 0, 0, 0 );
 
         predictionService.predict( p, monthStart( 2022, 1 ), monthStart( 2022, 2 ), summary );
         assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-        assertEquals( "1", getDataValue( deQ, cocA, sourceA, makeMonth( 2022, 1 ) ) );
-        assertEquals( "2", getDataValue( deQ, cocB, sourceA, makeMonth( 2022, 1 ) ) );
+        assertEquals( expectedA, getDataValue( deP, cocAa, sourceA, makeMonth( 2022, 1 ) ) );
+        assertEquals( expectedB, getDataValue( deP, cocAb, sourceA, makeMonth( 2022, 1 ) ) );
     }
 
     @Test

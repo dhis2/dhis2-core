@@ -725,7 +725,9 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader(
                 ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) )
-            .addHeader( new GridHeader( ITEM_SCHEDULED_DATE, NAME_SCHEDULED_DATE, DATE, false, true ) );
+            .addHeader( new GridHeader( ITEM_SCHEDULED_DATE,
+                LabelMapper.getScheduleDateLabel( params.getProgramStage(), NAME_SCHEDULED_DATE ), DATE, false,
+                true ) );
 
         if ( params.getProgram().isRegistration() )
         {

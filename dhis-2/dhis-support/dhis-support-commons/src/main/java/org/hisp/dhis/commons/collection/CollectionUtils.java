@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -268,5 +269,52 @@ public class CollectionUtils
         }
 
         return false;
+    }
+
+    /**
+     * Returns a map of 11 key/value pairs.
+     *
+     * @param k1 the first mapping's key
+     * @param v1 the first mapping's value
+     * @param k2 the second mapping's key
+     * @param v2 the second mapping's value
+     * @param k3 the third mapping's key
+     * @param v3 the third mapping's value
+     * @param k4 the fourth mapping's key
+     * @param v4 the fourth mapping's value
+     * @param k5 the fifth mapping's key
+     * @param v5 the fifth mapping's value
+     * @param k6 the sixth mapping's key
+     * @param v6 the sixth mapping's value
+     * @param k7 the seventh mapping's key
+     * @param v7 the seventh mapping's value
+     * @param k8 the eighth mapping's key
+     * @param v8 the eighth mapping's value
+     * @param k9 the ninth mapping's key
+     * @param v9 the ninth mapping's value
+     * @param k10 the tenth mapping's key
+     * @param v10 the tenth mapping's value
+     * @param k11 the eveventh mapping's key
+     * @param v11 the eleventh mapping's value
+     * @param <K> the Map's key type
+     * @param <V> the Map's value type
+     * @return a Map containing the specified mappings
+     */
+    public static <K, V> Map<K, V> mapOf(
+        K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
+        K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10, K k11, V v11 )
+    {
+        return Map.ofEntries(
+            Map.entry( k1, v1 ),
+            Map.entry( k2, v2 ),
+            Map.entry( k3, v3 ),
+            Map.entry( k4, v4 ),
+            Map.entry( k5, v5 ),
+            Map.entry( k6, v6 ),
+            Map.entry( k7, v7 ),
+            Map.entry( k8, v8 ),
+            Map.entry( k9, v9 ),
+            Map.entry( k10, v10 ),
+            Map.entry( k11, v11 ) );
     }
 }
