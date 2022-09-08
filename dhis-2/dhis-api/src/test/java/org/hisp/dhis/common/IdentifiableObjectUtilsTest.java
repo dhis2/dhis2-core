@@ -181,7 +181,7 @@ class IdentifiableObjectUtilsTest
 
         Set<DataElement> set = Set.of( deB, deC, deA );
 
-        List<DataElement> list = IdentifiableObjectUtils.sortByUid( set );
+        List<DataElement> list = IdentifiableObjectUtils.sortById( set );
 
         assertEquals( List.of( deA, deB, deC ), list );
     }
