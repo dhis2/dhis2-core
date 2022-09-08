@@ -90,12 +90,14 @@ public class TwoFactorController
             throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
         }
 
-        if ( currentUser.getTwoFA() )
+        if ( currentUser.isTwoFactorEnabled() &&
+            !UserService.hasTwoFactorSecretForApproval( currentUser ) )
         {
-            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
+            throw new WebMessageException( conflict(
+                ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
 
-        defaultUserService.generateTwoFactorSecret( currentUser );
+        defaultUserService.generateTwoFactorSecretForApproval( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
@@ -122,10 +124,12 @@ public class TwoFactorController
     }
 
     /**
-     * @deprecated Use {@link #generateQRCode}.
      * @param currentUser
+     *
      * @return
+     *
      * @throws WebMessageException
+     * @deprecated Use {@link #generateQRCode}.
      */
     @Deprecated( since = "2.39" )
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )

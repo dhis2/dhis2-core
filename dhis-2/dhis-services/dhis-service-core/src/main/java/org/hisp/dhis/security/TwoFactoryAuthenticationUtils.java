@@ -27,20 +27,23 @@
  */
 package org.hisp.dhis.security;
 
-import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
-import static org.hisp.dhis.feedback.ErrorCode.E3025;
 import static org.hisp.dhis.feedback.ErrorCode.E3026;
+import static org.hisp.dhis.feedback.ErrorCode.E3028;
+import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.ErrorCode;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 import org.jboss.aerogear.security.otp.Totp;
 
@@ -73,6 +76,7 @@ public class TwoFactoryAuthenticationUtils
      * @param qrContent content to be used for generating the QR code.
      * @param width width of the generated PNG image.
      * @param height height of the generated PNG image.
+     *
      * @return PNG image as byte array.
      */
     public static byte[] generateQRCode( String qrContent, int width, int height, Consumer<ErrorCode> errorCode )
@@ -98,6 +102,7 @@ public class TwoFactoryAuthenticationUtils
      *
      * @param appName app name to be used for generating QR content.
      * @param user {@link User} which the QR Code is generated for.
+     *
      * @return a String which can be used for generating a QR code by calling
      *         method
      *         {@link TwoFactoryAuthenticationUtils#generateQRCode(String, int, int, Consumer)}
@@ -108,7 +113,7 @@ public class TwoFactoryAuthenticationUtils
 
         if ( Strings.isNullOrEmpty( secret ) )
         {
-            errorCode.accept( E3025 );
+            errorCode.accept( E3028 );
         }
 
         String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
@@ -120,10 +125,12 @@ public class TwoFactoryAuthenticationUtils
     /**
      * Generates a QR URL using Google chart API.
      *
-     * @deprecated Use {@link #generateQRCode(String, int, int, Consumer)}
      * @param appName the name of the DHIS 2 instance.
      * @param user the user to generate the URL for.
+     *
      * @return a QR URL.
+     *
+     * @deprecated Use {@link #generateQRCode(String, int, int, Consumer)}
      */
     @Deprecated( since = "2.39" )
     public static String generateQrUrl( String appName, User user )
