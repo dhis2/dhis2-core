@@ -175,6 +175,9 @@ class IdentifiableObjectUtilsTest
         DataElement deA = new DataElement();
         DataElement deB = new DataElement();
         DataElement deC = new DataElement();
+        deA.setAutoFields();
+        deB.setAutoFields();
+        deC.setAutoFields();
         deA.setId( 1 );
         deB.setId( 2 );
         deC.setId( 3 );
