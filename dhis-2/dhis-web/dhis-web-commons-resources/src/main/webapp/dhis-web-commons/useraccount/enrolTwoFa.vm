@@ -27,7 +27,7 @@
         </div>
 
         <div>
-            <img alt="qrCode" src="$qrUrl" style="padding: 1rem;">
+            <img alt="qrCode" src="$image" style="padding: 1rem;">
         </div>
 
         <form id="loginForm" action="../../dhis-web-commons-security/login.action" method="post">
@@ -59,6 +59,10 @@
                 </tr>
             </table>
         </form>
+
+        <div>
+            <img alt="qrCode" src="$imageUrl" style="padding: 1rem;">
+        </div>
     </div>
 </div>
 </body>

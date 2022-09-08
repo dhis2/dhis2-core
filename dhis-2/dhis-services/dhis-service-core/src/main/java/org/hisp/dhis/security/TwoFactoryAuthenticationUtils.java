@@ -33,8 +33,6 @@ import static org.hisp.dhis.user.UserService.TWO_FACTOR_CODE_APPROVAL_PREFIX;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
@@ -49,10 +47,10 @@ import org.jboss.aerogear.security.otp.Totp;
 
 import com.google.common.base.Strings;
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 
 /**
  * @author Henning Håkonsen
@@ -68,8 +66,6 @@ public class TwoFactoryAuthenticationUtils
 
     private static final String APP_NAME_PREFIX = "DHIS 2 ";
 
-    private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-
     /**
      * Generate QR code in PNG format based on given qrContent.
      *
@@ -83,8 +79,10 @@ public class TwoFactoryAuthenticationUtils
     {
         try
         {
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode( qrContent, BarcodeFormat.QR_CODE, width, height );
+            BitMatrix bitMatrix = new MultiFormatWriter().encode( new String(
+                qrContent.getBytes( StandardCharsets.UTF_8 ), StandardCharsets.UTF_8 ),
+                BarcodeFormat.QR_CODE, width, height );
+
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             MatrixToImageWriter.writeToStream( bitMatrix, "PNG", byteArrayOutputStream );
             return byteArrayOutputStream.toByteArray();
@@ -116,48 +114,12 @@ public class TwoFactoryAuthenticationUtils
             errorCode.accept( E3028 );
         }
 
-        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
-
-        return String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-            app, user.getUsername(), secret, app );
-    }
-
-    /**
-     * Generates a QR URL using Google chart API.
-     *
-     * @param appName the name of the DHIS 2 instance.
-     * @param user the user to generate the URL for.
-     *
-     * @return a QR URL.
-     *
-     * @deprecated Use {@link #generateQRCode(String, int, int, Consumer)}
-     */
-    @Deprecated( since = "2.39" )
-    public static String generateQrUrl( String appName, User user )
-    {
-        String secret = user.getSecret();
-
-        if ( Strings.isNullOrEmpty( secret ) )
-        {
-            throw new IllegalArgumentException( "User must have a secret" );
-        }
-
         secret = removeApprovalPrefix( secret );
 
         String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
 
-        String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
+        return String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
             app, user.getUsername(), secret, app );
-
-        try
-        {
-            return QR_PREFIX + URLEncoder.encode( url, StandardCharsets.UTF_8.name() );
-        }
-        catch ( UnsupportedEncodingException ex )
-        {
-            log.error( ex.getMessage(), ex );
-            throw new RuntimeException( "Failed to encode QR URL", ex );
-        }
     }
 
     /**

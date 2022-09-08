@@ -304,6 +304,25 @@ public class User
     }
 
     /**
+     * "Get all the restrictions from all the user roles."
+     *
+     * @return A set of all the restrictions for all the user roles.
+     */
+    public Set<String> getAllRestrictions()
+    {
+        Set<String> restrictions = new HashSet<>();
+
+        for ( UserRole group : userRoles )
+        {
+            restrictions.addAll( group.getRestrictions() );
+        }
+
+        restrictions = Collections.unmodifiableSet( restrictions );
+
+        return restrictions;
+    }
+
+    /**
      * Indicates whether this user has at least one authority through its user
      * authority groups.
      */
@@ -330,6 +349,20 @@ public class User
     public boolean hasAnyAuthority( Collection<String> auths )
     {
         return getAllAuthorities().stream().anyMatch( auths::contains );
+    }
+
+    /**
+     * "Return true if any of the restrictions in the collection are in the list
+     * of all restrictions."
+     *
+     * @param restrictions A collection of strings that represent the
+     *        restrictions that are being checked for.
+     *
+     * @return A boolean value.
+     */
+    public boolean hasAnyRestrictions( Collection<String> restrictions )
+    {
+        return getAllRestrictions().stream().anyMatch( restrictions::contains );
     }
 
     /**

@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -60,23 +65,23 @@ public class EnrolTwoFaAction implements Action
 
     private String username;
 
-    private String qrUrl;
+    private String image;
 
     public String getUsername()
     {
         return username;
     }
 
-    public String getQrUrl()
+    public String getImage()
     {
-        return qrUrl;
+        return image;
     }
 
     @Override
     public String execute()
         throws Exception
     {
-        username = (String) ServletActionContext.getRequest().getSession().getAttribute( "username" );
+        this.username = (String) ServletActionContext.getRequest().getSession().getAttribute( "username" );
 
         User user = userService.getUserByUsername( username );
 
@@ -85,12 +90,29 @@ public class EnrolTwoFaAction implements Action
         {
             userService.generateTwoFactorSecretForApproval( user );
 
-            String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-            qrUrl = TwoFactoryAuthenticationUtils.generateQrUrl( appName, user );
+            List<ErrorCode> errorCodes = new ArrayList<>();
 
-            return SUCCESS;
+            this.image = generateQrCode( user, errorCodes );
+
+            if ( errorCodes.isEmpty() )
+            {
+                return SUCCESS;
+            }
         }
 
         return ERROR;
+    }
+
+    private String generateQrCode( User user, List<ErrorCode> errorCodes )
+    {
+        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+
+        String qrContent = TwoFactoryAuthenticationUtils.generateQrContent( appName, user,
+            errorCodes::add );
+
+        byte[] qrCode = TwoFactoryAuthenticationUtils.generateQRCode( qrContent, 200, 200,
+            errorCodes::add );
+
+        return "data:image/png;base64," + Base64.getEncoder().encodeToString( qrCode );
     }
 }

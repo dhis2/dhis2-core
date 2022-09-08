@@ -49,13 +49,13 @@ public interface UserService
 {
     String ID = UserService.class.getName();
 
+    Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
+
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
     String TWO_FACTOR_CODE_APPROVAL_PREFIX = "APPROVAL_";
 
-    Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
-
-    String TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME = "2FA_REQUIRED";
+    String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
     // -------------------------------------------------------------------------
     // User

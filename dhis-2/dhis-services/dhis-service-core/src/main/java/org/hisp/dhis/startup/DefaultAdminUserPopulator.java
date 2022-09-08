@@ -28,7 +28,7 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME;
+import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +37,6 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -50,7 +48,7 @@ public class DefaultAdminUserPopulator
      * Authorities which are not part of schema descriptors/associated with
      * metadata CRUD operations.
      */
-    public static final Set<String> ALL_AUTHORITIES = ImmutableSet.of(
+    public static final Set<String> ALL_AUTHORITIES = Set.of(
         "ALL",
         "F_VIEW_EVENT_ANALYTICS",
         "F_METADATA_EXPORT",
@@ -92,8 +90,9 @@ public class DefaultAdminUserPopulator
         "F_ORG_UNIT_PROFILE_ADD",
         "F_TRACKED_ENTITY_MERGE",
         "F_DATAVALUE_ADD",
-        "F_DATAVALUE_DELETE",
-        TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME );
+        "F_DATAVALUE_DELETE" );
+
+    public static final Set<String> ALL_RESTRICTIONS = Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME );
 
     private final UserService userService;
 

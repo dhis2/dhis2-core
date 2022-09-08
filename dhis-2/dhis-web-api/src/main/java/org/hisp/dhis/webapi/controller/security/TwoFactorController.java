@@ -123,48 +123,7 @@ public class TwoFactorController
         outputStream.write( qrCode );
     }
 
-    /**
-     * @param currentUser
-     *
-     * @return
-     *
-     * @throws WebMessageException
-     * @deprecated Use {@link #generateQRCode}.
-     */
-    @Deprecated( since = "2.39" )
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    @ResponseBody
-    public Map<String, Object> getQrCode( @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
-        }
-
-        // // User already has a secret, throw exception. User need to disable
-        // 2FA
-        // // before enabling again!
-        // if ( currentUser.hasTwoFAEnabled() &&
-        // !UserService.hasTwoFactorSecretForApproval( currentUser ) )
-        // {
-        // throw new WebMessageException( conflict(
-        // ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
-        // }
-        //
-        // defaultUserService.generateTwoFactorSecretForApproval( currentUser );
-
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-        String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
-
-        Map<String, Object> map = new HashMap<>();
-        map.put( "url", url );
-
-        return map;
-    }
-
-    @GetMapping( value = "/qrNew", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.ACCEPTED )
     @ResponseBody
     public Map<String, Object> getQrCodeNEW( @CurrentUser User currentUser )
@@ -175,20 +134,10 @@ public class TwoFactorController
             throw new BadCredentialsException( ErrorCode.E3025.getMessage() );
         }
 
-        // User already has a secret, throw exception. User need to disable 2FA
-        // before enabling again!
-        if ( currentUser.isTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser ) )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
-        }
-
         defaultUserService.generateTwoFactorSecretForApproval( currentUser );
 
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-        String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
-
         Map<String, Object> map = new HashMap<>();
-        map.put( "url", url );
+        map.put( "url", "blank" );
 
         return map;
     }

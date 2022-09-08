@@ -949,7 +949,7 @@ public class DefaultUserService
     @Override
     public boolean hasTwoFactorRequirementRole( User user )
     {
-        return user.hasAnyAuthority( Set.of( TWO_FACTOR_AUTH_REQUIRED_ROLE_NAME ) );
+        return user.hasAnyRestrictions( Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME ) );
     }
 
     @Override
@@ -979,13 +979,6 @@ public class DefaultUserService
             throw new UpdateAccessDeniedException(
                 "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
         }
-
-        // // As long current is not super, admin can disable any other users
-        // 2FA.
-        // if ( currentUserDetails.isSuper() )
-        // {
-        // return;
-        // }
 
         // If current user has access to manage this user, they can disable 2FA.
         User currentUser = getUser( currentUserDetails.getUid() );

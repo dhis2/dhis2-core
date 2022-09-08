@@ -79,7 +79,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         log.debug( String.format( "Login attempt: %s", username ) );
 
-        // If enabled, temporarily block user with to many failed attempts
+        // If enabled, temporarily block user with too many failed attempts
         if ( securityService.isLocked( username ) )
         {
             String ip = details.getIp();
@@ -96,12 +96,22 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
+        validateTwoFactor( user, details );
+
+        return new UsernamePasswordAuthenticationToken( userService.createUserDetails( user ),
+            result.getCredentials(),
+            result.getAuthorities() );
+    }
+
+    private void validateTwoFactor( User user, ForwardedIpAwareWebAuthenticationDetails details )
+    {
         // If user has 2FA enabled and tries to authenticate with HTTP Basic
         if ( user.isTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails) )
         {
-            log.info( "User has 2FA enabled" );
+            log.debug( "User has 2FA enabled, but tried to authenticate with HTTP Basic; username={}",
+                user.getUsername() );
             throw new PreAuthenticatedCredentialsNotFoundException(
-                "User has 2FA enabled, this does not support HTTP Basic auth" );
+                "User has 2FA enabled, but tried to authenticate with HTTP Basic; username=" + user.getUsername() );
         }
 
         // If user require 2FA, and it's not enabled/provisioned, redirect to
@@ -114,38 +124,33 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         if ( user.isTwoFactorEnabled() )
         {
-            validateTwoFactor( details, user );
-        }
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
+            if ( authDetails == null )
+            {
+                log.info( "Missing authentication details in authentication request." );
+                throw new PreAuthenticatedCredentialsNotFoundException(
+                    "Missing authentication details in authentication request." );
+            }
 
-        return new UsernamePasswordAuthenticationToken( userService.createUserDetails( user ),
-            result.getCredentials(),
-            result.getAuthorities() );
+            validateCode( StringUtils.deleteWhitespace( authDetails.getCode() ), user );
+        }
     }
 
-    private void validateTwoFactor( ForwardedIpAwareWebAuthenticationDetails details, User user )
+    private void validateCode( String code, User user )
     {
-        TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
-        if ( authDetails == null )
-        {
-            log.info( "Missing authentication details in authentication request." );
-            throw new PreAuthenticatedCredentialsNotFoundException(
-                "Missing authentication details in authentication request." );
-        }
+        code = StringUtils.deleteWhitespace( code );
 
-        String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-        boolean validCode = validateTwoFactorCode( code, user );
-
-        if ( !validCode )
+        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
         {
+            log.debug( String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
+
             if ( UserService.hasTwoFactorSecretForApproval( user ) )
             {
                 userService.resetTwoFA( user );
-                log.info( String.format( "Invalid two factor code for user: %s", user.getUsername() ) );
                 throw new TwoFactorAuthenticationEnrolmentException( "Invalid verification code" );
             }
             else
             {
-                log.info( String.format( "Invalid two factor code for user: %s", user.getUsername() ) );
                 throw new TwoFactorAuthenticationException( "Invalid verification code" );
             }
         }
@@ -153,23 +158,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         {
             userService.approveTwoFactorCode( user );
         }
-    }
-
-    private boolean validateTwoFactorCode( String code, User user )
-    {
-        if ( !user.isTwoFactorEnabled() )
-        {
-            throw new IllegalStateException( "User has not enrolled in 2FA" );
-        }
-
-        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
-        {
-            log.debug(
-                String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
-            return false;
-        }
-
-        return true;
     }
 
     @Override
