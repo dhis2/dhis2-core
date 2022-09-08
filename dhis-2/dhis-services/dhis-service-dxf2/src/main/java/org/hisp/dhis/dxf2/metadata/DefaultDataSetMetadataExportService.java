@@ -80,9 +80,9 @@ public class DefaultDataSetMetadataExportService
     private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
 
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
+        "dataInputPeriods[period,openingDate,closingDate]," +
         "dataSetElements[dataElement[id],categoryCombo[id]],indicators~pluck[id]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
-        "dataInputPeriods[period,openingDate,closingDate]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
