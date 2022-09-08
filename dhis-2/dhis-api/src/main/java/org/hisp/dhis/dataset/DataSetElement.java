@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataset;
 
 import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -46,8 +47,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataSetElement implements EmbeddedObject, Serializable
+public class DataSetElement implements EmbeddedObject, Serializable, Comparable<DataSetElement>
 {
+    private static final Comparator<DataSetElement> COMPARATOR = Comparator.comparing( DataSetElement::getDataSetUid )
+        .thenComparing( DataSetElement::getDataElementUid )
+        .thenComparing( DataSetElement::getCategoryComboUid );
+
     /**
      * The database internal identifier for this Object.
      */
@@ -104,9 +109,51 @@ public class DataSetElement implements EmbeddedObject, Serializable
         return hasCategoryCombo() ? getCategoryCombo() : dataElement.getCategoryCombo();
     }
 
+    /**
+     * Indicates whether a category combination exists.
+     *
+     * @return true if a category combination exists.
+     */
     public boolean hasCategoryCombo()
     {
         return categoryCombo != null;
+    }
+
+    /**
+     * Returns the UID of the data set.
+     *
+     * @return the UID of the data set.
+     */
+    public String getDataSetUid()
+    {
+        return getDataSet().getUid();
+    }
+
+    /**
+     * Returns the UID of the data element.
+     *
+     * @return the UID of the data element.
+     */
+    public String getDataElementUid()
+    {
+        return getDataElement().getUid();
+    }
+
+    /**
+     * Returns the UID of the category combination, or null if no category
+     * combination exists.
+     *
+     * @return the UID of the category combination, or null.
+     */
+    public String getCategoryComboUid()
+    {
+        return hasCategoryCombo() ? getCategoryCombo().getUid() : null;
+    }
+
+    @Override
+    public int compareTo( DataSetElement other )
+    {
+        return COMPARATOR.compare( this, other );
     }
 
     // -------------------------------------------------------------------------
