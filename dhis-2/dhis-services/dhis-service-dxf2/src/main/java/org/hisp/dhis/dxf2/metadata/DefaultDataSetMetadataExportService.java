@@ -124,17 +124,22 @@ public class DefaultDataSetMetadataExportService
         CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
         SetValuedMap<String, String> dataSetOrgUnits = dataSetService.getDataSetOrganisationUnitsAssociations();
 
-        List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
-        List<DataElement> dataElements = sortById( flatMapToSet( dataSets, DataSet::getDataElements ) );
-        List<Indicator> indicators = sortById( flatMapToSet( dataSets, DataSet::getIndicators ) );
+        List<DataSet> dataSets = idObjectManager
+            .getDataWriteAll( DataSet.class );
+        List<DataElement> dataElements = sortById(
+            flatMapToSet( dataSets, DataSet::getDataElements ) );
+        List<Indicator> indicators = sortById(
+            flatMapToSet( dataSets, DataSet::getIndicators ) );
         List<CategoryCombo> dataElementCategoryCombos = sortById(
             flatMapToSet( dataElements, DataElement::getCategoryCombos ) );
-        List<CategoryCombo> dataSetCategoryCombos = sortById( mapToSet( dataSets, DataSet::getCategoryCombo ) );
+        List<CategoryCombo> dataSetCategoryCombos = sortById(
+            mapToSet( dataSets, DataSet::getCategoryCombo ) );
         List<Category> dataElementCategories = sortById(
             flatMapToSet( dataElementCategoryCombos, CategoryCombo::getCategories ) );
         List<Category> dataSetCategories = sortById(
             flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories ) );
-        List<Category> categories = union( dataElementCategories, dataSetCategories );
+        List<Category> categories = union(
+            dataElementCategories, dataSetCategories );
         List<CategoryOption> categoryOptions = sortById(
             getCategoryOptions( dataElementCategories, dataSetCategories, user ) );
         List<OptionSet> optionSets = sortById( getOptionSets( dataElements ) );

@@ -450,7 +450,7 @@ public class IdentifiableObjectUtils
 
     /**
      * Converts the given {@link Set} to a mutable {@link List} and sorts the
-     * items by the UID property.
+     * items by the ID property.
      *
      * @param <T>
      * @param set the {@link Set}.
