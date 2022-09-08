@@ -35,6 +35,8 @@ import static org.hisp.dhis.commons.collection.ListUtils.union;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,10 +48,10 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -80,12 +82,17 @@ public class DefaultDataSetMetadataExportService
 {
     private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
 
+    private static final String PROPERTY_DATA_SET_ELEMENTS = "dataSetElements";
+
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
-        "dataSetElements[dataElement[id],categoryCombo[id]],indicators~pluck[id]," +
+        // "dataSetElements[dataElement[id],categoryCombo[id]],
+        "indicators~pluck[id]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
+
+    private static final String FIELDS_DATA_SET_ELEMENTS = "dataElement[id],categoryCombo[id]";
 
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
         "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet,description";
@@ -142,7 +149,8 @@ public class DefaultDataSetMetadataExportService
             dataElementCategories, dataSetCategories );
         List<CategoryOption> categoryOptions = sortById(
             getCategoryOptions( dataElementCategories, dataSetCategories, user ) );
-        List<OptionSet> optionSets = sortById( getOptionSets( dataElements ) );
+        List<OptionSet> optionSets = sortById(
+            getOptionSets( dataElements ) );
 
         dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
@@ -190,7 +198,7 @@ public class DefaultDataSetMetadataExportService
      * Returns option sets for the given data elements.
      *
      * @param dataElements the collection of data elements.
-     * @return a set of option sets.
+     * @return a set of {@link OptionSet}.
      */
     private Set<OptionSet> getOptionSets( Collection<DataElement> dataElements )
     {
@@ -209,7 +217,7 @@ public class DefaultDataSetMetadataExportService
      * @param dataSets the collection of {@link DataSet}.
      * @param dataSetOrgUnits the associations between data sets and
      *        organisation units.
-     * @return data sets as a list of {@link ObjectNode}
+     * @return a list of {@link ObjectNode}
      */
     private List<ObjectNode> toDataSetObjectNodes( Collection<DataSet> dataSets,
         SetValuedMap<String, String> dataSetOrgUnits )
@@ -219,11 +227,42 @@ public class DefaultDataSetMetadataExportService
         for ( DataSet dataSet : dataSets )
         {
             ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
+            objectNode.set( PROPERTY_DATA_SET_ELEMENTS, toDataSetElementsArrayNode( dataSet.getDataSetElements() ) );
             objectNode.set( PROPERTY_ORGANISATION_UNITS, toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
             objectNodes.add( objectNode );
         }
 
         return objectNodes;
+    }
+
+    /**
+     * Returns data set elements as an {@link ArrayNode}. The data set elements
+     * are sorted by identifier to provide a stable order.
+     *
+     * @param dataSetElements the set of {@link DataSetElement}.
+     * @return an {@link ArrayNode}.
+     */
+    private ArrayNode toDataSetElementsArrayNode( Set<DataSetElement> dataSetElements )
+    {
+        List<DataSetElement> elements = toDataSetElementList( dataSetElements );
+        ArrayNode arrayNode = fieldFilterService.createArrayNode();
+        List<ObjectNode> objectNodes = toObjectNodes( elements, FIELDS_DATA_SET_ELEMENTS, DataSetElement.class );
+        objectNodes.forEach( node -> arrayNode.add( node ) );
+        return arrayNode;
+    }
+
+    /**
+     * Returns a list of {@link DataSetElement} sorted by identifier to provide
+     * a stable order.
+     *
+     * @param dataSetElements the set of {@link DataSetElement}.
+     * @return a list of {@link DataSetElement}.
+     */
+    private List<DataSetElement> toDataSetElementList( Set<DataSetElement> dataSetElements )
+    {
+        List<DataSetElement> elements = new ArrayList<>( dataSetElements );
+        Collections.sort( elements, Comparator.comparingLong( DataSetElement::getId ) );
+        return elements;
     }
 
     /**
@@ -233,7 +272,7 @@ public class DefaultDataSetMetadataExportService
      * @param dataSet the {@link DataSet}.
      * @param dataSetOrgUnits the associations between data sets and
      *        organisation units.
-     * @return organisation unit associations for the given data set.
+     * @return an {@link ArrayNode}.
      */
     private ArrayNode toOrgUnitsArrayNode( DataSet dataSet, SetValuedMap<String, String> dataSetOrgUnits )
     {
@@ -250,9 +289,9 @@ public class DefaultDataSetMetadataExportService
      * @param objects the collection of objects.
      * @param filters the filters to apply.
      * @param type the class type.
-     * @return an {@link ObjectNode}.
+     * @return a list of {@link ObjectNode}.
      */
-    private <T extends IdentifiableObject> List<ObjectNode> toObjectNodes(
+    private <T> List<ObjectNode> toObjectNodes(
         Collection<T> objects, String filters, Class<T> type )
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
@@ -263,4 +302,5 @@ public class DefaultDataSetMetadataExportService
 
         return fieldFilterService.toObjectNodes( fieldFilterParams );
     }
+
 }
