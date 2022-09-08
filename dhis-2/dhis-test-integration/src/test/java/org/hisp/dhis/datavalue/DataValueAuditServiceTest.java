@@ -250,4 +250,23 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 
         assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
     }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreate()
+    {
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElementA ) )
+            .setPeriods( List.of( periodD ) )
+            .setOrgUnits( List.of( orgUnitA ) )
+            .setCategoryOptionCombo( optionCombo )
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
+
+        assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 1, audits.size() );
+        assertEquals( AuditType.CREATE, audits.get( 0 ).getAuditType() );
+    }
 }
