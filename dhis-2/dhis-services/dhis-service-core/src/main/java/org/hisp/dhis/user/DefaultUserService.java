@@ -745,7 +745,7 @@ public class DefaultUserService
 
     @Transactional
     @Override
-    public void resetTwoFA( User user )
+    public void resetTwoFa( User user )
     {
         user.setSecret( null );
         updateUser( user );
@@ -753,7 +753,7 @@ public class DefaultUserService
 
     @Transactional
     @Override
-    public void enableTwoFA( User user, String code )
+    public void enableTwoFa( User user, String code )
     {
         if ( user.getSecret() == null )
         {
@@ -772,12 +772,12 @@ public class DefaultUserService
             throw new IllegalStateException( "Invalid code" );
         }
 
-        approveTwoFactorCode( user );
+        approveTwoFactorSecret( user );
     }
 
     @Transactional
     @Override
-    public void disableTwoFA( User user, String code )
+    public void disableTwoFa( User user, String code )
     {
         if ( user.getSecret() == null )
         {
@@ -789,12 +789,12 @@ public class DefaultUserService
             throw new IllegalStateException( "Invalid code" );
         }
 
-        resetTwoFA( user );
+        resetTwoFa( user );
     }
 
     @Override
     @Transactional
-    public void privilegedTwoFADisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
+    public void privilegedTwoFaDisable( User currentUser, String userUid, Consumer<ErrorReport> errors )
     {
         User user = getUser( userUid );
         if ( user == null )
@@ -814,7 +814,7 @@ public class DefaultUserService
             return;
         }
 
-        resetTwoFA( user );
+        resetTwoFa( user );
     }
 
     @Override
@@ -937,7 +937,7 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void approveTwoFactorCode( User user )
+    public void approveTwoFactorSecret( User user )
     {
         if ( user.getSecret() != null && UserService.hasTwoFactorSecretForApproval( user ) )
         {
@@ -976,8 +976,7 @@ public class DefaultUserService
         // /2fa/enable or disable API, even if they are admin.
         if ( currentUserDetails.getUid().equals( userToModify.getUid() ) )
         {
-            throw new UpdateAccessDeniedException(
-                "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" );
+            throw new UpdateAccessDeniedException( ErrorCode.E3030.getMessage() );
         }
 
         // If current user has access to manage this user, they can disable 2FA.

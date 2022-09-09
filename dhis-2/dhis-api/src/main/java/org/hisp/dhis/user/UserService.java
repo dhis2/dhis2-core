@@ -491,19 +491,19 @@ public interface UserService
      * @param errors A Consumer<ErrorReport> object that will be called if there
      *        is an error.
      */
-    void privilegedTwoFADisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
+    void privilegedTwoFaDisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
 
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 
     void generateTwoFactorSecretForApproval( User user );
 
-    void approveTwoFactorCode( User user );
+    void approveTwoFactorSecret( User user );
 
-    void resetTwoFA( User user );
+    void resetTwoFa( User user );
 
-    void enableTwoFA( User user, String code );
+    void enableTwoFa( User user, String code );
 
-    void disableTwoFA( User user, String code );
+    void disableTwoFa( User user, String code );
 
     static boolean hasTwoFactorSecretForApproval( User user )
     {

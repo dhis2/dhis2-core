@@ -578,7 +578,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
 
         User admin = createAndAddAdminUser( "ALL" );
         List<ErrorReport> errors = new ArrayList<>();
-        userService.privilegedTwoFADisable( admin, userToModify.getUid(), error -> errors.add( error ) );
+        userService.privilegedTwoFaDisable( admin, userToModify.getUid(), error -> errors.add( error ) );
         assertTrue( errors.isEmpty() );
     }
 
@@ -604,7 +604,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         userService.updateUser( currentUser );
 
         List<ErrorReport> errors = new ArrayList<>();
-        userService.privilegedTwoFADisable( currentUser, userToModify.getUid(), error -> errors.add( error ) );
+        userService.privilegedTwoFaDisable( currentUser, userToModify.getUid(), error -> errors.add( error ) );
         assertTrue( errors.isEmpty() );
     }
 

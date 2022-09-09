@@ -39,7 +39,6 @@ import java.util.List;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -273,7 +272,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAIllegalSameUser()
+    void testDisable2FaIllegalSameUser()
     {
         switchContextToUser( this.peter );
         HttpResponse put = PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" );
@@ -283,27 +282,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAFailNotAllowedByExecutingUser()
-    {
-        User superUser = getSuperUser();
-        switchContextToUser( superUser );
-
-        JsonObject user = GET( "/users/{uid}", superUser.getUid() ).content();
-        String userJson = user.toString();
-
-        String twoFAOn = userJson.replaceAll( "\"twoFA\":false", "\"twoFA\":true" );
-
-        HttpResponse put = PUT( "/37/users/" + superUser.getUid(), twoFAOn );
-        JsonResponse jsonResponse = put.contentUnchecked();
-        // String content = put.content( "application/json" );
-
-        assertEquals( "You can not enable 2FA with this API endpoint, only disable.",
-            put.error( HttpStatus.FORBIDDEN )
-                .getMessage() );
-    }
-
-    @Test
-    void testDisable2FAFailNotAllowedByExecutingUserB()
+    void testDisable2FaFailNotAllowedByExecutingUserB()
     {
         // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "ALL" ) );
@@ -320,14 +299,12 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String payload = userJson.replaceAll( "\"secret\":\"" + secret + "\"", "\"secret\":null" );
 
         HttpResponse put = PUT( "/37/users/" + newUser.getUid(), payload );
-        assertEquals(
-            "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API",
-            put.error( HttpStatus.FORBIDDEN )
-                .getMessage() );
+
+        assertEquals( ErrorCode.E3030.getMessage(), put.error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    void testDisable2FAFailNotAllowedByExecutingUserA()
+    void testDisable2FaFailNotAllowedByExecutingUserA()
     {
         // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "TEST" ) );

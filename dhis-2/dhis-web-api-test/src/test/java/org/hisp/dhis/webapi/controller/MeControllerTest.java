@@ -223,13 +223,4 @@ class MeControllerTest extends DhisControllerConvenienceTest
     {
         assertTrue( GET( "/me/dataApprovalLevels" ).content( HttpStatus.OK ).isArray() );
     }
-
-    @Test
-    void testEnable2FAOnMeControllerNotAllowed()
-    {
-        assertFalse( userA.isTwoFactorEnabled() );
-
-        assertStatus( HttpStatus.BAD_REQUEST,
-            PUT( "/me", "{'userCredentials':{'twoFA':true}}" ) );
-    }
 }

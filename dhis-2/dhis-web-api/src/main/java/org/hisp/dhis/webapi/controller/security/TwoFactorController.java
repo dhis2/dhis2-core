@@ -160,12 +160,18 @@ public class TwoFactorController
     {
         String code = body.get( "code" );
 
+        if ( !currentUser.isTwoFactorEnabled() || !UserService.hasTwoFactorSecretForApproval( currentUser ) )
+        {
+            throw new WebMessageException( conflict(
+                ErrorCode.E3029.getMessage(), ErrorCode.E3029 ) );
+        }
+
         if ( !verifyCode( code, currentUser ) )
         {
             return unauthorized( ErrorCode.E3023.getMessage() );
         }
 
-        defaultUserService.enableTwoFA( currentUser, code );
+        defaultUserService.enableTwoFa( currentUser, code );
 
         return ok( "Two factor authentication was enabled successfully" );
     }
@@ -187,12 +193,18 @@ public class TwoFactorController
     {
         String code = body.get( "code" );
 
+        if ( !currentUser.isTwoFactorEnabled() || !UserService.hasTwoFactorSecretForApproval( currentUser ) )
+        {
+            throw new WebMessageException( conflict(
+                ErrorCode.E3029.getMessage(), ErrorCode.E3029 ) );
+        }
+
         if ( !verifyCode( code, currentUser ) )
         {
             return unauthorized( ErrorCode.E3023.getMessage() );
         }
 
-        defaultUserService.disableTwoFA( currentUser, code );
+        defaultUserService.disableTwoFa( currentUser, code );
 
         return ok( "Two factor authentication was disabled successfully" );
     }

@@ -586,7 +586,7 @@ public class UserController
     public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
-        userService.privilegedTwoFADisable( currentUser, uid, error -> errors.add( error ) );
+        userService.privilegedTwoFaDisable( currentUser, uid, error -> errors.add( error ) );
 
         if ( errors.isEmpty() )
         {

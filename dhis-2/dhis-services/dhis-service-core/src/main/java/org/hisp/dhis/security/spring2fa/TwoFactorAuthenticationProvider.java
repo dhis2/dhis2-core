@@ -146,7 +146,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
             if ( UserService.hasTwoFactorSecretForApproval( user ) )
             {
-                userService.resetTwoFA( user );
+                userService.resetTwoFa( user );
                 throw new TwoFactorAuthenticationEnrolmentException( "Invalid verification code" );
             }
             else
@@ -156,7 +156,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         }
         else if ( UserService.hasTwoFactorSecretForApproval( user ) )
         {
-            userService.approveTwoFactorCode( user );
+            userService.approveTwoFactorSecret( user );
         }
     }
 

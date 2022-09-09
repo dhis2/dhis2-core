@@ -33,25 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpMethod;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.security.TwoFactorController;
-import org.junit.jupiter.api.Test;
-
 import org.jboss.aerogear.security.otp.Totp;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link TwoFactorController} sing (mocked) REST requests.
@@ -61,7 +51,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 class TwoFactorControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void testQr2FAConflictMustDisableFirst()
+    void testQr2FaConflictMustDisableFirst()
     {
         assertNull( getCurrentUser().getSecret() );
 
@@ -71,7 +61,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
         assertNotNull( user.getSecret() );
 
-        String code = new Totp( replaceApprovalPartOfTheSecret( user ) ).now();
+        String code = getCode( user );
 
         assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
 
@@ -79,53 +69,73 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         assertNotNull( user.getSecret() );
     }
 
-    @NotNull private static String replaceApprovalPartOfTheSecret( User user )
-    {
-        return user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" );
-    }
-
     @Test
-    void testEnable2FA()
+    void testEnable2Fa()
     {
-        User newUser = makeUser( "X", List.of( "TEST" ) );
-        newUser.setEmail( "valid.x@email.com" );
-        userService.addUser( newUser );
-        userService.generateTwoFactorSecretForApproval( newUser );
+        User user = makeUser( "X", List.of( "TEST" ) );
+        user.setEmail( "valid.x@email.com" );
+        userService.addUser( user );
+        userService.generateTwoFactorSecretForApproval( user );
 
-        switchToNewUser( newUser );
+        switchToNewUser( user );
 
-        String code = new Totp( replaceApprovalPartOfTheSecret( newUser ) ).now();
+        String code = getCode( user );
         assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
     }
 
     @Test
-    void testEnable2FAWrongCode()
+    void testEnable2FaWrongCode()
     {
+        User user = makeUser( "X", List.of( "TEST" ) );
+        user.setEmail( "valid.x@email.com" );
+        userService.addUser( user );
+        userService.generateTwoFactorSecretForApproval( user );
+
+        switchToNewUser( user );
+
         assertEquals( "Invalid 2FA code",
             POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
     @Test
-    void testDisable2FA()
+    void testEnable2FaNotCalledQrFirst()
+    {
+        assertEquals( "User must call /qr endpoint before you can call enable",
+            POST( "/2fa/enable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
+    }
+
+    @Test
+    void testDisable2Fa()
     {
         User newUser = makeUser( "Y", List.of( "TEST" ) );
         newUser.setEmail( "valid.y@email.com" );
-        // newUser.setTwoFA( true );
+
         userService.addUser( newUser );
         userService.generateTwoFactorSecretForApproval( newUser );
+        userService.approveTwoFactorSecret( newUser );
 
         switchToNewUser( newUser );
 
-        String code = new Totp( getCurrentUser().getSecret() ).now();
+        String code = getCode( newUser );
 
         assertStatus( HttpStatus.OK, POST( "/2fa/disable", "{'code':'" + code + "'}" ) );
     }
 
     @Test
-    void testDisable2FAWrongCode()
+    void testDisable2FaNotCalledQrFirst()
     {
-        assertEquals( "Invalid 2FA code",
+        assertEquals( "User must call /qr endpoint before you can call enable",
             POST( "/2fa/disable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
+    private static String replaceApprovalPartOfTheSecret( User user )
+    {
+        return user.getSecret().replace( TWO_FACTOR_CODE_APPROVAL_PREFIX, "" );
+    }
+
+    private static String getCode( User newUser )
+    {
+        String code = new Totp( replaceApprovalPartOfTheSecret( newUser ) ).now();
+        return code;
+    }
 }
