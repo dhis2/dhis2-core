@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -426,10 +427,7 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        String prefix = "Order by property `nonSimple` is not supported";
-        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+        assertStartsWith( "Order by property `nonSimple` is not supported", exception.getMessage() );
     }
 
     @Test
@@ -441,10 +439,7 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        String prefix = "Order by property `";
-        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+        assertStartsWith( "Order by property `", exception.getMessage() );
         // order of properties in exception message might not always be the same
         String property1 = "unsupportedProperty1";
         assertTrue( exception.getMessage().contains( property1 ), () -> String
@@ -539,10 +534,9 @@ class EventRequestToSearchParamsMapperTest
         assertNotNull( exception.getMessage() );
         // order of TEA UIDs in exception message might not always be the same;
         // therefore using contains to check for UIDs
-        String prefix = "filterAttributes can only have one filter per tracked entity attribute (TEA).";
         assertAll(
-            () -> assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-                .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) ),
+            () -> assertStartsWith( "filterAttributes can only have one filter per tracked entity attribute (TEA).",
+                exception.getMessage() ),
             () -> assertTrue( exception.getMessage().contains( TEA_1_UID ), () -> String
                 .format( "expected message to contain '%s', got '%s' instead", TEA_1_UID, exception.getMessage() ) ),
             () -> assertTrue( exception.getMessage().contains( TEA_2_UID ), () -> String
