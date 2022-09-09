@@ -203,17 +203,7 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
-            .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-        if ( eventCriteria.getFilterAttributes() != null )
-        {
-            for ( String filter : eventCriteria.getFilterAttributes() )
-            {
-                QueryItem it = getQueryItem( filter, attributes );
-
-                params.getFilterAttributes().add( it );
-            }
-        }
+        mapFilterAttributes( eventCriteria, params );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
         Set<String> dataElements = dataElementOrders.keySet();
@@ -274,6 +264,43 @@ class EventRequestToSearchParamsMapper
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+    }
+
+    private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams )
+    {
+
+        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
+            .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+        if ( eventCriteria.getFilterAttributes() != null )
+        {
+            for ( String filter : eventCriteria.getFilterAttributes() )
+            {
+                QueryItem it = getQueryItem( filter, attributes );
+
+                searchParams.getFilterAttributes().add( it );
+            }
+        }
+        validateFilterAttributes( searchParams.getFilterAttributes() );
+    }
+
+    private void validateFilterAttributes( List<QueryItem> queryItems )
+    {
+        Set<String> attributes = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+        for ( QueryItem item : queryItems )
+        {
+            if ( !attributes.add( item.getItemId() ) )
+            {
+                duplicates.add( item.getItemId() );
+            }
+        }
+
+        if ( !duplicates.isEmpty() )
+        {
+            throw new IllegalQueryException( String.format(
+                "filterAttributes can only have one filter per tracked entity attribute (TEA). The following TEA have more than one: %s",
+                String.join( ", ", duplicates ) ) );
+        }
     }
 
     private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )

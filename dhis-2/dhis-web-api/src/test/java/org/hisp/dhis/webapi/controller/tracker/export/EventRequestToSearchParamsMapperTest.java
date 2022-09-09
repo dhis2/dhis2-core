@@ -88,6 +88,10 @@ import org.mockito.quality.Strictness;
 class EventRequestToSearchParamsMapperTest
 {
 
+    public static final String TEA_1_UID = "TvjwTPToKHO";
+
+    public static final String TEA_2_UID = "cy2oRh2sNr6";
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -160,9 +164,9 @@ class EventRequestToSearchParamsMapperTest
         trackedEntityInstance = new TrackedEntityInstance();
         when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntityInstance );
         tea1 = new TrackedEntityAttribute();
-        tea1.setUid( "TvjwTPToKHO" );
+        tea1.setUid( TEA_1_UID );
         tea2 = new TrackedEntityAttribute();
-        tea2.setUid( "cy2oRh2sNr6" );
+        tea2.setUid( TEA_2_UID );
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
 
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
@@ -521,6 +525,28 @@ class EventRequestToSearchParamsMapperTest
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
+    }
+
+    @Test
+    void testFilterAttributesWhenSameTEAHasMultipleFilters()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setFilterAttributes(
+            Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+        assertNotNull( exception.getMessage() );
+        // order of TEA UIDs in exception message might not always be the same;
+        // therefore using contains to check for UIDs
+        String prefix = "filterAttributes can only have one filter per tracked entity attribute (TEA).";
+        assertAll(
+            () -> assertTrue( exception.getMessage().startsWith( prefix ), () -> String
+                .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) ),
+            () -> assertTrue( exception.getMessage().contains( TEA_1_UID ), () -> String
+                .format( "expected message to contain '%s', got '%s' instead", TEA_1_UID, exception.getMessage() ) ),
+            () -> assertTrue( exception.getMessage().contains( TEA_2_UID ), () -> String
+                .format( "expected message to contain '%s', got '%s' instead", TEA_2_UID, exception.getMessage() ) ) );
     }
 
     @Test
