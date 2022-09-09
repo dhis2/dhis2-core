@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
@@ -79,7 +80,7 @@ public class TwoFactorController
 
     private final SystemSettingManager systemSettingManager;
 
-    @GetMapping( value = "/qrCode", produces = "image/png" )
+    @GetMapping( value = "/qrCode", produces = APPLICATION_OCTET_STREAM )
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void generateQRCode( @CurrentUser User currentUser, HttpServletResponse response )
         throws IOException,

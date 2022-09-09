@@ -767,7 +767,7 @@ public class DefaultUserService
 
         }
 
-        if ( TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
+        if ( !TwoFactoryAuthenticationUtils.verify( code, user.getSecret() ) )
         {
             throw new IllegalStateException( "Invalid code" );
         }
