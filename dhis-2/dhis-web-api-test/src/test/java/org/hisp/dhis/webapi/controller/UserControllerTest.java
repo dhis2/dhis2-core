@@ -309,7 +309,6 @@ class UserControllerTest extends DhisControllerConvenienceTest
         // Manually enable 2FA for the new user
         User newUser = makeUser( "X", List.of( "TEST" ) );
         newUser.setEmail( "valid@email.com" );
-        // newUser.setTwoFA( true );
         userService.addUser( newUser );
 
         User superUser = getSuperUser();

@@ -56,7 +56,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         assertNull( getCurrentUser().getSecret() );
 
         User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        userService.generateTwoFactorSecretForApproval( user );
+        userService.generateTwoFactorOtpSecretForApproval( user );
 
         user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
         assertNotNull( user.getSecret() );
@@ -75,7 +75,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         User user = makeUser( "X", List.of( "TEST" ) );
         user.setEmail( "valid.x@email.com" );
         userService.addUser( user );
-        userService.generateTwoFactorSecretForApproval( user );
+        userService.generateTwoFactorOtpSecretForApproval( user );
 
         switchToNewUser( user );
 
@@ -89,7 +89,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         User user = makeUser( "X", List.of( "TEST" ) );
         user.setEmail( "valid.x@email.com" );
         userService.addUser( user );
-        userService.generateTwoFactorSecretForApproval( user );
+        userService.generateTwoFactorOtpSecretForApproval( user );
 
         switchToNewUser( user );
 
@@ -111,7 +111,7 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
         newUser.setEmail( "valid.y@email.com" );
 
         userService.addUser( newUser );
-        userService.generateTwoFactorSecretForApproval( newUser );
+        userService.generateTwoFactorOtpSecretForApproval( newUser );
         userService.approveTwoFactorSecret( newUser );
 
         switchToNewUser( newUser );

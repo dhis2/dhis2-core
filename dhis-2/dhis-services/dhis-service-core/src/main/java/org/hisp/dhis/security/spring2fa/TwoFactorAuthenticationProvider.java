@@ -117,7 +117,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         // If user require 2FA, and it's not enabled/provisioned, redirect to
         // the enrolment page,
         // (via the CustomAuthFailureHandler)
-        if ( !user.isTwoFactorEnabled() && userService.hasTwoFactorRequirementRole( user ) )
+        if ( !user.isTwoFactorEnabled() && userService.hasTwoFactorRoleRestriction( user ) )
         {
             throw new TwoFactorAuthenticationEnrolmentException( "User must setup two factor authentication" );
         }

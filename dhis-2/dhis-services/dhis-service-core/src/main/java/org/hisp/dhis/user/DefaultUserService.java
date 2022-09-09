@@ -928,7 +928,7 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void generateTwoFactorSecretForApproval( User user )
+    public void generateTwoFactorOtpSecretForApproval( User user )
     {
         String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
         user.setSecret( newSecret );
@@ -947,7 +947,7 @@ public class DefaultUserService
     }
 
     @Override
-    public boolean hasTwoFactorRequirementRole( User user )
+    public boolean hasTwoFactorRoleRestriction( User user )
     {
         return user.hasAnyRestrictions( Set.of( TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME ) );
     }

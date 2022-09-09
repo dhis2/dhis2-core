@@ -57,9 +57,17 @@ public interface UserService
 
     String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
-    // -------------------------------------------------------------------------
-    // User
-    // -------------------------------------------------------------------------
+    /**
+     * If the user's secret starts with the prefix `APPROVAL_`, then return true
+     *
+     * @param user The user to check.
+     *
+     * @return A boolean value.
+     */
+    static boolean hasTwoFactorSecretForApproval( User user )
+    {
+        return user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX );
+    }
 
     /**
      * Adds a User.
@@ -292,11 +300,12 @@ public interface UserService
 
     int getActiveUsersCount( Date since );
 
+    /**
+     * If the user's password has not expired, return true
+     *
+     * @param user The user object that is being checked.
+     */
     boolean userNonExpired( User user );
-
-    // -------------------------------------------------------------------------
-    // UserRole
-    // -------------------------------------------------------------------------
 
     /**
      * Adds a UserRole.
@@ -473,8 +482,26 @@ public interface UserService
      */
     List<User> getUsersWithAuthority( String authority );
 
+    /**
+     * It creates a CurrentUserDetailsImpl object from a User object. It also
+     * fetches the users locked and credentials expired status.
+     *
+     * @param user The user object that is being authenticated.
+     *
+     * @return A CurrentUserDetailsImpl object.
+     */
     CurrentUserDetails createUserDetails( User user );
 
+    /**
+     * It creates a CurrentUserDetailsImpl object from a User object
+     *
+     * @param user The user object that is being authenticated.
+     * @param accountNonLocked This is a boolean value that indicates whether
+     *        the user's account is locked or not.
+     * @param credentialsNonExpired This is a boolean value that indicates
+     *        whether the user's credentials are expired or not.
+     * @return A CurrentUserDetailsImpl object.
+     */
     CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
@@ -493,24 +520,80 @@ public interface UserService
      */
     void privilegedTwoFaDisable( User currentUser, String userUid, Consumer<ErrorReport> errors );
 
+    /**
+     * Checks if the input user can modify the other input user.
+     *
+     * @param currentUser The user who is trying to modify the user
+     * @param userToModify The user that is being modified
+     * @param errors A Consumer<ErrorReport> object that will be called if the
+     *        user cannot be modified.
+     *
+     * @return Boolean
+     */
     boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors );
 
-    void generateTwoFactorSecretForApproval( User user );
+    /**
+     * Generate a new two factor (TOTP) secret for the user, but prefix it with
+     * a special string so that we can tell the difference between a normal
+     * secret and an approval secret.
+     *
+     * @param user The user object that is being updated.
+     */
+    void generateTwoFactorOtpSecretForApproval( User user );
 
+    /**
+     * If the user has an OTP secret that starts with the approval prefix,
+     * remove the prefix and update the user property.
+     *
+     * @param user The user object that is being updated.
+     */
     void approveTwoFactorSecret( User user );
 
+    /**
+     * "Disable 2FA authentication for the input user, by setting the secret to
+     * null."
+     *
+     * @param user The user object that you want to reset the 2FA for.
+     */
     void resetTwoFa( User user );
 
+    /**
+     * If the user has a secret, and the secret has not been approved, and the
+     * code is valid, then approve the secret and effectively enable 2FA.
+     *
+     * @param user The user object to enable 2FA authentication for.
+     * @param code The code that the user entered into the app
+     */
     void enableTwoFa( User user, String code );
 
+    /**
+     * If the user has 2FA authentication enabled, and the code is valid, then
+     * disable 2FA authentication
+     *
+     * @param user The user object that you want to disable 2FA authentication
+     *        for.
+     * @param code The code that the user entered
+     */
     void disableTwoFa( User user, String code );
 
-    static boolean hasTwoFactorSecretForApproval( User user )
-    {
-        return user.getSecret().startsWith( TWO_FACTOR_CODE_APPROVAL_PREFIX );
-    }
+    /**
+     * If the user has a role with the 2FA authentication required restriction,
+     * return true.
+     *
+     * @param user The user object that is being checked for the role.
+     *
+     * @return A boolean value.
+     */
+    boolean hasTwoFactorRoleRestriction( User user );
 
-    boolean hasTwoFactorRequirementRole( User user );
-
+    /**
+     * If the user is not the same as the user to modify, and the user has the
+     * proper acl permissions to modify the user, then the user can modify the
+     * user.
+     *
+     * @param before The state before the update.
+     * @param after The state after the update.
+     * @param userToModify The user object that is being updated.
+     */
     void validateTwoFactorUpdate( boolean before, boolean after, User userToModify );
 }

@@ -570,10 +570,10 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testDisableTwoFAWithAdminUser()
+    void testDisableTwoFaWithAdminUser()
     {
         User userToModify = createAndAddUser( "A" );
-        userService.generateTwoFactorSecretForApproval( userToModify );
+        userService.generateTwoFactorOtpSecretForApproval( userToModify );
         userService.updateUser( userToModify );
 
         User admin = createAndAddAdminUser( "ALL" );
@@ -583,10 +583,10 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testDisableTwoFAWithManageUser()
+    void testDisableTwoFaWithManageUser()
     {
         User userToModify = createAndAddUser( "A" );
-        userService.generateTwoFactorSecretForApproval( userToModify );
+        userService.generateTwoFactorOtpSecretForApproval( userToModify );
 
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );
         userGroupService.addUserGroup( userGroupA );

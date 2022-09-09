@@ -98,7 +98,7 @@ public class TwoFactorController
                 ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
 
-        defaultUserService.generateTwoFactorSecretForApproval( currentUser );
+        defaultUserService.generateTwoFactorOtpSecretForApproval( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
@@ -135,7 +135,7 @@ public class TwoFactorController
             throw new BadCredentialsException( ErrorCode.E3025.getMessage() );
         }
 
-        defaultUserService.generateTwoFactorSecretForApproval( currentUser );
+        defaultUserService.generateTwoFactorOtpSecretForApproval( currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", "blank" );
