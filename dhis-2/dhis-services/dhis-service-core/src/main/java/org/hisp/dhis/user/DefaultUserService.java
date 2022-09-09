@@ -567,7 +567,7 @@ public class DefaultUserService
         }
 
         // Encode and set password
-        Matcher matcher = this.BCRYPT_PATTERN.matcher( rawPassword );
+        Matcher matcher = UserService.BCRYPT_PATTERN.matcher( rawPassword );
         if ( matcher.matches() )
         {
             throw new IllegalArgumentException( "Raw password look like BCrypt: " + rawPassword );
