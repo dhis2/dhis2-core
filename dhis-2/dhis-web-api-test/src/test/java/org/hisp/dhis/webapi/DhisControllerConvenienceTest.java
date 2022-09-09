@@ -93,7 +93,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     @Autowired
     protected DbmsManager dbmsManager;
 
-    public MockMvc mvc;
+    private MockMvc mvc;
 
     private MockHttpSession session;
 

@@ -73,7 +73,6 @@ public interface UserService
      * Adds a User.
      *
      * @param user the User to add.
-     *
      * @return the generated identifier.
      */
     long addUser( User user );
@@ -89,7 +88,6 @@ public interface UserService
      * Retrieves the User with the given identifier.
      *
      * @param id the identifier of the User to retrieve.
-     *
      * @return the User.
      */
     User getUser( long id );
@@ -98,7 +96,6 @@ public interface UserService
      * Retrieves the User with the given unique identifier.
      *
      * @param uid the identifier of the User to retrieve.
-     *
      * @return the User.
      */
     User getUser( String uid );
@@ -107,7 +104,6 @@ public interface UserService
      * Retrieves the User with the given UUID.
      *
      * @param uuid the UUID of the User to retrieve.
-     *
      * @return the User.
      */
     User getUserByUuid( UUID uuid );
@@ -116,7 +112,6 @@ public interface UserService
      * Retrieves the User with the given username.
      *
      * @param username the username of the User to retrieve.
-     *
      * @return the User.
      */
     User getUserByUsername( String username );
@@ -132,7 +127,6 @@ public interface UserService
      * </ul>
      *
      * @param id the User identifier.
-     *
      * @return the User, or null if not found.
      */
     User getUserByIdentifier( String id );
@@ -141,7 +135,6 @@ public interface UserService
      * Retrieves a collection of User with the given unique identifiers.
      *
      * @param uids the identifiers of the collection of Users to retrieve.
-     *
      * @return the User.
      */
     List<User> getUsers( Collection<String> uids );
@@ -150,7 +143,6 @@ public interface UserService
      * Retrieves a collection of User with the given usernames.
      *
      * @param usernames the usernames of the collection of Users to retrieve.
-     *
      * @return the User.
      */
     List<User> getUsersByUsernames( Collection<String> usernames );
@@ -169,7 +161,6 @@ public interface UserService
      * @param name the name.
      * @param first the first item to return.
      * @param max the max number of item to return.
-     *
      * @return a list of Users.
      */
     List<User> getAllUsersBetweenByName( String name, int first, int max );
@@ -185,7 +176,6 @@ public interface UserService
      * Checks if the given user represents the last user with ALL authority.
      *
      * @param user the user.
-     *
      * @return true if the given user represents the last user with ALL
      *         authority.
      */
@@ -196,7 +186,6 @@ public interface UserService
      * order of last name and first name will be applied.
      *
      * @param params the user query parameters.
-     *
      * @return a List of users.
      */
     List<User> getUsers( UserQueryParams params );
@@ -208,7 +197,6 @@ public interface UserService
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
-     *
      * @return a List of users.
      */
     List<User> getUsers( UserQueryParams params, @Nullable List<String> orders );
@@ -217,7 +205,6 @@ public interface UserService
      * Returns the number of users based on the given query parameters.
      *
      * @param params the user query parameters.
-     *
      * @return number of users.
      */
     int getUserCount( UserQueryParams params );
@@ -239,7 +226,6 @@ public interface UserService
      * user groups. Returns false otherwise.
      *
      * @param userGroups the user group identifiers.
-     *
      * @return true if the current user can create user, false if not.
      */
     boolean canAddOrUpdateUser( Collection<String> userGroups );
@@ -250,7 +236,6 @@ public interface UserService
      * Retrieves the User associated with the User with the given id token.
      *
      * @param token the id token of the User.
-     *
      * @return the User.
      */
     User getUserByIdToken( String token );
@@ -261,7 +246,6 @@ public interface UserService
      * Retrieves the User associated with the User with the given OpenID.
      *
      * @param openId the openId of the User.
-     *
      * @return the User or null if there is no match
      */
     User getUserByOpenId( String openId );
@@ -270,7 +254,6 @@ public interface UserService
      * Retrieves the User associated with the User with the given LDAP ID.
      *
      * @param ldapId the ldapId of the User.
-     *
      * @return the User.
      */
     User getUserByLdapId( String ldapId );
@@ -311,7 +294,6 @@ public interface UserService
      * Adds a UserRole.
      *
      * @param userRole the UserRole.
-     *
      * @return the generated identifier.
      */
     long addUserRole( UserRole userRole );
@@ -327,7 +309,6 @@ public interface UserService
      * Retrieves the UserRole with the given identifier.
      *
      * @param id the identifier of the UserRole to retrieve.
-     *
      * @return the UserRole.
      */
     UserRole getUserRole( long id );
@@ -336,7 +317,6 @@ public interface UserService
      * Retrieves the UserRole with the given identifier.
      *
      * @param uid the identifier of the UserRole to retrieve.
-     *
      * @return the UserRole.
      */
     UserRole getUserRole( String uid );
@@ -345,7 +325,6 @@ public interface UserService
      * Retrieves the UserRole with the given name.
      *
      * @param name the name of the UserRole to retrieve.
-     *
      * @return the UserRole.
      */
     UserRole getUserRoleByName( String name );
@@ -368,7 +347,6 @@ public interface UserService
      * Retrieves UserRole with the given UIDs.
      *
      * @param uids the UIDs.
-     *
      * @return a List of UserRolea.
      */
     List<UserRole> getUserRolesByUid( Collection<String> uids );
@@ -392,7 +370,6 @@ public interface UserService
      * DataSet.
      *
      * @param dataSet the DataSet.
-     *
      * @return number of UserRoles.
      */
     int countDataSetUserRoles( DataSet dataSet );
@@ -409,7 +386,6 @@ public interface UserService
 
     /**
      * @param inDays number of days to include
-     *
      * @return list of those users that are about to expire in the provided
      *         number of days (or less) and which have an email configured
      */
@@ -424,10 +400,9 @@ public interface UserService
     void expireActiveSessions( User user );
 
     /**
-     * Whether or not the provided account is expired right now.
+     * Whether the provided account is expired right now.
      *
      * @param user the user
-     *
      * @return true, if the provided account is already expired, otherwise false
      */
     boolean isAccountExpired( User user );
@@ -439,7 +414,6 @@ public interface UserService
      *
      * @param inactiveSince the most recent point in time that is considered
      *        inactive together with accounts only active further in the past.#
-     *
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
@@ -450,7 +424,6 @@ public interface UserService
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     *
      * @return user emails having a last login within the given time-frame as
      *         keys and if available their preferred locale as value
      */
@@ -463,7 +436,6 @@ public interface UserService
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
-     *
      * @return user emails having a password last updated within the given
      *         time-frame as keys and if available their preferred locale as
      *         value
@@ -477,7 +449,7 @@ public interface UserService
     String getDisplayName( String userUid );
 
     /**
-     * Given an Authorities's name, retrieves a list of users that has that
+     * Given an Authority's name, retrieves a list of users that has that
      * authority.
      */
     List<User> getUsersWithAuthority( String authority );

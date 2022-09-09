@@ -72,7 +72,6 @@ public class TwoFactoryAuthenticationUtils
      * @param qrContent content to be used for generating the QR code.
      * @param width width of the generated PNG image.
      * @param height height of the generated PNG image.
-     *
      * @return PNG image as byte array.
      */
     public static byte[] generateQRCode( String qrContent, int width, int height, Consumer<ErrorCode> errorCode )
@@ -100,7 +99,6 @@ public class TwoFactoryAuthenticationUtils
      *
      * @param appName app name to be used for generating QR content.
      * @param user {@link User} which the QR Code is generated for.
-     *
      * @return a String which can be used for generating a QR code by calling
      *         method
      *         {@link TwoFactoryAuthenticationUtils#generateQRCode(String, int, int, Consumer)}

@@ -144,7 +144,7 @@ public class TwoFactorController
     }
 
     /**
-     * Enable two-factor authentication for the current user.
+     * Enable 2FA authentication for the current user.
      *
      * @param body The body of the request.
      * @param currentUser This is the user that is currently logged in.
@@ -177,7 +177,7 @@ public class TwoFactorController
     }
 
     /**
-     * Disable two-factor authentication for the current user.
+     * Disable 2FA authentication for the current user.
      *
      * @param body The body of the request.
      * @param currentUser This is the user that is currently logged in.
