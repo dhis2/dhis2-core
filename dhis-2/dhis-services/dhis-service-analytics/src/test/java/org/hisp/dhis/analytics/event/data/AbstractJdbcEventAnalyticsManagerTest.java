@@ -42,7 +42,14 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NIEQ;
+import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -174,7 +181,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.TEXT );
 
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "EQ" );
+        QueryFilter queryFilter = new QueryFilter( EQ, "EQ" );
 
         String column = subject.getSelectSql( queryFilter, item, from, to );
 
@@ -428,10 +435,71 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildEqQueryFilter( "A" ) ) ) )
+                List.of( buildQueryFilter( EQ, "A" ) ) ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A' ", result );
+    }
+
+    @Test
+    void testGetItemNotLikeFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildQueryFilter( NLIKE, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not like '%A%') ", result );
+    }
+
+    @Test
+    void testGetItemNotILikeFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not ilike '%A%') ", result );
+    }
+
+    @Test
+    void testGetItemNotEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildQueryFilter( NEQ, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+
+        queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildQueryFilter( NE, "A" ) ) ) )
+            .build();
+        result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+    }
+
+    @Test
+    void testGetItemNotIEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
     }
 
     @Test
@@ -442,8 +510,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 "item",
                 UUID.randomUUID(),
                 List.of(
-                    buildEqQueryFilter( "A" ),
-                    buildEqQueryFilter( "B" ) ) ) )
+                    buildQueryFilter( EQ, "A" ),
+                    buildQueryFilter( EQ, "B" ) ) ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result );
@@ -457,8 +525,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 "item",
                 UUID.randomUUID(),
                 List.of(
-                    buildEqQueryFilter( "A" ),
-                    buildEqQueryFilter( "B" ) ) ) )
+                    buildQueryFilter( EQ, "A" ),
+                    buildQueryFilter( EQ, "B" ) ) ) )
             .withEnhancedConditions( true )
             .build();
 
@@ -475,12 +543,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 "item1",
                 groupUUID,
                 List.of(
-                    buildEqQueryFilter( "A" ) ) ) )
+                    buildQueryFilter( EQ, "A" ) ) ) )
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item2",
                 groupUUID,
                 List.of(
-                    buildEqQueryFilter( "B" ) ) ) )
+                    buildQueryFilter( EQ, "B" ) ) ) )
             .withEnhancedConditions( true )
             .build();
 
@@ -497,19 +565,19 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item1",
                 groupUUID1,
-                List.of( buildEqQueryFilter( "A" ) ) ) )
+                List.of( buildQueryFilter( EQ, "A" ) ) ) )
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item2",
                 groupUUID1,
-                List.of( buildEqQueryFilter( "B" ) ) ) )
+                List.of( buildQueryFilter( EQ, "B" ) ) ) )
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item3",
                 groupUUID2,
-                List.of( buildEqQueryFilter( "C" ) ) ) )
+                List.of( buildQueryFilter( EQ, "C" ) ) ) )
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item4",
                 groupUUID2,
-                List.of( buildEqQueryFilter( "D" ) ) ) )
+                List.of( buildQueryFilter( EQ, "D" ) ) ) )
             .withEnhancedConditions( true )
             .build();
 
@@ -586,14 +654,23 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
     }
 
-    private QueryFilter buildEqQueryFilter( String filter )
+    private QueryFilter buildQueryFilter( QueryOperator operator, String filter )
     {
-        return new QueryFilter( QueryOperator.EQ, filter );
+        return new QueryFilter( operator, filter );
     }
 
     private QueryItem buildQueryItem( String item )
     {
         return new QueryItem( new BaseDimensionalItemObject( item ) );
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, UUID groupUUID, Collection<QueryFilter> filters,
+        ValueType valueType )
+    {
+        QueryItem queryItem = buildQueryItemWithGroupAndFilters( item, groupUUID, filters );
+        queryItem.setValueType( valueType );
+
+        return queryItem;
     }
 
     private QueryItem buildQueryItemWithGroupAndFilters( String item, UUID groupUUID, Collection<QueryFilter> filters )

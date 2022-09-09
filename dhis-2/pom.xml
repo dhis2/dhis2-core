@@ -93,7 +93,7 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.2.2</flyway-core.version>
+    <flyway-core.version>9.3.0</flyway-core.version>
     <hibernate.version>5.6.11.Final</hibernate.version>
     <hibernate-types.version>2.19.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -143,8 +143,8 @@
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.24.0</artemis.version>
-    <netty-all.version>4.1.80.Final</netty-all.version>
+    <artemis.version>2.25.0</artemis.version>
+    <netty-all.version>4.1.81.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -192,7 +192,7 @@
 
     <!-- Test -->
     <junit.version>5.9.0</junit.version>
-    <mockito.version>4.7.0</mockito.version>
+    <mockito.version>4.8.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
