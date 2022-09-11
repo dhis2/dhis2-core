@@ -108,6 +108,8 @@ class EventRequestToSearchParamsMapper
 
     private final DataElementService dataElementService;
 
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
     private final InputUtils inputUtils;
 
     private final SchemaService schemaService;
@@ -206,6 +208,8 @@ class EventRequestToSearchParamsMapper
         mapFilterAttributes( eventCriteria, params );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
+
         Set<String> dataElements = dataElementOrders.keySet();
         if ( dataElements != null )
         {
@@ -262,6 +266,7 @@ class EventRequestToSearchParamsMapper
             .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
+            .setAttributeOrders( getGridOrderParams( eventCriteria.getOrder(), attributeOrders ) )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
@@ -319,6 +324,25 @@ class EventRequestToSearchParamsMapper
             }
         }
         return dataElements;
+    }
+
+    private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
+    {
+        Map<String, SortDirection> attributes = new HashMap<>();
+
+        if ( allOrders != null )
+        {
+            for ( OrderCriteria orderCriteria : allOrders )
+            {
+                TrackedEntityAttribute attribute = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( orderCriteria.getField() );
+                if ( attribute != null )
+                {
+                    attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
+                }
+            }
+        }
+        return attributes;
     }
 
     private QueryItem getQueryItem( String item )
@@ -414,6 +438,8 @@ class EventRequestToSearchParamsMapper
 
     private void validateOrderParams( List<OrderCriteria> order )
     {
+        // Is this working for data elements order?
+        // Not working for attribute order
         Set<String> requestProperties = order.stream().map( OrderCriteria::getField ).collect( Collectors.toSet() );
 
         Set<String> allowedProperties = schema.getProperties().stream().filter( Property::isSimple )

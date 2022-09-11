@@ -710,6 +710,56 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void testOrderEventsOnAttributeAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
+        at1.setUid( "toUpdate000" );
+        at1.setValueType( ValueType.TEXT );
+        at1.setAggregationType( AggregationType.NONE );
+        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
+            at1.isUnique() );
+        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "day" ) );
+        params.setFilterAttributes( List.of( item1 ) );
+        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( trackedEntities ),
+            () -> assertEquals( 2, trackedEntities.size() ),
+            () -> assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities ) );
+    }
+
+    @Test
+    void testOrderEventsOnAttributeDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
+        at1.setUid( "toUpdate000" );
+        at1.setValueType( ValueType.TEXT );
+        at1.setAggregationType( AggregationType.NONE );
+        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
+            at1.isUnique() );
+        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "day" ) );
+        params.setFilterAttributes( List.of( item1 ) );
+        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertAll( () -> assertNotNull( trackedEntities ),
+            () -> assertEquals( 2, trackedEntities.size() ),
+            () -> assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities ) );
+    }
+
+    @Test
     void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
     {
         EventSearchParams params = new EventSearchParams();
