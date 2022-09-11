@@ -269,4 +269,66 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( 1, audits.size() );
         assertEquals( AuditType.CREATE, audits.get( 0 ).getAuditType() );
     }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreate2()
+    {
+        dataValueA.setValue( "10" );
+        dataValueService.updateDataValue( dataValueA );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 2, audits.size() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 1 ).getAuditType() );
+    }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreateDelete()
+    {
+        dataValueA.setValue( "10" );
+        dataValueService.updateDataValue( dataValueA );
+
+        dataValueService.deleteDataValue( dataValueA );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 3, audits.size() );
+        assertEquals( AuditType.DELETE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 2 ).getAuditType() );
+    }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreateDeleteAndCreate()
+    {
+        dataValueA.setValue( "10" );
+        dataValueService.updateDataValue( dataValueA );
+
+        dbmsManager.clearSession();
+
+        dataValueA.setValue( "20" );
+        dataValueService.updateDataValue( dataValueA );
+
+        dbmsManager.clearSession();
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        audits.forEach( a -> {
+            System.err.println( "-------------------------------------------------" );
+            System.err.println( a.getAuditType() );
+            System.err.println( a.getValue() );
+        } );
+
+        /*
+        assertEquals( 4, audits.size() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.DELETE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
+         */
+    }
 }

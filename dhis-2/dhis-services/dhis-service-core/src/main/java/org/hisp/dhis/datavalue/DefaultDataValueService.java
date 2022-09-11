@@ -145,6 +145,14 @@ public class DefaultDataValueService
             softDelete.setDeleted( false );
 
             dataValueStore.updateDataValue( softDelete );
+
+            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+            {
+                DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                    dataValue.getStoredBy(), AuditType.CREATE );
+
+                dataValueAuditService.addDataValueAudit( dataValueAudit );
+            }
         }
         else
         {
