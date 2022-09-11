@@ -53,6 +53,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.springframework.http.HttpHeaders;
 
 /**
  * This class has the utility methods to invoke REST endpoints for various HTTP
@@ -175,7 +176,7 @@ public class HttpUtils
 
             if ( !StringUtils.isNotEmpty( contentType ) )
             {
-                httpPost.setHeader( "Content-Type", contentType );
+                httpPost.setHeader( HttpHeaders.CONTENT_TYPE, contentType );
             }
 
             if ( authorize )
