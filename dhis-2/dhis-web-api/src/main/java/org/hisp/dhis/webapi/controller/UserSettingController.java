@@ -119,7 +119,7 @@ public class UserSettingController
         return result;
     }
 
-    @GetMapping( value = "/{key}", produces = "text/plain" )
+    @GetMapping( value = "/{key}" )
     public String getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
@@ -135,6 +135,7 @@ public class UserSettingController
             .get( key );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        response.setHeader( "Content-Type", ContextUtils.CONTENT_TYPE_TEXT );
         return String.valueOf( value );
     }
 
