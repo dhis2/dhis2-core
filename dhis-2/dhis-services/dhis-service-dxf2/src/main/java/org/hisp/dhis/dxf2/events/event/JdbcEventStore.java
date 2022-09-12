@@ -1354,8 +1354,8 @@ public class JdbcEventStore implements EventStore
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    final String queryCol = item.isNumeric() ? " CAST( " + dataValueValueSql + " AS NUMERIC)"
-                        : "lower( " + dataValueValueSql + " )";
+                    final String queryCol = item.isNumeric() ? castToNumber( dataValueValueSql )
+                        : lower( dataValueValueSql );
 
                     String bindParameter = "parameter_" + filterCount;
 
@@ -1429,7 +1429,8 @@ public class JdbcEventStore implements EventStore
 
     private String inCondition( QueryFilter filter, String boundParameter, String queryCol )
     {
-        return new StringBuilder().append( queryCol )
+        return new StringBuilder().append( " " )
+            .append( queryCol )
             .append( " " )
             .append( filter.getSqlOperator() )
             .append( " " )
