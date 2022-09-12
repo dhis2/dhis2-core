@@ -196,6 +196,10 @@ public class JdbcEventStore implements EventStore
 
     private static final String DOT_NAME = ".name)";
 
+    private static final String SPACE = " ";
+
+    private static final String EQUALS = " = ";
+
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
         .put( EVENT_ID, "psi_uid" )
         .put( EVENT_PROGRAM_ID, "p_uid" )
@@ -988,6 +992,53 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
+    /**
+     * Generates a single INNER JOIN for each attribute we are searching on. We
+     * can search by a range of operators. All searching is using lower() since
+     * attribute values are case-insensitive.
+     *
+     * @param attributes
+     * @param filterItems
+     */
+    private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
+    {
+        for ( QueryItem queryItem : filterItems )
+        {
+            String teaValueCol = statementBuilder.columnQuote( queryItem.getItemId() );
+            String teaCol = statementBuilder.columnQuote( queryItem.getItemId() + "ATT" );
+
+            attributes
+                .append( " INNER JOIN trackedentityattributevalue " )
+                .append( teaValueCol )
+                .append( " ON " )
+                .append( teaValueCol + ".trackedentityinstanceid" )
+                .append( " = TEI.trackedentityinstanceid " )
+                .append( " INNER JOIN trackedentityattribute " )
+                .append( teaCol )
+                .append( " ON " )
+                .append( teaValueCol + ".trackedentityattributeid" )
+                .append( EQUALS )
+                .append( teaCol + ".trackedentityattributeid" )
+                .append( " AND " )
+                .append( teaCol + ".UID" )
+                .append( EQUALS )
+                .append( statementBuilder.encode( queryItem.getItem().getUid(), true ) );
+
+            for ( QueryFilter filter : queryItem.getFilters() )
+            {
+                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                attributes
+                    .append( " AND " )
+                    .append( "lower(" + teaValueCol + ".value)" )
+                    .append( SPACE )
+                    .append( filter.getSqlOperator() )
+                    .append( SPACE )
+                    .append( StringUtils
+                        .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
+            }
+        }
+    }
+
     private String getEventSelectQuery( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
         List<OrganisationUnit> organisationUnits, User user )
     {
@@ -1059,6 +1110,11 @@ public class JdbcEventStore implements EventStore
             .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid " )
             .append( "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) " )
             .append( "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
+
+        if ( !params.getFilterAttributes().isEmpty() )
+        {
+            joinAttributeValueWithoutQueryParameter( fromBuilder, params.getFilterAttributes() );
+        }
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo()
             .isDefault()) && !isSuper( user ) )

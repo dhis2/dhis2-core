@@ -84,6 +84,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -149,18 +151,24 @@ public class HibernateTrackedEntityInstanceStore
 
     private final StatementBuilder statementBuilder;
 
+    private final SystemSettingManager systemSettingManager;
+
+    // TODO too many arguments in constructor. This needs to be refactored.
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
+        AclService aclService, StatementBuilder statementBuilder,
+        OrganisationUnitStore organisationUnitStore, SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
+        checkNotNull( systemSettingManager );
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
+        this.systemSettingManager = systemSettingManager;
     }
 
     // -------------------------------------------------------------------------
@@ -314,9 +322,7 @@ public class HibernateTrackedEntityInstanceStore
 
         log.debug( "Tracked entity instance count SQL: " + sql );
 
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-
-        return count;
+        return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
     /**
@@ -738,7 +744,8 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryFilter filter : queryItem.getFilters() )
             {
-                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                String encodedFilter = statementBuilder.encode( filter.getFilter(),
+                    false );
                 attributes
                     .append( "AND " )
                     .append( teav )
@@ -847,7 +854,8 @@ public class HibernateTrackedEntityInstanceStore
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
 
-                OrganisationUnit byUid = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                OrganisationUnit byUid = organisationUnitStore
+                    .getByUid( organisationUnit.getUid() );
 
                 orgUnits
                     .append( orHlp.or() )
@@ -1266,12 +1274,14 @@ public class HibernateTrackedEntityInstanceStore
             if ( innerOrder )
             {
                 orderFields
-                    .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+                    .add( statementBuilder.columnQuote( order.getField() )
+                        + ".value " + order.getDirection() );
             }
             else
             {
                 orderFields.add(
-                    "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE + order.getDirection() );
+                    "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE
+                        + order.getDirection() );
             }
         }
     }
@@ -1320,7 +1330,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getOrders() != null )
         {
             List<String> ordersIdentifier = params.getOrders().stream()
-                .map( order -> order.getField() )
+                .map( OrderParam::getField )
                 .collect( Collectors.toList() );
 
             return params.getAttributesAndFilters().stream()
@@ -1334,7 +1344,8 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Generates the LIMIT and OFFSET part of the subquery. The limit is decided
      * by several factors: 1. maxteilimit in a TET or Program 2. PageSize and
-     * Offset 3. No paging
+     * Offset 3. No paging (TRACKER_TRACKED_ENTITY_QUERY_LIMIT will apply in
+     * this case)
      * <p>
      * If maxteilimit is not 0, it means this is the hard limit of the number of
      * results. In the case where there exists more results than maxteilimit, we
@@ -1347,7 +1358,9 @@ public class HibernateTrackedEntityInstanceStore
      * If we dont have maxteilimit, and paging on, we set normal paging
      * parameters
      * <p>
-     * If neither maxteilimit or paging is set, we have no limit.
+     * If neither maxteilimit or paging is set, we have no limit set by the
+     * user, so system will set the limit to TRACKED_ENTITY_MAX_LIMIT which can
+     * be configured in system settings.
      * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
@@ -1360,10 +1373,21 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
+        int teiQueryLimit = systemSettingManager.getIntSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT );
 
         if ( limit == 0 && !params.isPaging() )
         {
-            return "";
+            if ( teiQueryLimit > 0 )
+            {
+                return limitOffset
+                    .append( LIMIT )
+                    .append( SPACE )
+                    .append( teiQueryLimit )
+                    .append( SPACE )
+                    .toString();
+            }
+
+            return limitOffset.toString();
         }
         else if ( limit == 0 && params.isPaging() )
         {

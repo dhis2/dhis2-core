@@ -215,7 +215,12 @@ public enum SettingKey
     /**
      * The cache time to live value for the analytics API.
      */
-    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
+    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class ),
+
+    /**
+     * Max trackedentityinstance records that can be retrieved from database.
+     */
+    TRACKED_ENTITY_MAX_LIMIT( "KeyTrackedEntityInstanceMaxLimit", 50000, Integer.class );
 
     private final String name;
 

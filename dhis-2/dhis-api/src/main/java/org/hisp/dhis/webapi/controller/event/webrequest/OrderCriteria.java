@@ -34,9 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import lombok.Value;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -48,15 +46,13 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Data
+@Value
 @AllArgsConstructor( staticName = "of" )
-@NoArgsConstructor
-@With
 public class OrderCriteria
 {
-    private String field;
+    private final String field;
 
-    private SortDirection direction;
+    private final SortDirection direction;
 
     public OrderParam toOrderParam()
     {

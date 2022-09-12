@@ -45,7 +45,6 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -347,9 +346,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( !params.hasNonDefaultBoundaries() || dimension.getDimensionType() != DimensionType.PERIOD )
             {
-                String alias = getAlias( params, dimension.getDimensionType() );
-
-                columns.add( quote( alias, dimension.getDimensionName() ) );
+                columns.add( getTableAndColumn( params, dimension, isGroupByClause ) );
             }
             else if ( params.hasSinglePeriod() )
             {
@@ -862,34 +859,31 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the analytics table alias for the organisation unit dimension.
+     * Returns the analytics table alias and column.
      *
      * @param params the {@link EventQueryParams}.
+     * @param dimension the {@link DimensionalObject}.
+     * @param isGroupByClause don't add a column alias if present.
      */
-    protected String getOrgUnitAlias( EventQueryParams params )
+    private String getTableAndColumn( EventQueryParams params, DimensionalObject dimension, boolean isGroupByClause )
     {
-        return params.hasOrgUnitField() ? ORG_UNIT_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
-    }
+        String col = dimension.getDimensionName();
 
-    /**
-     * Returns the analytics table alias.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param dimensionType the {@link DimensionType}.
-     */
-    private String getAlias( EventQueryParams params, DimensionType dimensionType )
-    {
-        if ( params.hasTimeField() && DimensionType.PERIOD == dimensionType )
+        if ( params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType() )
         {
-            return DATE_PERIOD_STRUCT_ALIAS;
+            return quote( DATE_PERIOD_STRUCT_ALIAS, col );
         }
-        else if ( params.hasOrgUnitField() && DimensionType.ORGANISATION_UNIT == dimensionType )
+        else if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
         {
-            return ORG_UNIT_STRUCT_ALIAS;
+            return params.getOrgUnitField().getOrgUnitStructCol( col, getAnalyticsType(), isGroupByClause );
+        }
+        else if ( DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType() )
+        {
+            return params.getOrgUnitField().getOrgUnitGroupSetCol( col, getAnalyticsType(), isGroupByClause );
         }
         else
         {
-            return ANALYTICS_TBL_ALIAS;
+            return quote( ANALYTICS_TBL_ALIAS, col );
         }
     }
 
@@ -986,7 +980,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Return SQL string based on both query items and filters
+     * Returns SQL string based on both query items and filters
      *
      * @param params a {@link EventQueryParams}.
      * @param helper a {@link SqlHelper}.
@@ -1062,7 +1056,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * joins a collection of conditions using given join function, returns empty
+     * Joins a collection of conditions using given join function, returns empty
      * string if collection is empty
      */
     private String joinSql( Collection<String> conditions, Collector<CharSequence, ?, String> joiner )
@@ -1158,7 +1152,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NEQ:
                 case NE:
                 case NIEQ:
-                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                case NLIKE:
+                case NILIKE:
+                    // This ensures that null values will always match the
+                    // filters above.
+                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
                         + getSqlFilter( filter, item ) + ") ";
                 }
             }

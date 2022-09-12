@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
@@ -183,7 +184,11 @@ public class DataQueryParams
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
 
-    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
+    public static final String DEFAULT_ORG_UNIT_COL = "ou";
+
+    public static final String REGISTRATION_OU_COL = "registrationou";
+
+    public static final String ENROLLMENT_OU_COL = "enrollmentou";
 
     public static final int DX_INDEX = 0;
 
@@ -371,7 +376,7 @@ public class DataQueryParams
      * The organisation unit field used as basis for aggregation in the
      * hierarchy.
      */
-    protected String orgUnitField;
+    protected OrgUnitField orgUnitField = DEFAULT_ORG_UNIT_FIELD;
 
     /**
      * The API version used for the request.
@@ -804,6 +809,15 @@ public class DataQueryParams
     public boolean hasOrganisationUnits()
     {
         return !getDimensionOrFilterItems( ORGUNIT_DIM_ID ).isEmpty();
+    }
+
+    /**
+     * Indicates whether organisation unit group sets are present as dimension
+     * or filter.
+     */
+    public boolean hasOrganisationUnitGroupSets()
+    {
+        return !getDimensionsAndFilters( ORGANISATION_UNIT_GROUP_SET ).isEmpty();
     }
 
     /**
@@ -1486,23 +1500,6 @@ public class DataQueryParams
     public String getTimeFieldAsFieldFallback()
     {
         return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
-    }
-
-    /**
-     * Indicates whether a (non-default) organisation unit field is specified.
-     */
-    public boolean hasOrgUnitField()
-    {
-        return orgUnitField != null;
-    }
-
-    /**
-     * Returns the organisation unit field if specified; if not returns the
-     * default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
-     */
-    public String getOrgUnitFieldFallback()
-    {
-        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
     }
 
     /**
@@ -2290,7 +2287,7 @@ public class DataQueryParams
         return timeField;
     }
 
-    public String getOrgUnitField()
+    public OrgUnitField getOrgUnitField()
     {
         return orgUnitField;
     }
@@ -3328,7 +3325,7 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withOrgUnitField( String orgUnitField )
+        public Builder withOrgUnitField( OrgUnitField orgUnitField )
         {
             this.params.orgUnitField = orgUnitField;
             return this;

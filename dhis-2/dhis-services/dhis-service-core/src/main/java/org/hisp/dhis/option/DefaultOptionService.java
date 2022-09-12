@@ -105,14 +105,34 @@ public class DefaultOptionService
     public void validateOptionSet( OptionSet optionSet )
         throws IllegalQueryException
     {
-        if ( optionSet.getValueType() == ValueType.MULTI_TEXT && optionSet.getOptions().stream().anyMatch(
-            option -> option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) ) )
+        if ( optionSet.getValueType() != ValueType.MULTI_TEXT )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1118, optionSet.getUid(),
-                optionSet.getOptions().stream().map( Option::getCode )
-                    .filter( code -> code.contains( ValueType.MULTI_TEXT_SEPARATOR ) )
-                    .findFirst().orElse( "" ) ) );
+            return;
         }
+        for ( Option option : optionSet.getOptions() )
+        {
+            if ( option.getId() != 0L && option.getCode() == null )
+            {
+                option = optionStore.get( option.getId() );
+            }
+            ErrorMessage error = validateOption( optionSet, option );
+            if ( error != null )
+            {
+                throw new IllegalQueryException( error );
+            }
+        }
+    }
+
+    @Override
+    public ErrorMessage validateOption( OptionSet optionSet, Option option )
+    {
+        if ( optionSet != null
+            && optionSet.getValueType() == ValueType.MULTI_TEXT
+            && option.getCode().contains( ValueType.MULTI_TEXT_SEPARATOR ) )
+        {
+            return new ErrorMessage( ErrorCode.E1118, optionSet.getUid(), option.getCode() );
+        }
+        return null;
     }
 
     @Override

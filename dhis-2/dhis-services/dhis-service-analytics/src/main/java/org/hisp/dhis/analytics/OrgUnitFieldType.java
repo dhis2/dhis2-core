@@ -25,36 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.analytics;
 
-import java.util.HashMap;
+import static org.hisp.dhis.analytics.DataQueryParams.DEFAULT_ORG_UNIT_COL;
+import static org.hisp.dhis.analytics.DataQueryParams.ENROLLMENT_OU_COL;
+import static org.hisp.dhis.analytics.DataQueryParams.REGISTRATION_OU_COL;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * A map that, for each compatible input data element category combo (CC) UID,
- * returns the disaggregation map for that category combo.
+ * The type of organisation unit field to use for an event (or enrollment)
+ * analytics query.
  *
  * @author Jim Grace
  */
-public class CategoryComboDisaggregationMap
-    extends HashMap<String, DisaggregationMap>
+@Getter
+@AllArgsConstructor
+public enum OrgUnitFieldType
 {
+    DEFAULT( DEFAULT_ORG_UNIT_COL, DEFAULT_ORG_UNIT_COL ),
+    ATTRIBUTE( null, null ),
+    REGISTRATION( REGISTRATION_OU_COL, REGISTRATION_OU_COL ),
+    ENROLLMENT( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
+    OWNER_AT_START( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL ),
+    OWNER_AT_END( ENROLLMENT_OU_COL, DEFAULT_ORG_UNIT_COL );
+
     /**
-     * For a given input category combination UID and input disaggregation
-     * (category option combo) UID, returns the output disaggregation UID.
-     *
-     * @param catCombo input category combination
-     * @param inputDisag input disaggregation (category option combo)
-     * @return output disaggregation (category option combo), or null if none
+     * The event analytics column name containing the organisation unit UID of
+     * interest (or the backup column name if an ownership type).
      */
-    public String getOutputDisag( String catCombo, String inputDisag )
+    private final String eventColumn;
+
+    /**
+     * The enrollment analytics column name containing the organisation unit UID
+     * of interest (or the backup column name if an ownership type).
+     */
+    private final String enrollmentColumn;
+
+    /**
+     * Returns true if this is an ownership type.
+     */
+    public boolean isOwnership()
     {
-        DisaggregationMap disagMap = get( catCombo );
-
-        if ( disagMap == null )
-        {
-            return null;
-        }
-
-        return disagMap.get( inputDisag );
+        return this == OWNER_AT_START || this == OWNER_AT_END;
     }
 }

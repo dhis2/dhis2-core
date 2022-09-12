@@ -42,6 +42,7 @@ public class LabelMapper
 {
     private LabelMapper()
     {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -57,6 +58,24 @@ public class LabelMapper
         if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
         {
             return programStage.getDisplayExecutionDateLabel();
+        }
+
+        return defaultLabel;
+    }
+
+    /**
+     * Returns a custom label for the schedule date if it exists, otherwise the
+     * given default label.
+     *
+     * @param programStage the {@link ProgramStage}.
+     * @param defaultLabel the default label.
+     * @return the custom label, otherwise the default label.
+     */
+    public static String getScheduleDateLabel( ProgramStage programStage, String defaultLabel )
+    {
+        if ( programStage != null && isNotBlank( programStage.getDisplayDueDateLabel() ) )
+        {
+            return programStage.getDisplayDueDateLabel();
         }
 
         return defaultLabel;

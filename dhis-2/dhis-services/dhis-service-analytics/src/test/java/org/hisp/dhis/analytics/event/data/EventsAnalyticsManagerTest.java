@@ -150,7 +150,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + ",lastupdated,duedate,ST_AsGeoJSON(psigeometry, 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -175,7 +175,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " + "from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + " limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -191,7 +191,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + " limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -208,7 +208,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -225,7 +225,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -243,7 +243,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -276,7 +276,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "ps.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
             + "where ps.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -292,7 +292,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() ) + " as ax "
             + "where (( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('ACTIVE','COMPLETED','SCHEDULE') limit 101";
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -370,7 +370,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
-            + programStage.getUid() + "' and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + programStage.getUid() + "' limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -387,7 +387,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED') limit 101";
+            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
         assertSql( expected, sql.getValue() );
     }
@@ -416,7 +416,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and psistatus in ('ACTIVE','COMPLETED') group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+            + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -445,7 +445,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' and psistatus in ('ACTIVE','COMPLETED')"
+            + "' and ax.\"fWIAEtYVEGk\" > '10'"
             + " group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
         assertThat( sql.getValue(), is( expected ) );
     }

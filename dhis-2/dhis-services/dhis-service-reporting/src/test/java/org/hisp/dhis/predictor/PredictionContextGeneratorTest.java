@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 import static com.google.common.collect.Maps.immutableEntry;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
+import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.createPredictionDisaggregator;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -136,7 +137,7 @@ class PredictionContextGeneratorTest
     private final Predictor predictorA = createPredictor( deA, cocD, "A", expressionA, null, periodA.getPeriodType(),
         Set.of( ouLevel1 ), 0, 0, 0 );
 
-    private final PredictionDisaggregator preDisA = new PredictionDisaggregator( predictorA, cocD, emptyList() );
+    private final PredictionDisaggregator preDisA = createPredictionDisaggregator( predictorA, cocD, emptyList() );
 
     // -------------------------------------------------------------------------
     // Format prediction contexts for ease of reading.
