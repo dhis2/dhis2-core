@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -155,19 +154,6 @@ public class DefaultReservedValueService
                     "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
                     textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), resultList.size() ) );
             }
-            catch ( ExecutionException e )
-            {
-                log.error( String.format(
-                    "Generation and reservation of values error %s : ", e.getMessage() ) );
-            }
-            catch ( InterruptedException e )
-            {
-                log.error( String.format(
-                    "Generation and reservation of values error %s : ", e.getMessage() ) );
-
-                Thread.currentThread().interrupt();
-            }
-
         }
 
         return resultList;

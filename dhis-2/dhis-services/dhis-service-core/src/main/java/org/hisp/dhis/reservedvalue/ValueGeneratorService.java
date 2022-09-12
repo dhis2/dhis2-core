@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.reservedvalue;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.hisp.dhis.util.Constants.RANDOM_GENERATION_CHUNK;
+
 import java.math.BigInteger;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,70 +48,49 @@ public class ValueGeneratorService
 {
     private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    private final RandomGeneratorService randomGeneratorService;
-
     public List<String> generateValues( TextPatternSegment segment, TextPattern textPattern, String key,
         int numberOfValues )
-        throws ReserveValueException,
-        InterruptedException,
-        ExecutionException
+        throws ReserveValueException
     {
-        List<String> generatedValues = new ArrayList<>();
-
         switch ( segment.getMethod() )
         {
-
         case SEQUENTIAL:
-
-            BigInteger maxValue = BigInteger.TEN.pow( segment.getParameter().length() );
-            List<Integer> generatedNumbers = sequentialNumberCounterStore
-                .getNextValues( textPattern.getOwnerUid(), key, numberOfValues );
-
-            boolean outOfValues = generatedNumbers.stream()
-                .anyMatch( n -> maxValue.intValue() <= n );
-
-            if ( outOfValues )
-            {
-                throw new ReserveValueException( "Unable to reserve value, no new values available." );
-            }
-
-            generatedValues.addAll(
-                generatedNumbers
-                    .stream()
-                    .map( n -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
-                    .collect( Collectors.toList() ) );
-
-            break;
-
+            return generateSequentialValues( segment, textPattern, key, numberOfValues );
         case RANDOM:
-
-            List<Future<List<String>>> resultList = new ArrayList<>();
-
-            ExecutorService executorService = Executors.newFixedThreadPool( 10 );
-
-            randomGeneratorService.setSegmentParameter( segment.getParameter() );
-
-            for ( int i = 0; i < numberOfValues; i++ )
-            {
-                Future<List<String>> result = executorService
-                    .submit( randomGeneratorService );
-                resultList.add( result );
-            }
-
-            for ( Future<List<String>> result : resultList )
-            {
-                generatedValues.addAll( result.get() );
-            }
-
-            executorService.shutdown();
-
-            break;
-
+            return generateRandomValues( segment, numberOfValues );
         default:
-            break;
+            return List.of();
+        }
+    }
 
+    private List<String> generateSequentialValues( TextPatternSegment segment, TextPattern textPattern, String key,
+        int numberOfValues )
+        throws ReserveValueException
+    {
+        BigInteger maxValue = BigInteger.TEN.pow( segment.getParameter().length() );
+        List<Integer> generatedNumbers = sequentialNumberCounterStore
+            .getNextValues( textPattern.getOwnerUid(), key, numberOfValues );
+
+        boolean outOfValues = generatedNumbers.stream()
+            .anyMatch( n -> maxValue.intValue() <= n );
+
+        if ( outOfValues )
+        {
+            throw new ReserveValueException( "Unable to reserve value, no new values available." );
         }
 
-        return generatedValues;
+        return generatedNumbers
+            .stream()
+            .map( n -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
+            .collect( Collectors.toList() );
+    }
+
+    private List<String> generateRandomValues( TextPatternSegment segment, int numberOfValues )
+    {
+        String pattern = segment.getParameter();
+        return IntStream.range( 0, numberOfValues )
+            .mapToObj( i -> RandomPatternValueGenerator.generateRandomValues( pattern, RANDOM_GENERATION_CHUNK ) )
+            .flatMap( Collection::stream )
+            .collect( toUnmodifiableList() );
     }
 }
