@@ -169,6 +169,7 @@ class EventRequestToSearchParamsMapperTest
         tea2 = new TrackedEntityAttribute();
         tea2.setUid( TEA_2_UID );
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
+        when( attributeService.getTrackedEntityAttribute( TEA_1_UID ) ).thenReturn( tea1 );
 
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
 
@@ -303,6 +304,24 @@ class EventRequestToSearchParamsMapperTest
 
         assertEquals( enrolledBefore, params.getEnrollmentOccurredBefore() );
         assertEquals( enrolledAfter, params.getEnrollmentOccurredAfter() );
+    }
+
+    @Test
+    void testMappingAttributeOrdering()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, OrderParam.SortDirection.ASC );
+        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", OrderParam.SortDirection.ASC );
+        eventCriteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertAll(
+            () -> assertNotNull( params.getAttributeOrders() ),
+            () -> assertContainsOnly( params.getAttributeOrders(),
+                List.of( new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ) ),
+            () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
     }
 
     @Test

@@ -167,6 +167,8 @@ public class EventSearchParams
 
     private List<OrderParam> gridOrders;
 
+    private List<OrderParam> attributeOrders;
+
     private boolean includeAttributes;
 
     private boolean includeAllDataElements;
@@ -663,6 +665,17 @@ public class EventSearchParams
     public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
     {
         this.gridOrders = gridOrders;
+        return this;
+    }
+
+    public List<OrderParam> getAttributeOrders()
+    {
+        return this.attributeOrders;
+    }
+
+    public EventSearchParams setAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders = attributeOrders;
         return this;
     }
 
