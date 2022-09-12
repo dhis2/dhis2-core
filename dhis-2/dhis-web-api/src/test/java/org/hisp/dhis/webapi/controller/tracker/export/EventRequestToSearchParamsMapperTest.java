@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -457,14 +457,12 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertStartsWith( "Order by property `", exception.getMessage() );
-        // order of properties in exception message might not always be the same
-        String property1 = "unsupportedProperty1";
-        assertTrue( exception.getMessage().contains( property1 ), () -> String
-            .format( "expected message to contain '%s', got '%s' instead", property1, exception.getMessage() ) );
-        String property2 = "unsupportedProperty2";
-        assertTrue( exception.getMessage().contains( property2 ), () -> String
-            .format( "expected message to contain '%s', got '%s' instead", property2, exception.getMessage() ) );
+        assertAll(
+            () -> assertStartsWith( "Order by property `", exception.getMessage() ),
+            // order of properties might not always be the same; therefore using
+            // contains
+            () -> assertContains( "unsupportedProperty1", exception.getMessage() ),
+            () -> assertContains( "unsupportedProperty2", exception.getMessage() ) );
     }
 
     @Test
@@ -548,16 +546,13 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        // order of TEA UIDs in exception message might not always be the same;
-        // therefore using contains to check for UIDs
         assertAll(
             () -> assertStartsWith( "filterAttributes can only have one filter per tracked entity attribute (TEA).",
                 exception.getMessage() ),
-            () -> assertTrue( exception.getMessage().contains( TEA_1_UID ), () -> String
-                .format( "expected message to contain '%s', got '%s' instead", TEA_1_UID, exception.getMessage() ) ),
-            () -> assertTrue( exception.getMessage().contains( TEA_2_UID ), () -> String
-                .format( "expected message to contain '%s', got '%s' instead", TEA_2_UID, exception.getMessage() ) ) );
+            // order of TEA UIDs might not always be the same; therefore using
+            // contains
+            () -> assertContains( TEA_1_UID, exception.getMessage() ),
+            () -> assertContains( TEA_2_UID, exception.getMessage() ) );
     }
 
     @Test

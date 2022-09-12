@@ -130,4 +130,21 @@ public final class Assertions
         assertTrue( actual.startsWith( expected ), () -> String
             .format( "expected string to start with '%s', got '%s' instead", expected, actual ) );
     }
+
+    /**
+     * Asserts that the given character sequence is contained within the actual
+     * string.
+     *
+     * @param expected expected character sequence to be contained within the
+     *        actual string
+     * @param actual actual string which should contain the expected character
+     *        sequence
+     */
+    public static void assertContains( CharSequence expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected actual to contain '%s', got null instead", expected ) );
+        assertTrue( actual.contains( expected ), () -> String
+            .format( "expected actual to contain '%s', got '%s' instead", expected, actual ) );
+    }
 }
