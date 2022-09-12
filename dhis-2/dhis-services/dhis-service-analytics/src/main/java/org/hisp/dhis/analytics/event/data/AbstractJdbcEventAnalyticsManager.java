@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -931,15 +932,16 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
         {
-            double val = sqlRowSet.getDouble( index );
+            Object value = sqlRowSet.getObject( index );
+            boolean isDouble = value instanceof Double;
 
-            if ( Double.isNaN( val ) )
+            if ( value == null || (isDouble && Double.isNaN( (Double) value )) )
             {
-                grid.addValue( "" );
+                grid.addValue( EMPTY );
             }
             else
             {
-                grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
+                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
             }
         }
         else if ( header.getValueType() == ValueType.REFERENCE )
@@ -1119,7 +1121,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NEQ:
                 case NE:
                 case NIEQ:
-                    return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                case NLIKE:
+                case NILIKE:
+                    // This ensures that null values will always match the
+                    // filters above.
+                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
                         + getSqlFilter( filter, item ) + ") ";
                 }
             }
