@@ -102,10 +102,10 @@ class TrackerIdentifierCollectorTest
         Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
-        assertContainsOnly( ids.get( TrackedEntity.class ), trackedEntity.getTrackedEntity() );
-        assertContainsOnly( ids.get( TrackedEntityType.class ), "sunshine" );
-        assertContainsOnly( ids.get( OrganisationUnit.class ), "ward" );
-        assertContainsOnly( ids.get( TrackedEntityAttribute.class ), "VohJnvWfvyo", "qv9xOw8fBzy" );
+        assertContainsOnly( Set.of( trackedEntity.getTrackedEntity() ), ids.get( TrackedEntity.class ) );
+        assertContainsOnly( Set.of( "sunshine" ), ids.get( TrackedEntityType.class ) );
+        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
+        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( TrackedEntityAttribute.class ) );
     }
 
     @Test
@@ -132,11 +132,11 @@ class TrackerIdentifierCollectorTest
         Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
-        assertContainsOnly( ids.get( Enrollment.class ), enrollment.getUid() );
-        assertContainsOnly( ids.get( TrackedEntity.class ), enrollment.getTrackedEntity() );
-        assertContainsOnly( ids.get( Program.class ), "sunshine" );
-        assertContainsOnly( ids.get( OrganisationUnit.class ), "ward" );
-        assertContainsOnly( ids.get( TrackedEntityAttribute.class ), "VohJnvWfvyo", "qv9xOw8fBzy" );
+        assertContainsOnly( Set.of( enrollment.getUid() ), ids.get( Enrollment.class ) );
+        assertContainsOnly( Set.of( enrollment.getTrackedEntity() ), ids.get( TrackedEntity.class ) );
+        assertContainsOnly( Set.of( "sunshine" ), ids.get( Program.class ) );
+        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
+        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( TrackedEntityAttribute.class ) );
     }
 
     @Test
@@ -169,15 +169,15 @@ class TrackerIdentifierCollectorTest
         Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
-        assertContainsOnly( ids.get( Event.class ), event.getUid() );
-        assertContainsOnly( ids.get( Enrollment.class ), event.getEnrollment() );
-        assertContainsOnly( ids.get( Program.class ), "sunshine" );
-        assertContainsOnly( ids.get( ProgramStage.class ), "flowers" );
-        assertContainsOnly( ids.get( OrganisationUnit.class ), "ward" );
-        assertContainsOnly( ids.get( DataElement.class ), "VohJnvWfvyo", "qv9xOw8fBzy" );
-        assertContainsOnly( ids.get( CategoryOptionCombo.class ), "rgb" );
-        assertContainsOnly( ids.get( CategoryOption.class ), "red", "green", "blue" );
-        assertContainsOnly( ids.get( TrackedEntityComment.class ), "i1vviSlidJE" );
+        assertContainsOnly( Set.of( event.getUid() ), ids.get( Event.class ) );
+        assertContainsOnly( Set.of( event.getEnrollment() ), ids.get( Enrollment.class ) );
+        assertContainsOnly( Set.of( "sunshine" ), ids.get( Program.class ) );
+        assertContainsOnly( Set.of( "flowers" ), ids.get( ProgramStage.class ) );
+        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
+        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( DataElement.class ) );
+        assertContainsOnly( Set.of( "rgb" ), ids.get( CategoryOptionCombo.class ) );
+        assertContainsOnly( Set.of( "red", "green", "blue" ), ids.get( CategoryOption.class ) );
+        assertContainsOnly( Set.of( "i1vviSlidJE" ), ids.get( TrackedEntityComment.class ) );
     }
 
     @Test
@@ -241,10 +241,10 @@ class TrackerIdentifierCollectorTest
         Map<Class<?>, Set<String>> ids = collector.collect( params );
 
         assertNotNull( ids );
-        assertContainsOnly( ids.get( Relationship.class ), relationship.getRelationship() );
-        assertContainsOnly( ids.get( RelationshipType.class ), "sunshine" );
-        assertContainsOnly( ids.get( Enrollment.class ), relationship.getFrom().getEnrollment() );
-        assertContainsOnly( ids.get( Event.class ), relationship.getTo().getEvent() );
+        assertContainsOnly( Set.of( relationship.getRelationship() ), ids.get( Relationship.class ) );
+        assertContainsOnly( Set.of( "sunshine" ), ids.get( RelationshipType.class ) );
+        assertContainsOnly( Set.of( relationship.getFrom().getEnrollment() ), ids.get( Enrollment.class ) );
+        assertContainsOnly( Set.of( relationship.getTo().getEvent() ), ids.get( Event.class ) );
     }
 
     private String uid()

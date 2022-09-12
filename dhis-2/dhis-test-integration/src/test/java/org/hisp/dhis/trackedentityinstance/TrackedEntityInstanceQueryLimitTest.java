@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -188,7 +189,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 
     @Test
@@ -204,7 +205,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 
     @Test
@@ -222,6 +223,6 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 }
