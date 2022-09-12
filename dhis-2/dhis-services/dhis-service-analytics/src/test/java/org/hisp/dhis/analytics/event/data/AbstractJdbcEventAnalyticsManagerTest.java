@@ -47,7 +47,6 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -448,14 +447,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NLIKE, "A" ) ) ) )
+                List.of( buildQueryFilter( NEQ, "12" ) ), NUMBER ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not like '%A%') ", result );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" != '12') ", result );
     }
 
     @Test
-    void testGetItemNotILikeFilterSql()
+    void testGetItemNotILikeFilterSqlNullValueType()
     {
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters(
@@ -464,7 +463,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not ilike '%A%') ", result );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result );
     }
 
     @Test
@@ -474,7 +473,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NEQ, "A" ) ) ) )
+                List.of( buildQueryFilter( NEQ, "A" ) ), TEXT ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
@@ -483,7 +482,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NE, "A" ) ) ) )
+                List.of( buildQueryFilter( NE, "A" ) ), TEXT ) )
             .build();
         result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );

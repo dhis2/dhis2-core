@@ -503,7 +503,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+            () -> assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments ) );
     }
 
     @Test
@@ -517,7 +517,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+            () -> assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments ) );
     }
 
     @Test
@@ -531,7 +531,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+            () -> assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments ) );
     }
 
     @Test
@@ -545,7 +545,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+            () -> assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments ) );
     }
 
     @Test
@@ -585,7 +585,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+            () -> assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments ) );
     }
 
     @Test
@@ -599,7 +599,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "nxP7UnKhomJ" ) );
+            () -> assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments ) );
     }
 
     @Test
@@ -613,7 +613,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+            () -> assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments ) );
     }
 
     @Test
@@ -627,7 +627,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( enrollments ),
-            () -> assertContainsOnly( enrollments, "TvctPPhpD8z" ) );
+            () -> assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments ) );
     }
 
     @Test
@@ -649,7 +649,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( trackedEntities ),
-            () -> assertContainsOnly( trackedEntities, "QS6w44flWAf" ) );
+            () -> assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities ) );
     }
 
     @Test
@@ -681,7 +681,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( trackedEntities ),
-            () -> assertContainsOnly( trackedEntities, "dUE514NMOlo" ) );
+            () -> assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities ) );
     }
 
     @Test
@@ -706,7 +706,7 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertAll( () -> assertNotNull( trackedEntities ),
-            () -> assertContainsOnly( trackedEntities, "dUE514NMOlo" ) );
+            () -> assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities ) );
     }
 
     @Test
