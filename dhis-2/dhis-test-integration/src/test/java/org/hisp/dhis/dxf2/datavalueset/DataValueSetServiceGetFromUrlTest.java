@@ -119,7 +119,7 @@ class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase
 
         DataExportParams exportParams = dataValueSetService.getFromUrl( params );
 
-        assertContainsOnly( exportParams.getAttributeOptionCombos(), optionComboA );
+        assertContainsOnly( Set.of( optionComboA ), exportParams.getAttributeOptionCombos() );
     }
 
     @Test

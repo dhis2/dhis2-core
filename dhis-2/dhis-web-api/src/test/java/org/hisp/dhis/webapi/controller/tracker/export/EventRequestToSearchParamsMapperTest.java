@@ -401,9 +401,8 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getOrders(),
-            new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
-            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) );
+        assertContainsOnly( List.of( new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
+            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) ), params.getOrders() );
     }
 
     @Test
@@ -414,8 +413,8 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getOrders(),
-            new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) );
+        assertContainsOnly( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ),
+            params.getOrders() );
     }
 
     @Test
@@ -467,9 +466,8 @@ class EventRequestToSearchParamsMapperTest
         assertNotNull( items );
         // mapping to UIDs as the error message by just relying on QueryItem
         // equals() is not helpful
-        assertContainsOnly( items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ),
-            tea1.getUid(),
-            tea2.getUid() );
+        assertContainsOnly( List.of( tea1.getUid(),
+            tea2.getUid() ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
 
         // QueryItem equals() does not take the QueryFilter into account so
         // assertContainsOnly alone does not ensure operators and filter value
@@ -558,9 +556,10 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getFilterAttributes(),
-            new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
-                tea1.isUnique() ) );
+        assertContainsOnly(
+            List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
+                tea1.isUnique() ) ),
+            params.getFilterAttributes() );
     }
 
     private Date date( String date )
