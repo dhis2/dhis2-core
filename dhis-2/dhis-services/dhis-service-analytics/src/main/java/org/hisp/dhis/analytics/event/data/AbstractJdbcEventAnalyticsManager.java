@@ -800,6 +800,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    protected String getSelectSql( QueryFilter filter, QueryItem item, EventQueryParams params )
+    {
+        if ( item.isProgramIndicator() )
+        {
+            return getColumnAndAlias( item, params, false, false ).getColumn();
+        }
+        else
+        {
+            return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
+        }
+    }
+
     private String getFilter( String filter, QueryItem item )
     {
         try
@@ -1088,8 +1100,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
     {
-        String field = getSelectSql( filter, item, params.getEarliestStartDate(),
-            params.getLatestEndDate() );
+        String field = item.hasAggregationType() ? getSelectSql( filter, item, params )
+            : getSelectSql( filter, item, params.getEarliestStartDate(),
+                params.getLatestEndDate() );
 
         if ( IN.equals( filter.getOperator() ) )
         {
