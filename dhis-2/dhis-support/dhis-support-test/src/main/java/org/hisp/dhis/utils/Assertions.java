@@ -116,4 +116,18 @@ public final class Assertions
         assertNotNull( actual );
         assertTrue( actual.isEmpty(), actual.toString() );
     }
+
+    /**
+     * Asserts that the given string starts with the expected prefix.
+     *
+     * @param expected expected prefix of actual string
+     * @param actual actual string which should contain the expected prefix
+     */
+    public static void assertStartsWith( String expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected string to start with '%s', got null instead", expected ) );
+        assertTrue( actual.startsWith( expected ), () -> String
+            .format( "expected string to start with '%s', got '%s' instead", expected, actual ) );
+    }
 }
