@@ -167,7 +167,7 @@ public class JdbcCompletenessTargetTableManager
             "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
 
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ), false );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

@@ -530,22 +530,14 @@ public abstract class AbstractJdbcTableManager
      *
      * @param sql the SQL statement.
      * @param logMessage the custom log message to include in the log statement.
-     * @param silently execute the SQL statement silently or not
      */
-    protected void invokeTimeAndLog( String sql, String logMessage, boolean silently )
+    protected void invokeTimeAndLog( String sql, String logMessage )
     {
         log.debug( "{} with SQL: '{}'", logMessage, sql );
 
         Timer timer = new SystemTimer().start();
 
-        if ( silently )
-        {
-            executeSilently( sql );
-        }
-        else
-        {
-            jdbcTemplate.execute( sql );
-        }
+        executeSilently( sql );
 
         log.info( "{} in: {}", logMessage, timer.stop().toString() );
     }
