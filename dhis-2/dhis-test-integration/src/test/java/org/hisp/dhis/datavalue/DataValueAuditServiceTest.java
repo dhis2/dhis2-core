@@ -29,7 +29,6 @@ package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -154,7 +153,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
-        assertNotNull( audits );
         assertContainsOnly( audits, dataValueAuditA );
     }
 
@@ -176,7 +174,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setAttributeOptionCombo( optionCombo );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( params );
-        assertNotNull( audits );
         assertContainsOnly( audits, dataValueAuditA );
     }
 

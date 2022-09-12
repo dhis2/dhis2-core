@@ -50,7 +50,8 @@ public final class Assertions
     }
 
     /**
-     * Asserts that the given collection contains exactly the given items.
+     * Asserts that the given collection contains exactly the given items in any
+     * order.
      *
      * @param <E> the type.
      * @param actual the actual collection.
@@ -59,10 +60,11 @@ public final class Assertions
     @SafeVarargs
     public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
+        assertNotNull( actual, String.format( "Expected collection to contain '%s', got null instead", expected ) );
         for ( E e : expected )
         {
             assertTrue( actual.contains( e ),
-                String.format( "Expected value %s not found in %s", e.toString(), actual.toString() ) );
+                String.format( "Expected value %s not found in %s", e.toString(), actual ) );
         }
 
         assertEquals( expected.length, actual.size() );
