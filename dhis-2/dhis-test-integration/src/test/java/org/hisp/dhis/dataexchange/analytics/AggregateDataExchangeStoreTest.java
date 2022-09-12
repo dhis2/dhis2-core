@@ -31,6 +31,8 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
+
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -72,8 +74,8 @@ class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
 
         assertEquals( "DataExchangeUpdated", de.getName() );
         assertEquals( 3, de.getSource().getRequests().get( 0 ).getDx().size() );
-        assertContainsOnly( de.getSource().getRequests().get( 0 ).getDx(),
-            "LrDpG50RAU9", "uR5HCiJhQ1w", "NhSFzklRD55" );
+        assertContainsOnly( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w", "NhSFzklRD55" ),
+            de.getSource().getRequests().get( 0 ).getDx() );
         assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
     }
 }

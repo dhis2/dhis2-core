@@ -233,7 +233,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         EventDataValue expect2 = new EventDataValue();
         expect2.setDataElement( dataElement.getUid() );
         expect2.setValue( newDataValue.getValue() );
-        assertContainsOnly( programStageInstance.getEventDataValues(), expect1, expect2 );
+        assertContainsOnly( Set.of( expect1, expect2 ), programStageInstance.getEventDataValues() );
     }
 
     @Test
@@ -261,7 +261,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         EventDataValue expect1 = new EventDataValue();
         expect1.setDataElement( dataElement.getUid() );
         expect1.setValue( updatedValue.getValue() );
-        assertContainsOnly( programStageInstance.getEventDataValues(), expect1 );
+        assertContainsOnly( Set.of( expect1 ), programStageInstance.getEventDataValues() );
     }
 
     @Test
@@ -294,7 +294,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         EventDataValue expect1 = new EventDataValue();
         expect1.setDataElement( dataElement.getUid() );
         expect1.setValue( updatedValue.getValue() );
-        assertContainsOnly( programStageInstance.getEventDataValues(), expect1 );
+        assertContainsOnly( Set.of( expect1 ), programStageInstance.getEventDataValues() );
     }
 
     @Test

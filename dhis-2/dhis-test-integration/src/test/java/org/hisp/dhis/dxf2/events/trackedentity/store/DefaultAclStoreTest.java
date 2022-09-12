@@ -109,7 +109,7 @@ class DefaultAclStoreTest extends IntegrationTestBase
         programB.setPublicAccess( "--------" );
         manager.save( programB, false );
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(), Collections.emptyList() );
-        assertContainsOnly( programIds, programA.getId() );
+        assertContainsOnly( List.of( programA.getId() ), programIds );
     }
 
     @Test
@@ -130,7 +130,7 @@ class DefaultAclStoreTest extends IntegrationTestBase
         programB.getSharing().addUserAccess( a );
         manager.save( programB, false );
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(), Collections.emptyList() );
-        assertContainsOnly( programIds, programB.getId() );
+        assertContainsOnly( List.of( programB.getId() ), programIds );
     }
 
     @Test
@@ -154,6 +154,6 @@ class DefaultAclStoreTest extends IntegrationTestBase
         manager.save( programB, false );
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(),
             Collections.singletonList( g.getUid() ) );
-        assertContainsOnly( programIds, programB.getId() );
+        assertContainsOnly( List.of( programB.getId() ), programIds );
     }
 }

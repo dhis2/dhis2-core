@@ -702,7 +702,6 @@ public enum ConfigurationKey
      * other session when a new session is started.
      */
     MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false ),
-
     /**
      * Redis based cache invalidation feature. Enable or disable.
      */
