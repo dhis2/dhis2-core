@@ -1149,19 +1149,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 switch ( filter.getOperator() )
                 {
+                // Specific logic, so null and empty values are correctly
+                // handled for these filters.
                 case NEQ:
                 case NE:
                 case NIEQ:
                 case NLIKE:
                 case NILIKE:
-                    // This ensures that null values will always match the
-                    // filters above.
-                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
-                        + getSqlFilter( filter, item ) + ") ";
+                    return nullAndEmptyMatcher( item, filter, field );
                 }
             }
 
             return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+        }
+    }
+
+    /**
+     * Ensures that null/empty values will always match.
+     *
+     * @param item
+     * @param filter
+     * @param field
+     * @return the respective sql statement/matcher
+     */
+    private String nullAndEmptyMatcher( QueryItem item, QueryFilter filter, String field )
+    {
+        if ( item.getValueType() != null && item.getValueType().isText() )
+        {
+            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
+                + getSqlFilter( filter, item ) + ") ";
+        }
+        else
+        {
+            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                + getSqlFilter( filter, item ) + ") ";
         }
     }
 
