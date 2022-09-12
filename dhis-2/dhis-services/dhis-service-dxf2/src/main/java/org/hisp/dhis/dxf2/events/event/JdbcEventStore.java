@@ -1367,14 +1367,16 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ),
+                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
 
                             eventDataValuesWhereSql.append( inCondition( filter, bindParameter, queryCol ) );
                         }
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ), item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ),
+                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
 
                             eventDataValuesWhereSql.append( " " )
                                 .append( queryCol )
@@ -1392,7 +1394,8 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ),
+                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
 
                             optionValueConditionBuilder.append( " and " );
                             optionValueConditionBuilder.append( inCondition( filter, bindParameter, queryCol ) );
@@ -1400,7 +1403,8 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ), item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ),
+                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
 
                             optionValueConditionBuilder.append( "and lower(" )
                                 .append( optValueTableAs )
