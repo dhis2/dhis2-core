@@ -42,11 +42,11 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -149,7 +149,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
-
         subject.getSelectSql( new QueryFilter(), item, from, to );
 
         verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
@@ -179,7 +178,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.TEXT );
 
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "EQ" );
+        QueryFilter queryFilter = new QueryFilter( EQ, "EQ" );
 
         String column = subject.getSelectSql( queryFilter, item, from, to );
 
@@ -416,6 +415,88 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
+    void testGetItemNotLikeFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NEQ, "12" ) ), NUMBER ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" != '12') ", result );
+    }
+
+    @Test
+    void testGetItemNotILikeFilterSqlNullValueType()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result );
+    }
+
+    @Test
+    void testGetItemNotEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NEQ, "A" ) ), TEXT ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+
+        queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NE, "A" ) ), TEXT ) )
+            .build();
+        result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
+    }
+
+    @Test
+    void testGetItemNotIEqualsFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
+            .build();
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
+    }
+
+    private QueryFilter buildQueryFilter( QueryOperator operator, String filter )
+    {
+        return new QueryFilter( operator, filter );
+    }
+
+    private QueryItem buildQueryItem( String item )
+    {
+        return new QueryItem( new BaseDimensionalItemObject( item ) );
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters,
+        ValueType valueType )
+    {
+        QueryItem queryItem = buildQueryItemWithGroupAndFilters( item, filters );
+        queryItem.setValueType( valueType );
+
+        return queryItem;
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters )
+    {
+        QueryItem queryItem = buildQueryItem( item );
+        queryItem.setFilters( new ArrayList<>( filters ) );
+        return queryItem;
+    }
+
+    @Test
     void testAddGridValueForDoubleObject()
         throws SQLException
     {
@@ -481,87 +562,5 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         // Then
         assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
-    }
-
-    @Test
-    void testGetItemNotLikeFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                List.of( buildQueryFilter( NLIKE, "A" ) ) ) )
-            .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not like '%A%') ", result );
-    }
-
-    @Test
-    void testGetItemNotILikeFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
-            .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not ilike '%A%') ", result );
-    }
-
-    @Test
-    void testGetItemNotEqualsFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                List.of( buildQueryFilter( NEQ, "A" ) ) ) )
-            .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
-
-        queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                List.of( buildQueryFilter( NE, "A" ) ) ) )
-            .build();
-        result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
-    }
-
-    @Test
-    void testGetItemNotIEqualsFilterSql()
-    {
-        EventQueryParams queryParams = new EventQueryParams.Builder()
-            .addItem( buildQueryItemWithGroupAndFilters(
-                "item",
-                List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
-            .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
-    }
-
-    private QueryFilter buildQueryFilter( QueryOperator operator, String filter )
-    {
-        return new QueryFilter( operator, filter );
-    }
-
-    private QueryItem buildQueryItem( String item )
-    {
-        return new QueryItem( new BaseDimensionalItemObject( item ) );
-    }
-
-    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters,
-        ValueType valueType )
-    {
-        QueryItem queryItem = buildQueryItemWithGroupAndFilters( item, filters );
-        queryItem.setValueType( valueType );
-
-        return queryItem;
-    }
-
-    private QueryItem buildQueryItemWithGroupAndFilters( String item, Collection<QueryFilter> filters )
-    {
-        QueryItem queryItem = buildQueryItem( item );
-        queryItem.setFilters( new ArrayList<>( filters ) );
-        return queryItem;
     }
 }
