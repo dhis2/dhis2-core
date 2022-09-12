@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -51,7 +52,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -189,8 +189,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertNotNull( teis );
-        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 
     @Test
@@ -206,8 +205,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertNotNull( teis );
-        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 
     @Test
@@ -225,7 +223,6 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
             false, false );
 
-        assertNotNull( teis );
-        Assertions.assertContainsOnly( teis, tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() );
+        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
     }
 }

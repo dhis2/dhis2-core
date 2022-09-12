@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.utils;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.function.Executable;
 
@@ -50,22 +53,24 @@ public final class Assertions
     }
 
     /**
-     * Asserts that the given collection contains exactly the given items.
+     * Asserts that the given collection contains exactly the given items in any
+     * order.
      *
      * @param <E> the type.
-     * @param actual the actual collection.
      * @param expected the expected items.
+     * @param actual the actual collection.
      */
-    @SafeVarargs
-    public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    public static <E> void assertContainsOnly( Collection<E> expected, Collection<E> actual )
     {
-        for ( E e : expected )
-        {
-            assertTrue( actual.contains( e ),
-                String.format( "Expected value %s not found in %s", e.toString(), actual.toString() ) );
-        }
+        assertNotNull( actual, String.format( "Expected collection to contain %s, got null instead", expected ) );
 
-        assertEquals( expected.length, actual.size() );
+        List<E> missing = CollectionUtils.difference( expected, actual );
+        List<E> extra = CollectionUtils.difference( actual, expected );
+        assertAll( "assertContainsOnly found mismatch",
+            () -> assertTrue( missing.isEmpty(), () -> String.format( "Expected %s to be in %s", missing, actual ) ),
+            () -> assertTrue( extra.isEmpty(), () -> String.format( "Expected %s NOT to be in %s", extra, actual ) ),
+            () -> assertEquals( expected.size(), actual.size(),
+                String.format( "Expected %s or actual %s contains unexpected duplicates", expected, actual ) ) );
     }
 
     public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
