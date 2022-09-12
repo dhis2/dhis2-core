@@ -62,7 +62,8 @@ public class DataEntryDtoMapper
         return new CompleteStatusDto()
             .setComplete( registration.getCompleted() )
             .setCreated( registration.getDate() )
+            .setCreatedBy( registration.getStoredBy() )
             .setLastUpdated( registration.getLastUpdated() )
-            .setCompletedBy( registration.getStoredBy() );
+            .setLastUpdatedBy( registration.getLastUpdatedBy() );
     }
 }

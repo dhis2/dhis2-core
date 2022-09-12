@@ -156,6 +156,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
                             "ORG_UNIT_TARGET",
                             "EVENT",
                             "ENROLLMENT",
+                            "OWNERSHIP",
                             "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
                     }
                 }
@@ -174,6 +175,7 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
             "ORG_UNIT_TARGET",
             "EVENT",
             "ENROLLMENT",
+            "OWNERSHIP",
             "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
     }
 

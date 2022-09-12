@@ -54,8 +54,11 @@ public class CompleteStatusDto
     private Date created;
 
     @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
     private Date lastUpdated;
 
     @JsonProperty
-    private String completedBy;
+    private String lastUpdatedBy;
 }

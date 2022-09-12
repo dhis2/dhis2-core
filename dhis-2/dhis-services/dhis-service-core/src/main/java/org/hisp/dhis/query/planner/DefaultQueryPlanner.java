@@ -320,17 +320,18 @@ public class DefaultQueryPlanner implements QueryPlanner
      * @param query a {@see Query} object
      * @return true, if all criteria are on persisted properties
      */
-    private boolean isFilterOnNonPersistedFieldOnly( Query query )
+    private boolean isFilterOnPersistedFieldOnly( Query query )
     {
         Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
-        if ( persistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
+        if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
         {
             return false;
         }
 
         for ( Order order : query.getOrders() )
         {
-            if ( persistedFields.contains( order.getProperty().getName() ) )
+
+            if ( !persistedFields.contains( order.getProperty().getName() ) )
             {
                 return false;
             }
@@ -347,21 +348,21 @@ public class DefaultQueryPlanner implements QueryPlanner
      * @return true if there is any non persisted field in any of the criteria
      *         at any level. false otherwise.
      */
-    private boolean persistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
+    private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
     {
         for ( Criterion criterion : criterions )
         {
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-                if ( persistedFields.contains( restriction.getPath() ) )
+                if ( !persistedFields.contains( restriction.getPath() ) )
                 {
                     return true;
                 }
             }
             else if ( criterion instanceof Junction )
             {
-                if ( persistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
+                if ( nonPersistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
                 {
                     return true;
                 }

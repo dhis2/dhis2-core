@@ -67,6 +67,12 @@ public class QueryModifiers
     private final int periodOffset;
 
     /**
+     * Year to date: find calendar year to date data values.
+     */
+    @JsonProperty
+    private final boolean yearToDate;
+
+    /**
      * The minimum date (start of any period) for querying this object.
      */
     @JsonProperty
