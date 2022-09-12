@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields3Way;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -793,6 +794,12 @@ public class UserController
     // -------------------------------------------------------------------------
     // PATCH
     // -------------------------------------------------------------------------
+
+    @Override
+    protected void prePatchEntity( User oldEntity, User newEntity )
+    {
+        populateUserCredentialsDtoFields3Way( oldEntity, newEntity );
+    }
 
     @Override
     protected void postPatchEntity( User user )

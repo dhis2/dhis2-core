@@ -29,7 +29,13 @@ package org.hisp.dhis.user;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -54,9 +60,14 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.springframework.beans.FatalBeanException;
+import org.springframework.core.ResolvableType;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -1513,4 +1524,113 @@ public class User
             }
         }
     }
+
+    public static void populateUserCredentialsDtoFields3Way( User oldUser, User newUser )
+    {
+        UserCredentialsDto oldCredentialsRaw = oldUser.getUserCredentials();
+
+        UserCredentialsDto newUserCredentialsRaw = newUser.getUserCredentialsRaw();
+
+        if ( newUserCredentialsRaw != null )
+        {
+            UserCredentialsDto newUserCredentialsCopiedFromBase = newUser.getUserCredentials();
+
+            copyProperties3way( oldCredentialsRaw, newUserCredentialsRaw, newUser, "uid", "password", "userRoles",
+                "secret", "previousPasswords" );
+            copyProperties3way( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser, "uid", "password",
+                "userRoles", "secret", "previousPasswords" );
+
+            if ( newUserCredentialsRaw.getPassword() != null )
+            {
+                newUser.setPassword( newUserCredentialsRaw.getPassword() );
+            }
+
+            Set<UserRole> userRoles = newUserCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                newUser.setUserRoles( userRoles );
+            }
+
+            newUser.setUserCredentials( null );
+        }
+    }
+
+    private static void copyProperties3way( Object oldObject, Object source, Object target,
+        @Nullable String... ignoreProperties )
+    {
+        Assert.notNull( oldObject, "Old object must not be null" );
+        Assert.notNull( source, "Source must not be null" );
+        Assert.notNull( target, "Target must not be null" );
+
+        List<String> ignoreList = (ignoreProperties != null ? Arrays.asList( ignoreProperties ) : null);
+
+        PropertyDescriptor[] targetPds = new PropertyDescriptor[0];
+        try
+        {
+            targetPds = Introspector.getBeanInfo( target.getClass() ).getPropertyDescriptors();
+        }
+        catch ( IntrospectionException e )
+        {
+            throw new RuntimeException( e );
+        }
+
+        for ( PropertyDescriptor targetPd : targetPds )
+        {
+            Method writeMethod = targetPd.getWriteMethod();
+            if ( writeMethod != null && (ignoreList == null || !ignoreList.contains( targetPd.getName() )) )
+            {
+                PropertyDescriptor sourcePd = null;
+                try
+                {
+                    sourcePd = new PropertyDescriptor( targetPd.getName(), source.getClass() );
+                }
+                catch ( IntrospectionException e )
+                {
+                    continue;
+                }
+                Method readMethod = sourcePd.getReadMethod();
+                if ( readMethod != null )
+                {
+                    ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType( readMethod );
+                    ResolvableType targetResolvableType = ResolvableType.forMethodParameter( writeMethod, 0 );
+
+                    // Ignore generic types in assignable check if either
+                    // ResolvableType has unresolvable generics.
+                    boolean isAssignable = (sourceResolvableType.hasUnresolvableGenerics()
+                        || targetResolvableType.hasUnresolvableGenerics()
+                            ? ClassUtils.isAssignable( writeMethod.getParameterTypes()[0], readMethod.getReturnType() )
+                            : targetResolvableType.isAssignableFrom( sourceResolvableType ));
+
+                    if ( isAssignable )
+                    {
+                        try
+                        {
+                            if ( !Modifier.isPublic( readMethod.getDeclaringClass().getModifiers() ) )
+                            {
+                                readMethod.setAccessible( true );
+                            }
+                            Object oldValue = readMethod.invoke( oldObject );
+                            Object value = readMethod.invoke( source );
+
+                            if ( !Modifier.isPublic( writeMethod.getDeclaringClass().getModifiers() ) )
+                            {
+                                writeMethod.setAccessible( true );
+                            }
+
+                            if ( value != null && !value.equals( oldValue ) )
+                            {
+                                writeMethod.invoke( target, value );
+                            }
+                        }
+                        catch ( Throwable ex )
+                        {
+                            throw new FatalBeanException(
+                                "Could not copy property '" + targetPd.getName() + "' from source to target", ex );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }

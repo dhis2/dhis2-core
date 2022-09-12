@@ -101,6 +101,16 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testUpdatePrevUserCred()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/openId', 'value': 'xxxxxxxxxxxxxx'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( user.getOpenId(), "xxxxxxxxxxxxxx" );
+    }
+
+    @Test
     void testResetToInvite_NoAuthority()
     {
         switchToNewUser( "someone" );
