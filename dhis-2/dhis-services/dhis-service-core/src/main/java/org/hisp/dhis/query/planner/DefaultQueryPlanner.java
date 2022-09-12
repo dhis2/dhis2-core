@@ -38,6 +38,7 @@ import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
@@ -72,7 +73,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+        if ( Junction.Type.OR == junctionType && !persistedOnly )
         {
             return QueryPlan.builder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
@@ -123,7 +124,17 @@ public class DefaultQueryPlanner implements QueryPlanner
 
             if ( curProperty == null )
             {
-                throw new RuntimeException( "Invalid path property: " + name );
+                if ( CodeGenerator.isValidUid( name ) )
+                {
+                    // filter by Attribute Uid
+                    persisted = false;
+                    curProperty = curSchema.getProperty( "attributeValues" );
+                    return new QueryPath( curProperty, persisted, alias.toArray( new String[] {} ) );
+                }
+                else
+                {
+                    throw new RuntimeException( "Invalid path property: " + name );
+                }
             }
 
             if ( !curProperty.isPersisted() )
@@ -309,18 +320,17 @@ public class DefaultQueryPlanner implements QueryPlanner
      * @param query a {@see Query} object
      * @return true, if all criteria are on persisted properties
      */
-    private boolean isFilterOnPersistedFieldOnly( Query query )
+    private boolean isFilterOnNonPersistedFieldOnly( Query query )
     {
         Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
-        if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
+        if ( persistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
         {
             return false;
         }
 
         for ( Order order : query.getOrders() )
         {
-
-            if ( !persistedFields.contains( order.getProperty().getName() ) )
+            if ( persistedFields.contains( order.getProperty().getName() ) )
             {
                 return false;
             }
@@ -337,21 +347,21 @@ public class DefaultQueryPlanner implements QueryPlanner
      * @return true if there is any non persisted field in any of the criteria
      *         at any level. false otherwise.
      */
-    private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
+    private boolean persistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
     {
         for ( Criterion criterion : criterions )
         {
             if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-                if ( !persistedFields.contains( restriction.getPath() ) )
+                if ( persistedFields.contains( restriction.getPath() ) )
                 {
                     return true;
                 }
             }
             else if ( criterion instanceof Junction )
             {
-                if ( nonPersistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
+                if ( persistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
                 {
                     return true;
                 }
