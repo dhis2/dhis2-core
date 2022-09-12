@@ -1003,8 +1003,6 @@ public class JdbcEventStore implements EventStore
      */
     private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
     {
-        // Option 2: Add ordering here and if the attribute has no filter create
-        // also the join
         for ( QueryItem queryItem : filterItems )
         {
             String teaValueCol = statementBuilder.columnQuote( queryItem.getItemId() );
@@ -1860,8 +1858,6 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        // Option 1: Add ordering here and if the attribute has no filter create
-        // also the join
         if ( params.getAttributeOrders() != null )
         {
             for ( OrderParam order : params.getAttributeOrders() )

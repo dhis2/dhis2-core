@@ -117,9 +117,6 @@ class EventRequestToSearchParamsMapperTest
     private DataElementService dataElementService;
 
     @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Mock
     private InputUtils inputUtils;
 
     @Mock
@@ -171,6 +168,7 @@ class EventRequestToSearchParamsMapperTest
         tea2 = new TrackedEntityAttribute();
         tea2.setUid( TEA_2_UID );
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
+        when( attributeService.getTrackedEntityAttribute( TEA_1_UID ) ).thenReturn( tea1 );
 
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
 
@@ -312,9 +310,7 @@ class EventRequestToSearchParamsMapperTest
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( "attributeA1" ) ).thenReturn( tea1 );
-
-        OrderCriteria attributeOrder = OrderCriteria.of( "attributeA1", OrderParam.SortDirection.ASC );
+        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, OrderParam.SortDirection.ASC );
         OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", OrderParam.SortDirection.ASC );
         eventCriteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
 
@@ -322,29 +318,9 @@ class EventRequestToSearchParamsMapperTest
 
         assertAll(
             () -> assertNotNull( params.getAttributeOrders() ),
-            () -> assertEquals( 1, params.getAttributeOrders().size() ),
             () -> assertContainsOnly( params.getAttributeOrders(),
-                new OrderParam( "attribute1", OrderParam.SortDirection.ASC ) ) );
-    }
-
-    @Test
-    void testValidateAttributeOrderingCannotBeMixedWithOtherOrders()
-    {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( "attributeA1" ) ).thenReturn( tea1 );
-
-        OrderCriteria attributeOrder = OrderCriteria.of( "attributeA1", OrderParam.SortDirection.ASC );
-        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", OrderParam.SortDirection.ASC );
-        eventCriteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
-        Date enrolledAfter = date( "2022-02-01" );
-        eventCriteria.setEnrollmentOccurredAfter( enrolledAfter );
-
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertEquals( "Attribute Order cannot be used together with order on other fields", exception.getMessage() );
+                new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ),
+            () -> assertContainsOnly( params.getFilterAttributes(), new QueryItem( tea1 ) ) );
     }
 
     @Test

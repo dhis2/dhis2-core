@@ -721,7 +721,6 @@ class EventExporterTest extends TrackerTest
         at1.setAggregationType( AggregationType.NONE );
         QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
             at1.isUnique() );
-        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "day" ) );
         params.setFilterAttributes( List.of( item1 ) );
         params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
 
@@ -746,7 +745,6 @@ class EventExporterTest extends TrackerTest
         at1.setAggregationType( AggregationType.NONE );
         QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
             at1.isUnique() );
-        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "day" ) );
         params.setFilterAttributes( List.of( item1 ) );
         params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
 
