@@ -229,6 +229,11 @@ public class QueryItem
         return filters != null && !filters.isEmpty();
     }
 
+    public boolean hasAggregationType()
+    {
+        return aggregationType != null;
+    }
+
     public boolean hasProgram()
     {
         return program != null;
