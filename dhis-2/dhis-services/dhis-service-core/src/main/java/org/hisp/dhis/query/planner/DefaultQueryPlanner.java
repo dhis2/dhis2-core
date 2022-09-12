@@ -120,7 +120,7 @@ public class DefaultQueryPlanner implements QueryPlanner
             String name = pathComponents[idx];
             curProperty = curSchema.getProperty( name );
 
-            if ( curProperty == null && CodeGenerator.isValidUid( name ) )
+            if ( isFilterByAttributeId( curProperty, name ) )
             {
                 // filter by Attribute Uid
                 persisted = false;
@@ -306,5 +306,15 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
+    }
+
+    private boolean isFilterByAttributeId( Property curProperty, String propertyName )
+    {
+        if ( curProperty == null && CodeGenerator.isValidUid( propertyName ) )
+        {
+            return true;
+        }
+
+        return false;
     }
 }
