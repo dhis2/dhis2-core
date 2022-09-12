@@ -537,7 +537,7 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
-        jdbcTemplate.execute( sql );
+        executeSilently( sql );
 
         log.info( "{} in: {}", logMessage, timer.stop().toString() );
     }
