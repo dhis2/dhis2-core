@@ -66,6 +66,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,6 +103,8 @@ class EventRequestToSearchParamsMapper
     private final AclService aclService;
 
     private final TrackedEntityInstanceService entityInstanceService;
+
+    private final TrackedEntityAttributeService attributeService;
 
     private final DataElementService dataElementService;
 
@@ -199,6 +203,8 @@ class EventRequestToSearchParamsMapper
             }
         }
 
+        mapFilterAttributes( eventCriteria, params );
+
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
         Set<String> dataElements = dataElementOrders.keySet();
         if ( dataElements != null )
@@ -260,6 +266,43 @@ class EventRequestToSearchParamsMapper
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
 
+    private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams )
+    {
+
+        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
+            .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+        if ( eventCriteria.getFilterAttributes() != null )
+        {
+            for ( String filter : eventCriteria.getFilterAttributes() )
+            {
+                QueryItem it = getQueryItem( filter, attributes );
+
+                searchParams.getFilterAttributes().add( it );
+            }
+        }
+        validateFilterAttributes( searchParams.getFilterAttributes() );
+    }
+
+    private void validateFilterAttributes( List<QueryItem> queryItems )
+    {
+        Set<String> attributes = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+        for ( QueryItem item : queryItems )
+        {
+            if ( !attributes.add( item.getItemId() ) )
+            {
+                duplicates.add( item.getItemId() );
+            }
+        }
+
+        if ( !duplicates.isEmpty() )
+        {
+            throw new IllegalQueryException( String.format(
+                "filterAttributes can only have one filter per tracked entity attribute (TEA). The following TEA have more than one: %s",
+                String.join( ", ", duplicates ) ) );
+        }
+    }
+
     private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
     {
         Map<String, SortDirection> dataElements = new HashMap<>();
@@ -311,6 +354,51 @@ class EventRequestToSearchParamsMapper
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+    }
+
+    /**
+     * Creates a QueryItem from the given item string. Item is on format
+     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
+     * Only the attribute-id is mandatory.
+     */
+    private QueryItem getQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
+
+        if ( split.length % 2 != 1 )
+        {
+            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+        }
+
+        QueryItem queryItem = getItem( split[0], attributes );
+
+        if ( split.length > 1 ) // Filters specified
+        {
+            for ( int i = 1; i < split.length; i += 2 )
+            {
+                QueryOperator operator = QueryOperator.fromString( split[i] );
+                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
+            }
+        }
+
+        return queryItem;
+    }
+
+    private QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        if ( attributes.isEmpty() )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + item );
+        }
+
+        TrackedEntityAttribute at = attributes.get( item );
+
+        if ( at == null )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + item );
+        }
+
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
