@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -310,7 +311,6 @@ class EventRequestToSearchParamsMapperTest
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
         assertAll(
-            () -> assertNotNull( params.getAttributeOrders() ),
             () -> assertContainsOnly( params.getAttributeOrders(),
                 List.of( new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ) ),
             () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
@@ -390,7 +390,7 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertEquals( Collections.emptySet(), params.getAssignedUsers() );
+        assertIsEmpty( params.getAssignedUsers() );
     }
 
     @Test
