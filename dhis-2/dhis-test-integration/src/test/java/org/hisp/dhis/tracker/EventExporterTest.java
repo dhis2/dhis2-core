@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -681,9 +682,7 @@ class EventExporterTest extends TrackerTest
             .map( Event::getTrackedEntityInstance )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( trackedEntities ),
-            () -> assertEquals( 2, trackedEntities.size() ),
-            () -> assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities ) );
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
     @Test
@@ -705,9 +704,7 @@ class EventExporterTest extends TrackerTest
             .map( Event::getTrackedEntityInstance )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( trackedEntities ),
-            () -> assertEquals( 2, trackedEntities.size() ),
-            () -> assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities ) );
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
     }
 
     @Test
@@ -733,9 +730,7 @@ class EventExporterTest extends TrackerTest
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
+        assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -748,9 +743,7 @@ class EventExporterTest extends TrackerTest
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
+        assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments );
     }
 
     @Test
@@ -763,9 +756,7 @@ class EventExporterTest extends TrackerTest
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments ) );
+        assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -778,9 +769,7 @@ class EventExporterTest extends TrackerTest
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
 
-        assertAll( () -> assertNotNull( enrollments ),
-            () -> assertEquals( 2, enrollments.size() ),
-            () -> assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments ) );
+        assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments );
     }
 
     private DataElement dataElement( String uid )
