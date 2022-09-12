@@ -29,11 +29,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
 
@@ -41,8 +45,11 @@ import org.springframework.stereotype.Component;
  * @author Volker Schmidt
  */
 @Component
+@AllArgsConstructor
 public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
 {
+    private final OptionService optionService;
+
     @Override
     public void validate( Option option, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
@@ -53,6 +60,11 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
                 option.getOptionSet() );
 
             checkDuplicateOption( optionSet, option, addReports );
+            ErrorMessage error = optionService.validateOption( optionSet, option );
+            if ( error != null )
+            {
+                addReports.accept( new ErrorReport( OptionSet.class, error ) );
+            }
         }
     }
 
@@ -92,7 +104,7 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
             // Remove the existed option from OptionSet, will add the updating
             // one
             // in postUpdate()
-            optionSet.getOptions().remove( persistedObject );
+            optionSet.removeOption( persistedObject );
         }
     }
 

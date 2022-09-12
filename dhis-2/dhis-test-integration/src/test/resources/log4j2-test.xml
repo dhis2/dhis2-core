@@ -35,7 +35,7 @@
         <!-- </Logger>-->
         <!-- Uncomment if you want to debug testcontainers -->
         <!-- <Logger name="org.testcontainers" level="debug" additivity="false">-->
-        <!--     <appenderref ref="console"/>-->
+        <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
         <!-- <Logger name="com.github.dockerjava" level="all" additivity="false">-->
         <!--     <AppenderRef ref="console"/>-->
@@ -43,6 +43,10 @@
         <!-- Uncomment if you want to debug spring test context (cache) -->
         <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
         <!--     <AppenderRef ref="console"/>-->
+        <!-- </Logger>-->
+        <!-- Uncomment if you want to debug JDBC template queries (SQL) -->
+        <!-- <Logger name="org.springframework.jdbc.core" level="TRACE">-->
+        <!--    <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
     </Loggers>
 </Configuration>

@@ -137,7 +137,7 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7210, params.getTimeField() );
         }
-        else if ( params.hasOrgUnitField() && !params.orgUnitFieldIsValid() )
+        else if ( !params.orgUnitFieldIsValid() )
         {
             error = new ErrorMessage( ErrorCode.E7211, params.getOrgUnitField() );
         }

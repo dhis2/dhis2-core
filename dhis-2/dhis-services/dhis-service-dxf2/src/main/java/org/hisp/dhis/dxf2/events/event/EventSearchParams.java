@@ -180,6 +180,8 @@ public class EventSearchParams
      */
     private List<QueryItem> filters = new ArrayList<>();
 
+    private List<QueryItem> filterAttributes = new ArrayList<>();
+
     /**
      * DataElements to be included in the response. Can be used to filter
      * response.
@@ -705,6 +707,17 @@ public class EventSearchParams
     public EventSearchParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
+        return this;
+    }
+
+    public List<QueryItem> getFilterAttributes()
+    {
+        return filterAttributes;
+    }
+
+    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    {
+        this.filterAttributes = filters;
         return this;
     }
 
