@@ -935,7 +935,8 @@ public class DefaultDataValueSetService
         }
         if ( !internalValue.isDeleted()
             && Objects.equals( existingValue.getValue(), internalValue.getValue() )
-            && Objects.equals( existingValue.getComment(), internalValue.getComment() ) )
+            && Objects.equals( existingValue.getComment(), internalValue.getComment() )
+            && existingValue.isFollowup() == internalValue.isFollowup() )
         {
             return; // avoid performing unnecessary updates
         }
@@ -943,7 +944,7 @@ public class DefaultDataValueSetService
         {
             context.getDataValueBatchHandler().updateObject( internalValue );
 
-            if ( !context.isSkipAudit() )
+            if ( !context.isSkipAudit() && !Objects.equals( existingValue.getValue(), internalValue.getValue() ) )
             {
                 DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(),
                     context.getStoredBy( dataValue ), auditType );
