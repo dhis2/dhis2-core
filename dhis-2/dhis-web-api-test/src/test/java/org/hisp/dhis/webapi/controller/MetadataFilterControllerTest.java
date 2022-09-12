@@ -66,8 +66,7 @@ class MetadataFilterControllerTest extends DhisControllerConvenienceTest
     @Test
     void testFilter_attributeEq()
     {
-        HttpResponse res = GET( "/organisationUnits?filter={attr}:eq:test", attrId );
-        JsonArray units = res.content()
+        JsonArray units = GET( "/organisationUnits?filter={attr}:eq:test", attrId ).content()
             .getArray( "organisationUnits" );
         assertEquals( 1, units.size() );
         JsonObject unit = units.getObject( 0 );
