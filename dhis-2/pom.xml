@@ -167,7 +167,7 @@
     <joda-time.version>2.11.1</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
-    <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
+    <hibernate-validator.version>8.0.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
