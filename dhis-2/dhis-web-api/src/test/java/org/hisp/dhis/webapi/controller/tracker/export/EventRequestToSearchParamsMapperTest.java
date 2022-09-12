@@ -320,8 +320,8 @@ class EventRequestToSearchParamsMapperTest
         assertAll(
             () -> assertNotNull( params.getAttributeOrders() ),
             () -> assertContainsOnly( params.getAttributeOrders(),
-                new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ),
-            () -> assertContainsOnly( params.getFilterAttributes(), new QueryItem( tea1 ) ) );
+                List.of( new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ) ),
+            () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
     }
 
     @Test
