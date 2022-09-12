@@ -122,9 +122,9 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FaNotCalledQrFirst()
+    void testDisable2FaNotEnabled()
     {
-        assertEquals( "User must call /qr endpoint before you can call enable",
+        assertEquals( "Two factor authentication is not enabled",
             POST( "/2fa/disable", "{'code':'wrong'}" ).error( HttpStatus.Series.CLIENT_ERROR ).getMessage() );
     }
 
@@ -135,7 +135,6 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
 
     private static String getCode( User newUser )
     {
-        String code = new Totp( replaceApprovalPartOfTheSecret( newUser ) ).now();
-        return code;
+        return new Totp( replaceApprovalPartOfTheSecret( newUser ) ).now();
     }
 }
