@@ -428,7 +428,6 @@ public class MeController
     }
 
     private void merge( User currentUser, User user )
-        throws WebMessageException
     {
         currentUser.setFirstName( stringWithDefault( user.getFirstName(), currentUser.getFirstName() ) );
         currentUser.setSurname( stringWithDefault( user.getSurname(), currentUser.getSurname() ) );

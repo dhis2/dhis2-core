@@ -127,15 +127,12 @@ public class TwoFactorController
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.ACCEPTED )
     @ResponseBody
-    public Map<String, Object> getQrCodeNEW( @CurrentUser User currentUser )
-        throws WebMessageException
+    public Map<String, Object> getQrCodeDeprecated( @CurrentUser User currentUser )
     {
         if ( currentUser == null )
         {
             throw new BadCredentialsException( ErrorCode.E3025.getMessage() );
         }
-
-        defaultUserService.generateTwoFactorOtpSecretForApproval( currentUser );
 
         Map<String, Object> map = new HashMap<>();
         map.put( "url", "blank" );
@@ -193,10 +190,10 @@ public class TwoFactorController
     {
         String code = body.get( "code" );
 
-        if ( !currentUser.isTwoFactorEnabled() || !UserService.hasTwoFactorSecretForApproval( currentUser ) )
+        if ( !currentUser.isTwoFactorEnabled() )
         {
             throw new WebMessageException( conflict(
-                ErrorCode.E3029.getMessage(), ErrorCode.E3029 ) );
+                ErrorCode.E3031.getMessage(), ErrorCode.E3031 ) );
         }
 
         if ( !verifyCode( code, currentUser ) )

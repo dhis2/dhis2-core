@@ -177,6 +177,7 @@ public enum ErrorCode
     E3029( "User must call /qr endpoint before you can call enable" ),
     E3030(
         "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API" ),
+    E3031( "Two factor authentication is not enabled" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
