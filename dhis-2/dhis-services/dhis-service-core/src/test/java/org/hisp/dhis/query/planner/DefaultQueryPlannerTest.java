@@ -205,11 +205,11 @@ class DefaultQueryPlannerTest
         Query persistedQuery = queryPlan.getPersistedQuery();
 
         assertTrue( persistedQuery.isPlannedQuery() );
-        assertEquals( persistedQuery.getCriterions().size(), 1 );
+        assertEquals( 1, persistedQuery.getCriterions().size() );
 
         Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
         assertTrue( nonPersistedQuery.isPlannedQuery() );
-        assertEquals( nonPersistedQuery.getCriterions().size(), 1 );
+        assertEquals( 1, nonPersistedQuery.getCriterions().size() );
 
     }
 

@@ -310,11 +310,6 @@ public class DefaultQueryPlanner implements QueryPlanner
 
     private boolean isFilterByAttributeId( Property curProperty, String propertyName )
     {
-        if ( curProperty == null && CodeGenerator.isValidUid( propertyName ) )
-        {
-            return true;
-        }
-
-        return false;
+        return curProperty == null && CodeGenerator.isValidUid( propertyName );
     }
 }
