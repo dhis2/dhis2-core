@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Set;
+
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -138,7 +140,7 @@ class AccountControllerTest extends DhisControllerConvenienceTest
 
     private static void assertMessage( String key, String value, String message, JsonResponse response )
     {
-        assertContainsOnly( response.node().members().keySet(), key, "message" );
+        assertContainsOnly( Set.of( key, "message" ), response.node().members().keySet() );
         assertEquals( value, response.getString( key ).string() );
         assertEquals( message, response.getString( "message" ).string() );
     }

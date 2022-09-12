@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
@@ -115,6 +116,6 @@ class CappedLocalCacheTest
     {
         testRegion.put( "x", "y" );
         testRegion.put( "a", "b" );
-        assertContainsOnly( testRegion.getAll().collect( toList() ), "y", "b" );
+        assertContainsOnly( List.of( "y", "b" ), testRegion.getAll().collect( toList() ) );
     }
 }

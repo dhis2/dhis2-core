@@ -312,7 +312,7 @@ class PredictionContextGeneratorTest
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
-        assertContainsOnly( actualFormatted, formatted1, formatted2, formatted3, formatted4 );
+        assertContainsOnly( List.of( formatted1, formatted2, formatted3, formatted4 ), actualFormatted );
 
         checkOrder( actual );
     }
@@ -339,7 +339,7 @@ class PredictionContextGeneratorTest
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
-        assertContainsOnly( actualFormatted, formatted1, formatted2 );
+        assertContainsOnly( List.of( formatted1, formatted2 ), actualFormatted );
 
         checkOrder( actual );
     }
@@ -388,7 +388,7 @@ class PredictionContextGeneratorTest
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
-        assertContainsOnly( actualFormatted, formatted1, formatted2, formatted3, formatted4 );
+        assertContainsOnly( List.of( formatted1, formatted2, formatted3, formatted4 ), actualFormatted );
 
         checkOrder( actual );
     }
@@ -406,7 +406,7 @@ class PredictionContextGeneratorTest
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
-        assertContainsOnly( actualFormatted, formatted1, formatted2 );
+        assertContainsOnly( List.of( formatted1, formatted2 ), actualFormatted );
 
         checkOrder( actual );
     }

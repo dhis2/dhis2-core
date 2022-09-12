@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -401,9 +402,8 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getOrders(),
-            new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
-            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) );
+        assertContainsOnly( List.of( new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
+            new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) ), params.getOrders() );
     }
 
     @Test
@@ -414,8 +414,8 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getOrders(),
-            new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) );
+        assertContainsOnly( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ),
+            params.getOrders() );
     }
 
     @Test
@@ -426,10 +426,7 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        String prefix = "Order by property `nonSimple` is not supported";
-        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+        assertStartsWith( "Order by property `nonSimple` is not supported", exception.getMessage() );
     }
 
     @Test
@@ -441,10 +438,7 @@ class EventRequestToSearchParamsMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        String prefix = "Order by property `";
-        assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-            .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) );
+        assertStartsWith( "Order by property `", exception.getMessage() );
         // order of properties in exception message might not always be the same
         String property1 = "unsupportedProperty1";
         assertTrue( exception.getMessage().contains( property1 ), () -> String
@@ -467,9 +461,8 @@ class EventRequestToSearchParamsMapperTest
         assertNotNull( items );
         // mapping to UIDs as the error message by just relying on QueryItem
         // equals() is not helpful
-        assertContainsOnly( items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ),
-            tea1.getUid(),
-            tea2.getUid() );
+        assertContainsOnly( List.of( tea1.getUid(),
+            tea2.getUid() ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
 
         // QueryItem equals() does not take the QueryFilter into account so
         // assertContainsOnly alone does not ensure operators and filter value
@@ -539,10 +532,9 @@ class EventRequestToSearchParamsMapperTest
         assertNotNull( exception.getMessage() );
         // order of TEA UIDs in exception message might not always be the same;
         // therefore using contains to check for UIDs
-        String prefix = "filterAttributes can only have one filter per tracked entity attribute (TEA).";
         assertAll(
-            () -> assertTrue( exception.getMessage().startsWith( prefix ), () -> String
-                .format( "expected message to start with '%s', got '%s' instead", prefix, exception.getMessage() ) ),
+            () -> assertStartsWith( "filterAttributes can only have one filter per tracked entity attribute (TEA).",
+                exception.getMessage() ),
             () -> assertTrue( exception.getMessage().contains( TEA_1_UID ), () -> String
                 .format( "expected message to contain '%s', got '%s' instead", TEA_1_UID, exception.getMessage() ) ),
             () -> assertTrue( exception.getMessage().contains( TEA_2_UID ), () -> String
@@ -558,9 +550,10 @@ class EventRequestToSearchParamsMapperTest
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertContainsOnly( params.getFilterAttributes(),
-            new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
-                tea1.isUnique() ) );
+        assertContainsOnly(
+            List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
+                tea1.isUnique() ) ),
+            params.getFilterAttributes() );
     }
 
     private Date date( String date )
