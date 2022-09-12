@@ -188,7 +188,7 @@ public class JdbcValidationResultTableManager
 
         String sql = insert + select;
 
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ), false );
     }
 
     private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
