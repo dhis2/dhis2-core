@@ -1100,7 +1100,7 @@ public class JdbcEventStore implements EventStore
             fromBuilder.append(
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
                 .append(
-                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+                    "inner join organisationunit piou on (coalesce(po.organisationunitid, psi.organisationunitid)=piou.organisationunitid) " );
         }
         else
         {
@@ -1110,6 +1110,7 @@ public class JdbcEventStore implements EventStore
         fromBuilder
             .append( "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid " )
             .append( "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) " )
+            .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " )
             .append( "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
 
         if ( !params.getFilterAttributes().isEmpty() )
