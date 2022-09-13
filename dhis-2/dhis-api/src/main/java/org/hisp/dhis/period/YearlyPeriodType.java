@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
  * January 1st and endDate set to the last day of the same year.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: YearlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class YearlyPeriodType
     extends CalendarPeriodType
@@ -68,9 +67,9 @@ public class YearlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.YEARLY;
     }
 
     @Override

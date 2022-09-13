@@ -43,4 +43,11 @@ public class WeeklyThursdayPeriodType
     {
         super( NAME, 4, "yyyyThuWn", "P7D", 7, "1 week", "ThuW" );
     }
+
+    @Override
+    public PeriodTypeEnum getPeriodTypeEnum()
+    {
+        return PeriodTypeEnum.WEEKLY_THURSDAY;
+    }
+
 }

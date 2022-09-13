@@ -63,9 +63,9 @@ public class SixMonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.SIX_MONTHLY;
     }
 
     @Override

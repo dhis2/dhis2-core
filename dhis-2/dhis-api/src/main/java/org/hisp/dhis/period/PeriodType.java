@@ -65,9 +65,14 @@ import com.google.common.collect.Maps;
 public abstract class PeriodType
     implements Serializable
 {
-    // Cache for period lookup, uses calendar.name() + periodType.getName() +
-    // date.getTime() as key
+    /**
+     * Determines if a deserialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 2402122626196305083L;
 
+    /**
+     * Cache for period lookup.
+     */
     private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
         .forRegion( "periodCache" )
         .expireAfterAccess( 12, TimeUnit.HOURS )
@@ -89,17 +94,12 @@ public abstract class PeriodType
      * Invalidates the period cache.
      * <p/>
      * Used in testing when there are multiple database loads and the same
-     * periods may be assigned different database ids.
+     * periods may be assigned different database identifiers.
      */
     public static void invalidatePeriodCache()
     {
         PERIOD_CACHE.invalidateAll();
     }
-
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 2402122626196305083L;
 
     private static CalendarService calendarService;
 
@@ -300,7 +300,17 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
-    public abstract String getName();
+    public final String getName()
+    {
+        return getPeriodTypeEnum().getName();
+    }
+
+    /**
+     * Returns the {@link PeriodTypeEnum}.
+     *
+     * @return the {@link PeriodTypeEnum}.
+     */
+    public abstract PeriodTypeEnum getPeriodTypeEnum();
 
     /**
      * Creates a valid Period based on the current date. E.g. if today is

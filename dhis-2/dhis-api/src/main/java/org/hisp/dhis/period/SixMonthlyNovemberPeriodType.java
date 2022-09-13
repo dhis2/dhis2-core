@@ -38,7 +38,6 @@ import org.joda.time.DateTimeConstants;
 public class SixMonthlyNovemberPeriodType
     extends SixMonthlyAbstractPeriodType
 {
-
     private static final long serialVersionUID = 234137239008575913L;
 
     private static final String ISO_FORMAT = "yyyyNovSn";
@@ -54,9 +53,9 @@ public class SixMonthlyNovemberPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.SIX_MONTHLY_NOV;
     }
 
     @Override

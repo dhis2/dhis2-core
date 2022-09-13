@@ -27,26 +27,32 @@
  */
 package org.hisp.dhis.period;
 
-/**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Wednesday and endDate set to Tuesday the same week, assuming Wednesday is the
- * first day and Tuesday is the last day of the week.
- *
- * @author Torgeir Lorange Ostby
- */
-public class WeeklyWednesdayPeriodType
-    extends WeeklyAbstractPeriodType
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum PeriodTypeEnum
 {
-    public static final String NAME = "WeeklyWednesday";
+    BI_MONTHLY( "BiMonthly" ),
+    BI_WEEKLY( "BiWeekly" ),
+    DAILY( "Daily" ),
+    FINANCIAL_APRIL( "FinancialApril" ),
+    FINANCIAL_JULY( "FinancialJuly" ),
+    FINANCIAL_NOV( "FinancialNov" ),
+    FINANCIAL_OCT( "FinancialOct" ),
+    MONTHLY( "Monthly" ),
+    QUARTERLY( "Quarterly" ),
+    SIX_MONTHLY_APRIL( "SixMonthlyApril" ),
+    SIX_MONTHLY_NOV( "SixMonthlyNov" ),
+    SIX_MONTHLY( "SixMonthly" ),
+    TWO_YEARLY( "TwoYearly" ),
+    WEEKLY( "Weekly" ),
+    WEEKLY_SATURDAY( "WeeklySaturday" ),
+    WEEKLY_SUNDAY( "WeeklySunday" ),
+    WEEKLY_THURSDAY( "WeeklyThursday" ),
+    WEEKLY_WEDNESDAY( "WeeklyWednesday" ),
+    YEARLY( "Yearly" );
 
-    public WeeklyWednesdayPeriodType()
-    {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "1 week", "WedW" );
-    }
-
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.WEEKLY_WEDNESDAY;
-    }
+    private final String name;
 }

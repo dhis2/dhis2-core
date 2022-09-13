@@ -66,9 +66,9 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.TWO_YEARLY;
     }
 
     @Override

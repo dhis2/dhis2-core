@@ -71,9 +71,9 @@ public class QuarterlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.QUARTERLY;
     }
 
     @Override

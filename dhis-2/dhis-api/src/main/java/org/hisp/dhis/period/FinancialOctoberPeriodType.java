@@ -55,9 +55,9 @@ public class FinancialOctoberPeriodType
     }
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.FINANCIAL_OCT;
     }
 
     @Override
