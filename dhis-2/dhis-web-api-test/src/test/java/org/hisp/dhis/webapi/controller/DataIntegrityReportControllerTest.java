@@ -37,6 +37,8 @@ import static org.hisp.dhis.web.WebClientUtils.objectReferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.hisp.dhis.jsontree.JsonDocument.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -131,9 +133,8 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerT
         ouA.setParent( ouB );
         ouB.getChildren().add( ouA );
         organisationUnitStore.save( ouB );
-        assertContainsOnly(
-            getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ),
-            "A:" + ouIdA, "B:" + ouIdB );
+        assertContainsOnly( List.of( "A:" + ouIdA, "B:" + ouIdB ),
+            getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ) );
     }
 
     @Test

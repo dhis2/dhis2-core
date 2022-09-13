@@ -31,11 +31,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * Class representing an analytics database table column.
  *
  * @author Lars Helge Overland
  */
+@EqualsAndHashCode
 public class AnalyticsTableColumn
 {
     /**

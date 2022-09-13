@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.OrgUnitFieldType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -38,9 +38,6 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
-import static org.hisp.dhis.event.EventStatus.ACTIVE;
-import static org.hisp.dhis.event.EventStatus.COMPLETED;
-import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,6 +58,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -124,8 +122,6 @@ public class EventQueryParams
 
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
-
-    private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
 
     /**
      * The query items.
@@ -558,9 +554,13 @@ public class EventQueryParams
         }
     }
 
-    public boolean containsScheduledDatePeriod()
+    /**
+     * Indicates whether we should use start/end dates in SQL query instead of
+     * periods.
+     */
+    public boolean useStartEndDates()
     {
-        return dateRangeByDateFilter != null && dateRangeByDateFilter.containsKey( AnalyticsDateFilter.SCHEDULED_DATE );
+        return hasStartEndDate() || !getDateRangeByDateFilter().isEmpty();
     }
 
     /**
@@ -669,7 +669,7 @@ public class EventQueryParams
      */
     public boolean orgUnitFieldIsValid()
     {
-        if ( orgUnitField == null )
+        if ( orgUnitField.getType() != ATTRIBUTE )
         {
             return true;
         }
@@ -704,15 +704,16 @@ public class EventQueryParams
 
     private boolean validateProgramHasOrgUnitField( Program program )
     {
+        String orgUnitColumn = orgUnitField.getField();
 
         if ( program.getTrackedEntityAttributes().stream()
-            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitColumn.equals( at.getUid() ) ) )
         {
             return true;
         }
 
         if ( program.getDataElements().stream()
-            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitField.equals( at.getUid() ) ) )
+            .anyMatch( at -> at.getValueType().isOrganisationUnit() && orgUnitColumn.equals( at.getUid() ) ) )
         {
             return true;
         }
@@ -885,7 +886,7 @@ public class EventQueryParams
 
     public boolean hasEventStatus()
     {
-        return isNotEmpty( eventStatus );
+        return isNotEmpty( getEventStatus() );
     }
 
     public boolean hasValueDimension()
@@ -1086,36 +1087,7 @@ public class EventQueryParams
 
     public Set<EventStatus> getEventStatus()
     {
-        if ( isNotEmpty( eventStatus ) )
-        {
-            return eventStatus;
-        }
-
-        if ( TimeField.fieldIsValid( timeField ) )
-        {
-            final Optional<TimeField> time = TimeField.of( timeField );
-
-            if ( time.isPresent() )
-            {
-                switch ( time.get() )
-                {
-                case SCHEDULED_DATE:
-                    return Set.of( SCHEDULE );
-                case LAST_UPDATED:
-                    final Set<EventStatus> statuses = new LinkedHashSet<>( DEFAULT_EVENT_STATUS );
-                    statuses.add( SCHEDULE );
-                    return statuses;
-                default:
-                    return DEFAULT_EVENT_STATUS;
-                }
-            }
-        }
-        else if ( containsScheduledDatePeriod() )
-        {
-            return Set.of( SCHEDULE );
-        }
-
-        return DEFAULT_EVENT_STATUS;
+        return eventStatus;
     }
 
     public boolean isCollapseDataDimensions()
@@ -1493,7 +1465,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withOrgUnitField( String orgUnitField )
+        public Builder withOrgUnitField( OrgUnitField orgUnitField )
         {
             this.params.orgUnitField = orgUnitField;
             return this;

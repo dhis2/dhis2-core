@@ -31,18 +31,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
 import org.hisp.dhis.query.Junction;
-import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
@@ -72,7 +71,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
             : query.getRootJunctionType();
 
-        if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+        if ( Junction.Type.OR == junctionType && !persistedOnly )
         {
             return QueryPlan.builder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
@@ -120,6 +119,13 @@ public class DefaultQueryPlanner implements QueryPlanner
         {
             String name = pathComponents[idx];
             curProperty = curSchema.getProperty( name );
+
+            if ( isFilterByAttributeId( curProperty, name ) )
+            {
+                // filter by Attribute Uid
+                persisted = false;
+                curProperty = curSchema.getProperty( "attributeValues" );
+            }
 
             if ( curProperty == null )
             {
@@ -302,61 +308,8 @@ public class DefaultQueryPlanner implements QueryPlanner
         return criteriaJunction;
     }
 
-    /**
-     * Check if all the criteria for the given query are associated to
-     * "persisted" properties
-     *
-     * @param query a {@see Query} object
-     * @return true, if all criteria are on persisted properties
-     */
-    private boolean isFilterOnPersistedFieldOnly( Query query )
+    private boolean isFilterByAttributeId( Property curProperty, String propertyName )
     {
-        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
-        if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
-        {
-            return false;
-        }
-
-        for ( Order order : query.getOrders() )
-        {
-
-            if ( !persistedFields.contains( order.getProperty().getName() ) )
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Recursive function that checks if any of the criterions or subcriterions
-     * are associated with fields that are not persisted.
-     *
-     * @param persistedFields The set of persistedFields in the schema
-     * @param criterions List of criterions
-     * @return true if there is any non persisted field in any of the criteria
-     *         at any level. false otherwise.
-     */
-    private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
-    {
-        for ( Criterion criterion : criterions )
-        {
-            if ( criterion instanceof Restriction )
-            {
-                Restriction restriction = (Restriction) criterion;
-                if ( !persistedFields.contains( restriction.getPath() ) )
-                {
-                    return true;
-                }
-            }
-            else if ( criterion instanceof Junction )
-            {
-                if ( nonPersistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return curProperty == null && CodeGenerator.isValidUid( propertyName );
     }
 }

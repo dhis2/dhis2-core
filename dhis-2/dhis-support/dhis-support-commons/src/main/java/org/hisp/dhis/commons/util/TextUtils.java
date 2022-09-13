@@ -77,7 +77,7 @@ public class TextUtils
      */
     public static String removeNonEssentialChars( String str )
     {
-        return str.replaceAll( "[^a-zA-Z0-9 ._-]", "" );
+        return str.replaceAll( "[^a-zA-Z0-9 ;:._-]", "" );
     }
 
     /**

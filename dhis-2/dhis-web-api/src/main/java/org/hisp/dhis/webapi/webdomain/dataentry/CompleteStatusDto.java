@@ -25,19 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.Date;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Luciano Fiandesio
+ * DTO which represents the completion status of a form.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
-public enum UserOrgUnitType
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class CompleteStatusDto
 {
-    DATA_CAPTURE,
-    DATA_OUTPUT,
-    TEI_SEARCH
+    @JsonProperty
+    private boolean complete = false;
+
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private Date lastUpdated;
+
+    @JsonProperty
+    private String lastUpdatedBy;
 }

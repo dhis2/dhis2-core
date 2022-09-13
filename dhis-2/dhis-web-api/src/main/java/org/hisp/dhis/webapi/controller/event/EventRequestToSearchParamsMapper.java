@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.webapi.controller.event;
 
 import java.util.Collections;
 import java.util.Date;
@@ -75,20 +75,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper.TrackerEventCriteriaMapper;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-@Component
+@Component( "org.hisp.dhis.webapi.controller.event.EventRequestToSearchParamsMapper" )
 @RequiredArgsConstructor
-public class RequestToSearchParamsMapper
+class EventRequestToSearchParamsMapper
 {
     private final CurrentUserService currentUserService;
 
@@ -107,9 +105,6 @@ public class RequestToSearchParamsMapper
     private final InputUtils inputUtils;
 
     private final SchemaService schemaService;
-
-    private final static TrackerEventCriteriaMapper TRACKER_EVENT_CRITERIA_MAPPER = Mappers
-        .getMapper( TrackerEventCriteriaMapper.class );
 
     private Schema schema;
 
@@ -370,10 +365,8 @@ public class RequestToSearchParamsMapper
             .stream()
             .filter( Objects::nonNull )
             .filter( orderCriteria -> dataElementOrders.containsKey( orderCriteria.getField() ) )
-            .map( orderCriteria -> OrderParam.builder()
-                .field( orderCriteria.getField() )
-                .direction( dataElementOrders.get( orderCriteria.getField() ) )
-                .build() )
+            .map( orderCriteria -> new OrderParam( orderCriteria.getField(),
+                dataElementOrders.get( orderCriteria.getField() ) ) )
             .collect( Collectors.toList() );
     }
 
@@ -393,10 +386,5 @@ public class RequestToSearchParamsMapper
             }
         }
         return dataElements;
-    }
-
-    public EventSearchParams map( TrackerEventCriteria eventCriteria )
-    {
-        return map( TRACKER_EVENT_CRITERIA_MAPPER.toEventCriteria( eventCriteria ) );
     }
 }

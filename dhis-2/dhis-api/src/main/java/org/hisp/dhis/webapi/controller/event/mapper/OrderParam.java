@@ -30,17 +30,15 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 import java.util.Arrays;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
+import lombok.Value;
 
 /**
  * Order parameter container to use within services.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Data
-@Builder
+@Value
 public class OrderParam
 {
     private final String field;

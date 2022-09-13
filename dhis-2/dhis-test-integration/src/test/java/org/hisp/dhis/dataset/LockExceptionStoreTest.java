@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -41,12 +46,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class LockExceptionStoreTest extends SingleSetupIntegrationTestBase
 {
-
-    @Autowired
-    private DataSetService dataSetService;
-
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private PeriodStore periodStore;
 
     @Autowired
     private LockExceptionStore store;
@@ -54,36 +58,74 @@ class LockExceptionStoreTest extends SingleSetupIntegrationTestBase
     @Autowired
     private SessionFactory sessionFactory;
 
+    private PeriodType pt;
+
+    private Period pA;
+
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
 
+    private DataSet dsA;
+
+    private DataSet dsB;
+
+    private DataSet dsC;
+
     @Override
     public void setUpTest()
     {
+        pt = periodStore.getPeriodType( MonthlyPeriodType.class );
+        pA = createPeriod( pt, getDate( 2021, 1, 1 ), getDate( 2021, 1, 31 ) );
+        periodStore.addPeriod( pA );
+
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
+
+        dsA = createDataSet( 'A', pt );
+        dsB = createDataSet( 'B', pt );
+        dsC = createDataSet( 'C', pt );
+        idObjectManager.save( dsA );
+        idObjectManager.save( dsB );
+        idObjectManager.save( dsC );
+    }
+
+    @Test
+    void testGetByDataSets()
+    {
+        LockException leA = new LockException( pA, ouA, dsA );
+        LockException leB = new LockException( pA, ouA, dsB );
+        LockException leC = new LockException( pA, ouA, dsC );
+        LockException leD = new LockException( pA, ouB, dsA );
+        LockException leE = new LockException( pA, ouB, dsB );
+        LockException leF = new LockException( pA, ouB, dsC );
+
+        Stream.of( leA, leB, leC, leD, leE, leF ).forEach( le -> store.save( le ) );
+
+        List<LockException> lockExceptions = store.getLockExceptions( List.of( dsA, dsB ) );
+
+        assertContainsOnly( List.of( leA, leB, leD, leE ), lockExceptions );
+
+        lockExceptions = store.getLockExceptions( List.of( dsA ) );
+
+        assertContainsOnly( List.of( leA, leD ), lockExceptions );
     }
 
     @Test
     void testDeleteByOrganisationUnit()
     {
-        PeriodType periodType = new MonthlyPeriodType();
-        Period period = new MonthlyPeriodType().createPeriod();
-        DataSet ds = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( ds );
-        LockException leA = new LockException( period, ouA, ds );
-        LockException leB = new LockException( period, ouB, ds );
+        LockException leA = new LockException( pA, ouA, dsA );
+        LockException leB = new LockException( pA, ouB, dsA );
         store.save( leA );
         store.save( leB );
         assertEquals( 1, getLockExceptionCount( ouA ) );
         assertEquals( 1, getLockExceptionCount( ouB ) );
-        store.delete( ouA );
+        store.deleteLockExceptions( ouA );
         assertEquals( 0, getLockExceptionCount( ouA ) );
         assertEquals( 1, getLockExceptionCount( ouB ) );
-        store.delete( ouB );
+        store.deleteLockExceptions( ouB );
         assertEquals( 0, getLockExceptionCount( ouA ) );
         assertEquals( 0, getLockExceptionCount( ouB ) );
     }

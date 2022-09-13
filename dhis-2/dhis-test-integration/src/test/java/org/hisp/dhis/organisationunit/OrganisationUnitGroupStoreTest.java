@@ -30,6 +30,7 @@ package org.hisp.dhis.organisationunit;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
         addOrganisationUnitGroupSet( 'S', withSet );
-        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithoutGroupSets(), noSet );
+        assertContainsOnly( List.of( noSet ), groupStore.getOrganisationUnitGroupsWithoutGroupSets() );
     }
 
     @Test
@@ -59,7 +60,7 @@ class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
         addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
         addOrganisationUnitGroupSet( 'S', withSet );
-        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
+        assertContainsOnly( List.of( withSet ), groupStore.getOrganisationUnitGroupsWithGroupSets() );
     }
 
     @Test

@@ -60,7 +60,6 @@ import javax.xml.xpath.XPathFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
@@ -78,6 +77,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -1560,6 +1560,14 @@ public abstract class DhisConvenienceTest
     public static Program createProgram( char uniqueCharacter )
     {
         return createProgram( uniqueCharacter, null, null );
+    }
+
+    public static Program createProgramWithoutRegistration( char uniqueCharacter )
+    {
+        Program program = createProgram( uniqueCharacter, null, null );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+
+        return program;
     }
 
     public static Program createProgram( char uniqueCharacter, Set<ProgramStage> programStages,

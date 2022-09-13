@@ -25,36 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import java.util.HashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * A map that, for each input data element disaggregation (category option
- * combo) UID, returns the UID of the corresponding predictor output data
- * element disaggregation (category option combo).
- *
- * @author Jim Grace
+ * @author Lars Helge Overland
  */
-public class DisaggregationMap
-    extends HashMap<String, String>
+@RestController
+@RequiredArgsConstructor
+@RequestMapping( "/dataEntry" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetMetadataController
 {
-    /**
-     * Constructs an empty DisaggregationMap.
-     */
-    public DisaggregationMap()
-    {
-    }
+    private final DataSetMetadataExportService exportService;
 
-    /**
-     * Constructs a new DisaggregationMap with the same mappings as the
-     * specified Map.
-     *
-     * @param m the map whose mappings are to be placed in this map
-     */
-    public DisaggregationMap( Map<String, String> m )
+    @GetMapping( "/metadata" )
+    public ResponseEntity<JsonNode> getMetadata()
     {
-        super( m );
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
     }
 }

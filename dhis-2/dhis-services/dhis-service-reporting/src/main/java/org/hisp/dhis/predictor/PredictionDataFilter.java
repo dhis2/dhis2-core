@@ -27,34 +27,53 @@
  */
 package org.hisp.dhis.predictor;
 
-import java.util.HashMap;
+import static java.util.stream.Collectors.toList;
+
+import java.util.List;
+
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.common.QueryModifiers;
 
 /**
- * A map that, for each compatible input data element category combo (CC) UID,
- * returns the disaggregation map for that category combo.
- *
  * @author Jim Grace
  */
-public class CategoryComboDisaggregationMap
-    extends HashMap<String, DisaggregationMap>
+public class PredictionDataFilter
 {
-    /**
-     * For a given input category combination UID and input disaggregation
-     * (category option combo) UID, returns the output disaggregation UID.
-     *
-     * @param catCombo input category combination
-     * @param inputDisag input disaggregation (category option combo)
-     * @return output disaggregation (category option combo), or null if none
-     */
-    public String getOutputDisag( String catCombo, String inputDisag )
+    private PredictionDataFilter()
     {
-        DisaggregationMap disagMap = get( catCombo );
+        throw new UnsupportedOperationException( "util" );
+    }
 
-        if ( disagMap == null )
-        {
-            return null;
-        }
+    /**
+     * Filters prediction data by minDate/maxDate if specified.
+     *
+     * @param data data to be filtered
+     * @return data that passes minDate/maxDate checks
+     */
+    public static PredictionData filter( PredictionData data )
+    {
+        return (data == null)
+            ? null
+            : new PredictionData( data.getOrgUnit(), filterValues( data.getValues() ), data.getOldPredictions() );
+    }
 
-        return disagMap.get( inputDisag );
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
+
+    private static List<FoundDimensionItemValue> filterValues( List<FoundDimensionItemValue> values )
+    {
+        return values.stream()
+            .filter( PredictionDataFilter::isValid )
+            .collect( toList() );
+    }
+
+    private static boolean isValid( FoundDimensionItemValue item )
+    {
+        QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
+
+        return mods == null
+            || (mods.getMinDate() == null || !mods.getMinDate().after( item.getPeriod().getStartDate() ))
+                && (mods.getMaxDate() == null || !mods.getMaxDate().before( item.getPeriod().getEndDate() ));
     }
 }

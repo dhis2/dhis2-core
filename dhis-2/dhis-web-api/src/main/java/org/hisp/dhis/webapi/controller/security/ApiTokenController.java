@@ -181,14 +181,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     }
 
     @Override
-    protected void prePatchEntity( ApiToken newToken )
-    {
-        final ApiToken oldToken = apiTokenService.getWithUid( newToken.getUid() );
-        newToken.setKey( oldToken.getKey() );
-        validateApiKeyAttributes( newToken );
-    }
-
-    @Override
     protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
     {
         newToken.setKey( oldToken.getKey() );

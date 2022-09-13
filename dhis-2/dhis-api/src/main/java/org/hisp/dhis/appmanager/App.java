@@ -65,6 +65,8 @@ public class App
 
     private String launchPath;
 
+    private String pluginLaunchPath;
+
     private String[] installsAllowedFrom;
 
     private String defaultLocale;
@@ -91,6 +93,8 @@ public class App
     private AppActivities activities;
 
     private String launchUrl;
+
+    private String pluginLaunchUrl;
 
     private String baseUrl;
 
@@ -122,7 +126,12 @@ public class App
 
         if ( contextPath != null && name != null && launchPath != null )
         {
-            launchUrl = String.join( "/", baseUrl, launchPath.replaceFirst( "^/+", "" ) );
+            this.launchUrl = String.join( "/", baseUrl, launchPath.replaceFirst( "^/+", "" ) );
+        }
+
+        if ( contextPath != null && name != null && pluginLaunchPath != null )
+        {
+            this.pluginLaunchUrl = String.join( "/", baseUrl, pluginLaunchPath.replaceFirst( "^/+", "" ) );
         }
     }
 
@@ -240,6 +249,18 @@ public class App
         this.launchPath = launchPath;
     }
 
+    @JsonProperty( "plugin_launch_path" )
+    @JacksonXmlProperty( localName = "plugin_launch_path", namespace = DxfNamespaces.DXF_2_0 )
+    public String getPluginLaunchPath()
+    {
+        return pluginLaunchPath;
+    }
+
+    public void setPluginLaunchPath( String pluginLaunchPath )
+    {
+        this.pluginLaunchPath = pluginLaunchPath;
+    }
+
     @JsonProperty( "installs_allowed_from" )
     @JacksonXmlProperty( localName = "installs_allowed_from", namespace = DxfNamespaces.DXF_2_0 )
     public String[] getInstallsAllowedFrom()
@@ -336,15 +357,15 @@ public class App
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLaunchUrl()
     {
         return launchUrl;
     }
 
-    public void setLaunchUrl( String launchUrl )
+    @JsonProperty
+    public String getPluginLaunchUrl()
     {
-        this.launchUrl = launchUrl;
+        return pluginLaunchUrl;
     }
 
     @JsonProperty
@@ -453,6 +474,7 @@ public class App
             "\"appType:\"" + appType + "\", " +
             "\"baseUrl:\"" + baseUrl + "\", " +
             "\"launchPath:\"" + launchPath + "\" " +
+            "\"pluginLaunchPath:\"" + pluginLaunchPath + "\" " +
             "}";
     }
 

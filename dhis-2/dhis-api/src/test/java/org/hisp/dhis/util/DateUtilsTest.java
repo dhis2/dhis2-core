@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.minusOneDay;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -380,5 +381,29 @@ class DateUtilsTest
         final Date aDay = getMediumDate( "2021-01-01" );
         final Date theDayAfter = getMediumDate( "2021-01-02" );
         assertThat( theDayAfter, is( plusOneDay( aDay ) ) );
+    }
+
+    @Test
+    void testPlusOneSqlDay()
+    {
+        final java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
+        final Date theDayAfter = getMediumDate( "2021-01-02" );
+        assertThat( theDayAfter, is( plusOneDay( sqlDay ) ) );
+    }
+
+    @Test
+    void testMinusOneDay()
+    {
+        final Date aDay = getMediumDate( "2021-01-01" );
+        final Date theDayBefore = getMediumDate( "2020-12-31" );
+        assertThat( theDayBefore, is( minusOneDay( aDay ) ) );
+    }
+
+    @Test
+    void testMinusOneSqlDay()
+    {
+        final java.sql.Date sqlDay = new java.sql.Date( getMediumDate( "2021-01-01" ).getTime() );
+        final Date theDayBefore = getMediumDate( "2020-12-31" );
+        assertThat( theDayBefore, is( minusOneDay( sqlDay ) ) );
     }
 }

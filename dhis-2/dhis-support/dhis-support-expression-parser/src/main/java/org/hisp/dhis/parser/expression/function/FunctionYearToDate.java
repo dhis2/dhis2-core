@@ -25,16 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.parser.expression.function;
 
-import org.hisp.dhis.tracker.TrackerType;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Function yearToDate
+ *
+ * @author Jim Grace
  */
-public interface TrackerDto
+public class FunctionYearToDate
+    implements ExpressionItem
 {
-    String getUid();
+    @Override
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate( true ).build();
 
-    TrackerType getTrackerType();
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
+    }
 }

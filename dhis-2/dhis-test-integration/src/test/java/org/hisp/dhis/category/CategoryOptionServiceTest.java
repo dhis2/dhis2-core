@@ -74,12 +74,14 @@ class CategoryOptionServiceTest extends SingleSetupIntegrationTestBase
         categoryOptionA = new CategoryOption( "CategoryOptionA" );
         categoryOptionB = new CategoryOption( "CategoryOptionB" );
         categoryOptionC = new CategoryOption( "CategoryOptionC" );
+        categoryOptionA.setDescription( "Test" );
         long idA = categoryService.addCategoryOption( categoryOptionA );
         long idB = categoryService.addCategoryOption( categoryOptionB );
         long idC = categoryService.addCategoryOption( categoryOptionC );
         assertEquals( categoryOptionA, categoryService.getCategoryOption( idA ) );
         assertEquals( categoryOptionB, categoryService.getCategoryOption( idB ) );
         assertEquals( categoryOptionC, categoryService.getCategoryOption( idC ) );
+        assertEquals( "Test", categoryService.getCategoryOption( idA ).getDescription() );
     }
 
     @Test

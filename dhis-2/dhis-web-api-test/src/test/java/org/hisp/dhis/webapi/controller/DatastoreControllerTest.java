@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -104,7 +105,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
             GET( "/dataStore/{namespace}", METADATA_STORE_NS ).content().stringValues() );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
-        assertContainsOnly( GET( "/dataStore/pets" ).content().stringValues(), "cat", "dog" );
+        assertContainsOnly( List.of( "cat", "dog" ), GET( "/dataStore/pets" ).content().stringValues() );
     }
 
     @Test

@@ -48,6 +48,8 @@ class LabelMapperTest
 
     public static final String ENROLLMENT_DATE = "Enrollment date";
 
+    private static final String NAME_SCHEDULED_DATE = "Scheduled date";
+
     @Test
     void testGetHeaderNameFor_NAME_EVENT_DATE()
     {
@@ -59,6 +61,20 @@ class LabelMapperTest
 
         // Then
         assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayExecutionDateLabel() ) );
+    }
+
+    @Test
+    void testGetHeaderNameFor_NAME_SCHEDULED_DATE()
+    {
+        // Given
+        final ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+
+        // When
+        final String actualName = LabelMapper.getScheduleDateLabel( aMockedProgramStageWithLabels,
+            NAME_SCHEDULED_DATE );
+
+        // Then
+        assertThat( actualName, is( aMockedProgramStageWithLabels.getDisplayDueDateLabel() ) );
     }
 
     @Test
@@ -98,6 +114,19 @@ class LabelMapperTest
 
         // Then
         assertThat( actualName, is( EVENT_DATE ) );
+    }
+
+    @Test
+    void testGetHeaderNameWhenNoLabelIsSetFor_NAME_SCHEDULED_DATE()
+    {
+        // Given
+        final ProgramStage aMockedProgramStageWithNoLabels = mockProgramStageWithoutLabels();
+
+        // When
+        final String actualName = LabelMapper.getEventDateLabel( aMockedProgramStageWithNoLabels, NAME_SCHEDULED_DATE );
+
+        // Then
+        assertThat( actualName, is( NAME_SCHEDULED_DATE ) );
     }
 
     @Test
@@ -158,6 +187,7 @@ class LabelMapperTest
     {
         final ProgramStage programStage = new ProgramStage();
         programStage.setExecutionDateLabel( "execution date label" );
+        programStage.setDueDateLabel( "scheduled date label" );
         final Program program = new Program();
         program.setEnrollmentDateLabel( "enrollment date label" );
         program.setIncidentDateLabel( "incident date label" );
