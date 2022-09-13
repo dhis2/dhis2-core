@@ -52,12 +52,14 @@ import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.security.FieldPathConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -211,6 +213,13 @@ public class MvcTestConfig implements WebMvcConfigurer
 
         converters.add( mappingJackson2HttpMessageConverter() );
         converters.add( mappingJackson2XmlHttpMessageConverter() );
+    }
+
+    @Override
+    public void addFormatters( FormatterRegistry registry )
+    {
+        // TODO the WebMvcConfig adds another converter
+        registry.addConverter( new FieldPathConverter() );
     }
 
     @Bean
