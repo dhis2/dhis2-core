@@ -272,7 +272,7 @@ public class Period
             return false;
         }
 
-        if ( !(PeriodTypeEnum.DAILY == periodType.getPeriodTypeEnum()) && getDaysInPeriod() < 2 )
+        if ( PeriodTypeEnum.DAILY != periodType.getPeriodTypeEnum() && getDaysInPeriod() < 2 )
         {
             return false;
         }
