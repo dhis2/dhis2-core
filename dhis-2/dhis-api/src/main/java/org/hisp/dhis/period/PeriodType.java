@@ -161,6 +161,9 @@ public abstract class PeriodType
 
     private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES, pt -> pt.getName() );
 
+    private static final Map<PeriodTypeEnum, PeriodType> PERIOD_TYPE_ENUM_MAP = Maps.uniqueIndex( PERIOD_TYPES,
+        pt -> pt.getPeriodTypeEnum() );
+
     /**
      * Returns an immutable list of all available PeriodTypes in their natural
      * order.
@@ -186,15 +189,27 @@ public abstract class PeriodType
     }
 
     /**
-     * Returns a PeriodType with a given name.
+     * Returns the {@link PeriodType} with the given name.
      *
-     * @param name the name of the PeriodType to return.
-     * @return the PeriodType with the given name or null if no such PeriodType
-     *         exists.
+     * @param name the name of the {@link PeriodType} to return.
+     * @return the {@link PeriodType} with the given name or null if no such
+     *         period type exists.
      */
     public static PeriodType getPeriodTypeByName( String name )
     {
         return PERIOD_TYPE_MAP.get( name );
+    }
+
+    /**
+     * Returns the {@link PeriodType} with the given {@link PeriodTypeEnum}.
+     *
+     * @param periodTypeEnum the {@link PeriodTypeEnum}.
+     * @return the {@link PeriodType} with the given {@link PeriodTypeEnum} or
+     *         null if no such period type exists.
+     */
+    public static PeriodType getPeriodType( PeriodTypeEnum periodTypeEnum )
+    {
+        return PERIOD_TYPE_ENUM_MAP.get( periodTypeEnum );
     }
 
     public static PeriodType getByNameIgnoreCase( String name )

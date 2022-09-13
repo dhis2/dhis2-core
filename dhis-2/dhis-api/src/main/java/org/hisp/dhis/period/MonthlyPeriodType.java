@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  * same month.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: MonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class MonthlyPeriodType
     extends CalendarPeriodType

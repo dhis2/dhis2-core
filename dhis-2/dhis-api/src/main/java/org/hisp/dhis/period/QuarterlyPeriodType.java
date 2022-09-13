@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  * the same quarter.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: QuarterlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class QuarterlyPeriodType
     extends CalendarPeriodType
