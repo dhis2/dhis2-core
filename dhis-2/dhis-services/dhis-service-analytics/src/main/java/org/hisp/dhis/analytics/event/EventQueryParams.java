@@ -484,7 +484,9 @@ public class EventQueryParams
     /**
      * Replaces periods with start and end dates, using the earliest start date
      * from the periods as start date and the latest end date from the periods
-     * as end date. Remove the period dimension or filter.
+     * as end date. Before removing the period dimension or filter, DateRange
+     * list is created. This saves the complete date information from PE
+     * Dimension prior removal of dimension
      *
      * When heterogeneous date fields are specified, set a specific start/date
      * pair for each of them
