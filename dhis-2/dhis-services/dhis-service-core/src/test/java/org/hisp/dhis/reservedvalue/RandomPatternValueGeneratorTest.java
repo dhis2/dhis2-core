@@ -32,6 +32,7 @@ import static org.hisp.dhis.util.Constants.RANDOM_GENERATION_CHUNK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -95,6 +96,19 @@ class RandomPatternValueGeneratorTest
     void shouldGenerateFromLongSegment()
     {
         generatedValuesShouldMatchPattern( "x".repeat( 50 ), RANDOM_GENERATION_CHUNK );
+    }
+
+    /**
+     * Both a performance and a quality of randomness test. This should be fast
+     * and still produce decent randomness.
+     */
+    @Test
+    void shouldGenerateSufficientlyDifferentValues()
+    {
+        int n = 100000;
+        List<String> values = generateRandomValues( "xxXX##**xxXX", n );
+        assertTrue( new HashSet<>( values ).size() > values.size() / 2,
+            "at least half the values should be unique" );
     }
 
     /**
