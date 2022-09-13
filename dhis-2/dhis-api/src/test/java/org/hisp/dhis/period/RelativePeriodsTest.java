@@ -44,14 +44,26 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class RelativePeriodTest
+class RelativePeriodsTest
 {
-
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
     private static Date getDate( int year, int month, int day )
     {
         return new DateTimeUnit( year, month, day, true ).toJdkDate();
+    }
+
+    @Test
+    void testGetPeriodType()
+    {
+        RelativePeriods periods = new RelativePeriods().setYesterday( true );
+        assertEquals( new DailyPeriodType(), periods.getPeriodType() );
+
+        periods = new RelativePeriods().setLastWeek( true );
+        assertEquals( new WeeklyPeriodType(), periods.getPeriodType() );
+
+        periods = new RelativePeriods().setThisMonth( true );
+        assertEquals( new MonthlyPeriodType(), periods.getPeriodType() );
     }
 
     @Test
