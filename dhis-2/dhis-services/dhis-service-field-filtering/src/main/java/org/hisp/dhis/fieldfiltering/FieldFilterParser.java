@@ -49,6 +49,11 @@ public class FieldFilterParser
         return expandField( StringUtils.join( fields, "," ) );
     }
 
+    public static List<FieldPath> parse( String fields )
+    {
+        return expandField( fields );
+    }
+
     public static List<FieldPath> parseWithPrefix( Set<String> fields, String prefix )
     {
         return expandField( StringUtils.join( fields, "," ), prefix );

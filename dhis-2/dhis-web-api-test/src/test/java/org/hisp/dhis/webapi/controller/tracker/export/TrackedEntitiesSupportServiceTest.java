@@ -33,10 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -49,7 +53,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithStar()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "*" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "*" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -61,7 +65,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithPresetAll()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( ":all" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( ":all" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -73,7 +77,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithAllExcluded()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "!*" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "!*" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -85,7 +89,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithOnlyRelationships()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "relationships" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "relationships" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -97,7 +101,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithOnlyProgramOwners()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "programOwners" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "programOwners" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -109,7 +113,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithOnlyOneExclusion()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "!relationships" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -121,7 +125,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithAllExceptRelationships()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "*", "!relationships" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "*", "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -133,7 +137,7 @@ class TrackedEntitiesSupportServiceTest
     void getTrackedEntityInstanceParamsWithAllExceptProgramOwners()
     {
 
-        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( List.of( "*", "!programOwners" ) );
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields( "*", "!programOwners" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -146,7 +150,7 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "programOwners[orgUnit]", "relationships[from[trackedEntity],to[*]]" ) );
+            fields( "programOwners[orgUnit]", "relationships[from[trackedEntity],to[*]]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -159,7 +163,7 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "!enrollments[uid,enrolledAt]", "relationships[relationship]" ) );
+            fields( "!enrollments[uid,enrolledAt]", "relationships[relationship]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -172,7 +176,7 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "enrollments[events,relationships]" ) );
+            fields( "enrollments[events,relationships]" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -186,15 +190,14 @@ class TrackedEntitiesSupportServiceTest
 
         // is order independent
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "relationships", "!relationships" ) );
+            fields( "relationships", "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
 
-        params = getTrackedEntityInstanceParams(
-            List.of( "!relationships", "relationships" ) );
+        params = getTrackedEntityInstanceParams( fields( "!relationships", "relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
@@ -207,7 +210,7 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "enrollments", "enrollments[!status]" ) );
+            fields( "enrollments", "enrollments[!status]" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -219,35 +222,52 @@ class TrackedEntitiesSupportServiceTest
     {
         // events is a child of enrollments not TEI
         return Stream.of(
-            arguments( List.of( "*", "!enrollments" ), false, false ),
-            arguments( List.of( "!events" ), false, false ),
-            arguments( List.of( "events" ), false, false ),
-            arguments( List.of( "!enrollments" ), false, false ),
-            arguments( List.of( "!enrollments", "enrollments" ), false, false ),
-            arguments( List.of( "!enrollments[*]" ), false, false ),
-            arguments( List.of( "enrollments[createdAt]", "enrollments", "enrollments", "!enrollments",
-                "enrollments[notes]", "enrollments[enrollment,updatedAt]" ), false, false ),
-            arguments( List.of( "enrollments[!events]" ), true, false ),
-            arguments( List.of( "enrollments[*,!events]" ), true, false ),
-            arguments( List.of( "enrollments", "enrollments[!events]" ), true, false ),
-            arguments( List.of( "enrollments[!status]" ), true, true ),
-            arguments( List.of( "enrollments" ), true, true ),
-            arguments( List.of( "enrollments", "!events" ), true, true ),
-            arguments( List.of( "enrollments[*]" ), true, true ),
-            arguments( List.of( "enrollments[events]" ), true, true ),
-            arguments( List.of( "enrollments[events[dataValues[*]]]" ), true, true ),
-            arguments( List.of( "enrollments[status,events]" ), true, true ) );
+            arguments( fields( "*", "!enrollments" ), false,
+                false ),
+            arguments( fields( "!events" ), false, false ),
+            arguments( fields( "events" ), false, false ),
+            arguments( fields( "!enrollments" ), false, false ),
+            arguments( fields( "!enrollments", "enrollments" ),
+                false, false ),
+            arguments( fields( "!enrollments[*]" ), false,
+                false ),
+            arguments( fields( "enrollments[createdAt]", "enrollments", "enrollments", "!enrollments",
+                "enrollments[notes]", "enrollments[enrollment,updatedAt]" ),
+                false, false ),
+            arguments( fields( "enrollments[!events]" ), true,
+                false ),
+            arguments( fields( "enrollments[*,!events]" ), true,
+                false ),
+            arguments( fields( "enrollments", "enrollments[!events]" ),
+                true, false ),
+            arguments( fields( "enrollments[!status]" ), true,
+                true ),
+            arguments( fields( "enrollments" ), true, true ),
+            arguments( fields( "enrollments", "!events" ), true,
+                true ),
+            arguments( fields( "enrollments[*]" ), true, true ),
+            arguments( fields( "enrollments[events]" ), true,
+                true ),
+            arguments( fields( "enrollments[events[dataValues[*]]]" ),
+                true, true ),
+            arguments( fields( "enrollments[status,events]" ),
+                true, true ) );
     }
 
     @MethodSource
     @ParameterizedTest
-    void getTrackedEntityInstanceParamsEnrollmentsAndEvents( List<String> fields, boolean expectEnrollments,
+    void getTrackedEntityInstanceParamsEnrollmentsAndEvents( List<FieldPath> fields, boolean expectEnrollments,
         boolean expectEvents )
     {
-
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams( fields );
 
         assertEquals( expectEvents, params.isIncludeEvents() );
         assertEquals( expectEnrollments, params.isIncludeEnrollments() );
+    }
+
+    private static List<FieldPath> fields( String... fields )
+    {
+        return FieldFilterParser
+            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
     }
 }

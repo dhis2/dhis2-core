@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -80,7 +81,7 @@ public class TrackerTrackedEntitiesExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
@@ -105,18 +106,19 @@ public class TrackerTrackedEntitiesExportController
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodesAlternative( trackedEntityInstances, fields,
+            null, false );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( value = "{id}" )
     public ResponseEntity<ObjectNode> getTrackedEntityInstanceById( @PathVariable String id,
         @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
     {
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
+        return ResponseEntity.ok( fieldFilterService.toObjectNodeAlternative( trackedEntity, fields, null, false ) );
     }
 }
