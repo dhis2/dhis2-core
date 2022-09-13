@@ -31,9 +31,12 @@ import static java.util.Arrays.asList;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.greater_than;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
@@ -125,7 +128,7 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-        assertContainsOnly( validationRuleStore.getAll(), ruleA, ruleB );
+        assertContainsOnly( List.of( ruleA, ruleB ), validationRuleStore.getAll() );
     }
 
     @Test
@@ -133,7 +136,7 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest
     {
         addValidationRule( 'A', equal_to, expressionA, expressionB, periodType, true );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-        assertContainsOnly( validationRuleStore.getAllFormValidationRules(), ruleB );
+        assertContainsOnly( List.of( ruleB ), validationRuleStore.getAllFormValidationRules() );
     }
 
     @Test
@@ -164,14 +167,14 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-        // Test empty
-        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates() );
+        assertIsEmpty( validationRuleStore.getValidationRulesWithNotificationTemplates() );
         // Add template
         addValidationNotificationTemplate( 'A', ruleA );
-        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA );
+        assertContainsOnly( List.of( ruleA ), validationRuleStore.getValidationRulesWithNotificationTemplates() );
         // Add one more
         addValidationNotificationTemplate( 'B', ruleB );
-        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA, ruleB );
+        assertContainsOnly( List.of( ruleA, ruleB ),
+            validationRuleStore.getValidationRulesWithNotificationTemplates() );
     }
 
     @Test
@@ -180,7 +183,7 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
         addValidationRuleGroup( 'A', ruleA );
-        assertContainsOnly( validationRuleStore.getValidationRulesWithoutGroups(), ruleB );
+        assertContainsOnly( List.of( ruleB ), validationRuleStore.getValidationRulesWithoutGroups() );
     }
 
     private ValidationNotificationTemplate addValidationNotificationTemplate( char uniqueCharacter,

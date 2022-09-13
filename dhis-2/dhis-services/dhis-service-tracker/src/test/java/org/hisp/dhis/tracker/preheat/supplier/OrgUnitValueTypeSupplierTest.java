@@ -94,7 +94,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( OrganisationUnit.class ), orgUnit );
+        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
     }
 
     @Test
@@ -128,7 +128,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( OrganisationUnit.class ), orgUnit );
+        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
     }
 
     @Test
@@ -147,7 +147,7 @@ class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( OrganisationUnit.class ), orgUnit );
+        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
     }
 
     @Test

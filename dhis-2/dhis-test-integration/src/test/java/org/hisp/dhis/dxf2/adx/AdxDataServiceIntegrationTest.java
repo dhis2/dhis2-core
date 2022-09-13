@@ -468,7 +468,7 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase
         importOptions.setIdSchemes( idSchemes );
         adxDataService.saveDataValueSet( in, importOptions, null );
         List<DataValue> dataValues = dataValueService.getAllDataValues();
-        assertContainsOnly( dataValues, new DataValue( deA, pe202001, ouA, cocFUnder5, cocDefault, "1" ),
+        assertContainsOnly( List.of( new DataValue( deA, pe202001, ouA, cocFUnder5, cocDefault, "1" ),
             new DataValue( deA, pe202001, ouA, cocMUnder5, cocDefault, "2" ),
             new DataValue( deA, pe202001, ouA, cocFOver5, cocDefault, "3" ),
             new DataValue( deA, pe202001, ouA, cocMOver5, cocDefault, "4" ),
@@ -476,6 +476,6 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase
             new DataValue( deA, pe202002, ouB, cocFUnder5, cocDefault, "6" ),
             new DataValue( deA, pe2021Q1, ouB, cocFUnder5, cocPepfar, "10" ),
             new DataValue( deA, pe2021Q1, ouB, cocFOver5, cocMcDonalds, "20" ),
-            new DataValue( deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30" ) );
+            new DataValue( deA, pe2021Q1, ouB, cocMUnder5, cocMcDonalds, "30" ) ), dataValues );
     }
 }

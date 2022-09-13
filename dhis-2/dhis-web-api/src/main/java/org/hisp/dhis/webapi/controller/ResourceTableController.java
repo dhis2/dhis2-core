@@ -101,6 +101,11 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
 
+        if ( skipEvents && skipEnrollment )
+        {
+            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
+        }
+
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
             skipPrograms,
             skipResourceTables );

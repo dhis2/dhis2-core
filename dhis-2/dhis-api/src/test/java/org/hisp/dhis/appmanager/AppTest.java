@@ -62,6 +62,7 @@ class AppTest
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         this.app = mapper.readValue( appJson, App.class );
+        this.app.init( "https://example.com" );
     }
 
     @AfterEach
@@ -76,6 +77,7 @@ class AppTest
         Assertions.assertEquals( "0.1", app.getVersion() );
         Assertions.assertEquals( "Test App", app.getName() );
         Assertions.assertEquals( "/index.html", app.getLaunchPath() );
+        Assertions.assertEquals( "/plugin.html", app.getPluginLaunchPath() );
         Assertions.assertEquals( "*", app.getInstallsAllowedFrom()[0] );
         Assertions.assertEquals( "en", app.getDefaultLocale() );
     }
@@ -123,6 +125,12 @@ class AppTest
     }
 
     @Test
+    void testGetSeeAppAuthority()
+    {
+        assertEquals( "M_Test_App", app.getSeeAppAuthority() );
+    }
+
+    @Test
     void testGetUrlFriendlyName()
     {
         App appA = new App();
@@ -131,5 +139,25 @@ class AppTest
         appB.setName( null );
         assertEquals( "Org-Facility-Registry", appA.getUrlFriendlyName() );
         assertNull( appB.getUrlFriendlyName() );
+    }
+
+    @Test
+    void testGetLaunchUrl()
+    {
+        Assertions.assertEquals( "https://example.com/api/apps/Test-App/index.html", app.getLaunchUrl() );
+    }
+
+    @Test
+    void testGetPluginLaunchUrl()
+    {
+        Assertions.assertEquals( "https://example.com/api/apps/Test-App/plugin.html", app.getPluginLaunchUrl() );
+
+        App appWithoutPlugin = new App();
+        appWithoutPlugin.setName( "Test App" );
+        appWithoutPlugin.setLaunchPath( "/index.html" );
+        appWithoutPlugin.init( "https://example.com" );
+        Assertions.assertEquals( "https://example.com/api/apps/Test-App/index.html", appWithoutPlugin.getLaunchUrl() );
+        Assertions.assertEquals( null, appWithoutPlugin.getPluginLaunchUrl() );
+
     }
 }

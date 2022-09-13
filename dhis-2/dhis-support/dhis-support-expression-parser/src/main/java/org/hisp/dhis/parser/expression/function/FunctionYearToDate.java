@@ -25,36 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.parser.expression.function;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * A map that, for each input data element disaggregation (category option
- * combo) UID, returns the UID of the corresponding predictor output data
- * element disaggregation (category option combo).
+ * Function yearToDate
  *
  * @author Jim Grace
  */
-public class DisaggregationMap
-    extends HashMap<String, String>
+public class FunctionYearToDate
+    implements ExpressionItem
 {
-    /**
-     * Constructs an empty DisaggregationMap.
-     */
-    public DisaggregationMap()
+    @Override
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-    }
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate( true ).build();
 
-    /**
-     * Constructs a new DisaggregationMap with the same mappings as the
-     * specified Map.
-     *
-     * @param m the map whose mappings are to be placed in this map
-     */
-    public DisaggregationMap( Map<String, String> m )
-    {
-        super( m );
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
 }

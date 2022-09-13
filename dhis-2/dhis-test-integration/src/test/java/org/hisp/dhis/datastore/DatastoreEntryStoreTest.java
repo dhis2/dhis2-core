@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.List;
+
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,7 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
     {
         addEntry( "A", "1" );
         addEntry( "B", "1" );
-        assertContainsOnly( store.getNamespaces(), "A", "B" );
+        assertContainsOnly( List.of( "A", "B" ), store.getNamespaces() );
     }
 
     @Test
@@ -67,7 +69,7 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
         addEntry( "A", "1" );
         addEntry( "A", "2" );
         addEntry( "B", "1" );
-        assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
+        assertContainsOnly( List.of( "1", "2" ), store.getKeysInNamespace( "A" ) );
     }
 
     @Test
@@ -84,7 +86,7 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
         DatastoreEntry entryA2 = addEntry( "A", "2" );
         DatastoreEntry entryA3 = addEntry( "A", "3" );
         DatastoreEntry entryB1 = addEntry( "B", "1" );
-        assertContainsOnly( store.getEntryByNamespace( "A" ), entryA1, entryA2, entryA3 );
+        assertContainsOnly( List.of( entryA1, entryA2, entryA3 ), store.getEntryByNamespace( "A" ) );
         assertFalse( store.getEntryByNamespace( "A" ).contains( entryB1 ) );
     }
 
@@ -108,7 +110,7 @@ class DatastoreEntryStoreTest extends SingleSetupIntegrationTestBase
         addEntry( "B", "1" );
         addEntry( "C", "1" );
         store.deleteNamespace( "A" );
-        assertContainsOnly( store.getNamespaces(), "B", "C" );
+        assertContainsOnly( List.of( "B", "C" ), store.getNamespaces() );
     }
 
     private DatastoreEntry addEntry( String ns, String key )
