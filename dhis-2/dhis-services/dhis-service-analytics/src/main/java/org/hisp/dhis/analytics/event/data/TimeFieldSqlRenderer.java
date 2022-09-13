@@ -30,7 +30,9 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,6 +59,12 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
         // When multiple periods are set
+        // and date range list is no continuos
+        else if ( !params.hasContinuousDateRangeList() )
+        {
+            sql.append( getSqlConditionHasDateRangeList( params ) );
+        }
+        // otherwise
         else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
         {
             sql.append( getSqlConditionHasStartEndDate( params ) );
@@ -126,6 +134,30 @@ public abstract class TimeFieldSqlRenderer
                 .append( "' " )
                 .toString() )
             .collect( Collectors.joining( " and " ) );
+    }
+
+    protected String getSqlConditionHasDateRangeList( EventQueryParams params )
+    {
+        List<String> orConditions = new ArrayList<>();
+        for ( DateRange dateRange : params.getDateRangeList() )
+        {
+            ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.builder()
+                .column( getColumnName( params ) )
+                .dateRange( dateRange )
+                .build();
+
+            orConditions.add(
+                columnWithDateRange.getColumn() +
+                    " >= '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) +
+                    "' and " +
+                    columnWithDateRange.getColumn() +
+                    " < '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) +
+                    "' " );
+        }
+
+        return "(" + String.join( " or ", orConditions ) + ")";
     }
 
     protected abstract String getColumnName( EventQueryParams params );

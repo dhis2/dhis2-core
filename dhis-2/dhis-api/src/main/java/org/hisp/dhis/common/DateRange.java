@@ -54,4 +54,9 @@ public class DateRange
         return plusOneDay( endDate );
     }
 
+    public String toString()
+    {
+        return String.format( "%s-%s", startDate, endDate );
+    }
+
 }

@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -318,6 +319,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.dateRangeList = this.dateRangeList;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
@@ -487,15 +489,20 @@ public class EventQueryParams
      * When heterogeneous date fields are specified, set a specific start/date
      * pair for each of them
      */
-    private void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
         for ( Period period : periods )
         {
+            DateRange dateRange = new DateRange( period.getStartDate(), period.getEndDate() );
+
+            dateRangeList.add( dateRange );
+
             if ( Objects.isNull( period.getDateField() ) )
             {
                 Date start = period.getStartDate();
+
                 Date end = period.getEndDate();
 
                 if ( startDate == null || (start != null && start.before( startDate )) )
@@ -518,6 +525,8 @@ public class EventQueryParams
                 }
             }
         }
+        // sorting the date range list
+        dateRangeList.sort( Comparator.comparing( DateRange::getStartDate ) );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }
@@ -1513,7 +1522,7 @@ public class EventQueryParams
 
         public Builder withStartEndDatesForPeriods()
         {
-            this.params.replacePeriodsWithStartEndDates();
+            this.params.replacePeriodsWithDates();
             return this;
         }
 
