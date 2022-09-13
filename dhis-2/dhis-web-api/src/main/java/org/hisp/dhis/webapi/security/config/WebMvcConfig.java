@@ -55,6 +55,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.security.FieldPathConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -221,6 +222,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     protected void addFormatters( FormatterRegistry registry )
     {
         registry.addConverter( new StringToOrderCriteriaListConverter() );
+        registry.addConverter( new FieldPathConverter() );
     }
 
     @Primary
