@@ -70,7 +70,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class JdbcEnrollmentAnalyticsTableManagerTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 

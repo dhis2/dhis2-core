@@ -487,13 +487,13 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
+        EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
             .addAscSortItem( new QueryItem( piA ) )
             .addDescSortItem( new QueryItem( piB ) )
             .addAscSortItem( new QueryItem( deA ) );
 
-        final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
+        String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
         assertThat( sql, containsString(
             "order by \"" + piA.getUid() + "\" asc,\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );

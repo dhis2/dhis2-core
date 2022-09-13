@@ -51,7 +51,6 @@ import org.junit.jupiter.api.Test;
  */
 class DimensionOptionTest extends DhisConvenienceTest
 {
-
     private DataElement deA;
 
     private Period peA;

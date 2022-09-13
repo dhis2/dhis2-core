@@ -88,7 +88,6 @@ import com.google.common.collect.Sets;
  */
 class DataQueryParamsTest extends DhisConvenienceTest
 {
-
     private IndicatorType it;
 
     private Indicator inA;

@@ -134,7 +134,7 @@ public abstract class AbstractEventJdbcTableManager
         // Data values might be '{}' / empty object if data values existed
         // and were removed later
 
-        final String sql = "select programstageinstanceid " +
+        String sql = "select programstageinstanceid " +
             "from programstageinstance " +
             "where eventdatavalues != '{}' limit 1;";
 
@@ -165,7 +165,7 @@ public abstract class AbstractEventJdbcTableManager
     protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
         String fromClause )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
