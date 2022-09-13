@@ -159,10 +159,11 @@ public abstract class PeriodType
         WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
         WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
 
-    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES, pt -> pt.getName() );
+    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES,
+        PeriodType::getName );
 
     private static final Map<PeriodTypeEnum, PeriodType> PERIOD_TYPE_ENUM_MAP = Maps.uniqueIndex( PERIOD_TYPES,
-        pt -> pt.getPeriodTypeEnum() );
+        PeriodType::getPeriodTypeEnum );
 
     /**
      * Returns an immutable list of all available PeriodTypes in their natural
