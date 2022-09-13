@@ -25,33 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi;
 
-import java.util.Collections;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.springframework.core.convert.converter.Converter;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 
-public class StringToFieldPathConverter implements Converter<List<String>, List<FieldPath>>
+class FieldPathConverterTest extends DhisControllerConvenienceTest
 {
 
-    @Override
-    public List<FieldPath> convert( List<String> source )
-    {
-        // TODO so ideally we let the ArrayToCollectionsConverter,
-        // StringToCollectionsConverter do their job
-        // then it should call us somehow
-        // if that model does not work in the design of converters and how they
-        // delegate, then we need to use the more complex converter
-        // delegate to the conversionService and the above converters so we only
-        // deal with List<String> => List<FieldPath>
+    @Autowired
+    private ConversionService conversionService;
 
-        // TODO how can this converter be taken for String and
-        // Collection<String>
-        return FieldFilterParser.parse( Collections.singleton( StringUtils.join( source, "," ) ) );
-        // return FieldFilterParser.parse(source);
+    @Test
+    void stringToFieldPath()
+    {
+        assertEquals( 25, conversionService.convert( "25", Integer.class ) );
+        assertEquals( List.of( 25, 26 ), conversionService.convert( List.of( "25", "26" ), Collection.class ) );
+        // assertEquals(conversionService.convert("*", );
+        // assertEquals(List.of(25, 26), conversionService.convert("25,26",
+        // Collection.class));
+
+        // List<FieldPath> fieldPath = converter.convert( "*" );
+
+        // assertEquals("*", fieldPath.getFullPath());
     }
+
 }

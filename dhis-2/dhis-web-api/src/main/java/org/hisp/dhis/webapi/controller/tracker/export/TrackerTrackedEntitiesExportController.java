@@ -80,14 +80,17 @@ public class TrackerTrackedEntitiesExportController
     private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
+    // PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria
+    // criteria, @RequestParam(name = "debug") List<String> debug)
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<List<FieldPath>> fields )
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
+        List<FieldPath> foo = null;
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                TrackedEntitiesSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+                TrackedEntitiesSupportService.getTrackedEntityInstanceParams( foo ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -106,7 +109,7 @@ public class TrackerTrackedEntitiesExportController
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodesAlternative( trackedEntityInstances, fields,
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodesAlternative( trackedEntityInstances, foo,
             null, false );
         return pagingWrapper.withInstances( objectNodes );
     }

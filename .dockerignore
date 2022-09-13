@@ -3,13 +3,13 @@
 **/.gitignore
 .github
 .idea
-docker
 **/*.iml
 jenkinsfiles
 .patches
 .mailmap
 .tx
 *.sh
+!docker/docker-image-resources/*.sh
 *.md
 LICENSE
 

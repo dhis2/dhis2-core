@@ -27,17 +27,25 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 
 // TODO a more interesting test would be to create a test endpoint with a FieldPath param and assert on that
 class StringToFieldPathConverterTest
 {
 
-    StringToFieldPathConverter converter = new StringToFieldPathConverter();
+    @Autowired
+    private ConversionService conversionService;
+
+    // StringToFieldPathConverter converter = new StringToFieldPathConverter();
 
     @Test
     void stringToFieldPath()
     {
+        assertEquals( 25, conversionService.convert( "25", Integer.class ) );
 
         // List<FieldPath> fieldPath = converter.convert( "*" );
 

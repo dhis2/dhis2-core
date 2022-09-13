@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -211,6 +212,13 @@ public class MvcTestConfig implements WebMvcConfigurer
 
         converters.add( mappingJackson2HttpMessageConverter() );
         converters.add( mappingJackson2XmlHttpMessageConverter() );
+    }
+
+    @Override
+    public void addFormatters( FormatterRegistry registry )
+    {
+        // TODO the WebMvcConfig adds another converter
+        // registry.addConverter( new StringToFieldPathConverter() );
     }
 
     @Bean

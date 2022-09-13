@@ -66,6 +66,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 
 class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
 {
@@ -117,6 +118,71 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         manager.save( programStage, false );
 
         trackedEntityType = trackedEntityTypeAccessible();
+    }
+
+    @Autowired
+    private ConversionService conversionService;
+
+    @Test
+    void stringToFieldPath()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramStageInstance event = programStageInstance( programInstance( tei ) );
+
+        // StringToFieldPathConverter implementing the Converter interface can
+        // handle this
+        // GET( "/tracker/trackedEntities/{id}?fields=orgUnit,status",
+        // event.getUid() )
+        // .content( HttpStatus.NOT_FOUND );
+
+        // RESEARCH:
+
+        // ArrayToCollectionConverter is turning String[]=["orgUnit", "status"]
+        // into List<String> = ["orgUnit", "status"]
+        // it delegates to Converters for each element and uses TypeDescriptor
+        // on the targetType to create the correct collection
+        // so List<String> from the controller method parameter
+
+        // source value: ["orgUnit", "status,enrollment"]
+        // source type: java.lang.String[]
+        // target value: List{"orgUnit", "status,enrollment"}
+        // target type: List<String>
+        // Converter: ArrayToCollectionConverter, NO_OP (for "orgUnit" and
+        // "status,enrollment")
+        // GET(
+        // "/tracker/trackedEntities?debug=orgUnit&debug=status,enrollment",
+        // event.getUid() )
+        // .content( HttpStatus.NOT_FOUND );
+
+        // surprising that StringToCollectionConverter is not used on the
+        // debug=status,enrollment above
+
+        // source type: java.lang.String
+        // source value: "orgUnit,status"
+        // target type: List<String>
+        // target value: List{"orgUnit", "status"}
+        // Converter: StringToCollectionConverter, NO_OP (for each element in
+        // the csv i.e orgUnit and status)
+        GET( "/tracker/trackedEntities?debug=orgUnit,status", event.getUid() )
+            .content( HttpStatus.NOT_FOUND );
+
+        // GET( "/tracker/trackedEntities/{id}?fields=orgUnit&fields=status",
+        // event.getUid() )
+        // .content( HttpStatus.NOT_FOUND );
+
+        // GET( "/tracker/events/{id}?fields=orgUnit,status", event.getUid() )
+        // .content( HttpStatus.OK );
+
+        // assertEquals(25, conversionService.convert("25", Integer.class));
+        // assertEquals(List.of(25, 26), conversionService.convert(List.of("25",
+        // "26"), Collection.class));
+        // assertEquals(conversionService.convert("*", );
+        // assertEquals(List.of(25, 26), conversionService.convert("25,26",
+        // Collection.class));
+
+        // List<FieldPath> fieldPath = converter.convert( "*" );
+
+        // assertEquals("*", fieldPath.getFullPath());
     }
 
     @Test

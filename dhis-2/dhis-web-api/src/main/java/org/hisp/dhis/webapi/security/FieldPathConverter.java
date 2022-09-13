@@ -27,31 +27,29 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
-public class StringToFieldPathConverter implements Converter<List<String>, List<FieldPath>>
+public class FieldPathConverter implements ConditionalGenericConverter
 {
 
     @Override
-    public List<FieldPath> convert( List<String> source )
+    public boolean matches( TypeDescriptor sourceType, TypeDescriptor targetType )
     {
-        // TODO so ideally we let the ArrayToCollectionsConverter,
-        // StringToCollectionsConverter do their job
-        // then it should call us somehow
-        // if that model does not work in the design of converters and how they
-        // delegate, then we need to use the more complex converter
-        // delegate to the conversionService and the above converters so we only
-        // deal with List<String> => List<FieldPath>
+        return false;
+    }
 
-        // TODO how can this converter be taken for String and
-        // Collection<String>
-        return FieldFilterParser.parse( Collections.singleton( StringUtils.join( source, "," ) ) );
-        // return FieldFilterParser.parse(source);
+    @Override
+    public Set<ConvertiblePair> getConvertibleTypes()
+    {
+        return null;
+    }
+
+    @Override
+    public Object convert( Object source, TypeDescriptor sourceType, TypeDescriptor targetType )
+    {
+        return null;
     }
 }
