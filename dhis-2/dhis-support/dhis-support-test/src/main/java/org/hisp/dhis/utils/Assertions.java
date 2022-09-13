@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.utils;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.ErrorCodeException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.function.Executable;
 
@@ -50,22 +53,24 @@ public final class Assertions
     }
 
     /**
-     * Asserts that the given collection contains exactly the given items.
+     * Asserts that the given collection contains exactly the given items in any
+     * order.
      *
      * @param <E> the type.
-     * @param actual the actual collection.
      * @param expected the expected items.
+     * @param actual the actual collection.
      */
-    @SafeVarargs
-    public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    public static <E> void assertContainsOnly( Collection<E> expected, Collection<E> actual )
     {
-        for ( E e : expected )
-        {
-            assertTrue( actual.contains( e ),
-                String.format( "Expected value %s not found in %s", e.toString(), actual.toString() ) );
-        }
+        assertNotNull( actual, () -> String.format( "Expected collection to contain %s, got null instead", expected ) );
 
-        assertEquals( expected.length, actual.size() );
+        List<E> missing = CollectionUtils.difference( expected, actual );
+        List<E> extra = CollectionUtils.difference( actual, expected );
+        assertAll( "assertContainsOnly found mismatch",
+            () -> assertTrue( missing.isEmpty(), () -> String.format( "Expected %s to be in %s", missing, actual ) ),
+            () -> assertTrue( extra.isEmpty(), () -> String.format( "Expected %s NOT to be in %s", extra, actual ) ),
+            () -> assertEquals( expected.size(), actual.size(),
+                () -> String.format( "Expected %s or actual %s contains unexpected duplicates", expected, actual ) ) );
     }
 
     public static <K, V> void assertMapEquals( Map<K, V> expected, Map<K, V> actual )
@@ -73,12 +78,12 @@ public final class Assertions
         for ( Map.Entry<K, V> e : expected.entrySet() )
         {
             assertEquals( e.getValue(), actual.get( e.getKey() ),
-                String.format( "Expected value not found in %s", actual.toString() ) );
+                String.format( "Expected value not found in %s", actual ) );
         }
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
             assertEquals( e.getValue(), expected.get( e.getKey() ),
-                String.format( "Did not expect value in %s", actual.toString() ) );
+                String.format( "Did not expect value in %s", actual ) );
         }
     }
 
@@ -110,5 +115,36 @@ public final class Assertions
     {
         assertNotNull( actual );
         assertTrue( actual.isEmpty(), actual.toString() );
+    }
+
+    /**
+     * Asserts that the given string starts with the expected prefix.
+     *
+     * @param expected expected prefix of actual string
+     * @param actual actual string which should contain the expected prefix
+     */
+    public static void assertStartsWith( String expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected string to start with '%s', got null instead", expected ) );
+        assertTrue( actual.startsWith( expected ), () -> String
+            .format( "expected string to start with '%s', got '%s' instead", expected, actual ) );
+    }
+
+    /**
+     * Asserts that the given character sequence is contained within the actual
+     * string.
+     *
+     * @param expected expected character sequence to be contained within the
+     *        actual string
+     * @param actual actual string which should contain the expected character
+     *        sequence
+     */
+    public static void assertContains( CharSequence expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected actual to contain '%s', got null instead", expected ) );
+        assertTrue( actual.contains( expected ), () -> String
+            .format( "expected actual to contain '%s', got '%s' instead", expected, actual ) );
     }
 }

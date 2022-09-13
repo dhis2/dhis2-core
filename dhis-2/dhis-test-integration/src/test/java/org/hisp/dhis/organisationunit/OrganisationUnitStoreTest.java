@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -75,7 +77,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouE = addOrganisationUnit( 'E', ouB );
         addOrganisationUnitGroup( 'A', ouA );
         addOrganisationUnitGroup( 'B', ouB );
-        assertContainsOnly( unitStore.getOrganisationUnitsWithoutGroups(), ouC, ouD, ouE );
+        assertContainsOnly( List.of( ouC, ouD, ouE ), unitStore.getOrganisationUnitsWithoutGroups() );
     }
 
     @Test
@@ -121,8 +123,8 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouG = addOrganisationUnit( 'G', ouC );
         Program prA = addProgram( 'A', ouA, ouB, ouC, ouE );
         Program prB = addProgram( 'B', ouA, ouD, ouE );
-        assertContainsOnly( unitStore.getOrganisationUnitsWithProgram( prA ), ouA, ouB, ouC, ouE );
-        assertContainsOnly( unitStore.getOrganisationUnitsWithProgram( prB ), ouA, ouD, ouE );
+        assertContainsOnly( List.of( ouA, ouB, ouC, ouE ), unitStore.getOrganisationUnitsWithProgram( prA ) );
+        assertContainsOnly( List.of( ouA, ouD, ouE ), unitStore.getOrganisationUnitsWithProgram( prB ) );
     }
 
     @Test
@@ -145,60 +147,57 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnitGroup ougA = addOrganisationUnitGroup( 'A', ouD, ouF );
         OrganisationUnitGroup ougB = addOrganisationUnitGroup( 'B', ouE, ouG );
         // Query
-        assertContainsOnly(
-            unitStore.getOrganisationUnits( createParams( OrganisationUnitQueryParams::setQuery, "UnitC" ) ), ouC );
+        assertContainsOnly( List.of( ouC ),
+            unitStore.getOrganisationUnits( createParams( OrganisationUnitQueryParams::setQuery, "UnitC" ) ) );
         // Query
-        assertContainsOnly( unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setQuery, "OrganisationUnitCodeA" ) ), ouA );
+        assertContainsOnly( List.of( ouA ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setQuery, "OrganisationUnitCodeA" ) ) );
         // Parents
-        assertContainsOnly( unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setParents, Sets.newHashSet( ouC, ouF ) ) ), ouC, ouF, ouG );
+        assertContainsOnly( List.of( ouC, ouF, ouG ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setParents, Sets.newHashSet( ouC, ouF ) ) ) );
         // Groups
-        assertContainsOnly( unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA ) ) ), ouD, ouF );
+        assertContainsOnly( List.of( ouD, ouF ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA ) ) ) );
         // Groups
-        assertContainsOnly(
-            unitStore.getOrganisationUnits(
-                createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA, ougB ) ) ),
-            ouD, ouF, ouE, ouG );
+        assertContainsOnly( List.of( ouD, ouF, ouE, ouG ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA, ougB ) ) ) );
         // Levels
-        assertContainsOnly( unitStore.getOrganisationUnits(
-            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2 ) ) ), ouB, ouC );
+        assertContainsOnly( List.of( ouB, ouC ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2 ) ) ) );
         // Levels
-        assertContainsOnly(
-            unitStore.getOrganisationUnits(
-                createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2, 3 ) ) ),
-            ouB, ouC, ouD, ouE, ouF, ouG );
+        assertContainsOnly( List.of( ouB, ouC, ouD, ouE, ouF, ouG ), unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2, 3 ) ) ) );
         // Levels and groups
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+        assertContainsOnly( List.of( ouD, ouF ), unitStore.getOrganisationUnits( createParams( params -> {
             params.setLevels( Sets.newHashSet( 3 ) );
             params.setGroups( Sets.newHashSet( ougA ) );
-        } ) ), ouD, ouF );
+        } ) ) );
         // Parents and groups
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+        assertContainsOnly( List.of( ouG ), unitStore.getOrganisationUnits( createParams( params -> {
             params.setParents( Sets.newHashSet( ouC ) );
             params.setGroups( Sets.newHashSet( ougB ) );
-        } ) ), ouG );
+        } ) ) );
         // Parents and max levels
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+        assertContainsOnly( List.of( ouA, ouB, ouC ), unitStore.getOrganisationUnits( createParams( params -> {
             params.setParents( Sets.newHashSet( ouA ) );
             params.setMaxLevels( 2 );
-        } ) ), ouA, ouB, ouC );
+        } ) ) );
         // Parents and max levels
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
-            params.setParents( Sets.newHashSet( ouA ) );
-            params.setMaxLevels( 3 );
-        } ) ), ouA, ouB, ouC, ouD, ouE, ouF, ouG );
+        assertContainsOnly( List.of( ouA, ouB, ouC, ouD, ouE, ouF, ouG ),
+            unitStore.getOrganisationUnits( createParams( params -> {
+                params.setParents( Sets.newHashSet( ouA ) );
+                params.setMaxLevels( 3 );
+            } ) ) );
         // Parents and max levels
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+        assertContainsOnly( List.of( ouA ), unitStore.getOrganisationUnits( createParams( params -> {
             params.setParents( Sets.newHashSet( ouA ) );
             params.setMaxLevels( 1 );
-        } ) ), ouA );
+        } ) ) );
         // Parents and max levels
-        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+        assertContainsOnly( List.of( ouB, ouD, ouE ), unitStore.getOrganisationUnits( createParams( params -> {
             params.setParents( Sets.newHashSet( ouB ) );
             params.setMaxLevels( 3 );
-        } ) ), ouB, ouD, ouE );
+        } ) ) );
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +217,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
     {
         OrganisationUnitLevel levelA = addOrganisationUnitLevel( 1, "National" );
         OrganisationUnitLevel levelB = addOrganisationUnitLevel( 2, "District" );
-        assertContainsOnly( levelStore.getAll(), levelA, levelB );
+        assertContainsOnly( List.of( levelA, levelB ), levelStore.getAll() );
     }
 
     @Test
@@ -269,7 +268,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         ouA.setParent( ouB );
         ouB.getChildren().add( ouA );
         unitStore.save( ouB );
-        assertContainsOnly( unitStore.getOrganisationUnitsWithCyclicReferences(), ouA, ouB );
+        assertContainsOnly( Set.of( ouA, ouB ), unitStore.getOrganisationUnitsWithCyclicReferences() );
     }
 
     @Test
@@ -286,7 +285,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         ouA.setParent( ouD );
         ouD.getChildren().add( ouA );
         unitStore.save( ouD );
-        assertContainsOnly( unitStore.getOrganisationUnitsWithCyclicReferences(), ouA, ouB, ouC, ouD );
+        assertContainsOnly( Set.of( ouA, ouB, ouC, ouD ), unitStore.getOrganisationUnitsWithCyclicReferences() );
     }
 
     @Test
@@ -294,7 +293,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
     {
         OrganisationUnit ouA = addOrganisationUnit( 'A' );
         OrganisationUnit ouB = addOrganisationUnit( 'B' );
-        assertContainsOnly( unitStore.getOrphanedOrganisationUnits(), ouA, ouB );
+        assertContainsOnly( List.of( ouA, ouB ), unitStore.getOrphanedOrganisationUnits() );
     }
 
     @Test
@@ -303,7 +302,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouA = addOrganisationUnit( 'A' );
         OrganisationUnit ouB = addOrganisationUnit( 'B' );
         OrganisationUnit ouC = addOrganisationUnit( 'C', ouA );
-        assertContainsOnly( unitStore.getOrphanedOrganisationUnits(), ouB );
+        assertContainsOnly( List.of( ouB ), unitStore.getOrphanedOrganisationUnits() );
     }
 
     @Test
@@ -321,7 +320,7 @@ class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         addOrganisationUnitGroupSet( 'K', groupA );
         addOrganisationUnitGroupSet( 'X', groupC, groupD, groupE );
         // unit D is in group D and E which are both in set X
-        assertContainsOnly( unitStore.getOrganisationUnitsViolatingExclusiveGroupSets(), ouD );
+        assertContainsOnly( List.of( ouD ), unitStore.getOrganisationUnitsViolatingExclusiveGroupSets() );
     }
 
     private Program addProgram( char uniqueCharacter, OrganisationUnit... units )

@@ -83,14 +83,14 @@ class TrackedEntityInstanceMapperTest
         assertEquals( "WTTYiPQDqh1", mapped.getTrackedEntityType().getUid() );
         assertEquals( "friendship", mapped.getTrackedEntityType().getName() );
         assertEquals( "red", mapped.getTrackedEntityType().getCode() );
-        assertContainsOnly( mapped.getTrackedEntityType().getAttributeValues(),
-            attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
+            mapped.getTrackedEntityType().getAttributeValues() );
 
         assertEquals( "HpSAvRWtdDR", mapped.getOrganisationUnit().getUid() );
         assertEquals( "meet", mapped.getOrganisationUnit().getName() );
         assertEquals( "green", mapped.getOrganisationUnit().getCode() );
-        assertContainsOnly( mapped.getOrganisationUnit().getAttributeValues(),
-            attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ),
+            mapped.getOrganisationUnit().getAttributeValues() );
 
         Optional<TrackedEntityAttributeValue> actual = mapped.getTrackedEntityAttributeValues().stream().findFirst();
         assertTrue( actual.isPresent() );
@@ -98,7 +98,8 @@ class TrackedEntityInstanceMapperTest
         assertEquals( "khBzbxTLo8k", value.getAttribute().getUid() );
         assertEquals( "clouds", value.getAttribute().getName() );
         assertEquals( "orange", value.getAttribute().getCode() );
-        assertContainsOnly( value.getAttribute().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ),
+            value.getAttribute().getAttributeValues() );
     }
 
 }

@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -101,7 +103,8 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         switchToGuestUser();
         JsonArray users = GET( "/users/gist?headless=true" ).content();
         JsonObject user0 = users.getObject( 0 );
-        assertContainsOnly( user0.node().members().keySet(), "id", "code", "surname", "firstName", "username" );
+        assertContainsOnly( Set.of( "id", "code", "surname", "firstName", "username" ),
+            user0.node().members().keySet() );
         switchToSuperuser();
         users = GET( "/users/gist?headless=true" ).content();
         user0 = users.getObject( 0 );

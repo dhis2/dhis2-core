@@ -33,6 +33,8 @@ import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdScheme
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Set;
+
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +57,6 @@ class TrackedEntityTypeMapperTest
         assertEquals( "HpSAvRWtdDR", mapped.getUid() );
         assertEquals( "meet", mapped.getName() );
         assertEquals( "green", mapped.getCode() );
-        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
     }
 }

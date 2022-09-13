@@ -69,6 +69,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.io.IOException;
@@ -987,7 +988,7 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
         }
 
-        sqlBuilder.append( getOrderQuery( params ) );
+        sqlBuilder.append( getExternalOrderQuery( params ) );
 
         return sqlBuilder.toString();
     }
@@ -1823,6 +1824,18 @@ public class JdbcEventStore implements EventStore
         return "order by lastUpdated desc ";
     }
 
+    private String getExternalOrderQuery( EventSearchParams params )
+    {
+        if ( isNotEmpty( params.getAttributeOrders() ) )
+        {
+            return "";
+        }
+        else
+        {
+            return getOrderQuery( params );
+        }
+    }
+
     private String getOrderQuery( EventSearchParams params )
     {
         ArrayList<String> orderFields = new ArrayList<>();
@@ -1842,6 +1855,14 @@ public class JdbcEventStore implements EventStore
                         break;
                     }
                 }
+            }
+        }
+
+        if ( params.getAttributeOrders() != null )
+        {
+            for ( OrderParam order : params.getAttributeOrders() )
+            {
+                orderFields.add( quote( order.getField() ) + ".value " + order.getDirection() );
             }
         }
 

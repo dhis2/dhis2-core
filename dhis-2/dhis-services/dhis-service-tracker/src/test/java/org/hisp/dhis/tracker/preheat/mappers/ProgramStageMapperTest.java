@@ -80,12 +80,13 @@ class ProgramStageMapperTest
         assertEquals( "HpSAvRWtdDR", mapped.getUid() );
         assertEquals( "meet", mapped.getName() );
         assertEquals( "green", mapped.getCode() );
-        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
 
         assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
         assertEquals( "friendship", mapped.getProgram().getName() );
         assertEquals( "red", mapped.getProgram().getCode() );
-        assertContainsOnly( mapped.getProgram().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
+            mapped.getProgram().getAttributeValues() );
 
         Optional<ProgramStageDataElement> actual = mapped.getProgramStageDataElements().stream().findFirst();
         assertTrue( actual.isPresent() );
@@ -93,6 +94,7 @@ class ProgramStageMapperTest
         assertEquals( "khBzbxTLo8k", value.getDataElement().getUid() );
         assertEquals( "clouds", value.getDataElement().getName() );
         assertEquals( "orange", value.getDataElement().getCode() );
-        assertContainsOnly( value.getDataElement().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ),
+            value.getDataElement().getAttributeValues() );
     }
 }

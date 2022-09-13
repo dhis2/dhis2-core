@@ -106,11 +106,11 @@ class LockExceptionStoreTest extends SingleSetupIntegrationTestBase
 
         List<LockException> lockExceptions = store.getLockExceptions( List.of( dsA, dsB ) );
 
-        assertContainsOnly( lockExceptions, leA, leB, leD, leE );
+        assertContainsOnly( List.of( leA, leB, leD, leE ), lockExceptions );
 
         lockExceptions = store.getLockExceptions( List.of( dsA ) );
 
-        assertContainsOnly( lockExceptions, leA, leD );
+        assertContainsOnly( List.of( leA, leD ), lockExceptions );
     }
 
     @Test
