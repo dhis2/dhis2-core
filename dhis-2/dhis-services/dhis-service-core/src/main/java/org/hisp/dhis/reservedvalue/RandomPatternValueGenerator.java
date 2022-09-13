@@ -38,18 +38,19 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Generate random values from a pattern using pseudo-randomness to pick letters
+ * and digits.
  *
- *         Generate random values from a pattern using BigInteger for numbers
- *         and random UUID for alphanumerics.
+ * Pattern:
  *
- *         x = lower case
+ * <pre>
+ *  x = lower case
+ *  X = upper case
+ *  # = digit
+ *  * = digit or lower case or upper case
+ * </pre>
  *
- *         X = upper case
- *
- *         # = digit
- *
- *         * = digit or lower case or upper case
+ * @author Jan Bernitt
  */
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class RandomPatternValueGenerator
@@ -58,13 +59,25 @@ public class RandomPatternValueGenerator
 
     private static final AtomicLong NEXT_SEED = new AtomicLong( currentTimeMillis() );
 
+    /**
+     * Create n random values based on a provided pattern. Each value will have
+     * same length as the pattern and use a random letter or digit matching the
+     * type requested by the pattern.
+     *
+     * @param pattern a pattern using {@code xX#*} characters only, at least
+     *        length 1
+     * @param n number of iterations, also the minimum number of returned values
+     *        but more might be returned when at least two digits
+     * @return the generated random values
+     */
     public static List<String> generateRandomValues( String pattern, int n )
     {
         RandomXorOshiro128 rnd = new RandomXorOshiro128(
             NEXT_SEED.updateAndGet( seed -> max( seed + 1, currentTimeMillis() ) ) );
         List<String> values = new ArrayList<>();
-        boolean allDigits = pattern.matches( "#+" );
-        boolean multiDigit = pattern.matches( ".*##.*" );
+        long digits = pattern.chars().filter( c -> c == '#' ).count();
+        boolean allDigits = digits == pattern.length();
+        boolean multiDigit = digits >= 2;
         int len = pattern.length();
         StringBuilder digitsRandom = new StringBuilder( len );
         StringBuilder digitsLeadingZero = new StringBuilder( len );
@@ -140,7 +153,9 @@ public class RandomPatternValueGenerator
      */
     private static final class RandomXorOshiro128
     {
-        private long state0, state1;
+        private long state0;
+
+        private long state1;
 
         RandomXorOshiro128( long seed )
         {
