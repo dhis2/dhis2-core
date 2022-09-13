@@ -859,7 +859,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         {
             assertEquals( 1, query.getPeriods().size() );
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
+            assertEquals( PeriodTypeEnum.MONTHLY.getName().toLowerCase(),
                 query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
     }

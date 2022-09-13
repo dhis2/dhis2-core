@@ -41,7 +41,7 @@ public class WeeklyPeriodType
 
     public WeeklyPeriodType()
     {
-        super( NAME, 1, "yyyyWn", "P7D", 7, "1 week", "W" );
+        super( PeriodTypeEnum.WEEKLY.getName(), 1, "yyyyWn", "P7D", 7, "1 week", "W" );
     }
 
     @Override

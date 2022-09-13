@@ -54,11 +54,6 @@ public class MonthlyPeriodType
 
     private static final String ISO8601_DURATION = "P1M";
 
-    /**
-     * The name of the MonthlyPeriodType, which is "Monthly".
-     */
-    public static final String NAME = "Monthly";
-
     public static final int FREQUENCY_ORDER = 30;
 
     public static final String SQL_INTERVAL = "1 month";

@@ -53,11 +53,6 @@ public class YearlyPeriodType
 
     private static final String ISO8601_DURATION = "P1Y";
 
-    /**
-     * The name of the YearlyPeriodType, which is "Yearly".
-     */
-    public static final String NAME = "Yearly";
-
     public static final int FREQUENCY_ORDER = 365;
 
     public static final String SQL_INTERVAL = "1 year";

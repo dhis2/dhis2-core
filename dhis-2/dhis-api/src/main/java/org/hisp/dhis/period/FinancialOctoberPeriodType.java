@@ -46,8 +46,6 @@ public class FinancialOctoberPeriodType
 
     private static final String ISO8601_DURATION = "P1Y";
 
-    public static final String NAME = "FinancialOct";
-
     @Override
     public int getBaseMonth()
     {

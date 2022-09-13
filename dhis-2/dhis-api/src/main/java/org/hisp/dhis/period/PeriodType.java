@@ -153,11 +153,11 @@ public abstract class PeriodType
         new FinancialNovemberPeriodType() );
 
     public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
-        WeeklySundayPeriodType.NAME, DayOfWeek.SUNDAY,
-        WeeklyWednesdayPeriodType.NAME, DayOfWeek.WEDNESDAY,
-        WeeklyThursdayPeriodType.NAME, DayOfWeek.THURSDAY,
-        WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
-        WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
+        PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
+        PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
+        PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
+        PeriodTypeEnum.WEEKLY_SUNDAY.getName(), DayOfWeek.SUNDAY,
+        PeriodTypeEnum.WEEKLY.getName(), DayOfWeek.MONDAY );
 
     private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES,
         PeriodType::getName );

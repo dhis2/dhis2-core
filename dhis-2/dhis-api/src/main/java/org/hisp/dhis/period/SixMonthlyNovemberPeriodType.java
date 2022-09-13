@@ -46,8 +46,6 @@ public class SixMonthlyNovemberPeriodType
 
     private static final int BASE_MONTH = DateTimeConstants.NOVEMBER;
 
-    public static final String NAME = "SixMonthlyNov";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
