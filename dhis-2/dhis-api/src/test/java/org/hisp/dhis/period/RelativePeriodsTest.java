@@ -212,22 +212,6 @@ class RelativePeriodsTest
             relatives.get( 19 ) );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ),
             relatives.get( 20 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ),
-            relatives.get( 21 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ),
-            relatives.get( 22 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ),
-            relatives.get( 23 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ),
-            relatives.get( 24 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ),
-            relatives.get( 25 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ),
-            relatives.get( 26 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ),
-            relatives.get( 27 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ),
-            relatives.get( 28 ) );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ),
             relatives.get( 29 ) );
     }
