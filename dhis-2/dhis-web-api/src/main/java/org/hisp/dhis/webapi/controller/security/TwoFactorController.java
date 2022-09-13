@@ -33,8 +33,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.feedback.ErrorCode.E3023;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
@@ -76,6 +82,55 @@ public class TwoFactorController
 
     private final SystemSettingManager systemSettingManager;
 
+    @GetMapping( value = "/qrCode", produces = "image/png" )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void generateQRCode( @CurrentUser User currentUser, HttpServletResponse response )
+        throws IOException,
+        WebMessageException
+    {
+        if ( currentUser == null )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
+        }
+
+        if ( currentUser.getTwoFA() )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
+        }
+
+        defaultUserService.generateTwoFactorSecret( currentUser );
+
+        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
+
+        List<ErrorCode> errorCodes = new ArrayList<>();
+
+        String qrContent = TwoFactoryAuthenticationUtils.generateQrContent( appName, currentUser,
+            errorCodes::add );
+
+        if ( !errorCodes.isEmpty() )
+        {
+            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
+        }
+
+        byte[] qrCode = TwoFactoryAuthenticationUtils.generateQRCode( qrContent, 200, 200,
+            errorCodes::add );
+
+        if ( !errorCodes.isEmpty() )
+        {
+            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
+        }
+
+        OutputStream outputStream = response.getOutputStream();
+        outputStream.write( qrCode );
+    }
+
+    /**
+     * @deprecated Use {@link #generateQRCode}.
+     * @param currentUser
+     * @return
+     * @throws WebMessageException
+     */
+    @Deprecated( since = "2.39" )
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.ACCEPTED )
     @ResponseBody
@@ -84,7 +139,7 @@ public class TwoFactorController
     {
         if ( currentUser == null )
         {
-            throw new BadCredentialsException( "No current user" );
+            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
         }
 
         if ( currentUser.getTwoFA() )

@@ -147,7 +147,10 @@ public class DefaultAdxDataService
         {
             params.getDataSets().addAll( getByUidOrCode( DataSet.class, urlParams.getDataSet() ) );
         }
-
+        if ( !isEmpty( urlParams.getDataElement() ) )
+        {
+            params.getDataElements().addAll( getByUidOrCode( DataElement.class, urlParams.getDataElement() ) );
+        }
         if ( !isEmpty( urlParams.getPeriod() ) )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( urlParams.getPeriod() ) ) );

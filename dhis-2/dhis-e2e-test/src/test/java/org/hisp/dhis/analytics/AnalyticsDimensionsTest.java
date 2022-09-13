@@ -33,13 +33,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.oneOf;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,12 +50,10 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -82,8 +78,6 @@ public class AnalyticsDimensionsTest
 {
     private Program trackerProgram = Constants.TRACKER_PROGRAM;
 
-    private String trackerProgramStage = trackerProgram.getProgramStages().get( 0 );
-
     private AnalyticsEnrollmentsActions analyticsEnrollmentsActions;
 
     private AnalyticsEventActions analyticsEventActions;
@@ -101,9 +95,6 @@ public class AnalyticsDimensionsTest
         programActions = new ProgramActions();
         analyticsEnrollmentsActions = new AnalyticsEnrollmentsActions();
         analyticsEventActions = new AnalyticsEventActions();
-        analyticsTeiActions = new AnalyticsTeiActions();
-
-        new LoginActions().loginAsAdmin();
     }
 
     Stream<Arguments> shouldOrder()
@@ -205,46 +196,6 @@ public class AnalyticsDimensionsTest
                 dimensionType ) );
         validate
             .accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
-    }
-
-    @Test
-    public void shouldOnlyReturnDataElementsAssociatedWithProgramStage()
-    {
-        List<String> dataElements = new ProgramStageActions()
-            .get( String.format( "/%s/programStageDataElements/gist?fields=dataElement", trackerProgramStage ) )
-            .extractList( "programStageDataElements.dataElement" );
-
-        analyticsEventActions.query().getDimensionsByDimensionType( trackerProgramStage, "DATA_ELEMENT" )
-            .validate()
-            .body( "dimensions", hasSize( equalTo( dataElements.size() ) ) )
-            .body( "dimensions.id", everyItem( startsWith( trackerProgramStage ) ) )
-            .body( "dimensions.id", everyItem( CustomMatchers.containsOneOf( dataElements ) ) );
-    }
-
-    @Test
-    public void shouldReturnAssociatedCategoriesWhenProgramHasCatCombo()
-    {
-        String programWithCatCombo = programActions
-            .get( "?filter=categoryCombo.code:!eq:default&filter=programType:eq:WITH_REGISTRATION" )
-            .extractString( "programs.id[0]" );
-
-        String programStage = programActions.get( programWithCatCombo + "/programStages" )
-            .extractString( "programStages[0].id" );
-
-        assertNotNull( programStage );
-
-        Consumer<ApiResponse> validate = response -> {
-            response.validate()
-                .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-                .body( "dimensions.dimensionType", everyItem( startsWith( "CATEGORY" ) ) )
-                .body( "dimensions.dimensionType", hasItems( "CATEGORY", "CATEGORY_OPTION_GROUP_SET" ) );
-        };
-
-        validate.accept( analyticsEventActions.aggregate()
-            .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
-
-        validate.accept( analyticsEventActions.query()
-            .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
     }
 
     Stream<Arguments> shouldFilter()

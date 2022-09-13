@@ -1,0 +1,55 @@
+{
+  "users": [
+    {
+      "firstName": "User",
+      "email": "user@a.org",
+      "surname": "AA",
+      "attributeValues": [],
+      "id": "sPWjoHSY03y",
+      "created": "2016-03-12T06:20:43.502+0000",
+      "lastUpdated": "2016-03-12T06:20:43.502+0000",
+      "dataViewOrganisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "userCredentials": {
+        "externalAuth": false,
+        "disabled": false,
+        "invitation": false,
+        "userRoles": [
+          {
+            "id": "xJZBzAHI88H"
+          }
+        ],
+        "username": "UserAA",
+        "userInfo": {
+          "id": "sPWjoHSY03y"
+        },
+        "catDimensionConstraints": [],
+        "selfRegistered": false,
+        "user": {
+          "id": "enHApD3I6Ho"
+        },
+        "cogsDimensionConstraints": []
+      },
+      "invitation": false,
+      "disabled": false,
+      "externalAuth": false,
+      "cogsDimensionConstraints": [],
+      "user": {
+        "id": "enHApD3I6Ho"
+      },
+      "selfRegistered": false,
+      "catDimensionConstraints": [],
+      "lastLogin": "2016-03-12T06:20:43.407+0000",
+      "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
+      "teiSearchOrganisationUnits": []
+    }
+  ]
+}

@@ -206,6 +206,7 @@ class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test2/key1", "42" ) );
 
         switchToSuperuser();
-        assertContainsOnly( GET( "/userDataStore?username=Paul" ).content().stringValues(), "test", "test2" );
+        assertContainsOnly( List.of( "test", "test2" ),
+            GET( "/userDataStore?username=Paul" ).content().stringValues() );
     }
 }

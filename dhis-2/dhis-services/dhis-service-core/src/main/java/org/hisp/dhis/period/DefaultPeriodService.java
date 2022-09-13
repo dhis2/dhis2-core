@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.period;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 import java.util.ArrayList;
@@ -40,6 +39,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -48,22 +49,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Kristian Nordal
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.period.PeriodService" )
 public class DefaultPeriodService
     implements PeriodService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private PeriodStore periodStore;
-
-    public DefaultPeriodService( PeriodStore periodStore )
-    {
-        checkNotNull( periodStore );
-
-        this.periodStore = periodStore;
-    }
+    private final PeriodStore periodStore;
 
     // -------------------------------------------------------------------------
     // Period
@@ -347,13 +338,6 @@ public class DefaultPeriodService
     public PeriodType getPeriodType( int id )
     {
         return periodStore.getPeriodType( id );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<PeriodType> getAllPeriodTypes()
-    {
-        return PeriodType.getAvailablePeriodTypes();
     }
 
     @Override

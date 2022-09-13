@@ -56,6 +56,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -119,7 +120,7 @@ public class UserSettingController
         return result;
     }
 
-    @GetMapping( value = "/{key}", produces = "text/plain" )
+    @GetMapping( value = "/{key}" )
     public String getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
@@ -135,6 +136,7 @@ public class UserSettingController
             .get( key );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        response.setHeader( HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT );
         return String.valueOf( value );
     }
 

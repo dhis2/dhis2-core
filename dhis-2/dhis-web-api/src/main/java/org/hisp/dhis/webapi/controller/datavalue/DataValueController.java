@@ -299,8 +299,8 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, dataValue.isForce() ) )
         {
-            dataValidator.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
-                attributeOptionCombo );
+            dataValidator.validateDataSetNotLocked(
+                dataElement, period, dataSet, organisationUnit, attributeOptionCombo, currentUser );
         }
 
         // ---------------------------------------------------------------------
@@ -317,8 +317,8 @@ public class DataValueController
 
         Date now = new Date();
 
-        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit,
-            categoryOptionCombo, attributeOptionCombo );
+        DataValue persistedDataValue = dataValueService.getDataValue(
+            dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
 
         FileResource fileResource = null;
 
@@ -470,8 +470,8 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, force ) )
         {
-            dataValidator.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
-                attributeOptionCombo );
+            dataValidator.validateDataSetNotLocked(
+                dataElement, period, dataSet, organisationUnit, attributeOptionCombo, currentUser );
         }
 
         // ---------------------------------------------------------------------

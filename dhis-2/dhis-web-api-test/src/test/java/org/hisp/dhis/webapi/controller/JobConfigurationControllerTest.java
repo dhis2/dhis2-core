@@ -33,10 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.List;
 
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -71,8 +69,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
         JsonObject parameters = assertJobConfigurationExists( jobId, "CONTINUOUS_ANALYTICS_TABLE" );
         assertEquals( 1, parameters.getNumber( "fullUpdateHourOfDay" ).intValue() );
         assertEquals( 2, parameters.getNumber( "lastYears" ).intValue() );
-        assertContainsOnly( parameters.getArray( "skipTableTypes" ).stringValues(), "ENROLLMENT", "VALIDATION_RESULT",
-            "DATA_VALUE", "COMPLETENESS", "EVENT", "ORG_UNIT_TARGET", "COMPLETENESS_TARGET" );
+        assertContainsOnly( List.of( "ENROLLMENT", "VALIDATION_RESULT",
+            "DATA_VALUE", "COMPLETENESS", "EVENT", "ORG_UNIT_TARGET", "COMPLETENESS_TARGET" ),
+            parameters.getArray( "skipTableTypes" ).stringValues() );
     }
 
     @Test
@@ -112,9 +111,9 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
         JsonObject parameters = assertJobConfigurationExists( jobId, "ANALYTICS_TABLE" );
         assertEquals( 1, parameters.getNumber( "lastYears" ).intValue() );
         assertTrue( parameters.getBoolean( "skipResourceTables" ).booleanValue() );
-        assertContainsOnly( parameters.getArray( "skipTableTypes" ).stringValues(), "DATA_VALUE", "COMPLETENESS",
-            "ENROLLMENT" );
-        assertContainsOnly( parameters.getArray( "skipPrograms" ).stringValues(), UID1, UID2 );
+        assertContainsOnly( List.of( "DATA_VALUE", "COMPLETENESS",
+            "ENROLLMENT" ), parameters.getArray( "skipTableTypes" ).stringValues() );
+        assertContainsOnly( List.of( UID1, UID2 ), parameters.getArray( "skipPrograms" ).stringValues() );
     }
 
     @Test
@@ -152,9 +151,14 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
                 {
                     if ( param.getString( "name" ).string().equals( "skipTableTypes" ) )
                     {
-                        assertEquals( Arrays.stream( AnalyticsTableType.values() )
-                            .map( Enum::name )
-                            .collect( Collectors.toList() ), param.getArray( "constants" ).stringValues() );
+                        assertEquals( List.of( "DATA_VALUE",
+                            "COMPLETENESS",
+                            "COMPLETENESS_TARGET",
+                            "ORG_UNIT_TARGET",
+                            "EVENT",
+                            "ENROLLMENT",
+                            "OWNERSHIP",
+                            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
                     }
                 }
             }
@@ -166,9 +170,14 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject types = GET( "/jobConfigurations/jobTypesExtended" ).content();
         JsonObject param = types.getObject( "ANALYTICS_TABLE" ).getObject( "skipTableTypes" );
-        assertEquals( Arrays.stream( AnalyticsTableType.values() )
-            .map( Enum::name )
-            .collect( Collectors.toList() ), param.getArray( "constants" ).stringValues() );
+        assertEquals( List.of( "DATA_VALUE",
+            "COMPLETENESS",
+            "COMPLETENESS_TARGET",
+            "ORG_UNIT_TARGET",
+            "EVENT",
+            "ENROLLMENT",
+            "OWNERSHIP",
+            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )

@@ -480,15 +480,10 @@ public abstract class AbstractAnalyticsService
 
             if ( item.hasOptionSet() )
             {
-                // If itemOptions.get( item.getItem().getUid() ) returns null,
-                // getDimensionItemUidList
-                // returns Lists.newArrayList() which is
-                // equal to no option set and no legend set.
-                // This should be ok, query item can't have both legends and
-                // options
-                // E7215( "Query item cannot specify both legend set and option
-                // set:
-                // `{0}`" )
+                // The call itemOptions.get( item.getItem().getUid() ) can
+                // return null.
+                // This should be ok, the query item can't have both legends and
+                // options.
                 dimensionItems.put( itemUid,
                     getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
             }
@@ -522,12 +517,13 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Return list of dimension item identifiers.
+     * Return a list of dimension item uids. If itemOptions is null, it returns
+     * an empty List, which means no options set and no legend set.
      *
-     * @param params the {@link EventQueryParams}.
-     * @param item the {@link QueryItem}.
-     * @param itemOptions the list of item {@link Option}.
-     * @return a list of identifiers.
+     * @param params EventQueryParams.
+     * @param item QueryItem
+     * @param itemOptions itemOtion list.
+     * @return a list of uids.
      */
     private List<String> getDimensionItemUidList( EventQueryParams params, QueryItem item, List<Option> itemOptions )
     {

@@ -33,6 +33,8 @@ import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdScheme
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Set;
+
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.jupiter.api.Test;
@@ -58,8 +60,8 @@ class RelationshipMapperTest
         assertEquals( "WTTYiPQDqh1", mapped.getRelationshipType().getUid() );
         assertEquals( "friendship", mapped.getRelationshipType().getName() );
         assertEquals( "red", mapped.getRelationshipType().getCode() );
-        assertContainsOnly( mapped.getRelationshipType().getAttributeValues(),
-            attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
+            mapped.getRelationshipType().getAttributeValues() );
     }
 
 }

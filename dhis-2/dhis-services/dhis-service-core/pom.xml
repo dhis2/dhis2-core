@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.39-SNAPSHOT</version>
+    <version>2.40-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -340,6 +340,14 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.zxing</groupId>
+      <artifactId>javase</artifactId>
     </dependency>
 
     <!-- Test -->

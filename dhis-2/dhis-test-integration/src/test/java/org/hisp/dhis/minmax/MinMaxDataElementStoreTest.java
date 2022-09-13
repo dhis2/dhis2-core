@@ -142,7 +142,7 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase
 
         List<MinMaxDataElement> values = minMaxDataElementStore.get( ouA, List.of( deA, deB ) );
 
-        assertContainsOnly( values, valueA, valueB );
+        assertContainsOnly( List.of( valueA, valueB ), values );
     }
 
     @Test

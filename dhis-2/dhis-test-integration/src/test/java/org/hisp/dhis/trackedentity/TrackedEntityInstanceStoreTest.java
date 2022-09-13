@@ -61,8 +61,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -398,9 +396,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        OrderParam orderParam = OrderParam.builder().field( TrackedEntityInstanceQueryParams.CREATED_ID )
-            .direction( SortDirection.ASC ).build();
-        params.setOrders( Lists.newArrayList( orderParam ) );
+        params.setOrders(
+            List.of( new OrderParam( TrackedEntityInstanceQueryParams.CREATED_ID, SortDirection.ASC ) ) );
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 2, teis.size() );
         assertEquals( teiA.getUid(), teis.get( 0 ).getUid() );

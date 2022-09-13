@@ -141,6 +141,14 @@ public class EventSearchParams
 
     private Date dueDateEnd;
 
+    private Date enrollmentEnrolledBefore;
+
+    private Date enrollmentEnrolledAfter;
+
+    private Date enrollmentOccurredBefore;
+
+    private Date enrollmentOccurredAfter;
+
     private CategoryOptionCombo categoryOptionCombo;
 
     private IdSchemes idSchemes = new IdSchemes();
@@ -159,6 +167,8 @@ public class EventSearchParams
 
     private List<OrderParam> gridOrders;
 
+    private List<OrderParam> attributeOrders;
+
     private boolean includeAttributes;
 
     private boolean includeAllDataElements;
@@ -171,6 +181,8 @@ public class EventSearchParams
      * Filters for the response.
      */
     private List<QueryItem> filters = new ArrayList<>();
+
+    private List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -513,6 +525,50 @@ public class EventSearchParams
         return this;
     }
 
+    public Date getEnrollmentEnrolledBefore()
+    {
+        return enrollmentEnrolledBefore;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledBefore( Date enrollmentEnrolledBefore )
+    {
+        this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
+        return this;
+    }
+
+    public Date getEnrollmentEnrolledAfter()
+    {
+        return enrollmentEnrolledAfter;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledAfter( Date enrollmentEnrolledAfter )
+    {
+        this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredBefore()
+    {
+        return enrollmentOccurredBefore;
+    }
+
+    public EventSearchParams setEnrollmentOccurredBefore( Date enrollmentOccurredBefore )
+    {
+        this.enrollmentOccurredBefore = enrollmentOccurredBefore;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredAfter()
+    {
+        return enrollmentOccurredAfter;
+    }
+
+    public EventSearchParams setEnrollmentOccurredAfter( Date enrollmentOccurredAfter )
+    {
+        this.enrollmentOccurredAfter = enrollmentOccurredAfter;
+        return this;
+    }
+
     public IdSchemes getIdSchemes()
     {
         return idSchemes;
@@ -612,6 +668,17 @@ public class EventSearchParams
         return this;
     }
 
+    public List<OrderParam> getAttributeOrders()
+    {
+        return this.attributeOrders;
+    }
+
+    public EventSearchParams setAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders = attributeOrders;
+        return this;
+    }
+
     public CategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
@@ -653,6 +720,17 @@ public class EventSearchParams
     public EventSearchParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
+        return this;
+    }
+
+    public List<QueryItem> getFilterAttributes()
+    {
+        return filterAttributes;
+    }
+
+    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    {
+        this.filterAttributes = filters;
         return this;
     }
 

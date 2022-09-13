@@ -27,13 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiConsumer;
+
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,13 +56,21 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
 
     private String roleId;
 
+    private User john;
+
+    private User paul;
+
+    private User george;
+
+    private User ringo;
+
     @BeforeEach
     void setUp()
     {
-        User john = switchToNewUser( "John" );
-        User paul = switchToNewUser( "Paul" );
-        User george = switchToNewUser( "George" );
-        User ringo = switchToNewUser( "Ringo" );
+        john = switchToNewUser( "John" );
+        paul = switchToNewUser( "Paul" );
+        george = switchToNewUser( "George" );
+        ringo = switchToNewUser( "Ringo" );
         switchToSuperuser();
         roleId = assertStatus( HttpStatus.CREATED, POST( "/userRoles", "{'name':'common'}" ) );
         assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + john.getUid() ) );
@@ -79,5 +94,47 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
         assertEquals( 1, matches.size() );
         JsonUser user = matches.get( 0, JsonUser.class );
         assertEquals( "FirstNameJohn", user.getFirstName() );
+    }
+
+    @Test
+    void testLookUpUsers_captureUnitsOnly()
+    {
+        // setup
+        String ouA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'testA', 'shortName':'TA', 'openingDate':'2021-01-01'}" ) );
+        String ouB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'testB', 'shortName':'TB', 'openingDate':'2021-01-01'}" ) );
+
+        BiConsumer<String, String> addUserToOrgUnit = ( user, orgUnit ) -> assertEquals( HttpStatus.OK,
+            PATCH( "/users/" + user + "?importReportMode=ERRORS", "["
+                + "{'op': 'add', 'path': '/organisationUnits', 'value': [{'id':'" + orgUnit + "'}]}"
+                + "]" ).status() );
+
+        addUserToOrgUnit.accept( john.getUid(), ouA );
+        addUserToOrgUnit.accept( paul.getUid(), ouA );
+        addUserToOrgUnit.accept( george.getUid(), ouB );
+        addUserToOrgUnit.accept( ringo.getUid(), ouB );
+
+        // verify setup
+        assertEquals( List.of( ouA ), GET( "/users/" + paul.getUid() ).content()
+            .as( JsonUser.class ).getOrganisationUnits().toList( JsonIdentifiableObject::getId ) );
+
+        // test
+        switchContextToUser( john );
+        JsonList<JsonUser> matches = GET( "/userLookup?query=FirstName&orgUnitBoundary=DATA_CAPTURE" ).content()
+            .getArray( "users" ).asList( JsonUser.class );
+        // all 4 users have "FirstName" in their first name but john can see
+        // paul and himself
+        assertEquals( 2, matches.size() );
+        assertEquals( Set.of( "John", "Paul" ), matches.stream().map( JsonUser::getUsername ).collect( toSet() ) );
+
+        // similar
+        switchContextToUser( george );
+        matches = GET( "/userLookup?query=FirstName&orgUnitBoundary=DATA_CAPTURE" ).content()
+            .getArray( "users" ).asList( JsonUser.class );
+        // all 4 users have "FirstName" in their first name but george can see
+        // ringo and himself
+        assertEquals( 2, matches.size() );
+        assertEquals( Set.of( "George", "Ringo" ), matches.stream().map( JsonUser::getUsername ).collect( toSet() ) );
     }
 }

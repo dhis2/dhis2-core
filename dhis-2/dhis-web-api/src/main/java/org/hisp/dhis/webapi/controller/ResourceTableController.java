@@ -122,6 +122,11 @@ public class ResourceTableController
             skipTableTypes.add( TRACKED_ENTITY_INSTANCE_ENROLLMENTS );
         }
 
+        if ( skipEvents && skipEnrollment )
+        {
+            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
+        }
+
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
             skipPrograms, skipResourceTables );
 
