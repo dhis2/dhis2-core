@@ -53,11 +53,6 @@ public class SixMonthlyPeriodType
 
     private static final int BASE_MONTH = DateTimeConstants.JANUARY;
 
-    /**
-     * The name of the SixMonthlyPeriodType, which is "SixMonthly".
-     */
-    public static final String NAME = "SixMonthly";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------

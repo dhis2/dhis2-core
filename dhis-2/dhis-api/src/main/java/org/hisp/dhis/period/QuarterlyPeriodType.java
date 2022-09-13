@@ -56,11 +56,6 @@ public class QuarterlyPeriodType
 
     private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
 
-    /**
-     * The name of the QuarterlyPeriodType, which is "Quarterly".
-     */
-    public static final String NAME = "Quarterly";
-
     public static final int FREQUENCY_ORDER = 91;
 
     public static final String SQL_INTERVAL = "3 months";

@@ -45,7 +45,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.CalendarPeriodType;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -493,7 +492,7 @@ public class DefaultPdfDataEntryFormService
     private List<Period> getProgramStagePeriodList()
         throws ParseException
     {
-        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        PeriodType periodType = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
 
         Period period = setPeriodDateRange( periodType );
 
