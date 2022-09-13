@@ -847,22 +847,6 @@ public class DataQueryParams
     }
 
     /**
-     * Returns the first period specified as filter, or null if there is no
-     * period filter.
-     */
-    // public Period getFilterPeriod()
-    // {
-    // List<DimensionalItemObject> filterPeriods = getFilterPeriods();
-    //
-    // if ( !filterPeriods.isEmpty() )
-    // {
-    // return (Period) filterPeriods.get( 0 );
-    // }
-    //
-    // return null;
-    // }
-
-    /**
      * Returns the filter periods as period objects.
      */
     public List<Period> getTypedFilterPeriods()
