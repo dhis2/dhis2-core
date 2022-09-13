@@ -30,7 +30,6 @@ package org.hisp.dhis.period;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Getter
 @RequiredArgsConstructor
 public enum PeriodTypeEnum
 {
@@ -54,5 +53,6 @@ public enum PeriodTypeEnum
     WEEKLY_WEDNESDAY( "WeeklyWednesday" ),
     YEARLY( "Yearly" );
 
+    @Getter
     private final String name;
 }
