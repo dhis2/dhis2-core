@@ -78,12 +78,12 @@ public final class Assertions
         for ( Map.Entry<K, V> e : expected.entrySet() )
         {
             assertEquals( e.getValue(), actual.get( e.getKey() ),
-                String.format( "Expected value not found in %s", actual.toString() ) );
+                String.format( "Expected value not found in %s", actual ) );
         }
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
             assertEquals( e.getValue(), expected.get( e.getKey() ),
-                String.format( "Did not expect value in %s", actual.toString() ) );
+                String.format( "Did not expect value in %s", actual ) );
         }
     }
 
@@ -129,5 +129,64 @@ public final class Assertions
             .format( "expected string to start with '%s', got null instead", expected ) );
         assertTrue( actual.startsWith( expected ), () -> String
             .format( "expected string to start with '%s', got '%s' instead", expected, actual ) );
+    }
+
+    /**
+     * Asserts that the given character sequence is contained within the actual
+     * string.
+     *
+     * @param expected expected character sequence to be contained within the
+     *        actual string
+     * @param actual actual string which should contain the expected character
+     *        sequence
+     */
+    public static void assertContains( CharSequence expected, String actual )
+    {
+        assertNotNull( actual, () -> String
+            .format( "expected actual to contain '%s', got null instead", expected ) );
+        assertTrue( actual.contains( expected ), () -> String
+            .format( "expected actual to contain '%s', got '%s' instead", expected, actual ) );
+    }
+
+    /**
+     * Asserts that the given value is within the range of lower and upper bound
+     * (inclusive i.e. [lower, upper]).
+     *
+     * @param lower lower bound
+     * @param upper upper bound
+     * @param actual actual value to be checked
+     */
+    public static void assertWithinRange( long lower, long upper, long actual )
+    {
+        assertTrue( lower < upper,
+            () -> String.format( "lower bound %d must be < than the upper bound %d", lower, upper ) );
+
+        assertAll(
+            () -> assertGreaterOrEqual( lower, actual ),
+            () -> assertLessOrEqual( upper, actual ) );
+    }
+
+    /**
+     * Asserts that the given value is greater or equal than lower bound.
+     *
+     * @param lower lower bound
+     * @param actual actual value to be checked
+     */
+    public static void assertGreaterOrEqual( long lower, long actual )
+    {
+        assertTrue( actual >= lower,
+            () -> String.format( "Expected actual %d to be >= than lower bound %d", actual, lower ) );
+    }
+
+    /**
+     * Asserts that the given value is less or equal than upper bound.
+     *
+     * @param upper upper bound
+     * @param actual actual value to be checked
+     */
+    public static void assertLessOrEqual( long upper, long actual )
+    {
+        assertTrue( actual <= upper,
+            () -> String.format( "Expected actual %d to be <= than upper bound %d", actual, upper ) );
     }
 }
