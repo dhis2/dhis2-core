@@ -194,6 +194,51 @@ class EventQueryParamsTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
         assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
+        assertEquals( params.getDateRangeList().size(), 3 );
+    }
+
+    @Test
+    void testContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( params.getDateRangeList().size(), 3 );
+        assertEquals( params.getDateRangeList().get( 0 ).getStartDate(), peA.getStartDate() );
+        assertEquals( params.getDateRangeList().get( 0 ).getEndDate(), peA.getEndDate() );
+        assertEquals( params.getDateRangeList().get( 1 ).getStartDate(), peB.getStartDate() );
+        assertEquals( params.getDateRangeList().get( 1 ).getEndDate(), peB.getEndDate() );
+        assertEquals( params.getDateRangeList().get( 2 ).getStartDate(), peC.getStartDate() );
+        assertEquals( params.getDateRangeList().get( 2 ).getEndDate(), peC.getEndDate() );
+        assertTrue( params.hasContinuousDateRangeList() );
+    }
+
+    @Test
+    void testNonContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( params.getDateRangeList().size(), 2 );
+        assertEquals( params.getDateRangeList().get( 0 ).getStartDate(), peA.getStartDate() );
+        assertEquals( params.getDateRangeList().get( 0 ).getEndDate(), peA.getEndDate() );
+        assertEquals( params.getDateRangeList().get( 1 ).getStartDate(), peC.getStartDate() );
+        assertEquals( params.getDateRangeList().get( 1 ).getEndDate(), peC.getEndDate() );
+        assertFalse( params.hasContinuousDateRangeList() );
     }
 
     @Test

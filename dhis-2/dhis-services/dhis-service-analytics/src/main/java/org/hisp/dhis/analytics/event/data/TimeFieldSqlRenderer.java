@@ -59,7 +59,7 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
         // When multiple periods are set
-        // and date range list is no continuos
+        // and date range list is no continuous
         else if ( !params.hasContinuousDateRangeList() )
         {
             sql.append( getSqlConditionHasDateRangeList( params ) );

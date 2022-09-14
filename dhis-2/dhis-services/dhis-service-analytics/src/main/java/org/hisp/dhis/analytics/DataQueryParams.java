@@ -1465,7 +1465,7 @@ public class DataQueryParams
             return true;
         }
 
-        for ( int i = dateRangeList.size() - 1; i >= 0; i-- )
+        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
         {
             boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
                 dateRangeList.get( i ).getStartDate() ) > 1;
