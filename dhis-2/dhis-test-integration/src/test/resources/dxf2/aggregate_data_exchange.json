@@ -52,6 +52,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": null,
+            "outputDataElementIdScheme": null,
+            "outputOrgUnitIdScheme": null,
             "outputIdscheme": null
           }
         ]
@@ -89,6 +91,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
@@ -131,6 +135,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
