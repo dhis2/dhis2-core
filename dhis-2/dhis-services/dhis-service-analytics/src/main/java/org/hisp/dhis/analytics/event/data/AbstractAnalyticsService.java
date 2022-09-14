@@ -493,6 +493,10 @@ public abstract class AbstractAnalyticsService
 
             if ( item.hasOptionSet() )
             {
+                // The call itemOptions.get( item.getItem().getUid() ) can
+                // return null.
+                // This should be ok, the query item can't have both legends and
+                // options.
                 dimensionItems.put( itemUid,
                     getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
             }
@@ -526,7 +530,8 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Return list of dimension item uids
+     * Return a list of dimension item uids. If itemOptions is null, it returns
+     * an empty List, which means no options set and no legend set.
      *
      * @param params EventQueryParams.
      * @param item QueryItem
@@ -539,12 +544,14 @@ public abstract class AbstractAnalyticsService
         {
             return item.getOptionSetFilterItemsOrAll();
         }
-        else
+        else if ( itemOptions != null )
         {
             return itemOptions.stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( toList() );
         }
+
+        return Lists.newArrayList();
     }
 
     /**

@@ -238,6 +238,24 @@ public class TextUtils
     }
 
     /**
+     * Removes the last occurrence of comma (",") from the given StringBuilder,
+     * including any character after the comma. It changes the object by
+     * reference, and returns the same object for convenience.
+     *
+     * @param stringBuilder the StringBuilder.
+     * @return the chopped StringBuilder.
+     */
+    public static StringBuilder removeLastComma( StringBuilder stringBuilder )
+    {
+        if ( stringBuilder != null && stringBuilder.length() > 0 )
+        {
+            stringBuilder.delete( stringBuilder.lastIndexOf( "," ), stringBuilder.length() );
+        }
+
+        return stringBuilder;
+    }
+
+    /**
      * Removes the last occurrence of the the given string, including potential
      * trailing spaces.
      *

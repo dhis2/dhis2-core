@@ -222,32 +222,25 @@ public class JdbcAnalyticsTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return partition.isLatestPartition() ? newArrayList()
-            : newArrayList(
-                "year = " + partition.getYear() + "",
+            : newArrayList( "year = " + partition.getYear() + "",
                 "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-        final boolean skipDataTypeValidation = systemSettingManager
+        String dbl = statementBuilder.getDoubleColumnType();
+        boolean skipDataTypeValidation = systemSettingManager
             .getBoolSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
-        final boolean includeZeroValues = systemSettingManager
+        boolean includeZeroValues = systemSettingManager
             .getBoolSetting( SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS );
 
-        final String numericClause = skipDataTypeValidation ? ""
+        String numericClause = skipDataTypeValidation ? ""
             : ("and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
-        final String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
-        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + "','"
+        String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
+        String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + "','"
             + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
-        final String intClause = zeroValueClause + numericClause;
+        String intClause = zeroValueClause + numericClause;
 
         populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause );
         populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ),
@@ -268,12 +261,12 @@ public class JdbcAnalyticsTableManager
     private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
         String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause )
     {
-        final String tableName = partition.getTempTableName();
-        final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
-        final boolean respectStartEndDates = systemSettingManager
+        String tableName = partition.getTempTableName();
+        String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
+        boolean respectStartEndDates = systemSettingManager
             .getBoolSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
-        final String approvalClause = getApprovalJoinClause( partition.getYear() );
-        final String partitionClause = partition.isLatestPartition()
+        String approvalClause = getApprovalJoinClause( partition.getYear() );
+        String partitionClause = partition.isLatestPartition()
             ? "and dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
@@ -521,7 +514,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public void vacuumTables( AnalyticsTablePartition partition )
     {
-        final String sql = statementBuilder.getVacuum( partition.getTempTableName() );
+        String sql = statementBuilder.getVacuum( partition.getTempTableName() );
 
         log.debug( "Vacuum SQL: " + sql );
 
