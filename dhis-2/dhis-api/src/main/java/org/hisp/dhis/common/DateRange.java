@@ -58,5 +58,4 @@ public class DateRange
     {
         return String.format( "%s-%s", startDate, endDate );
     }
-
 }

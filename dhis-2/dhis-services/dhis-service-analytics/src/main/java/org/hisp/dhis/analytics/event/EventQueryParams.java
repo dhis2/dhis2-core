@@ -527,7 +527,7 @@ public class EventQueryParams
                 }
             }
         }
-        // sorting the date range list
+        // Sorting the date range list
         dateRangeList.sort( Comparator.comparing( DateRange::getStartDate ) );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );

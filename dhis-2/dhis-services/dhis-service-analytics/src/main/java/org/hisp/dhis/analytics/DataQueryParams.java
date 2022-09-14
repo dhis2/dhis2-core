@@ -1445,17 +1445,16 @@ public class DataQueryParams
      */
     public boolean hasDateRangeList()
     {
-        return dateRangeList != null && dateRangeList.size() > 0;
+        return dateRangeList != null && !dateRangeList.isEmpty();
     }
 
     /**
-     * Indicates whether this query has a continuous or EMPTY dateRangeList.
+     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
+     * assumes that the dateRangeList is sorted. It should happen in the
+     * EventQueryParam::replacePeriodsWithDates method.
      */
     public boolean hasContinuousDateRangeList()
     {
-        // range date should be sorted in
-        // EventQueryParam::replacePeriodsWithDates method
-
         if ( !hasDateRangeList() )
         {
             return true;
@@ -1468,9 +1467,10 @@ public class DataQueryParams
 
         for ( int i = dateRangeList.size() - 1; i >= 0; i-- )
         {
-            if ( i > 0 &&
-                DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
-                    dateRangeList.get( i ).getStartDate() ) > 1 )
+            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
+                dateRangeList.get( i ).getStartDate() ) > 1;
+
+            if ( diffAboveOneDay )
             {
                 return false;
             }
