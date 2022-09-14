@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -438,18 +439,18 @@ public abstract class DhisConvenienceTest
         SourceRequest sourceRequest = new SourceRequest()
             .setName( "RequestA" )
             .setVisualization( "JHKuBWP20RO" )
-            .setDx( Lists.newArrayList( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
-            .setPe( Lists.newArrayList( "202201", "202202" ) )
-            .setOu( Lists.newArrayList( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
-            .setFilters( Lists.newArrayList(
-                new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
-                new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) )
+            .setDx( newArrayList( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
+            .setPe( newArrayList( "202201", "202202" ) )
+            .setOu( newArrayList( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
+            .setFilters( newArrayList(
+                new Filter().setDimension( "MuTwGW0BI4o" ).setItems( newArrayList( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+                new Filter().setDimension( "dAOgE7mgysJ" ).setItems( newArrayList( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) )
             .setInputIdScheme( IdScheme.UID.name() )
             .setOutputIdScheme( IdScheme.UID.name() );
 
         Source source = new Source()
             .setParams( sourceParams )
-            .setRequests( Lists.newArrayList( sourceRequest ) );
+            .setRequests( newArrayList( sourceRequest ) );
 
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
