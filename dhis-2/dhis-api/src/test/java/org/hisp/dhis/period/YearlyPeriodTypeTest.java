@@ -56,6 +56,13 @@ class YearlyPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.YEARLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.YEARLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );

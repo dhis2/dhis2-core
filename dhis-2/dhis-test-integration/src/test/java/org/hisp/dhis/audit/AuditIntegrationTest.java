@@ -44,10 +44,10 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -239,7 +239,7 @@ class AuditIntegrationTest extends IntegrationTestBase
         throws JsonProcessingException
     {
         DataElement dataElement = createDataElement( 'A' );
-        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        PeriodType periodType = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
         DataSet dataSet = createDataSet( 'A' );
         dataSet.setPeriodType( periodType );
         Period period = createPeriod( periodType, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
