@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,24 +35,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.period.PeriodTypeEnum;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class Source
-    implements Serializable
+public class SourceParams
 {
     /**
-     * Source parameter constraints.
+     * Allowed period types for period parameters.
      */
     @JsonProperty
-    private SourceParams params;
-
-    /**
-     * Source requests.
-     */
-    @JsonProperty
-    private List<SourceRequest> requests = new ArrayList<>();
+    private List<PeriodTypeEnum> periodTypes = new ArrayList<>();
 }
