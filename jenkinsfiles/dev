@@ -11,7 +11,7 @@ pipeline {
     }
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '5'))
+        buildDiscarder(logRotator(daysToKeepStr: '5'))
         timeout(time: 30)
     }
 
@@ -88,6 +88,10 @@ pipeline {
     }
 
     post {
+        always {
+            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+        }
+
         failure {
             script {
                 slack.sendFailureMessage()
