@@ -46,7 +46,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Dusan Bernat
  */
-public class TimeFieldSqlRendererTest extends DhisConvenienceTest
+class TimeFieldSqlRendererTest extends DhisConvenienceTest
 {
     private Period peA;
 
