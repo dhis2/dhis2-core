@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @Accessors( chain = true )
 public class SourceParams
+    implements Serializable
 {
     /**
      * Allowed period types for period parameters.
