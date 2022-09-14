@@ -60,7 +60,7 @@ public class VisualizationController
 
     private final I18nManager i18nManager;
 
-    public VisualizationController( LegendSetService legendSetService, final DimensionService dimensionService,
+    public VisualizationController( final LegendSetService legendSetService, final DimensionService dimensionService,
         final I18nManager i18nManager )
     {
         this.legendSetService = legendSetService;
@@ -69,17 +69,17 @@ public class VisualizationController
     }
 
     @Override
-    protected Visualization deserializeJsonEntity( final HttpServletRequest request )
+    protected Visualization deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        final Visualization visualization = super.deserializeJsonEntity( request );
+        Visualization visualization = super.deserializeJsonEntity( request );
 
         addDimensionsInto( visualization );
 
         return visualization;
     }
 
-    private void addDimensionsInto( final Visualization visualization )
+    private void addDimensionsInto( Visualization visualization )
     {
         if ( visualization != null )
         {
@@ -103,7 +103,7 @@ public class VisualizationController
      *
      * @param visualization
      */
-    private void maybeLoadLegendSetInto( final Visualization visualization )
+    private void maybeLoadLegendSetInto( Visualization visualization )
     {
         if ( visualization.getLegendDefinitions() != null
             && visualization.getLegendDefinitions().getLegendSet() != null )
@@ -114,14 +114,14 @@ public class VisualizationController
     }
 
     @Override
-    public void postProcessResponseEntity( final Visualization visualization, final WebOptions options,
-        final Map<String, String> parameters )
+    public void postProcessResponseEntity( Visualization visualization, WebOptions options,
+        Map<String, String> parameters )
     {
         if ( visualization != null )
         {
             visualization.populateAnalyticalProperties();
 
-            final Set<OrganisationUnit> organisationUnits = currentUserService.getCurrentUser()
+            Set<OrganisationUnit> organisationUnits = currentUserService.getCurrentUser()
                 .getDataViewOrganisationUnitsWithFallback();
 
             for ( OrganisationUnit organisationUnit : visualization.getOrganisationUnits() )
@@ -130,7 +130,7 @@ public class VisualizationController
                     organisationUnit.getParentGraph( organisationUnits ) );
             }
 
-            final I18nFormat i18nFormat = i18nManager.getI18nFormat();
+            I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
             if ( isNotEmpty( visualization.getPeriods() ) )
             {

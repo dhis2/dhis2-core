@@ -74,7 +74,7 @@ public class DefaultEventQueryPlanner
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        final List<EventQueryParams> queries = Lists.newArrayList( params );
+        List<EventQueryParams> queries = Lists.newArrayList( params );
 
         List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add( q -> groupByQueryItems( q ) )
@@ -156,7 +156,7 @@ public class DefaultEventQueryPlanner
      */
     private List<EventQueryParams> withTableNameAndPartitions( List<EventQueryParams> queries )
     {
-        final List<EventQueryParams> list = new ArrayList<>();
+        List<EventQueryParams> list = new ArrayList<>();
         queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
         return list;
     }

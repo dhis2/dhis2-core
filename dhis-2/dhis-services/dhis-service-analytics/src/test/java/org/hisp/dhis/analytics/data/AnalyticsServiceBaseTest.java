@@ -69,7 +69,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith( { MockitoExtension.class } )
 abstract class AnalyticsServiceBaseTest
 {
-
     @Mock
     protected AnalyticsManager analyticsManager;
 

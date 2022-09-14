@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsSqlUtilsTest
 {
-
     @Test
     void testGetClosingParentheses()
     {

@@ -90,7 +90,7 @@ public class DefaultAnalyticsService
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
-            final DataQueryParams immutableParams = newBuilder( params ).build();
+            DataQueryParams immutableParams = newBuilder( params ).build();
 
             return analyticsCache.getOrFetch( params,
                 p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
@@ -216,7 +216,7 @@ public class DefaultAnalyticsService
         queryValidator.validateTableLayout( params, columns, rows );
         queryValidator.validate( params );
 
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
 
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();

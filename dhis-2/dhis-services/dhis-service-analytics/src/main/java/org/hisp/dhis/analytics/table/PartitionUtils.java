@@ -103,7 +103,7 @@ public class PartitionUtils
      */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
     {
-        final Set<Integer> years = new HashSet<>();
+        Set<Integer> years = new HashSet<>();
 
         periods.forEach( p -> {
             Period period = (Period) p;
@@ -213,7 +213,7 @@ public class PartitionUtils
      */
     public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
     {
-        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        List<AnalyticsTablePartition> partitions = Lists.newArrayList();
 
         for ( AnalyticsTable table : tables )
         {
