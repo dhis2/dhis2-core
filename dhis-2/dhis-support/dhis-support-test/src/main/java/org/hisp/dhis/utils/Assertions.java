@@ -111,7 +111,7 @@ public final class Assertions
      *
      * @param actual the collection.
      */
-    public static <E> void assertIsEmpty( Collection<?> actual )
+    public static void assertIsEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
         assertTrue( actual.isEmpty(), actual.toString() );
@@ -122,7 +122,7 @@ public final class Assertions
      *
      * @param actual the collection.
      */
-    public static <E> void assertNotEmpty( Collection<?> actual )
+    public static void assertNotEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
         assertFalse( actual.isEmpty(), actual.toString() );
