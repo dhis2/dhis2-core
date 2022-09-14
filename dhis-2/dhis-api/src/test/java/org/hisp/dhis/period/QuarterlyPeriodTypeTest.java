@@ -56,6 +56,13 @@ class QuarterlyPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.QUARTERLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.QUARTERLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );
