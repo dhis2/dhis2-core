@@ -88,6 +88,18 @@ public class SourceRequest
     private String inputIdScheme;
 
     /**
+     * Output data element identifier scheme.
+     */
+    @JsonProperty
+    private String outputDataElementIdScheme;
+
+    /**
+     * Output org unit identifier scheme.
+     */
+    @JsonProperty
+    private String outputOrgUnitIdScheme;
+
+    /**
      * Output identifier scheme.
      */
     @JsonProperty
