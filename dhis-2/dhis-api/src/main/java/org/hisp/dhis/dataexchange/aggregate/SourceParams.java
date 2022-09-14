@@ -36,72 +36,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.period.PeriodTypeEnum;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Accessors( chain = true )
-public class SourceRequest
+public class SourceParams
     implements Serializable
 {
     /**
-     * Name of source request, max 50 characters.
+     * Allowed period types for period parameters.
      */
     @JsonProperty
-    private String name;
-
-    /**
-     * Optional UID reference to a visualization.
-     */
-    @JsonProperty
-    private String visualization;
-
-    /**
-     * Data dimension item identifiers.
-     */
-    @JsonProperty
-    private List<String> dx = new ArrayList<>();
-
-    /**
-     * ISO period identifiers.
-     */
-    @JsonProperty
-    private List<String> pe = new ArrayList<>();
-
-    /**
-     * Org unit identifiers.
-     */
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
-
-    /**
-     * Request filters.
-     */
-    @JsonProperty
-    private List<Filter> filters = new ArrayList<>();
-
-    /**
-     * Input identifier scheme.
-     */
-    @JsonProperty
-    private String inputIdScheme;
-
-    /**
-     * Output data element identifier scheme.
-     */
-    @JsonProperty
-    private String outputDataElementIdScheme;
-
-    /**
-     * Output org unit identifier scheme.
-     */
-    @JsonProperty
-    private String outputOrgUnitIdScheme;
-
-    /**
-     * Output identifier scheme.
-     */
-    @JsonProperty
-    private String outputIdScheme;
+    private List<PeriodTypeEnum> periodTypes = new ArrayList<>();
 }
