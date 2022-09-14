@@ -75,7 +75,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class JdbcAnalyticsTableManagerTest
 {
-
     @Mock
     private SystemSettingManager systemSettingManager;
 

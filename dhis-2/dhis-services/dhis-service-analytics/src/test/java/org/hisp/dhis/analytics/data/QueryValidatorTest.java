@@ -545,7 +545,7 @@ class QueryValidatorTest
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.
      */
-    private void assertValidatonError( final ErrorCode errorCode, final DataQueryParams params )
+    private void assertValidatonError( ErrorCode errorCode, DataQueryParams params )
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> queryValidator.validate( params ) );
         assertEquals( errorCode, ex.getErrorCode() );
