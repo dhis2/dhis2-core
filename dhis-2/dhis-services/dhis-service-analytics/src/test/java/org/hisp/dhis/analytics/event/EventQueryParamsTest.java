@@ -194,7 +194,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
         assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
-        assertEquals( params.getDateRangeList().size(), 3 );
+        assertEquals( 3, params.getDateRangeList().size() );
     }
 
     @Test
