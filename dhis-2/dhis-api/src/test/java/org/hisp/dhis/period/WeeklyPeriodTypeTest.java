@@ -56,6 +56,13 @@ class WeeklyPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.WEEKLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.WEEKLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         DateTime testDate = new DateTime( 2009, 4, 27, 0, 0 );

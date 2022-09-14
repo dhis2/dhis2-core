@@ -28,13 +28,13 @@
 package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.period.DailyPeriodType.NAME;
 
 import java.util.List;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 
 /**
  * Just a helper class responsible for providing methods that hides specific
@@ -70,7 +70,7 @@ public class ReportRatesHelper
         final Double target, final PeriodType queryPt, final PeriodType dataSetPt,
         final List<DimensionalItemObject> filterPeriods )
     {
-        if ( dataSetPt.equalsName( NAME ) )
+        if ( PeriodTypeEnum.DAILY == dataSetPt.getPeriodTypeEnum() )
         {
             boolean hasPeriodInDimension = periodIndex != -1;
 
