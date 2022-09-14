@@ -25,36 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.period;
 
-import java.util.HashMap;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * A map that, for each compatible input data element category combo (CC) UID,
- * returns the disaggregation map for that category combo.
- *
- * @author Jim Grace
- */
-public class CategoryComboDisaggregationMap
-    extends HashMap<String, DisaggregationMap>
+@RequiredArgsConstructor
+public enum PeriodTypeEnum
 {
-    /**
-     * For a given input category combination UID and input disaggregation
-     * (category option combo) UID, returns the output disaggregation UID.
-     *
-     * @param catCombo input category combination
-     * @param inputDisag input disaggregation (category option combo)
-     * @return output disaggregation (category option combo), or null if none
-     */
-    public String getOutputDisag( String catCombo, String inputDisag )
-    {
-        DisaggregationMap disagMap = get( catCombo );
+    BI_MONTHLY( "BiMonthly" ),
+    BI_WEEKLY( "BiWeekly" ),
+    DAILY( "Daily" ),
+    FINANCIAL_APRIL( "FinancialApril" ),
+    FINANCIAL_JULY( "FinancialJuly" ),
+    FINANCIAL_NOV( "FinancialNov" ),
+    FINANCIAL_OCT( "FinancialOct" ),
+    MONTHLY( "Monthly" ),
+    QUARTERLY( "Quarterly" ),
+    SIX_MONTHLY_APRIL( "SixMonthlyApril" ),
+    SIX_MONTHLY_NOV( "SixMonthlyNov" ),
+    SIX_MONTHLY( "SixMonthly" ),
+    TWO_YEARLY( "TwoYearly" ),
+    WEEKLY( "Weekly" ),
+    WEEKLY_SATURDAY( "WeeklySaturday" ),
+    WEEKLY_SUNDAY( "WeeklySunday" ),
+    WEEKLY_THURSDAY( "WeeklyThursday" ),
+    WEEKLY_WEDNESDAY( "WeeklyWednesday" ),
+    YEARLY( "Yearly" );
 
-        if ( disagMap == null )
-        {
-            return null;
-        }
-
-        return disagMap.get( inputDisag );
-    }
+    @Getter
+    private final String name;
 }

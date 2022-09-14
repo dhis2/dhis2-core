@@ -51,7 +51,6 @@ import org.junit.jupiter.api.Test;
  */
 class DataQueryGroupsTest extends DhisConvenienceTest
 {
-
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------

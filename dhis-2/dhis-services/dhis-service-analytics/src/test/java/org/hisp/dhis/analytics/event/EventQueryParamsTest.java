@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -72,7 +73,6 @@ import com.google.common.collect.Sets;
  */
 class EventQueryParamsTest extends DhisConvenienceTest
 {
-
     private Option opA;
 
     private Option opB;
@@ -250,11 +250,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValid()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).withOrgUnitField( deD.getUid() )
-            .addItem( iA ).build();
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) ).addItem( iA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
-        params = new EventQueryParams.Builder().withProgram( prA ).withOrgUnitField( "someInvalidOrgUnitField" )
-            .addItem( iA ).build();
+        params = new EventQueryParams.Builder().withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( "someInvalidOrgUnitField" ) ).addItem( iA ).build();
         assertFalse( params.orgUnitFieldIsValid() );
     }
 
@@ -263,7 +263,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
@@ -275,7 +276,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
         // this PI has 0 Data Element of type OrgUnit -> test should fail
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).addItemProgramIndicator( programIndicatorB )
             .build();
         assertFalse( params.orgUnitFieldIsValid() );
@@ -288,7 +290,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         // This PI has a Program that has a Tracked Entity Attribute of type Org
         // Unit
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
     }

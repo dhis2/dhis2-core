@@ -25,36 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.calendar;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * A map that, for each input data element disaggregation (category option
- * combo) UID, returns the UID of the corresponding predictor output data
- * element disaggregation (category option combo).
- *
- * @author Jim Grace
- */
-public class DisaggregationMap
-    extends HashMap<String, String>
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.junit.jupiter.api.Test;
+
+class DateUnitTypeTest
 {
-    /**
-     * Constructs an empty DisaggregationMap.
-     */
-    public DisaggregationMap()
+    @Test
+    void testGetName()
     {
-    }
-
-    /**
-     * Constructs a new DisaggregationMap with the same mappings as the
-     * specified Map.
-     *
-     * @param m the map whose mappings are to be placed in this map
-     */
-    public DisaggregationMap( Map<String, String> m )
-    {
-        super( m );
+        assertEquals( PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName() );
+        assertEquals( PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName() );
+        assertEquals( PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName() );
     }
 }

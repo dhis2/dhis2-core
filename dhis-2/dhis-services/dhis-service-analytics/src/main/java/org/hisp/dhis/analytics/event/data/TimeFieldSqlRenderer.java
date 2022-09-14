@@ -47,7 +47,6 @@ import org.hisp.dhis.common.DateRange;
 
 public abstract class TimeFieldSqlRenderer
 {
-
     public String renderTimeFieldSql( EventQueryParams params )
     {
         StringBuilder sql = new StringBuilder();
@@ -57,7 +56,7 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
         // When multiple periods are set
-        else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
+        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
         {
             sql.append( getSqlConditionHasStartEndDate( params ) );
         }

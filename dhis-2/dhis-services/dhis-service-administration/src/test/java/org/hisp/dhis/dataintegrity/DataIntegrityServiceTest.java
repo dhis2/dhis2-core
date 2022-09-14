@@ -369,10 +369,10 @@ class DataIntegrityServiceTest
         assertEquals( 2, result.size() );
         DataIntegrityIssue issue0 = result.get( 0 );
         assertEquals( seed + 1, issue0.getId() );
-        assertContainsOnly( issue0.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
+        assertContainsOnly( List.of( issueName( dataSet1 ), issueName( dataSet2 ) ), issue0.getRefs() );
         DataIntegrityIssue issue1 = result.get( 1 );
         assertEquals( seed + 4, issue1.getId() );
-        assertContainsOnly( issue1.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
+        assertContainsOnly( List.of( issueName( dataSet1 ), issueName( dataSet2 ) ), issue1.getRefs() );
     }
 
     @Test
@@ -416,8 +416,7 @@ class DataIntegrityServiceTest
         List<DataIntegrityIssue> issues = subject.getIndicatorsWithIdenticalFormulas();
 
         assertEquals( 1, issues.size() );
-        assertContainsOnly( issues.get( 0 ).getRefs(),
-            issueName( indicatorB ), issueName( indicatorC ) );
+        assertContainsOnly( List.of( issueName( indicatorB ), issueName( indicatorC ) ), issues.get( 0 ).getRefs() );
     }
 
     @Test
@@ -466,7 +465,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programB ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleB ) );
+        assertContainsOnly( List.of( issueName( programRuleB ) ), issue.getRefs() );
     }
 
     @Test
@@ -485,7 +484,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programA ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleVariableA ) );
+        assertContainsOnly( List.of( issueName( programRuleVariableA ) ), issue.getRefs() );
     }
 
     @Test
@@ -504,7 +503,7 @@ class DataIntegrityServiceTest
         assertEquals( 1, issues.size() );
         DataIntegrityIssue issue = issues.get( 0 );
         assertEquals( issueName( programRuleA ), issue.getName() );
-        assertContainsOnly( issue.getRefs(), issueName( programRuleActionA ) );
+        assertContainsOnly( List.of( issueName( programRuleActionA ) ), issue.getRefs() );
     }
 
     @Test

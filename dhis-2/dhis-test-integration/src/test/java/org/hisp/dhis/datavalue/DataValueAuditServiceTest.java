@@ -29,7 +29,6 @@ package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -154,8 +153,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
-        assertNotNull( audits );
-        assertContainsOnly( audits, dataValueAuditA );
+        assertContainsOnly( List.of( dataValueAuditA ), audits );
     }
 
     @Test
@@ -176,8 +174,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setAttributeOptionCombo( optionCombo );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( params );
-        assertNotNull( audits );
-        assertContainsOnly( audits, dataValueAuditA );
+        assertContainsOnly( List.of( dataValueAuditA ), audits );
     }
 
     @Test
@@ -203,7 +200,7 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setCategoryOptionCombo( optionCombo )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
-        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA );
+        assertContainsOnly( List.of( dvaA ), dataValueAuditService.getDataValueAudits( params ) );
 
         params = new DataValueAuditQueryParams()
             .setDataElements( List.of( dataElementA, dataElementB ) )
@@ -212,17 +209,17 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setCategoryOptionCombo( optionCombo )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
-        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaA, dvaB );
+        assertContainsOnly( List.of( dvaA, dvaB ), dataValueAuditService.getDataValueAudits( params ) );
 
         params = new DataValueAuditQueryParams()
             .setAuditTypes( List.of( AuditType.CREATE ) );
 
-        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC );
+        assertContainsOnly( List.of( dvaC ), dataValueAuditService.getDataValueAudits( params ) );
 
         params = new DataValueAuditQueryParams()
             .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
 
-        assertContainsOnly( dataValueAuditService.getDataValueAudits( params ), dvaC, dvaD );
+        assertContainsOnly( List.of( dvaC, dvaD ), dataValueAuditService.getDataValueAudits( params ) );
     }
 
     @Test

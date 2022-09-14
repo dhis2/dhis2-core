@@ -32,10 +32,10 @@ import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -59,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -110,8 +111,6 @@ public class JdbcEventAnalyticsManager
     implements EventAnalyticsManager
 {
     protected static final String OPEN_IN = " in (";
-
-    private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
@@ -315,7 +314,7 @@ public class JdbcEventAnalyticsManager
         return rectangle;
     }
 
-    private SqlRowSet queryForRows( final String sql )
+    private SqlRowSet queryForRows( String sql )
     {
         try
         {
@@ -392,14 +391,7 @@ public class JdbcEventAnalyticsManager
                 joinCol + " as date) = " + DATE_PERIOD_STRUCT_ALIAS + "." + quote( "dateperiod" ) + " ";
         }
 
-        if ( params.hasOrgUnitField() )
-        {
-            String joinCol = quoteAlias( params.getOrgUnitField() );
-            sql += "left join _orgunitstructure as " + ORG_UNIT_STRUCT_ALIAS + " on " + joinCol +
-                " = " + ORG_UNIT_STRUCT_ALIAS + "." + quote( "organisationunituid" ) + " ";
-        }
-
-        return sql;
+        return sql + joinOrgUnitTables( params, getAnalyticsType() );
     }
 
     /**
@@ -434,25 +426,25 @@ public class JdbcEventAnalyticsManager
         // Organisation units
         // ---------------------------------------------------------------------
 
+        OrgUnitField orgUnitField = params.getOrgUnitField();
+
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
+            String orgUnitCol = orgUnitField.getOrgUnitWhereCol( getAnalyticsType() );
 
             sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
                 getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
+            String orgUnitCol = orgUnitField.getOrgUnitWhereCol( getAnalyticsType() );
 
             sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
                 getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            String orgUnitAlias = getOrgUnitAlias( params );
-
-            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitAlias,
+            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
             if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
@@ -601,13 +593,13 @@ public class JdbcEventAnalyticsManager
      * Generates a sub query which provides a filter by organisation -
      * descendant level
      */
-    private String getOrgDescendantsSqlSnippet( String orgUnitAlias,
+    private String getOrgDescendantsSqlSnippet( OrgUnitField orgUnitField,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
         Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
             .map( object -> (OrganisationUnit) object )
             .collect( Collectors.groupingBy(
-                unit -> quote( orgUnitAlias, ORG_UNIT_UID_LEVEL_COLUMN_PREFIX + unit.getLevel() ) ) );
+                unit -> orgUnitField.getOrgUnitLevelCol( unit.getLevel(), getAnalyticsType() ) ) );
 
         return collect.keySet()
             .stream()
@@ -747,7 +739,7 @@ public class JdbcEventAnalyticsManager
         {
         }
 
-        protected static SqlRowSet handle( final DataIntegrityViolationException ex )
+        protected static SqlRowSet handle( DataIntegrityViolationException ex )
         {
             if ( ex != null && ex.getCause() instanceof PSQLException
                 && DIVISION_BY_ZERO.getState().equals( ((PSQLException) ex.getCause()).getSQLState() ) )

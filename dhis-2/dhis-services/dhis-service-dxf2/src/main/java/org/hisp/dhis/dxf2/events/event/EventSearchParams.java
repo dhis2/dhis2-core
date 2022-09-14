@@ -167,6 +167,8 @@ public class EventSearchParams
 
     private List<OrderParam> gridOrders;
 
+    private List<OrderParam> attributeOrders;
+
     private boolean includeAttributes;
 
     private boolean includeAllDataElements;
@@ -179,6 +181,8 @@ public class EventSearchParams
      * Filters for the response.
      */
     private List<QueryItem> filters = new ArrayList<>();
+
+    private List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -664,6 +668,17 @@ public class EventSearchParams
         return this;
     }
 
+    public List<OrderParam> getAttributeOrders()
+    {
+        return this.attributeOrders;
+    }
+
+    public EventSearchParams setAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders = attributeOrders;
+        return this;
+    }
+
     public CategoryOptionCombo getCategoryOptionCombo()
     {
         return categoryOptionCombo;
@@ -705,6 +720,17 @@ public class EventSearchParams
     public EventSearchParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
+        return this;
+    }
+
+    public List<QueryItem> getFilterAttributes()
+    {
+        return filterAttributes;
+    }
+
+    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    {
+        this.filterAttributes = filters;
         return this;
     }
 

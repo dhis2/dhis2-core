@@ -75,7 +75,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -479,7 +479,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         deA.setUid( "ZE4cgllb2P" );
 
         DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
-            .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
+            .withTableName( "analytics" ).withPeriodType( PeriodTypeEnum.QUARTERLY.getName() )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
             .addDimension(
                 new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
@@ -487,13 +487,13 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
+        EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
             .addAscSortItem( new QueryItem( piA ) )
             .addDescSortItem( new QueryItem( piB ) )
             .addAscSortItem( new QueryItem( deA ) );
 
-        final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
+        String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
         assertThat( sql, containsString(
             "order by \"" + piA.getUid() + "\" asc,\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );

@@ -69,7 +69,7 @@ public class DefaultEventVisualizationService
 
     @Override
     @Transactional
-    public long save( final EventVisualization eventVisualization )
+    public long save( EventVisualization eventVisualization )
     {
         eventVisualizationStore.save( eventVisualization );
         return eventVisualization.getId();
@@ -77,34 +77,34 @@ public class DefaultEventVisualizationService
 
     @Override
     @Transactional
-    public void update( final EventVisualization report )
+    public void update( EventVisualization report )
     {
         eventVisualizationStore.update( report );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public EventVisualization getEventVisualization( final long id )
+    public EventVisualization getEventVisualization( long id )
     {
         return eventVisualizationStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public EventVisualization getEventVisualization( final String uid )
+    public EventVisualization getEventVisualization( String uid )
     {
         return eventVisualizationStore.getByUid( uid );
     }
 
     @Override
     @Transactional
-    public void delete( final EventVisualization eventVisualization )
+    public void delete( EventVisualization eventVisualization )
     {
         eventVisualizationStore.delete( eventVisualization );
     }
 
     @Override
-    public EventVisualization getVisualizationNoAcl( final String uid )
+    public EventVisualization getVisualizationNoAcl( String uid )
     {
         return eventVisualizationStore.getByUidNoAcl( uid );
     }

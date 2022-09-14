@@ -81,6 +81,7 @@ import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -203,7 +204,7 @@ public class DefaultDataQueryService
             .withEndDate( request.getEndDate() )
             .withOrder( request.getOrder() )
             .withTimeField( request.getTimeField() )
-            .withOrgUnitField( request.getOrgUnitField() )
+            .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )
@@ -319,7 +320,7 @@ public class DefaultDataQueryService
         DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull,
         IdScheme inputIdScheme )
     {
-        final boolean allItems = items.isEmpty();
+        boolean allItems = items.isEmpty();
         User user = currentUserService.getCurrentUser();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
@@ -707,7 +708,7 @@ public class DefaultDataQueryService
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
-        final List<OrganisationUnit> units = new ArrayList<>();
+        List<OrganisationUnit> units = new ArrayList<>();
 
         User currentUser = securityManager.getCurrentUser( params );
 

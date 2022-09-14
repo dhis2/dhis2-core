@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -73,7 +74,7 @@ class ProgramMapperTest extends DhisConvenienceTest
         assertEquals( "WTTYiPQDqh1", mapped.getUid() );
         assertEquals( "friendship", mapped.getName() );
         assertEquals( "red", mapped.getCode() );
-        assertContainsOnly( mapped.getAttributeValues(), attributeValue( "m0GpPuMUfFW", "yellow" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ), mapped.getAttributeValues() );
 
         Optional<ProgramTrackedEntityAttribute> actual = mapped.getProgramAttributes().stream().findFirst();
         assertTrue( actual.isPresent() );
@@ -81,7 +82,8 @@ class ProgramMapperTest extends DhisConvenienceTest
         assertEquals( "khBzbxTLo8k", value.getAttribute().getUid() );
         assertEquals( "clouds", value.getAttribute().getName() );
         assertEquals( "orange", value.getAttribute().getCode() );
-        assertContainsOnly( value.getAttribute().getAttributeValues(), attributeValue( "m0GpPuMUfFW", "purple" ) );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ),
+            value.getAttribute().getAttributeValues() );
     }
 
     @Test

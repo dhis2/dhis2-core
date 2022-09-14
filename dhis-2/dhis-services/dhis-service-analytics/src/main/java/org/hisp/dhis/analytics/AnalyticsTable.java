@@ -124,7 +124,7 @@ public class AnalyticsTable
 
         if ( program != null )
         {
-            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, program );
         }
 
         return name;
@@ -136,7 +136,7 @@ public class AnalyticsTable
 
         if ( program != null )
         {
-            name += PartitionUtils.SEP + program.getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, program );
         }
 
         return name;
@@ -195,7 +195,7 @@ public class AnalyticsTable
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());

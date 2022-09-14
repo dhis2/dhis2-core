@@ -68,20 +68,20 @@ class AnalyticsCacheTest
     void returnSameObjectAfterModifyCachedObject()
     {
         // arrange
-        final AnalyticsCacheSettings settings = new AnalyticsCacheSettings( systemSettingManager );
+        AnalyticsCacheSettings settings = new AnalyticsCacheSettings( systemSettingManager );
 
-        final CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
+        CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
 
         cacheBuilder.expireAfterWrite( 1L, TimeUnit.MINUTES );
 
-        final Cache<Grid> cache = new LocalCache<>( cacheBuilder );
+        Cache<Grid> cache = new LocalCache<>( cacheBuilder );
 
         Mockito.<Cache<Grid>> when( cacheProvider.createAnalyticsCache() )
             .thenReturn( cache );
 
-        final AnalyticsCache analyticsCache = new AnalyticsCache( cacheProvider, settings );
+        AnalyticsCache analyticsCache = new AnalyticsCache( cacheProvider, settings );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( "Header1" ) )
             .addHeader( new GridHeader( "Header2" ) )
             .addRow()

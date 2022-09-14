@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
@@ -183,7 +184,11 @@ public class DataQueryParams
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
 
-    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
+    public static final String DEFAULT_ORG_UNIT_COL = "ou";
+
+    public static final String REGISTRATION_OU_COL = "registrationou";
+
+    public static final String ENROLLMENT_OU_COL = "enrollmentou";
 
     public static final int DX_INDEX = 0;
 
@@ -371,7 +376,7 @@ public class DataQueryParams
      * The organisation unit field used as basis for aggregation in the
      * hierarchy.
      */
-    protected String orgUnitField;
+    protected OrgUnitField orgUnitField = DEFAULT_ORG_UNIT_FIELD;
 
     /**
      * The API version used for the request.
@@ -668,7 +673,7 @@ public class DataQueryParams
             .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
-    private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
+    private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
     {
         if ( keywords != null )
         {
@@ -804,6 +809,15 @@ public class DataQueryParams
     public boolean hasOrganisationUnits()
     {
         return !getDimensionOrFilterItems( ORGUNIT_DIM_ID ).isEmpty();
+    }
+
+    /**
+     * Indicates whether organisation unit group sets are present as dimension
+     * or filter.
+     */
+    public boolean hasOrganisationUnitGroupSets()
+    {
+        return !getDimensionsAndFilters( ORGANISATION_UNIT_GROUP_SET ).isEmpty();
     }
 
     /**
@@ -1489,23 +1503,6 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether a (non-default) organisation unit field is specified.
-     */
-    public boolean hasOrgUnitField()
-    {
-        return orgUnitField != null;
-    }
-
-    /**
-     * Returns the organisation unit field if specified; if not returns the
-     * default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
-     */
-    public String getOrgUnitFieldFallback()
-    {
-        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
-    }
-
-    /**
      * Indicates whether this object has a program.
      */
     public boolean hasProgram()
@@ -1977,10 +1974,10 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
             keys.remove( DX_INDEX );
 
-            final Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
+            Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
 
             // Generate final permutation key
-            final String permKey = StringUtils.join( keys, DIMENSION_SEP );
+            String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
             for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues )
             {
@@ -2069,7 +2066,7 @@ public class DataQueryParams
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((dimensions == null) ? 0 : dimensions.hashCode());
         result = prime * result + ((filters == null) ? 0 : filters.hashCode());
@@ -2290,7 +2287,7 @@ public class DataQueryParams
         return timeField;
     }
 
-    public String getOrgUnitField()
+    public OrgUnitField getOrgUnitField()
     {
         return orgUnitField;
     }
@@ -2563,7 +2560,7 @@ public class DataQueryParams
      */
     public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
     {
-        final Set<IdentifiableObject> programs = new HashSet<>();
+        Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
             .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
@@ -2661,7 +2658,7 @@ public class DataQueryParams
      */
     public Period getStartEndDatesAsPeriod()
     {
-        final Period period = new Period();
+        Period period = new Period();
         period.setStartDate( getStartDate() );
         period.setEndDate( getEndDate() );
 
@@ -2679,7 +2676,7 @@ public class DataQueryParams
     {
         if ( getStartDate() != null && getEndDate() != null )
         {
-            final Period period = new Period();
+            Period period = new Period();
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 
@@ -3328,7 +3325,7 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withOrgUnitField( String orgUnitField )
+        public Builder withOrgUnitField( OrgUnitField orgUnitField )
         {
             this.params.orgUnitField = orgUnitField;
             return this;
