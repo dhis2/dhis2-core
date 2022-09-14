@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  * same month.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: MonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class MonthlyPeriodType
     extends CalendarPeriodType
@@ -55,11 +54,6 @@ public class MonthlyPeriodType
 
     private static final String ISO8601_DURATION = "P1M";
 
-    /**
-     * The name of the MonthlyPeriodType, which is "Monthly".
-     */
-    public static final String NAME = "Monthly";
-
     public static final int FREQUENCY_ORDER = 30;
 
     public static final String SQL_INTERVAL = "1 month";
@@ -69,9 +63,9 @@ public class MonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.MONTHLY;
     }
 
     @Override

@@ -91,6 +91,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Filter;
 import org.hisp.dhis.dataexchange.aggregate.Source;
+import org.hisp.dhis.dataexchange.aggregate.SourceParams;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
 import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
@@ -132,6 +133,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -430,19 +432,23 @@ public abstract class DhisConvenienceTest
      */
     public static AggregateDataExchange getAggregateDataExchange( char uniqueCharacter )
     {
-        SourceRequest sourceRequest = new SourceRequest();
-        sourceRequest.setName( "RequestA" );
-        sourceRequest.setVisualization( "JHKuBWP20RO" );
-        sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
-        sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
-        sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
-        sourceRequest.getFilters().addAll( List.of(
-            new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
-            new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
-        sourceRequest.setInputIdScheme( IdScheme.UID.name() )
+        SourceParams sourceParams = new SourceParams()
+            .setPeriodTypes( List.of( PeriodTypeEnum.MONTHLY, PeriodTypeEnum.QUARTERLY ) );
+
+        SourceRequest sourceRequest = new SourceRequest()
+            .setName( "RequestA" )
+            .setVisualization( "JHKuBWP20RO" )
+            .setDx( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
+            .setPe( List.of( "202201", "202202" ) )
+            .setOu( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
+            .setFilters( List.of(
+                new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+                new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) )
+            .setInputIdScheme( IdScheme.UID.name() )
             .setOutputIdScheme( IdScheme.UID.name() );
 
         Source source = new Source()
+            .setParams( sourceParams )
             .setRequests( List.of( sourceRequest ) );
 
         Api api = new Api()

@@ -25,24 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.dataexchange.aggregate;
 
-/**
- * @author Kristian Wærstad
- */
-public class BiWeeklyPeriodType
-    extends BiWeeklyAbstractPeriodType
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.period.PeriodTypeEnum;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class SourceParams
 {
-    public static final String NAME = "BiWeekly";
-
-    public BiWeeklyPeriodType()
-    {
-        super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
-    }
-
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.BI_WEEKLY;
-    }
+    /**
+     * Allowed period types for period parameters.
+     */
+    @JsonProperty
+    private List<PeriodTypeEnum> periodTypes = new ArrayList<>();
 }
