@@ -457,10 +457,13 @@ public abstract class DhisConvenienceTest
             .setUsername( DEFAULT_USERNAME )
             .setPassword( DEFAULT_ADMIN_PASSWORD );
 
+        TargetRequest targetRequest = new TargetRequest()
+            .setIdScheme( IdScheme.UID.name() );
+
         Target target = new Target()
             .setApi( api )
             .setType( TargetType.EXTERNAL )
-            .setRequest( new TargetRequest() );
+            .setRequest( targetRequest );
 
         AggregateDataExchange exchange = new AggregateDataExchange();
         exchange.setAutoFields();
