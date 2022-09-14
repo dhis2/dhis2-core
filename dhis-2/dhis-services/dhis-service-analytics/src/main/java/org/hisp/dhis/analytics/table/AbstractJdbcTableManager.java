@@ -272,13 +272,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTable( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName );
+        executeSafely( "drop table if exists " + tableName );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName + " cascade" );
+        executeSafely( "drop table if exists " + tableName + " cascade" );
     }
 
     @Override
@@ -286,7 +286,7 @@ public abstract class AbstractJdbcTableManager
     {
         String sql = StringUtils.trimToEmpty( statementBuilder.getAnalyze( tableName ) );
 
-        executeSilently( sql );
+        executeSafely( sql );
     }
 
     @Override
@@ -381,12 +381,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * Executes a SQL statement "safely" (without throwing any exception).
+     * Instead, exceptions are simply logged.
      *
      * @param sql the SQL statement.
      */
-    protected void executeSilently( String sql )
+    protected void executeSafely( String sql )
     {
         try
         {
@@ -588,7 +588,7 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
-        jdbcTemplate.execute( sql );
+        executeSafely( sql );
 
         log.info( "{} in: {}", logMessage, timer.stop().toString() );
     }
@@ -659,7 +659,7 @@ public abstract class AbstractJdbcTableManager
         String sql = "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
-        executeSilently( sql );
+        executeSafely( sql );
     }
 
     /**
@@ -675,6 +675,6 @@ public abstract class AbstractJdbcTableManager
         String sql = "alter table " + partitionTableName + " inherit " + realMasterTableName + ";" +
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName + ";";
 
-        executeSilently( sql );
+        executeSafely( sql );
     }
 }
