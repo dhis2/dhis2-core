@@ -46,7 +46,6 @@ import com.google.common.collect.ImmutableMap;
  */
 class RelationshipTypeJoinGeneratorTest
 {
-
     private final static String ALIAS = "subax";
 
     private final static String RELATIONSHIP_JOIN = " LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "

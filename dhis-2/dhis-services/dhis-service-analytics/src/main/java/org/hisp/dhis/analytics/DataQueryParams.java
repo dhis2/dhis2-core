@@ -673,7 +673,7 @@ public class DataQueryParams
             .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
-    private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
+    private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
     {
         if ( keywords != null )
         {
@@ -1974,10 +1974,10 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
             keys.remove( DX_INDEX );
 
-            final Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
+            Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
 
             // Generate final permutation key
-            final String permKey = StringUtils.join( keys, DIMENSION_SEP );
+            String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
             for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues )
             {
@@ -2066,7 +2066,7 @@ public class DataQueryParams
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((dimensions == null) ? 0 : dimensions.hashCode());
         result = prime * result + ((filters == null) ? 0 : filters.hashCode());
@@ -2560,7 +2560,7 @@ public class DataQueryParams
      */
     public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
     {
-        final Set<IdentifiableObject> programs = new HashSet<>();
+        Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
             .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
@@ -2658,7 +2658,7 @@ public class DataQueryParams
      */
     public Period getStartEndDatesAsPeriod()
     {
-        final Period period = new Period();
+        Period period = new Period();
         period.setStartDate( getStartDate() );
         period.setEndDate( getEndDate() );
 
@@ -2676,7 +2676,7 @@ public class DataQueryParams
     {
         if ( getStartDate() != null && getEndDate() != null )
         {
-            final Period period = new Period();
+            Period period = new Period();
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 

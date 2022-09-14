@@ -295,7 +295,7 @@ public class DataHandler
     {
         String permKey = asItemKey( dimensionItems );
 
-        final List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
+        List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
@@ -380,10 +380,10 @@ public class DataHandler
      * @param grid the current/actual grid
      * @param eventGrid the event grid
      */
-    private void replaceGridIfNeeded( final Grid grid, final Grid eventGrid )
+    private void replaceGridIfNeeded( Grid grid, Grid eventGrid )
     {
-        final boolean eventGridHasAdditionalHeaders = grid.getHeaderWidth() < eventGrid.getHeaderWidth();
-        final boolean eventHeaderSizeIsSameAsGridColumns = eventGrid.getHeaderWidth() == eventGrid.getWidth();
+        boolean eventGridHasAdditionalHeaders = grid.getHeaderWidth() < eventGrid.getHeaderWidth();
+        boolean eventHeaderSizeIsSameAsGridColumns = eventGrid.getHeaderWidth() == eventGrid.getWidth();
 
         // Replacing the current grid headers by the actual event grid headers.
         if ( eventGridHasAdditionalHeaders && eventHeaderSizeIsSameAsGridColumns )
@@ -974,11 +974,11 @@ public class DataHandler
         // Derive the Grid indexes for data, value and period based on the first
         // row of the Grid
 
-        final int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
-        final int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
-        final int valueIndex = grid.getWidth() - 1;
+        int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
+        int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
+        int valueIndex = grid.getWidth() - 1;
 
-        final List<DimensionalItemObject> basePeriods = params.getPeriods();
+        List<DimensionalItemObject> basePeriods = params.getPeriods();
 
         MultiValuedMap<String, DimensionItemObjectValue> valueMap = new ArrayListValuedHashMap<>();
 
@@ -1104,7 +1104,7 @@ public class DataHandler
             ? 0
             : dimensionalItemObject.getQueryMods().getPeriodOffset();
 
-        final List<Object> adjustedRow = (periodOffset != 0)
+        List<Object> adjustedRow = (periodOffset != 0)
             ? getPeriodOffsetRow( row, periodIndex, periodOffset )
             : row;
 

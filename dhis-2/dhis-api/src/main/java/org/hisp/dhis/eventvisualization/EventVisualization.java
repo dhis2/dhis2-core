@@ -287,15 +287,15 @@ public class EventVisualization extends BaseAnalyticalObject
     {
     }
 
-    public EventVisualization( final String name )
+    public EventVisualization( String name )
     {
         super.name = name;
     }
 
     @Override
-    public void init( final User user, final Date date, final OrganisationUnit organisationUnit,
-        final List<OrganisationUnit> organisationUnitsAtLevel, final List<OrganisationUnit> organisationUnitsInGroups,
-        final I18nFormat format )
+    public void init( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         this.relativeUser = user;
         this.format = format;
@@ -313,17 +313,17 @@ public class EventVisualization extends BaseAnalyticalObject
 
     public String generateTitle()
     {
-        final List<String> titleItems = new ArrayList<>();
+        List<String> titleItems = new ArrayList<>();
 
-        for ( final String filter : filterDimensions )
+        for ( String filter : filterDimensions )
         {
-            final DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
+            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
                 organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
             if ( object != null )
             {
-                final String item = join( object.getItems() );
-                final String prettyFilter = getPrettyFilter( object.getFilter() );
+                String item = join( object.getItems() );
+                String prettyFilter = getPrettyFilter( object.getFilter() );
 
                 if ( item != null )
                 {
@@ -702,19 +702,19 @@ public class EventVisualization extends BaseAnalyticalObject
 
     public List<DimensionalItemObject> series()
     {
-        final String series = columnDimensions.get( 0 );
+        String series = columnDimensions.get( 0 );
         return getItems( series );
     }
 
     public List<DimensionalItemObject> category()
     {
-        final String category = rowDimensions.get( 0 );
+        String category = rowDimensions.get( 0 );
         return getItems( category );
     }
 
-    private List<DimensionalItemObject> getItems( final String dimension )
+    private List<DimensionalItemObject> getItems( String dimension )
     {
-        final DimensionalObject object = getDimensionalObject( dimension, relativePeriodDate, relativeUser, true,
+        DimensionalObject object = getDimensionalObject( dimension, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         setDimensionItemsForFilters( object, dataItemGrid, true );
@@ -821,7 +821,7 @@ public class EventVisualization extends BaseAnalyticalObject
         return simpleDimensions;
     }
 
-    public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
+    public void setSimpleDimensions( List<SimpleDimension> simpleDimensions )
     {
         this.simpleDimensions = simpleDimensions;
     }
@@ -834,7 +834,7 @@ public class EventVisualization extends BaseAnalyticalObject
         return eventRepetitions;
     }
 
-    public void setEventRepetitions( final List<EventRepetition> eventRepetitions )
+    public void setEventRepetitions( List<EventRepetition> eventRepetitions )
     {
         this.eventRepetitions = eventRepetitions;
     }
@@ -1051,7 +1051,7 @@ public class EventVisualization extends BaseAnalyticalObject
         return legacy;
     }
 
-    public void setLegacy( final boolean legacy )
+    public void setLegacy( boolean legacy )
     {
         this.legacy = legacy;
     }

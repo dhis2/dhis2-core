@@ -271,7 +271,7 @@ public class AnalyticsUtils
             return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
 
-        final Double rounded = getRounded( (Double) value );
+        Double rounded = getRounded( (Double) value );
 
         if ( endsWithZeroAsDecimal( rounded ) )
         {
@@ -296,7 +296,7 @@ public class AnalyticsUtils
      * @param value
      * @return true if the value has "0" as decimal digits, false otherwise
      */
-    public static boolean endsWithZeroAsDecimal( final double value )
+    public static boolean endsWithZeroAsDecimal( double value )
     {
         return ((value * 10) % 10 == 0);
     }
@@ -401,7 +401,7 @@ public class AnalyticsUtils
 
         for ( Map.Entry<String, Object> entry : map.entrySet() )
         {
-            final Object value = entry.getValue();
+            Object value = entry.getValue();
 
             if ( value != null && Double.class.equals( value.getClass() ) )
             {
