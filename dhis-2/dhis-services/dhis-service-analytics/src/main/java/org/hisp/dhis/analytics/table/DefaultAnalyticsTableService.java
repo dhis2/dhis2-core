@@ -161,8 +161,9 @@ public class DefaultAnalyticsTableService
 
         if ( params.isLatestUpdate() )
         {
-            progress.startingStage( "Removing updated and deleted data " + tableType );
+            progress.startingStage( "Removing updated and deleted data " + tableType, SKIP_STAGE );
             tableManager.removeUpdatedData( tables );
+            progress.completedStage( "Completed removal of updated and deleted data" );
             clock.logTime( "Removed updated and deleted data" );
         }
 
@@ -176,8 +177,7 @@ public class DefaultAnalyticsTableService
     {
         Set<String> tables = tableManager.getExistingDatabaseTables();
 
-        tables.stream()
-            .forEach( tableManager::dropTableCascade );
+        tables.stream().forEach( tableManager::dropTableCascade );
 
         log.info( "Analytics tables dropped" );
     }

@@ -224,13 +224,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTable( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName );
+        executeSafely( "drop table if exists " + tableName );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
-        executeSilently( "drop table if exists " + tableName + " cascade" );
+        executeSafely( "drop table if exists " + tableName + " cascade" );
     }
 
     @Override
@@ -238,7 +238,7 @@ public abstract class AbstractJdbcTableManager
     {
         String sql = StringUtils.trimToEmpty( statementBuilder.getAnalyze( tableName ) );
 
-        executeSilently( sql );
+        executeSafely( sql );
     }
 
     @Override
@@ -319,12 +319,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes a SQL statement. Ignores existing tables/indexes when attempting
-     * to create new.
+     * Executes a SQL statement "safely" (without throwing any exception).
+     * Instead, exceptions are simply logged.
      *
      * @param sql the SQL statement.
      */
-    protected void executeSilently( String sql )
+    protected void executeSafely( String sql )
     {
         try
         {
@@ -610,7 +610,7 @@ public abstract class AbstractJdbcTableManager
             "alter table " + tempTableName + " rename to " + realTableName
         };
 
-        executeSilently( sqlSteps, true );
+        executeSafely( sqlSteps, true );
     }
 
     /**
@@ -628,24 +628,32 @@ public abstract class AbstractJdbcTableManager
             "alter table " + partitionTableName + " no inherit " + tempMasterTableName
         };
 
-        executeSilently( sqlSteps, true );
+        executeSafely( sqlSteps, true );
     }
 
-    private void executeSilently( String[] sqlSteps, boolean atomically )
+    /**
+     * Executes a set of SQL statements "safely" (without throwing any
+     * exception). Instead, exceptions are simply logged.
+     *
+     * @param sqlStatements the SQL statements to be executed
+     * @param atomically if true, the statements are executed all together in a
+     *        single JDBC call
+     */
+    private void executeSafely( String[] sqlStatements, boolean atomically )
     {
         if ( atomically )
         {
-            String sql = String.join( ";", sqlSteps ) + ";";
+            String sql = String.join( ";", sqlStatements ) + ";";
             log.debug( sql );
 
-            executeSilently( sql );
+            executeSafely( sql );
         }
         else
         {
-            for ( int i = 0; i < sqlSteps.length; i++ )
+            for ( int i = 0; i < sqlStatements.length; i++ )
             {
-                log.debug( sqlSteps[i] );
-                executeSilently( sqlSteps[i] );
+                log.debug( sqlStatements[i] );
+                executeSafely( sqlStatements[i] );
             }
         }
     }
