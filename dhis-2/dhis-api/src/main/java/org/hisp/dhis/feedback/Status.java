@@ -33,7 +33,6 @@ package org.hisp.dhis.feedback;
 public enum Status
 {
     OK,
-    SUCCESS,
     WARNING,
     ERROR
 }
