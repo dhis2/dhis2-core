@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DATE;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
@@ -134,12 +136,6 @@ public class JdbcCompletenessTargetTableManager
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList();
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return null;
     }
 
     @Override

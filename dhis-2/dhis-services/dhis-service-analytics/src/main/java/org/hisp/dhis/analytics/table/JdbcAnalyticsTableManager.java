@@ -28,7 +28,11 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -230,12 +234,6 @@ public class JdbcAnalyticsTableManager
             : newArrayList(
                 "year = " + partition.getYear() + "",
                 "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
     }
 
     @Override

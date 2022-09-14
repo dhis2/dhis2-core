@@ -135,6 +135,7 @@ public class UserSettingController
             .get( key );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        response.setHeader( "Content-Type", ContextUtils.CONTENT_TYPE_TEXT );
         return String.valueOf( value );
     }
 
