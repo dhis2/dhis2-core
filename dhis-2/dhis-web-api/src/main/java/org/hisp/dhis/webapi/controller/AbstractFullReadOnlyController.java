@@ -315,7 +315,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
                     schemaBuilder.addArrayColumn( property.getCollectionName() );
                     obj2valueByProperty.put( property.getCollectionName(), obj -> getCollectionValue( obj, property ) );
                 }
-                else
+                else if ( property.isSimple() )
                 {
                     schemaBuilder.addColumn( property.getName() );
                     obj2valueByProperty.put( property.getName(),
