@@ -71,12 +71,6 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
         this.weekPrefix = weekPrefix;
     }
 
-    @Override
-    public String getName()
-    {
-        return name;
-    }
-
     public int getStartOfWeek()
     {
         return startOfWeek;

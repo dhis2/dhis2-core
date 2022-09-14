@@ -60,10 +60,10 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -160,9 +160,9 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
     public void setUpTest()
     {
         userService = _userService;
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 3, 1 ),
+        peA = createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), getDate( 2016, 3, 1 ),
             getDate( 2016, 3, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 4, 1 ),
+        peB = createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), getDate( 2016, 4, 1 ),
             getDate( 2016, 4, 30 ) );
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );

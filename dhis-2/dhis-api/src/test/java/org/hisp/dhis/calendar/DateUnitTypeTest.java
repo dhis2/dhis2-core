@@ -25,24 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.calendar;
 
-/**
- * @author Kristian Wærstad
- */
-public class BiWeeklyPeriodType
-    extends BiWeeklyAbstractPeriodType
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.junit.jupiter.api.Test;
+
+class DateUnitTypeTest
 {
-    public static final String NAME = "BiWeekly";
-
-    public BiWeeklyPeriodType()
+    @Test
+    void testGetName()
     {
-        super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
-    }
-
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.BI_WEEKLY;
+        assertEquals( PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName() );
+        assertEquals( PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName() );
+        assertEquals( PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName() );
     }
 }

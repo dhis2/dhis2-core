@@ -251,7 +251,7 @@ public class DefaultEventAnalyticsService
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
-            final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
+            EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
         }
 

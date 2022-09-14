@@ -38,7 +38,6 @@ import com.google.common.collect.Lists;
 
 class AnalyticsIndexTest
 {
-
     @Test
     void testGetIndexName()
     {
