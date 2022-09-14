@@ -73,7 +73,6 @@ import com.google.common.collect.Sets;
  */
 class EventQueryParamsTest extends DhisConvenienceTest
 {
-
     private Option opA;
 
     private Option opB;

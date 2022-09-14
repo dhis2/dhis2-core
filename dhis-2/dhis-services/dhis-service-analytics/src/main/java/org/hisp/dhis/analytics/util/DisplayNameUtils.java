@@ -57,8 +57,8 @@ public class DisplayNameUtils
      * @param columnAlias the alias of this column in the analytics database
      * @return the trimmed display name
      */
-    public static String getDisplayName( final String originColumn, final String tablePrefix,
-        final String columnAlias )
+    public static String getDisplayName( String originColumn, String tablePrefix,
+        String columnAlias )
     {
         return ("case"
             // If all are empty, return null

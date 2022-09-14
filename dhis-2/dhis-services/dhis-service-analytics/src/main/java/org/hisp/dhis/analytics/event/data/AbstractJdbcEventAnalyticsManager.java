@@ -717,9 +717,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param item the {@link QueryItem}
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item )
     {
-        final String colName = item.getItemName();
+        String colName = item.getItemName();
 
         return ColumnAndAlias
             .ofColumnAndAlias(
@@ -736,9 +736,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param suffix the suffix to append to the item id
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item, String suffix )
     {
-        final String colName = item.getItemId() + suffix;
+        String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 
@@ -1149,19 +1149,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 switch ( filter.getOperator() )
                 {
+                // Specific logic, so null and empty values are correctly
+                // handled for these filters.
                 case NEQ:
                 case NE:
                 case NIEQ:
                 case NLIKE:
                 case NILIKE:
-                    // This ensures that null values will always match the
-                    // filters above.
-                    return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
-                        + getSqlFilter( filter, item ) + ") ";
+                    return nullAndEmptyMatcher( item, filter, field );
                 }
             }
 
             return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+        }
+    }
+
+    /**
+     * Ensures that null/empty values will always match.
+     *
+     * @param item
+     * @param filter
+     * @param field
+     * @return the respective sql statement/matcher
+     */
+    private String nullAndEmptyMatcher( QueryItem item, QueryFilter filter, String field )
+    {
+        if ( item.getValueType() != null && item.getValueType().isText() )
+        {
+            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
+                + getSqlFilter( filter, item ) + ") ";
+        }
+        else
+        {
+            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+                + getSqlFilter( filter, item ) + ") ";
         }
     }
 

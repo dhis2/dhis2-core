@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  * the same quarter.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: QuarterlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class QuarterlyPeriodType
     extends CalendarPeriodType
@@ -57,11 +56,6 @@ public class QuarterlyPeriodType
 
     private static final String ISO_CALENDAR_NAME = org.hisp.dhis.calendar.impl.Iso8601Calendar.getInstance().name();
 
-    /**
-     * The name of the QuarterlyPeriodType, which is "Quarterly".
-     */
-    public static final String NAME = "Quarterly";
-
     public static final int FREQUENCY_ORDER = 91;
 
     public static final String SQL_INTERVAL = "3 months";
@@ -71,9 +65,9 @@ public class QuarterlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.QUARTERLY;
     }
 
     @Override

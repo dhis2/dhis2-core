@@ -47,7 +47,6 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -110,7 +109,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 class AbstractJdbcEventAnalyticsManagerTest extends
     EventAnalyticsTest
 {
-
     @Mock
     private JdbcTemplate jdbcTemplate;
 
@@ -342,7 +340,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withSkipMeta( false )
             .build();
 
-        final List<String> columns = this.subject.getSelectColumns( params, false );
+        List<String> columns = this.subject.getSelectColumns( params, false );
 
         // Then
 
@@ -382,7 +380,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withCoordinatesOnly( true )
             .build();
 
-        final String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.subject.getWhereClause( params );
 
         // Then
         assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
@@ -392,16 +390,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
         // Given
-        final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
             DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
 
-        final DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
             newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ),
                 createOrganisationUnit( 'C' ) ) );
 
-        final EventQueryParams params = new EventQueryParams.Builder()
+        EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )
             .addDimension( multipleOrgUnitsSameLevel )
             .withSkipData( true )
@@ -411,7 +409,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .build();
 
         // When
-        final String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.subject.getWhereClause( params );
 
         // Then
         assertThat( whereClause,
@@ -448,14 +446,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NLIKE, "A" ) ) ) )
+                List.of( buildQueryFilter( NEQ, "12" ) ), NUMBER ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not like '%A%') ", result );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" != '12') ", result );
     }
 
     @Test
-    void testGetItemNotILikeFilterSql()
+    void testGetItemNotILikeFilterSqlNullValueType()
     {
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters(
@@ -464,7 +462,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
-        assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" not ilike '%A%') ", result );
+        assertEquals( "where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result );
     }
 
     @Test
@@ -474,7 +472,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NEQ, "A" ) ) ) )
+                List.of( buildQueryFilter( NEQ, "A" ) ), TEXT ) )
             .build();
         String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
@@ -483,7 +481,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
                 UUID.randomUUID(),
-                List.of( buildQueryFilter( NE, "A" ) ) ) )
+                List.of( buildQueryFilter( NE, "A" ) ), TEXT ) )
             .build();
         result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );

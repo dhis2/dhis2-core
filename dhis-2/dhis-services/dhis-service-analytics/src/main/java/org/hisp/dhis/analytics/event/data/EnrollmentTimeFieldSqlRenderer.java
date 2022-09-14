@@ -73,7 +73,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     @Override
     protected String getSqlConditionForPeriods( EventQueryParams params )
     {
-        final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
+        List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
         Optional<TimeField> timeField = getTimeField( params );
 
@@ -134,7 +134,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
 
         Map<String, Set<AnalyticsPeriodBoundary>> map = programIndicator.getEventDateCohortBoundaryByProgramStage();
 
-        final SimpleDateFormat format = new SimpleDateFormat();
+        SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
 
         String sql = "";

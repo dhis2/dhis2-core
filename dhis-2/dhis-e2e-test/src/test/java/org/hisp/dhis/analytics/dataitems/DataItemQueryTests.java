@@ -71,7 +71,6 @@ public class DataItemQueryTests
     public void before()
     {
         dataItemActions = new DataItemActions();
-
         login();
     }
 
@@ -79,7 +78,7 @@ public class DataItemQueryTests
     public void testGetAllDataItemsUsingDefaultPagination()
     {
         // When
-        final ApiResponse response = dataItemActions.get();
+        ApiResponse response = dataItemActions.get();
 
         // Then
         response.validate().statusCode( is( OK ) );
@@ -93,10 +92,10 @@ public class DataItemQueryTests
     public void testGetAllDataItemsWithoutPagination()
     {
         // Given
-        final String noPagination = "?paging=false";
+        String noPagination = "?paging=false";
 
         // When
-        final ApiResponse response = dataItemActions.get( noPagination );
+        ApiResponse response = dataItemActions.get( noPagination );
 
         // Then
         response.validate().statusCode( is( OK ) );
@@ -110,7 +109,7 @@ public class DataItemQueryTests
     public void testGetAllDataItemsUsingDefaultPaginationOrderedByCode()
     {
         // When
-        final ApiResponse response = dataItemActions.get( "?order=name:asc" );
+        ApiResponse response = dataItemActions.get( "?order=name:asc" );
 
         // Then
         response.validate().statusCode( is( OK ) );
@@ -123,11 +122,11 @@ public class DataItemQueryTests
     public void testFilterByDimensionTypeUsingDefaultPagination()
     {
         // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]";
+        String theDimensionType = "PROGRAM_INDICATOR";
+        String theUrlParams = "?filter=dimensionItemType:in:[%s]";
 
         // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType ) );
+        ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType ) );
 
         // Then
         response.validate().statusCode( is( OK ) );
@@ -140,11 +139,11 @@ public class DataItemQueryTests
     public void testFilterUsingInvalidDimensionTypeUsingDefaultPagination()
     {
         // Given
-        final String anyInvalidDimensionType = "INVALID_TYPE";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]";
+        String anyInvalidDimensionType = "INVALID_TYPE";
+        String theUrlParams = "?filter=dimensionItemType:in:[%s]";
 
         // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, anyInvalidDimensionType ) );
+        ApiResponse response = dataItemActions.get( format( theUrlParams, anyInvalidDimensionType ) );
 
         // Then
         response.validate().statusCode( is( CONFLICT ) );
@@ -162,14 +161,14 @@ public class DataItemQueryTests
     public void testWhenDataIsNotFoundUsingDefaultPagination()
     {
         // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String aNonExistingName = "non-existing-Name";
-        final String aValidFilteringAttribute = "name";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute
+        String theDimensionType = "PROGRAM_INDICATOR";
+        String aNonExistingName = "non-existing-Name";
+        String aValidFilteringAttribute = "name";
+        String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aValidFilteringAttribute
             + ":ilike:%s";
 
         // When
-        final ApiResponse response = dataItemActions
+        ApiResponse response = dataItemActions
             .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then
@@ -181,14 +180,14 @@ public class DataItemQueryTests
     public void testFilterByProgramUsingNonexistentAttributeAndDefaultPagination()
     {
         // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String theProgramId = Constants.EVENT_PROGRAM_ID;
-        final String aNonExistingAttr = "nonExistingAttr";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aNonExistingAttr
+        String theDimensionType = "PROGRAM_INDICATOR";
+        String theProgramId = Constants.EVENT_PROGRAM_ID;
+        String aNonExistingAttr = "nonExistingAttr";
+        String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=" + aNonExistingAttr
             + ":eq:%s&order=code:asc";
 
         // When
-        final ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType, theProgramId ) );
+        ApiResponse response = dataItemActions.get( format( theUrlParams, theDimensionType, theProgramId ) );
 
         // Then
         response.validate().statusCode( is( CONFLICT ) );
@@ -204,12 +203,12 @@ public class DataItemQueryTests
     public void testWhenFilteringByNonExistingNameWithoutPagination()
     {
         // Given
-        final String theDimensionType = "PROGRAM_INDICATOR";
-        final String aNonExistingName = "non-existing-name";
-        final String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=name:ilike:%s&paging=false";
+        String theDimensionType = "PROGRAM_INDICATOR";
+        String aNonExistingName = "non-existing-name";
+        String theUrlParams = "?filter=dimensionItemType:in:[%s]&filter=name:ilike:%s&paging=false";
 
         // When
-        final ApiResponse response = dataItemActions
+        ApiResponse response = dataItemActions
             .get( format( theUrlParams, theDimensionType, aNonExistingName ) );
 
         // Then

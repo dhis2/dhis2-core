@@ -108,6 +108,8 @@ class EventRequestToSearchParamsMapper
 
     private final DataElementService dataElementService;
 
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
     private final InputUtils inputUtils;
 
     private final SchemaService schemaService;
@@ -203,9 +205,12 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        mapFilterAttributes( eventCriteria, params );
-
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
+        List<OrderParam> attributeOrderParams = getGridOrderParams( eventCriteria.getOrder(), attributeOrders );
+
+        mapFilterAttributes( eventCriteria, params, attributeOrderParams );
+
         Set<String> dataElements = dataElementOrders.keySet();
         if ( dataElements != null )
         {
@@ -262,11 +267,13 @@ class EventRequestToSearchParamsMapper
             .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
+            .setAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
 
-    private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams )
+    private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams,
+        List<OrderParam> attributeOrderParams )
     {
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
@@ -280,7 +287,35 @@ class EventRequestToSearchParamsMapper
                 searchParams.getFilterAttributes().add( it );
             }
         }
+        addAttributeQueryItemsFromOrder( searchParams, attributes, attributeOrderParams );
+
         validateFilterAttributes( searchParams.getFilterAttributes() );
+    }
+
+    private void addAttributeQueryItemsFromOrder( EventSearchParams searchParams,
+        Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
+    {
+
+        List<QueryItem> orderQueryItems = attributeOrderParams.stream()
+            .map( OrderParam::getField )
+            .filter( att -> !containsAttributeFilter( searchParams.getFilterAttributes(), att ) )
+            .map( attributes::get )
+            .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
+            .collect( Collectors.toList() );
+
+        searchParams.getFilterAttributes().addAll( orderQueryItems );
+    }
+
+    private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
+    {
+        for ( QueryItem item : attributeFilters )
+        {
+            if ( Objects.equals( item.getItem().getUid(), attributeUid ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void validateFilterAttributes( List<QueryItem> queryItems )
@@ -319,6 +354,25 @@ class EventRequestToSearchParamsMapper
             }
         }
         return dataElements;
+    }
+
+    private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
+    {
+        Map<String, SortDirection> attributes = new HashMap<>();
+
+        if ( allOrders != null )
+        {
+            for ( OrderCriteria orderCriteria : allOrders )
+            {
+                TrackedEntityAttribute attribute = trackedEntityAttributeService
+                    .getTrackedEntityAttribute( orderCriteria.getField() );
+                if ( attribute != null )
+                {
+                    attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
+                }
+            }
+        }
+        return attributes;
     }
 
     private QueryItem getQueryItem( String item )
@@ -414,7 +468,10 @@ class EventRequestToSearchParamsMapper
 
     private void validateOrderParams( List<OrderCriteria> order )
     {
-        Set<String> requestProperties = order.stream().map( OrderCriteria::getField ).collect( Collectors.toSet() );
+        Set<String> requestProperties = order.stream()
+            .map( OrderCriteria::getField )
+            .filter( field -> !CodeGenerator.isValidUid( field ) )
+            .collect( Collectors.toSet() );
 
         Set<String> allowedProperties = schema.getProperties().stream().filter( Property::isSimple )
             .map( Property::getName ).collect( Collectors.toSet() );

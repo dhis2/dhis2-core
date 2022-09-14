@@ -69,6 +69,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.io.IOException;
@@ -1068,12 +1069,22 @@ public class JdbcEventStore implements EventStore
             selectBuilder.append( "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
+        if ( isNotEmpty( params.getAttributeOrders() ) )
+        {
+            for ( OrderParam orderParam : params.getAttributeOrders() )
+            {
+                selectBuilder.append( quote( orderParam.getField() ) )
+                    .append( ".value AS " )
+                    .append( orderParam.getField() )
+                    .append( "_value, " );
+            }
+        }
+
         selectBuilder.append(
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, " )
             .append( "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, " )
             .append(
                 "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive " );
-
         return selectBuilder.append( getFromWhereClause( params, mapSqlParameterSource, organisationUnits, user, hlp,
             dataElementAndFiltersSql( params, mapSqlParameterSource, hlp,
                 selectBuilder ) ) )
@@ -1842,6 +1853,14 @@ public class JdbcEventStore implements EventStore
                         break;
                     }
                 }
+            }
+        }
+
+        if ( params.getAttributeOrders() != null )
+        {
+            for ( OrderParam order : params.getAttributeOrders() )
+            {
+                orderFields.add( order.getField() + "_value " + order.getDirection() );
             }
         }
 

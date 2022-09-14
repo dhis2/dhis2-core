@@ -57,7 +57,7 @@ import org.hisp.dhis.period.DefaultPeriodService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -214,7 +214,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
         lvlTwoLeftLeft.addUser( uD );
         lvlTwoLeftRight.addUser( uE );
         ValidationRule rule = createValidationRule( 'V', Operator.equal_to, createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ), PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME ) );
+            createExpression2( 'B', "Y" ), PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         ValidationNotificationTemplate template = createValidationNotificationTemplate( "My fancy template" );
         template.setNotifyParentOrganisationUnitOnly( true );
         template.addValidationRule( rule );
@@ -257,7 +257,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
         ugB.addUser( uA );
         // Validation rule and template
         ValidationRule rule = createValidationRule( 'V', Operator.equal_to, createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ), PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME ) );
+            createExpression2( 'B', "Y" ), PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         ValidationNotificationTemplate template = createValidationNotificationTemplate( "My fancy template" );
         template.setNotifyUsersInHierarchyOnly( true );
         template.addValidationRule( rule );
@@ -303,7 +303,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
         userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
         userA.setGroups( Sets.newHashSet( userGroupA ) );
         valRuleA = createValidationRule( 'A', Operator.equal_to, createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ), PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME ) );
+            createExpression2( 'B', "Y" ), PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         ValidationNotificationTemplate templateA = createValidationNotificationTemplate( "Template A" );
         templateA.addValidationRule( valRuleA );
         templateA.setRecipientUserGroups( Sets.newHashSet( userGroupA ) );

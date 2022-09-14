@@ -69,7 +69,7 @@ public class AnalyticsCacheSettings
      */
     public boolean isProgressiveCachingEnabled()
     {
-        final AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
+        AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
             .getSystemSetting( ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class );
 
         return PROGRESSIVE == analyticsCacheMode;
@@ -85,10 +85,10 @@ public class AnalyticsCacheSettings
      */
     public boolean isFixedCachingEnabled()
     {
-        final AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
+        AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
             .getSystemSetting( ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class );
 
-        final CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
+        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
             CacheStrategy.class );
 
         return FIXED == analyticsCacheMode && cacheStrategy != null && cacheStrategy.hasExpirationTimeSet();
@@ -104,7 +104,7 @@ public class AnalyticsCacheSettings
      * @return the expiration time computed based on the given
      *         "dateBeforeToday".
      */
-    public long progressiveExpirationTimeOrDefault( final Date dateBeforeToday )
+    public long progressiveExpirationTimeOrDefault( Date dateBeforeToday )
     {
         return new TimeToLive( dateBeforeToday, getProgressiveTtlFactorOrDefault() ).compute();
     }
@@ -125,7 +125,7 @@ public class AnalyticsCacheSettings
      */
     public long fixedExpirationTimeOrDefault()
     {
-        final CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
+        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
             CacheStrategy.class );
 
         return (NO_CACHE.equals( cacheStrategy ))
@@ -151,7 +151,7 @@ public class AnalyticsCacheSettings
      */
     private int getProgressiveTtlFactorOrDefault()
     {
-        final Integer ttlFactor = systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
+        Integer ttlFactor = systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
 
         return max( ttlFactor, 1 );
     }
