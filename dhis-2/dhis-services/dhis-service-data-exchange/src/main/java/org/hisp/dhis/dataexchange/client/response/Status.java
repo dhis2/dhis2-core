@@ -27,34 +27,14 @@
  */
 package org.hisp.dhis.dataexchange.client.response;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * DHIS 2 API response.
- *
- * @author Lars Helge Overland
+ * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
+ * support data exchange with various DHIS 2 versions.
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class Dhis2Response
+public enum Status
 {
-    @JsonProperty
-    private Status status;
-
-    @JsonProperty
-    private HttpStatus httpStatus;
-
-    @JsonProperty
-    private ErrorCode errorCode;
-
-    @JsonProperty
-    private String message;
+    OK,
+    SUCCESS,
+    WARNING,
+    ERROR
 }
