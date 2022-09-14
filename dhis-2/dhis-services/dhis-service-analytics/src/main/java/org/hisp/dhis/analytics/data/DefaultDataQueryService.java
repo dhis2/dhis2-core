@@ -320,7 +320,7 @@ public class DefaultDataQueryService
         DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull,
         IdScheme inputIdScheme )
     {
-        final boolean allItems = items.isEmpty();
+        boolean allItems = items.isEmpty();
         User user = currentUserService.getCurrentUser();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
@@ -708,7 +708,7 @@ public class DefaultDataQueryService
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
-        final List<OrganisationUnit> units = new ArrayList<>();
+        List<OrganisationUnit> units = new ArrayList<>();
 
         User currentUser = securityManager.getCurrentUser( params );
 

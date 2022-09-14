@@ -47,7 +47,6 @@ import org.hisp.dhis.common.DateRange;
 
 public abstract class TimeFieldSqlRenderer
 {
-
     public String renderTimeFieldSql( EventQueryParams params )
     {
         StringBuilder sql = new StringBuilder();
