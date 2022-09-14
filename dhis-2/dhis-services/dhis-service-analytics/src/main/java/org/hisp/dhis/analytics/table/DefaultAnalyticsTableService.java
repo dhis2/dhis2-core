@@ -161,6 +161,7 @@ public class DefaultAnalyticsTableService
         {
             progress.startingStage( "Removing updated and deleted data " + tableType );
             tableManager.removeUpdatedData( tables );
+            progress.completedStage( "Completed removal of updated and deleted data" );
             clock.logTime( "Removed updated and deleted data" );
         }
 
