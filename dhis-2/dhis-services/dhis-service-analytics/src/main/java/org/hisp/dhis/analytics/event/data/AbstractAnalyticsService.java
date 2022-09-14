@@ -476,7 +476,7 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            final String itemUid = getItemUid( item );
+            String itemUid = getItemUid( item );
 
             if ( item.hasOptionSet() )
             {

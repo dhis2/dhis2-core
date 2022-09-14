@@ -56,6 +56,13 @@ class SixMonthlyNovemberPeriodTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.SIX_MONTHLY_NOV, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.SIX_MONTHLY_NOV.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );

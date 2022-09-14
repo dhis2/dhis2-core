@@ -70,12 +70,12 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final Collection<TimeField> allowedTimeFields = new HashSet<>( asList( LAST_UPDATED, SCHEDULED_DATE ) );
 
     @Override
-    protected String getSqlConditionForPeriods( final EventQueryParams params )
+    protected String getSqlConditionForPeriods( EventQueryParams params )
     {
-        final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
+        List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
 
-        final Optional<TimeField> timeField = getTimeField( params );
-        final StringBuilder sql = new StringBuilder();
+        Optional<TimeField> timeField = getTimeField( params );
+        StringBuilder sql = new StringBuilder();
 
         if ( timeField.isPresent() && !timeField.get().supportsRawPeriod() )
         {
@@ -87,7 +87,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         }
         else
         {
-            final String alias = getPeriodAlias( params );
+            String alias = getPeriodAlias( params );
 
             sql.append( quote( alias, params.getPeriodType().toLowerCase() ) )
                 .append( OPEN_IN )

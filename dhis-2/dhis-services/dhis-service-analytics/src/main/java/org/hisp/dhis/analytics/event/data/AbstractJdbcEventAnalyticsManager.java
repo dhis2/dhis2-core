@@ -717,9 +717,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param item the {@link QueryItem}
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item )
     {
-        final String colName = item.getItemName();
+        String colName = item.getItemName();
 
         return ColumnAndAlias
             .ofColumnAndAlias(
@@ -736,9 +736,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param suffix the suffix to append to the item id
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item, String suffix )
     {
-        final String colName = item.getItemId() + suffix;
+        String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 

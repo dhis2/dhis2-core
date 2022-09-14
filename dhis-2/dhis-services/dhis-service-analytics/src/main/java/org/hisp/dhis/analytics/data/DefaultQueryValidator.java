@@ -101,10 +101,10 @@ public class DefaultQueryValidator
             throw new IllegalQueryException( ErrorCode.E7100 );
         }
 
-        final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
+        List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
         params.getProgramDataElements()
             .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
-        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
+        List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
             AggregatableDataElementFilter.INSTANCE );
 
         if ( !params.isSkipDataDimensionValidation() )

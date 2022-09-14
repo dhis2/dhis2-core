@@ -223,7 +223,7 @@ public class AnalyticsTable
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());

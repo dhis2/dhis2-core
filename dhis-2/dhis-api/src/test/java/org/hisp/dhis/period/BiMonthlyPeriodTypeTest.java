@@ -56,6 +56,13 @@ class BiMonthlyPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.BI_MONTHLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.BI_MONTHLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         startDate = new DateTime( 2009, 7, 1, 0, 0 );

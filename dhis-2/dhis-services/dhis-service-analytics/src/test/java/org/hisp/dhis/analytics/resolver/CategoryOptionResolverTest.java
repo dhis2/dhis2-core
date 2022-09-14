@@ -59,7 +59,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class CategoryOptionResolverTest
 {
-
     @Mock
     private CategoryOptionStore categoryOptionStore;
 

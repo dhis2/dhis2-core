@@ -988,7 +988,7 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
         }
 
-        sqlBuilder.append( getExternalOrderQuery( params ) );
+        sqlBuilder.append( getOrderQuery( params ) );
 
         return sqlBuilder.toString();
     }
@@ -1069,12 +1069,22 @@ public class JdbcEventStore implements EventStore
             selectBuilder.append( "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
+        if ( isNotEmpty( params.getAttributeOrders() ) )
+        {
+            for ( OrderParam orderParam : params.getAttributeOrders() )
+            {
+                selectBuilder.append( quote( orderParam.getField() ) )
+                    .append( ".value AS " )
+                    .append( orderParam.getField() )
+                    .append( "_value, " );
+            }
+        }
+
         selectBuilder.append(
             "pi.uid as pi_uid, pi.status as pi_status, pi.followup as pi_followup, pi.enrollmentdate as pi_enrollmentdate, pi.incidentdate as pi_incidentdate, " )
             .append( "p.type as p_type, ps.uid as ps_uid, ou.name as ou_name, " )
             .append(
                 "tei.trackedentityinstanceid as tei_id, tei.uid as tei_uid, teiou.uid as tei_ou, teiou.name as tei_ou_name, tei.created as tei_created, tei.inactive as tei_inactive " );
-
         return selectBuilder.append( getFromWhereClause( params, mapSqlParameterSource, organisationUnits, user, hlp,
             dataElementAndFiltersSql( params, mapSqlParameterSource, hlp,
                 selectBuilder ) ) )
@@ -1824,18 +1834,6 @@ public class JdbcEventStore implements EventStore
         return "order by lastUpdated desc ";
     }
 
-    private String getExternalOrderQuery( EventSearchParams params )
-    {
-        if ( isNotEmpty( params.getAttributeOrders() ) )
-        {
-            return "";
-        }
-        else
-        {
-            return getOrderQuery( params );
-        }
-    }
-
     private String getOrderQuery( EventSearchParams params )
     {
         ArrayList<String> orderFields = new ArrayList<>();
@@ -1862,7 +1860,7 @@ public class JdbcEventStore implements EventStore
         {
             for ( OrderParam order : params.getAttributeOrders() )
             {
-                orderFields.add( quote( order.getField() ) + ".value " + order.getDirection() );
+                orderFields.add( order.getField() + "_value " + order.getDirection() );
             }
         }
 
