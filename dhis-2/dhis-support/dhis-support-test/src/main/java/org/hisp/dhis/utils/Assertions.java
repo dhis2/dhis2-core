@@ -109,10 +109,9 @@ public final class Assertions
     /**
      * Asserts that the given collection is not null and empty.
      *
-     * @param <E>
      * @param actual the collection.
      */
-    public static <E> void assertIsEmpty( Collection<E> actual )
+    public static <E> void assertIsEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
         assertTrue( actual.isEmpty(), actual.toString() );
@@ -121,10 +120,9 @@ public final class Assertions
     /**
      * Asserts that the given collection is not null and not empty.
      *
-     * @param <E>
      * @param actual the collection.
      */
-    public static <E> void assertNotEmpty( Collection<E> actual )
+    public static <E> void assertNotEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
         assertFalse( actual.isEmpty(), actual.toString() );
