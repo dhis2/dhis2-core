@@ -438,10 +438,10 @@ public abstract class DhisConvenienceTest
         SourceRequest sourceRequest = new SourceRequest()
             .setName( "RequestA" )
             .setVisualization( "JHKuBWP20RO" )
-            .setDx( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
-            .setPe( List.of( "202201", "202202" ) )
-            .setOu( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
-            .setFilters( List.of(
+            .setDx( Lists.newArrayList( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
+            .setPe( Lists.newArrayList( "202201", "202202" ) )
+            .setOu( Lists.newArrayList( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
+            .setFilters( Lists.newArrayList(
                 new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
                 new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) )
             .setInputIdScheme( IdScheme.UID.name() )
@@ -449,7 +449,7 @@ public abstract class DhisConvenienceTest
 
         Source source = new Source()
             .setParams( sourceParams )
-            .setRequests( List.of( sourceRequest ) );
+            .setRequests( Lists.newArrayList( sourceRequest ) );
 
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
