@@ -59,6 +59,6 @@ public class DataSetMetadataController
     {
         String etag = getEtag( exportService.getDataSetMetadataLastModified() );
 
-        return ResponseEntityUtils.withEtagCaching( request, etag, () -> exportService.getDataSetMetadata() );
+        return ResponseEntityUtils.withEtagCaching( request, etag, exportService::getDataSetMetadata );
     }
 }

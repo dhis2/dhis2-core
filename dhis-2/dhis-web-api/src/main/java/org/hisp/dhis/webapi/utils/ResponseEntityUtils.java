@@ -42,6 +42,10 @@ import org.springframework.web.context.request.WebRequest;
  */
 public class ResponseEntityUtils
 {
+    ResponseEntityUtils()
+    {
+    }
+
     /**
      * Returns a {@link ResponseEntity} for which ETag caching is handled. If
      * the given request and ETag indicates that the requested resource has not
