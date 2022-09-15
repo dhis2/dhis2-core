@@ -27,13 +27,21 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.util.Optional.empty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_FREE_RANGE_SEPARATOR;
+import static org.hisp.dhis.util.DateUtils.safeParseDate;
 
+import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.Period;
 
 @Getter
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
@@ -56,5 +64,36 @@ public class IsoPeriodHolder
     public boolean hasDateField()
     {
         return Objects.nonNull( dateField );
+    }
+
+    /**
+     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> or
+     * <code>YYYY-MM-DD_YYYY-MM-DD</code> format into a {@link Period} of type
+     * {@link DailyPeriodType} with the respective start and end dates properly
+     * set.
+     *
+     * @return the Period object
+     */
+    public Optional<Period> toDailyPeriod()
+    {
+        String[] dates = getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );
+
+        if ( dates.length == 2 )
+        {
+            Date start = safeParseDate( dates[0] );
+            Date end = safeParseDate( dates[1] );
+
+            if ( start != null && end != null )
+            {
+                Period period = new Period();
+                period.setPeriodType( new DailyPeriodType() );
+                period.setStartDate( start );
+                period.setEndDate( end );
+                period.setDateField( getDateField() );
+
+                return Optional.of( period );
+            }
+        }
+        return empty();
     }
 }
