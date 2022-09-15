@@ -56,6 +56,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
@@ -81,6 +84,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         switchToSuperuser();
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( user.getEmail(), "peter@pan.net" );
     }
 
     @Test
@@ -101,13 +107,24 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testUpdatePrevUserCred()
+    void testUpdateValueInLegacyUserCredentials()
     {
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
-            Body( "[{'op': 'add', 'path': '/openId', 'value': 'xxxxxxxxxxxxxx'}]" ) ) );
+            Body( "[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]" ) ) );
 
         User user = userService.getUser( peter.getUid() );
-        assertEquals( user.getOpenId(), "xxxxxxxxxxxxxx" );
+        assertEquals( user.getOpenId(), "mapping value" );
+    }
+
+    @Test
+    void testUpdateOpenIdInLegacyFormat()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( user.getOpenId(), "mapping value" );
+        assertEquals( user.getUserCredentials().getOpenId(), "mapping value" );
     }
 
     @Test
@@ -226,7 +243,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPostJsonObjectInvalidUsername()
+    void testPostJsonObjectInvalidUsernameLegacyFormat()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One or more errors occurred, please see full details in import report.",
@@ -235,6 +252,51 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport report = msg.getResponse()
             .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
         assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPostJsonObjectInvalidUsername()
+    {
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','username':'_Harrys'}" )
+                .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
+        assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPutLegacyFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        String jsonString = "{'openId':'test'}";
+        JsonElement jsonElement = new Gson().fromJson( jsonString, JsonElement.class );
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.add( "userCredentials", jsonElement );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( userAfter.getOpenId(), "test" );
+    }
+
+    @Test
+    void testPutNewFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.addProperty( "openId", "test" );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( userAfter.getOpenId(), "test" );
     }
 
     @Test
@@ -281,11 +343,20 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAIllegalSameUser()
+    void testDisable2FAIllegalSameUserLegacy()
     {
         switchContextToUser( this.peter );
         assertEquals( "You don't have the proper permissions to update this user.",
             PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAIllegalSameUser()
+    {
+        switchContextToUser( this.peter );
+        assertEquals( "You don't have the proper permissions to update this user.",
+            PUT( "/37/users/" + peter.getUid(), "{\"twoFA\":true}" ).error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }
 

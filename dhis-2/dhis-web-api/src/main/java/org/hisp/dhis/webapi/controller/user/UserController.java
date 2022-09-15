@@ -34,8 +34,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
-import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields3Way;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -708,7 +708,14 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        populateUserCredentialsDtoFields( parsed );
+        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
+        if ( users.isEmpty() )
+        {
+            throw new WebMessageException(
+                conflict( getEntityName() + " does not exist: " + pvUid ) );
+        }
+
+        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -798,7 +805,7 @@ public class UserController
     @Override
     protected void prePatchEntity( User oldEntity, User newEntity )
     {
-        populateUserCredentialsDtoFields3Way( oldEntity, newEntity );
+        populateUserCredentialsDtoCopyOnlyChanges( oldEntity, newEntity );
     }
 
     @Override

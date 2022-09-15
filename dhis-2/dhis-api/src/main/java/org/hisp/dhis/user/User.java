@@ -33,7 +33,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,13 +59,11 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -1506,6 +1503,18 @@ public class User
         this.userCredentialsRaw = user;
     }
 
+    /**
+     * Copies the "transient" properties from the old UserCredentials model
+     * (temp. saved in the userCredentialsRaw property). The userCredentialsRaw
+     * only exists if the input JSON contains the old UserCredentials model.
+     *
+     * <p>
+     * The userCredentialsRaw field represent the input JSON version of the
+     * object, not the real data model. This is to make the input format
+     * backward compatible with the old UserCredentials model.
+     *
+     * @param user The user object that is being populated.
+     */
     public static void populateUserCredentialsDtoFields( User user )
     {
         UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
@@ -1522,10 +1531,19 @@ public class User
             {
                 user.setUserRoles( userRoles );
             }
+
+            user.setUserCredentials( null );
         }
     }
 
-    public static void populateUserCredentialsDtoFields3Way( User oldUser, User newUser )
+    /**
+     * Copy only changed properties from the old user to the new user, and then
+     * set the new user's userCredentials to null.
+     *
+     * @param oldUser The user object that is currently in the database
+     * @param newUser The new user object that is being created.
+     */
+    public static void populateUserCredentialsDtoCopyOnlyChanges( User oldUser, User newUser )
     {
         UserCredentialsDto oldCredentialsRaw = oldUser.getUserCredentials();
         UserCredentialsDto newUserCredentialsRaw = newUser.getUserCredentialsRaw();
@@ -1534,10 +1552,10 @@ public class User
         {
             UserCredentialsDto newUserCredentialsCopiedFromBase = newUser.getUserCredentials();
 
-            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsRaw, newUser, "uid", "password", "userRoles",
-                "secret", "previousPasswords" );
-            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser, "uid", "password",
-                "userRoles", "secret", "previousPasswords" );
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsRaw, newUser,
+                "uid", "password", "userRoles", "secret", "previousPasswords" );
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser,
+                "uid", "password", "userRoles", "secret", "previousPasswords" );
 
             if ( newUserCredentialsRaw.getPassword() != null )
             {
@@ -1554,13 +1572,9 @@ public class User
         }
     }
 
-    private static void copyOnlyChangedProperties( Object oldObject, Object source, Object target,
+    private static void copyOnlyChangedProperties( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
         @Nullable String... ignoreProperties )
     {
-        Assert.notNull( oldObject, "Old object must not be null" );
-        Assert.notNull( source, "Source must not be null" );
-        Assert.notNull( target, "Target must not be null" );
-
         List<String> ignoreList = (ignoreProperties != null ? Arrays.asList( ignoreProperties ) : null);
 
         PropertyDescriptor[] targetPds;
@@ -1591,44 +1605,39 @@ public class User
                 Method readMethod = sourcePd.getReadMethod();
                 if ( readMethod != null )
                 {
-                    ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType( readMethod );
-                    ResolvableType targetResolvableType = ResolvableType.forMethodParameter( writeMethod, 0 );
-
-                    boolean isAssignable = (sourceResolvableType.hasUnresolvableGenerics()
-                        || targetResolvableType.hasUnresolvableGenerics()
-                            ? ClassUtils.isAssignable( writeMethod.getParameterTypes()[0], readMethod.getReturnType() )
-                            : targetResolvableType.isAssignableFrom( sourceResolvableType ));
-
-                    if ( isAssignable )
-                    {
-                        try
-                        {
-                            if ( !Modifier.isPublic( readMethod.getDeclaringClass().getModifiers() ) )
-                            {
-                                readMethod.setAccessible( true );
-                            }
-
-                            Object oldValue = readMethod.invoke( oldObject );
-                            Object value = readMethod.invoke( source );
-
-                            if ( !Modifier.isPublic( writeMethod.getDeclaringClass().getModifiers() ) )
-                            {
-                                writeMethod.setAccessible( true );
-                            }
-
-                            if ( value != null && !value.equals( oldValue ) )
-                            {
-                                writeMethod.invoke( target, value );
-                            }
-                        }
-                        catch ( Throwable ex )
-                        {
-                            // do nothing
-                        }
-                    }
+                    compareAndWriteProperty( oldObject, source, target, writeMethod, readMethod );
                 }
             }
         }
     }
 
+    private static void compareAndWriteProperty( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
+        Method writeMethod, Method readMethod )
+    {
+        ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType( readMethod );
+        ResolvableType targetResolvableType = ResolvableType.forMethodParameter( writeMethod, 0 );
+
+        boolean isAssignable = (sourceResolvableType.hasUnresolvableGenerics()
+            || targetResolvableType.hasUnresolvableGenerics()
+                ? ClassUtils.isAssignable( writeMethod.getParameterTypes()[0], readMethod.getReturnType() )
+                : targetResolvableType.isAssignableFrom( sourceResolvableType ));
+
+        if ( isAssignable )
+        {
+            try
+            {
+                Object oldValue = readMethod.invoke( oldObject );
+                Object value = readMethod.invoke( source );
+
+                if ( value != null && !value.equals( oldValue ) )
+                {
+                    writeMethod.invoke( target, value );
+                }
+            }
+            catch ( Exception ex )
+            {
+                // do nothing
+            }
+        }
+    }
 }
