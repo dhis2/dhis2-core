@@ -181,28 +181,16 @@ class EventRequestToSearchParamsMapper
         }
 
         Set<String> eventIds = eventCriteria.getEvents();
-        Set<String> filters = eventCriteria.getFilter();
-        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
-        {
-            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
-        }
+        validateFilter( eventIds, eventCriteria.getFilter(), programStage, ps );
+
         if ( eventIds == null )
         {
             eventIds = new HashSet<>();
         }
 
-        if ( filters != null )
+        for ( String filter : eventCriteria.getFilter() )
         {
-            if ( !StringUtils.isEmpty( programStage ) && ps == null )
-            {
-                throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
-            }
-
-            for ( String filter : filters )
-            {
-                QueryItem item = getQueryItem( filter );
-                params.getFilters().add( item );
-            }
+            params.addFilter( getQueryItem( filter ) );
         }
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
@@ -275,17 +263,12 @@ class EventRequestToSearchParamsMapper
     private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams,
         List<OrderParam> attributeOrderParams )
     {
-
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
-            .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-        if ( eventCriteria.getFilterAttributes() != null )
+            .stream()
+            .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+        for ( String filter : eventCriteria.getFilterAttributes() )
         {
-            for ( String filter : eventCriteria.getFilterAttributes() )
-            {
-                QueryItem it = getQueryItem( filter, attributes );
-
-                searchParams.getFilterAttributes().add( it );
-            }
+            searchParams.addFilterAttributes( getQueryItem( filter, attributes ) );
         }
         addAttributeQueryItemsFromOrder( searchParams, attributes, attributeOrderParams );
 
@@ -303,7 +286,7 @@ class EventRequestToSearchParamsMapper
             .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
             .collect( Collectors.toList() );
 
-        searchParams.getFilterAttributes().addAll( orderQueryItems );
+        searchParams.addFilterAttributes( orderQueryItems );
     }
 
     private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
@@ -340,17 +323,18 @@ class EventRequestToSearchParamsMapper
 
     private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
     {
-        Map<String, SortDirection> dataElements = new HashMap<>();
-
-        if ( allOrders != null )
+        if ( allOrders == null )
         {
-            for ( OrderCriteria orderCriteria : allOrders )
+            return Collections.emptyMap();
+        }
+
+        Map<String, SortDirection> dataElements = new HashMap<>();
+        for ( OrderCriteria orderCriteria : allOrders )
+        {
+            DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
+            if ( de != null )
             {
-                DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
-                if ( de != null )
-                {
-                    dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
-                }
+                dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
             }
         }
         return dataElements;
@@ -358,18 +342,19 @@ class EventRequestToSearchParamsMapper
 
     private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
     {
-        Map<String, SortDirection> attributes = new HashMap<>();
-
-        if ( allOrders != null )
+        if ( allOrders == null )
         {
-            for ( OrderCriteria orderCriteria : allOrders )
+            return Collections.emptyMap();
+        }
+
+        Map<String, SortDirection> attributes = new HashMap<>();
+        for ( OrderCriteria orderCriteria : allOrders )
+        {
+            TrackedEntityAttribute attribute = trackedEntityAttributeService
+                .getTrackedEntityAttribute( orderCriteria.getField() );
+            if ( attribute != null )
             {
-                TrackedEntityAttribute attribute = trackedEntityAttributeService
-                    .getTrackedEntityAttribute( orderCriteria.getField() );
-                if ( attribute != null )
-                {
-                    attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
-                }
+                attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
             }
         }
         return attributes;
@@ -446,7 +431,6 @@ class EventRequestToSearchParamsMapper
         }
 
         TrackedEntityAttribute at = attributes.get( item );
-
         if ( at == null )
         {
             throw new IllegalQueryException( "Attribute does not exist: " + item );
@@ -499,4 +483,18 @@ class EventRequestToSearchParamsMapper
                 dataElementOrders.get( orderCriteria.getField() ) ) )
             .collect( Collectors.toList() );
     }
+
+    private static void validateFilter( Set<String> eventIds, Set<String> filters, String programStage,
+        ProgramStage ps )
+    {
+        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
+        {
+            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
+        }
+        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
+        {
+            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
+        }
+    }
+
 }
