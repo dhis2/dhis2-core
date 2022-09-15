@@ -86,7 +86,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
 
         User user = userService.getUser( peter.getUid() );
-        assertEquals( user.getEmail(), "peter@pan.net" );
+        assertEquals( "peter@pan.net", user.getEmail() );
     }
 
     @Test
@@ -113,7 +113,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body( "[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]" ) ) );
 
         User user = userService.getUser( peter.getUid() );
-        assertEquals( user.getOpenId(), "mapping value" );
+        assertEquals( "mapping value", user.getOpenId() );
     }
 
     @Test
@@ -123,8 +123,8 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body( "[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]" ) ) );
 
         User user = userService.getUser( peter.getUid() );
-        assertEquals( user.getOpenId(), "mapping value" );
-        assertEquals( user.getUserCredentials().getOpenId(), "mapping value" );
+        assertEquals( "mapping value", user.getOpenId() );
+        assertEquals( "mapping value", user.getUserCredentials().getOpenId() );
     }
 
     @Test
@@ -281,7 +281,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
 
         User userAfter = userService.getUser( peter.getUid() );
-        assertEquals( userAfter.getOpenId(), "test" );
+        assertEquals( "test", userAfter.getOpenId() );
     }
 
     @Test
@@ -296,7 +296,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
 
         User userAfter = userService.getUser( peter.getUid() );
-        assertEquals( userAfter.getOpenId(), "test" );
+        assertEquals( "test", userAfter.getOpenId() );
     }
 
     @Test
