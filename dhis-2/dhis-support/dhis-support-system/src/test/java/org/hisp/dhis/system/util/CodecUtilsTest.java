@@ -25,35 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.system.util;
 
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.jupiter.api.Test;
 
-/**
- * Service responsible for retrieving metadata associated with data sets. The
- * object response is suitable for applications for data capture and form
- * rendering. This is a specialized service which related to the general
- * {@link MetadataExportService}.
- *
- * @author Lars Helge Overland
- */
-public interface DataSetMetadataExportService
+class CodecUtilsTest
 {
-    /**
-     * Retrieves metadata for data sets for which the current user has data
-     * write access together with other relevant entities such as data elements,
-     * category combinations, categories and category options.
-     *
-     * @return an {@link ObjectNode}.
-     */
-    ObjectNode getDataSetMetadata();
+    @Test
+    void testMd5Hex()
+    {
+        String value = "10-05-2022T12:55:45";
 
-    /**
-     * Returns the time of last modification for the data set metadata.
-     *
-     * @return a {@link Date}, never null.
-     */
-    public Date getDataSetMetadataLastModified();
+        assertNull( CodecUtils.md5Hex( null ) );
+        assertEquals( 32, CodecUtils.md5Hex( value ).length() );
+        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
+    }
 }
