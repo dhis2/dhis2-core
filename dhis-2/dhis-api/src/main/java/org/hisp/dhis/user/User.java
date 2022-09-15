@@ -60,7 +60,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
-import org.springframework.beans.FatalBeanException;
+
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
@@ -1528,16 +1528,15 @@ public class User
     public static void populateUserCredentialsDtoFields3Way( User oldUser, User newUser )
     {
         UserCredentialsDto oldCredentialsRaw = oldUser.getUserCredentials();
-
         UserCredentialsDto newUserCredentialsRaw = newUser.getUserCredentialsRaw();
 
         if ( newUserCredentialsRaw != null )
         {
             UserCredentialsDto newUserCredentialsCopiedFromBase = newUser.getUserCredentials();
 
-            copyProperties3way( oldCredentialsRaw, newUserCredentialsRaw, newUser, "uid", "password", "userRoles",
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsRaw, newUser, "uid", "password", "userRoles",
                 "secret", "previousPasswords" );
-            copyProperties3way( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser, "uid", "password",
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser, "uid", "password",
                 "userRoles", "secret", "previousPasswords" );
 
             if ( newUserCredentialsRaw.getPassword() != null )
@@ -1555,7 +1554,7 @@ public class User
         }
     }
 
-    private static void copyProperties3way( Object oldObject, Object source, Object target,
+    private static void copyOnlyChangedProperties( Object oldObject, Object source, Object target,
         @Nullable String... ignoreProperties )
     {
         Assert.notNull( oldObject, "Old object must not be null" );
@@ -1564,14 +1563,14 @@ public class User
 
         List<String> ignoreList = (ignoreProperties != null ? Arrays.asList( ignoreProperties ) : null);
 
-        PropertyDescriptor[] targetPds = new PropertyDescriptor[0];
+        PropertyDescriptor[] targetPds;
         try
         {
             targetPds = Introspector.getBeanInfo( target.getClass() ).getPropertyDescriptors();
         }
         catch ( IntrospectionException e )
         {
-            throw new RuntimeException( e );
+            return;
         }
 
         for ( PropertyDescriptor targetPd : targetPds )
@@ -1579,7 +1578,7 @@ public class User
             Method writeMethod = targetPd.getWriteMethod();
             if ( writeMethod != null && (ignoreList == null || !ignoreList.contains( targetPd.getName() )) )
             {
-                PropertyDescriptor sourcePd = null;
+                PropertyDescriptor sourcePd;
                 try
                 {
                     sourcePd = new PropertyDescriptor( targetPd.getName(), source.getClass() );
@@ -1588,14 +1587,13 @@ public class User
                 {
                     continue;
                 }
+
                 Method readMethod = sourcePd.getReadMethod();
                 if ( readMethod != null )
                 {
                     ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType( readMethod );
                     ResolvableType targetResolvableType = ResolvableType.forMethodParameter( writeMethod, 0 );
 
-                    // Ignore generic types in assignable check if either
-                    // ResolvableType has unresolvable generics.
                     boolean isAssignable = (sourceResolvableType.hasUnresolvableGenerics()
                         || targetResolvableType.hasUnresolvableGenerics()
                             ? ClassUtils.isAssignable( writeMethod.getParameterTypes()[0], readMethod.getReturnType() )
@@ -1609,6 +1607,7 @@ public class User
                             {
                                 readMethod.setAccessible( true );
                             }
+
                             Object oldValue = readMethod.invoke( oldObject );
                             Object value = readMethod.invoke( source );
 
@@ -1624,8 +1623,7 @@ public class User
                         }
                         catch ( Throwable ex )
                         {
-                            throw new FatalBeanException(
-                                "Could not copy property '" + targetPd.getName() + "' from source to target", ex );
+                            // do nothing
                         }
                     }
                 }
