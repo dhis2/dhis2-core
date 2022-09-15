@@ -109,7 +109,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 class AbstractJdbcEventAnalyticsManagerTest extends
     EventAnalyticsTest
 {
-
     @Mock
     private JdbcTemplate jdbcTemplate;
 
@@ -341,7 +340,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withSkipMeta( false )
             .build();
 
-        final List<String> columns = this.subject.getSelectColumns( params, false );
+        List<String> columns = this.subject.getSelectColumns( params, false );
 
         // Then
 
@@ -381,7 +380,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withCoordinatesOnly( true )
             .build();
 
-        final String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.subject.getWhereClause( params );
 
         // Then
         assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
@@ -391,16 +390,16 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
         // Given
-        final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
             DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
 
-        final DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
             newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ),
                 createOrganisationUnit( 'C' ) ) );
 
-        final EventQueryParams params = new EventQueryParams.Builder()
+        EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )
             .addDimension( multipleOrgUnitsSameLevel )
             .withSkipData( true )
@@ -410,7 +409,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .build();
 
         // When
-        final String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.subject.getWhereClause( params );
 
         // Then
         assertThat( whereClause,

@@ -34,14 +34,9 @@ import static java.util.Calendar.getInstance;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_10_MINUTES;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_15_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_HOUR;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_30_MINUTES;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_5_MINUTES;
 import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_6AM_TOMORROW;
-import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
@@ -51,8 +46,11 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.utils.Assertions.assertWithinRange;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
 import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -61,10 +59,12 @@ import java.util.Calendar;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +75,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
  */
 class ContextUtilsTest extends DhisWebSpringTest
 {
-
     @Autowired
     private ContextUtils contextUtils;
 
@@ -90,6 +89,12 @@ class ContextUtilsTest extends DhisWebSpringTest
         response = new MockHttpServletResponse();
     }
 
+    @AfterEach
+    void afterEach()
+    {
+        response.reset();
+    }
+
     @Test
     void testConfigureResponseReturnsCorrectTypeAndNumberOfHeaders()
     {
@@ -101,38 +106,45 @@ class ContextUtilsTest extends DhisWebSpringTest
     }
 
     @Test
-    void testConfigureResponseReturnsCorrectHeaderValueForAllCacheStrategies()
+    void testConfigureResponseReturnsConfiguredNoCacheStrategy()
     {
         contextUtils.configureResponse( response, null, NO_CACHE, null, false );
+
         assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
-        response.reset();
+    }
+
+    @Test
+    void testConfigureResponseReturnsConfiguredCacheStrategy()
+    {
         contextUtils.configureResponse( response, null, CACHE_1_MINUTE, null, false );
+
         assertEquals( "max-age=60, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_5_MINUTES, null, false );
-        assertEquals( "max-age=300, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_10_MINUTES, null, false );
-        assertEquals( "max-age=600, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_15_MINUTES, null, false );
-        assertEquals( "max-age=900, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_30_MINUTES, null, false );
-        assertEquals( "max-age=1800, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
-        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
-        contextUtils.configureResponse( response, null, CACHE_TWO_WEEKS, null, false );
-        assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
-        response.reset();
+    }
+
+    @Test
+    void testConfigureResponseReturnsConfiguredCacheStrategy6AMTomorrow()
+    {
         contextUtils.configureResponse( response, null, CACHE_6AM_TOMORROW, null, false );
-        assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
-        response.reset();
+
+        String header = response.getHeader( "Cache-Control" );
+        assertAll(
+            () -> assertStartsWith( "max-age", header ),
+            () -> {
+                long maxAgeSeconds = Long.parseLong( StringUtils.getDigits( header ) );
+                Long expected = CACHE_6AM_TOMORROW.toSeconds();
+                long delta = 60; // 1 minute
+                assertWithinRange( expected - delta, expected + delta, maxAgeSeconds );
+            } );
+    }
+
+    @Test
+    void testConfigureResponseRespectsCacheStrategyInSystemSetting()
+    {
         systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
             getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+
         contextUtils.configureResponse( response, null, RESPECT_SYSTEM_SETTING, null, false );
+
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
 
