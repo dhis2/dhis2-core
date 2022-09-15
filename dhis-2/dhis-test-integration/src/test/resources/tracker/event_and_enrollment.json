@@ -52,6 +52,14 @@
           "valueType": "TEXT",
           "attribute": {
             "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
             "identifier": "toUpdate000"
           },
           "value": "summer day"
@@ -76,6 +84,14 @@
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
         {
           "valueType": "TEXT",
           "attribute": {
