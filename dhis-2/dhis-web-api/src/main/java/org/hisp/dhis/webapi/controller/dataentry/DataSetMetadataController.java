@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
+
+import java.util.Date;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -53,6 +57,11 @@ public class DataSetMetadataController
     @GetMapping( "/metadata" )
     public ResponseEntity<JsonNode> getMetadata()
     {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
+        Date lastModified = exportService.getDataSetMetadataLastModified();
+
+        return ResponseEntity.ok()
+            .eTag( getEtag( lastModified ) )
+            .lastModified( lastModified.toInstant() )
+            .body( exportService.getDataSetMetadata() );
     }
 }

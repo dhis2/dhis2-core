@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
@@ -322,6 +323,18 @@ public class ContextUtils
         }
 
         return String.format( "%s-%s", DateUtils.getLongDateString( date ), user.getUid() );
+    }
+
+    /**
+     * Returns an ETag which identifies the current version of the data set
+     * metadata response. The ETag is based on the given last modified date, and
+     * is returned as 32 character string representation of a MD5 hash.
+     *
+     * @return an ETag string.
+     */
+    public static String getEtag( Date lastModified )
+    {
+        return CodecUtils.md5Hex( DateUtils.getLongDateString( lastModified ) );
     }
 
     /**
