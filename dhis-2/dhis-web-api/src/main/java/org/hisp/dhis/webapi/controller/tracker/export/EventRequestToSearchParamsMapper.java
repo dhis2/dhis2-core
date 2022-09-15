@@ -68,7 +68,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -127,8 +126,6 @@ class EventRequestToSearchParamsMapper
 
     public EventSearchParams map( TrackerEventCriteria eventCriteria )
     {
-        EventSearchParams params = new EventSearchParams();
-
         String program = eventCriteria.getProgram();
         Program pr = programService.getProgram( program );
         if ( !StringUtils.isEmpty( program ) && pr == null )
@@ -150,37 +147,14 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
 
-        User user = currentUserService.getCurrentUser();
-        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
-        {
-            throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
-        }
-
-        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
-        {
-            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
-        }
-
-        String trackedEntityInstance = eventCriteria.getTrackedEntity();
-        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
-        if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
-        {
-            throw new IllegalQueryException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
-        }
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getAttributeCc(),
-            eventCriteria.getAttributeCos(),
-            true );
-        if ( attributeOptionCombo != null && !user.isSuper()
-            && !aclService.canDataRead( user, attributeOptionCombo ) )
-        {
-            throw new IllegalQueryException(
-                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-        }
-
+        User user = validateUser( pr, ps );
+        validateTrackedEntity( eventCriteria );
+        CategoryOptionCombo attributeOptionCombo = validateAttributeOptionCombo( eventCriteria, user );
         validateFilter( eventCriteria.getEvents(), eventCriteria.getFilter(), programStage, ps );
+        validateAssignedUsers( eventCriteria.getAssignedUserMode(), eventCriteria.getAssignedUsers() );
+
+        EventSearchParams params = new EventSearchParams();
+
         for ( String filter : eventCriteria.getFilter() )
         {
             params.addFilter( getQueryItem( filter ) );
@@ -203,8 +177,6 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        validateAssignedUsers( eventCriteria.getAssignedUserMode(), eventCriteria.getAssignedUsers() );
-
         Set<String> programInstances = eventCriteria.getEnrollments();
         if ( programInstances != null )
         {
@@ -213,7 +185,9 @@ class EventRequestToSearchParamsMapper
                 .collect( Collectors.toSet() );
         }
 
-        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
+        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou )
+            .setTrackedEntityInstance(
+                entityInstanceService.getTrackedEntityInstance( eventCriteria.getTrackedEntity() ) )
             .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
             .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
             .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
@@ -462,6 +436,47 @@ class EventRequestToSearchParamsMapper
                 orderCriteria.getField(),
                 dataElementOrders.get( orderCriteria.getField() ) ) )
             .collect( Collectors.toList() );
+    }
+
+    private User validateUser( Program pr, ProgramStage ps )
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
+        {
+            throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
+        }
+
+        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
+        {
+            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
+        }
+        return user;
+    }
+
+    private void validateTrackedEntity( TrackerEventCriteria eventCriteria )
+    {
+        String trackedEntity = eventCriteria.getTrackedEntity();
+        if ( !StringUtils.isEmpty( trackedEntity )
+            && entityInstanceService.getTrackedEntityInstance( trackedEntity ) == null )
+        {
+            throw new IllegalQueryException(
+                "Tracked entity instance is specified but does not exist: " + trackedEntity );
+        }
+    }
+
+    private CategoryOptionCombo validateAttributeOptionCombo( TrackerEventCriteria eventCriteria, User user )
+    {
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            eventCriteria.getAttributeCc(),
+            eventCriteria.getAttributeCos(),
+            true );
+        if ( attributeOptionCombo != null && !user.isSuper()
+            && !aclService.canDataRead( user, attributeOptionCombo ) )
+        {
+            throw new IllegalQueryException(
+                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
+        }
+        return attributeOptionCombo;
     }
 
     private static void validateFilter( Set<String> eventIds, Set<String> filters, String programStage,
