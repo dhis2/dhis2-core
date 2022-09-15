@@ -104,6 +104,8 @@ public class MetadataExportParams
      */
     private boolean skipSharing;
 
+    private IdentifiableObject objectExportWithDependencies;
+
     public MetadataExportParams()
     {
     }
@@ -245,5 +247,20 @@ public class MetadataExportParams
     public boolean getSkipSharing()
     {
         return this.skipSharing;
+    }
+
+    public boolean isExportWithDependencies()
+    {
+        return objectExportWithDependencies != null;
+    }
+
+    public IdentifiableObject getObjectExportWithDependencies()
+    {
+        return objectExportWithDependencies;
+    }
+
+    public void setObjectExportWithDependencies( IdentifiableObject object )
+    {
+        this.objectExportWithDependencies = object;
     }
 }
