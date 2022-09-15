@@ -51,6 +51,9 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -96,6 +99,27 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
         assertEquals( "user_does_not_have_valid_email",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
+    }
+
+    @Test
+    void testUpdateValueInLegacyUserCredentials()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( "mapping value", user.getOpenId() );
+    }
+
+    @Test
+    void testUpdateOpenIdInLegacyFormat()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( "mapping value", user.getOpenId() );
+        assertEquals( "mapping value", user.getUserCredentials().getOpenId() );
     }
 
     @Test
@@ -203,7 +227,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPostJsonObjectInvalidUsername()
+    void testPostJsonObjectInvalidUsernameLegacyFormat()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One or more errors occurred, please see full details in import report.",
@@ -212,6 +236,51 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport report = msg.getResponse()
             .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
         assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPostJsonObjectInvalidUsername()
+    {
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','username':'_Harrys'}" )
+                .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
+        assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPutLegacyFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        String jsonString = "{'openId':'test'}";
+        JsonElement jsonElement = new Gson().fromJson( jsonString, JsonElement.class );
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.add( "userCredentials", jsonElement );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( "test", userAfter.getOpenId() );
+    }
+
+    @Test
+    void testPutNewFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.addProperty( "openId", "test" );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( "test", userAfter.getOpenId() );
     }
 
     @Test

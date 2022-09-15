@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -656,7 +657,14 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        populateUserCredentialsDtoFields( parsed );
+        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
+        if ( users.isEmpty() )
+        {
+            throw new WebMessageException(
+                conflict( getEntityName() + " does not exist: " + pvUid ) );
+        }
+
+        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -729,9 +737,6 @@ public class UserController
     {
         User user = userService.getUser( pvUid );
 
-        // current user may have been changed and detached and must become
-        // managed again
-        // TODO: what is this doing? I don't understand how this is possible.
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
             currentUser = currentUserService.getCurrentUser();
@@ -745,7 +750,6 @@ public class UserController
     // -------------------------------------------------------------------------
     // PATCH
     // -------------------------------------------------------------------------
-
     @Override
     protected void prePatchEntity( User entity )
         throws Exception
@@ -758,6 +762,12 @@ public class UserController
             throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
+    }
+
+    @Override
+    protected void prePatchEntity( User oldEntity, User newEntity )
+    {
+        populateUserCredentialsDtoCopyOnlyChanges( oldEntity, newEntity );
     }
 
     @Override
