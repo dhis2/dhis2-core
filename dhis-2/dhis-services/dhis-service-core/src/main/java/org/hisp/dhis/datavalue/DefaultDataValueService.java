@@ -35,6 +35,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -181,11 +182,12 @@ public class DefaultDataValueService
         {
             dataValue.setLastUpdated( new Date() );
 
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
-                dataValue.getStoredBy(), AuditType.UPDATE );
-
-            if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
+            if ( config.isEnabled( CHANGELOG_AGGREGATE )
+                && !Objects.equals( dataValue.getAuditValue(), dataValue.getValue() ) )
             {
+                DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                    dataValue.getStoredBy(), AuditType.UPDATE );
+
                 dataValueAuditService.addDataValueAudit( dataValueAudit );
             }
 
