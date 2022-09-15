@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 
@@ -45,6 +46,15 @@ class ContextUtilsTest
         user.setUid( "kYt56BgfED2" );
 
         assertEquals( "2022-03-10T00:00:00-kYt56BgfED2", ContextUtils.getEtag( date, user ) );
+    }
+
+    @Test
+    void testGetEtagLastModified()
+    {
+        Date lastModified = getDate( 2022, 03, 10 );
+
+        assertNull( ContextUtils.getEtag( null ) );
+        assertEquals( "ec670ab43e9210e3a25a3bd6430f84df", ContextUtils.getEtag( lastModified ) );
     }
 
     @Test

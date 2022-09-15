@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Date;
+import org.junit.jupiter.api.Test;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
- */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange
+class CodecUtilsTest
 {
-    private Date startDate;
-
-    private Date endDate;
-
-    public Date getEndDatePlusOneDay()
+    @Test
+    void testMd5Hex()
     {
-        return plusOneDay( endDate );
-    }
+        String value = "10-05-2022T12:55:45";
 
-    public String toString()
-    {
-        return String.format( "%s-%s", startDate, endDate );
+        assertNull( CodecUtils.md5Hex( null ) );
+        assertEquals( 32, CodecUtils.md5Hex( value ).length() );
+        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
     }
 }
