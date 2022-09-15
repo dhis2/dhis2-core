@@ -115,9 +115,9 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Boolean skipEventId;
 
-    private Set<String> filter;
+    private Set<String> filter = new HashSet<>();
 
-    private Set<String> filterAttributes;
+    private Set<String> filterAttributes = new HashSet<>();
 
     private Set<String> enrollments;
 
