@@ -393,30 +393,30 @@ class DateUtilsTest
         Date date = parseDate( "20031202" );
         assertNotNull( date );
         LocalDate localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2003 );
-        assertEquals( localDate.getMonthValue(), 12 );
-        assertEquals( localDate.getDayOfMonth(), 02 );
+        assertEquals( 2003, localDate.getYear() );
+        assertEquals( 12, localDate.getMonthValue() );
+        assertEquals( 02, localDate.getDayOfMonth() );
 
         // Assert yyyy-MM-dd format
         date = parseDate( "2005-10-12" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2005 );
-        assertEquals( localDate.getMonthValue(), 10 );
-        assertEquals( localDate.getDayOfMonth(), 12 );
+        assertEquals( 2005, localDate.getYear() );
+        assertEquals( 10, localDate.getMonthValue() );
+        assertEquals( 12, localDate.getDayOfMonth() );
 
         // Assert yyyy-MM format
         date = parseDate( "2022-05" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2022 );
-        assertEquals( localDate.getMonthValue(), 5 );
+        assertEquals( 2022, localDate.getYear() );
+        assertEquals( 5, localDate.getMonthValue() );
 
         // Assert yyyy format
         date = parseDate( "2023" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2023 );
+        assertEquals( 2023, localDate.getYear() );
     }
 
     @Test
@@ -439,30 +439,30 @@ class DateUtilsTest
         Date date = safeParseDate( "20031202" );
         assertNotNull( date );
         LocalDate localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2003 );
-        assertEquals( localDate.getMonthValue(), 12 );
-        assertEquals( localDate.getDayOfMonth(), 02 );
+        assertEquals( 2003, localDate.getYear() );
+        assertEquals( 12, localDate.getMonthValue() );
+        assertEquals( 2, localDate.getDayOfMonth() );
 
         // Assert yyyy-MM-dd format
         date = safeParseDate( "2005-10-12" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2005 );
-        assertEquals( localDate.getMonthValue(), 10 );
-        assertEquals( localDate.getDayOfMonth(), 12 );
+        assertEquals( 2005, localDate.getYear() );
+        assertEquals( 10, localDate.getMonthValue() );
+        assertEquals( 12, localDate.getDayOfMonth() );
 
         // Assert yyyy-MM format
         date = safeParseDate( "2022-05" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2022 );
-        assertEquals( localDate.getMonthValue(), 5 );
+        assertEquals( 2022, localDate.getYear() );
+        assertEquals( 5, localDate.getMonthValue() );
 
         // Assert yyyy format
         date = safeParseDate( "2023" );
         assertNotNull( date );
         localDate = date.toInstant().atZone( ZoneId.systemDefault() ).toLocalDate();
-        assertEquals( localDate.getYear(), 2023 );
+        assertEquals( 2023, localDate.getYear() );
 
         // Assert yyyy-MMM-dd INVALID format
         date = safeParseDate( "2025-110-12" );
