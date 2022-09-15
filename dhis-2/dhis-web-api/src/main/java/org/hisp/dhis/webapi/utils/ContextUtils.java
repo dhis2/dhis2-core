@@ -309,20 +309,20 @@ public class ContextUtils
     }
 
     /**
-     * Returns a suitable ETag based on the given date and user.
+     * Returns a suitable ETag based on the given last modified date and user.
      *
-     * @param date the {@link Date}.
+     * @param lastModified the last modified {@link Date}.
      * @param user the {@link User}.
      * @return an ETag string.
      */
-    public static String getEtag( Date date, User user )
+    public static String getEtag( Date lastModified, User user )
     {
-        if ( date == null || user == null )
+        if ( lastModified == null || user == null )
         {
             return null;
         }
 
-        return String.format( "%s-%s", DateUtils.getLongDateString( date ), user.getUid() );
+        return String.format( "%s-%s", DateUtils.getLongDateString( lastModified ), user.getUid() );
     }
 
     /**
