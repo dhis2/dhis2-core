@@ -113,8 +113,7 @@ public class ResponseEntityUtils
      */
     private static String stripHeaderValue( String value )
     {
-        value = trim( value );
-        value = removeStart( value, "W\\/" );
+        value = removeStart( trim( value ), "W\\/" );
         value = strip( value, "\"" );
         return value;
     }
