@@ -59,9 +59,9 @@ public class BiMonthlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.BI_MONTHLY;
     }
 
     @Override

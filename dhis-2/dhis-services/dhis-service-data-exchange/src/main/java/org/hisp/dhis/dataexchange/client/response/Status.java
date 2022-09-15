@@ -25,24 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.dataexchange.client.response;
 
 /**
- * @author Kristian Wærstad
+ * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
+ * support data exchange with various DHIS 2 versions.
  */
-public class BiWeeklyPeriodType
-    extends BiWeeklyAbstractPeriodType
+public enum Status
 {
-    public static final String NAME = "BiWeekly";
-
-    public BiWeeklyPeriodType()
-    {
-        super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
-    }
-
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.BI_WEEKLY;
-    }
+    OK,
+    SUCCESS,
+    WARNING,
+    ERROR
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -981,6 +982,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
         assertNotNull( aeA );
         assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getSource().getParams() );
+        assertNotEmpty( aeA.getSource().getParams().getPeriodTypes() );
         assertNotNull( aeA.getSource().getRequests() );
         SourceRequest srA = aeA.getSource().getRequests().get( 0 );
         assertNotNull( srA );
@@ -993,6 +996,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
         assertNotNull( aeB );
         assertNotNull( aeB.getSource() );
+        assertNotNull( aeB.getSource().getParams() );
+        assertNotEmpty( aeB.getSource().getParams().getPeriodTypes() );
         assertNotNull( aeB.getSource().getRequests() );
         SourceRequest srB = aeA.getSource().getRequests().get( 0 );
         assertNotNull( srB );
@@ -1008,6 +1013,8 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
         assertNotNull( aeC );
         assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getSource().getParams() );
+        assertNotEmpty( aeC.getSource().getParams().getPeriodTypes() );
         assertNotNull( aeC.getSource().getRequests() );
         SourceRequest srC = aeA.getSource().getRequests().get( 0 );
         assertNotNull( srC );

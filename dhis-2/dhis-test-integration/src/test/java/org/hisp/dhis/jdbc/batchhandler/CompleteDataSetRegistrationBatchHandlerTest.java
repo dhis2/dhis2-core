@@ -43,10 +43,10 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -112,7 +112,7 @@ class CompleteDataSetRegistrationBatchHandlerTest extends IntegrationTestBase
     public void setUpTest()
     {
         batchHandler = batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class );
-        periodTypeA = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        periodTypeA = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
         dataSetA = createDataSet( 'A', periodTypeA );
         idObjectManager.save( dataSetA );
         periodA = createPeriod( periodTypeA, getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );

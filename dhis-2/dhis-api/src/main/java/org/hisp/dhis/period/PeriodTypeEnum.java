@@ -25,83 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.period;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.RequiredArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class SourceRequest
-    implements Serializable
+@RequiredArgsConstructor
+public enum PeriodTypeEnum
 {
-    /**
-     * Name of source request, max 50 characters.
-     */
-    @JsonProperty
-    private String name;
+    BI_MONTHLY( "BiMonthly" ),
+    BI_WEEKLY( "BiWeekly" ),
+    DAILY( "Daily" ),
+    FINANCIAL_APRIL( "FinancialApril" ),
+    FINANCIAL_JULY( "FinancialJuly" ),
+    FINANCIAL_NOV( "FinancialNov" ),
+    FINANCIAL_OCT( "FinancialOct" ),
+    MONTHLY( "Monthly" ),
+    QUARTERLY( "Quarterly" ),
+    SIX_MONTHLY_APRIL( "SixMonthlyApril" ),
+    SIX_MONTHLY_NOV( "SixMonthlyNov" ),
+    SIX_MONTHLY( "SixMonthly" ),
+    TWO_YEARLY( "TwoYearly" ),
+    WEEKLY( "Weekly" ),
+    WEEKLY_SATURDAY( "WeeklySaturday" ),
+    WEEKLY_SUNDAY( "WeeklySunday" ),
+    WEEKLY_THURSDAY( "WeeklyThursday" ),
+    WEEKLY_WEDNESDAY( "WeeklyWednesday" ),
+    YEARLY( "Yearly" );
 
-    /**
-     * Optional UID reference to a visualization.
-     */
-    @JsonProperty
-    private String visualization;
-
-    /**
-     * Data dimension item identifiers.
-     */
-    @JsonProperty
-    private List<String> dx = new ArrayList<>();
-
-    /**
-     * ISO period identifiers.
-     */
-    @JsonProperty
-    private List<String> pe = new ArrayList<>();
-
-    /**
-     * Org unit identifiers.
-     */
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
-
-    /**
-     * Request filters.
-     */
-    @JsonProperty
-    private List<Filter> filters = new ArrayList<>();
-
-    /**
-     * Input identifier scheme.
-     */
-    @JsonProperty
-    private String inputIdScheme;
-
-    /**
-     * Output data element identifier scheme.
-     */
-    @JsonProperty
-    private String outputDataElementIdScheme;
-
-    /**
-     * Output org unit identifier scheme.
-     */
-    @JsonProperty
-    private String outputOrgUnitIdScheme;
-
-    /**
-     * Output identifier scheme.
-     */
-    @JsonProperty
-    private String outputIdScheme;
+    @Getter
+    private final String name;
 }

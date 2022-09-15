@@ -25,83 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
+package org.hisp.dhis.calendar;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class SourceRequest
-    implements Serializable
+class DateUnitTypeTest
 {
-    /**
-     * Name of source request, max 50 characters.
-     */
-    @JsonProperty
-    private String name;
-
-    /**
-     * Optional UID reference to a visualization.
-     */
-    @JsonProperty
-    private String visualization;
-
-    /**
-     * Data dimension item identifiers.
-     */
-    @JsonProperty
-    private List<String> dx = new ArrayList<>();
-
-    /**
-     * ISO period identifiers.
-     */
-    @JsonProperty
-    private List<String> pe = new ArrayList<>();
-
-    /**
-     * Org unit identifiers.
-     */
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
-
-    /**
-     * Request filters.
-     */
-    @JsonProperty
-    private List<Filter> filters = new ArrayList<>();
-
-    /**
-     * Input identifier scheme.
-     */
-    @JsonProperty
-    private String inputIdScheme;
-
-    /**
-     * Output data element identifier scheme.
-     */
-    @JsonProperty
-    private String outputDataElementIdScheme;
-
-    /**
-     * Output org unit identifier scheme.
-     */
-    @JsonProperty
-    private String outputOrgUnitIdScheme;
-
-    /**
-     * Output identifier scheme.
-     */
-    @JsonProperty
-    private String outputIdScheme;
+    @Test
+    void testGetName()
+    {
+        assertEquals( PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName() );
+        assertEquals( PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName() );
+        assertEquals( PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName() );
+    }
 }
