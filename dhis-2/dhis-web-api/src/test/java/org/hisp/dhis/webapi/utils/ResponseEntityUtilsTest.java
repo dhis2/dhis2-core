@@ -60,8 +60,6 @@ class ResponseEntityUtilsTest
         assertTrue( ResponseEntityUtils.checkNotModified( "  W/\"aa9108b4a9b5553cdd160526cdc\"", request ) );
         assertTrue( ResponseEntityUtils.checkNotModified( "  aa9108b4a9b5553cdd160526cdc", request ) );
         assertTrue( ResponseEntityUtils.checkNotModified( "  W/aa9108b4a9b5553cdd160526cdc", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "aa9108b4a9b5553cdd160526cdc  ", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "aa9108b4a9b5553cdd160526cdc  ", request ) );
         assertTrue( ResponseEntityUtils.checkNotModified( " aa9108b4a9b5553cdd160526cdc  ", request ) );
         assertTrue( ResponseEntityUtils.checkNotModified( " \"aa9108b4a9b5553cdd160526cdc\"  ", request ) );
 

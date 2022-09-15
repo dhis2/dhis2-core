@@ -106,7 +106,8 @@ public class ResponseEntityUtils
     }
 
     /**
-     * Strips the given header value.
+     * Strips the given header value. Removes leading {@code W/} which indicates
+     * weak validation, and leading and trailing spaces and quotes.
      *
      * @param value the header value.
      * @return a stripped value.
