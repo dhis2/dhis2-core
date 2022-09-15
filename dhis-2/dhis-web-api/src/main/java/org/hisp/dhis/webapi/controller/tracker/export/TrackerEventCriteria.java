@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Data;
 import lombok.Getter;
@@ -41,17 +40,14 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Class to hold EventController request parameters into a handy place
+ * Represents query parameters sent to {@link TrackerEventsExportController}.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
@@ -76,8 +72,6 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private AssignedUserSelectionMode assignedUserMode;
 
     private String assignedUser;
-
-    private Set<String> assignedUsers;
 
     private Date occurredAfter;
 
@@ -115,8 +109,6 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String event;
 
-    private Set<String> events;
-
     private Boolean skipEventId;
 
     private Set<String> filter = new HashSet<>();
@@ -126,36 +118,6 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> enrollments;
 
     private IdSchemes idSchemes = new IdSchemes();
-
-    public Set<String> getAssignedUsers()
-    {
-        if ( assignedUsers != null )
-        {
-            return assignedUsers;
-        }
-
-        assignedUsers = filterInvalidUids( assignedUser );
-        return assignedUsers;
-    }
-
-    public Set<String> getEvents()
-    {
-        if ( events != null )
-        {
-            return events;
-        }
-
-        events = filterInvalidUids( event );
-        return events;
-    }
-
-    private Set<String> filterInvalidUids( String input )
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toUnmodifiableSet() );
-    }
 
     @Override
     public boolean isLegacy()

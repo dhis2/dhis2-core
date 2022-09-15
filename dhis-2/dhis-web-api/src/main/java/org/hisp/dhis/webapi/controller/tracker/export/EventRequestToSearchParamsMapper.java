@@ -51,6 +51,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -77,6 +78,11 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
+/**
+ * Maps query parameters from {@link TrackerEventsExportController} stored in
+ * {@link TrackerEventCriteria} to {@link EventSearchParams} which is used to
+ * fetch events from the DB.
+ */
 @Component( "org.hisp.dhis.webapi.controller.tracker.export.EventRequestToSearchParamsMapper" )
 @RequiredArgsConstructor
 class EventRequestToSearchParamsMapper
@@ -150,8 +156,12 @@ class EventRequestToSearchParamsMapper
         User user = validateUser( pr, ps );
         validateTrackedEntity( eventCriteria );
         CategoryOptionCombo attributeOptionCombo = validateAttributeOptionCombo( eventCriteria, user );
-        validateFilter( eventCriteria.getEvents(), eventCriteria.getFilter(), programStage, ps );
-        validateAssignedUsers( eventCriteria.getAssignedUserMode(), eventCriteria.getAssignedUsers() );
+
+        Set<String> eventIds = parseUids( eventCriteria.getEvent() );
+        validateFilter( eventIds, eventCriteria.getFilter(), programStage, ps );
+
+        Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
+        validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
 
         EventSearchParams params = new EventSearchParams();
 
@@ -191,7 +201,7 @@ class EventRequestToSearchParamsMapper
             .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
             .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
             .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
-            .setAssignedUsers( eventCriteria.getAssignedUsers() )
+            .setAssignedUsers( assignedUserIds )
             .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
             .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
             .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
@@ -210,7 +220,7 @@ class EventRequestToSearchParamsMapper
             .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
             .setAttributeOrders( attributeOrderParams )
-            .setEvents( eventCriteria.getEvents() ).setProgramInstances( programInstances )
+            .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
 
@@ -402,6 +412,14 @@ class EventRequestToSearchParamsMapper
         validateOrderParams( order );
 
         return OrderParamsHelper.toOrderParams( order );
+    }
+
+    private Set<String> parseUids( String input )
+    {
+        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
+            .stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toUnmodifiableSet() );
     }
 
     private void validateOrderParams( List<OrderCriteria> order )
