@@ -33,6 +33,9 @@
       "id": "iFOyIpQciyk",
       "name": "Internal data exchange",
       "source": {
+        "params": {
+          "periodTypes": ["MONTHLY", "QUARTERLY"]
+        },
         "requests": [
           {
             "name": "HIV",
@@ -49,6 +52,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": null,
+            "outputDataElementIdScheme": null,
+            "outputOrgUnitIdScheme": null,
             "outputIdscheme": null
           }
         ]
@@ -67,6 +72,9 @@
       "id": "PnWccbwCJLQ",
       "name": "External basic auth data exchange",
       "source":{
+        "params": {
+          "periodTypes": ["MONTHLY", "QUARTERLY"]
+        },
         "requests": [
           {
             "name": "TB",
@@ -83,6 +91,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
@@ -106,6 +116,9 @@
       "id": "VpQ4qVEseyM",
       "name": "External access token data exchange",
       "source":{
+        "params": {
+          "periodTypes": ["MONTHLY", "QUARTERLY"]
+        },
         "requests": [
           {
             "name": "Malaria",
@@ -122,6 +135,8 @@
               "ImspTQPwCqd"
             ],
             "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
             "outputIdscheme": "UID"
           }
         ]
