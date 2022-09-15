@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.when;
 

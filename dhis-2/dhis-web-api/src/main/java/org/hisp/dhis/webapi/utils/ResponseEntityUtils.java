@@ -96,10 +96,16 @@ public class ResponseEntityUtils
     {
         String ifNoneMatch = request.getHeader( HttpHeaders.IF_NONE_MATCH );
 
+        System.out.println( "ETAG: " + etag + "." );
+        System.out.println( "INOM: " + ifNoneMatch + "." );
+
         if ( isBlank( etag ) || isBlank( ifNoneMatch ) )
         {
             return false;
         }
+
+        System.out.println( "ETA2: " + stripHeaderValue( etag ) + "." );
+        System.out.println( "INO2: " + stripHeaderValue( ifNoneMatch ) + "." );
 
         return stripHeaderValue( etag ).equals( stripHeaderValue( ifNoneMatch ) );
     }
