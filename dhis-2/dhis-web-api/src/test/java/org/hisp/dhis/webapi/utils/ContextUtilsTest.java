@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 
