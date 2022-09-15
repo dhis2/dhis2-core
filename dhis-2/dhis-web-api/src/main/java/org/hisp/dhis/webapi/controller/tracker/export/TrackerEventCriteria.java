@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -76,6 +77,8 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private AssignedUserSelectionMode assignedUserMode;
 
     private String assignedUser;
+
+    private Set<String> assignedUsers;
 
     private Date occurredAfter;
 
@@ -125,14 +128,19 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     public Set<String> getAssignedUsers()
     {
-        Set<String> assignedUsers = new HashSet<>();
-
-        if ( assignedUser != null && !assignedUser.isEmpty() )
+        if ( assignedUsers != null )
         {
-            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
-                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
+            return assignedUsers;
+        }
+        if ( assignedUser == null || assignedUser.isEmpty() )
+        {
+            assignedUsers = Collections.emptySet();
+            return assignedUsers;
         }
 
+        assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toUnmodifiableSet() );
         return assignedUsers;
     }
 

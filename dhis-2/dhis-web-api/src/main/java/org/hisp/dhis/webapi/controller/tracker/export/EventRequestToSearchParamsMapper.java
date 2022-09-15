@@ -210,21 +210,7 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        AssignedUserSelectionMode assignedUserSelectionMode = eventCriteria.getAssignedUserMode();
-        Set<String> assignedUserIds = eventCriteria.getAssignedUsers();
-        if ( assignedUserSelectionMode != null && assignedUserIds != null && !assignedUserIds.isEmpty()
-            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-
-        if ( assignedUserIds != null )
-        {
-            assignedUserIds = assignedUserIds.stream()
-                .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet() );
-        }
+        validateAssignedUsers( eventCriteria.getAssignedUserMode(), eventCriteria.getAssignedUsers() );
 
         Set<String> programInstances = eventCriteria.getEnrollments();
         if ( programInstances != null )
@@ -237,7 +223,8 @@ class EventRequestToSearchParamsMapper
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
             .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
             .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
-            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUserIds )
+            .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
+            .setAssignedUsers( eventCriteria.getAssignedUsers() )
             .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
             .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
             .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
@@ -485,16 +472,22 @@ class EventRequestToSearchParamsMapper
     }
 
     private static void validateFilter( Set<String> eventIds, Set<String> filters, String programStage,
-        ProgramStage ps )
-    {
-        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
-        {
-            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
+        ProgramStage ps ) {
+        if (!CollectionUtils.isEmpty(eventIds) && !CollectionUtils.isEmpty(filters)) {
+            throw new IllegalQueryException("Event UIDs and filters can not be specified at the same time");
         }
-        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
-        {
-            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
+        if (!CollectionUtils.isEmpty(filters) && !StringUtils.isEmpty(programStage) && ps == null) {
+            throw new IllegalQueryException("ProgramStage needs to be specified for event filtering to work");
         }
     }
 
+    private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
+        Set<String> assignedUserIds )
+    {
+        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
+        {
+            throw new IllegalQueryException(
+                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
+    }
 }
