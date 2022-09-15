@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
@@ -308,20 +309,32 @@ public class ContextUtils
     }
 
     /**
-     * Returns a suitable ETag based on the given date and user.
+     * Returns a suitable ETag based on the given last modified date and user.
      *
-     * @param date the {@link Date}.
+     * @param lastModified the last modified {@link Date}.
      * @param user the {@link User}.
      * @return an ETag string.
      */
-    public static String getEtag( Date date, User user )
+    public static String getEtag( Date lastModified, User user )
     {
-        if ( date == null || user == null )
+        if ( lastModified == null || user == null )
         {
             return null;
         }
 
-        return String.format( "%s-%s", DateUtils.getLongDateString( date ), user.getUid() );
+        return String.format( "%s-%s", DateUtils.getLongDateString( lastModified ), user.getUid() );
+    }
+
+    /**
+     * Returns an ETag which identifies the current version of the data set
+     * metadata response. The ETag is based on the given last modified date, and
+     * is returned as 32 character string representation of an MD5 hash.
+     *
+     * @return an ETag string.
+     */
+    public static String getEtag( Date lastModified )
+    {
+        return CodecUtils.md5Hex( DateUtils.getLongDateString( lastModified ) );
     }
 
     /**

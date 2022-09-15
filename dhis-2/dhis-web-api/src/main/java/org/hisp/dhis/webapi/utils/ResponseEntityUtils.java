@@ -25,40 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.webapi.utils;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
+ * Utilities for {@link ResponseEntity}.
+ *
  * @author Lars Helge Overland
  */
-@RestController
-@RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataController
+public class ResponseEntityUtils
 {
-    private final DataSetMetadataExportService exportService;
-
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata( WebRequest request )
+    ResponseEntityUtils()
     {
-        String etag = getEtag( exportService.getDataSetMetadataLastModified() );
+    }
 
-        return ResponseEntityUtils.withEtagCaching( request, etag, exportService::getDataSetMetadata );
+    /**
+     * Returns a {@link ResponseEntity} for which ETag caching is handled. If
+     * the given request and ETag indicates that the requested resource has not
+     * been modified, a response entity indicating {@code 304 Not Modified} is
+     * returned, otherwise, a response entity indicating {@code 200 OK} is
+     * returned. In both cases, the {@code Cache-Control} header is set to no
+     * cache, and the {@code ETag} header is set to the given ETag value.
+     *
+     * @param <T>
+     * @param request the {@link WebRequest}.
+     * @param etag the ETag value.
+     * @param bodySupplier the supplier of the response body.
+     * @return a {@link ResponseEntity}.
+     */
+    public static <T> ResponseEntity<T> withEtagCaching( WebRequest request, String etag, Supplier<T> bodySupplier )
+    {
+        if ( request.checkNotModified( etag ) )
+        {
+            return ResponseEntity.status( HttpStatus.NOT_MODIFIED )
+                .cacheControl( CacheControl.maxAge( 0, TimeUnit.SECONDS ).cachePrivate().mustRevalidate() )
+                .eTag( etag )
+                .build();
+        }
+
+        return ResponseEntity.ok()
+            .cacheControl( CacheControl.maxAge( 0, TimeUnit.SECONDS ).cachePrivate().mustRevalidate() )
+            .eTag( etag )
+            .body( bodySupplier.get() );
     }
 }
