@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -52,6 +57,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -116,12 +122,13 @@ public class UserSettingController
     }
 
     @GetMapping( value = "/{key}" )
-    public String getUserSettingByKey(
+    public void getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
         @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
-        throws WebMessageException
+        throws WebMessageException,
+        IOException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
@@ -131,8 +138,8 @@ public class UserSettingController
             .get( key );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        response.setHeader( "Content-Type", ContextUtils.CONTENT_TYPE_TEXT );
-        return String.valueOf( value );
+        response.setHeader( HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT );
+        response.getWriter().print( value );
     }
 
     @PostMapping( value = "/{key}" )
@@ -151,12 +158,12 @@ public class UserSettingController
 
         if ( StringUtils.isEmpty( newValue ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "You need to specify a new value" ) );
+            throw new WebMessageException( conflict( "You need to specify a new value" ) );
         }
 
         userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
 
-        return WebMessageUtils.ok( "User setting saved" );
+        return ok( "User setting saved" );
     }
 
     @DeleteMapping( value = "/{key}" )
@@ -187,7 +194,7 @@ public class UserSettingController
 
         if ( !userSettingKey.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "No user setting found with key: " + key ) );
+            throw new WebMessageException( notFound( "No user setting found with key: " + key ) );
         }
 
         return userSettingKey.get();
@@ -222,23 +229,23 @@ public class UserSettingController
         }
         else
         {
-            user = userService.getUserCredentialsByUsername( username ).getUserInfo();
+            user = userService.getUserByUsername( username );
         }
 
         if ( user == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "Could not find user '" + ObjectUtils.firstNonNull( uid, username ) + "'" ) );
+            throw new WebMessageException(
+                conflict( "Could not find user '" + ObjectUtils.firstNonNull( uid, username ) + "'" ) );
         }
         else
         {
             Set<String> userGroups = user.getGroups().stream().map( UserGroup::getUid ).collect( Collectors.toSet() );
 
             if ( !userService.canAddOrUpdateUser( userGroups ) &&
-                !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
+                !currentUser.canModifyUser( user ) )
             {
                 throw new WebMessageException(
-                    WebMessageUtils.unathorized( "You are not authorized to access user: " + user.getUsername() ) );
+                    unauthorized( "You are not authorized to access user: " + user.getUsername() ) );
             }
         }
 
