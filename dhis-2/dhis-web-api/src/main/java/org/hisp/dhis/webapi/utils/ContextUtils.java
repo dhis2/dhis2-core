@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.utils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
-import static org.hisp.dhis.commons.util.TextUtils.SEP;
 
 import java.util.Collection;
 import java.util.Date;
@@ -293,10 +292,11 @@ public class ContextUtils
      */
     public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response, String tag )
     {
+        System.out.println( "TAG '" + tag + "'" );
         tag = tag != null ? quote( tag ) : null;
 
         String inputTag = request.getHeader( HEADER_IF_NONE_MATCH );
-
+        System.out.println( "INPUT TAG '" + inputTag + "'" );
         response.setHeader( HEADER_ETAG, tag );
 
         if ( inputTag != null && inputTag.equals( tag ) )
@@ -323,7 +323,7 @@ public class ContextUtils
             return null;
         }
 
-        return String.format( "%s%s%s", DateUtils.getLongDateString( date ), SEP, user.getUid() );
+        return String.format( "%s-%s", DateUtils.getLongDateString( date ), user.getUid() );
     }
 
     /**
@@ -406,7 +406,7 @@ public class ContextUtils
     /**
      * Quotes the given strings using double quotes.
      *
-     * @param value the string.
+     * @param string the string.
      * @return a quoted value.
      */
     private static String quote( String string )
