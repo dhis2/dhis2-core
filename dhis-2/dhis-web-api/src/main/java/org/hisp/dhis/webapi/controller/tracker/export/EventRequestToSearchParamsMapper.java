@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -172,7 +173,10 @@ class EventRequestToSearchParamsMapper
         Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
         List<OrderParam> attributeOrderParams = getGridOrderParams( eventCriteria.getOrder(), attributeOrders );
 
-        mapFilterAttributes( eventCriteria, params, attributeOrderParams );
+        List<QueryItem> filterAttributes = parseFilterAttributes( eventCriteria.getFilterAttributes(),
+            attributeOrderParams );
+        validateFilterAttributes( filterAttributes );
+        params.addFilterAttributes( filterAttributes );
 
         Set<String> dataElements = dataElementOrders.keySet();
         if ( dataElements != null )
@@ -301,33 +305,33 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams,
-        List<OrderParam> attributeOrderParams )
+    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
     {
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream()
             .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-        for ( String filter : eventCriteria.getFilterAttributes() )
-        {
-            searchParams.addFilterAttributes( getQueryItem( filter, attributes ) );
-        }
-        addAttributeQueryItemsFromOrder( searchParams, attributes, attributeOrderParams );
 
-        validateFilterAttributes( searchParams.getFilterAttributes() );
+        List<QueryItem> result = new ArrayList<>();
+        for ( String filter : filterAttributes )
+        {
+            result.add( getQueryItem( filter, attributes ) );
+        }
+        addAttributeQueryItemsFromOrder( result, attributes, attributeOrderParams );
+
+        return result;
     }
 
-    private void addAttributeQueryItemsFromOrder( EventSearchParams searchParams,
+    private void addAttributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
         Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
     {
-
         List<QueryItem> orderQueryItems = attributeOrderParams.stream()
             .map( OrderParam::getField )
-            .filter( att -> !containsAttributeFilter( searchParams.getFilterAttributes(), att ) )
+            .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
             .map( attributes::get )
             .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
             .collect( Collectors.toList() );
 
-        searchParams.addFilterAttributes( orderQueryItems );
+        filterAttributes.addAll( orderQueryItems );
     }
 
     private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
