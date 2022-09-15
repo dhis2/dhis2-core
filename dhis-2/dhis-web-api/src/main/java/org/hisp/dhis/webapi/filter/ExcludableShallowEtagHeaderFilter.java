@@ -79,12 +79,11 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 @WebFilter( urlPatterns = {
     "/api/*"
 }, initParams = {
-    @WebInitParam( name = "excludeUriRegex", value = "/api/(\\d{2}/)?dataValueSets|/api/(\\d{2}/)?dataValues|/api/(\\d{2}/)?fileResources" )
+    @WebInitParam( name = "excludeUriRegex", value = "/api/(\\d{2}/)?dataValueSets|/api/(\\d{2}/)?dataValues|/api/(\\d{2}/)?fileResources|/api/(\\d{2}/)?dataEntry/metadata" )
 } )
 public class ExcludableShallowEtagHeaderFilter
     extends ShallowEtagHeaderFilter
 {
-
     private static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
     private Pattern pattern = null;
@@ -117,14 +116,14 @@ public class ExcludableShallowEtagHeaderFilter
 
         if ( match )
         {
-            filterChain.doFilter( request, response ); // Proceed without
-                                                       // invoking this filter
+            // Proceed without invoking this filter
+            filterChain.doFilter( request, response );
+            //
         }
         else
         {
-            super.doFilterInternal( request, response, filterChain ); // Invoke
-                                                                      // this
-                                                                      // filter
+            // Invoke this filter
+            super.doFilterInternal( request, response, filterChain );
         }
     }
 }
