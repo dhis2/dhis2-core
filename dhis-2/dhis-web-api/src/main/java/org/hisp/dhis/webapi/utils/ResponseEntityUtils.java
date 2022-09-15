@@ -47,7 +47,7 @@ public class ResponseEntityUtils
      * the given request and ETag indicates that the requested resource has not
      * been modified, a response entity indicating {@code 304 Not Modified} is
      * returned, otherwise, a response entity indicating {@code 200 OK} is
-     * returned. In both cases, the {@code Cache-Control} header is set no
+     * returned. In both cases, the {@code Cache-Control} header is set to no
      * cache, and the {@code ETag} header is set to the given ETag value.
      *
      * @param <T>
