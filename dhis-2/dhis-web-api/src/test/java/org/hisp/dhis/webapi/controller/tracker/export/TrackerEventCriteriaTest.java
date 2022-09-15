@@ -64,4 +64,32 @@ class TrackerEventCriteriaTest
         // ensure cached set is the same
         assertContainsOnly( Set.of( "d1dmt9P71Sb", "uzkOhvvWn76" ), eventCriteria.getAssignedUsers() );
     }
+
+    @Test
+    void getEventsWhenEventIsNull()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        assertIsEmpty( eventCriteria.getEvents() );
+    }
+
+    @Test
+    void getEventsWhenEventIsEmpty()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setEvent( "" );
+
+        assertIsEmpty( eventCriteria.getEvents() );
+    }
+
+    @Test
+    void getEventsFiltersOutInvalidUIDs()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setEvent( "d1dmt9P71Sb;NOT_A_UID;uzkOhvvWn76" );
+
+        assertContainsOnly( Set.of( "d1dmt9P71Sb", "uzkOhvvWn76" ), eventCriteria.getEvents() );
+        // ensure cached set is the same
+        assertContainsOnly( Set.of( "d1dmt9P71Sb", "uzkOhvvWn76" ), eventCriteria.getEvents() );
+    }
 }

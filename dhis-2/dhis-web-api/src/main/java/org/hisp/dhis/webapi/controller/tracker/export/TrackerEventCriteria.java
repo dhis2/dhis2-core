@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -116,6 +115,8 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String event;
 
+    private Set<String> events;
+
     private Boolean skipEventId;
 
     private Set<String> filter = new HashSet<>();
@@ -132,24 +133,28 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
         {
             return assignedUsers;
         }
-        if ( assignedUser == null || assignedUser.isEmpty() )
-        {
-            assignedUsers = Collections.emptySet();
-            return assignedUsers;
-        }
 
-        assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toUnmodifiableSet() );
+        assignedUsers = filterInvalidUids( assignedUser );
         return assignedUsers;
     }
 
     public Set<String> getEvents()
     {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( event, TextUtils.SEMICOLON ) )
+        if ( events != null )
+        {
+            return events;
+        }
+
+        events = filterInvalidUids( event );
+        return events;
+    }
+
+    private Set<String> filterInvalidUids( String input )
+    {
+        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
             .stream()
             .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
+            .collect( Collectors.toUnmodifiableSet() );
     }
 
     @Override

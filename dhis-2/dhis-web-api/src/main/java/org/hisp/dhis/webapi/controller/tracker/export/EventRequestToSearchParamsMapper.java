@@ -180,14 +180,7 @@ class EventRequestToSearchParamsMapper
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
-        Set<String> eventIds = eventCriteria.getEvents();
-        validateFilter( eventIds, eventCriteria.getFilter(), programStage, ps );
-
-        if ( eventIds == null )
-        {
-            eventIds = new HashSet<>();
-        }
-
+        validateFilter( eventCriteria.getEvents(), eventCriteria.getFilter(), programStage, ps );
         for ( String filter : eventCriteria.getFilter() )
         {
             params.addFilter( getQueryItem( filter ) );
@@ -243,7 +236,7 @@ class EventRequestToSearchParamsMapper
             .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
             .setAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setProgramInstances( programInstances )
+            .setEvents( eventCriteria.getEvents() ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
 
@@ -472,12 +465,15 @@ class EventRequestToSearchParamsMapper
     }
 
     private static void validateFilter( Set<String> eventIds, Set<String> filters, String programStage,
-        ProgramStage ps ) {
-        if (!CollectionUtils.isEmpty(eventIds) && !CollectionUtils.isEmpty(filters)) {
-            throw new IllegalQueryException("Event UIDs and filters can not be specified at the same time");
+        ProgramStage ps )
+    {
+        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
+        {
+            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
         }
-        if (!CollectionUtils.isEmpty(filters) && !StringUtils.isEmpty(programStage) && ps == null) {
-            throw new IllegalQueryException("ProgramStage needs to be specified for event filtering to work");
+        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
+        {
+            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
         }
     }
 
