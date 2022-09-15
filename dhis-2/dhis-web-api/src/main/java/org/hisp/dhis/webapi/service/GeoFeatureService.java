@@ -170,10 +170,7 @@ public class GeoFeatureService
             .filter( object -> validateDimensionalItemObject( object, geoJsonAttribute ) )
             .collect( Collectors.toList() );
 
-        boolean modified = !ContextUtils.clearIfNotModified( parameters.getRequest(), parameters.getResponse(),
-            dimensionalItemObjects );
-
-        if ( !modified )
+        if ( ContextUtils.isNotModified( parameters.getRequest(), parameters.getResponse(), dimensionalItemObjects ) )
         {
             return null;
         }

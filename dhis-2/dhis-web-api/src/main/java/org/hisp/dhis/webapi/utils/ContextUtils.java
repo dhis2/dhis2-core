@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -43,6 +42,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
@@ -245,22 +246,21 @@ public class ContextUtils
     }
 
     /**
-     * Clears the given collection if it is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from
-     * the "If-None-Match" header value, generates an ETag based on the given
+     * This method looks up the ETag sent in the request from the
+     * "If-None-Match" header value, generates an ETag based on the given
      * collection of IdentifiableObjects and compares them for equality. If this
      * evaluates to true, it will set status code 304 Not Modified on the
      * response and remove all elements from the given list. It will set the
-     * ETag header on the response in any case.
+     * ETag header on the response.
      *
-     * @param request the HttpServletRequest.
-     * @param response the HttpServletResponse.
+     * @param request the {@link HttpServletRequest}.
+     * @param response the {@link HttpServletResponse}.
      * @return true if the eTag values are equals, false otherwise.
      */
-    public static boolean clearIfNotModified( HttpServletRequest request, HttpServletResponse response,
+    public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response,
         Collection<? extends IdentifiableObject> objects )
     {
-        String tag = QUOTE + IdentifiableObjectUtils.getLastUpdatedTag( objects ) + QUOTE;
+        String tag = quote( IdentifiableObjectUtils.getLastUpdatedTag( objects ) );
 
         response.setHeader( HEADER_ETAG, tag );
 
@@ -269,8 +269,6 @@ public class ContextUtils
         if ( objects != null && inputTag != null && inputTag.equals( tag ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
-
-            objects.clear();
 
             return true;
         }
@@ -282,18 +280,18 @@ public class ContextUtils
      * This method looks up the ETag sent in the request from the
      * "If-None-Match" header value and compares it to the given tag. If they
      * match, it will set status code 304 Not Modified on the response. It will
-     * set the ETag header on the response in any case. It will wrap the given
-     * tag in quotes.
+     * set the ETag header on the response. It will wrap the given tag in
+     * quotes.
      *
-     * @param request the HttpServletRequest.
-     * @param response the HttpServletResponse.
+     * @param request the {@link HttpServletRequest}.
+     * @param response the {@link HttpServletResponse}.
      * @param tag the tag to compare.
      * @return true if the given tag match the request tag and the response is
      *         considered not modified, false if not.
      */
     public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response, String tag )
     {
-        tag = tag != null ? (QUOTE + tag + QUOTE) : null;
+        tag = tag != null ? quote( tag ) : null;
 
         String inputTag = request.getHeader( HEADER_IF_NONE_MATCH );
 
@@ -307,6 +305,23 @@ public class ContextUtils
         }
 
         return false;
+    }
+
+    /**
+     * Returns a suitable ETag based on the given date and user.
+     *
+     * @param date the {@link Date}.
+     * @param user the {@link User}.
+     * @return an ETag string.
+     */
+    public static String getEtag( Date date, User user )
+    {
+        if ( date == null || user == null )
+        {
+            return null;
+        }
+
+        return String.format( "%s-%s", DateUtils.getLongDateString( date ), user.getUid() );
     }
 
     /**
@@ -333,8 +348,7 @@ public class ContextUtils
      * @return the extracted file name or <code>null</code> content disposition
      *         has no filename.
      */
-    @Nullable
-    public static String getAttachmentFileName( @Nullable String contentDispositionHeaderValue )
+    public static String getAttachmentFileName( String contentDispositionHeaderValue )
     {
         if ( contentDispositionHeaderValue == null )
         {
@@ -384,5 +398,16 @@ public class ContextUtils
     public static String stripFormatCompressionExtension( String name, String format, String compression )
     {
         return name != null ? name.replace( "." + format + "." + compression, "" ) : "";
+    }
+
+    /**
+     * Quotes the given strings using double quotes.
+     *
+     * @param string the string.
+     * @return a quoted value.
+     */
+    static String quote( String string )
+    {
+        return String.format( "%s%s%s", QUOTE, string, QUOTE );
     }
 }
