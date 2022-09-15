@@ -56,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,6 +64,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,7 +77,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
  */
 class ContextUtilsTest extends DhisWebSpringTest
 {
-
     @Autowired
     private ContextUtils contextUtils;
 
@@ -242,5 +243,15 @@ class ContextUtilsTest extends DhisWebSpringTest
         assertEquals( "data", stripFormatCompressionExtension( "data.json.gz", "json", "gz" ) );
         assertEquals( "data.....", stripFormatCompressionExtension( "data.....", "xml", "zip" ) );
         assertEquals( "", stripFormatCompressionExtension( null, "xml", "zip" ) );
+    }
+
+    @Test
+    void testGetEtag()
+    {
+        Date date = getDate( 2022, 03, 10 );
+        User user = new User();
+        user.setUid( "kYt56BgfED2" );
+
+        assertEquals( "", ContextUtils.getEtag( date, user ) );
     }
 }
