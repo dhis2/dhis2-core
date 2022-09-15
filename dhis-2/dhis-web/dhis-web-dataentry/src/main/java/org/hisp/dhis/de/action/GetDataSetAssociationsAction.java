@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.de.action;
 
-import static org.hisp.dhis.commons.util.TextUtils.SEP;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -97,9 +95,8 @@ public class GetDataSetAssociationsAction
         Date lastUpdated = DateUtils.max(
             identifiableObjectManager.getLastUpdated( DataSet.class ),
             identifiableObjectManager.getLastUpdated( OrganisationUnit.class ) );
-        String tag = lastUpdated != null && user != null
-            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + level + SEP + user.getUid())
-            : null;
+
+        String tag = ContextUtils.getEtag( lastUpdated, user );
 
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
