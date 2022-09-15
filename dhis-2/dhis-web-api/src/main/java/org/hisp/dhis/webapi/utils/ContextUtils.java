@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,8 +47,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -338,23 +335,6 @@ public class ContextUtils
     public static String getEtag( Date lastModified )
     {
         return CodecUtils.md5Hex( DateUtils.getLongDateString( lastModified ) );
-    }
-
-    /**
-     * Returns a {@link ResponseEntity} which represents HTTP status
-     * {@code 304 Not Modified}, where the {@code Cache-Control} header is set
-     * to no cache and the {@code ETag} header is set to the given ETag value.
-     *
-     * @param <T>
-     * @param etag the ETag header value.
-     * @return a {@link ResponseEntity}.
-     */
-    public static <T> ResponseEntity<T> notModified( String etag )
-    {
-        return ResponseEntity.status( HttpStatus.NOT_MODIFIED )
-            .cacheControl( CacheControl.maxAge( 0, TimeUnit.SECONDS ).cachePrivate().mustRevalidate() )
-            .eTag( etag )
-            .build();
     }
 
     /**

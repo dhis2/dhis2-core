@@ -64,6 +64,7 @@ import com.google.common.collect.Sets;
  */
 class DateUtilsTest
 {
+
     @Test
     void testDateIsValid()
     {
