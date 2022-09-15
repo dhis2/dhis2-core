@@ -61,8 +61,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_C
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.period.DailyPeriodType.ISO_FORMAT;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -125,6 +123,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -446,7 +445,7 @@ public class DefaultDataQueryService
                     }
                     else
                     {
-                        Optional<Period> optionalPeriod = tryParseDateRange( isoPeriodHolder );
+                        Optional<Period> optionalPeriod = tryParsePeriodDateRange( isoPeriodHolder );
                         if ( optionalPeriod.isPresent() )
                         {
                             Period periodToAdd = optionalPeriod.get();
@@ -662,47 +661,24 @@ public class DefaultDataQueryService
      * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> or
      * <code>YYYY-MM-DD_YYYY-MM-DD</code> format.
      */
-    private Optional<Period> tryParseDateRange( IsoPeriodHolder isoPeriodHolder )
+    private Optional<Period> tryParsePeriodDateRange( IsoPeriodHolder isoPeriodHolder )
     {
         String[] dates = isoPeriodHolder.getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );
         if ( dates.length == 2 )
         {
-            Optional<Date> start = safelyParseDate( dates[0] );
-            Optional<Date> end = safelyParseDate( dates[1] );
-            if ( start.isPresent() && end.isPresent() )
+            Date start = DateUtils.safeParseDate( dates[0] );
+            Date end = DateUtils.safeParseDate( dates[1] );
+            if ( start != null && end != null )
             {
                 Period period = new Period();
                 period.setPeriodType( new DailyPeriodType() );
-                period.setStartDate( start.get() );
-                period.setEndDate( end.get() );
+                period.setStartDate( start );
+                period.setEndDate( end );
                 period.setDateField( isoPeriodHolder.getDateField() );
                 return Optional.of( period );
             }
         }
         return Optional.empty();
-    }
-
-    private Optional<Date> safelyParseDate( String date )
-    {
-        return DATE_TIME_FORMATTER.stream()
-            .map( dateTimeFormatter -> safelyParseDateUsingFormatter( date, dateTimeFormatter ) )
-            .filter( Objects::nonNull )
-            .findFirst();
-    }
-
-    private Date safelyParseDateUsingFormatter( String date, DateTimeFormatter dateTimeFormatter )
-    {
-        try
-        {
-            return Date.from(
-                LocalDate.parse( date, dateTimeFormatter )
-                    .atStartOfDay( ZoneId.systemDefault() )
-                    .toInstant() );
-        }
-        catch ( Exception e )
-        {
-            return null;
-        }
     }
 
     @Override
