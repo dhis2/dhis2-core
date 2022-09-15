@@ -29,7 +29,12 @@ package org.hisp.dhis.user;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -54,9 +59,12 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.springframework.core.ResolvableType;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -1495,6 +1503,18 @@ public class User
         this.userCredentialsRaw = user;
     }
 
+    /**
+     * Copies the "transient" properties from the old UserCredentials model
+     * (temp. saved in the userCredentialsRaw property). The userCredentialsRaw
+     * only exists if the input JSON contains the old UserCredentials model.
+     *
+     * <p>
+     * The userCredentialsRaw field represent the input JSON version of the
+     * object, not the real data model. This is to make the input format
+     * backward compatible with the old UserCredentials model.
+     *
+     * @param user The user object that is being populated.
+     */
     public static void populateUserCredentialsDtoFields( User user )
     {
         UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
@@ -1510,6 +1530,113 @@ public class User
             if ( userRoles != null )
             {
                 user.setUserRoles( userRoles );
+            }
+
+            user.setUserCredentials( null );
+        }
+    }
+
+    /**
+     * Copy only changed properties from the old user to the new user, and then
+     * set the new user's userCredentials to null.
+     *
+     * @param oldUser The user object that is currently in the database
+     * @param newUser The new user object that is being created.
+     */
+    public static void populateUserCredentialsDtoCopyOnlyChanges( User oldUser, User newUser )
+    {
+        UserCredentialsDto oldCredentialsRaw = oldUser.getUserCredentials();
+        UserCredentialsDto newUserCredentialsRaw = newUser.getUserCredentialsRaw();
+
+        if ( newUserCredentialsRaw != null )
+        {
+            UserCredentialsDto newUserCredentialsCopiedFromBase = newUser.getUserCredentials();
+
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsRaw, newUser,
+                "uid", "password", "userRoles", "secret", "previousPasswords" );
+            copyOnlyChangedProperties( oldCredentialsRaw, newUserCredentialsCopiedFromBase, newUser,
+                "uid", "password", "userRoles", "secret", "previousPasswords" );
+
+            if ( newUserCredentialsRaw.getPassword() != null )
+            {
+                newUser.setPassword( newUserCredentialsRaw.getPassword() );
+            }
+
+            Set<UserRole> userRoles = newUserCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                newUser.setUserRoles( userRoles );
+            }
+
+            newUser.setUserCredentials( null );
+        }
+    }
+
+    private static void copyOnlyChangedProperties( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
+        @Nullable String... ignoreProperties )
+    {
+        List<String> ignoreList = (ignoreProperties != null ? Arrays.asList( ignoreProperties ) : null);
+
+        PropertyDescriptor[] targetPds;
+        try
+        {
+            targetPds = Introspector.getBeanInfo( target.getClass() ).getPropertyDescriptors();
+        }
+        catch ( IntrospectionException e )
+        {
+            return;
+        }
+
+        for ( PropertyDescriptor targetPd : targetPds )
+        {
+            Method writeMethod = targetPd.getWriteMethod();
+            if ( writeMethod != null && (ignoreList == null || !ignoreList.contains( targetPd.getName() )) )
+            {
+                PropertyDescriptor sourcePd;
+                try
+                {
+                    sourcePd = new PropertyDescriptor( targetPd.getName(), source.getClass() );
+                }
+                catch ( IntrospectionException e )
+                {
+                    continue;
+                }
+
+                Method readMethod = sourcePd.getReadMethod();
+                if ( readMethod != null )
+                {
+                    compareAndWriteProperty( oldObject, source, target, writeMethod, readMethod );
+                }
+            }
+        }
+    }
+
+    private static void compareAndWriteProperty( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
+        Method writeMethod, Method readMethod )
+    {
+        ResolvableType sourceResolvableType = ResolvableType.forMethodReturnType( readMethod );
+        ResolvableType targetResolvableType = ResolvableType.forMethodParameter( writeMethod, 0 );
+
+        boolean isAssignable = (sourceResolvableType.hasUnresolvableGenerics()
+            || targetResolvableType.hasUnresolvableGenerics()
+                ? ClassUtils.isAssignable( writeMethod.getParameterTypes()[0], readMethod.getReturnType() )
+                : targetResolvableType.isAssignableFrom( sourceResolvableType ));
+
+        if ( isAssignable )
+        {
+            try
+            {
+                Object oldValue = readMethod.invoke( oldObject );
+                Object value = readMethod.invoke( source );
+
+                if ( value != null && !value.equals( oldValue ) )
+                {
+                    writeMethod.invoke( target, value );
+                }
+            }
+            catch ( Exception ex )
+            {
+                // do nothing
             }
         }
     }

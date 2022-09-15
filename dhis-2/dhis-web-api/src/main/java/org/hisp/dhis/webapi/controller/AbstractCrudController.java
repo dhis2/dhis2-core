@@ -302,7 +302,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
-        prePatchEntity( patchedObject, patchedObject );
+        // prePatchEntity( patchedObject, patchedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
