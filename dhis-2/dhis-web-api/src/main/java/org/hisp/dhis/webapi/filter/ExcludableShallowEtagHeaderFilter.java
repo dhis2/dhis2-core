@@ -86,7 +86,7 @@ public class ExcludableShallowEtagHeaderFilter
 {
     private static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
-    protected static final String ENDPOINTS = "/api/(\\d{2}/)?dataValueSets|" +
+    static final String ENDPOINTS = "/api/(\\d{2}/)?dataValueSets|" +
         "/api/(\\d{2}/)?dataValues|" +
         "/api/(\\d{2}/)?fileResources|" +
         "/api/(\\d{2}/)?dataEntry/metadata";
@@ -122,13 +122,11 @@ public class ExcludableShallowEtagHeaderFilter
         if ( match )
         {
             // Proceed without invoking this filter
-
             filterChain.doFilter( request, response );
         }
         else
         {
             // Invoke this filter
-
             super.doFilterInternal( request, response, filterChain );
         }
     }
