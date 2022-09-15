@@ -328,7 +328,7 @@ public class ContextUtils
     /**
      * Returns an ETag which identifies the current version of the data set
      * metadata response. The ETag is based on the given last modified date, and
-     * is returned as 32 character string representation of a MD5 hash.
+     * is returned as 32 character string representation of an MD5 hash.
      *
      * @return an ETag string.
      */
