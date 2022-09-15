@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.utils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.apache.commons.lang3.StringUtils.strip;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -96,16 +97,10 @@ public class ResponseEntityUtils
     {
         String ifNoneMatch = request.getHeader( HttpHeaders.IF_NONE_MATCH );
 
-        System.out.println( "ETAG: " + etag + "." );
-        System.out.println( "INOM: " + ifNoneMatch + "." );
-
         if ( isBlank( etag ) || isBlank( ifNoneMatch ) )
         {
             return false;
         }
-
-        System.out.println( "ETA2: " + stripHeaderValue( etag ) + "." );
-        System.out.println( "INO2: " + stripHeaderValue( ifNoneMatch ) + "." );
 
         return stripHeaderValue( etag ).equals( stripHeaderValue( ifNoneMatch ) );
     }
@@ -118,8 +113,9 @@ public class ResponseEntityUtils
      */
     private static String stripHeaderValue( String value )
     {
-        value = strip( value, " \"" );
+        value = trim( value );
         value = removeStart( value, "W\\/" );
+        value = strip( value, "\"" );
         return value;
     }
 }
