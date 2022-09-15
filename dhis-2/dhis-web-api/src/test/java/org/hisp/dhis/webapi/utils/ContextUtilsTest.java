@@ -49,7 +49,7 @@ class ContextUtilsTest
     }
 
     @Test
-    void testGetTagLastModified()
+    void testGetEtagLastModified()
     {
         Date lastModified = getDate( 2022, 03, 10 );
 
