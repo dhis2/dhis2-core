@@ -53,7 +53,7 @@ public interface DataSetMetadataExportService
     /**
      * Returns the time of last modification for the data set metadata.
      *
-     * @return a {@link Date}.
+     * @return a {@link Date}, never null.
      */
     public Date getDataSetMetadataLastModified();
 }
