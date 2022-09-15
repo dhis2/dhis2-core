@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataentry;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.getEtag;
 
+import javax.servlet.http.HttpServletRequest;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -39,7 +41,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -55,10 +56,10 @@ public class DataSetMetadataController
     private final DataSetMetadataExportService exportService;
 
     @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata( WebRequest request )
+    public ResponseEntity<JsonNode> getMetadata( HttpServletRequest request )
     {
         String etag = getEtag( exportService.getDataSetMetadataLastModified() );
 
-        return ResponseEntityUtils.withEtagCaching( request, etag, exportService::getDataSetMetadata );
+        return ResponseEntityUtils.withEtagCaching( etag, request, exportService::getDataSetMetadata );
     }
 }
