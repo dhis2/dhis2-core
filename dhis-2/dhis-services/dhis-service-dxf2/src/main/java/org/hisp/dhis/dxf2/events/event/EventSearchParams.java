@@ -163,11 +163,11 @@ public class EventSearchParams
 
     private boolean includeRelationships;
 
-    private List<OrderParam> orders;
+    private final List<OrderParam> orders = new ArrayList<>();
 
-    private List<OrderParam> gridOrders;
+    private final List<OrderParam> gridOrders = new ArrayList<>();
 
-    private List<OrderParam> attributeOrders;
+    private final List<OrderParam> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
 
@@ -648,34 +648,34 @@ public class EventSearchParams
 
     public List<OrderParam> getOrders()
     {
-        return this.orders;
+        return Collections.unmodifiableList( this.orders );
     }
 
-    public EventSearchParams setOrders( List<OrderParam> orders )
+    public EventSearchParams addOrders( List<OrderParam> orders )
     {
-        this.orders = orders;
+        this.orders.addAll( orders );
         return this;
     }
 
     public List<OrderParam> getGridOrders()
     {
-        return this.gridOrders;
+        return Collections.unmodifiableList( this.gridOrders );
     }
 
-    public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
+    public EventSearchParams addGridOrders( List<OrderParam> gridOrders )
     {
-        this.gridOrders = gridOrders;
+        this.gridOrders.addAll( gridOrders );
         return this;
     }
 
     public List<OrderParam> getAttributeOrders()
     {
-        return this.attributeOrders;
+        return Collections.unmodifiableList( this.attributeOrders );
     }
 
-    public EventSearchParams setAttributeOrders( List<OrderParam> attributeOrders )
+    public EventSearchParams addAttributeOrders( List<OrderParam> attributeOrders )
     {
-        this.attributeOrders = attributeOrders;
+        this.attributeOrders.addAll( attributeOrders );
         return this;
     }
 
