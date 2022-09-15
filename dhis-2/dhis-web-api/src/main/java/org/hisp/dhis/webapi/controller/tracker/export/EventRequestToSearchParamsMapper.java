@@ -179,14 +179,11 @@ class EventRequestToSearchParamsMapper
         params.addFilterAttributes( filterAttributes );
 
         Set<String> dataElements = dataElementOrders.keySet();
-        if ( dataElements != null )
+        for ( String de : dataElements )
         {
-            for ( String de : dataElements )
-            {
-                QueryItem dataElement = getQueryItem( de );
+            QueryItem dataElement = getQueryItem( de );
 
-                params.getDataElements().add( dataElement );
-            }
+            params.getDataElements().add( dataElement );
         }
 
         Set<String> programInstances = eventCriteria.getEnrollments();
@@ -271,7 +268,7 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    private CategoryOptionCombo validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
+    private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
     {
         if ( attributeOptionCombo != null && !user.isSuper()
             && !aclService.canDataRead( user, attributeOptionCombo ) )
@@ -279,7 +276,6 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException(
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
-        return attributeOptionCombo;
     }
 
     private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
