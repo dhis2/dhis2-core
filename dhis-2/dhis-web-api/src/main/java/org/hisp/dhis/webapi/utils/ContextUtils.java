@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -349,8 +348,7 @@ public class ContextUtils
      * @return the extracted file name or <code>null</code> content disposition
      *         has no filename.
      */
-    @Nullable
-    public static String getAttachmentFileName( @Nullable String contentDispositionHeaderValue )
+    public static String getAttachmentFileName( String contentDispositionHeaderValue )
     {
         if ( contentDispositionHeaderValue == null )
         {
