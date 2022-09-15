@@ -99,6 +99,10 @@ public interface MetadataExportService
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies(
         IdentifiableObject object );
 
+    void getMetadataWithDependenciesAsNodeStream( IdentifiableObject object,
+        @Nonnull MetadataExportParams params, OutputStream outputStream )
+        throws IOException;
+
     /**
      * Exports an object including a set of selected dependencies as RootNode.
      * Only a subset of the specified export parameters are used for the

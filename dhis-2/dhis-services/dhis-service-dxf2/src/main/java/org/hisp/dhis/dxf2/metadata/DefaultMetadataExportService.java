@@ -237,6 +237,13 @@ public class DefaultMetadataExportService implements MetadataExportService
         throws IOException
     {
         SystemInfo systemInfo = systemService.getSystemInfo();
+
+        if ( params.isExportWithDependencies() )
+        {
+            getMetadataWithDependenciesAsNodeStream( params.getObjectExportWithDependencies(), params, outputStream );
+            return;
+        }
+
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
         User currentUser = currentUserService.getCurrentUser();
 
@@ -275,6 +282,52 @@ public class DefaultMetadataExportService implements MetadataExportService
 
             generator.writeEndObject();
         }
+    }
+
+    @Override
+    public void getMetadataWithDependenciesAsNodeStream( IdentifiableObject object,
+        @Nonnull MetadataExportParams params, OutputStream outputStream )
+        throws IOException
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
+            object );
+        try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
+        {
+            generator.writeStartObject();
+
+            generator.writeObjectFieldStart( "system" );
+            generator.writeStringField( "id", systemInfo.getSystemId() );
+            generator.writeStringField( "rev", systemInfo.getRevision() );
+            generator.writeStringField( "version", systemInfo.getVersion() );
+            generator.writeStringField( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeEndObject();
+
+            for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+            {
+                FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                    .objects( new ArrayList<>( metadata.get( klass ) ) )
+                    .filters( Set.of( ":owner" ) )
+                    .skipSharing( params.getSkipSharing() )
+                    .build();
+
+                List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
+
+                if ( !objectNodes.isEmpty() )
+                {
+                    String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                    generator.writeArrayFieldStart( plural );
+
+                    for ( ObjectNode objectNode : objectNodes )
+                    {
+                        generator.writeObject( objectNode );
+                    }
+
+                    generator.writeEndArray();
+                }
+            }
+        }
+
     }
 
     @Override
