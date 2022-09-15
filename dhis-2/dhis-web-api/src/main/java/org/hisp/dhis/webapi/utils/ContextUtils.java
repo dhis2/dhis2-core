@@ -292,11 +292,10 @@ public class ContextUtils
      */
     public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response, String tag )
     {
-        System.out.println( "TAG '" + tag + "'" );
         tag = tag != null ? quote( tag ) : null;
 
         String inputTag = request.getHeader( HEADER_IF_NONE_MATCH );
-        System.out.println( "INPUT TAG '" + inputTag + "'" );
+
         response.setHeader( HEADER_ETAG, tag );
 
         if ( inputTag != null && inputTag.equals( tag ) )
@@ -409,7 +408,7 @@ public class ContextUtils
      * @param string the string.
      * @return a quoted value.
      */
-    private static String quote( String string )
+    static String quote( String string )
     {
         return String.format( "%s%s%s", QUOTE, string, QUOTE );
     }

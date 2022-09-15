@@ -46,4 +46,10 @@ class ContextUtilsTest
 
         assertEquals( "2022-03-10T00:00:00-kYt56BgfED2", ContextUtils.getEtag( date, user ) );
     }
+
+    @Test
+    void testQuote()
+    {
+        assertEquals( "\"2022-03-10T00:00:00\"", ContextUtils.quote( "2022-03-10T00:00:00" ) );
+    }
 }
