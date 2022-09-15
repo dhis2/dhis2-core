@@ -69,6 +69,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -132,33 +133,30 @@ class EventRequestToSearchParamsMapper
 
     public EventSearchParams map( TrackerEventCriteria eventCriteria )
     {
-        String program = eventCriteria.getProgram();
-        Program pr = programService.getProgram( program );
-        if ( !StringUtils.isEmpty( program ) && pr == null )
-        {
-            throw new IllegalQueryException( "Program is specified but does not exist: " + program );
-        }
+        Program program = programService.getProgram( eventCriteria.getProgram() );
+        validateProgram( eventCriteria.getProgram(), program );
 
-        String programStage = eventCriteria.getProgramStage();
-        ProgramStage ps = programStageService.getProgramStage( programStage );
-        if ( !StringUtils.isEmpty( programStage ) && ps == null )
-        {
-            throw new IllegalQueryException( "Program stage is specified but does not exist: " + programStage );
-        }
+        ProgramStage programStage = programStageService.getProgramStage( eventCriteria.getProgramStage() );
+        validateProgramStage( eventCriteria.getProgramStage(), programStage );
 
-        String orgUnit = eventCriteria.getOrgUnit();
-        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnit );
-        if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
-        {
-            throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
-        }
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( eventCriteria.getOrgUnit() );
+        validateOrgUnit( eventCriteria.getOrgUnit(), orgUnit );
 
-        User user = validateUser( pr, ps );
-        validateTrackedEntity( eventCriteria );
-        CategoryOptionCombo attributeOptionCombo = validateAttributeOptionCombo( eventCriteria, user );
+        User user = currentUserService.getCurrentUser();
+        validateUser( user, program, programStage );
+
+        TrackedEntityInstance trackedEntityInstance = entityInstanceService
+            .getTrackedEntityInstance( eventCriteria.getTrackedEntity() );
+        validateTrackedEntity( eventCriteria.getTrackedEntity(), trackedEntityInstance );
+
+        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            eventCriteria.getAttributeCc(),
+            eventCriteria.getAttributeCos(),
+            true );
+        validateAttributeOptionCombo( attributeOptionCombo, user );
 
         Set<String> eventIds = parseUids( eventCriteria.getEvent() );
-        validateFilter( eventIds, eventCriteria.getFilter(), programStage, ps );
+        validateFilter( eventCriteria.getFilter(), eventIds, eventCriteria.getProgramStage(), programStage );
 
         Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
         validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
@@ -195,9 +193,8 @@ class EventRequestToSearchParamsMapper
                 .collect( Collectors.toSet() );
         }
 
-        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou )
-            .setTrackedEntityInstance(
-                entityInstanceService.getTrackedEntityInstance( eventCriteria.getTrackedEntity() ) )
+        return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
+            .setTrackedEntityInstance( trackedEntityInstance )
             .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
             .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
             .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
@@ -222,6 +219,86 @@ class EventRequestToSearchParamsMapper
             .setAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+    }
+
+    private static void validateProgram( String program, Program pr )
+    {
+        if ( !StringUtils.isEmpty( program ) && pr == null )
+        {
+            throw new IllegalQueryException( "Program is specified but does not exist: " + program );
+        }
+    }
+
+    private static void validateProgramStage( String programStage, ProgramStage ps )
+    {
+        if ( !StringUtils.isEmpty( programStage ) && ps == null )
+        {
+            throw new IllegalQueryException( "Program stage is specified but does not exist: " + programStage );
+        }
+    }
+
+    private static void validateOrgUnit( String orgUnit, OrganisationUnit ou )
+    {
+        if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
+        {
+            throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
+        }
+    }
+
+    private void validateUser( User user, Program pr, ProgramStage ps )
+    {
+        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
+        {
+            throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
+        }
+
+        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
+        {
+            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
+        }
+    }
+
+    private void validateTrackedEntity( String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+    {
+        if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )
+        {
+            throw new IllegalQueryException(
+                "Tracked entity instance is specified but does not exist: " + trackedEntity );
+        }
+    }
+
+    private CategoryOptionCombo validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
+    {
+        if ( attributeOptionCombo != null && !user.isSuper()
+            && !aclService.canDataRead( user, attributeOptionCombo ) )
+        {
+            throw new IllegalQueryException(
+                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
+        }
+        return attributeOptionCombo;
+    }
+
+    private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
+        ProgramStage ps )
+    {
+        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
+        {
+            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
+        }
+        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
+        {
+            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
+        }
+    }
+
+    private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
+        Set<String> assignedUserIds )
+    {
+        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
+        {
+            throw new IllegalQueryException(
+                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
     }
 
     private void mapFilterAttributes( TrackerEventCriteria eventCriteria, EventSearchParams searchParams,
@@ -454,69 +531,5 @@ class EventRequestToSearchParamsMapper
                 orderCriteria.getField(),
                 dataElementOrders.get( orderCriteria.getField() ) ) )
             .collect( Collectors.toList() );
-    }
-
-    private User validateUser( Program pr, ProgramStage ps )
-    {
-        User user = currentUserService.getCurrentUser();
-        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
-        {
-            throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
-        }
-
-        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
-        {
-            throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
-        }
-        return user;
-    }
-
-    private void validateTrackedEntity( TrackerEventCriteria eventCriteria )
-    {
-        String trackedEntity = eventCriteria.getTrackedEntity();
-        if ( !StringUtils.isEmpty( trackedEntity )
-            && entityInstanceService.getTrackedEntityInstance( trackedEntity ) == null )
-        {
-            throw new IllegalQueryException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntity );
-        }
-    }
-
-    private CategoryOptionCombo validateAttributeOptionCombo( TrackerEventCriteria eventCriteria, User user )
-    {
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getAttributeCc(),
-            eventCriteria.getAttributeCos(),
-            true );
-        if ( attributeOptionCombo != null && !user.isSuper()
-            && !aclService.canDataRead( user, attributeOptionCombo ) )
-        {
-            throw new IllegalQueryException(
-                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-        }
-        return attributeOptionCombo;
-    }
-
-    private static void validateFilter( Set<String> eventIds, Set<String> filters, String programStage,
-        ProgramStage ps )
-    {
-        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
-        {
-            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
-        }
-        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
-        {
-            throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
-        }
-    }
-
-    private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
-        Set<String> assignedUserIds )
-    {
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
     }
 }
