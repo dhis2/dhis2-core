@@ -180,9 +180,9 @@ public class EventSearchParams
     /**
      * Filters for the response.
      */
-    private List<QueryItem> filters = new ArrayList<>();
+    private final List<QueryItem> filters = new ArrayList<>();
 
-    private List<QueryItem> filterAttributes = new ArrayList<>();
+    private final List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -287,7 +287,7 @@ public class EventSearchParams
      */
     public boolean hasFilters()
     {
-        return filters != null && !filters.isEmpty();
+        return !filters.isEmpty();
     }
 
     /**
@@ -714,23 +714,29 @@ public class EventSearchParams
 
     public List<QueryItem> getFilters()
     {
-        return filters;
+        return Collections.unmodifiableList( this.filters );
     }
 
-    public EventSearchParams setFilters( List<QueryItem> filters )
+    public EventSearchParams addFilter( QueryItem item )
     {
-        this.filters = filters;
+        this.filters.add( item );
         return this;
     }
 
     public List<QueryItem> getFilterAttributes()
     {
-        return filterAttributes;
+        return Collections.unmodifiableList( this.filterAttributes );
     }
 
-    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    public EventSearchParams addFilterAttributes( List<QueryItem> item )
     {
-        this.filterAttributes = filters;
+        this.filterAttributes.addAll( item );
+        return this;
+    }
+
+    public EventSearchParams addFilterAttributes( QueryItem item )
+    {
+        this.filterAttributes.add( item );
         return this;
     }
 
