@@ -40,7 +40,7 @@ class CodecUtilsTest
         String value = "10-05-2022T12:55:45";
 
         assertNull( CodecUtils.md5Hex( null ) );
-        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
         assertEquals( 32, CodecUtils.md5Hex( value ).length() );
+        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
     }
 }
