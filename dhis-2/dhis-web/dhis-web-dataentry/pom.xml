@@ -61,10 +61,8 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-commons</artifactId>
-    </dependency>
+    <!-- Other -->
+
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>

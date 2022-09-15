@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.de.action;
 
-import static org.hisp.dhis.commons.util.TextUtils.SEP;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,7 +64,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -216,7 +213,7 @@ public class GetMetaDataAction
         Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
         CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
-        Date lastUpdated = DateUtils.max( Sets.newHashSet(
+        Date lastUpdated = DateUtils.max( Set.of(
             identifiableObjectManager.getLastUpdated( DataElement.class ),
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
@@ -224,9 +221,8 @@ public class GetMetaDataAction
             identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
             identifiableObjectManager.getLastUpdated( Category.class ),
             identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
-        String tag = lastUpdated != null && user != null
-            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid())
-            : null;
+
+        String tag = ContextUtils.getEtag( lastUpdated, user );
 
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
