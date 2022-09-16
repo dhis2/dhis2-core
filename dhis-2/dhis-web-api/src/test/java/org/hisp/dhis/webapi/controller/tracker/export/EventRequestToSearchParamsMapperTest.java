@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -92,6 +93,8 @@ class EventRequestToSearchParamsMapperTest
 
     public static final String TEA_2_UID = "cy2oRh2sNr6";
 
+    public static final String PROGRAM_UID = "programuid";
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -140,8 +143,8 @@ class EventRequestToSearchParamsMapperTest
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         program = new Program();
-        program.setUid( "programuid" );
-        when( programService.getProgram( "programuid" ) ).thenReturn( program );
+        program.setUid( PROGRAM_UID );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
         programStage = new ProgramStage();
@@ -184,14 +187,38 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        requestToSearchParamsMapper.map( eventCriteria );
+
+        verifyNoInteractions( programService );
+        verifyNoInteractions( programStageService );
+        verifyNoInteractions( organisationUnitService );
+        verifyNoInteractions( entityInstanceService );
+    }
+
+    @Test
     void testMappingProgram()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setProgram( "programuid" );
+        eventCriteria.setProgram( PROGRAM_UID );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
         assertEquals( program, params.getProgram() );
+    }
+
+    @Test
+    void testMappingProgramNotFound()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setProgram( "unknown" );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -513,6 +540,29 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
+    void testFilterAttributesWhenTEAHasMultipleFilters()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        List<QueryItem> items = params.getFilterAttributes();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( TEA_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
     void testFilterAttributesWhenNumberOfFilterSegmentsIsEven()
     {
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
@@ -552,7 +602,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testFilterAttributesWhenSameTEAHasMultipleFilters()
+    void testFilterAttributesWhenTEAUidIsDuplicated()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setFilterAttributes(

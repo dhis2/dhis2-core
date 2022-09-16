@@ -115,7 +115,7 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Set<String> filterAttributes = new HashSet<>();
 
-    private Set<String> enrollments;
+    private Set<String> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
 
