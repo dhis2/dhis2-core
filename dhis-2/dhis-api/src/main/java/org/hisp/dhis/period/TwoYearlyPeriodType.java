@@ -50,11 +50,6 @@ public class TwoYearlyPeriodType
      */
     private static final long serialVersionUID = 5813755542990991810L;
 
-    /**
-     * The name of the TwoYearlyPeriodType, which is "TwoYearly".
-     */
-    public static final String NAME = "TwoYearly";
-
     private static final String ISO8601_DURATION = "P2Y";
 
     public static final int FREQUENCY_ORDER = 730;
@@ -66,9 +61,9 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.TWO_YEARLY;
     }
 
     @Override

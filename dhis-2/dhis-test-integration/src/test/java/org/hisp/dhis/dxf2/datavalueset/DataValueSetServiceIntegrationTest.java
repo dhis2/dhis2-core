@@ -86,6 +86,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -223,11 +224,11 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ),
+        peA = createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), getDate( 2012, 1, 1 ),
             getDate( 2012, 1, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ),
+        peB = createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), getDate( 2012, 2, 1 ),
             getDate( 2012, 2, 29 ) );
-        Period peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 3, 1 ),
+        Period peC = createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), getDate( 2012, 3, 1 ),
             getDate( 2012, 3, 31 ) );
         ocA.setUid( "kjuiHgy67hg" );
         ocB.setUid( "Gad33qy67g5" );
@@ -1349,7 +1350,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     private Period createMonthlyPeriod( Date monthStart )
     {
         Date monthEnd = DateUtils.addDays( DateUtils.addMonths( monthStart, 1 ), -1 );
-        return createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), monthStart, monthEnd );
+        return createPeriod( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ), monthStart, monthEnd );
     }
 
     private InputStream readFile( String filename )

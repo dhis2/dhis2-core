@@ -54,7 +54,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
@@ -331,7 +331,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
         {
             assertEquals( 1, query.getPeriods().size() );
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
+            assertEquals( PeriodTypeEnum.MONTHLY.getName().toLowerCase(),
                 query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
             assertTrue( query.hasValueDimension() );
         }

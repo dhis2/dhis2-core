@@ -81,53 +81,52 @@ public class HibernateEventVisualizationStore extends
     }
 
     @Override
-    public List<EventVisualization> getCharts( final int first, final int max )
+    public List<EventVisualization> getCharts( int first, int max )
     {
         return getEventVisualizations( first, max, EventVisualizationSet.EVENT_CHART );
     }
 
     @Override
-    public List<EventVisualization> getChartsLikeName( final Set<String> words, final int first, final int max )
+    public List<EventVisualization> getChartsLikeName( Set<String> words, int first, int max )
     {
         return getEventVisualizationsLikeName( words, first, max, EventVisualizationSet.EVENT_CHART );
     }
 
     @Override
-    public List<EventVisualization> getReports( final int first, final int max )
+    public List<EventVisualization> getReports( int first, int max )
     {
         return getEventVisualizations( first, max, EventVisualizationSet.EVENT_REPORT );
     }
 
     @Override
-    public List<EventVisualization> getReportsLikeName( final Set<String> words, final int first, final int max )
+    public List<EventVisualization> getReportsLikeName( Set<String> words, int first, int max )
     {
         return getEventVisualizationsLikeName( words, first, max, EventVisualizationSet.EVENT_REPORT );
     }
 
     @Override
-    public int countReportsCreated( final Date startingAt )
+    public int countReportsCreated( Date startingAt )
     {
         return countEventVisualizationCreated( startingAt, EventVisualizationSet.EVENT_REPORT );
     }
 
     @Override
-    public int countChartsCreated( final Date startingAt )
+    public int countChartsCreated( Date startingAt )
     {
         return countEventVisualizationCreated( startingAt, EventVisualizationSet.EVENT_CHART );
     }
 
     @Override
-    public List<EventVisualization> getLineLists( final int first, final int max )
+    public List<EventVisualization> getLineLists( int first, int max )
     {
         return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST );
     }
 
-    private int countEventVisualizationCreated( final Date startingAt,
-        final EventVisualizationSet eventVisualizationSet )
+    private int countEventVisualizationCreated( Date startingAt, EventVisualizationSet eventVisualizationSet )
     {
-        final CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        final JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
+        JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), startingAt ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
@@ -137,12 +136,12 @@ public class HibernateEventVisualizationStore extends
         return getCount( builder, params ).intValue();
     }
 
-    private List<EventVisualization> getEventVisualizations( final int first, final int max,
-        final EventVisualizationSet eventVisualizationSet )
+    private List<EventVisualization> getEventVisualizations( int first, int max,
+        EventVisualizationSet eventVisualizationSet )
     {
-        final CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        final JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
+        JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
             .addPredicates( getSharingPredicates( builder ) ).addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first ).setMaxResults( max );
 
@@ -151,12 +150,12 @@ public class HibernateEventVisualizationStore extends
         return getList( builder, params );
     }
 
-    private List<EventVisualization> getEventVisualizationsLikeName( final Set<String> words, final int first,
-        final int max, final EventVisualizationSet eventVisualizationSet )
+    private List<EventVisualization> getEventVisualizationsLikeName( Set<String> words, int first, int max,
+        EventVisualizationSet eventVisualizationSet )
     {
-        final CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        final JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
+        JpaQueryParameters<EventVisualization> params = new JpaQueryParameters<EventVisualization>()
             .addPredicates( getSharingPredicates( builder ) ).addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first ).setMaxResults( max );
 
@@ -165,9 +164,9 @@ public class HibernateEventVisualizationStore extends
             return getList( builder, params );
         }
 
-        final List<Function<Root<EventVisualization>, Predicate>> conjunction = new ArrayList<>( 1 );
+        List<Function<Root<EventVisualization>, Predicate>> conjunction = new ArrayList<>( 1 );
 
-        for ( final String word : words )
+        for ( String word : words )
         {
             conjunction
                 .add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
@@ -181,8 +180,8 @@ public class HibernateEventVisualizationStore extends
         return getList( builder, params );
     }
 
-    private void setCorrectPredicates( final EventVisualizationSet eventVisualizationSet, final CriteriaBuilder builder,
-        final JpaQueryParameters<EventVisualization> params )
+    private void setCorrectPredicates( EventVisualizationSet eventVisualizationSet, CriteriaBuilder builder,
+        JpaQueryParameters<EventVisualization> params )
     {
         if ( eventVisualizationSet == EventVisualizationSet.EVENT_CHART )
         {

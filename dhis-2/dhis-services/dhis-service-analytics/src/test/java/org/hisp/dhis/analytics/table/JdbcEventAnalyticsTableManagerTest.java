@@ -119,7 +119,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class JdbcEventAnalyticsTableManagerTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -623,7 +622,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        final String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 

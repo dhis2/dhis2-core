@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -318,6 +319,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.dateRangeList = this.dateRangeList;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
@@ -482,20 +484,27 @@ public class EventQueryParams
     /**
      * Replaces periods with start and end dates, using the earliest start date
      * from the periods as start date and the latest end date from the periods
-     * as end date. Remove the period dimension or filter.
+     * as end date. Before removing the period dimension or filter, DateRange
+     * list is created. This saves the complete date information from PE
+     * Dimension prior removal of dimension
      *
      * When heterogeneous date fields are specified, set a specific start/date
      * pair for each of them
      */
-    private void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
         for ( Period period : periods )
         {
+            DateRange dateRange = new DateRange( period.getStartDate(), period.getEndDate() );
+
+            dateRangeList.add( dateRange );
+
             if ( Objects.isNull( period.getDateField() ) )
             {
                 Date start = period.getStartDate();
+
                 Date end = period.getEndDate();
 
                 if ( startDate == null || (start != null && start.before( startDate )) )
@@ -518,6 +527,8 @@ public class EventQueryParams
                 }
             }
         }
+        // Sorting the date range list
+        dateRangeList.sort( Comparator.comparing( DateRange::getStartDate ) );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }
@@ -1513,7 +1524,7 @@ public class EventQueryParams
 
         public Builder withStartEndDatesForPeriods()
         {
-            this.params.replacePeriodsWithStartEndDates();
+            this.params.replacePeriodsWithDates();
             return this;
         }
 
