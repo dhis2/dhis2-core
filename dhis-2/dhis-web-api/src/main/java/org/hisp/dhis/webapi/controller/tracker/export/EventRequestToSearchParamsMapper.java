@@ -215,9 +215,9 @@ class EventRequestToSearchParamsMapper
             .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
             .setSkipPaging( eventCriteria.isSkipPaging() )
             .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
-            .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
-            .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
-            .setAttributeOrders( attributeOrderParams )
+            .setIncludeAllDataElements( false ).addOrders( getOrderParams( eventCriteria.getOrder() ) )
+            .addGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
+            .addAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
