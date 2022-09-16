@@ -669,6 +669,40 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void testOrderEventsOnMultipleAttributesDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.setAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+            new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void testOrderEventsOnMultipleAttributesAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.setAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+            new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
+    }
+
+    @Test
     void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
     {
         EventSearchParams params = new EventSearchParams();
