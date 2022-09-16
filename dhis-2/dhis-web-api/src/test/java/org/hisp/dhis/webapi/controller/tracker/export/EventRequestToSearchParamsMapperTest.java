@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -92,6 +93,8 @@ class EventRequestToSearchParamsMapperTest
 
     public static final String TEA_2_UID = "cy2oRh2sNr6";
 
+    public static final String PROGRAM_UID = "programuid";
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -140,8 +143,8 @@ class EventRequestToSearchParamsMapperTest
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         program = new Program();
-        program.setUid( "programuid" );
-        when( programService.getProgram( "programuid" ) ).thenReturn( program );
+        program.setUid( PROGRAM_UID );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
         programStage = new ProgramStage();
@@ -184,14 +187,38 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        requestToSearchParamsMapper.map( eventCriteria );
+
+        verifyNoInteractions( programService );
+        verifyNoInteractions( programStageService );
+        verifyNoInteractions( organisationUnitService );
+        verifyNoInteractions( entityInstanceService );
+    }
+
+    @Test
     void testMappingProgram()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setProgram( "programuid" );
+        eventCriteria.setProgram( PROGRAM_UID );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
         assertEquals( program, params.getProgram() );
+    }
+
+    @Test
+    void testMappingProgramNotFound()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setProgram( "unknown" );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
