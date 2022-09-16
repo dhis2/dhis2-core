@@ -200,7 +200,7 @@ class EventRequestToSearchParamsMapper
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
-            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
+            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.isFollowUp() )
             .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
             .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
             .setAssignedUsers( assignedUserIds )
@@ -218,7 +218,7 @@ class EventRequestToSearchParamsMapper
             .setPage( eventCriteria.getPage() )
             .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
             .setSkipPaging( eventCriteria.isSkipPaging() )
-            .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
+            .setSkipEventId( eventCriteria.isSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
             .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
             .setAttributeOrders( attributeOrderParams )

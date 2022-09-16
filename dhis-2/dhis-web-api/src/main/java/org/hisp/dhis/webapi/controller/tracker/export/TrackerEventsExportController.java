@@ -120,7 +120,7 @@ public class TrackerEventsExportController
 
         Events events = eventService.getEvents( eventSearchParams );
 
-        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
+        if ( hasHref( fields, eventCriteria.isSkipEventId() ) )
         {
             events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
         }
@@ -163,7 +163,7 @@ public class TrackerEventsExportController
 
         Events events = eventService.getEvents( eventSearchParams );
 
-        if ( hasHref( fields, eventCriteria.getSkipEventId() ) )
+        if ( hasHref( fields, eventCriteria.isSkipEventId() ) )
         {
             events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
         }

@@ -29,21 +29,25 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -51,73 +55,138 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Data
-@NoArgsConstructor
+@Getter
+@ToString
+@EqualsAndHashCode
 class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private String program;
+    private final String program;
 
-    private String programStage;
+    private final String programStage;
 
-    private ProgramStatus programStatus;
+    private final ProgramStatus programStatus;
 
-    private Boolean followUp;
+    private final boolean followUp;
 
-    private String trackedEntity;
+    private final String trackedEntity;
 
-    private String orgUnit;
+    private final String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+    private final OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+    private final AssignedUserSelectionMode assignedUserMode;
 
-    private String assignedUser;
+    private final String assignedUser;
 
-    private Date occurredAfter;
+    private final Date occurredAfter;
 
-    private Date occurredBefore;
+    private final Date occurredBefore;
 
-    private Date scheduledAfter;
+    private final Date scheduledAfter;
 
-    private Date scheduledBefore;
+    private final Date scheduledBefore;
 
-    private Date updatedAfter;
+    private final Date updatedAfter;
 
-    private Date updatedBefore;
+    private final Date updatedBefore;
 
-    private String updatedWithin;
+    private final String updatedWithin;
 
-    private Date enrollmentEnrolledBefore;
+    private final Date enrollmentEnrolledBefore;
 
-    private Date enrollmentEnrolledAfter;
+    private final Date enrollmentEnrolledAfter;
 
-    private Date enrollmentOccurredBefore;
+    private final Date enrollmentOccurredBefore;
 
-    private Date enrollmentOccurredAfter;
+    private final Date enrollmentOccurredAfter;
 
-    private EventStatus status;
+    private final EventStatus status;
 
-    private String attributeCc;
+    private final String attributeCc;
 
-    private String attributeCos;
+    private final String attributeCos;
 
-    private boolean skipMeta;
+    private final boolean skipMeta;
 
-    private String attachment;
+    private final String attachment;
 
-    private boolean includeDeleted;
+    private final boolean includeDeleted;
 
-    private String event;
+    private final String event;
 
-    private Boolean skipEventId;
+    private final boolean skipEventId;
 
     private Set<String> filter = new HashSet<>();
 
     private Set<String> filterAttributes = new HashSet<>();
 
-    private Set<String> enrollments;
+    private Set<String> enrollments = new HashSet<>();
 
-    private IdSchemes idSchemes = new IdSchemes();
+    private final IdSchemes idSchemes = new IdSchemes();
+
+    @Builder
+    public TrackerEventCriteria( String program, String programStage, ProgramStatus programStatus, boolean followUp,
+        String trackedEntity, String orgUnit, OrganisationUnitSelectionMode ouMode,
+        AssignedUserSelectionMode assignedUserMode, String assignedUser, Date occurredAfter, Date occurredBefore,
+        Date scheduledAfter, Date scheduledBefore, Date updatedAfter, Date updatedBefore, String updatedWithin,
+        Set<String> enrollments, Date enrollmentEnrolledBefore, Date enrollmentEnrolledAfter,
+        Date enrollmentOccurredBefore, Date enrollmentOccurredAfter, EventStatus status, String attributeCc,
+        String attributeCos, boolean skipMeta, String attachment, boolean includeDeleted, String event,
+        boolean skipEventId, Set<String> filter, Set<String> filterAttributes, Integer page, Integer pageSize,
+        boolean totalPages, boolean skipPaging, List<OrderCriteria> order, boolean isLegacy )
+    {
+        // explicit constructor is necessary since this class extends another
+        // class
+        super( page, pageSize, totalPages, skipPaging, order, isLegacy );
+        this.program = program;
+        this.programStage = programStage;
+        this.programStatus = programStatus;
+        this.followUp = followUp;
+        this.trackedEntity = trackedEntity;
+        this.orgUnit = orgUnit;
+        this.ouMode = ouMode;
+        this.assignedUserMode = assignedUserMode;
+        this.assignedUser = assignedUser;
+        this.occurredAfter = occurredAfter;
+        this.occurredBefore = occurredBefore;
+        this.scheduledAfter = scheduledAfter;
+        this.scheduledBefore = scheduledBefore;
+        this.updatedAfter = updatedAfter;
+        this.updatedBefore = updatedBefore;
+        this.updatedWithin = updatedWithin;
+        this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
+        this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
+        this.enrollmentOccurredBefore = enrollmentOccurredBefore;
+        this.enrollmentOccurredAfter = enrollmentOccurredAfter;
+        this.status = status;
+        this.attributeCc = attributeCc;
+        this.attributeCos = attributeCos;
+        this.skipMeta = skipMeta;
+        this.attachment = attachment;
+        this.includeDeleted = includeDeleted;
+        this.event = event;
+        this.skipEventId = skipEventId;
+        // necessary since @Builder.Default does not work with an explicit
+        // constructor
+        this.filter = Optional.ofNullable( filter ).orElse( this.filter );
+        this.filterAttributes = Optional.ofNullable( filterAttributes ).orElse( this.filterAttributes );
+        this.enrollments = Optional.ofNullable( enrollments ).orElse( this.enrollments );
+    }
+
+    public Set<String> getFilter()
+    {
+        return Collections.unmodifiableSet( this.filter );
+    }
+
+    public Set<String> getFilterAttributes()
+    {
+        return Collections.unmodifiableSet( this.filterAttributes );
+    }
+
+    public Set<String> getEnrollments()
+    {
+        return Collections.unmodifiableSet( this.enrollments );
+    }
 
     @Override
     public boolean isLegacy()
@@ -142,7 +211,7 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
         /**
          * this enum names must be the same as
          * org.hisp.dhis.tracker.domain.Event fields, just with different case
-         *
+         * <br/>
          * example: org.hisp.dhis.tracker.domain.Event.updatedAtClient -->
          * UPDATED_AT_CLIENT
          */
@@ -166,8 +235,7 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     {
         /**
          * this enum names must be the same as org.hisp.dhis.dxf2.events.Event
-         * fields, just with different case
-         *
+         * fields, just with different case <br/>
          * example: org.hisp.dhis.dxf2.events.Event.lastUpdated --> LAST_UPDATED
          */
         EVENT( "uid" );

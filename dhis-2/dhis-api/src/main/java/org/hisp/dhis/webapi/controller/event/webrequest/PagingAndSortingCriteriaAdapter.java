@@ -29,15 +29,16 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import static java.util.stream.Collectors.partitioningBy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,7 @@ import org.apache.commons.collections4.CollectionUtils;
  */
 @Data
 @Slf4j
+@AllArgsConstructor
 @NoArgsConstructor( access = AccessLevel.PROTECTED )
 public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
 {
@@ -74,12 +76,12 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     /**
      * Indicates whether paging should be skipped.
      */
-    private Boolean skipPaging;
+    private boolean skipPaging;
 
     /**
      * order params
      */
-    private List<OrderCriteria> order;
+    private List<OrderCriteria> order = new ArrayList<>();
 
     /**
      * TODO: legacy flag can be removed when new tracker will have it's own
@@ -101,12 +103,6 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     public boolean isPagingRequest()
     {
         return !isSkipPaging();
-    }
-
-    public boolean isSkipPaging()
-    {
-        return Optional.ofNullable( skipPaging )
-            .orElse( false );
     }
 
     @Override
