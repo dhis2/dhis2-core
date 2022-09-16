@@ -36,29 +36,33 @@ import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -69,16 +73,12 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.accept.FixedContentNegotiationStrategy;
-import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
-import org.springframework.web.servlet.resource.ResourceUrlProvider;
-import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -101,6 +101,9 @@ public class MvcTestConfig implements WebMvcConfigurer
     public DefaultRequestInfoService requestInfoService;
 
     @Autowired
+    private MetadataExportService metadataExportService;
+
+    @Autowired
     private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
     @Autowired
@@ -113,31 +116,6 @@ public class MvcTestConfig implements WebMvcConfigurer
 
     @Autowired
     private FieldFilterService fieldFilterService;
-
-    @Bean
-    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
-        FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider )
-    {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
-            mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
-
-        ContentNegotiationManager manager = new ContentNegotiationManager(
-            Arrays.asList(
-                pathExtensionNegotiationStrategy,
-                new HeaderContentNegotiationStrategy(),
-                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
-
-        CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
-        mapping.setOrder( 0 );
-        mapping.setContentNegotiationManager( manager );
-        TestInterceptorRegistry registry = new TestInterceptorRegistry();
-        addInterceptors( registry );
-        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
-        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
-        mapping.setInterceptors( registry.getInterceptors().toArray() );
-        return mapping;
-    }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
         .put( "json", MediaType.APPLICATION_JSON )
@@ -160,10 +138,43 @@ public class MvcTestConfig implements WebMvcConfigurer
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
 
+    @Override
+    public void configureContentNegotiation( ContentNegotiationConfigurer configurer )
+    {
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
+
+        configurer.strategies( List.of( pathExtensionNegotiationStrategy ) );
+        configurer.favorPathExtension( true );
+    }
+
+    @Override
+    public void configurePathMatch( PathMatchConfigurer configurer )
+    {
+        configurer.setUseSuffixPatternMatch( false );
+        configurer.setUseRegisteredSuffixPatternMatch( true );
+    }
+
     @Bean
     public NodeService nodeService()
     {
         return new DefaultNodeService();
+    }
+
+    @Bean( "databaseInfo" )
+    public DatabaseInfo databaseInfo()
+    {
+        return new DatabaseInfo();
+    }
+
+    @Primary
+    @Bean( "systemService" )
+    public SystemService systemService()
+    {
+        SystemService systemService = Mockito.mock( SystemService.class );
+        Mockito.when( systemService.getSystemInfo() ).thenReturn( new SystemInfo() );
+        return systemService;
     }
 
     @Override
@@ -200,6 +211,10 @@ public class MvcTestConfig implements WebMvcConfigurer
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
+
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters
+                .add( new MetadataExportParamsMessageConverter( metadataExportService, compression ) ) );
 
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters

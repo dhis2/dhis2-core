@@ -462,6 +462,7 @@ public class DataSetController
         {
             throw new WebMessageException( notFound( "DataSet not found for uid: " + pvUid ) );
         }
+
         MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
         exportService.validate( exportParams );
         exportParams.setObjectExportWithDependencies( dataSet );

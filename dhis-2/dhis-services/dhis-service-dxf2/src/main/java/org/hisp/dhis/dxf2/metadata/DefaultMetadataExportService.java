@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.dxf2.Constants.SYSTEM;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_DATE;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_ID;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_REVISION;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_VERSION;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -118,16 +124,6 @@ import com.google.common.collect.Sets;
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final String SYSTEM = "system";
-
-    private static final String SYSTEM_ID = "id";
-
-    private static final String SYSTEM_REVISION = "rev";
-
-    private static final String SYSTEM_VERSION = "version";
-
-    private static final String SYSTEM_DATE = "date";
-
     private final SchemaService schemaService;
 
     private final QueryService queryService;

@@ -39,6 +39,7 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
@@ -46,7 +47,6 @@ import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -56,8 +56,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
@@ -108,7 +106,7 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
+    public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
@@ -119,7 +117,11 @@ public class DashboardController
             throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        exportService.validate( exportParams );
+        exportParams.setObjectExportWithDependencies( dashboard );
+
+        return ResponseEntity.ok( exportParams );
     }
 
     @PostMapping( "cascadeSharing/{uid}" )
