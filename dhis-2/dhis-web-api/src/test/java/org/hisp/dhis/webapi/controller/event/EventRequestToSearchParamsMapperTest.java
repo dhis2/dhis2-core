@@ -131,7 +131,7 @@ class EventRequestToSearchParamsMapperTest
             null, null, null, null, null,
             null, null, null,
             null, null, null, null,
-            false, false, null, null,
+            false, false, Collections.emptyList(), Collections.emptyList(),
             false,
             new HashSet<>(), new HashSet<>(), null,
             null,
