@@ -365,7 +365,7 @@ class EventRequestToSearchParamsMapper
         if ( !duplicates.isEmpty() )
         {
             throw new IllegalQueryException( String.format(
-                "filterAttributes can only have one filter per tracked entity attribute (TEA). The following TEA have more than one: %s",
+                "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
                 String.join( ", ", duplicates ) ) );
         }
     }

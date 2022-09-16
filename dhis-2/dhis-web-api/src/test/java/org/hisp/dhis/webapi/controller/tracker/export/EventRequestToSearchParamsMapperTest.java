@@ -611,7 +611,7 @@ class EventRequestToSearchParamsMapperTest
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> requestToSearchParamsMapper.map( eventCriteria ) );
         assertAll(
-            () -> assertStartsWith( "filterAttributes can only have one filter per tracked entity attribute (TEA).",
+            () -> assertStartsWith( "filterAttributes contains duplicate tracked entity attribute",
                 exception.getMessage() ),
             // order of TEA UIDs might not always be the same; therefore using
             // contains
