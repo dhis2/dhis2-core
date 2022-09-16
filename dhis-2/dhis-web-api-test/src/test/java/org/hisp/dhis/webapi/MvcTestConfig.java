@@ -48,6 +48,7 @@ import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -63,6 +64,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -73,12 +75,17 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.web.accept.FixedContentNegotiationStrategy;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
+import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -117,6 +124,20 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Autowired
     private FieldFilterService fieldFilterService;
 
+    @Bean
+    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
+        FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider )
+    {
+        CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
+        mapping.setOrder( 0 );
+        TestInterceptorRegistry registry = new TestInterceptorRegistry();
+        addInterceptors( registry );
+        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
+        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
+        mapping.setInterceptors( registry.getInterceptors().toArray() );
+        return mapping;
+    }
+
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()
         .put( "json", MediaType.APPLICATION_JSON )
         .put( "json.gz", parseMediaType( "application/json+gzip" ) )
@@ -143,10 +164,13 @@ public class MvcTestConfig implements WebMvcConfigurer
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
-        configurer.strategies( List.of( pathExtensionNegotiationStrategy ) );
-        configurer.favorPathExtension( true );
+        configurer.strategies(
+            Arrays.asList(
+                pathExtensionNegotiationStrategy,
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
+
     }
 
     @Override
