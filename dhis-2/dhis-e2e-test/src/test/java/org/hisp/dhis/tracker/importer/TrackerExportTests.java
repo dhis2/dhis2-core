@@ -239,4 +239,26 @@ public class TrackerExportTests
             .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
             .body( "to.trackedEntity.trackedEntity", notNullValue() );
     }
+
+    @Test
+    public void shouldReturnFilteredEvent()
+    {
+        trackerActions.get( "events?occurredAfter=2019-08-16&occurredBefore=2019-08-20" )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances", hasSize( equalTo( 1 ) ) )
+            .rootPath( "instances[0]" )
+            .body( "event", equalTo( eventId ) );
+    }
+
+    @Test
+    public void shouldReturnOrderedEventByTEIAttribute()
+    {
+        trackerActions.get( "events?order=dIVt4l5vIOa:desc" )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances", hasSize( equalTo( 2 ) ) )
+            .rootPath( "instances[0]" )
+            .body( "event", equalTo( eventId ) );
+    }
 }
