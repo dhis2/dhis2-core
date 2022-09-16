@@ -674,8 +674,8 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
@@ -691,8 +691,8 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
             new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
