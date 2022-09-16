@@ -540,6 +540,29 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
+    void testFilterAttributesWhenTEAHasMultipleFilters()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        List<QueryItem> items = params.getFilterAttributes();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( TEA_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
     void testFilterAttributesWhenNumberOfFilterSegmentsIsEven()
     {
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
@@ -579,7 +602,7 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testFilterAttributesWhenSameTEAHasMultipleFilters()
+    void testFilterAttributesWhenTEAUidIsDuplicated()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setFilterAttributes(
