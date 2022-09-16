@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -104,6 +105,10 @@ public class MetadataExportParams
      */
     private boolean skipSharing;
 
+    /**
+     * The object to be exported with dependencies. It will be handled by
+     * {@link MetadataExportService#getMetadataWithDependenciesAsNodeStream(IdentifiableObject, MetadataExportParams, OutputStream)}
+     */
     private IdentifiableObject objectExportWithDependencies;
 
     public MetadataExportParams()
