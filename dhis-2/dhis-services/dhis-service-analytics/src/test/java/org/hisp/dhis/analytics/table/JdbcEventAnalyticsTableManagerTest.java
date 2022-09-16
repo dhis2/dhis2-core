@@ -459,6 +459,44 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
+    void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable()
+    {
+        // Given fixtures/expectations
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
+        Program programA = createProgram( 'A' );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
+        tea.setId( 9999 );
+
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
+            tea );
+
+        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
+
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true ), Integer.class ) )
+            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
+        // When
+        subject.populateTable( params,
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+
+        // Then
+        verify( jdbcTemplate ).execute( sql.capture() );
+
+        String ouEnrollmentLeftJoin = "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid";
+        String ouRegistrationLeftJoin = "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid";
+
+        assertThat( sql.getValue(), containsString( ouEnrollmentLeftJoin ) );
+        assertThat( sql.getValue(), containsString( ouRegistrationLeftJoin ) );
+    }
+
+    @Test
     void verifyGetAnalyticsTableWithOuLevels()
     {
         List<OrganisationUnitLevel> ouLevels = rnd.objects( OrganisationUnitLevel.class, 2 )
