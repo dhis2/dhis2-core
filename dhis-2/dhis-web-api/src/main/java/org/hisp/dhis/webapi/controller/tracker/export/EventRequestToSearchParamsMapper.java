@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -162,37 +161,30 @@ class EventRequestToSearchParamsMapper
         Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
         validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
 
-        EventSearchParams params = new EventSearchParams();
-
-        for ( String filter : eventCriteria.getFilter() )
-        {
-            params.addFilter( getQueryItem( filter ) );
-        }
-
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+        List<QueryItem> dataElements = dataElementOrders.keySet()
+            .stream()
+            .map( this::getQueryItem )
+            .collect( Collectors.toList() );
+
         Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
-        List<OrderParam> attributeOrderParams = getGridOrderParams( eventCriteria.getOrder(), attributeOrders );
+        List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
+        List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
 
         List<QueryItem> filterAttributes = parseFilterAttributes( eventCriteria.getFilterAttributes(),
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
-        params.addFilterAttributes( filterAttributes );
 
-        Set<String> dataElements = dataElementOrders.keySet();
-        for ( String de : dataElements )
-        {
-            QueryItem dataElement = getQueryItem( de );
+        List<QueryItem> filters = eventCriteria.getFilter()
+            .stream()
+            .map( this::getQueryItem )
+            .collect( Collectors.toList() );
 
-            params.getDataElements().add( dataElement );
-        }
+        Set<String> programInstances = eventCriteria.getEnrollments().stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
 
-        Set<String> programInstances = eventCriteria.getEnrollments();
-        if ( programInstances != null )
-        {
-            programInstances = programInstances.stream()
-                .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet() );
-        }
+        EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
@@ -215,8 +207,10 @@ class EventRequestToSearchParamsMapper
             .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
             .setSkipPaging( eventCriteria.isSkipPaging() )
             .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
-            .setIncludeAllDataElements( false ).addOrders( getOrderParams( eventCriteria.getOrder() ) )
-            .addGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
+            .setIncludeAllDataElements( false ).addDataElements( dataElements )
+            .addFilters( filters ).addFilterAttributes( filterAttributes )
+            .addOrders( getOrderParams( eventCriteria.getOrder() ) )
+            .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
@@ -519,17 +513,10 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    private List<OrderParam> getGridOrderParams( List<OrderCriteria> order,
-        Map<String, SortDirection> dataElementOrders )
+    private List<OrderParam> mapToOrderParams( Map<String, SortDirection> orders )
     {
-        return Optional.ofNullable( order )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( Objects::nonNull )
-            .filter( orderCriteria -> dataElementOrders.containsKey( orderCriteria.getField() ) )
-            .map( orderCriteria -> new OrderParam(
-                orderCriteria.getField(),
-                dataElementOrders.get( orderCriteria.getField() ) ) )
+        return orders.entrySet().stream()
+            .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
             .collect( Collectors.toList() );
     }
 }

@@ -723,6 +723,12 @@ public class EventSearchParams
         return this;
     }
 
+    public EventSearchParams addFilters( List<QueryItem> items )
+    {
+        this.filters.addAll( items );
+        return this;
+    }
+
     public List<QueryItem> getFilterAttributes()
     {
         return Collections.unmodifiableList( this.filterAttributes );
