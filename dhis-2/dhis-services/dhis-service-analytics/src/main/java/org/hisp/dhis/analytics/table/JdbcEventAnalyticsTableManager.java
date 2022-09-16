@@ -362,7 +362,7 @@ public class JdbcEventAnalyticsTableManager
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-            "inner join programstage ps on psi.programstageid=ps.progEventRequestToSearchParamsMapperramstageid " +
+            "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
             "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
