@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
+import org.hisp.dhis.analytics.data.DimensionalObjectCreator;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -55,11 +56,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,10 +94,9 @@ class AnalyticsControllerTest
     public void setUp()
     {
         final DataQueryService dataQueryService = new DefaultDataQueryService(
+            mock( DimensionalObjectCreator.class ),
             mock( IdentifiableObjectManager.class ),
-            mock( OrganisationUnitService.class ),
-            dimensionService, mock( AnalyticsSecurityManager.class ), mock( SystemSettingManager.class ),
-            mock( AclService.class ), mock( CurrentUserService.class ),
+            mock( AnalyticsSecurityManager.class ),
             mock( I18nManager.class ) );
 
         // Controller under test

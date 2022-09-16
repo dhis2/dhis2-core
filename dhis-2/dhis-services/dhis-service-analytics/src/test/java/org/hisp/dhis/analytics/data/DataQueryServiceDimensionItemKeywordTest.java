@@ -66,9 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,10 +101,7 @@ class DataQueryServiceDimensionItemKeywordTest
     private SystemSettingManager systemSettingManager;
 
     @Mock
-    private AclService aclService;
-
-    @Mock
-    private CurrentUserService currentUserService;
+    private DimensionalObjectCreator dimensionalObjectCreator;
 
     @Mock
     private I18nManager i18nManager;
@@ -135,8 +130,7 @@ class DataQueryServiceDimensionItemKeywordTest
     @BeforeEach
     public void setUp()
     {
-        target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,
-            securityManager, systemSettingManager, aclService, currentUserService, i18nManager );
+        target = new DefaultDataQueryService( dimensionalObjectCreator, idObjectManager, securityManager, i18nManager );
 
         rb = new RequestBuilder();
 
