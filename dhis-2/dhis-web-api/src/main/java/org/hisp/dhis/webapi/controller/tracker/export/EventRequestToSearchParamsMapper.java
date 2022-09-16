@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -45,6 +46,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -134,20 +136,22 @@ class EventRequestToSearchParamsMapper
 
     public EventSearchParams map( TrackerEventCriteria eventCriteria )
     {
-        Program program = programService.getProgram( eventCriteria.getProgram() );
+        Program program = applyIfNonEmpty( programService::getProgram, eventCriteria.getProgram() );
         validateProgram( eventCriteria.getProgram(), program );
 
-        ProgramStage programStage = programStageService.getProgramStage( eventCriteria.getProgramStage() );
+        ProgramStage programStage = applyIfNonEmpty( programStageService::getProgramStage,
+            eventCriteria.getProgramStage() );
         validateProgramStage( eventCriteria.getProgramStage(), programStage );
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( eventCriteria.getOrgUnit() );
+        OrganisationUnit orgUnit = applyIfNonEmpty( organisationUnitService::getOrganisationUnit,
+            eventCriteria.getOrgUnit() );
         validateOrgUnit( eventCriteria.getOrgUnit(), orgUnit );
 
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntityInstance trackedEntityInstance = entityInstanceService
-            .getTrackedEntityInstance( eventCriteria.getTrackedEntity() );
+        TrackedEntityInstance trackedEntityInstance = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+            eventCriteria.getTrackedEntity() );
         validateTrackedEntity( eventCriteria.getTrackedEntity(), trackedEntityInstance );
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
@@ -220,6 +224,16 @@ class EventRequestToSearchParamsMapper
             .setAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+    }
+
+    private static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
+    {
+        if ( StringUtils.isEmpty( arg ) )
+        {
+            return null;
+        }
+
+        return func.apply( arg );
     }
 
     private static void validateProgram( String program, Program pr )
