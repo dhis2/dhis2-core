@@ -25,37 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.Date;
-
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
-/**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
- */
-@Setter
+import org.hisp.dhis.period.PeriodTypeEnum;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Getter
-@AllArgsConstructor
-public class DateRange
+@Setter
+@NoArgsConstructor
+@Accessors( chain = true )
+public class SourceParams
+    implements Serializable
 {
-    private Date startDate;
-
-    private Date endDate;
-
-    public Date getEndDatePlusOneDay()
-    {
-        return plusOneDay( endDate );
-    }
-
-    public String toString()
-    {
-        return String.format( "%s-%s", startDate, endDate );
-    }
+    /**
+     * Allowed period types for period parameters.
+     */
+    @JsonProperty
+    private List<PeriodTypeEnum> periodTypes = new ArrayList<>();
 }

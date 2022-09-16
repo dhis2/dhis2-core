@@ -25,37 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
-
-import java.util.Date;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+package org.hisp.dhis.dataexchange.client.response;
 
 /**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
+ * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
+ * support data exchange with various DHIS 2 versions.
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange
+public enum Status
 {
-    private Date startDate;
-
-    private Date endDate;
-
-    public Date getEndDatePlusOneDay()
-    {
-        return plusOneDay( endDate );
-    }
-
-    public String toString()
-    {
-        return String.format( "%s-%s", startDate, endDate );
-    }
+    OK,
+    SUCCESS,
+    WARNING,
+    ERROR
 }

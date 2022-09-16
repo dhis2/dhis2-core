@@ -353,28 +353,39 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingNoEvents()
+    void testMappingEventIsNull()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertEquals( Collections.emptySet(), params.getEvents() );
+        assertIsEmpty( params.getEvents() );
     }
 
     @Test
-    void testMappingAssignedUsers()
+    void testMappingEventIsEmpty()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setEvent( " " );
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertIsEmpty( params.getEvents() );
+    }
+
+    @Test
+    void testMappingAssignedUser()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 
-        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
+        assertContainsOnly( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
     }
 
     @Test
-    void testMappingAssignedUsersStripsInvalidUid()
+    void testMappingAssignedUserStripsInvalidUid()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
@@ -385,9 +396,20 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
-    void testMappingNoAssignedUsers()
+    void testMappingAssignedUserIsNull()
     {
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+
+        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        assertIsEmpty( params.getAssignedUsers() );
+    }
+
+    @Test
+    void testMappingAssignedUserIsEmpty()
+    {
+        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        eventCriteria.setAssignedUser( " " );
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
 

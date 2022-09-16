@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -91,6 +92,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Filter;
 import org.hisp.dhis.dataexchange.aggregate.Source;
+import org.hisp.dhis.dataexchange.aggregate.SourceParams;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
 import org.hisp.dhis.dataexchange.aggregate.Target;
 import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
@@ -132,6 +134,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -431,30 +434,37 @@ public abstract class DhisConvenienceTest
      */
     public static AggregateDataExchange getAggregateDataExchange( char uniqueCharacter )
     {
-        SourceRequest sourceRequest = new SourceRequest();
-        sourceRequest.setName( "RequestA" );
-        sourceRequest.setVisualization( "JHKuBWP20RO" );
-        sourceRequest.getDx().addAll( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w" ) );
-        sourceRequest.getPe().addAll( List.of( "202201", "202202" ) );
-        sourceRequest.getOu().addAll( List.of( "G9BuXqtNeeb", "jDgiLmYwPDm" ) );
-        sourceRequest.getFilters().addAll( List.of(
-            new Filter().setDimension( "MuTwGW0BI4o" ).setItems( List.of( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
-            new Filter().setDimension( "dAOgE7mgysJ" ).setItems( List.of( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) );
-        sourceRequest.setInputIdScheme( IdScheme.UID.name() )
+        SourceParams sourceParams = new SourceParams()
+            .setPeriodTypes( List.of( PeriodTypeEnum.MONTHLY, PeriodTypeEnum.QUARTERLY ) );
+
+        SourceRequest sourceRequest = new SourceRequest()
+            .setName( "RequestA" )
+            .setVisualization( "JHKuBWP20RO" )
+            .setDx( newArrayList( "LrDpG50RAU9", "uR5HCiJhQ1w" ) )
+            .setPe( newArrayList( "202201", "202202" ) )
+            .setOu( newArrayList( "G9BuXqtNeeb", "jDgiLmYwPDm" ) )
+            .setFilters( newArrayList(
+                new Filter().setDimension( "MuTwGW0BI4o" ).setItems( newArrayList( "v9oULMMdmzE", "eJHJ0bfDCEO" ) ),
+                new Filter().setDimension( "dAOgE7mgysJ" ).setItems( newArrayList( "rbE2mZX86AA", "XjOFfrPwake" ) ) ) )
+            .setInputIdScheme( IdScheme.UID.name() )
             .setOutputIdScheme( IdScheme.UID.name() );
 
         Source source = new Source()
-            .setRequests( List.of( sourceRequest ) );
+            .setParams( sourceParams )
+            .setRequests( newArrayList( sourceRequest ) );
 
         Api api = new Api()
             .setUrl( "https://play.dhis2.org/demo" )
             .setUsername( DEFAULT_USERNAME )
             .setPassword( DEFAULT_ADMIN_PASSWORD );
 
+        TargetRequest targetRequest = new TargetRequest()
+            .setIdScheme( IdScheme.UID.name() );
+
         Target target = new Target()
             .setApi( api )
             .setType( TargetType.EXTERNAL )
-            .setRequest( new TargetRequest() );
+            .setRequest( targetRequest );
 
         AggregateDataExchange exchange = new AggregateDataExchange();
         exchange.setAutoFields();

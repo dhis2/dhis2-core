@@ -216,8 +216,7 @@ class EventRequestToSearchParamsMapper
 
             for ( String filter : filters )
             {
-                QueryItem item = getQueryItem( filter );
-                params.getFilters().add( item );
+                params.addFilter( getQueryItem( filter ) );
             }
         }
 

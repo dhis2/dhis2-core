@@ -29,6 +29,7 @@ package org.hisp.dhis.utils;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -108,13 +109,23 @@ public final class Assertions
     /**
      * Asserts that the given collection is not null and empty.
      *
-     * @param <E>
      * @param actual the collection.
      */
-    public static <E> void assertIsEmpty( Collection<E> actual )
+    public static void assertIsEmpty( Collection<?> actual )
     {
         assertNotNull( actual );
         assertTrue( actual.isEmpty(), actual.toString() );
+    }
+
+    /**
+     * Asserts that the given collection is not null and not empty.
+     *
+     * @param actual the collection.
+     */
+    public static void assertNotEmpty( Collection<?> actual )
+    {
+        assertNotNull( actual );
+        assertFalse( actual.isEmpty(), actual.toString() );
     }
 
     /**
@@ -146,5 +157,47 @@ public final class Assertions
             .format( "expected actual to contain '%s', got null instead", expected ) );
         assertTrue( actual.contains( expected ), () -> String
             .format( "expected actual to contain '%s', got '%s' instead", expected, actual ) );
+    }
+
+    /**
+     * Asserts that the given value is within the range of lower and upper bound
+     * (inclusive i.e. [lower, upper]).
+     *
+     * @param lower lower bound
+     * @param upper upper bound
+     * @param actual actual value to be checked
+     */
+    public static void assertWithinRange( long lower, long upper, long actual )
+    {
+        assertTrue( lower < upper,
+            () -> String.format( "lower bound %d must be < than the upper bound %d", lower, upper ) );
+
+        assertAll(
+            () -> assertGreaterOrEqual( lower, actual ),
+            () -> assertLessOrEqual( upper, actual ) );
+    }
+
+    /**
+     * Asserts that the given value is greater or equal than lower bound.
+     *
+     * @param lower lower bound
+     * @param actual actual value to be checked
+     */
+    public static void assertGreaterOrEqual( long lower, long actual )
+    {
+        assertTrue( actual >= lower,
+            () -> String.format( "Expected actual %d to be >= than lower bound %d", actual, lower ) );
+    }
+
+    /**
+     * Asserts that the given value is less or equal than upper bound.
+     *
+     * @param upper upper bound
+     * @param actual actual value to be checked
+     */
+    public static void assertLessOrEqual( long upper, long actual )
+    {
+        assertTrue( actual <= upper,
+            () -> String.format( "Expected actual %d to be <= than upper bound %d", actual, upper ) );
     }
 }

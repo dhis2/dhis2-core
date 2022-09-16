@@ -25,37 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.utils;
 
-import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
 
-/**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
- */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange
+class ContextUtilsTest
 {
-    private Date startDate;
-
-    private Date endDate;
-
-    public Date getEndDatePlusOneDay()
+    @Test
+    void testGetEtag()
     {
-        return plusOneDay( endDate );
+        Date date = getDate( 2022, 03, 10 );
+        User user = new User();
+        user.setUid( "kYt56BgfED2" );
+
+        assertEquals( "2022-03-10T00:00:00-kYt56BgfED2", ContextUtils.getEtag( date, user ) );
     }
 
-    public String toString()
+    @Test
+    void testGetEtagLastModified()
     {
-        return String.format( "%s-%s", startDate, endDate );
+        Date lastModified = getDate( 2022, 03, 10 );
+
+        assertNull( ContextUtils.getEtag( null ) );
+        assertEquals( "ec670ab43e9210e3a25a3bd6430f84df", ContextUtils.getEtag( lastModified ) );
+    }
+
+    @Test
+    void testQuote()
+    {
+        assertEquals( "\"2022-03-10T00:00:00\"", ContextUtils.quote( "2022-03-10T00:00:00" ) );
     }
 }

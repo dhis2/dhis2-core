@@ -594,8 +594,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of(
-            queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) ) );
+        params.addFilterAttributes( queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -610,7 +609,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of(
+        params.addFilterAttributes( List.of(
             queryItem( "toUpdate000", QueryOperator.EQ, "rainy day" ),
             queryItem( "notUpdated0", QueryOperator.EQ, "winter day" ) ) );
 
@@ -629,7 +628,7 @@ class EventExporterTest extends TrackerTest
 
         QueryItem item = queryItem( "toUpdate000", QueryOperator.LIKE, "day" );
         item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
-        params.setFilterAttributes( List.of( item ) );
+        params.addFilterAttributes( item );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -644,7 +643,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
+        params.addFilterAttributes( queryItem( "toUpdate000" ) );
         params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
@@ -660,7 +659,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        params.setFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
+        params.addFilterAttributes( queryItem( "toUpdate000" ) );
         params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
