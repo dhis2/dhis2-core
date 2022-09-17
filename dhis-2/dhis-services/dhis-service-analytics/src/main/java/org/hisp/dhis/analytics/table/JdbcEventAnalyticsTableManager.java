@@ -373,7 +373,7 @@ public class JdbcEventAnalyticsTableManager
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
             "and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" +
             "=ougs.startdate or ougs.startdate is null) " +
-            "inner join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
+            "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
             "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +

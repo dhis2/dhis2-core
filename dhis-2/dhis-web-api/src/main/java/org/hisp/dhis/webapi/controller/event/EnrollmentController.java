@@ -158,7 +158,7 @@ public class EnrollmentController
                 enrollmentCriteria.getPage(),
                 enrollmentCriteria.getPageSize(),
                 enrollmentCriteria.isTotalPages(),
-                PagerUtils.isSkipPaging( enrollmentCriteria.getSkipPaging(), enrollmentCriteria.getPaging() ),
+                PagerUtils.isSkipPaging( enrollmentCriteria.isSkipPaging(), enrollmentCriteria.getPaging() ),
                 enrollmentCriteria.isIncludeDeleted(),
                 enrollmentCriteria.getOrder() );
 
