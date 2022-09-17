@@ -89,8 +89,6 @@ class TrackedEntityInstanceControllerTest
 
     private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
 
-    private final static String PD_ENDPOINT = "/potentialDuplicate";
-
     @BeforeEach
     public void setUp()
         throws BadRequestException,
