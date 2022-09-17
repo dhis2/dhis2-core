@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
@@ -323,7 +324,9 @@ public class ContextUtils
             return null;
         }
 
-        return String.format( "%s-%s", DateUtils.getLongDateString( lastModified ), user.getUid() );
+        String value = String.format( "%s-%s", DateUtils.getLongDateString( lastModified ), user.getUid() );
+
+        return CodecUtils.md5Hex( value );
     }
 
     /**
