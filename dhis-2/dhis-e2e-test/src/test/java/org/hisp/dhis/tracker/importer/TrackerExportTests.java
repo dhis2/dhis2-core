@@ -255,24 +255,24 @@ public class TrackerExportTests
     @Test
     public void shouldReturnDescOrderedEventByTEIAttribute()
     {
-        ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:desc");
+        ApiResponse response = trackerActions.get( "events?order=dIVt4l5vIOa:desc" );
         response
             .validate()
             .statusCode( 200 )
             .body( "instances", hasSize( equalTo( 2 ) ) );
-        List<String> events = response.extractList("instances.event.flatten()");
-        assertEquals( List.of("olfXZzSGacW","ZwwuwNp6gVd"), events, "Events are not in the correct order" );
+        List<String> events = response.extractList( "instances.event.flatten()" );
+        assertEquals( List.of( "olfXZzSGacW", "ZwwuwNp6gVd" ), events, "Events are not in the correct order" );
     }
 
     @Test
     public void shouldReturnAscOrderedEventByTEIAttribute()
     {
-        ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:asc");
+        ApiResponse response = trackerActions.get( "events?order=dIVt4l5vIOa:asc" );
         response
-                .validate()
-                .statusCode( 200 )
-                .body( "instances", hasSize( equalTo( 2 ) ) );
-        List<String> events = response.extractList("instances.event.flatten()");
-        assertEquals( List.of("ZwwuwNp6gVd", "olfXZzSGacW"), events, "Events are not in the correct order" );
+            .validate()
+            .statusCode( 200 )
+            .body( "instances", hasSize( equalTo( 2 ) ) );
+        List<String> events = response.extractList( "instances.event.flatten()" );
+        assertEquals( List.of( "ZwwuwNp6gVd", "olfXZzSGacW" ), events, "Events are not in the correct order" );
     }
 }
