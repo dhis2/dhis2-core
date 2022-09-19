@@ -654,9 +654,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) ) // TODO
-                                                                                // &&
-                                                                                // isNumeric
+        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
