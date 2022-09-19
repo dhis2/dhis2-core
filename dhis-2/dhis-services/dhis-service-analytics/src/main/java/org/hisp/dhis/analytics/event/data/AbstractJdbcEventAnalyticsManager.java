@@ -817,7 +817,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns true if params value type is only NUMERIC.
+     * Returns true if params value type is NUMERIC.
      *
      * @param params the {@link EventQueryParams}
      * @return
