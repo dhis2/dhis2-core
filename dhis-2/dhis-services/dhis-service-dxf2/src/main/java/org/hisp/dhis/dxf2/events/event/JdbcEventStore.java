@@ -115,6 +115,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
@@ -151,7 +152,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -253,8 +253,7 @@ public class JdbcEventStore implements EventStore
 
     // SQL QUERIES
 
-    private final static List<String> INSERT_COLUMNS = ImmutableList.of(
-    // @formatter:off
+    private static final List<String> INSERT_COLUMNS = List.of(
         ID.getColumnName(),             // nextval
         "programinstanceid",            // 1
         "programstageid",               // 2
@@ -278,12 +277,10 @@ public class JdbcEventStore implements EventStore
         GEOMETRY.getColumnName(),       // 20
         "assigneduserid",               // 21
         "eventdatavalues" );            // 22
-    // @formatter:on
 
-    private final static String INSERT_EVENT_SQL;
+    private static final String INSERT_EVENT_SQL;
 
-    private final static List<String> UPDATE_COLUMNS = ImmutableList.of(
-    // @formatter:off
+    private static final List<String> UPDATE_COLUMNS = List.of(
         "programInstanceId",            // 1
         "programstageid",               // 2
         DUE_DATE.getColumnName(),       // 3
@@ -304,9 +301,8 @@ public class JdbcEventStore implements EventStore
         "assigneduserid",               // 18
         "eventdatavalues",              // 19
         UID.getColumnName() );          // 20
-    // @formatter:on
 
-    private final static String UPDATE_EVENT_SQL;
+    private static final String UPDATE_EVENT_SQL;
 
     /**
      * Updates Tracked Entity Instance after an event update. In order to
@@ -342,7 +338,7 @@ public class JdbcEventStore implements EventStore
 
     // Cannot use DefaultRenderService mapper. Does not work properly -
     // DHIS2-6102
-    private static final ObjectReader eventDataValueJsonReader = JsonEventDataValueSetBinaryType.MAPPER
+    private static final ObjectReader eventDataValueJsonReader = JsonBinaryType.MAPPER
         .readerFor( new TypeReference<Map<String, EventDataValue>>()
         {
         } );
@@ -506,17 +502,11 @@ public class JdbcEventStore implements EventStore
 
                         if ( params.isSynchronizationQuery() )
                         {
-                            if ( psdesWithSkipSyncTrue.containsKey( resultSet.getString( "ps_uid" ) )
-                                && psdesWithSkipSyncTrue
-                                    .get( resultSet.getString( "ps_uid" ) )
-                                    .contains( dv.getDataElement() ) )
-                            {
-                                dataValue.setSkipSynchronization( true );
-                            }
-                            else
-                            {
-                                dataValue.setSkipSynchronization( false );
-                            }
+                            dataValue.setSkipSynchronization(
+                                psdesWithSkipSyncTrue.containsKey( resultSet.getString( "ps_uid" ) )
+                                    && psdesWithSkipSyncTrue
+                                        .get( resultSet.getString( "ps_uid" ) )
+                                        .contains( dv.getDataElement() ) );
                         }
 
                         event.getDataValues().add( dataValue );
@@ -1063,21 +1053,18 @@ public class JdbcEventStore implements EventStore
             .append( "au.username as user_assigned_username," )
             .append( "cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo()
-            .isDefault()) && !isSuper( user ) )
+        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
+            && !isSuper( user ) )
         {
             selectBuilder.append( "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
         }
 
-        if ( isNotEmpty( params.getAttributeOrders() ) )
+        for ( OrderParam orderParam : params.getAttributeOrders() )
         {
-            for ( OrderParam orderParam : params.getAttributeOrders() )
-            {
-                selectBuilder.append( quote( orderParam.getField() ) )
-                    .append( ".value AS " )
-                    .append( orderParam.getField() )
-                    .append( "_value, " );
-            }
+            selectBuilder.append( quote( orderParam.getField() ) )
+                .append( ".value AS " )
+                .append( orderParam.getField() )
+                .append( "_value, " );
         }
 
         selectBuilder.append(
@@ -1217,7 +1204,7 @@ public class JdbcEventStore implements EventStore
         {
             fromBuilder.append( hlp.whereAnd() )
                 .append( " pi.followup is " )
-                .append( params.getFollowUp() ? "true" : "false" )
+                .append( Boolean.TRUE.equals( params.getFollowUp() ) ? "true" : "false" )
                 .append( " " );
         }
 
@@ -1838,42 +1825,33 @@ public class JdbcEventStore implements EventStore
     {
         ArrayList<String> orderFields = new ArrayList<>();
 
-        if ( params.getGridOrders() != null )
+        for ( OrderParam order : params.getGridOrders() )
         {
-            for ( OrderParam order : params.getGridOrders() )
+
+            Set<QueryItem> items = params.getDataElements();
+
+            for ( QueryItem item : items )
             {
-
-                Set<QueryItem> items = params.getDataElements();
-
-                for ( QueryItem item : items )
+                if ( order.getField().equals( item.getItemId() ) )
                 {
-                    if ( order.getField().equals( item.getItemId() ) )
-                    {
-                        orderFields.add( order.getField() + " " + order.getDirection() );
-                        break;
-                    }
+                    orderFields.add( order.getField() + " " + order.getDirection() );
+                    break;
                 }
             }
         }
 
-        if ( params.getAttributeOrders() != null )
+        for ( OrderParam order : params.getAttributeOrders() )
         {
-            for ( OrderParam order : params.getAttributeOrders() )
-            {
-                orderFields.add( order.getField() + "_value " + order.getDirection() );
-            }
+            orderFields.add( order.getField() + "_value " + order.getDirection() );
         }
 
-        if ( params.getOrders() != null )
+        for ( OrderParam order : params.getOrders() )
         {
-            for ( OrderParam order : params.getOrders() )
+            if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
             {
-                if ( QUERY_PARAM_COL_MAP.containsKey( order.getField() ) )
-                {
-                    String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
-                    orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
-                    orderFields.add( orderText );
-                }
+                String orderText = QUERY_PARAM_COL_MAP.get( order.getField() );
+                orderText += " " + (order.getDirection().isAscending() ? "asc" : "desc");
+                orderFields.add( orderText );
             }
         }
 
@@ -1967,12 +1945,10 @@ public class JdbcEventStore implements EventStore
                 .stream().collect(
                     Collectors.toMap( s -> (String) s.get( "uid" ), s -> (Long) s.get( "programstageinstanceid" ) ) );
 
-            // @formatter:off
             return batch.stream()
                 .filter( psi -> persisted.containsKey( psi.getUid() ) )
                 .peek( psi -> psi.setId( persisted.get( psi.getUid() ) ) )
                 .collect( Collectors.toList() );
-            // @formatter:on
         }
         else
         {

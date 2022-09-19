@@ -82,7 +82,7 @@
     <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.22</spring.version>
+    <spring.version>5.3.23</spring.version>
     <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -131,7 +131,7 @@
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.2</poi.version>
+    <poi.version>5.2.3</poi.version>
     <itext.version>2.1.7</itext.version>
     <antlr.version>4.9.3</antlr.version>
 
@@ -154,7 +154,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.3</jsoup.version>
-    <jetty.version>10.0.11</jetty.version>
+    <jetty.version>10.0.12</jetty.version>
 
     <!-- Div. utils -->
     <version.debezium>1.9.5.Final</version.debezium>
@@ -187,7 +187,7 @@
     <micrometer.version>1.9.4</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.18.0</log4j.version>
+    <log4j.version>2.19.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
