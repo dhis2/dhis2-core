@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -248,17 +249,30 @@ public class TrackerExportTests
             .statusCode( 200 )
             .body( "instances", hasSize( equalTo( 1 ) ) )
             .rootPath( "instances[0]" )
-            .body( "event", equalTo( eventId ) );
+            .body( "event", equalTo( "ZwwuwNp6gVd" ) );
     }
 
     @Test
-    public void shouldReturnOrderedEventByTEIAttribute()
+    public void shouldReturnDescOrderedEventByTEIAttribute()
     {
-        trackerActions.get( "events?order=dIVt4l5vIOa:desc" )
+        ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:desc");
+        response
             .validate()
             .statusCode( 200 )
-            .body( "instances", hasSize( equalTo( 2 ) ) )
-            .rootPath( "instances[0]" )
-            .body( "event", equalTo( eventId ) );
+            .body( "instances", hasSize( equalTo( 2 ) ) );
+        List<String> events = response.extractList("instances.event.flatten()");
+        assertEquals( List.of("olfXZzSGacW","ZwwuwNp6gVd"), events, "Events are not in the correct order" );
+    }
+
+    @Test
+    public void shouldReturnAscOrderedEventByTEIAttribute()
+    {
+        ApiResponse response = trackerActions.get("events?order=dIVt4l5vIOa:asc");
+        response
+                .validate()
+                .statusCode( 200 )
+                .body( "instances", hasSize( equalTo( 2 ) ) );
+        List<String> events = response.extractList("instances.event.flatten()");
+        assertEquals( List.of("ZwwuwNp6gVd", "olfXZzSGacW"), events, "Events are not in the correct order" );
     }
 }
