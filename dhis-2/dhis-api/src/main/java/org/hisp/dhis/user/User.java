@@ -1484,6 +1484,9 @@ public class User
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
         copyProperties( this, userCredentialsDto, "uid", "userCredentials", "password", "userRoles", "secret",
             "previousPasswords" );
+
+        userCredentialsDto.setId( this.getUid() );
+
         Set<UserRole> roles = this.getUserRoles();
         if ( roles != null && !roles.isEmpty() )
         {
@@ -1584,7 +1587,7 @@ public class User
                 newUser.setUserRoles( userRoles );
             }
 
-            newUser.setUserCredentials( null );
+            newUser.removeLegacyUserCredentials();
         }
     }
 

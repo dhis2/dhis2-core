@@ -40,6 +40,8 @@ import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -229,6 +231,15 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "Password must have at least 8 characters, one digit, one uppercase",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
                 .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testGetUserLegacyUserCredentialsIdPresent()
+    {
+        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject userCredentials = response.getObject( "userCredentials" );
+        JsonValue id = userCredentials.get( "id" );
+        assertTrue( id.exists() );
     }
 
     @Test
