@@ -160,7 +160,7 @@ public class JdbcCompletenessTableManager
             "where cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
             "and cdr.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
-        invokeTimeAndLog( sql, "Remove updated data values" );
+        invokeTimeAndLogSafely( sql, "Remove updated data values" );
     }
 
     @Override

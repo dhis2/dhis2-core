@@ -215,7 +215,7 @@ public class JdbcAnalyticsTableManager
             "where dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
             "and dv.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
-        invokeTimeAndLog( sql, "Remove updated data values" );
+        invokeTimeAndLogSafely( sql, "Remove updated data values" );
     }
 
     @Override
