@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -125,6 +126,46 @@ class UserControllerTest extends DhisControllerConvenienceTest
         User user = userService.getUser( peter.getUid() );
         assertEquals( "mapping value", user.getOpenId() );
         assertEquals( "mapping value", user.getUserCredentials().getOpenId() );
+    }
+
+    @Test
+    void testUpdateRoles()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userRoles','value':[{'id':'" + newRoleUid + "'},{'id':'" + mainRoleUid
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
+    void testUpdateRolesLegacy()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userCredentials/userRoles','value':[{'id':'" + newRoleUid
+                + "'},{'id':'" + mainRoleUid + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
     }
 
     @Test
