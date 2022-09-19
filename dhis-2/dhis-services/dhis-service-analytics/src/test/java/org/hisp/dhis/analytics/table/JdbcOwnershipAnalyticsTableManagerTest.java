@@ -278,8 +278,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart",
+            "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid",
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );

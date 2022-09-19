@@ -229,8 +229,8 @@ public class JdbcOwnershipAnalyticsTableManager
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart" ).toString();
+            "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid" )
+            .toString();
     }
 
     private Map<String, Object> getRowMap( List<String> columnNames, SqlRowSet rowSet )
