@@ -243,7 +243,7 @@ public class TrackerExportTests
     @Test
     public void shouldReturnFilteredEvent()
     {
-        trackerActions.get( "events?occurredAfter=2019-08-16&occurredBefore=2019-08-20" )
+        trackerActions.get( "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20" )
             .validate()
             .statusCode( 200 )
             .body( "instances", hasSize( equalTo( 1 ) ) )
