@@ -569,6 +569,25 @@ public abstract class AbstractJdbcTableManager
 
         Timer timer = new SystemTimer().start();
 
+        jdbcTemplate.execute( sql );
+
+        log.info( "{} in: {}", logMessage, timer.stop().toString() );
+    }
+
+    /**
+     * Executes the given SQL statement "safely" (without throwing any
+     * exception). Instead, exceptions are simply logged. Also, it Logs and
+     * times the operation.
+     *
+     * @param sql the SQL statement.
+     * @param logMessage the custom log message to include in the log statement.
+     */
+    protected void invokeTimeAndLogSafely( String sql, String logMessage )
+    {
+        log.debug( "{} with SQL: '{}'", logMessage, sql );
+
+        Timer timer = new SystemTimer().start();
+
         executeSafely( sql );
 
         log.info( "{} in: {}", logMessage, timer.stop().toString() );
