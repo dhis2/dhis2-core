@@ -282,19 +282,6 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testGetDataValueAuditWithFakeCreateDelete()
-    {
-        dataValueA.setValue( "10" );
-        dataValueService.updateDataValue( dataValueA );
-        dataValueService.deleteDataValue( dataValueA );
-
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
-            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
-
-        assertContainsOnly( List.of(), audits );
-    }
-
-    @Test
     void testGetDataValueAuditWithFakeCreateDeleteAndCreate()
     {
         dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "10",
