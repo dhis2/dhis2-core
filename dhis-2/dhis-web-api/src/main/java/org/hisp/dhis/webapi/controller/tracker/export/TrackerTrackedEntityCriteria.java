@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
@@ -43,17 +43,16 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
 
 /**
- * This class represent a container to hold parameters from new tracker GET
- * {@link TrackerTrackedEntitiesExportController}
+ * Represents query parameters sent to
+ * {@link TrackerTrackedEntitiesExportController}.
  *
  * @author Giuseppe Nespolino
  */
 @Data
 @NoArgsConstructor
-public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
+class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
