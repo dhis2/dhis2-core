@@ -286,16 +286,12 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
     {
         dataValueA.setValue( "10" );
         dataValueService.updateDataValue( dataValueA );
-
         dataValueService.deleteDataValue( dataValueA );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
 
-        assertEquals( 3, audits.size() );
-        assertEquals( AuditType.DELETE, audits.get( 0 ).getAuditType() );
-        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
-        assertEquals( AuditType.CREATE, audits.get( 2 ).getAuditType() );
+        assertContainsOnly( List.of(), audits );
     }
 
     @Test
