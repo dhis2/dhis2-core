@@ -468,8 +468,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY,
-                DimensionType.CATEGORY_OPTION_GROUP_SET ) );
+            Sets.newHashSet( DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -477,6 +476,20 @@ public class JdbcEventAnalyticsManager
 
             sql += hlp.whereAnd() + " " + col + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+        }
+
+        dynamicDimensions = params
+            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET ) );
+
+        for ( DimensionalObject dim : dynamicDimensions )
+        {
+            if ( !dim.isAllItems() )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+
+                sql += hlp.whereAnd() + " " + col + OPEN_IN
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
         }
 
         // ---------------------------------------------------------------------
