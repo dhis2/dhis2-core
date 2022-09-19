@@ -44,9 +44,7 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -73,7 +71,7 @@ public class TrackerEnrollmentsExportController
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
     @NonNull
-    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final TrackerEnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
     @NonNull
     private final EnrollmentService enrollmentService;
