@@ -25,10 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
