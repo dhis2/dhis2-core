@@ -131,7 +131,7 @@
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.2</poi.version>
+    <poi.version>5.2.3</poi.version>
     <itext.version>2.1.7</itext.version>
     <antlr.version>4.9.3</antlr.version>
 
@@ -187,7 +187,7 @@
     <micrometer.version>1.9.4</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.18.0</log4j.version>
+    <log4j.version>2.19.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
