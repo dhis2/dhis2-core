@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.CoreMatchers.is;
@@ -68,6 +68,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Sets;
 
 /**
+ * Tests {@link TrackedEntityCriteriaMapper}.
+ *
  * @author Luciano Fiandesio
  */
 class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
@@ -89,7 +91,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private TrackedEntityInstanceCriteriaMapper trackedEntityCriteriaMapper;
+    private TrackedEntityCriteriaMapper trackedEntityCriteriaMapper;
 
     private Program programA;
 
