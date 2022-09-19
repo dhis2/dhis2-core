@@ -817,10 +817,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns true if params value type is NUMERIC.
+     * Checks if the ValueType, in the given params, is of type NUMERIC.
      *
      * @param params the {@link EventQueryParams}
-     * @return
+     * @return true if params ValueType is NUMERIC, false otherwise
      */
     private boolean isParamsValueTypeNumeric( EventQueryParams params )
     {
