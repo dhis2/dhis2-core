@@ -254,8 +254,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withAggregationType( AnalyticsAggregationType.SUM )
             .build();
 
+        // When
         String clause = subject.getAggregateClause( params );
 
+        // Then
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
