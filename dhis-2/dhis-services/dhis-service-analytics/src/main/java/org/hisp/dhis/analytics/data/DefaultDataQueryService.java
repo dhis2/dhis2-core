@@ -46,11 +46,14 @@ import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.hisp.dhis.common.DisplayProperty.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7125;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
@@ -72,7 +75,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
@@ -83,7 +85,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -113,7 +114,7 @@ public class DefaultDataQueryService
 
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
-        IdScheme inputIdScheme = ObjectUtils.firstNonNull( request.getInputIdScheme(), UID );
+        IdScheme inputIdScheme = firstNonNull( request.getInputIdScheme(), UID );
 
         if ( request.getDimension() != null && !request.getDimension().isEmpty() )
         {
@@ -227,8 +228,8 @@ public class DefaultDataQueryService
         {
             for ( String param : dimensionParams )
             {
-                String dimension = DimensionalObjectUtils.getDimensionFromParam( param );
-                List<String> items = DimensionalObjectUtils.getDimensionItemsFromParam( param );
+                String dimension = getDimensionFromParam( param );
+                List<String> items = getDimensionItemsFromParam( param );
 
                 if ( dimension != null && items != null )
                 {
