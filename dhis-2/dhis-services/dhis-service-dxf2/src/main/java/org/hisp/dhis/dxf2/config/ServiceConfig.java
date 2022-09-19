@@ -416,9 +416,9 @@ public class ServiceConfig
             .put( ProgramRuleActionType.CREATEEVENT,
                 getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.WARNINGONCOMPLETE,
-                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.ERRORONCOMPLETE,
-                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.SHOWWARNING,
                 getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.SHOWERROR,
