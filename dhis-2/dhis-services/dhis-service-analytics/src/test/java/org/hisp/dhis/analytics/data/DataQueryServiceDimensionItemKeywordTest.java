@@ -66,7 +66,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,6 +87,26 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class DataQueryServiceDimensionItemKeywordTest
 {
+    private static final DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
+
+    private static final DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
+
+    private static final DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
+
+    private static final String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
+
+    private static final BeanRandomizer rnd = BeanRandomizer
+        .create( Map.of( OrganisationUnitGroup.class, Set.of( "geometry" ),
+            OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
+
+    private DimensionalObjectCreator dimensionalObjectCreator;
+
+    private RequestBuilder rb;
+
+    private OrganisationUnit rootOu;
+
+    private DefaultDataQueryService target;
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -101,7 +123,10 @@ class DataQueryServiceDimensionItemKeywordTest
     private SystemSettingManager systemSettingManager;
 
     @Mock
-    private DimensionalObjectCreator dimensionalObjectCreator;
+    private AclService aclService;
+
+    @Mock
+    private CurrentUserService currentUserService;
 
     @Mock
     private I18nManager i18nManager;
@@ -109,27 +134,11 @@ class DataQueryServiceDimensionItemKeywordTest
     @Mock
     private I18n i18n;
 
-    private DefaultDataQueryService target;
-
-    private final static DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
-
-    private final static DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
-
-    private final static DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
-
-    private final static String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
-
-    private RequestBuilder rb;
-
-    private OrganisationUnit rootOu;
-
-    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
-        OrganisationUnitGroup.class, Set.of( "geometry" ),
-        OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
-
     @BeforeEach
     public void setUp()
     {
+        dimensionalObjectCreator = new DimensionalObjectCreator( idObjectManager, organisationUnitService,
+            systemSettingManager, i18nManager, dimensionService, aclService, currentUserService );
         target = new DefaultDataQueryService( dimensionalObjectCreator, idObjectManager, securityManager, i18nManager );
 
         rb = new RequestBuilder();

@@ -27,51 +27,67 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.lang.String.join;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_PERIOD;
+import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
 import static org.hisp.dhis.analytics.DataQueryParams.KEY_DE_GROUP;
 import static org.hisp.dhis.analytics.DataQueryParams.KEY_IN_GROUP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.DimensionType.DATA_X;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getUidFromGroupParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getValueFromKeywordParam;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifier;
+import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
+import static org.hisp.dhis.feedback.ErrorCode.E7124;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedChildren;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.getSortedGrandChildren;
+import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
+import static org.hisp.dhis.period.RelativePeriods.getRelativePeriodsFromEnum;
+import static org.hisp.dhis.period.WeeklyPeriodType.NAME;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -82,11 +98,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -120,7 +133,7 @@ public class DimensionalObjectCreator
         {
             if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
             {
-                String groupUid = DimensionalObjectUtils.getUidFromGroupParam( uid );
+                String groupUid = getUidFromGroupParam( uid );
 
                 DataElementGroup group = idObjectManager.getObject( DataElementGroup.class, inputIdScheme,
                     groupUid );
@@ -133,7 +146,7 @@ public class DimensionalObjectCreator
             }
             else if ( uid.startsWith( KEY_IN_GROUP ) ) // INDICATOR GROUP
             {
-                String groupUid = DimensionalObjectUtils.getUidFromGroupParam( uid );
+                String groupUid = getUidFromGroupParam( uid );
 
                 IndicatorGroup group = idObjectManager.getObject( IndicatorGroup.class, inputIdScheme, groupUid );
 
@@ -157,10 +170,10 @@ public class DimensionalObjectCreator
 
         if ( dataDimensionItems.isEmpty() )
         {
-            throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.DATA_X_DIM_ID );
+            throwIllegalQueryEx( E7124, DATA_X_DIM_ID );
         }
 
-        return new BaseDimensionalObject( dimension, DimensionType.DATA_X, null, DISPLAY_NAME_DATA_X,
+        return new BaseDimensionalObject( dimension, DATA_X, null, DISPLAY_NAME_DATA_X,
             dataDimensionItems, dimensionalKeywords );
     }
 
@@ -174,7 +187,7 @@ public class DimensionalObjectCreator
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
         AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
-            .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
+            .getSystemSetting( ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
 
         boolean containsRelativePeriods = false;
 
@@ -186,70 +199,99 @@ public class DimensionalObjectCreator
             if ( RelativePeriodEnum.contains( isoPeriodHolder.getIsoPeriod() ) )
             {
                 containsRelativePeriods = true;
-                RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriodHolder.getIsoPeriod() );
 
-                dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
-                    i18n.getString( isoPeriodHolder.getIsoPeriod() ) );
-
-                List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod,
-                    relativePeriodDate, format, true, financialYearStart );
-
-                // If custom time filter is specified, set it in periods
-                if ( isoPeriodHolder.hasDateField() )
-                {
-                    relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
-                }
-
-                periods.addAll( relativePeriods );
+                addRelativePeriods( relativePeriodDate, format, i18n, periods, dimensionalKeywords, financialYearStart,
+                    isoPeriodHolder );
             }
             else
             {
-                Period period = PeriodType.getPeriodFromIsoString( isoPeriodHolder.getIsoPeriod() );
+                Period period = getPeriodFromIsoString( isoPeriodHolder.getIsoPeriod() );
 
                 if ( period != null )
                 {
-                    if ( isoPeriodHolder.hasDateField() )
-                    {
-                        period.setDescription( isoPeriodHolder.getIsoPeriod() );
-                        period.setDateField( isoPeriodHolder.getDateField() );
-                    }
-
-                    dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
-                        format != null ? i18n.getString( format.formatPeriod( period ) )
-                            : isoPeriodHolder.getIsoPeriod() );
-
-                    periods.add( period );
+                    addDatePeriods( format, i18n, periods, dimensionalKeywords, isoPeriodHolder, period );
                 }
                 else
                 {
-                    Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
-                    if ( optionalPeriod.isPresent() )
-                    {
-                        Period periodToAdd = optionalPeriod.get();
-                        String startDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getStartDate() );
-                        String endDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getEndDate() );
-                        dimensionalKeywords.addKeyword(
-                            isoPeriodHolder.getIsoPeriod(),
-                            String.join( " - ", startDate, endDate ) );
-                        periods.add( periodToAdd );
-                    }
+                    addDailyPeriods( periods, dimensionalKeywords, isoPeriodHolder );
                 }
             }
         }
 
         // Remove duplicates
-        periods = periods.stream().distinct().collect( Collectors.toList() );
+        periods = periods.stream().distinct().collect( toList() );
 
         if ( containsRelativePeriods )
         {
             periods.sort( new AscendingPeriodComparator() );
         }
 
+        overridePeriodsAttributes( format, calendar, periods );
+
+        return new BaseDimensionalObject( dimension, PERIOD, null, DISPLAY_NAME_PERIOD,
+            asList( periods ), dimensionalKeywords );
+    }
+
+    private void addDailyPeriods( List<Period> periods, DimensionItemKeywords dimensionalKeywords,
+        IsoPeriodHolder isoPeriodHolder )
+    {
+        Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
+        if ( optionalPeriod.isPresent() )
+        {
+            Period periodToAdd = optionalPeriod.get();
+            String startDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getStartDate() );
+            String endDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getEndDate() );
+            dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
+                join( " - ", startDate, endDate ) );
+            periods.add( periodToAdd );
+        }
+    }
+
+    private void addDatePeriods( I18nFormat format, I18n i18n, List<Period> periods,
+        DimensionItemKeywords dimensionalKeywords, IsoPeriodHolder isoPeriodHolder, Period period )
+    {
+        if ( isoPeriodHolder.hasDateField() )
+        {
+            period.setDescription( isoPeriodHolder.getIsoPeriod() );
+            period.setDateField( isoPeriodHolder.getDateField() );
+        }
+
+        dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
+            format != null
+                ? i18n.getString( format.formatPeriod( period ) )
+                : isoPeriodHolder.getIsoPeriod() );
+
+        periods.add( period );
+    }
+
+    private void addRelativePeriods( Date relativePeriodDate, I18nFormat format, I18n i18n, List<Period> periods,
+        DimensionItemKeywords dimensionalKeywords, AnalyticsFinancialYearStartKey financialYearStart,
+        IsoPeriodHolder isoPeriodHolder )
+    {
+        RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriodHolder.getIsoPeriod() );
+
+        dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
+            i18n.getString( isoPeriodHolder.getIsoPeriod() ) );
+
+        List<Period> relativePeriods = getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format,
+            true, financialYearStart );
+
+        // If custom time filter is specified, set it in periods
+        if ( isoPeriodHolder.hasDateField() )
+        {
+            relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
+        }
+
+        periods.addAll( relativePeriods );
+    }
+
+    private void overridePeriodsAttributes( I18nFormat format, Calendar calendar, List<Period> periods )
+    {
         for ( Period period : periods )
         {
             String name = format != null ? format.formatPeriod( period ) : null;
 
-            if ( !period.getPeriodType().getName().contains( WeeklyPeriodType.NAME ) )
+            if ( !period.getPeriodType().getName().contains( NAME ) )
             {
                 period.setShortName( name );
             }
@@ -261,92 +303,38 @@ public class DimensionalObjectCreator
                 period.setUid( getLocalPeriodIdentifier( period, calendar ) );
             }
         }
-
-        return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD,
-            asList( periods ), dimensionalKeywords );
     }
 
     public BaseDimensionalObject fromOrgUnit( String dimension, List<String> items, DisplayProperty displayProperty,
         List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme )
     {
-        List<DimensionalItemObject> ous = new ArrayList<>();
         List<Integer> levels = new ArrayList<>();
         List<OrganisationUnitGroup> groups = new ArrayList<>();
+        List<DimensionalItemObject> ous = getOrgUnitsDimension( items, userOrgUnits, inputIdScheme, levels, groups );
 
-        for ( String ou : items )
-        {
-            if ( KEY_USER_ORGUNIT.equals( ou ) && userOrgUnits != null && !userOrgUnits.isEmpty() )
-            {
-                ous.addAll( userOrgUnits );
-            }
-            else if ( KEY_USER_ORGUNIT_CHILDREN.equals( ou ) && userOrgUnits != null && !userOrgUnits.isEmpty() )
-            {
-                ous.addAll( OrganisationUnit.getSortedChildren( userOrgUnits ) );
-            }
-            else if ( KEY_USER_ORGUNIT_GRANDCHILDREN.equals( ou ) && userOrgUnits != null
-                && !userOrgUnits.isEmpty() )
-            {
-                ous.addAll( OrganisationUnit.getSortedGrandChildren( userOrgUnits ) );
-            }
-            else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
-            {
-                String level = DimensionalObjectUtils.getValueFromKeywordParam( ou );
-
-                Integer orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevelOrUid( level );
-
-                if ( orgUnitLevel != null )
-                {
-                    levels.add( orgUnitLevel );
-                }
-            }
-            else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
-            {
-                String uid = DimensionalObjectUtils.getUidFromGroupParam( ou );
-
-                OrganisationUnitGroup group = idObjectManager.getObject( OrganisationUnitGroup.class, inputIdScheme,
-                    uid );
-
-                if ( group != null )
-                {
-                    groups.add( group );
-                }
-            }
-            else if ( !inputIdScheme.is( IdentifiableProperty.UID ) || CodeGenerator.isValidUid( ou ) )
-            {
-                OrganisationUnit unit = idObjectManager.getObject( OrganisationUnit.class, inputIdScheme, ou );
-
-                if ( unit != null )
-                {
-                    ous.add( unit );
-                }
-            }
-        }
-
-        // Remove duplicates
-        ous = ous.stream().distinct().collect( Collectors.toList() );
-
-        List<DimensionalItemObject> orgUnits = new ArrayList<>();
+        List<DimensionalItemObject> orgUnitAtLevels = new ArrayList<>();
         List<OrganisationUnit> ousList = asTypedList( ous );
+
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
         if ( !levels.isEmpty() )
         {
-            orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
+            orgUnitAtLevels.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
             dimensionalKeywords.addKeywords( levels.stream()
                 .map( organisationUnitService::getOrganisationUnitLevelByLevel )
                 .filter( Objects::nonNull )
-                .collect( Collectors.toList() ) );
+                .collect( toList() ) );
         }
 
         if ( !groups.isEmpty() )
         {
-            orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
+            orgUnitAtLevels.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
 
             dimensionalKeywords.addKeywords( groups.stream()
                 .map( group -> new BaseNameableObject( group.getUid(), group.getCode(),
                     group.getDisplayProperty( displayProperty ) ) )
-                .collect( Collectors.toList() ) );
+                .collect( toList() ) );
         }
 
         // -----------------------------------------------------------------
@@ -355,7 +343,7 @@ public class DimensionalObjectCreator
 
         if ( levels.isEmpty() && groups.isEmpty() )
         {
-            orgUnits.addAll( ous );
+            orgUnitAtLevels.addAll( ous );
         }
 
         if ( !dimensionalKeywords.isEmpty() )
@@ -363,16 +351,59 @@ public class DimensionalObjectCreator
             dimensionalKeywords.addKeywords( ousList );
         }
 
-        if ( orgUnits.isEmpty() )
+        if ( orgUnitAtLevels.isEmpty() )
         {
-            throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.ORGUNIT_DIM_ID );
+            throwIllegalQueryEx( E7124, ORGUNIT_DIM_ID );
         }
 
         // Remove duplicates
-        orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() );
+        orgUnitAtLevels = orgUnitAtLevels.stream().distinct().collect( toList() );
 
-        return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT,
-            null, DISPLAY_NAME_ORGUNIT, orgUnits, dimensionalKeywords );
+        return new BaseDimensionalObject( dimension, ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT, orgUnitAtLevels,
+            dimensionalKeywords );
+    }
+
+    private List<DimensionalItemObject> getOrgUnitsDimension( List<String> items, List<OrganisationUnit> userOrgUnits,
+        IdScheme inputIdScheme, List<Integer> levels, List<OrganisationUnitGroup> groups )
+    {
+        List<DimensionalItemObject> ous = new ArrayList<>();
+
+        for ( String ou : items )
+        {
+            if ( KEY_USER_ORGUNIT.equals( ou ) && isNotEmpty( userOrgUnits ) )
+            {
+                ous.addAll( userOrgUnits );
+            }
+            else if ( KEY_USER_ORGUNIT_CHILDREN.equals( ou ) && isNotEmpty( userOrgUnits ) )
+            {
+                ous.addAll( getSortedChildren( userOrgUnits ) );
+            }
+            else if ( KEY_USER_ORGUNIT_GRANDCHILDREN.equals( ou ) && isNotEmpty( userOrgUnits ) )
+            {
+                ous.addAll( getSortedGrandChildren( userOrgUnits ) );
+            }
+            else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
+            {
+                String level = getValueFromKeywordParam( ou );
+                Integer orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevelOrUid( level );
+                addIgnoreNull( levels, orgUnitLevel );
+            }
+            else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
+            {
+                String uid = getUidFromGroupParam( ou );
+                OrganisationUnitGroup group = idObjectManager.getObject( OrganisationUnitGroup.class, inputIdScheme,
+                    uid );
+                addIgnoreNull( groups, group );
+            }
+            else if ( !inputIdScheme.is( UID ) || isValidUid( ou ) )
+            {
+                OrganisationUnit unit = idObjectManager.getObject( OrganisationUnit.class, inputIdScheme, ou );
+                addIgnoreNull( ous, unit );
+            }
+        }
+
+        // Remove duplicates
+        return ous.stream().distinct().collect( toList() );
     }
 
     public BaseDimensionalObject fromOrgUnitGroup( String dimension, List<String> items, IdScheme inputIdScheme )
@@ -390,7 +421,7 @@ public class DimensionalObjectCreator
             }
         }
 
-        return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT_GROUP, null,
+        return new BaseDimensionalObject( dimension, ORGANISATION_UNIT_GROUP, null,
             DISPLAY_NAME_ORGUNIT_GROUP, ougs );
     }
 
@@ -399,15 +430,13 @@ public class DimensionalObjectCreator
     {
         boolean allItems = items.isEmpty();
 
-        DimensionalObject dimObject = idObjectManager.get( DataQueryParams.DYNAMIC_DIM_CLASSES, inputIdScheme,
-            dimension );
+        DimensionalObject dimObject = idObjectManager.get( DYNAMIC_DIM_CLASSES, inputIdScheme, dimension );
 
         if ( dimObject != null && dimObject.isDataDimension() )
         {
-            Class<?> dimClass = HibernateProxyUtils.getRealClass( dimObject );
+            Class<?> dimClass = getRealClass( dimObject );
 
-            Class<? extends DimensionalItemObject> itemClass = DimensionalObject.DIMENSION_CLASS_ITEM_CLASS_MAP
-                .get( dimClass );
+            Class<? extends DimensionalItemObject> itemClass = DIMENSION_CLASS_ITEM_CLASS_MAP.get( dimClass );
 
             List<DimensionalItemObject> dimItems = !allItems
                 ? asList( idObjectManager.getOrdered( itemClass, inputIdScheme, items ) )
@@ -431,6 +460,6 @@ public class DimensionalObjectCreator
     {
         return object.getItems().stream()
             .filter( o -> aclService.canDataOrMetadataRead( user, o ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 }
