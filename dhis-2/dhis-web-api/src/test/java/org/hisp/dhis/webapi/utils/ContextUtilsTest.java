@@ -25,35 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.webapi.utils;
+
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
 
-/**
- * Service responsible for retrieving metadata associated with data sets. The
- * object response is suitable for applications for data capture and form
- * rendering. This is a specialized service which related to the general
- * {@link MetadataExportService}.
- *
- * @author Lars Helge Overland
- */
-public interface DataSetMetadataExportService
+class ContextUtilsTest
 {
-    /**
-     * Retrieves metadata for data sets for which the current user has data
-     * write access together with other relevant entities such as data elements,
-     * category combinations, categories and category options.
-     *
-     * @return an {@link ObjectNode}.
-     */
-    ObjectNode getDataSetMetadata();
+    @Test
+    void testGetEtag()
+    {
+        Date date = getDate( 2022, 03, 10 );
+        User user = new User();
+        user.setUid( "kYt56BgfED2" );
 
-    /**
-     * Returns the time of last modification for the data set metadata.
-     *
-     * @return a {@link Date}, never null.
-     */
-    public Date getDataSetMetadataLastModified();
+        assertEquals( "7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag( date, user ) );
+    }
+
+    @Test
+    void testQuote()
+    {
+        assertEquals( "\"2022-03-10T00:00:00\"", ContextUtils.quote( "2022-03-10T00:00:00" ) );
+    }
 }
