@@ -187,7 +187,7 @@ public class TrackedEntityCriteriaMapper
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
-        validateOrderParams( program, orderParams, attributes );
+        validateOrderParams( orderParams, attributes );
 
         params.setQuery( queryFilter )
             .setProgram( program )
@@ -371,8 +371,7 @@ public class TrackedEntityCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( Program program, List<OrderParam> orderParams,
-        Map<String, TrackedEntityAttribute> attributes )
+    private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
