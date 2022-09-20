@@ -27,23 +27,28 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.Builder;
+import lombok.Data;
+
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DateRange;
 
 public abstract class TimeFieldSqlRenderer
 {
-
     public String renderTimeFieldSql( EventQueryParams params )
     {
         StringBuilder sql = new StringBuilder();
@@ -58,8 +63,12 @@ public abstract class TimeFieldSqlRenderer
         {
             sql.append( getSqlConditionHasDateRangeList( params ) );
         }
-        // otherwise // Periods should not go here when line list, only pivot
-        // table
+        // otherwise
+        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
+        {
+            sql.append( getSqlConditionHasStartEndDate( params ) );
+        }
+        // Periods should not go here when line list, only pivot table
         else
         {
             sql.append( getSqlConditionForPeriods( params ) );
@@ -68,28 +77,21 @@ public abstract class TimeFieldSqlRenderer
         return sql.toString();
     }
 
-    protected String getSqlConditionHasDateRangeList( EventQueryParams params )
+    @Data
+    @Builder
+    private static class ColumnWithDateRange
     {
-        List<String> orConditions = new ArrayList<>();
-        for ( DateRange dateRange : params.getDateRangeList() )
+        private final String column;
+
+        private final DateRange dateRange;
+
+        static ColumnWithDateRange of( Map.Entry<AnalyticsDateFilter, DateRange> entry )
         {
-            ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.builder()
-                .column( getColumnName( params ) )
-                .dateRange( dateRange )
+            return ColumnWithDateRange.builder()
+                .column( quoteAlias( entry.getKey().getTimeField().getField() ) )
+                .dateRange( entry.getValue() )
                 .build();
-
-            orConditions.add(
-                columnWithDateRange.getColumn() +
-                    " >= '" +
-                    getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) +
-                    "' and " +
-                    columnWithDateRange.getColumn() +
-                    " < '" +
-                    getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) +
-                    "' " );
         }
-
-        return "(" + String.join( " or ", orConditions ) + ")";
     }
 
     protected Optional<TimeField> getTimeField( EventQueryParams params )
@@ -133,10 +135,33 @@ public abstract class TimeFieldSqlRenderer
             .collect( Collectors.joining( " and " ) );
     }
 
+    protected String getSqlConditionHasDateRangeList( EventQueryParams params )
+    {
+        List<String> orConditions = new ArrayList<>();
+        for ( DateRange dateRange : params.getDateRangeList() )
+        {
+            ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.builder()
+                .column( getColumnName( params ) )
+                .dateRange( dateRange )
+                .build();
+
+            orConditions.add(
+                columnWithDateRange.getColumn() +
+                    " >= '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) +
+                    "' and " +
+                    columnWithDateRange.getColumn() +
+                    " < '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) +
+                    "' " );
+        }
+
+        return "(" + String.join( " or ", orConditions ) + ")";
+    }
+
     protected abstract String getColumnName( EventQueryParams params );
 
     protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
 
     protected abstract Collection<TimeField> getAllowedTimeFields();
-
 }
