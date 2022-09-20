@@ -553,6 +553,15 @@ public class EventQueryParams
         }
     }
 
+    /**
+     * Indicates whether we should use start/end dates in SQL query instead of
+     * periods.
+     */
+    public boolean useStartEndDates()
+    {
+        return hasStartEndDate() || !getDateRangeByDateFilter().isEmpty();
+    }
+
     public boolean containsScheduledDatePeriod()
     {
         return dateRangeByDateFilter != null && dateRangeByDateFilter.containsKey( AnalyticsDateFilter.SCHEDULED_DATE );
