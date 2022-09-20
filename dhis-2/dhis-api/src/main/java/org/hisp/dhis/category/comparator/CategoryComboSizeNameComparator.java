@@ -25,69 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.document;
-
-import java.util.List;
-
-import org.hisp.dhis.user.User;
+package org.hisp.dhis.category.comparator;
 
 /**
- * @author Lars Helge Overland
+ * @author Abyot Asalefew Gizaw
  */
-public interface DocumentService
+import java.util.Comparator;
+
+import org.hisp.dhis.category.CategoryCombo;
+
+public class CategoryComboSizeNameComparator
+    implements Comparator<CategoryCombo>
 {
-    String DIR = "documents";
+    @Override
+    public int compare( CategoryCombo o1, CategoryCombo o2 )
+    {
+        int result = o1.getOptionCombos().size() - o2.getOptionCombos().size();
 
-    /**
-     * Saves a Document.
-     *
-     * @param document the Document to save.
-     * @return the generated identifier.
-     */
-    long saveDocument( Document document );
+        if ( result == 0 )
+        {
+            result = o1.getDisplayName().compareTo( o2.getDisplayName() );
+        }
 
-    /**
-     * Retrieves the Document with the given identifier.
-     *
-     * @param id the identifier of the Document.
-     * @return the Document.
-     */
-    Document getDocument( long id );
-
-    /**
-     * Retrieves the Document with the given identifier.
-     *
-     * @param uid the identifier of the Document.
-     * @return the Document.
-     */
-    Document getDocument( String uid );
-
-    /**
-     * Used when removing a file reference from a Document.
-     *
-     * @param document
-     */
-    void deleteFileFromDocument( Document document );
-
-    /**
-     * Deletes a Document.
-     *
-     * @param document the Document to delete.
-     */
-    void deleteDocument( Document document );
-
-    /**
-     * Retrieves all Documents.
-     *
-     * @return a Collection of Documents.
-     */
-    List<Document> getAllDocuments();
-
-    int getDocumentCount();
-
-    int getDocumentCountByName( String name );
-
-    List<Document> getDocumentsByUid( List<String> uids );
-
-    long getCountDocumentByUser( User user );
+        return result;
+    }
 }
