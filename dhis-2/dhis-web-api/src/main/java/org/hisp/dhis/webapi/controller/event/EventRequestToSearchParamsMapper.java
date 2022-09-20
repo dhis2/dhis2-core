@@ -216,8 +216,7 @@ class EventRequestToSearchParamsMapper
 
             for ( String filter : filters )
             {
-                QueryItem item = getQueryItem( filter );
-                params.getFilters().add( item );
+                params.addFilter( getQueryItem( filter ) );
             }
         }
 
@@ -261,7 +260,7 @@ class EventRequestToSearchParamsMapper
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( idSchemes ).setPage( page )
             .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
-            .setIncludeAllDataElements( includeAllDataElements ).setOrders( orders ).setGridOrders( gridOrders )
+            .setIncludeAllDataElements( includeAllDataElements ).addOrders( orders ).addGridOrders( gridOrders )
             .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
     }
 

@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -86,12 +86,14 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EventRequestToSearchParamsMapperTest
+class TrackerEventCriteriaMapperTest
 {
 
     public static final String TEA_1_UID = "TvjwTPToKHO";
 
     public static final String TEA_2_UID = "cy2oRh2sNr6";
+
+    public static final String PROGRAM_UID = "programuid";
 
     @Mock
     private CurrentUserService currentUserService;
@@ -124,7 +126,7 @@ class EventRequestToSearchParamsMapperTest
     private SchemaService schemaService;
 
     @InjectMocks
-    private EventRequestToSearchParamsMapper requestToSearchParamsMapper;
+    private TrackerEventCriteriaMapper mapper;
 
     private Program program;
 
@@ -132,23 +134,17 @@ class EventRequestToSearchParamsMapperTest
 
     private TrackedEntityInstance trackedEntityInstance;
 
-    private SimpleDateFormat dateFormatter;
-
     private TrackedEntityAttribute tea1;
-
-    private TrackedEntityAttribute tea2;
 
     @BeforeEach
     public void setUp()
     {
-        dateFormatter = new SimpleDateFormat( "yyyy-MM-dd", Locale.ENGLISH );
-
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         program = new Program();
-        program.setUid( "programuid" );
-        when( programService.getProgram( "programuid" ) ).thenReturn( program );
+        program.setUid( PROGRAM_UID );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
         programStage = new ProgramStage();
@@ -166,9 +162,10 @@ class EventRequestToSearchParamsMapperTest
         when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntityInstance );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
-        tea2 = new TrackedEntityAttribute();
+        TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
         tea2.setUid( TEA_2_UID );
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
+        when( attributeService.getTrackedEntityAttribute( TEA_1_UID ) ).thenReturn( tea1 );
 
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
 
@@ -186,27 +183,51 @@ class EventRequestToSearchParamsMapperTest
         prop3.setSimple( false );
         eventSchema.addProperty( prop3 );
         when( schemaService.getDynamicSchema( Event.class ) ).thenReturn( eventSchema );
-        requestToSearchParamsMapper.setSchema();
+        mapper.setSchema();
+    }
+
+    @Test
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+
+        mapper.map( criteria );
+
+        verifyNoInteractions( programService );
+        verifyNoInteractions( programStageService );
+        verifyNoInteractions( organisationUnitService );
+        verifyNoInteractions( entityInstanceService );
     }
 
     @Test
     void testMappingProgram()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setProgram( "programuid" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgram( PROGRAM_UID );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( program, params.getProgram() );
     }
 
     @Test
+    void testMappingProgramNotFound()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgram( "unknown" );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
+    }
+
+    @Test
     void testMappingProgramStage()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setProgramStage( "programstageuid" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setProgramStage( "programstageuid" );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( programStage, params.getProgramStage() );
     }
@@ -214,10 +235,10 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingTrackedEntity()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setTrackedEntity( "teiuid" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setTrackedEntity( "teiuid" );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
     }
@@ -225,14 +246,14 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingOccurredAfterBefore()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        Date occurredAfter = date( "2020-01-01" );
-        eventCriteria.setOccurredAfter( occurredAfter );
-        Date occurredBefore = date( "2020-09-12" );
-        eventCriteria.setOccurredBefore( occurredBefore );
+        Date occurredAfter = parseDate( "2020-01-01" );
+        criteria.setOccurredAfter( occurredAfter );
+        Date occurredBefore = parseDate( "2020-09-12" );
+        criteria.setOccurredBefore( occurredBefore );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( occurredAfter, params.getStartDate() );
         assertEquals( occurredBefore, params.getEndDate() );
@@ -241,14 +262,14 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingScheduledAfterBefore()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        Date scheduledAfter = date( "2021-01-01" );
-        eventCriteria.setScheduledAfter( scheduledAfter );
-        Date scheduledBefore = date( "2021-09-12" );
-        eventCriteria.setScheduledBefore( scheduledBefore );
+        Date scheduledAfter = parseDate( "2021-01-01" );
+        criteria.setScheduledAfter( scheduledAfter );
+        Date scheduledBefore = parseDate( "2021-09-12" );
+        criteria.setScheduledBefore( scheduledBefore );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( scheduledAfter, params.getDueDateStart() );
         assertEquals( scheduledBefore, params.getDueDateEnd() );
@@ -257,16 +278,16 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingUpdatedDates()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        Date updatedAfter = date( "2022-01-01" );
-        eventCriteria.setUpdatedAfter( updatedAfter );
-        Date updatedBefore = date( "2022-09-12" );
-        eventCriteria.setUpdatedBefore( updatedBefore );
+        Date updatedAfter = parseDate( "2022-01-01" );
+        criteria.setUpdatedAfter( updatedAfter );
+        Date updatedBefore = parseDate( "2022-09-12" );
+        criteria.setUpdatedBefore( updatedBefore );
         String updatedWithin = "P6M";
-        eventCriteria.setUpdatedWithin( updatedWithin );
+        criteria.setUpdatedWithin( updatedWithin );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
         assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
@@ -276,14 +297,14 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEnrollmentEnrolledAtDates()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        Date enrolledBefore = date( "2022-01-01" );
-        eventCriteria.setEnrollmentEnrolledBefore( enrolledBefore );
-        Date enrolledAfter = date( "2022-02-01" );
-        eventCriteria.setEnrollmentEnrolledAfter( enrolledAfter );
+        Date enrolledBefore = parseDate( "2022-01-01" );
+        criteria.setEnrollmentEnrolledBefore( enrolledBefore );
+        Date enrolledAfter = parseDate( "2022-02-01" );
+        criteria.setEnrollmentEnrolledAfter( enrolledAfter );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( enrolledBefore, params.getEnrollmentEnrolledBefore() );
         assertEquals( enrolledAfter, params.getEnrollmentEnrolledAfter() );
@@ -292,28 +313,45 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEnrollmentOcurredAtDates()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        Date enrolledBefore = date( "2022-01-01" );
-        eventCriteria.setEnrollmentOccurredBefore( enrolledBefore );
-        Date enrolledAfter = date( "2022-02-01" );
-        eventCriteria.setEnrollmentOccurredAfter( enrolledAfter );
+        Date enrolledBefore = parseDate( "2022-01-01" );
+        criteria.setEnrollmentOccurredBefore( enrolledBefore );
+        Date enrolledAfter = parseDate( "2022-02-01" );
+        criteria.setEnrollmentOccurredAfter( enrolledAfter );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( enrolledBefore, params.getEnrollmentOccurredBefore() );
         assertEquals( enrolledAfter, params.getEnrollmentOccurredAfter() );
     }
 
     @Test
+    void testMappingAttributeOrdering()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+
+        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, OrderParam.SortDirection.ASC );
+        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", OrderParam.SortDirection.ASC );
+        criteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        assertAll(
+            () -> assertContainsOnly( params.getAttributeOrders(),
+                List.of( new OrderParam( TEA_1_UID, OrderParam.SortDirection.ASC ) ) ),
+            () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
+    }
+
+    @Test
     void testMappingEnrollments()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
         Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
-        eventCriteria.setEnrollments( enrollments );
+        criteria.setEnrollments( enrollments );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( enrollments, params.getProgramInstances() );
     }
@@ -321,10 +359,10 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEvents()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
@@ -332,75 +370,97 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testMappingEventsStripsInvalidUid()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setEvent( "invalidUid;M4pNmLabtXl" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setEvent( "invalidUid;M4pNmLabtXl" );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( Set.of( "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
-    void testMappingNoEvents()
+    void testMappingEventIsNull()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Collections.emptySet(), params.getEvents() );
+        assertIsEmpty( params.getEvents() );
     }
 
     @Test
-    void testMappingAssignedUsers()
+    void testMappingEventIsEmpty()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setEvent( " " );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
+        assertIsEmpty( params.getEvents() );
     }
 
     @Test
-    void testMappingAssignedUsersStripsInvalidUid()
+    void testMappingAssignedUser()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
+
+        assertContainsOnly( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
+    }
+
+    @Test
+    void testMappingAssignedUserStripsInvalidUid()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+
+        EventSearchParams params = mapper.map( criteria );
 
         assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUsers() );
     }
 
     @Test
-    void testMappingNoAssignedUsers()
+    void testMappingAssignedUserIsNull()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Collections.emptySet(), params.getAssignedUsers() );
+        assertIsEmpty( params.getAssignedUsers() );
+    }
+
+    @Test
+    void testMappingAssignedUserIsEmpty()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setAssignedUser( " " );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        assertIsEmpty( params.getAssignedUsers() );
     }
 
     @Test
     void testMutualExclusionOfEventsAndFilter()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
-        eventCriteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
+        criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+            () -> mapper.map( criteria ) );
         assertEquals( "Event UIDs and filters can not be specified at the same time", exception.getMessage() );
     }
 
     @Test
     void testOrderByEventSchemaProperties()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertContainsOnly( List.of( new OrderParam( "programStage", OrderParam.SortDirection.DESC ),
             new OrderParam( "dueDate", OrderParam.SortDirection.ASC ) ), params.getOrders() );
@@ -409,10 +469,10 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testOrderBySupportedPropertyNotInEventSchema()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setOrder( OrderCriteria.fromOrderString( "enrolledAt:asc" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrder( OrderCriteria.fromOrderString( "enrolledAt:asc" ) );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertContainsOnly( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ),
             params.getOrders() );
@@ -421,48 +481,46 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testOrderFailsForNonSimpleEventProperty()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setOrder( OrderCriteria.fromOrderString( "nonSimple:desc" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrder( OrderCriteria.fromOrderString( "nonSimple:desc" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+            () -> mapper.map( criteria ) );
         assertStartsWith( "Order by property `nonSimple` is not supported", exception.getMessage() );
     }
 
     @Test
     void testOrderFailsForUnsupportedProperty()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setOrder(
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setOrder(
             OrderCriteria.fromOrderString( "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertStartsWith( "Order by property `", exception.getMessage() );
-        // order of properties in exception message might not always be the same
-        String property1 = "unsupportedProperty1";
-        assertTrue( exception.getMessage().contains( property1 ), () -> String
-            .format( "expected message to contain '%s', got '%s' instead", property1, exception.getMessage() ) );
-        String property2 = "unsupportedProperty2";
-        assertTrue( exception.getMessage().contains( property2 ), () -> String
-            .format( "expected message to contain '%s', got '%s' instead", property2, exception.getMessage() ) );
+            () -> mapper.map( criteria ) );
+        assertAll(
+            () -> assertStartsWith( "Order by property `", exception.getMessage() ),
+            // order of properties might not always be the same; therefore using
+            // contains
+            () -> assertContains( "unsupportedProperty1", exception.getMessage() ),
+            () -> assertContains( "unsupportedProperty2", exception.getMessage() ) );
     }
 
     @Test
     void testFilterAttributes()
     {
 
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes( Set.of( tea1.getUid() + ":eq:2", tea2.getUid() + ":like:foo" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         List<QueryItem> items = params.getFilterAttributes();
         assertNotNull( items );
         // mapping to UIDs as the error message by just relying on QueryItem
         // equals() is not helpful
-        assertContainsOnly( List.of( tea1.getUid(),
-            tea2.getUid() ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+        assertContainsOnly( List.of( TEA_1_UID,
+            TEA_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
 
         // QueryItem equals() does not take the QueryFilter into account so
         // assertContainsOnly alone does not ensure operators and filter value
@@ -471,8 +529,8 @@ class EventRequestToSearchParamsMapperTest
         // assertion is order independent as the order of QueryItems is not
         // guaranteed
         Map<String, QueryFilter> expectedFilters = Map.of(
-            tea1.getUid(), new QueryFilter( QueryOperator.EQ, "2" ),
-            tea2.getUid(), new QueryFilter( QueryOperator.LIKE, "foo" ) );
+            TEA_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
+            TEA_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
         assertAll( items.stream().map( i -> (Executable) () -> {
             String uid = i.getItem().getUid();
             QueryFilter expected = expectedFilters.get( uid );
@@ -482,15 +540,38 @@ class EventRequestToSearchParamsMapperTest
     }
 
     @Test
+    void testFilterAttributesWhenTEAHasMultipleFilters()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        List<QueryItem> items = params.getFilterAttributes();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( TEA_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
     void testFilterAttributesWhenNumberOfFilterSegmentsIsEven()
     {
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
 
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes( Set.of( "eq:2" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( "eq:2" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+            () -> mapper.map( criteria ) );
         assertEquals( "Query item or filter is invalid: eq:2", exception.getMessage() );
     }
 
@@ -499,12 +580,12 @@ class EventRequestToSearchParamsMapperTest
     {
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
 
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes( Set.of( tea1.getUid() + ":eq:2" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertEquals( "Attribute does not exist: " + tea1.getUid(), exception.getMessage() );
+            () -> mapper.map( criteria ) );
+        assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
 
     @Test
@@ -512,59 +593,44 @@ class EventRequestToSearchParamsMapperTest
     {
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
 
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes( Set.of( "JM5zWuf1mkb:eq:2" ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( "JM5zWuf1mkb:eq:2" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
+            () -> mapper.map( criteria ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 
     @Test
-    void testFilterAttributesWhenSameTEAHasMultipleFilters()
+    void testFilterAttributesWhenTEAUidIsDuplicated()
     {
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes(
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes(
             Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> requestToSearchParamsMapper.map( eventCriteria ) );
-        assertNotNull( exception.getMessage() );
-        // order of TEA UIDs in exception message might not always be the same;
-        // therefore using contains to check for UIDs
+            () -> mapper.map( criteria ) );
         assertAll(
-            () -> assertStartsWith( "filterAttributes can only have one filter per tracked entity attribute (TEA).",
+            () -> assertStartsWith( "filterAttributes contains duplicate tracked entity attribute",
                 exception.getMessage() ),
-            () -> assertTrue( exception.getMessage().contains( TEA_1_UID ), () -> String
-                .format( "expected message to contain '%s', got '%s' instead", TEA_1_UID, exception.getMessage() ) ),
-            () -> assertTrue( exception.getMessage().contains( TEA_2_UID ), () -> String
-                .format( "expected message to contain '%s', got '%s' instead", TEA_2_UID, exception.getMessage() ) ) );
+            // order of TEA UIDs might not always be the same; therefore using
+            // contains
+            () -> assertContains( TEA_1_UID, exception.getMessage() ),
+            () -> assertContains( TEA_2_UID, exception.getMessage() ) );
     }
 
     @Test
     void testFilterAttributesUsingOnlyUID()
     {
 
-        TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
-        eventCriteria.setFilterAttributes( Set.of( tea1.getUid() ) );
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
 
-        EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams params = mapper.map( criteria );
 
         assertContainsOnly(
             List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
                 tea1.isUnique() ) ),
             params.getFilterAttributes() );
-    }
-
-    private Date date( String date )
-    {
-        try
-        {
-            return dateFormatter.parse( date );
-        }
-        catch ( ParseException e )
-        {
-            throw new RuntimeException( e );
-        }
     }
 }
