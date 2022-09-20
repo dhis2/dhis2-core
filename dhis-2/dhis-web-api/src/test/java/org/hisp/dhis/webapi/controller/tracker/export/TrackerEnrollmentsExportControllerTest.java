@@ -39,8 +39,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,7 +57,7 @@ public class TrackerEnrollmentsExportControllerTest
     MockMvc mockMvc;
 
     @Mock
-    EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    TrackerEnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
     @Mock
     EnrollmentService enrollmentService;
