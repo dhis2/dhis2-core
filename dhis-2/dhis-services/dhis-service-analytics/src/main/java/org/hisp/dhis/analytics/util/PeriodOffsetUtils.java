@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static java.lang.Math.abs;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.lang3.ArrayUtils.remove;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -99,11 +98,13 @@ public class PeriodOffsetUtils
             {
                 if ( mods.getPeriodOffset() != 0 )
                 {
-                    addAllUnique( periods, shiftPeriods( periods, mods.getPeriodOffset() ) );
+                    // Add periodOffsets only for parameter periods
+                    addAllUnique( periods, shiftPeriods( params.getPeriods(), mods.getPeriodOffset() ) );
                 }
 
                 if ( mods.isYearToDate() )
                 {
+                    // Add yearToDate for all periods including periodOffsets
                     addAllUnique( periods, yearToDatePeriods( periods ) );
                 }
             }
@@ -134,24 +135,7 @@ public class PeriodOffsetUtils
      */
     public static Period shiftPeriod( Period period, int periodOffset )
     {
-        if ( periodOffset == 0 )
-        {
-            return period;
-        }
-
-        PeriodType periodType = period.getPeriodType();
-        Period p;
-
-        if ( periodOffset > 0 )
-        {
-            p = periodType.getNextPeriod( period, periodOffset );
-        }
-        else
-        {
-            p = periodType.getPreviousPeriod( period, abs( periodOffset ) );
-        }
-
-        return p;
+        return period.getPeriodType().getShiftedPeriod( period, periodOffset );
     }
 
     /**
@@ -186,18 +170,18 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Build a list of year-to-date rows. For each value that might add to a
+     * Build a list of year-to-date rows. For each value that adds to a
      * year-to-date result, save that value and add it to other such values.
      *
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItem the dimensional item we are collecting for.
+     * @param yearToDateItems the yearToDate items this row contributes to.
      * @param basePeriods the periods wanted by the user.
      * @param yearToDateRows the year-to-date rows we are building.
      */
     public static void buildYearToDateRows( int periodIndex, int valueIndex, List<Object> row,
-        DimensionalItemObject dimensionalItem, List<DimensionalItemObject> basePeriods,
+        List<DimensionalItemObject> yearToDateItems, List<DimensionalItemObject> basePeriods,
         Map<String, List<Object>> yearToDateRows )
     {
         if ( !hasPeriod( row, periodIndex ) )
@@ -205,7 +189,7 @@ public class PeriodOffsetUtils
             return;
         }
 
-        List<Period> targetPeriods = shiftPeriods( basePeriods, dimensionalItem.getQueryMods().getPeriodOffset() );
+        List<Period> targetPeriods = getTargetPeriodsFromYearToDateItems( yearToDateItems, basePeriods );
 
         String rowPeriod = (String) row.get( periodIndex );
 
@@ -225,6 +209,28 @@ public class PeriodOffsetUtils
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * From a list of yearToDate items, create a list of target periods for
+     * which yearToDate totals are needed. If the items have periodOffset 0,
+     * then the target periods will be the same as the base periods (the periods
+     * supplied by the parameters). If the items have non-zero periodOffsets,
+     * the target periods may be different from the base periods.
+     * <p>
+     * Because these are yearToDate items, we know that they have queryMods.
+     */
+    private static List<Period> getTargetPeriodsFromYearToDateItems( List<DimensionalItemObject> yearToDateItems,
+        List<DimensionalItemObject> basePeriods )
+    {
+        List<Period> targetPeriods = new ArrayList<>();
+
+        for ( DimensionalItemObject item : yearToDateItems )
+        {
+            addAllUnique( targetPeriods, shiftPeriods( basePeriods, item.getQueryMods().getPeriodOffset() ) );
+        }
+
+        return targetPeriods;
+    }
 
     /**
      * Shifts a list of periods according to a period offset. The list order is

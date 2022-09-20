@@ -29,15 +29,9 @@ package org.hisp.dhis.expression.dataitem;
 
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.calendar.DateTimeUnit.fromJdkDate;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
-import java.util.List;
-
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
 import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.Period;
@@ -51,7 +45,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
  * @author Jim Grace
  */
 public class ItemYearlyPeriodCount
-    implements ExpressionItem
+    extends ItemPeriodBase
 {
     private static final int WEEKS_PER_YEAR_MINIMUM = 52;
 
@@ -60,24 +54,8 @@ public class ItemYearlyPeriodCount
     private static final int DECEMBER = 12;
 
     @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Double evaluate( PeriodType periodType, Period period )
     {
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    @Override
-    public Double evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        List<Period> periods = visitor.getParams().getPeriods();
-
-        if ( periods.size() != 1 )
-        {
-            return 0.0; // Not applicable
-        }
-
-        Period period = periods.get( 0 );
-        PeriodType periodType = period.getPeriodType();
-
         if ( periodType instanceof WeeklyAbstractPeriodType )
         {
             return weeksInYearContaining( period );

@@ -35,8 +35,10 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -59,6 +61,12 @@ class ItemYearlyPeriodCountTest
 
     @Mock
     private ExpressionParams params;
+
+    @Mock
+    private ExpressionState expressionState;
+
+    @Mock
+    private QueryModifiers queryMods;
 
     private final ItemYearlyPeriodCount target = new ItemYearlyPeriodCount();
 
@@ -144,14 +152,42 @@ class ItemYearlyPeriodCountTest
         assertEquals( 1, evalWith( "2022Oct" ) );
     }
 
+    @Test
+    void testEvaluateWeeklyWithPeriodOffset()
+    {
+        // Offset from 2020 into 2021 changes week count from 53 to 52.
+        assertEquals( 53, evalWith( "2020W50" ) );
+        assertEquals( 52, evalWith( "2020W50", 5 ) );
+
+        // Offset from 2021 into 2020 changes week count from 52 to 53.
+        assertEquals( 52, evalWith( "2021W01" ) );
+        assertEquals( 53, evalWith( "2021W01", -5 ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
     private long evalWith( String period )
     {
+        return evalWith( period, 0 );
+    }
+
+    private long evalWith( String period, int periodOffset )
+    {
         when( visitor.getParams() ).thenReturn( params );
         when( params.getPeriods() ).thenReturn( List.of( createPeriod( period ) ) );
+        when( visitor.getState() ).thenReturn( expressionState );
+
+        if ( periodOffset == 0 )
+        {
+            when( expressionState.getQueryMods() ).thenReturn( null );
+        }
+        else
+        {
+            when( expressionState.getQueryMods() ).thenReturn( queryMods );
+            when( queryMods.getPeriodOffset() ).thenReturn( periodOffset );
+        }
 
         return round( target.evaluate( ctx, visitor ) );
     }
