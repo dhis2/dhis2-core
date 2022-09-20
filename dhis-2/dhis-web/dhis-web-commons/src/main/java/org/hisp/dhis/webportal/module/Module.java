@@ -32,7 +32,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: Module.java 2869 2007-02-20 14:26:09Z andegje $
  */
 public class Module
 {

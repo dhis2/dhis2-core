@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 class ExpressionStoreTest extends SingleSetupIntegrationTestBase
 {

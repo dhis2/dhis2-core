@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 /**
  * @author Chau Thu Tran
- * @version ProgramStageSectionService.java 11:12:41 AM Aug 22, 2012 $
  */
 public interface ProgramStageSectionService
 {

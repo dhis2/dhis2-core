@@ -41,7 +41,6 @@ import com.google.common.collect.Lists;
  * like days, weeks, months, etc.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: CalendarPeriodType.java 2952 2007-03-01 23:40:10Z torgeilo $
  */
 public abstract class CalendarPeriodType
     extends PeriodType

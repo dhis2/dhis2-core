@@ -36,7 +36,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * @author Chau Thu Tran
- * @version $Id: ProgramStore.java Dec 14, 2011 9:22:17 AM $
  */
 public interface ProgramStore
     extends IdentifiableObjectStore<Program>

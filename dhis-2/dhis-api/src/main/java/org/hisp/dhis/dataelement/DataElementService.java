@@ -41,12 +41,9 @@ import org.hisp.dhis.period.PeriodType;
  * Defines service functionality for DataElements and DataElementGroups.
  *
  * @author Kristian Nordal
- * @version $Id: DataElementService.java 6289 2008-11-14 17:53:24Z larshelg $
  */
 public interface DataElementService
 {
-    String ID = DataElementService.class.getName();
-
     // -------------------------------------------------------------------------
     // DataElement
     // -------------------------------------------------------------------------

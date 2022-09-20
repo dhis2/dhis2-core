@@ -41,7 +41,6 @@ import org.hisp.dhis.period.Period;
  * Defines the functionality for persisting DataValues.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: DataValueStore.java 5715 2008-09-17 14:05:28Z larshelg $
  */
 public interface DataValueStore
 {

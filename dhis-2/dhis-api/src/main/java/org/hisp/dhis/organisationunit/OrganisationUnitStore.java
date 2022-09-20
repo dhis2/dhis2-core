@@ -41,17 +41,10 @@ import org.hisp.dhis.program.Program;
  * Defines methods for persisting OrganisationUnits.
  *
  * @author Kristian Nordal
- * @version $Id: OrganisationUnitStore.java 5645 2008-09-04 10:01:02Z larshelg $
  */
 public interface OrganisationUnitStore
     extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider
 {
-    String ID = OrganisationUnitStore.class.getName();
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnit
-    // -------------------------------------------------------------------------
-
     /**
      * Returns all OrganisationUnits by lastUpdated.
      *

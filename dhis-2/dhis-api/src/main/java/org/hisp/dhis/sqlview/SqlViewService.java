@@ -29,23 +29,15 @@ package org.hisp.dhis.sqlview;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 
 /**
  * @author Dang Duy Hieu
- * @version $Id SqlViewService.java July 06, 2010$
  */
 public interface SqlViewService
 {
-    String ID = SqlViewService.class.getName();
-
-    String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
-
-    Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
-
     // -------------------------------------------------------------------------
     // CRUD
     // -------------------------------------------------------------------------

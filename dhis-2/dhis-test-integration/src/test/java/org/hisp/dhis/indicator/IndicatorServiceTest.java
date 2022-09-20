@@ -49,7 +49,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 class IndicatorServiceTest extends SingleSetupIntegrationTestBase
 {
