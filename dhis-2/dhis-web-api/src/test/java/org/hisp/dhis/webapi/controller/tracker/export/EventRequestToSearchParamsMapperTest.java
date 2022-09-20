@@ -591,8 +591,6 @@ class EventRequestToSearchParamsMapperTest
     @Test
     void testFilterAttributesWhenTEAInFilterDoesNotExist()
     {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
         TrackerEventCriteria eventCriteria = new TrackerEventCriteria();
         eventCriteria.setFilterAttributes( Set.of( "JM5zWuf1mkb:eq:2" ) );
 

@@ -69,6 +69,7 @@ import javax.sql.rowset.RowSetMetaDataImpl;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -239,28 +240,90 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetAggregateClauseWithValue()
     {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        // Given
+        DataElement de = new DataElement();
+
+        de.setUid( dataElementA.getUid() );
+
+        de.setAggregationType( AggregationType.SUM );
+
+        de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( dio )
+            .withValue( de )
             .withAggregationType( AnalyticsAggregationType.SUM )
             .build();
 
+        // When
         String clause = subject.getAggregateClause( params );
 
+        // Then
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
     @Test
     void verifyGetAggregateClauseWithValueFails()
     {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.CUSTOM );
+
+        de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( dio )
+            .withValue( de )
             .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
             .build();
+
+        // When
+        // Then
         assertThrows( IllegalArgumentException.class, () -> subject.getAggregateClause( params ) );
+    }
+
+    @Test
+    void verifyGetAggregateClauseWithEventFallback()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.NONE );
+
+        de.setValueType( TEXT );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+            .withOutputType( EventOutputType.EVENT )
+            .build();
+        // When
+        String aggregateClause = subject.getAggregateClause( params );
+
+        // Then
+        assertEquals( "count(ax.\"psi\")", aggregateClause );
+    }
+
+    @Test
+    void verifyGetAggregateClauseWithEnrollmentFallback()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.SUM );
+
+        de.setValueType( TEXT );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+            .withOutputType( EventOutputType.ENROLLMENT )
+            .build();
+
+        // When
+        String aggregateClause = subject.getAggregateClause( params );
+
+        // Then
+        assertEquals( "count(distinct ax.\"pi\")", aggregateClause );
     }
 
     @Test
