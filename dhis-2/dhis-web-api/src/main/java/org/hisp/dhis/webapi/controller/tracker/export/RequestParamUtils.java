@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -64,11 +65,28 @@ public class RequestParamUtils
      * @param input string to parse
      * @return set of uids
      */
-    static Set<String> parseUids( String input )
+    static Set<String> parseAndFilterUids( String input )
     {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream()
+        return parseUidString( input )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toUnmodifiableSet() );
+    }
+
+    /**
+     * Parse semicolon separated string of UIDs.
+     *
+     * @param input string to parse
+     * @return set of uids
+     */
+    static Set<String> parseUids( String input )
+    {
+        return parseUidString( input )
+            .collect( Collectors.toUnmodifiableSet() );
+    }
+
+    private static Stream<String> parseUidString( String input )
+    {
+        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
+            .stream();
     }
 }

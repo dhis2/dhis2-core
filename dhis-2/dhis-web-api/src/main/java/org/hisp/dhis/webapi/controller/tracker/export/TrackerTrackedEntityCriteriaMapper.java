@@ -31,9 +31,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -104,7 +103,7 @@ public class TrackerTrackedEntityCriteriaMapper
             criteria.getTrackedEntityType() );
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
-        Set<String> assignedUserIds = parseUids( criteria.getAssignedUser() );
+        Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
         validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
@@ -131,9 +130,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-        Set<String> orgUnits = criteria.getOrgUnit() != null
-            ? TextUtils.splitToSet( criteria.getOrgUnit(), TextUtils.SEMICOLON )
-            : Collections.emptySet();
+        Set<String> orgUnits = parseUids( criteria.getOrgUnit() );
         for ( String orgUnit : orgUnits )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnit );
@@ -160,9 +157,7 @@ public class TrackerTrackedEntityCriteriaMapper
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
         validateOrderParams( orderParams, attributes );
 
-        Set<String> trackedEntities = criteria.getTrackedEntity() != null
-            ? TextUtils.splitToSet( criteria.getTrackedEntity(), TextUtils.SEMICOLON )
-            : Collections.emptySet();
+        Set<String> trackedEntities = parseUids( criteria.getTrackedEntity() );
 
         params.setQuery( queryFilter )
             .setProgram( program )

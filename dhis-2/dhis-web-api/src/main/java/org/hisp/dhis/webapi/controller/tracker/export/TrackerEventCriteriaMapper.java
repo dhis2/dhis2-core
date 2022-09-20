@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -159,10 +159,10 @@ class TrackerEventCriteriaMapper
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        Set<String> eventIds = parseUids( eventCriteria.getEvent() );
+        Set<String> eventIds = parseAndFilterUids( eventCriteria.getEvent() );
         validateFilter( eventCriteria.getFilter(), eventIds, eventCriteria.getProgramStage(), programStage );
 
-        Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
+        Set<String> assignedUserIds = parseAndFilterUids( eventCriteria.getAssignedUser() );
         validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
