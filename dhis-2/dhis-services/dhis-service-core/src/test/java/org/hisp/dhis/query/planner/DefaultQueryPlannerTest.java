@@ -36,12 +36,14 @@ import java.util.Map;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
 import org.junit.Before;
 import org.junit.Rule;
@@ -182,6 +184,36 @@ public class DefaultQueryPlannerTest
         assertEquals( nonPersistedQuery.getCriterions().size(), 0 );
         assertTrue( nonPersistedQuery.isPlannedQuery() );
         assertEquals( nonPersistedQuery.getRootJunctionType(), Junction.Type.AND );
+    }
+
+    @Test
+    void verifyPlanQueryWithPersistedAndNotPersistedCriteria()
+        throws Exception
+    {
+        final DataElement dataElement = new DataElement();
+        final Map<String, Property> propertyMap = new HashMap<>();
+        addProperty( propertyMap, dataElement, "domainType", true );
+        addProperty( propertyMap, dataElement, "groups", false );
+        Schema schema = new DataElementSchemaDescriptor().getSchema();
+        schema.setPropertyMap( propertyMap );
+
+        // Add restriction
+        Query query = Query.from( schema, Junction.Type.AND );
+        query.add( Restrictions.eq( "domainType", "Aggregate" ) );
+        query.add( Restrictions.eq( "groups", "dataElementGroupId" ) );
+
+        // method under test
+        QueryPlan queryPlan = subject.planQuery( query, false );
+
+        Query persistedQuery = queryPlan.getPersistedQuery();
+
+        assertTrue( persistedQuery.isPlannedQuery() );
+        assertEquals( 1, persistedQuery.getCriterions().size() );
+
+        Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+        assertTrue( nonPersistedQuery.isPlannedQuery() );
+        assertEquals( 1, nonPersistedQuery.getCriterions().size() );
+
     }
 
     private void addProperty( Map<String, Property> propertyMap, Object bean, String property, boolean persisted )
