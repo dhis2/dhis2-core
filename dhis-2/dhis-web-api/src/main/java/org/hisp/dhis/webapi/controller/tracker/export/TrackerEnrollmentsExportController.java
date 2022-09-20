@@ -32,6 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +82,9 @@ public class TrackerEnrollmentsExportController
     @NonNull
     private final FieldFilterService fieldFilterService;
 
+    @NonNull
+    private final EnrollmentsSupportService enrollmentsSupportService;
+
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
@@ -110,7 +114,10 @@ public class TrackerEnrollmentsExportController
             Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )
+                ? enrollmentIds.stream()
+                    .map( uid -> enrollmentService.getEnrollment( uid,
+                        enrollmentsSupportService.getTrackedEntityInstanceParams( fields ) ) )
+                    .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
 
@@ -125,12 +132,9 @@ public class TrackerEnrollmentsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-
-        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( id ) );
-        if ( enrollment == null )
-        {
-            throw new NotFoundException( "Enrollment", id );
-        }
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
+        return Optional.ofNullable( enrollmentService.getEnrollment( id,
+            enrollmentsSupportService.getTrackedEntityInstanceParams( fields ) ) )
+            .map( e -> ResponseEntity.ok( fieldFilterService.toObjectNode( ENROLLMENT_MAPPER.from( e ), fields ) ) )
+            .orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
     }
 }
