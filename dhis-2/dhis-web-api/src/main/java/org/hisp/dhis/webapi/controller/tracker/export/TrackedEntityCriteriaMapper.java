@@ -32,7 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,14 +40,15 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -61,8 +62,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
-import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,9 +86,6 @@ public class TrackedEntityCriteriaMapper
 
     private final TrackedEntityAttributeService attributeService;
 
-    private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER = Mappers
-        .getMapper( TrackerTrackedEntityCriteriaMapper.class );
-
     public TrackedEntityCriteriaMapper( CurrentUserService currentUserService,
         OrganisationUnitService organisationUnitService, ProgramService programService,
         TrackedEntityAttributeService attributeService, TrackedEntityTypeService trackedEntityTypeService )
@@ -110,19 +106,7 @@ public class TrackedEntityCriteriaMapper
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
     {
-        return map( TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER.toTrackedEntityInstanceCriteria( criteria ) );
-    }
-
-    @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams map( TrackedEntityInstanceCriteria criteria )
-    {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-
-        final Date programEnrollmentStartDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentStartDate(),
-            criteria.getProgramStartDate() );
-
-        final Date programEnrollmentEndDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentEndDate(),
-            criteria.getProgramEndDate() );
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
@@ -138,27 +122,24 @@ public class TrackedEntityCriteriaMapper
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        if ( criteria.getAttribute() != null )
+        for ( String attr : criteria.getAttribute() )
         {
-            for ( String attr : criteria.getAttribute() )
-            {
-                QueryItem it = getQueryItem( attr, attributes );
+            QueryItem it = getQueryItem( attr, attributes );
 
-                params.getAttributes().add( it );
-            }
+            params.getAttributes().add( it );
         }
 
-        if ( criteria.getFilter() != null )
+        for ( String filt : criteria.getFilter() )
         {
-            for ( String filt : criteria.getFilter() )
-            {
-                QueryItem it = getQueryItem( filt, attributes );
+            QueryItem it = getQueryItem( filt, attributes );
 
-                params.getFilters().add( it );
-            }
+            params.getFilters().add( it );
         }
 
-        for ( String orgUnit : criteria.getOrgUnits() )
+        Set<String> orgUnits = criteria.getOrgUnit() != null
+            ? TextUtils.splitToSet( criteria.getOrgUnit(), TextUtils.SEMICOLON )
+            : Collections.emptySet();
+        for ( String orgUnit : orgUnits )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnit );
 
@@ -176,7 +157,8 @@ public class TrackedEntityCriteriaMapper
             params.getOrganisationUnits().add( organisationUnit );
         }
 
-        validateAssignedUser( criteria );
+        Set<String> assignedUsers = getAssignedUsers( criteria );
+        validateAssignedUser( criteria, assignedUsers );
 
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
@@ -189,26 +171,30 @@ public class TrackedEntityCriteriaMapper
 
         validateOrderParams( orderParams, attributes );
 
+        Set<String> trackedEntities = criteria.getTrackedEntity() != null
+            ? TextUtils.splitToSet( criteria.getTrackedEntity(), TextUtils.SEMICOLON )
+            : Collections.emptySet();
+
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( validateProgramStage( criteria, program ) )
             .setProgramStatus( criteria.getProgramStatus() )
             .setFollowUp( criteria.getFollowUp() )
-            .setLastUpdatedStartDate( criteria.getLastUpdatedStartDate() )
-            .setLastUpdatedEndDate( criteria.getLastUpdatedEndDate() )
-            .setLastUpdatedDuration( criteria.getLastUpdatedDuration() )
-            .setProgramEnrollmentStartDate( programEnrollmentStartDate )
-            .setProgramEnrollmentEndDate( programEnrollmentEndDate )
-            .setProgramIncidentStartDate( criteria.getProgramIncidentStartDate() )
-            .setProgramIncidentEndDate( criteria.getProgramIncidentEndDate() )
+            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
+            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
+            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
+            .setProgramEnrollmentStartDate( criteria.getEnrollmentEnrolledAfter() )
+            .setProgramEnrollmentEndDate( criteria.getEnrollmentEnrolledBefore() )
+            .setProgramIncidentStartDate( criteria.getEnrollmentOccurredAfter() )
+            .setProgramIncidentEndDate( criteria.getEnrollmentOccurredBefore() )
             .setTrackedEntityType( validateTrackedEntityType( criteria ) )
             .setOrganisationUnitMode( criteria.getOuMode() )
             .setEventStatus( criteria.getEventStatus() )
-            .setEventStartDate( criteria.getEventStartDate() )
-            .setEventEndDate( criteria.getEventEndDate() )
+            .setEventStartDate( criteria.getEventOccurredAfter() )
+            .setEventEndDate( criteria.getEventOccurredBefore() )
             .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( criteria.getAssignedUsers() )
-            .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
+            .setAssignedUsers( assignedUsers )
+            .setTrackedEntityInstanceUids( trackedEntities )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
@@ -220,7 +206,6 @@ public class TrackedEntityCriteriaMapper
             .setOrders( orderParams );
 
         return params;
-
     }
 
     /**
@@ -299,7 +284,7 @@ public class TrackedEntityCriteriaMapper
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
-    private Program validateProgram( TrackedEntityInstanceCriteria criteria )
+    private Program validateProgram( TrackerTrackedEntityCriteria criteria )
     {
         Function<String, Program> getProgram = uid -> {
             if ( isNotEmpty( uid ) )
@@ -317,7 +302,7 @@ public class TrackedEntityCriteriaMapper
         return program;
     }
 
-    private ProgramStage validateProgramStage( TrackedEntityInstanceCriteria criteria, Program program )
+    private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
     {
 
         final String programStage = criteria.getProgramStage();
@@ -331,7 +316,7 @@ public class TrackedEntityCriteriaMapper
         return ps;
     }
 
-    private TrackedEntityType validateTrackedEntityType( TrackedEntityInstanceCriteria criteria )
+    private TrackedEntityType validateTrackedEntityType( TrackerTrackedEntityCriteria criteria )
     {
         Function<String, TrackedEntityType> getTeiType = uid -> {
             if ( isNotEmpty( uid ) )
@@ -350,9 +335,9 @@ public class TrackedEntityCriteriaMapper
         return trackedEntityType;
     }
 
-    private void validateAssignedUser( TrackedEntityInstanceCriteria criteria )
+    private void validateAssignedUser( TrackerTrackedEntityCriteria criteria, Set<String> assignedUsers )
     {
-        if ( criteria.getAssignedUserMode() != null && !criteria.getAssignedUsers().isEmpty()
+        if ( criteria.getAssignedUserMode() != null && !assignedUsers.isEmpty()
             && !criteria.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
         {
             throw new IllegalQueryException(
@@ -383,5 +368,18 @@ public class TrackedEntityCriteriaMapper
                 }
             }
         }
+    }
+
+    private Set<String> getAssignedUsers( TrackerTrackedEntityCriteria criteria )
+    {
+        Set<String> assignedUsers = new HashSet<>();
+
+        if ( criteria.getAssignedUser() != null && !criteria.getAssignedUser().isEmpty() )
+        {
+            assignedUsers = TextUtils.splitToSet( criteria.getAssignedUser(), TextUtils.SEMICOLON ).stream()
+                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
+        }
+
+        return assignedUsers;
     }
 }
