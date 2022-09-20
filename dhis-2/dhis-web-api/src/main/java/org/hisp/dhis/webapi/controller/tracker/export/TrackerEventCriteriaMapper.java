@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -45,7 +47,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -53,7 +54,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -220,16 +220,6 @@ class TrackerEventCriteriaMapper
             .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
     }
 
-    private static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
-    {
-        if ( StringUtils.isEmpty( arg ) )
-        {
-            return null;
-        }
-
-        return func.apply( arg );
-    }
-
     private static void validateProgram( String program, Program pr )
     {
         if ( !StringUtils.isEmpty( program ) && pr == null )
@@ -299,10 +289,14 @@ class TrackerEventCriteriaMapper
         }
     }
 
-    private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
-        Set<String> assignedUserIds )
+    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
     {
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
+        if ( mode == null )
+        {
+            return;
+        }
+
+        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
@@ -497,14 +491,6 @@ class TrackerEventCriteriaMapper
         validateOrderParams( order );
 
         return OrderParamsHelper.toOrderParams( order );
-    }
-
-    private Set<String> parseUids( String input )
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toUnmodifiableSet() );
     }
 
     private void validateOrderParams( List<OrderCriteria> order )

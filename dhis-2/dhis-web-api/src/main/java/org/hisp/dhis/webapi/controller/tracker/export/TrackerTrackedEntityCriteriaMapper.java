@@ -30,20 +30,20 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -97,6 +97,16 @@ public class TrackerTrackedEntityCriteriaMapper
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
     {
+        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
+        validateProgram( criteria.getProgram(), program );
+
+        TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
+            criteria.getTrackedEntityType() );
+        validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
+
+        Set<String> assignedUserIds = parseUids( criteria.getAssignedUser() );
+        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
+
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
@@ -115,16 +125,12 @@ public class TrackerTrackedEntityCriteriaMapper
 
         for ( String attr : criteria.getAttribute() )
         {
-            QueryItem it = getQueryItem( attr, attributes );
-
-            params.getAttributes().add( it );
+            params.getAttributes().add( getQueryItem( attr, attributes ) );
         }
 
         for ( String filt : criteria.getFilter() )
         {
-            QueryItem it = getQueryItem( filt, attributes );
-
-            params.getFilters().add( it );
+            params.getFilters().add( getQueryItem( filt, attributes ) );
         }
 
         Set<String> orgUnits = criteria.getOrgUnit() != null
@@ -148,15 +154,10 @@ public class TrackerTrackedEntityCriteriaMapper
             params.getOrganisationUnits().add( organisationUnit );
         }
 
-        Set<String> assignedUsers = getAssignedUsers( criteria );
-        validateAssignedUser( criteria, assignedUsers );
-
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
-
-        Program program = validateProgram( criteria );
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
@@ -178,13 +179,13 @@ public class TrackerTrackedEntityCriteriaMapper
             .setProgramEnrollmentEndDate( criteria.getEnrollmentEnrolledBefore() )
             .setProgramIncidentStartDate( criteria.getEnrollmentOccurredAfter() )
             .setProgramIncidentEndDate( criteria.getEnrollmentOccurredBefore() )
-            .setTrackedEntityType( validateTrackedEntityType( criteria ) )
+            .setTrackedEntityType( trackedEntityType )
             .setOrganisationUnitMode( criteria.getOuMode() )
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventOccurredAfter() )
             .setEventEndDate( criteria.getEventOccurredBefore() )
             .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( assignedUsers )
+            .setAssignedUsers( assignedUserIds )
             .setTrackedEntityInstanceUids( trackedEntities )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
@@ -195,7 +196,6 @@ public class TrackerTrackedEntityCriteriaMapper
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setUser( user )
             .setOrders( orderParams );
-
         return params;
     }
 
@@ -275,22 +275,12 @@ public class TrackerTrackedEntityCriteriaMapper
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
-    private Program validateProgram( TrackerTrackedEntityCriteria criteria )
+    private static void validateProgram( String id, Program program )
     {
-        Function<String, Program> getProgram = uid -> {
-            if ( isNotEmpty( uid ) )
-            {
-                return programService.getProgram( uid );
-            }
-            return null;
-        };
-
-        final Program program = getProgram.apply( criteria.getProgram() );
-        if ( isNotEmpty( criteria.getProgram() ) && program == null )
+        if ( isNotEmpty( id ) && program == null )
         {
-            throw new IllegalQueryException( "Program does not exist: " + criteria.getProgram() );
+            throw new IllegalQueryException( "Program is specified but does not exist: " + id );
         }
-        return program;
     }
 
     private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
@@ -307,29 +297,22 @@ public class TrackerTrackedEntityCriteriaMapper
         return ps;
     }
 
-    private TrackedEntityType validateTrackedEntityType( TrackerTrackedEntityCriteria criteria )
+    private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
     {
-        Function<String, TrackedEntityType> getTeiType = uid -> {
-            if ( isNotEmpty( uid ) )
-            {
-                return trackedEntityTypeService.getTrackedEntityType( uid );
-            }
-            return null;
-        };
-
-        final TrackedEntityType trackedEntityType = getTeiType.apply( criteria.getTrackedEntityType() );
-
-        if ( isNotEmpty( criteria.getTrackedEntityType() ) && trackedEntityType == null )
+        if ( isNotEmpty( id ) && trackedEntityType == null )
         {
-            throw new IllegalQueryException( "Tracked entity type does not exist: " + criteria.getTrackedEntityType() );
+            throw new IllegalQueryException( "Tracked entity type does not exist: " + id );
         }
-        return trackedEntityType;
     }
 
-    private void validateAssignedUser( TrackerTrackedEntityCriteria criteria, Set<String> assignedUsers )
+    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
     {
-        if ( criteria.getAssignedUserMode() != null && !assignedUsers.isEmpty()
-            && !criteria.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
+        if ( mode == null )
+        {
+            return;
+        }
+
+        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
@@ -359,18 +342,5 @@ public class TrackerTrackedEntityCriteriaMapper
                 }
             }
         }
-    }
-
-    private Set<String> getAssignedUsers( TrackerTrackedEntityCriteria criteria )
-    {
-        Set<String> assignedUsers = new HashSet<>();
-
-        if ( criteria.getAssignedUser() != null && !criteria.getAssignedUser().isEmpty() )
-        {
-            assignedUsers = TextUtils.splitToSet( criteria.getAssignedUser(), TextUtils.SEMICOLON ).stream()
-                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
-        }
-
-        return assignedUsers;
     }
 }
