@@ -285,7 +285,9 @@ public class UserController
 
         User user = userService.getUser( pvUid );
 
-        if ( user == null || user.getUserCredentials() == null )
+        if ( user == null
+            // TODO: To remove when we remove old UserCredentials compatibility
+            || user.getUserCredentials() == null )
         {
             throw new WebMessageException( conflict( "User not found: " + pvUid ) );
         }
@@ -323,6 +325,7 @@ public class UserController
     private WebMessage postObject( User user )
         throws WebMessageException
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
         User currentUser = currentUserService.getCurrentUser();
@@ -353,6 +356,7 @@ public class UserController
     private WebMessage postInvite( HttpServletRequest request, User user )
         throws WebMessageException
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
         User currentUser = currentUserService.getCurrentUser();
@@ -386,6 +390,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
+        // TODO: To remove when we remove old UserCredentials compatibility
         for ( User user : users.getUsers() )
         {
             populateUserCredentialsDtoFields( user );
@@ -715,6 +720,7 @@ public class UserController
                 conflict( getEntityName() + " does not exist: " + pvUid ) );
         }
 
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
@@ -805,6 +811,7 @@ public class UserController
     @Override
     protected void prePatchEntity( User oldEntity, User newEntity )
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoCopyOnlyChanges( oldEntity, newEntity );
     }
 

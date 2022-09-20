@@ -187,8 +187,8 @@ public class MeController
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
 
+        // TODO: To remove when we remove old UserCredentials compatibility
         UserCredentialsDto userCredentialsDto = user.getUserCredentials();
-
         meDto.setUserCredentials( userCredentialsDto );
 
         var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );
@@ -228,6 +228,8 @@ public class MeController
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         User user = renderService.fromJson( request.getInputStream(), User.class );
+
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
         merge( currentUser, user );
