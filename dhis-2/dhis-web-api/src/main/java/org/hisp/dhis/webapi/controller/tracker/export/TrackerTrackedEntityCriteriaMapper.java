@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
@@ -39,6 +38,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
@@ -74,34 +76,23 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luciano Fiandesio
  */
 @Component( "org.hisp.dhis.webapi.controller.tracker.export.TrackedEntityCriteriaMapper" )
-public class TrackedEntityCriteriaMapper
+@RequiredArgsConstructor
+public class TrackerTrackedEntityCriteriaMapper
 {
+    @NonNull
     private final CurrentUserService currentUserService;
 
+    @NonNull
     private final OrganisationUnitService organisationUnitService;
 
+    @NonNull
     private final ProgramService programService;
 
+    @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
+    @NonNull
     private final TrackedEntityAttributeService attributeService;
-
-    public TrackedEntityCriteriaMapper( CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, ProgramService programService,
-        TrackedEntityAttributeService attributeService, TrackedEntityTypeService trackedEntityTypeService )
-    {
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( programService );
-        checkNotNull( attributeService );
-        checkNotNull( trackedEntityTypeService );
-
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-        this.programService = programService;
-        this.attributeService = attributeService;
-        this.trackedEntityTypeService = trackedEntityTypeService;
-    }
 
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )

@@ -80,13 +80,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests {@link TrackedEntityCriteriaMapper}.
+ * Tests {@link TrackerTrackedEntityCriteriaMapper}.
  *
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityCriteriaMapperTest
+class TrackerTrackedEntityCriteriaMapperTest
 {
     public static final String TEA_1_UID = "TvjwTPToKHO";
 
@@ -116,7 +116,7 @@ class TrackedEntityCriteriaMapperTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @InjectMocks
-    private TrackedEntityCriteriaMapper mapper;
+    private TrackerTrackedEntityCriteriaMapper mapper;
 
     private User user;
 
