@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,6 +86,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
+        populateUserCredentialsDtoFields( user );
+
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
             user.isInvitation() ) )
         {
@@ -273,7 +277,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     /**
-     * If currentUser doesn't have read access to a UserRole and it is included
+     * If currentUser doesn't have read access to a UserRole, and it is included
      * in the payload, then that UserRole should not be removed from updating
      * User.
      *

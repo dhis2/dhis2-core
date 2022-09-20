@@ -35,9 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -51,11 +54,11 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -123,6 +126,46 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testUpdateRoles()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userRoles','value':[{'id':'" + newRoleUid + "'},{'id':'" + mainRoleUid
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
+    void testUpdateRolesLegacy()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userCredentials/userRoles','value':[{'id':'" + newRoleUid
+                + "'},{'id':'" + mainRoleUid + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
     void testResetToInvite_NoAuthority()
     {
         switchToNewUser( "someone" );
@@ -183,6 +226,15 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "Password must have at least 8 characters, one digit, one uppercase",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
                 .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testGetUserLegacyUserCredentialsIdPresent()
+    {
+        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject userCredentials = response.getObject( "userCredentials" );
+        JsonValue id = userCredentials.get( "id" );
+        assertTrue( id.exists() );
     }
 
     @Test
