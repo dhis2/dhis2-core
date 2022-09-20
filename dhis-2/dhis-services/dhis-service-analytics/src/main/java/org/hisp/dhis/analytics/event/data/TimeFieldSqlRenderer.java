@@ -27,22 +27,18 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.Builder;
-import lombok.Data;
-
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DateRange;
 
 public abstract class TimeFieldSqlRenderer
@@ -57,11 +53,13 @@ public abstract class TimeFieldSqlRenderer
             sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
         // When multiple periods are set
-        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
+        // and date range list is no continuous
+        else if ( !params.hasContinuousDateRangeList() )
         {
-            sql.append( getSqlConditionHasStartEndDate( params ) );
+            sql.append( getSqlConditionHasDateRangeList( params ) );
         }
-        // Periods should not go here when line list, only pivot table
+        // otherwise // Periods should not go here when line list, only pivot
+        // table
         else
         {
             sql.append( getSqlConditionForPeriods( params ) );
@@ -70,21 +68,28 @@ public abstract class TimeFieldSqlRenderer
         return sql.toString();
     }
 
-    @Data
-    @Builder
-    private static class ColumnWithDateRange
+    protected String getSqlConditionHasDateRangeList( EventQueryParams params )
     {
-        private final String column;
-
-        private final DateRange dateRange;
-
-        static ColumnWithDateRange of( Map.Entry<AnalyticsDateFilter, DateRange> entry )
+        List<String> orConditions = new ArrayList<>();
+        for ( DateRange dateRange : params.getDateRangeList() )
         {
-            return ColumnWithDateRange.builder()
-                .column( quoteAlias( entry.getKey().getTimeField().getField() ) )
-                .dateRange( entry.getValue() )
+            ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.builder()
+                .column( getColumnName( params ) )
+                .dateRange( dateRange )
                 .build();
+
+            orConditions.add(
+                columnWithDateRange.getColumn() +
+                    " >= '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) +
+                    "' and " +
+                    columnWithDateRange.getColumn() +
+                    " < '" +
+                    getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) +
+                    "' " );
         }
+
+        return "(" + String.join( " or ", orConditions ) + ")";
     }
 
     protected Optional<TimeField> getTimeField( EventQueryParams params )
