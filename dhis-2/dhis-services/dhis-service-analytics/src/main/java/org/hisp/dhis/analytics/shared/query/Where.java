@@ -30,8 +30,6 @@ package org.hisp.dhis.analytics.shared.query;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
@@ -49,7 +47,7 @@ public class Where extends BaseRenderable
     @Override
     public String render()
     {
-        if ( Objects.nonNull( condition ) )
+        if ( condition.isNotEmpty() )
         {
             return "where " + condition.render();
         }
