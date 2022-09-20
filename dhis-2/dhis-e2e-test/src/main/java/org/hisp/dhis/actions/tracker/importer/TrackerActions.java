@@ -139,6 +139,11 @@ public class TrackerActions
         return new TrackerApiResponse( this.get( "/events/" + eventId ) );
     }
 
+    public TrackerApiResponse getEvents( QueryParamsBuilder queryParamsBuilder )
+    {
+        return new TrackerApiResponse( this.get( "/events/", queryParamsBuilder ) );
+    }
+
     public TrackerApiResponse getRelationship( String relationshipId )
     {
         return new TrackerApiResponse( this.get( "/relationships/" + relationshipId ) );
