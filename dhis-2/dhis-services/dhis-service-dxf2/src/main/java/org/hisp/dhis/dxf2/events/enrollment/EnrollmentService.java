@@ -58,9 +58,7 @@ public interface EnrollmentService
     List<Enrollment> getEnrollmentsXml( InputStream inputStream )
         throws IOException;
 
-    Enrollment getEnrollment( String id );
-
-    Enrollment getEnrollment( ProgramInstance programInstance );
+    Enrollment getEnrollment( String id, TrackedEntityInstanceParams params );
 
     Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
 

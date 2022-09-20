@@ -38,11 +38,13 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -51,6 +53,7 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
@@ -74,10 +77,8 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -88,38 +89,32 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = EnrollmentController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequiredArgsConstructor
 public class EnrollmentController
 {
     public static final String RESOURCE_PATH = "/enrollments";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+    private final EnrollmentService enrollmentService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+    private final AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
 
-    @Autowired
-    protected FieldFilterService fieldFilterService;
+    protected final FieldFilterService fieldFilterService;
 
-    @Autowired
-    protected ContextService contextService;
+    protected final ContextService contextService;
 
-    @Autowired
-    private EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+
+    private static final String DEFAULT_FIELDS_PARAM = "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup";
 
     // -------------------------------------------------------------------------
     // READ
@@ -127,16 +122,9 @@ public class EnrollmentController
 
     @GetMapping
     public @ResponseBody RootNode getEnrollments(
-        EnrollmentCriteria enrollmentCriteria )
+        EnrollmentCriteria enrollmentCriteria,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.add(
-                "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
-        }
-
         RootNode rootNode = NodeUtils.createMetadata();
 
         List<Enrollment> listEnrollments;
@@ -183,7 +171,9 @@ public class EnrollmentController
             Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
-                .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )
+                .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId,
+                    getTrackedEntityInstanceParams( fields ) ) )
+                .collect( Collectors.toList() )
                 : null;
         }
 
@@ -195,10 +185,10 @@ public class EnrollmentController
 
     @GetMapping( "/{id}" )
     public @ResponseBody Enrollment getEnrollment( @PathVariable String id,
-        @RequestParam Map<String, String> parameters, Model model )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-        return getEnrollment( id );
+        return getEnrollment( id, getTrackedEntityInstanceParams( fields ) );
     }
 
     // -------------------------------------------------------------------------
@@ -406,16 +396,33 @@ public class EnrollmentController
             .setLocation( "/system/tasks/" + ENROLLMENT_IMPORT );
     }
 
-    private Enrollment getEnrollment( String id )
+    private Enrollment getEnrollment( String id, TrackedEntityInstanceParams trackedEntityInstanceParams )
         throws NotFoundException
     {
-        Enrollment enrollment = enrollmentService.getEnrollment( id );
+        return Optional.ofNullable( enrollmentService.getEnrollment( programInstanceService.getProgramInstance( id ),
+            trackedEntityInstanceParams ) ).orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
+    }
 
-        if ( enrollment == null )
+    private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    {
+        TrackedEntityInstanceParams trackedEntityInstanceParams = TrackedEntityInstanceParams.FALSE;
+
+        for ( String field : fields )
         {
-            throw new NotFoundException( "Enrollment", id );
+            switch ( field )
+            {
+            case "relationships":
+                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeRelationships( true );
+                break;
+            case "events":
+                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeEvents( true );
+                break;
+            case "attributes":
+                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeAttributes( true );
+                break;
+            }
         }
 
-        return enrollment;
+        return trackedEntityInstanceParams;
     }
 }

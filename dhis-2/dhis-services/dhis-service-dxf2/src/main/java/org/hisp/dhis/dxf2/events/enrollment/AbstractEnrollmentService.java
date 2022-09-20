@@ -35,15 +35,7 @@ import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -288,17 +280,10 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id )
+    public Enrollment getEnrollment( String id, TrackedEntityInstanceParams params )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-        return programInstance != null ? getEnrollment( programInstance ) : null;
-    }
-
-    @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance )
-    {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE,
-            false );
+        return Optional.ofNullable( programInstanceService.getProgramInstance( id ) )
+            .map( pi -> getEnrollment( pi, params ) ).orElse( null );
     }
 
     @Override
@@ -380,6 +365,38 @@ public abstract class AbstractEnrollmentService
                     Relationship relationship = relationshipService.getRelationship( relationshipItem.getRelationship(),
                         RelationshipParams.FALSE, user );
                     enrollment.getRelationships().add( relationship );
+                }
+            }
+        }
+
+        if ( params.isIncludeAttributes() )
+        {
+            Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+                .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+
+            for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+                .getTrackedEntityAttributeValues() )
+            {
+                if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.setCreated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getCreated() ) );
+                    attribute
+                        .setLastUpdated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getLastUpdated() ) );
+                    attribute.setDisplayName( trackedEntityAttributeValue.getAttribute()
+                        .getDisplayName() );
+                    attribute.setAttribute( trackedEntityAttributeValue.getAttribute()
+                        .getUid() );
+                    attribute.setValueType( trackedEntityAttributeValue.getAttribute()
+                        .getValueType() );
+                    attribute.setCode( trackedEntityAttributeValue.getAttribute()
+                        .getCode() );
+                    attribute.setValue( trackedEntityAttributeValue.getValue() );
+                    attribute.setStoredBy( trackedEntityAttributeValue.getStoredBy() );
+                    attribute.setSkipSynchronization( trackedEntityAttributeValue.getAttribute()
+                        .getSkipSynchronization() );
+
+                    enrollment.getAttributes().add( attribute );
                 }
             }
         }
