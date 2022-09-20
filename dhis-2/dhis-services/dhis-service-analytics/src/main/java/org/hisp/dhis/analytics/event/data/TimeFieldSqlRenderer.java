@@ -52,28 +52,30 @@ public abstract class TimeFieldSqlRenderer
 
     public String renderTimeFieldSql( EventQueryParams params )
     {
+        StringBuilder sql = new StringBuilder();
+
+        if ( params.hasNonDefaultBoundaries() )
         {
-            StringBuilder sql = new StringBuilder();
-
-            if ( params.hasNonDefaultBoundaries() )
-            {
-                sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
-            }
-            // when multiple periods are set
-            // and date range list is no continuous
-            else if ( !params.hasContinuousDateRangeList() )
-            {
-                sql.append( getSqlConditionHasDateRangeList( params ) );
-            }
-            // otherwise
-            else // Periods -- should never go here when linelist, only Pivot
-                 // table
-            {
-                sql.append( getSqlConditionForPeriods( params ) );
-            }
-
-            return sql.toString();
+            sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
         }
+        // When multiple periods are set
+        // and date range list is no continuous
+        else if ( !params.hasContinuousDateRangeList() )
+        {
+            sql.append( getSqlConditionHasDateRangeList( params ) );
+        }
+        // otherwise
+        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
+        {
+            sql.append( getSqlConditionHasStartEndDate( params ) );
+        }
+        // Periods should not go here when line list, only pivot table
+        else
+        {
+            sql.append( getSqlConditionForPeriods( params ) );
+        }
+
+        return sql.toString();
     }
 
     @Data
