@@ -45,11 +45,9 @@ import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 class CategoryOptionServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private CategoryService categoryService;
 

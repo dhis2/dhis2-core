@@ -34,7 +34,6 @@ import org.hisp.dhis.period.Period;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: HistoryRetriever.java 4438 2008-01-26 16:35:24Z abyot $
  */
 public interface HistoryRetriever
 {

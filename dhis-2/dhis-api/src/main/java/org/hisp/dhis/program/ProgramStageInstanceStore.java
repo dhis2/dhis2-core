@@ -38,13 +38,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramStageInstanceStore
     extends IdentifiableObjectStore<ProgramStageInstance>
 {
-    String ID = ProgramStageInstanceStore.class.getName();
-
     /**
      * Retrieve an event list on program instance list with a certain status
      *

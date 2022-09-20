@@ -41,8 +41,6 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
- * @version $Id: HibernateIndicatorStore.java 3287 2007-05-08 00:26:53Z larshelg
- *          $
  */
 @Repository( "org.hisp.dhis.indicator.IndicatorStore" )
 public class HibernateIndicatorStore

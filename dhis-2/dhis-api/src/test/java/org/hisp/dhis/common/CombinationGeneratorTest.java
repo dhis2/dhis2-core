@@ -44,11 +44,9 @@ import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 class CombinationGeneratorTest
 {
-
     private IdentifiableObject a = new DataElementGroup( "A" );
 
     private IdentifiableObject b = new DataElementGroup( "B" );

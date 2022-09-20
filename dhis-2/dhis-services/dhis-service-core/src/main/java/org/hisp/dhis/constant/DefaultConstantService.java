@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Dang Duy Hieu
- * @version $Id DefaultConstantService.java July 29, 2011$
  */
 @Service( "org.hisp.dhis.constant.ConstantService" )
 public class DefaultConstantService

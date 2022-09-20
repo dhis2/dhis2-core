@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Service( "org.hisp.dhis.statistics.StatisticsProvider" )
 public class JdbcStatisticsProvider

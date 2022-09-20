@@ -33,8 +33,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
- *
- * @version $OptionStore.java Jun 15, 2012 9:45:00 AM$
  */
 public interface OptionStore
     extends IdentifiableObjectStore<Option>
