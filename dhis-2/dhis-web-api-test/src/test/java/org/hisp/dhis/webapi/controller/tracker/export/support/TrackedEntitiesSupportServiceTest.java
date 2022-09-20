@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.TrackedEntitiesSupportService.getTrackedEntityInstanceParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.support.TrackedEntitiesSupportService.getTrackedEntityInstanceParams;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

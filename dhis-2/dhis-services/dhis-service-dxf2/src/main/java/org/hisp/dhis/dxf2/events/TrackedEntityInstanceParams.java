@@ -40,13 +40,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TrackedEntityInstanceParams
 {
     public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true,
-        false, false );
+        true, false, false );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false,
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false,
         false, false, false );
 
     public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true,
-        true, true, true, true );
+        true, true, true, true, true );
 
     private final boolean includeRelationships;
 
@@ -55,6 +55,8 @@ public class TrackedEntityInstanceParams
     private final boolean includeEvents;
 
     private final boolean includeProgramOwners;
+
+    private final boolean includeAttributes;
 
     private final boolean includeDeleted;
 
@@ -104,6 +106,7 @@ public class TrackedEntityInstanceParams
             ", includeEnrollments=" + includeEnrollments +
             ", includeEvents=" + includeEvents +
             ", includeProgramOwners=" + includeProgramOwners +
+            ", includeAttributes=" + includeAttributes +
             ", includeDeleted=" + includeDeleted +
             ", dataSynchronizationQuery=" + dataSynchronizationQuery +
             '}';
