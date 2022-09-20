@@ -107,8 +107,6 @@ public class TrackerTrackedEntityCriteriaMapper
         Set<String> assignedUserIds = parseUids( criteria.getAssignedUser() );
         validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
         User user = currentUserService.getCurrentUser();
@@ -123,15 +121,15 @@ public class TrackerTrackedEntityCriteriaMapper
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        for ( String attr : criteria.getAttribute() )
-        {
-            params.getAttributes().add( getQueryItem( attr, attributes ) );
-        }
+        List<QueryItem> attributeItems = criteria.getAttribute().stream()
+            .map( a -> this.getQueryItem( a, attributes ) )
+            .collect( Collectors.toUnmodifiableList() );
 
-        for ( String filt : criteria.getFilter() )
-        {
-            params.getFilters().add( getQueryItem( filt, attributes ) );
-        }
+        List<QueryItem> filters = criteria.getFilter().stream()
+            .map( f -> this.getQueryItem( f, attributes ) )
+            .collect( Collectors.toUnmodifiableList() );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
         Set<String> orgUnits = criteria.getOrgUnit() != null
             ? TextUtils.splitToSet( criteria.getOrgUnit(), TextUtils.SEMICOLON )
@@ -160,7 +158,6 @@ public class TrackerTrackedEntityCriteriaMapper
         }
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
-
         validateOrderParams( orderParams, attributes );
 
         Set<String> trackedEntities = criteria.getTrackedEntity() != null
@@ -187,6 +184,8 @@ public class TrackerTrackedEntityCriteriaMapper
             .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
             .setAssignedUsers( assignedUserIds )
             .setTrackedEntityInstanceUids( trackedEntities )
+            .setAttributes( attributeItems )
+            .setFilters( filters )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )
