@@ -45,8 +45,6 @@ public class FinancialNovemberPeriodType
 
     private static final String ISO8601_DURATION = "P1Y";
 
-    public static final String NAME = "FinancialNov";
-
     @Override
     public int getBaseMonth()
     {
@@ -54,9 +52,9 @@ public class FinancialNovemberPeriodType
     }
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.FINANCIAL_NOV;
     }
 
     @Override

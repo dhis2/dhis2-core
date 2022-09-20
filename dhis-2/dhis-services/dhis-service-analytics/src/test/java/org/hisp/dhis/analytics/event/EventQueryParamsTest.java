@@ -73,7 +73,6 @@ import com.google.common.collect.Sets;
  */
 class EventQueryParamsTest extends DhisConvenienceTest
 {
-
     private Option opA;
 
     private Option opB;
@@ -194,6 +193,51 @@ class EventQueryParamsTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
         assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
+        assertEquals( 3, params.getDateRangeList().size() );
+    }
+
+    @Test
+    void testContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( 3, params.getDateRangeList().size() );
+        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
+        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
+        assertEquals( peB.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
+        assertEquals( peB.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
+        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 2 ).getStartDate() );
+        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 2 ).getEndDate() );
+        assertTrue( params.hasContinuousDateRangeList() );
+    }
+
+    @Test
+    void testNonContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( 2, params.getDateRangeList().size() );
+        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
+        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
+        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
+        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
+        assertFalse( params.hasContinuousDateRangeList() );
     }
 
     @Test

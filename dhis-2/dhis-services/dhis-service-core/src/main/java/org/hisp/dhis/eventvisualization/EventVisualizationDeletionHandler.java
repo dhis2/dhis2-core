@@ -69,7 +69,7 @@ public class EventVisualizationDeletionHandler
         whenDeleting( Program.class, this::deleteProgram );
     }
 
-    private void deleteDataElementSpecial( final DataElement dataElement )
+    private void deleteDataElementSpecial( DataElement dataElement )
     {
         final List<EventVisualization> eventVisualizations = service.getAnalyticalObjectsByDataDimension( dataElement );
 
@@ -83,7 +83,7 @@ public class EventVisualizationDeletionHandler
         }
     }
 
-    private void deleteProgramStage( final ProgramStage programStage )
+    private void deleteProgramStage( ProgramStage programStage )
     {
         final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
 
@@ -96,7 +96,7 @@ public class EventVisualizationDeletionHandler
         }
     }
 
-    private void deleteProgram( final Program program )
+    private void deleteProgram( Program program )
     {
         final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
 

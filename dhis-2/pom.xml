@@ -77,12 +77,12 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.24.4</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.25</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.0</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.22</spring.version>
+    <spring.version>5.3.23</spring.version>
     <spring-data-redis.version>2.7.2</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -131,7 +131,7 @@
     <jfreechart.version>1.5.3</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.2.2</poi.version>
+    <poi.version>5.2.3</poi.version>
     <itext.version>2.1.7</itext.version>
     <antlr.version>4.9.3</antlr.version>
 
@@ -144,7 +144,7 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.25.0</artemis.version>
-    <netty-all.version>4.1.81.Final</netty-all.version>
+    <netty-all.version>4.1.82.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -154,7 +154,7 @@
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.7.0</json-path.version>
     <jsoup.version>1.15.3</jsoup.version>
-    <jetty.version>10.0.11</jetty.version>
+    <jetty.version>10.0.12</jetty.version>
 
     <!-- Div. utils -->
     <version.debezium>1.9.5.Final</version.debezium>
@@ -187,7 +187,7 @@
     <micrometer.version>1.9.4</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.18.0</log4j.version>
+    <log4j.version>2.19.0</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -215,7 +215,7 @@
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.12.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>7.1.2</dependency-check-maven.version>
+    <dependency-check-maven.version>7.2.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.2.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>

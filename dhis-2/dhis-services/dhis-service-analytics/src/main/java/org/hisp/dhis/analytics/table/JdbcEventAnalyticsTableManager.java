@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
@@ -177,7 +178,7 @@ public class JdbcEventAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
+        log.info( format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
             databaseInfo.isSpatialSupport() ) );
 
         return params.isLatestUpdate() ? getLatestAnalyticsTables( params ) : getRegularAnalyticsTables( params );
@@ -281,13 +282,13 @@ public class JdbcEventAnalyticsTableManager
                 table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
                 tables.add( table );
 
-                log.info( String.format(
+                log.info( format(
                     "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
                     program.getUid(), getLongDateString( startDate ), getLongDateString( endDate ) ) );
             }
             else
             {
-                log.info( String.format(
+                log.info( format(
                     "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
                     program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
             }
@@ -334,7 +335,7 @@ public class JdbcEventAnalyticsTableManager
                 "and psi.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
                 "and psi.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
-            invokeTimeAndLog( sql, String.format( "Remove updated events for table: '%s'", table.getTableName() ) );
+            invokeTimeAndLog( sql, format( "Remove updated events for table: '%s'", table.getTableName() ) );
         }
     }
 
@@ -373,7 +374,7 @@ public class JdbcEventAnalyticsTableManager
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
             "and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" +
             "=ougs.startdate or ougs.startdate is null) " +
-            "inner join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
+            "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
             "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +
@@ -562,7 +563,7 @@ public class JdbcEventAnalyticsTableManager
 
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
     {
-        return String.format(
+        return format(
             "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
                 dataClause + ")" + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ),
             fromType );
@@ -570,7 +571,7 @@ public class JdbcEventAnalyticsTableManager
 
     private String selectForInsert( TrackedEntityAttribute attribute, String fromType, String dataClause )
     {
-        return String.format( "(select %s" +
+        return format( "(select %s" +
             " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
             "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType ) +
             " as " + quote( attribute.getUid() ), fromType );

@@ -71,7 +71,6 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -146,7 +145,7 @@ public class EnrollmentController
                 enrollmentCriteria.getPage(),
                 enrollmentCriteria.getPageSize(),
                 enrollmentCriteria.isTotalPages(),
-                PagerUtils.isSkipPaging( enrollmentCriteria.getSkipPaging(), enrollmentCriteria.getPaging() ),
+                PagerUtils.isSkipPaging( enrollmentCriteria.isSkipPaging(), enrollmentCriteria.getPaging() ),
                 enrollmentCriteria.isIncludeDeleted(),
                 enrollmentCriteria.getOrder() );
 
