@@ -82,23 +82,6 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
     }
 
     @Test
-    void testRenderEventTimeFieldSqlWhenContinuousDateRangeList()
-    {
-        // Given
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
-            .build();
-        TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer( new PostgreSQLStatementBuilder() );
-
-        // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
-        // Then
-        assertEquals( "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
-    }
-
-    @Test
     void testRenderEnrollmentTimeFieldSqlWhenNonContinuousDateRangeList()
     {
         // Given
