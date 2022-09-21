@@ -111,7 +111,7 @@ public class JsonPatchManager
             {
                 Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
-                Collection collection = (Collection) data;
+                Collection<?> collection = (Collection<?>) data;
 
                 if ( CollectionUtils.isEmpty( collection ) )
                 {

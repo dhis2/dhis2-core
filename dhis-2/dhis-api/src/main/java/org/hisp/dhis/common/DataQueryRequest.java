@@ -32,7 +32,6 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 
 public class DataQueryRequest
 {

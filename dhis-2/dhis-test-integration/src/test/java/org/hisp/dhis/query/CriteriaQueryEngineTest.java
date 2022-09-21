@@ -51,7 +51,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -433,7 +432,6 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testCollectionEqSize4()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
@@ -444,7 +442,6 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testCollectionEqSize2()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
@@ -529,7 +526,6 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testIdentifiableSearch7()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
@@ -557,7 +553,6 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled
     void testIdentifiableSearch8()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ), Junction.Type.OR );
@@ -570,7 +565,7 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         identifiableJunction.add( codeRestriction );
         query.add( identifiableJunction );
         List<? extends IdentifiableObject> objects = queryService.query( query );
-        assertEquals( 6, objects.size() );
+        assertEquals( 0, objects.size() );
     }
 
     @Test
@@ -641,11 +636,5 @@ class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         query.add( Restrictions.eq( "name", "not exist" ) );
         assertEquals( 0, queryEngine.count( query ) );
         assertEquals( 0, queryEngine.query( query ).size() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

@@ -53,6 +53,8 @@ import org.hisp.dhis.common.IdentifiableProperty;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataValueSetQueryParams
 {
+    private Set<String> dataElement;
+
     private Set<String> dataSet;
 
     private Set<String> dataElementGroup;
@@ -99,6 +101,8 @@ public class DataValueSetQueryParams
 
     private IdentifiableProperty inputOrgUnitIdScheme;
 
+    private IdentifiableProperty inputDataElementIdScheme;
+
     private IdentifiableProperty inputDataSetIdScheme;
 
     private IdentifiableProperty inputDataElementGroupIdScheme;
@@ -141,6 +145,7 @@ public class DataValueSetQueryParams
         setNonNull( schemes, inputDataElementGroupIdScheme, IdSchemes::setDataElementGroupIdScheme );
         setNonNull( schemes, inputOrgUnitIdScheme, IdSchemes::setOrgUnitIdScheme );
         setNonNull( schemes, inputDataSetIdScheme, IdSchemes::setDataSetIdScheme );
+        setNonNull( schemes, inputDataElementIdScheme, IdSchemes::setDataElementIdScheme );
         return schemes;
     }
 

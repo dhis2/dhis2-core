@@ -70,6 +70,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepea
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.EventFileResourcePostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
@@ -98,6 +99,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MetadataAttributeCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
@@ -220,7 +222,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -234,7 +237,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -248,7 +252,8 @@ public class ServiceConfig
                 getValidationCheckByClass( ReferencesCheck.class ),
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
-                getValidationCheckByClass( GeoJsonAttributesCheck.class ) ),
+                getValidationCheckByClass( GeoJsonAttributesCheck.class ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
@@ -375,7 +380,8 @@ public class ServiceConfig
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( EventInsertAuditPostProcessor.class ),
-                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ) ) )
+                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
             .put( UPDATE_PRE, newArrayList(
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
@@ -386,7 +392,8 @@ public class ServiceConfig
             .put( UPDATE_POST, newArrayList(
                 getProcessorByClass( PublishEventPostProcessor.class ),
                 getProcessorByClass( ProgramNotificationPostProcessor.class ),
-                getProcessorByClass( EventUpdateAuditPostProcessor.class ) ) )
+                getProcessorByClass( EventUpdateAuditPostProcessor.class ),
+                getProcessorByClass( EventFileResourcePostProcessor.class ) ) )
             .put( DELETE_PRE, Collections.emptyList() )
             .put( DELETE_POST, newArrayList(
                 getProcessorByClass( EventDeleteAuditPostProcessor.class ) ) )

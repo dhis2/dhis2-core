@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -72,7 +73,6 @@ import com.google.common.collect.Sets;
  */
 class EventQueryParamsTest extends DhisConvenienceTest
 {
-
     private Option opA;
 
     private Option opB;
@@ -193,6 +193,51 @@ class EventQueryParamsTest extends DhisConvenienceTest
         params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
         assertEquals( new DateTime( 2014, 4, 1, 0, 0 ).toDate(), params.getStartDate() );
         assertEquals( new DateTime( 2014, 6, 30, 0, 0 ).toDate(), params.getEndDate() );
+        assertEquals( 3, params.getDateRangeList().size() );
+    }
+
+    @Test
+    void testContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( 3, params.getDateRangeList().size() );
+        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
+        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
+        assertEquals( peB.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
+        assertEquals( peB.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
+        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 2 ).getStartDate() );
+        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 2 ).getEndDate() );
+        assertTrue( params.hasContinuousDateRangeList() );
+    }
+
+    @Test
+    void testNonContinuousDateRangeListGeneratedByReplacingPeriodsWithStartEndDates()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+            .build();
+
+        // When
+        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+
+        // Then
+        assertEquals( 2, params.getDateRangeList().size() );
+        assertEquals( peA.getStartDate(), params.getDateRangeList().get( 0 ).getStartDate() );
+        assertEquals( peA.getEndDate(), params.getDateRangeList().get( 0 ).getEndDate() );
+        assertEquals( peC.getStartDate(), params.getDateRangeList().get( 1 ).getStartDate() );
+        assertEquals( peC.getEndDate(), params.getDateRangeList().get( 1 ).getEndDate() );
+        assertFalse( params.hasContinuousDateRangeList() );
     }
 
     @Test
@@ -250,11 +295,11 @@ class EventQueryParamsTest extends DhisConvenienceTest
     void testIsOrgUnitFieldValid()
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).withOrgUnitField( deD.getUid() )
-            .addItem( iA ).build();
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) ).addItem( iA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
-        params = new EventQueryParams.Builder().withProgram( prA ).withOrgUnitField( "someInvalidOrgUnitField" )
-            .addItem( iA ).build();
+        params = new EventQueryParams.Builder().withProgram( prA )
+            .withOrgUnitField( new OrgUnitField( "someInvalidOrgUnitField" ) ).addItem( iA ).build();
         assertFalse( params.orgUnitFieldIsValid() );
     }
 
@@ -263,7 +308,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         QueryItem iA = new QueryItem( createDataElement( 'A', new CategoryCombo() ) );
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
     }
@@ -275,7 +321,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prA, "", "" );
         // this PI has 0 Data Element of type OrgUnit -> test should fail
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', prB, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).addItemProgramIndicator( programIndicatorB )
             .build();
         assertFalse( params.orgUnitFieldIsValid() );
@@ -288,7 +335,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
         // This PI has a Program that has a Tracked Entity Attribute of type Org
         // Unit
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', prC, "", "" );
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( null ).withOrgUnitField( deD.getUid() )
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( null )
+            .withOrgUnitField( new OrgUnitField( deD.getUid() ) )
             .addItem( iA ).addItemProgramIndicator( programIndicatorA ).build();
         assertTrue( params.orgUnitFieldIsValid() );
     }

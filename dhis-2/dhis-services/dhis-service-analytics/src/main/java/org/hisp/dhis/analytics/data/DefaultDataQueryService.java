@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -48,7 +47,6 @@ import static org.hisp.dhis.common.DimensionalObject.LONGITUDE_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_GROUP_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_FREE_RANGE_SEPARATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -62,8 +60,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_C
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.period.DailyPeriodType.ISO_FORMAT;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,11 +71,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -111,7 +110,6 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -131,6 +129,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.DataQueryService" )
+@RequiredArgsConstructor
 public class DefaultDataQueryService
     implements DataQueryService
 {
@@ -138,45 +137,21 @@ public class DefaultDataQueryService
         .map( DateTimeFormatter::ofPattern )
         .collect( Collectors.toList() );
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    private AnalyticsSecurityManager securityManager;
+    private final AnalyticsSecurityManager securityManager;
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private AclService aclService;
+    private final AclService aclService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private I18nManager i18nManager;
-
-    public DefaultDataQueryService( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, DimensionService dimensionService,
-        AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
-        CurrentUserService currentUserService, I18nManager i18nManager )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( dimensionService );
-        checkNotNull( securityManager );
-        checkNotNull( systemSettingManager );
-        checkNotNull( aclService );
-        checkNotNull( currentUserService );
-        checkNotNull( i18nManager );
-
-        this.idObjectManager = idObjectManager;
-        this.organisationUnitService = organisationUnitService;
-        this.dimensionService = dimensionService;
-        this.securityManager = securityManager;
-        this.systemSettingManager = systemSettingManager;
-        this.aclService = aclService;
-        this.currentUserService = currentUserService;
-        this.i18nManager = i18nManager;
-    }
+    private final I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
     // DataQueryService implementation
@@ -225,7 +200,7 @@ public class DefaultDataQueryService
             .withEndDate( request.getEndDate() )
             .withOrder( request.getOrder() )
             .withTimeField( request.getTimeField() )
-            .withOrgUnitField( request.getOrgUnitField() )
+            .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
             .withSkipRounding( request.isSkipRounding() )
@@ -341,7 +316,7 @@ public class DefaultDataQueryService
         DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull,
         IdScheme inputIdScheme )
     {
-        final boolean allItems = items.isEmpty();
+        boolean allItems = items.isEmpty();
         User user = currentUserService.getCurrentUser();
 
         if ( DATA_X_DIM_ID.equals( dimension ) )
@@ -467,7 +442,7 @@ public class DefaultDataQueryService
                     }
                     else
                     {
-                        Optional<Period> optionalPeriod = tryParseDateRange( isoPeriodHolder );
+                        Optional<Period> optionalPeriod = isoPeriodHolder.toDailyPeriod();
                         if ( optionalPeriod.isPresent() )
                         {
                             Period periodToAdd = optionalPeriod.get();
@@ -578,7 +553,7 @@ public class DefaultDataQueryService
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
                 dimensionalKeywords.addKeywords( levels.stream()
-                    .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
+                    .map( organisationUnitService::getOrganisationUnitLevelByLevel )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toList() ) );
             }
@@ -679,57 +654,10 @@ public class DefaultDataQueryService
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7125, dimension ) );
     }
 
-    /**
-     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> or
-     * <code>YYYY-MM-DD_YYYY-MM-DD</code> format.
-     */
-    private Optional<Period> tryParseDateRange( IsoPeriodHolder isoPeriodHolder )
-    {
-        String[] dates = isoPeriodHolder.getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );
-        if ( dates.length == 2 )
-        {
-            Optional<Date> start = safelyParseDate( dates[0] );
-            Optional<Date> end = safelyParseDate( dates[1] );
-            if ( start.isPresent() && end.isPresent() )
-            {
-                Period period = new Period();
-                period.setPeriodType( new DailyPeriodType() );
-                period.setStartDate( start.get() );
-                period.setEndDate( end.get() );
-                period.setDateField( isoPeriodHolder.getDateField() );
-                return Optional.of( period );
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Optional<Date> safelyParseDate( String date )
-    {
-        return DATE_TIME_FORMATTER.stream()
-            .map( dateTimeFormatter -> safelyParseDateUsingFormatter( date, dateTimeFormatter ) )
-            .filter( Objects::nonNull )
-            .findFirst();
-    }
-
-    private Date safelyParseDateUsingFormatter( String date, DateTimeFormatter dateTimeFormatter )
-    {
-        try
-        {
-            return Date.from(
-                LocalDate.parse( date, dateTimeFormatter )
-                    .atStartOfDay( ZoneId.systemDefault() )
-                    .toInstant() );
-        }
-        catch ( Exception e )
-        {
-            return null;
-        }
-    }
-
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
-        final List<OrganisationUnit> units = new ArrayList<>();
+        List<OrganisationUnit> units = new ArrayList<>();
 
         User currentUser = securityManager.getCurrentUser( params );
 

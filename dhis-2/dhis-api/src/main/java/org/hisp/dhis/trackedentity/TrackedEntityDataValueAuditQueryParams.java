@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,9 +64,16 @@ public class TrackedEntityDataValueAuditQueryParams
 
     private Date endDate;
 
-    private AuditType auditType;
+    private OrganisationUnitSelectionMode ouMode;
+
+    private List<AuditType> auditTypes = new ArrayList<>();
 
     private Pager pager;
+
+    public boolean hasOuMode()
+    {
+        return ouMode != null;
+    }
 
     public boolean hasPaging()
     {

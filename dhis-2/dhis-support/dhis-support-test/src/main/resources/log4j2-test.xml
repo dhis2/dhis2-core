@@ -4,7 +4,7 @@
      dhis-support-test , please do :) -->
 <Configuration status="warn">
     <Properties>
-        <Property name="layout">%-5p %d{ABSOLUTE} %m (%F [%t])%n</Property>
+        <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
     </Properties>
 
     <Appenders>
@@ -17,20 +17,35 @@
     </Appenders>
 
     <Loggers>
-        <!-- A few examples of loggers that might be useful to debug issues. Check the log4j2 config for more -->
-        <!-- Uncomment if you want to debug DHIS2 -->
-        <!--        <Logger name="org.hisp.dhis" level="debug"/>-->
-        <!-- Uncomment if you want to debug testcontainers -->
-        <!--        <Logger name="org.testcontainers" level="debug"/>-->
-        <!-- Uncomment if you want to debug spring test context (cache) -->
-        <!--        <Logger name="org.springframework.test.context.cache" level="info"/>-->
-
         <Root level="warn">
-            <!-- Turned off so CI test runs are quiet, and we see failed tests easily.
-            Kept here, so you can quickly get logs in the console during local development -->
-            <AppenderRef ref="console" level="off"/>
-            <!-- Used to upload test logs during CI in case a test step fails -->
+            <!-- Set to error so CI test runs are quiet, we see failed tests easily but still see errors from libraries
+            we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
+            packages use a logger like shown below. -->
+            <AppenderRef ref="console" level="error"/>
+            <!-- Used to upload test logs during CI in case a test step fails. Verbosity is a bit higher so we have more
+             information when debugging failed tests. -->
             <AppenderRef ref="file" level="warn"/>
         </Root>
+
+        <!-- A few examples of loggers that might be useful to debug integration test issues.
+        Adding an AppenderRef is necessary to overrule the log level we have set on the Root AppenderRefs.
+        Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
+        as they propagate up from the Logger to its parent which is the Root.
+        Check the log4j2 config documentation for more details. -->
+        <!-- Uncomment if you want to debug DHIS2 -->
+        <!-- <Logger name="org.hisp.dhis" level="debug" additivity="false">-->
+        <!--     <AppenderRef ref="console"/>-->
+        <!-- </Logger>-->
+        <!-- Uncomment if you want to debug testcontainers -->
+        <!-- <Logger name="org.testcontainers" level="debug" additivity="false">-->
+        <!--     <appenderref ref="console"/>-->
+        <!-- </Logger>-->
+        <!-- <Logger name="com.github.dockerjava" level="all" additivity="false">-->
+        <!--     <AppenderRef ref="console"/>-->
+        <!-- </Logger>-->
+        <!-- Uncomment if you want to debug spring test context (cache) -->
+        <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
+        <!--     <AppenderRef ref="console"/>-->
+        <!-- </Logger>-->
     </Loggers>
 </Configuration>

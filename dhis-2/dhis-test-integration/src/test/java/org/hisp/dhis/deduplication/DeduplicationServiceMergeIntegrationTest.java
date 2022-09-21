@@ -59,12 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 {
-
     @Autowired
     private DeduplicationService deduplicationService;
-
-    @Autowired
-    private PotentialDuplicateStore potentialDuplicateStore;
 
     @Autowired
     private UserService userService;
@@ -83,9 +79,6 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private DeduplicationHelper deduplicationHelper;
 
     @Override
     public void setUpTest()

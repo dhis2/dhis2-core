@@ -56,15 +56,14 @@ import org.junit.jupiter.api.Test;
  */
 class AnalyticsIndexHelperTest
 {
-
     @Test
     void testGetIndexes()
     {
         // Given
-        final List<AnalyticsTablePartition> stubPartitions = List.of( stubAnalyticsTablePartition() );
+        List<AnalyticsTablePartition> stubPartitions = List.of( stubAnalyticsTablePartition() );
 
         // When
-        final List<AnalyticsIndex> indexes = getIndexes( stubPartitions );
+        List<AnalyticsIndex> indexes = getIndexes( stubPartitions );
 
         // Then
         assertThat( indexes, hasSize( 1 ) );
@@ -77,10 +76,10 @@ class AnalyticsIndexHelperTest
     void testCreateIndexStatement()
     {
         // Given
-        final AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
+        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
 
         // When
-        final String statement = createIndexStatement( someAnalyticsIndex, EVENT );
+        String statement = createIndexStatement( someAnalyticsIndex, EVENT );
 
         // Then
         assertThat( statement, containsString( "create index \"in_column_table" ) );
@@ -92,10 +91,10 @@ class AnalyticsIndexHelperTest
     void testGetIndexName()
     {
         // Given
-        final AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
+        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE );
 
         // When
-        final String statement = getIndexName( someAnalyticsIndex, EVENT );
+        String statement = getIndexName( someAnalyticsIndex, EVENT );
 
         // Then
         assertThat( statement, containsString( "\"in_column_table" ) );
@@ -105,10 +104,10 @@ class AnalyticsIndexHelperTest
     void testGetIndexNameWithFunction()
     {
         // Given
-        final AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE, LOWER );
+        AnalyticsIndex someAnalyticsIndex = new AnalyticsIndex( "table", List.of( "column" ), BTREE, LOWER );
 
         // When
-        final String statement = getIndexName( someAnalyticsIndex, EVENT );
+        String statement = getIndexName( someAnalyticsIndex, EVENT );
 
         // Then
         assertThat( statement, containsString( "\"in_column_table" ) );
@@ -117,7 +116,7 @@ class AnalyticsIndexHelperTest
 
     private AnalyticsTablePartition stubAnalyticsTablePartition()
     {
-        final AnalyticsTablePartition analyticsTablePartitionStub = new AnalyticsTablePartition( stubAnalyticsTable(),
+        AnalyticsTablePartition analyticsTablePartitionStub = new AnalyticsTablePartition( stubAnalyticsTable(),
             2022, new Date(), new Date(), false );
 
         return analyticsTablePartitionStub;
@@ -125,8 +124,8 @@ class AnalyticsIndexHelperTest
 
     private AnalyticsTable stubAnalyticsTable()
     {
-        final List<AnalyticsTableColumn> dimensionColumns = List.of( stubAnalyticsTableColumn() );
-        final List<AnalyticsTableColumn> valueColumns = List.of( stubAnalyticsTableColumn() );
+        List<AnalyticsTableColumn> dimensionColumns = List.of( stubAnalyticsTableColumn() );
+        List<AnalyticsTableColumn> valueColumns = List.of( stubAnalyticsTableColumn() );
 
         return new AnalyticsTable( EVENT, dimensionColumns, valueColumns );
     }

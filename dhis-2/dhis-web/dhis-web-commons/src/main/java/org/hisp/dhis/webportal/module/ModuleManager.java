@@ -32,7 +32,6 @@ import java.util.List;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: ModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
 public interface ModuleManager
 {

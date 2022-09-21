@@ -38,8 +38,9 @@ class TestTextPatternMethod
     @Test
     void testValidateText()
     {
-        String[] valid = { "\"Hello world!\"", "\"Hello \\\"world\\\"\"" };
-        String[] invalid = { "Hello world", "Hello \" world", "\"Hello world", "Hello world\"" };
+        String[] valid = { "\"Hello world!\"", "\"Hello \\\"world\\\"\"",
+            "\"This is a text with more than two words\"" };
+        String[] invalid = { "Hello world", "Hello \" world", "\"Hello world", "Hello world\"", "\"Hello \"world\"\"" };
         testSyntax( TextPatternMethod.TEXT, valid, true );
         testSyntax( TextPatternMethod.TEXT, invalid, false );
     }

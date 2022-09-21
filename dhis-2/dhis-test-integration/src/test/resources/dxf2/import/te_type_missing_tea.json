@@ -1,0 +1,281 @@
+{
+    "trackedEntityTypes": [
+        {
+            "allowAuditLog": false,
+            "attributeValues": [],
+            "code": "Person",
+            "description": "Person",
+            "displayDescription": "Person",
+            "displayFormName": "Person",
+            "displayName": "Person",
+            "externalAccess": false,
+            "favorite": false,
+            "favorites": [],
+            "featureType": "NONE",
+            "id": "NdUUIOhQPcu",
+            "maxTeiCountToReturn": 0,
+            "minAttributesRequiredToSearch": 1,
+            "name": "Person",
+            "publicAccess": "--------",
+            "style": {
+                "icon": "man_positive"
+            },
+            "trackedEntityTypeAttributes": [
+                {
+                    "attributeValues": [],
+                    "displayInList": true,
+                    "displayName": "Person Given name",
+                    "displayShortName": "null Given name",
+                    "externalAccess": false,
+                    "favorite": false,
+                    "favorites": [],
+                    "id": "hKZ9AJpnVcG",
+                    "name": "Person Given name",
+                    "searchable": true,
+                    "trackedEntityAttribute": {
+                        "id": "sB1IHYu2xQT"
+                    },
+                    "trackedEntityType": {
+                        "id": "NdUUIOhQPcu"
+                    },
+                    "translations": [],
+                    "userAccesses": [],
+                    "userGroupAccesses": [],
+                    "valueType": "TEXT"
+                }
+            ],
+            "translations": [
+                {
+                    "locale": "es",
+                    "property": "DESCRIPTION",
+                    "value": "Persona"
+                },
+                {
+                    "locale": "cs",
+                    "property": "NAME",
+                    "value": "Osoba"
+                },
+                {
+                    "locale": "uz",
+                    "property": "NAME",
+                    "value": "Шахс"
+                },
+                {
+                    "locale": "id",
+                    "property": "NAME",
+                    "value": "Nama Belakang"
+                },
+                {
+                    "locale": "uz_UZ",
+                    "property": "NAME",
+                    "value": "Shaxs"
+                },
+                {
+                    "locale": "uz",
+                    "property": "DESCRIPTION",
+                    "value": "Шахс"
+                },
+                {
+                    "locale": "pt",
+                    "property": "DESCRIPTION",
+                    "value": "Pessoa"
+                },
+                {
+                    "locale": "fr",
+                    "property": "DESCRIPTION",
+                    "value": "Personne"
+                },
+                {
+                    "locale": "nb",
+                    "property": "DESCRIPTION",
+                    "value": "Person"
+                },
+                {
+                    "locale": "id",
+                    "property": "DESCRIPTION",
+                    "value": "Nama Belakang"
+                },
+                {
+                    "locale": "nb",
+                    "property": "NAME",
+                    "value": "Person"
+                },
+                {
+                    "locale": "uz_UZ",
+                    "property": "DESCRIPTION",
+                    "value": "Shaxs"
+                },
+                {
+                    "locale": "es",
+                    "property": "NAME",
+                    "value": "Persona"
+                },
+                {
+                    "locale": "fr",
+                    "property": "NAME",
+                    "value": "Personne"
+                },
+                {
+                    "locale": "cs",
+                    "property": "DESCRIPTION",
+                    "value": "Osoba"
+                },
+                {
+                    "locale": "pt",
+                    "property": "NAME",
+                    "value": "Pessoa"
+                }
+            ],
+            "user": {
+                "id": "vUeLeQMSwhN"
+            },
+            "userAccesses": [],
+            "userGroupAccesses": [
+                {
+                    "access": "r-r-----",
+                    "displayName": "COVAC - Covid-19 Immunization Data Analysis",
+                    "id": "VLIaHu6ou8E",
+                    "userGroupUid": "VLIaHu6ou8E"
+                },
+                {
+                    "access": "rwrw----",
+                    "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
+                    "id": "AEAQ9LktNze",
+                    "userGroupUid": "AEAQ9LktNze"
+                },
+                {
+                    "access": "r-rw----",
+                    "displayName": "COVAC - Covid-19 Immunization Data Entry",
+                    "id": "q3Nh5xhJEy2",
+                    "userGroupUid": "q3Nh5xhJEy2"
+                }
+            ]
+        }
+    ],
+    "userGroups": [
+        {
+            "attributeValues": [],
+            "displayName": "COVAC - Covid-19 Immunization Data Analysis",
+            "externalAccess": false,
+            "favorite": false,
+            "favorites": [],
+            "id": "VLIaHu6ou8E",
+            "managedByGroups": [],
+            "managedGroups": [],
+            "name": "COVAC - Covid-19 Immunization Data Analysis",
+            "publicAccess": "rw------",
+            "translations": [
+                {
+                    "locale": "cs",
+                    "property": "NAME",
+                    "value": "COVAC - Analýza dat imunizace Covid-19"
+                },
+                {
+                    "locale": "es",
+                    "property": "NAME",
+                    "value": "COVAC - Análisis de datos de inmunización Covid-19"
+                }
+            ],
+            "user": {
+                "id": "vUeLeQMSwhN"
+            },
+            "userAccesses": [],
+            "userGroupAccesses": [],
+            "users": []
+        },
+        {
+            "attributeValues": [],
+            "displayName": "COVAC - Covid-19 Immunization Data Entry",
+            "externalAccess": false,
+            "favorite": false,
+            "favorites": [],
+            "id": "q3Nh5xhJEy2",
+            "managedByGroups": [],
+            "managedGroups": [],
+            "name": "COVAC - Covid-19 Immunization Data Entry",
+            "publicAccess": "rw------",
+            "translations": [
+                {
+                    "locale": "cs",
+                    "property": "NAME",
+                    "value": "COVAC - vstup dat imunizace Covid-19"
+                },
+                {
+                    "locale": "es",
+                    "property": "NAME",
+                    "value": "COVAC - Entrada de datos de inmunización Covid-19"
+                }
+            ],
+            "user": {
+                "id": "vUeLeQMSwhN"
+            },
+            "userAccesses": [],
+            "userGroupAccesses": [],
+            "users": []
+        },
+        {
+            "attributeValues": [],
+            "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
+            "externalAccess": false,
+            "favorite": false,
+            "favorites": [],
+            "id": "AEAQ9LktNze",
+            "managedByGroups": [],
+            "managedGroups": [],
+            "name": "COVAC - Covid-19 Immunization Metadata Admin",
+            "publicAccess": "rw------",
+            "translations": [
+                {
+                    "locale": "es",
+                    "property": "NAME",
+                    "value": "COVAC - Administrador de metadatos de inmunización Covid-19"
+                },
+                {
+                    "locale": "cs",
+                    "property": "NAME",
+                    "value": "COVAC - správce metadat imunizace Covid-19"
+                }
+            ],
+            "user": {
+                "id": "vUeLeQMSwhN"
+            },
+            "userAccesses": [],
+            "userGroupAccesses": [],
+            "users": []
+        }
+    ],
+    "users": [
+        {
+            "attributeValues": [],
+            "dataViewOrganisationUnits": [],
+            "displayName": "Admin WHO",
+            "externalAccess": false,
+            "favorite": false,
+            "favorites": [],
+            "firstName": "Admin",
+            "id": "vUeLeQMSwhN",
+            "name": "Admin WHO",
+            "organisationUnits": [],
+            "surname": "WHO",
+            "teiSearchOrganisationUnits": [],
+            "translations": [],
+            "userAccesses": [],
+                "catDimensionConstraints": [],
+                "cogsDimensionConstraints": [],
+                "disabled": false,
+                "externalAuth": false,
+                "invitation": false,
+                "lastLogin": "2020-04-23T09:17:46.912",
+                "passwordLastUpdated": "2019-10-16T12:06:30.668",
+                "selfRegistered": false,
+                "twoFA": false,
+                "userGroupAccesses": [],
+                "userRoles": [
+                    {
+                        "id": "yrB6vc5Ip3r"
+                    }
+                ],
+                "username": "who"
+        }
+    ]
+}

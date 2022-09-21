@@ -34,7 +34,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
-public class OptionControllerTest extends DhisControllerConvenienceTest
+class OptionControllerTest extends DhisControllerConvenienceTest
 {
     @Test
     void testUpdateOptionWithSortOrderGap()

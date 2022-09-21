@@ -29,15 +29,12 @@ package org.hisp.dhis.common;
 
 import javax.annotation.PreDestroy;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Jan Bernitt
  */
-@Slf4j
 @Service
 public class DefaultRequestInfoService implements RequestInfoService
 {

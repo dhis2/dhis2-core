@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesTo
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -39,8 +40,6 @@ import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -60,10 +59,16 @@ public class EnrollmentRuleValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
+        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
+
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        {
+            return;
+        }
+
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .flatMap( v -> v.validateEnrollments( bundle )
-                .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
+            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
             .collect( Collectors.toList() );
 
         addIssuesToReporter( reporter, enrollment, programRuleIssues );

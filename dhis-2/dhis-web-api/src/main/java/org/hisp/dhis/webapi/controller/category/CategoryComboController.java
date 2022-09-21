@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import java.io.IOException;
+import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
@@ -58,11 +61,13 @@ public class CategoryComboController
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private DataValueService dataValueService;
+
     @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException,
-        IOException
+        throws WebMessageException
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
 
@@ -73,6 +78,30 @@ public class CategoryComboController
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,
             download );
+    }
+
+    @Override
+    protected void preUpdateEntity( CategoryCombo entity, CategoryCombo newEntity )
+        throws Exception
+    {
+        checkNoDataValueBecomesInaccessible( entity, newEntity );
+    }
+
+    @Override
+    protected void prePatchEntity( CategoryCombo entity, CategoryCombo newEntity )
+        throws Exception
+    {
+        checkNoDataValueBecomesInaccessible( entity, newEntity );
+    }
+
+    private void checkNoDataValueBecomesInaccessible( CategoryCombo entity, CategoryCombo newEntity )
+        throws WebMessageException
+    {
+        if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
+            && dataValueService.dataValueExists( entity ) )
+        {
+            throw new WebMessageException( conflict( ErrorCode.E1120 ) );
+        }
     }
 
     @Override

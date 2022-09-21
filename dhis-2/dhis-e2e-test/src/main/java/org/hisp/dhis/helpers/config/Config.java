@@ -58,4 +58,7 @@ public interface Config
 
     @Key( "test.cleanup" )
     Boolean shouldCleanUp();
+
+    @Key( "test.track_called_endpoints" )
+    Boolean shouldTrackEndpoints();
 }

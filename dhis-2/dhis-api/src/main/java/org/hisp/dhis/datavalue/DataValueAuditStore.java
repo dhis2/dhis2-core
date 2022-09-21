@@ -29,11 +29,8 @@ package org.hisp.dhis.datavalue;
 
 import java.util.List;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
  * @author Quang Nguyen
@@ -74,40 +71,18 @@ public interface DataValueAuditStore
     void deleteDataValueAudits( DataElement dataElement );
 
     /**
-     * Returns all DataValueAudits which match the DataElement, Period,
-     * OrganisationUnit and CategoryOptionCombo of the given DataValue.
+     * Returns data value audits for the given query.
      *
-     * @param dataValue the DataValue to get DataValueAudits for.
-     * @return a list of DataValueAudits which match the DataElement Period,
-     *         OrganisationUnit and CategoryOptionCombo of the given DataValue,
-     *         or an empty list if no DataValueAudits match.
+     * @param params the {@link DataValueAuditQueryParams}.
+     * @return a list of {@link DataValueAudit}.
      */
-    List<DataValueAudit> getDataValueAudits( DataValue dataValue );
+    List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params );
 
     /**
-     * Returns all DataValueAudits which match the given DataElement, Period,
-     * OrganisationUnit and CategoryOptionCombo.
+     * Counts data value audits for the given query.
      *
-     * @param dataElements the DataElement of the DataValueAudits.
-     * @param periods the Period of the DataValueAudits.
-     * @param organisationUnits the OrganisationUnit of the DataValueAudits.
-     * @param categoryOptionCombo the CategoryOptionCombo of the
-     *        DataValueAudits.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return a list of DataValueAudits which match the given DataElement,
-     *         Period, OrganisationUnit and CategoryOptionCombo, or an empty
-     *         list if no DataValueAudits match.
+     * @param params the {@link DataValueAuditQueryParams}.
+     * @return a list of {@link DataValueAudit}.
      */
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
-
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
-        int first, int max );
-
-    int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
+    int countDataValueAudits( DataValueAuditQueryParams params );
 }

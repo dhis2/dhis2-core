@@ -45,7 +45,6 @@ import org.junit.jupiter.api.Test;
  */
 class SchemaControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testValidateSchema()
     {

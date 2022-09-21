@@ -42,7 +42,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Kristian Wærstad
  */
-public class BiWeeklyAbstractPeriodType
+public abstract class BiWeeklyAbstractPeriodType
     extends CalendarPeriodType
 {
     protected final String name;
@@ -69,12 +69,6 @@ public class BiWeeklyAbstractPeriodType
         this.frequencyOrder = frequencyOrder;
         this.sqlInterval = sqlInterval;
         this.weekPrefix = weekPrefix;
-    }
-
-    @Override
-    public String getName()
-    {
-        return name;
     }
 
     public int getStartOfWeek()

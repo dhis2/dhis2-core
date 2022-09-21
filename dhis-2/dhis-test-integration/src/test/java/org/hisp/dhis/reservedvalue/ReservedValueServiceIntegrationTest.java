@@ -42,18 +42,15 @@ import java.util.Map;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.Commit;
 
-@Commit
-class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
+class ReservedValueServiceIntegrationTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -75,8 +72,8 @@ class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
 
     private static TrackedEntityAttribute simpleStringPattern;
 
-    @BeforeAll
-    static void setUpClass()
+    @Override
+    protected void setUpTest()
     {
         // Set up future Date
         Calendar calendar = Calendar.getInstance();

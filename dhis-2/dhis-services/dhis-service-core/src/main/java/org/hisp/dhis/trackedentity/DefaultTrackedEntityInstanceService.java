@@ -661,7 +661,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User cannot be null" );
         }
 
-        if ( user.getOrganisationUnits().isEmpty() )
+        if ( !user.isSuper() && user.getOrganisationUnits().isEmpty() )
         {
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }

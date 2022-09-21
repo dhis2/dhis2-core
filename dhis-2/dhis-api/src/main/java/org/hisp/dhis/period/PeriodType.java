@@ -38,6 +38,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
@@ -53,7 +54,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -65,9 +65,14 @@ import com.google.common.collect.Maps;
 public abstract class PeriodType
     implements Serializable
 {
-    // Cache for period lookup, uses calendar.name() + periodType.getName() +
-    // date.getTime() as key
+    /**
+     * Determines if a deserialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 2402122626196305083L;
 
+    /**
+     * Cache for period lookup.
+     */
     private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
         .forRegion( "periodCache" )
         .expireAfterAccess( 12, TimeUnit.HOURS )
@@ -89,17 +94,12 @@ public abstract class PeriodType
      * Invalidates the period cache.
      * <p/>
      * Used in testing when there are multiple database loads and the same
-     * periods may be assigned different database ids.
+     * periods may be assigned different database identifiers.
      */
     public static void invalidatePeriodCache()
     {
         PERIOD_CACHE.invalidateAll();
     }
-
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 2402122626196305083L;
 
     private static CalendarService calendarService;
 
@@ -132,7 +132,7 @@ public abstract class PeriodType
     /**
      * All period types enumerated in descending order according to frequency.
      */
-    public static final List<PeriodType> PERIOD_TYPES = Lists.newArrayList(
+    public static final List<PeriodType> PERIOD_TYPES = List.of(
         new DailyPeriodType(),
         new WeeklyPeriodType(),
         new WeeklyWednesdayPeriodType(),
@@ -153,13 +153,17 @@ public abstract class PeriodType
         new FinancialNovemberPeriodType() );
 
     public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
-        WeeklySundayPeriodType.NAME, DayOfWeek.SUNDAY,
-        WeeklyWednesdayPeriodType.NAME, DayOfWeek.WEDNESDAY,
-        WeeklyThursdayPeriodType.NAME, DayOfWeek.THURSDAY,
-        WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
-        WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
+        PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
+        PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
+        PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
+        PeriodTypeEnum.WEEKLY_SUNDAY.getName(), DayOfWeek.SUNDAY,
+        PeriodTypeEnum.WEEKLY.getName(), DayOfWeek.MONDAY );
 
-    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES, pt -> pt.getName() );
+    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES,
+        PeriodType::getName );
+
+    private static final Map<PeriodTypeEnum, PeriodType> PERIOD_TYPE_ENUM_MAP = Maps.uniqueIndex( PERIOD_TYPES,
+        PeriodType::getPeriodTypeEnum );
 
     /**
      * Returns an immutable list of all available PeriodTypes in their natural
@@ -169,19 +173,44 @@ public abstract class PeriodType
      */
     public static List<PeriodType> getAvailablePeriodTypes()
     {
-        return new ArrayList<>( PERIOD_TYPES );
+        return PERIOD_TYPES;
     }
 
     /**
-     * Returns a PeriodType with a given name.
+     * Returns an immutable list of the names of all period types in their
+     * natural order.
      *
-     * @param name the name of the PeriodType to return.
-     * @return the PeriodType with the given name or null if no such PeriodType
-     *         exists.
+     * @return an immutable list of the names of all period types.
+     */
+    public static List<String> getAvailablePeriodTypeNames()
+    {
+        return PERIOD_TYPES.stream()
+            .map( PeriodType::getName )
+            .collect( Collectors.toUnmodifiableList() );
+    }
+
+    /**
+     * Returns the {@link PeriodType} with the given name.
+     *
+     * @param name the name of the {@link PeriodType} to return.
+     * @return the {@link PeriodType} with the given name or null if no such
+     *         period type exists.
      */
     public static PeriodType getPeriodTypeByName( String name )
     {
         return PERIOD_TYPE_MAP.get( name );
+    }
+
+    /**
+     * Returns the {@link PeriodType} with the given {@link PeriodTypeEnum}.
+     *
+     * @param periodTypeEnum the {@link PeriodTypeEnum}.
+     * @return the {@link PeriodType} with the given {@link PeriodTypeEnum} or
+     *         null if no such period type exists.
+     */
+    public static PeriodType getPeriodType( PeriodTypeEnum periodTypeEnum )
+    {
+        return PERIOD_TYPE_ENUM_MAP.get( periodTypeEnum );
     }
 
     public static PeriodType getByNameIgnoreCase( String name )
@@ -287,7 +316,17 @@ public abstract class PeriodType
      *
      * @return a unique name for the PeriodType. E.g. "Monthly".
      */
-    public abstract String getName();
+    public final String getName()
+    {
+        return getPeriodTypeEnum().getName();
+    }
+
+    /**
+     * Returns the {@link PeriodTypeEnum}.
+     *
+     * @return the {@link PeriodTypeEnum}.
+     */
+    public abstract PeriodTypeEnum getPeriodTypeEnum();
 
     /**
      * Creates a valid Period based on the current date. E.g. if today is

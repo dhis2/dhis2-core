@@ -50,8 +50,8 @@ public class EventAnalyticsUtils
     /**
      * Get all combinations from map. Fill the result into list.
      *
-     * @param map the map with all values
-     * @param list the resulting list
+     * @param map the map with all values.
+     * @param list the list to add values to.
      */
     private static void getCombinations( Map<String, List<EventAnalyticsDimensionalItem>> map,
         List<Map<String, EventAnalyticsDimensionalItem>> list )
@@ -62,21 +62,21 @@ public class EventAnalyticsUtils
     /**
      * A recursive method which finds all permutations of the elements in map.
      *
-     * @param map the map with all values
-     * @param iter iterator with keys
-     * @param cur the current map
-     * @param list the resulting list
+     * @param map the map with all values.
+     * @param iter iterator with keys.
+     * @param curMap the current map.
+     * @param list the list to add values to.
      */
     public static void recurse( Map<String, List<EventAnalyticsDimensionalItem>> map, ListIterator<String> iter,
-        TreeMap<String, EventAnalyticsDimensionalItem> cur, List<Map<String, EventAnalyticsDimensionalItem>> list )
+        TreeMap<String, EventAnalyticsDimensionalItem> curMap, List<Map<String, EventAnalyticsDimensionalItem>> list )
     {
         if ( !iter.hasNext() )
         {
             Map<String, EventAnalyticsDimensionalItem> entry = new HashMap<>();
 
-            for ( String key : cur.keySet() )
+            for ( String key : curMap.keySet() )
             {
-                entry.put( key, cur.get( key ) );
+                entry.put( key, curMap.get( key ) );
             }
 
             list.add( entry );
@@ -88,9 +88,9 @@ public class EventAnalyticsUtils
 
             for ( EventAnalyticsDimensionalItem value : set )
             {
-                cur.put( key, value );
-                recurse( map, iter, cur, list );
-                cur.remove( key );
+                curMap.put( key, value );
+                recurse( map, iter, curMap, list );
+                curMap.remove( key );
             }
 
             iter.previous();
@@ -100,8 +100,8 @@ public class EventAnalyticsUtils
     /**
      * Get all permutations for event report dimensions.
      *
-     * @param dataOptionMap the map to generate permutations from
-     * @return a list of a map with a permutations
+     * @param dataOptionMap the map to generate permutations from.
+     * @return a list of a map with all permutations.
      */
     public static List<Map<String, EventAnalyticsDimensionalItem>> generateEventDataPermutations(
         Map<String, List<EventAnalyticsDimensionalItem>> dataOptionMap )
@@ -114,8 +114,8 @@ public class EventAnalyticsUtils
     /**
      * Get event data mapping for values.
      *
-     * @param grid the grid to collect data from
-     * @return map with key and values
+     * @param grid the grid to collect data from.
+     * @return a map with key and values.
      */
     public static Map<String, Object> getAggregatedEventDataMapping( Grid grid )
     {
@@ -149,12 +149,20 @@ public class EventAnalyticsUtils
         return map;
     }
 
-    public static void addValues( List<List<String>> ids, Grid grid, Grid outputGrid )
+    /**
+     * Adds values.
+     *
+     * @param identifiers the list of list of identifiers.
+     * @param grid the input {@link Grid}.
+     * @param outputGrid the output {@link Grid}.
+     */
+    public static void addValues( List<List<String>> identifiers, Grid grid, Grid outputGrid )
     {
         Map<String, Object> valueMap = getAggregatedEventDataMapping( grid );
 
         boolean hasValues = false;
-        for ( List<String> idList : ids )
+
+        for ( List<String> idList : identifiers )
         {
             Collections.sort( idList );
 

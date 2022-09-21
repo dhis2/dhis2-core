@@ -29,6 +29,7 @@ package org.hisp.dhis.program.hibernate;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,6 +69,14 @@ public class HibernateProgramStageDataElementStore
 
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
+            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
+    }
+
+    @Override
+    public List<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
     }
 

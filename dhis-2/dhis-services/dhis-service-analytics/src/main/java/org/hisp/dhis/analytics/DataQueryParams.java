@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
@@ -70,6 +71,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
@@ -84,6 +86,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -102,6 +105,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
@@ -182,7 +186,11 @@ public class DataQueryParams
 
     public static final String PREFIX_ORG_UNIT_LEVEL = "oulevel";
 
-    public static final String DEFAULT_ORG_UNIT_FIELD = "ou";
+    public static final String DEFAULT_ORG_UNIT_COL = "ou";
+
+    public static final String REGISTRATION_OU_COL = "registrationou";
+
+    public static final String ENROLLMENT_OU_COL = "enrollmentou";
 
     public static final int DX_INDEX = 0;
 
@@ -224,7 +232,7 @@ public class DataQueryParams
     protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
 
     /**
-     * Indicates if the meta data part of the query response should be omitted.
+     * Indicates if the metadata part of the query response should be omitted.
      */
     protected boolean skipMeta;
 
@@ -352,9 +360,14 @@ public class DataQueryParams
     protected Date startDate;
 
     /**
-     * The end date fore the period dimension, can be null.
+     * The end date for the period dimension, can be null.
      */
     protected Date endDate;
+
+    /**
+     * The date range for the period dimension, can be empty.
+     */
+    protected List<DateRange> dateRangeList = new ArrayList<>();
 
     /**
      * The order in which the data values has to be sorted, can be null.
@@ -370,7 +383,7 @@ public class DataQueryParams
      * The organisation unit field used as basis for aggregation in the
      * hierarchy.
      */
-    protected String orgUnitField;
+    protected OrgUnitField orgUnitField = DEFAULT_ORG_UNIT_FIELD;
 
     /**
      * The API version used for the request.
@@ -581,6 +594,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.dateRangeList = this.dateRangeList;
         params.order = this.order;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
@@ -660,6 +674,8 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
+            .add( "dateRangeList", dateRangeList.stream()
+                .map( DateRange::toString ).collect( Collectors.joining( ":" ) ) )
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
@@ -667,7 +683,7 @@ public class DataQueryParams
             .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
-    private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
+    private String getDimensionalItemKeywords( DimensionItemKeywords keywords )
     {
         if ( keywords != null )
         {
@@ -806,6 +822,15 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether organisation unit group sets are present as dimension
+     * or filter.
+     */
+    public boolean hasOrganisationUnitGroupSets()
+    {
+        return !getDimensionsAndFilters( ORGANISATION_UNIT_GROUP_SET ).isEmpty();
+    }
+
+    /**
      * Returns the period type of the first period specified as filter, or null
      * if there is no period filter.
      */
@@ -816,22 +841,6 @@ public class DataQueryParams
         if ( !filterPeriods.isEmpty() )
         {
             return ((Period) filterPeriods.get( 0 )).getPeriodType();
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the first period specified as filter, or null if there is no
-     * period filter.
-     */
-    public Period getFilterPeriod()
-    {
-        List<DimensionalItemObject> filterPeriods = getFilterPeriods();
-
-        if ( !filterPeriods.isEmpty() )
-        {
-            return (Period) filterPeriods.get( 0 );
         }
 
         return null;
@@ -1432,12 +1441,60 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query has a nonempty dateRangeList.
+     */
+    public boolean hasDateRangeList()
+    {
+        return dateRangeList != null && !dateRangeList.isEmpty();
+    }
+
+    /**
+     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
+     * assumes that the dateRangeList is sorted. It should happen in the
+     * EventQueryParam::replacePeriodsWithDates method.
+     */
+    public boolean hasContinuousDateRangeList()
+    {
+        if ( !hasDateRangeList() )
+        {
+            return true;
+        }
+
+        if ( dateRangeList.size() == 1 )
+        {
+            return true;
+        }
+
+        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
+        {
+            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
+                dateRangeList.get( i ).getStartDate() ) > 1;
+
+            if ( diffAboveOneDay )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Indicates whether start and end date are specified and the start date is
      * after the end date, which is invalid.
      */
     public boolean startDateAfterEndDate()
     {
         return hasStartEndDate() && startDate.after( endDate );
+    }
+
+    /**
+     * Indicates whether any start date is after the end date, which is invalid.
+     */
+    public boolean startDatesAfterEndDates()
+    {
+        return hasDateRangeList() && dateRangeList.stream()
+            .anyMatch( drl -> drl.getStartDate().after( drl.getEndDate() ) );
     }
 
     /**
@@ -1485,23 +1542,6 @@ public class DataQueryParams
     public String getTimeFieldAsFieldFallback()
     {
         return ObjectUtils.firstNonNull( getTimeFieldAsField(), TimeField.EVENT_DATE.getField() );
-    }
-
-    /**
-     * Indicates whether a (non-default) organisation unit field is specified.
-     */
-    public boolean hasOrgUnitField()
-    {
-        return orgUnitField != null;
-    }
-
-    /**
-     * Returns the organisation unit field if specified; if not returns the
-     * default field which is {@link DataQueryParams#DEFAULT_ORG_UNIT_FIELD}.
-     */
-    public String getOrgUnitFieldFallback()
-    {
-        return hasOrgUnitField() ? orgUnitField : DEFAULT_ORG_UNIT_FIELD;
     }
 
     /**
@@ -1976,10 +2016,10 @@ public class DataQueryParams
             List<String> keys = Lists.newArrayList( key.split( DIMENSION_SEP ) );
             keys.remove( DX_INDEX );
 
-            final Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
+            Collection<DimensionItemObjectValue> dimensionItemObjectValues = aggregatedDataMap.get( key );
 
             // Generate final permutation key
-            final String permKey = StringUtils.join( keys, DIMENSION_SEP );
+            String permKey = StringUtils.join( keys, DIMENSION_SEP );
 
             for ( DimensionItemObjectValue dimWithValue : dimensionItemObjectValues )
             {
@@ -2068,7 +2108,7 @@ public class DataQueryParams
     @Override
     public int hashCode()
     {
-        final int prime = 31;
+        int prime = 31;
         int result = 1;
         result = prime * result + ((dimensions == null) ? 0 : dimensions.hashCode());
         result = prime * result + ((filters == null) ? 0 : filters.hashCode());
@@ -2279,6 +2319,11 @@ public class DataQueryParams
         return endDate;
     }
 
+    public List<DateRange> getDateRangeList()
+    {
+        return dateRangeList;
+    }
+
     public SortOrder getOrder()
     {
         return order;
@@ -2289,7 +2334,7 @@ public class DataQueryParams
         return timeField;
     }
 
-    public String getOrgUnitField()
+    public OrgUnitField getOrgUnitField()
     {
         return orgUnitField;
     }
@@ -2562,7 +2607,7 @@ public class DataQueryParams
      */
     public Set<IdentifiableObject> getProgramsInAttributesAndDataElements()
     {
-        final Set<IdentifiableObject> programs = new HashSet<>();
+        Set<IdentifiableObject> programs = new HashSet<>();
 
         getAllProgramAttributes().stream()
             .map( a -> (ProgramTrackedEntityAttributeDimensionItem) a )
@@ -2660,7 +2705,7 @@ public class DataQueryParams
      */
     public Period getStartEndDatesAsPeriod()
     {
-        final Period period = new Period();
+        Period period = new Period();
         period.setStartDate( getStartDate() );
         period.setEndDate( getEndDate() );
 
@@ -2678,7 +2723,7 @@ public class DataQueryParams
     {
         if ( getStartDate() != null && getEndDate() != null )
         {
-            final Period period = new Period();
+            Period period = new Period();
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 
@@ -3327,7 +3372,7 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withOrgUnitField( String orgUnitField )
+        public Builder withOrgUnitField( OrgUnitField orgUnitField )
         {
             this.params.orgUnitField = orgUnitField;
             return this;

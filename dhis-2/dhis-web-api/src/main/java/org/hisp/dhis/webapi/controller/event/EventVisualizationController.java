@@ -111,7 +111,7 @@ public class EventVisualizationController
         WebMessageException
     {
         // TODO no acl?
-        final EventVisualization eventVisualization = eventVisualizationService.getEventVisualization( uid );
+        EventVisualization eventVisualization = eventVisualizationService.getEventVisualization( uid );
 
         if ( eventVisualization == null )
         {
@@ -120,12 +120,12 @@ public class EventVisualizationController
 
         doesNotAllowPivotAndReportChart( eventVisualization );
 
-        final OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
+        OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
 
-        final JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( eventVisualization ), date, unit,
+        JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( eventVisualization ), date, unit,
             i18nManager.getI18nFormat() );
 
-        final String filename = filenameEncode( eventVisualization.getName() ) + ".png";
+        String filename = filenameEncode( eventVisualization.getName() ) + ".png";
 
         contextUtils.configureResponse( response, CONTENT_TYPE_PNG, RESPECT_SYSTEM_SETTING, filename, attachment );
 
@@ -133,10 +133,10 @@ public class EventVisualizationController
     }
 
     @Override
-    protected EventVisualization deserializeJsonEntity( final HttpServletRequest request )
+    protected EventVisualization deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
-        final EventVisualization eventVisualization = super.deserializeJsonEntity( request );
+        EventVisualization eventVisualization = super.deserializeJsonEntity( request );
 
         prepare( eventVisualization );
 
@@ -144,10 +144,10 @@ public class EventVisualizationController
     }
 
     @Override
-    protected EventVisualization deserializeXmlEntity( final HttpServletRequest request )
+    protected EventVisualization deserializeXmlEntity( HttpServletRequest request )
         throws IOException
     {
-        final EventVisualization eventVisualization = super.deserializeXmlEntity( request );
+        EventVisualization eventVisualization = super.deserializeXmlEntity( request );
 
         prepare( eventVisualization );
 
@@ -155,16 +155,16 @@ public class EventVisualizationController
     }
 
     @Override
-    protected void postProcessResponseEntity( final EventVisualization eventVisualization, final WebOptions options,
-        final Map<String, String> parameters )
+    protected void postProcessResponseEntity( EventVisualization eventVisualization, WebOptions options,
+        Map<String, String> parameters )
     {
         eventVisualization.populateAnalyticalProperties();
 
-        final User currentUser = currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
 
         if ( currentUser != null )
         {
-            final Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
 
             for ( OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits() )
             {
@@ -173,11 +173,11 @@ public class EventVisualizationController
             }
         }
 
-        final I18nFormat format = i18nManager.getI18nFormat();
+        I18nFormat format = i18nManager.getI18nFormat();
 
         if ( eventVisualization.getPeriods() != null && !eventVisualization.getPeriods().isEmpty() )
         {
-            for ( final Period period : eventVisualization.getPeriods() )
+            for ( Period period : eventVisualization.getPeriods() )
             {
                 period.setName( format.formatPeriod( period ) );
             }
@@ -185,7 +185,7 @@ public class EventVisualizationController
     }
 
     @Override
-    protected void preCreateEntity( final EventVisualization newEventVisualization )
+    protected void preCreateEntity( EventVisualization newEventVisualization )
     {
         /**
          * Once a legacy EventVisualization is CREATED through this new
@@ -196,8 +196,8 @@ public class EventVisualizationController
     }
 
     @Override
-    protected void preUpdateEntity( final EventVisualization eventVisualization,
-        final EventVisualization newEventVisualization )
+    protected void preUpdateEntity( EventVisualization eventVisualization,
+        EventVisualization newEventVisualization )
     {
         /**
          * Once a legacy EventVisualization is UPDATED through this new
@@ -207,7 +207,7 @@ public class EventVisualizationController
         forceNonLegacy( newEventVisualization );
     }
 
-    private void forceNonLegacy( final EventVisualization eventVisualization )
+    private void forceNonLegacy( EventVisualization eventVisualization )
     {
         if ( eventVisualization != null && eventVisualization.isLegacy() )
         {
@@ -215,7 +215,7 @@ public class EventVisualizationController
         }
     }
 
-    private void prepare( final EventVisualization eventVisualization )
+    private void prepare( EventVisualization eventVisualization )
     {
         dimensionService.mergeAnalyticalObject( eventVisualization );
         dimensionService.mergeEventAnalyticalObject( eventVisualization );
@@ -239,7 +239,7 @@ public class EventVisualizationController
      *
      * @param eventVisualization
      */
-    private void maybeLoadLegendSetInto( final EventVisualization eventVisualization )
+    private void maybeLoadLegendSetInto( EventVisualization eventVisualization )
     {
         if ( eventVisualization.getLegendDefinitions() != null
             && eventVisualization.getLegendDefinitions().getLegendSet() != null )
@@ -249,7 +249,7 @@ public class EventVisualizationController
         }
     }
 
-    private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )
+    private void doesNotAllowPivotAndReportChart( EventVisualization eventVisualization )
         throws WebMessageException
     {
         if ( eventVisualization.getType() == PIVOT_TABLE || eventVisualization.getType() == LINE_LIST )

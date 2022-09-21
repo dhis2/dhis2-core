@@ -114,7 +114,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -182,7 +181,7 @@ public class EventController
 
     private final SchemaService schemaService;
 
-    private final RequestToSearchParamsMapper requestToSearchParamsMapper;
+    private final EventRequestToSearchParamsMapper requestToSearchParamsMapper;
 
     private final ContextUtils contextUtils;
 
@@ -273,7 +272,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -347,7 +346,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -420,7 +419,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -494,7 +493,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
@@ -519,7 +518,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add(
-                "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
+                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
@@ -709,7 +708,8 @@ public class EventController
         Model model, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            true );
 
         if ( event == null )
         {
@@ -727,7 +727,8 @@ public class EventController
         HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
+            true );
 
         if ( event == null )
         {

@@ -56,14 +56,13 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -94,7 +93,7 @@ public class TrackerEventsExportController
     private final ContextService contextService;
 
     @NonNull
-    private final RequestToSearchParamsMapper requestToSearchParamsMapper;
+    private final TrackerEventCriteriaMapper requestToSearchParams;
 
     @NonNull
     private final ProgramStageInstanceService programStageInstanceService;
@@ -112,7 +111,7 @@ public class TrackerEventsExportController
         throws WebMessageException
     {
 
-        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
@@ -155,7 +154,7 @@ public class TrackerEventsExportController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
@@ -171,12 +170,14 @@ public class TrackerEventsExportController
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv\"" );
 
         if ( ContextUtils.isAcceptCsvGzip( request ) )
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
             response.setContentType( CONTENT_TYPE_CSV_GZIP );
+            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv.gz\"" );
         }
 
         csvEventService.writeEvents( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
@@ -223,7 +224,8 @@ public class TrackerEventsExportController
         throws NotFoundException
     {
 
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
+        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+            true );
         if ( event == null )
         {
             throw new NotFoundException( "Event", uid );

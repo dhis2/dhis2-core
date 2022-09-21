@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
@@ -56,7 +55,6 @@ import org.springframework.stereotype.Component;
  * @author aamerm
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Slf4j
 @Component
 @AllArgsConstructor
 public class MetadataSyncPreProcessor

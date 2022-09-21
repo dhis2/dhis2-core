@@ -29,6 +29,7 @@ package org.hisp.dhis.de.action;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -39,6 +40,7 @@ import org.hisp.dhis.dataelementhistory.DataElementHistory;
 import org.hisp.dhis.dataelementhistory.HistoryRetriever;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueAuditQueryParams;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
@@ -52,7 +54,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.Action;
 
 /**
@@ -286,9 +287,12 @@ public class GetHistoryAction
         dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo,
             organisationUnit, period, HISTORY_LENGTH );
 
-        dataValueAudits = dataValueAuditService.getDataValueAudits( Lists.newArrayList( dataElement ),
-            Lists.newArrayList( period ),
-            Lists.newArrayList( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
+        dataValueAudits = dataValueAuditService.getDataValueAudits( new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElement ) )
+            .setPeriods( List.of( period ) )
+            .setOrgUnits( List.of( organisationUnit ) )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo ) );
 
         dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
             attributeOptionCombo );
@@ -301,7 +305,7 @@ public class GetHistoryAction
 
         if ( dataElement.isFileType() )
         {
-            fileNames = new HashMap<String, String>();
+            fileNames = new HashMap<>();
             dataValueAudits.removeIf( audit -> fileResourceService.getFileResource( audit.getValue() ) == null );
             dataValueAudits.stream()
                 .filter( audit -> audit != null )

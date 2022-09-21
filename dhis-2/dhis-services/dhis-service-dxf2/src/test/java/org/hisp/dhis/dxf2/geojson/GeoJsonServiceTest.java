@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.dxf2.geojson;
 
+import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jsonMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * For now just make sure that a {@link GeoJsonImportReport} can be stored in
@@ -44,10 +42,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Jan Bernitt
  */
-class GeoJsonServiceTest extends DhisSpringTest
+class GeoJsonServiceTest
 {
-    @Autowired
-    private ObjectMapper jsonMapper;
 
     @Test
     void testReportSerialisation()

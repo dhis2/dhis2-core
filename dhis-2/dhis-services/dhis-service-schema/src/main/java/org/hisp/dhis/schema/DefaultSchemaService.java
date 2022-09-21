@@ -92,6 +92,7 @@ public class DefaultSchemaService
 
     private void init()
     {
+        register( new AggregateDataExchangeSchemaDescriptor() );
         register( new AnalyticsTableHookSchemaDescriptor() );
         register( new AttributeSchemaDescriptor() );
         register( new AttributeValueSchemaDescriptor() );

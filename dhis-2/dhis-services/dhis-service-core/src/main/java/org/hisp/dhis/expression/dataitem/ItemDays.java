@@ -35,7 +35,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * Expression item Days
+ * Expression item [days]
  *
  * @author Jim Grace
  */

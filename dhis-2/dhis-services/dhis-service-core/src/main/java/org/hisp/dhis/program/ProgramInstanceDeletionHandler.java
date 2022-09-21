@@ -73,7 +73,7 @@ public class ProgramInstanceDeletionHandler extends JdbcDeletionHandler
         {
             return ACCEPT;
         }
-        String sql = "select count(*) from programinstance where programid = :id";
+        String sql = "select 1 from programinstance where programid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", program.getId() ) );
     }
 

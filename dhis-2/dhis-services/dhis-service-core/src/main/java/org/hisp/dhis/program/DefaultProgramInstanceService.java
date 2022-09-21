@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -37,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew
  */
 @Slf4j
+@AllArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
@@ -74,37 +75,15 @@ public class DefaultProgramInstanceService
 
     private final ProgramStageInstanceStore programStageInstanceStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
+    private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    private AclService aclService;
-
-    public DefaultProgramInstanceService( ProgramInstanceStore programInstanceStore,
-        ProgramStageInstanceStore programStageInstanceStore, CurrentUserService currentUserService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ApplicationEventPublisher eventPublisher,
-        TrackerOwnershipManager trackerOwnershipAccessManager, AclService aclService )
-    {
-        checkNotNull( programInstanceStore );
-        checkNotNull( programStageInstanceStore );
-        checkNotNull( currentUserService );
-        checkNotNull( trackedEntityInstanceService );
-        checkNotNull( eventPublisher );
-        checkNotNull( trackerOwnershipAccessManager );
-        checkNotNull( aclService );
-
-        this.programInstanceStore = programInstanceStore;
-        this.programStageInstanceStore = programStageInstanceStore;
-        this.currentUserService = currentUserService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.eventPublisher = eventPublisher;
-        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-        this.aclService = aclService;
-    }
+    private final AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -476,27 +455,6 @@ public class DefaultProgramInstanceService
         trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance );
 
         return programInstance;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance )
-    {
-        Set<ProgramStageInstance> programStageInstances = new HashSet<>( programInstance.getProgramStageInstances() );
-        Set<ProgramStage> programStages = new HashSet<>();
-
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
-        {
-            if ( (!programStageInstance.isCompleted() && programStageInstance.getStatus() != EventStatus.SKIPPED)
-                || programStageInstance.getProgramStage().getRepeatable() )
-            {
-                return false;
-            }
-
-            programStages.add( programStageInstance.getProgramStage() );
-        }
-
-        return programStages.size() == programInstance.getProgram().getProgramStages().size();
     }
 
     @Override

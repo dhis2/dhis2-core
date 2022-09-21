@@ -77,6 +77,14 @@ public class TrackedEntityInstanceAudit
         this.auditType = auditType;
     }
 
+    public TrackedEntityInstanceAudit( String trackedEntityInstance, String comment, Date created, String accessedBy,
+        AuditType auditType )
+    {
+        this( trackedEntityInstance, accessedBy, auditType );
+        this.comment = comment;
+        this.created = created;
+    }
+
     @Override
     public int hashCode()
     {

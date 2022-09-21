@@ -214,7 +214,7 @@ public class VisualizationDataController
         throws IOException,
         WebMessageException
     {
-        final Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
+        Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
 
         if ( visualization == null )
         {
@@ -348,7 +348,7 @@ public class VisualizationDataController
         return visualizationGridService.getVisualizationGrid( uid, date, organisationUnitUid );
     }
 
-    private boolean isChartSupported( final VisualizationType type )
+    private boolean isChartSupported( VisualizationType type )
     {
         return type == VisualizationType.LINE ||
             type == VisualizationType.COLUMN ||

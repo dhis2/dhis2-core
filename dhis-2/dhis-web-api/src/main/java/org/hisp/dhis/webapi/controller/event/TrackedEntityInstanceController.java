@@ -88,7 +88,6 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -147,7 +146,7 @@ public class TrackedEntityInstanceController
 
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
-    private final TrackedEntityCriteriaMapper criteriaMapper;
+    private final TrackedEntityInstanceCriteriaMapper criteriaMapper;
 
     private final TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler;
 

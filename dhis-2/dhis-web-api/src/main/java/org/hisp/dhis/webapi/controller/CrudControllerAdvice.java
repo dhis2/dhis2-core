@@ -51,6 +51,7 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
+import org.hisp.dhis.dataexchange.client.Dhis2ClientException;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.dxf2.adx.AdxException;
@@ -126,6 +127,13 @@ public class CrudControllerAdvice
     @ExceptionHandler( IllegalQueryException.class )
     @ResponseBody
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
+    {
+        return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( Dhis2ClientException.class )
+    @ResponseBody
+    public WebMessage dhis2ClientException( Dhis2ClientException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
     }

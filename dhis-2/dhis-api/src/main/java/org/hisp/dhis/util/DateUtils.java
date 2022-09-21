@@ -31,6 +31,7 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -84,6 +85,7 @@ public class DateUtils
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
     private static final DateTimeParser[] SUPPORTED_DATE_ONLY_PARSERS = {
+        DateTimeFormat.forPattern( "yyyyMMdd" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM" ).getParser(),
         DateTimeFormat.forPattern( "yyyy" ).getParser()
@@ -213,16 +215,25 @@ public class DateUtils
     }
 
     /**
-     * adds 1 day to provided Date and returns it
+     * Adds 1 day to provided Date and returns it.
      *
      * @param date
      * @return day after provided date
      */
     public static Date plusOneDay( Date date )
     {
-        return Date.from( date
-            .toInstant()
-            .plus( 1, ChronoUnit.DAYS ) );
+        return new Date( date.getTime() + MS_PER_DAY );
+    }
+
+    /**
+     * Subtracts 1 day from provided Date and returns it.
+     *
+     * @param date
+     * @return day before provided date
+     */
+    public static Date minusOneDay( Date date )
+    {
+        return new Date( date.getTime() - MS_PER_DAY );
     }
 
     /**
@@ -704,9 +715,42 @@ public class DateUtils
      * @param dateString the date string.
      * @return a date.
      */
-    public static Date parseDate( final String dateString )
+    public static Date parseDate( String dateString )
     {
         return safeParseDateTime( dateString, DATE_FORMATTER );
+    }
+
+    /**
+     * Parses the given string into a Date using the supported date formats.
+     * Returns null if the string cannot be parsed.
+     *
+     * @param dateString the date string.
+     * @return a date or null
+     */
+    public static Date safeParseDate( String dateString )
+    {
+        try
+        {
+            return safeParseDateTime( dateString, DATE_FORMATTER );
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Create a TimeStamp with Time Zone from an input Date. This can be used as
+     * SQL value {@link java.sql.Types#TIMESTAMP_WITH_TIMEZONE}
+     *
+     * @param date
+     * @return TimeStamp with Time Zone
+     */
+    public static OffsetDateTime offSetDateTimeFrom( Date date )
+    {
+        return OffsetDateTime.of( date.toInstant()
+            .atZone( ZoneOffset.UTC ).toLocalDateTime(),
+            ZoneOffset.UTC );
     }
 
     /**
@@ -715,7 +759,7 @@ public class DateUtils
      * @param instant the instant
      * @return a date.
      */
-    public static Date fromInstant( final Instant instant )
+    public static Date fromInstant( Instant instant )
     {
         return convertOrNull( instant, Date::from );
     }
@@ -726,7 +770,7 @@ public class DateUtils
      * @param date the date
      * @return an instant.
      */
-    public static Instant instantFromDate( final Date date )
+    public static Instant instantFromDate( Date date )
     {
         return convertOrNull( date, Date::toInstant );
     }
@@ -737,7 +781,7 @@ public class DateUtils
      * @param epochMillis the date expressed as milliseconds from epoch
      * @return an instant.
      */
-    public static Instant instantFromEpoch( final Long epochMillis )
+    public static Instant instantFromEpoch( Long epochMillis )
     {
         return convertOrNull( new Date( epochMillis ), Date::toInstant );
     }
@@ -889,9 +933,9 @@ public class DateUtils
      *
      * @param dateString The string to parse
      * @param formatter The formatter to use for parsing
-     * @return Parsed Date object. Null if the supplied dateString is empty.
+     * @return Parsed Date object. Null if the supplied dateString is empty
      */
-    private static Date safeParseDateTime( final String dateString, final DateTimeFormatter formatter )
+    private static Date safeParseDateTime( String dateString, DateTimeFormatter formatter )
     {
         if ( StringUtils.isEmpty( dateString ) )
         {

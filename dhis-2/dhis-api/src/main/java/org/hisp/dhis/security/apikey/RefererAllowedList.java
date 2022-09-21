@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
@@ -45,7 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RefererAllowedList extends ApiTokenAttribute implements Serializable
+public class RefererAllowedList extends ApiTokenAttribute
 {
     private Set<String> allowedReferrers = new HashSet<>();
 

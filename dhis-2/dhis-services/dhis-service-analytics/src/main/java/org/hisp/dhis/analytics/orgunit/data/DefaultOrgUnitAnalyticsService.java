@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 import java.util.Collection;
@@ -35,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" )
+@RequiredArgsConstructor
 public class DefaultOrgUnitAnalyticsService
     implements OrgUnitAnalyticsService
 {
@@ -63,18 +64,6 @@ public class DefaultOrgUnitAnalyticsService
     private final OrgUnitAnalyticsManager analyticsManager;
 
     private final OrgUnitQueryPlanner queryPlanner;
-
-    public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
-        OrgUnitAnalyticsManager analyticsManager, OrgUnitQueryPlanner queryPlanner )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( analyticsManager );
-        checkNotNull( queryPlanner );
-
-        this.idObjectManager = idObjectManager;
-        this.analyticsManager = analyticsManager;
-        this.queryPlanner = queryPlanner;
-    }
 
     @Override
     public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns )
@@ -99,28 +88,7 @@ public class DefaultOrgUnitAnalyticsService
 
         validate( params );
 
-        return params.isTableLayout() ? getOrgUnitDataTableLayout( params ) : getOrgUnitDataNormalized( params );
-    }
-
-    private Grid getOrgUnitDataNormalized( OrgUnitQueryParams params )
-    {
-        Grid grid = new ListGrid();
-
-        addHeaders( params, grid );
-        addMetadata( params, grid );
-
-        getOrgUnitDataMap( params ).entrySet().forEach( entry -> {
-            grid.addRow()
-                .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                .addValue( entry.getValue() );
-        } );
-
-        return grid;
-    }
-
-    private Grid getOrgUnitDataTableLayout( OrgUnitQueryParams params )
-    {
-        return GridRenderUtils.asGrid( params.getColumns(), params.getRows(), getOrgUnitDataMap( params ) );
+        return params.isTableLayout() ? getOrgUnitDataTableLayout( params ) : getNormalizedData( params );
     }
 
     @Override
@@ -153,6 +121,45 @@ public class DefaultOrgUnitAnalyticsService
         }
     }
 
+    /**
+     * Returns normalized data based on the given query.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a data {@link Grid}.
+     */
+    private Grid getNormalizedData( OrgUnitQueryParams params )
+    {
+        Grid grid = new ListGrid();
+
+        addHeaders( params, grid );
+        addMetadata( params, grid );
+
+        getOrgUnitDataMap( params ).entrySet().forEach( entry -> {
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( entry.getValue() );
+        } );
+
+        return grid;
+    }
+
+    /**
+     * Returns the given query as a grid in org unit table layout.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a data {@link Grid}.
+     */
+    private Grid getOrgUnitDataTableLayout( OrgUnitQueryParams params )
+    {
+        return GridRenderUtils.asGrid( params.getColumns(), params.getRows(), getOrgUnitDataMap( params ) );
+    }
+
+    /**
+     * Adds headers to the given grid.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @param grid the {@link Grid}.
+     */
     private void addHeaders( OrgUnitQueryParams params, Grid grid )
     {
         grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, false, true ) );
@@ -161,6 +168,12 @@ public class DefaultOrgUnitAnalyticsService
         grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, false, false ) );
     }
 
+    /**
+     * Adds metadata to the given grid.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @param grid the {@link Grid}.
+     */
     private void addMetadata( OrgUnitQueryParams params, Grid grid )
     {
         Map<String, Object> metadata = new HashMap<>();

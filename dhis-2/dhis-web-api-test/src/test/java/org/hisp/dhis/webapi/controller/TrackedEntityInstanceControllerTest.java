@@ -64,6 +64,15 @@ class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testGetTrackedEntityInstanceXml()
+    {
+        HttpResponse response = GET( "/trackedEntityInstances.xml?fields=created,enrollments&ou=" + ouId
+            + "&trackedEntityType=" + tetId + "&paging=false" );
+        assertEquals( HttpStatus.OK, response.status() );
+        assertTrue( response.header( "content-type" ).contains( "application/xml" ) );
+    }
+
+    @Test
     void testPostTrackedEntityInstanceJson()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",

@@ -40,6 +40,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,6 +61,7 @@ public class MinMaxValueController
 
     private final DataValidator dataValidator;
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAELEMENT_MINMAX_ADD')" )
     @PostMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.OK )
     public void saveOrUpdateMinMaxValue( @RequestBody MinMaxValueDto valueDto )
@@ -67,6 +69,7 @@ public class MinMaxValueController
         saveOrUpdateMinMaxDataElement( valueDto );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAELEMENT_MINMAX_DELETE')" )
     @DeleteMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void removeMinMaxValue( MinMaxValueQueryParams params )
@@ -81,22 +84,24 @@ public class MinMaxValueController
      */
     private void saveOrUpdateMinMaxDataElement( MinMaxValueDto dto )
     {
-        DataElement dataElement = dataValidator.getAndValidateDataElement( dto.getDataElement() );
-        OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
-        CategoryOptionCombo optCombo = dataValidator.getAndValidateCategoryOptionCombo( dto.getCategoryOptionCombo() );
+        DataElement de = dataValidator.getAndValidateDataElement( dto.getDataElement() );
+        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
+        CategoryOptionCombo coc = dataValidator.getAndValidateCategoryOptionCombo( dto.getCategoryOptionCombo() );
         dataValidator.validateMinMaxValues( dto.getMinValue(), dto.getMaxValue() );
-        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( orgUnit, dataElement, optCombo );
+        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( ou, de, coc );
 
         if ( value != null )
         {
             value.setMin( dto.getMinValue() );
             value.setMax( dto.getMaxValue() );
             value.setGenerated( false );
+
             minMaxValueService.updateMinMaxDataElement( value );
         }
         else
         {
-            value = new MinMaxDataElement( dataElement, orgUnit, optCombo, dto.getMinValue(), dto.getMaxValue() );
+            value = new MinMaxDataElement( de, ou, coc, dto.getMinValue(), dto.getMaxValue() );
+
             minMaxValueService.addMinMaxDataElement( value );
         }
     }
@@ -108,10 +113,10 @@ public class MinMaxValueController
      */
     private void removeMinMaxDataElement( MinMaxValueQueryParams params )
     {
-        DataElement dataElement = dataValidator.getAndValidateDataElement( params.getDe() );
-        OrganisationUnit orgUnit = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
-        CategoryOptionCombo optCombo = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
-        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( orgUnit, dataElement, optCombo );
+        DataElement de = dataValidator.getAndValidateDataElement( params.getDe() );
+        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
+        CategoryOptionCombo coc = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
+        MinMaxDataElement value = minMaxValueService.getMinMaxDataElement( ou, de, coc );
 
         if ( value != null )
         {

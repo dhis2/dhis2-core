@@ -176,7 +176,7 @@ class DatastoreFieldsControllerTest extends AbstractDatastoreControllerTest
     void testGetEntries_IllegalPath()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
-            "Illegal fields expression. Expected `,`, `[` or `]` at position 7 but found `'`",
+            "Illegal fields expression, expected `,`, `[` or `]` at position 7 but found `'`",
             GET( "/dataStore/pets?fields=illegal'&headless=true" ).content( HttpStatus.CONFLICT ) );
     }
 }

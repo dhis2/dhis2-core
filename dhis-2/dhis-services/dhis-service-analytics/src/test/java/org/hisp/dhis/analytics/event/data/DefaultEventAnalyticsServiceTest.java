@@ -70,7 +70,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class DefaultEventAnalyticsServiceTest
 {
-
     private DefaultEventAnalyticsService defaultEventAnalyticsService;
 
     @Mock
@@ -118,10 +117,10 @@ class DefaultEventAnalyticsServiceTest
     void testOutputSchemeWhenSchemeIsSet()
     {
         // Given mock variables
-        final IdScheme codeScheme = IdScheme.CODE;
-        final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
-        final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
-        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, codeScheme );
+        IdScheme codeScheme = IdScheme.CODE;
+        OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
+        Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
+        EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, codeScheme );
 
         // Given mock calls
         doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
@@ -140,10 +139,10 @@ class DefaultEventAnalyticsServiceTest
     void testOutputSchemeWhenNoSchemeIsSet()
     {
         // Given mock variables
-        final IdScheme noScheme = null;
-        final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
-        final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
-        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, noScheme );
+        IdScheme noScheme = null;
+        OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
+        Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
+        EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, noScheme );
 
         // Given mock calls
         doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
@@ -158,8 +157,8 @@ class DefaultEventAnalyticsServiceTest
         verify( schemaIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
     }
 
-    private EventQueryParams mockEventQueryParams( final OrganisationUnit mockOrgUnit, final Program mockProgram,
-        final IdScheme scheme )
+    private EventQueryParams mockEventQueryParams( OrganisationUnit mockOrgUnit, Program mockProgram,
+        IdScheme scheme )
     {
         return new EventQueryParams.Builder()
             .withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" )

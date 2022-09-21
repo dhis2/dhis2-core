@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
@@ -53,8 +53,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -113,7 +111,7 @@ public class Preheat
      * <p>
      * Only Class which has attribute will be put into this map.
      */
-    private Map<Class<? extends IdentifiableObject>, Set<Attribute>> attributesByTargetObjectType = new HashMap<>();
+    private Map<Class<? extends IdentifiableObject>, Map<String, Attribute>> attributesByTargetObjectType = new HashMap<>();
 
     public Preheat()
     {
@@ -450,7 +448,7 @@ public class Preheat
      * @param klass Class to be used for querying.
      * @return Set of {@link Attribute} belong to given klass.
      */
-    public Set<Attribute> getAttributesByClass( Class<? extends IdentifiableObject> klass )
+    public Map<String, Attribute> getAttributesByClass( Class<? extends IdentifiableObject> klass )
     {
         return attributesByTargetObjectType.get( klass );
     }
@@ -463,7 +461,8 @@ public class Preheat
      */
     public void addClassAttributes( Class<? extends IdentifiableObject> klass, Set<Attribute> attributes )
     {
-        attributesByTargetObjectType.put( klass, attributes );
+        attributesByTargetObjectType.put( klass,
+            attributes.stream().collect( Collectors.toMap( Attribute::getUid, Attribute -> Attribute ) ) );
     }
 
     /**
@@ -476,10 +475,10 @@ public class Preheat
     {
         if ( attributesByTargetObjectType.get( klass ) == null )
         {
-            attributesByTargetObjectType.put( klass, Sets.newHashSet() );
+            attributesByTargetObjectType.put( klass, new HashMap<>() );
         }
 
-        attributesByTargetObjectType.get( klass ).add( attribute );
+        attributesByTargetObjectType.get( klass ).put( attribute.getUid(), attribute );
     }
 
     /**
@@ -491,14 +490,14 @@ public class Preheat
      */
     public Set<String> getAttributeIdsByValueType( Class<? extends IdentifiableObject> klass, ValueType valueType )
     {
-        Set<Attribute> attributes = attributesByTargetObjectType.get( klass );
+        Map<String, Attribute> attributes = attributesByTargetObjectType.get( klass );
 
-        if ( CollectionUtils.isEmpty( attributes ) )
+        if ( MapUtils.isEmpty( attributes ) )
         {
             return emptySet();
         }
 
-        return attributes.stream()
+        return attributes.values().stream()
             .filter( attribute -> attribute.getValueType() == valueType )
             .map( attribute -> attribute.getUid() ).collect( Collectors.toUnmodifiableSet() );
     }

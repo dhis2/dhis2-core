@@ -395,6 +395,11 @@ public class PredictionDataValueFetcher
      * value table are DataElement (the sum of all category option combos for
      * that data element) and DataElementOperand (a particular combination of
      * DataElement and CategoryOptionCombo).
+     * <p>
+     * In the case of disaggregated predictions, a "wildcard" DataElementOperand
+     * may also be requested where the DataElementOperand contains only a
+     * DataElement and no CategoryOptionCombo. This means to collect all
+     * CategoryOptionCombos for this DataElement.
      */
     private void addValueToMap( DataValue dv,
         MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map )
@@ -406,9 +411,19 @@ public class PredictionDataValueFetcher
             DataElementOperand dataElementOperand = new DataElementOperand(
                 dv.getDataElement(), dv.getCategoryOptionCombo() );
 
-            addToMap( dataElementOperand, dataElementOperands, dv, value, map );
+            DataElementOperand wildcardDataElementOperand = new DataElementOperand(
+                dv.getDataElement() );
 
-            addToMap( dv.getDataElement(), dataElements, dv, value, map );
+            if ( dataElementOperands.contains( dataElementOperand ) ||
+                dataElementOperands.contains( wildcardDataElementOperand ) )
+            {
+                addToMap( dataElementOperand, dv, value, map );
+            }
+
+            if ( dataElements.contains( dv.getDataElement() ) )
+            {
+                addToMap( dv.getDataElement(), dv, value, map );
+            }
         }
     }
 
@@ -416,23 +431,18 @@ public class PredictionDataValueFetcher
      * Adds the DataElementOperand or the DataElement value to existing data.
      * <p>
      * This is needed because we may get multiple data values that need to be
-     * aggregated to the same item value. In the case of a
-     * DimensionalItemObject, this may be multiple values from children
-     * organisation units. In the case of a DataElement, this may be multiple
-     * value from children organisation units and/or it may be multiple
-     * disaggregated values that need to be summed for the data element.
+     * aggregated to the same item value. In the case of a DataElementOperand,
+     * this may be multiple values from children organisation units. In the case
+     * of a DataElement, this may be multiple value from children organisation
+     * units and/or it may be multiple disaggregated values that need to be
+     * summed for the data element.
      * <p>
      * Note that a single data value may contribute to a DataElementOperand
      * value, a DataElement value, or both.
      */
-    private void addToMap( DimensionalItemObject item, Set<? extends DimensionalItemObject> items,
-        DataValue dv, Object value, MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map )
+    private void addToMap( DimensionalItemObject item, DataValue dv, Object value,
+        MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map )
     {
-        if ( !items.contains( item ) )
-        {
-            return;
-        }
-
         Object valueSoFar = map.getValue( dv.getAttributeOptionCombo(), dv.getPeriod(), item );
 
         Object valueToStore = (valueSoFar == null) ? value : addDoubleObjects( value, valueSoFar );

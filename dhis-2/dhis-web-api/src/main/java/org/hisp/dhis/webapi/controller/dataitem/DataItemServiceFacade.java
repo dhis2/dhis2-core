@@ -86,17 +86,17 @@ public class DataItemServiceFacade
      * @return the consolidated collection of entities found.
      */
     List<DataItem> retrieveDataItemEntities(
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final Set<String> filters,
-        final WebOptions options, final OrderParams orderParams )
+        Set<Class<? extends BaseIdentifiableObject>> targetEntities, Set<String> filters,
+        WebOptions options, final OrderParams orderParams )
     {
-        final List<DataItem> dataItems = new ArrayList<>();
+        List<DataItem> dataItems = new ArrayList<>();
 
-        final User currentUser = currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
 
         if ( isNotEmpty( targetEntities ) )
         {
             // Defining the query params map, and setting the common params.
-            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
+            MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
                 currentUser.getUid() );
 
             setFilteringParams( filters, options, paramsMap, currentUser );
@@ -123,7 +123,7 @@ public class DataItemServiceFacade
      */
     Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities( final Set<String> filters )
     {
-        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
+        Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
 
         if ( containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
             DIMENSION_TYPE_IN.getCombination() ) )
@@ -139,16 +139,16 @@ public class DataItemServiceFacade
         return targetedEntities;
     }
 
-    private void addFilteredTargetEntities( final Set<String> filters,
-        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
+    private void addFilteredTargetEntities( Set<String> filters,
+        Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
     {
-        final Iterator<String> iterator = filters.iterator();
+        Iterator<String> iterator = filters.iterator();
 
         while ( iterator.hasNext() )
         {
-            final String filter = iterator.next();
-            final Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter( filter );
-            final Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter( filter );
+            String filter = iterator.next();
+            Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter( filter );
+            Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter( filter );
 
             if ( entity != null || isNotEmpty( entities ) )
             {

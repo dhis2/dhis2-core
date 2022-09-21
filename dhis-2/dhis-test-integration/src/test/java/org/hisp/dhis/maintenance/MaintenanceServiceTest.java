@@ -86,7 +86,6 @@ import com.google.common.collect.Sets;
  */
 class MaintenanceServiceTest extends IntegrationTestBase
 {
-
     @Autowired
     private ProgramInstanceService programInstanceService;
 
@@ -166,7 +165,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     public void setUpTest()
     {
         organisationUnit = createOrganisationUnit( 'A' );
-        long idA = organisationUnitService.addOrganisationUnit( organisationUnit );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
         stageA = createProgramStage( 'A', program );

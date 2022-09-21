@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
@@ -39,6 +38,8 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -56,13 +57,13 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
 @Service( "org.hisp.dhis.analytics.AnalyticsService" )
+@RequiredArgsConstructor
 public class DefaultAnalyticsService
     implements AnalyticsService
 {
@@ -80,23 +81,6 @@ public class DefaultAnalyticsService
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
-    @Autowired
-    public DefaultAnalyticsService( AnalyticsSecurityManager securityManager, QueryValidator queryValidator,
-        DataQueryService dataQueryService, AnalyticsCache analyticsCache, DataAggregator dataAggregator )
-    {
-        checkNotNull( securityManager );
-        checkNotNull( queryValidator );
-        checkNotNull( dataQueryService );
-        checkNotNull( analyticsCache );
-        checkNotNull( dataAggregator );
-
-        this.securityManager = securityManager;
-        this.queryValidator = queryValidator;
-        this.dataQueryService = dataQueryService;
-        this.analyticsCache = analyticsCache;
-        this.dataAggregator = dataAggregator;
-    }
-
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
@@ -106,7 +90,7 @@ public class DefaultAnalyticsService
 
         if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
-            final DataQueryParams immutableParams = newBuilder( params ).build();
+            DataQueryParams immutableParams = newBuilder( params ).build();
 
             return analyticsCache.getOrFetch( params,
                 p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
@@ -232,7 +216,7 @@ public class DefaultAnalyticsService
         queryValidator.validateTableLayout( params, columns, rows );
         queryValidator.validate( params );
 
-        final Visualization visualization = new Visualization();
+        Visualization visualization = new Visualization();
 
         List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
         List<List<DimensionalItemObject>> tableRows = new ArrayList<>();

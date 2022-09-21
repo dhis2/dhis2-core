@@ -43,8 +43,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -62,7 +60,6 @@ import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilt
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -75,9 +72,8 @@ import com.google.common.collect.Sets;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
-@Slf4j
 public class DefaultOrganisationUnitService
-    implements OrganisationUnitService, CurrentUserServiceTarget
+    implements OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
@@ -99,7 +95,7 @@ public class DefaultOrganisationUnitService
 
     private final OrganisationUnitLevelStore organisationUnitLevelStore;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final ConfigurationService configurationService;
 
@@ -128,12 +124,6 @@ public class DefaultOrganisationUnitService
         this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache();
         this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache();
         this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
-    }
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -520,8 +510,7 @@ public class DefaultOrganisationUnitService
                 continue;
             }
 
-            String uid1 = ancestor.getUid();
-            ancestorsUid.add( uid1 );
+            ancestorsUid.add( ancestor.getUid() );
         }
 
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );

@@ -47,6 +47,7 @@ public class PredictionContextGenerator
 {
     private PredictionContextGenerator()
     {
+        throw new UnsupportedOperationException( "util" );
     }
 
     /**

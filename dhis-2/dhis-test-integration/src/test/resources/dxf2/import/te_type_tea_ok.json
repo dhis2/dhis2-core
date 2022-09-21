@@ -1,0 +1,622 @@
+{
+  "options": [
+    {
+      "attributeValues": [],
+      "code": "URBAN",
+      "displayFormName": "Urban",
+      "displayName": "Urban",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "IHYwYAtvjCY",
+      "name": "Urban",
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "sortOrder": 3,
+      "style": {
+        "color": "#ff9500",
+        "icon": "hospital_negative"
+      },
+      "translations": [
+        {
+          "locale": "pt",
+          "property": "NAME",
+          "value": "Urbano"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Urbano"
+        }
+      ],
+      "userAccesses": [],
+      "userGroupAccesses": []
+    },
+    {
+      "attributeValues": [],
+      "code": "RURAL",
+      "displayFormName": "Rural",
+      "displayName": "Rural",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "HxFNfoxk7ac",
+      "name": "Rural",
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "sortOrder": 4,
+      "style": {
+        "color": "#198910",
+        "icon": "proper_roof_positive"
+      },
+      "translations": [
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Rural"
+        },
+        {
+          "locale": "pt",
+          "property": "NAME",
+          "value": "Rural"
+        }
+      ],
+      "userAccesses": [],
+      "userGroupAccesses": []
+    }
+  ],
+  "optionSets": [
+    {
+      "attributeValues": [],
+      "code": "area_urban_rural",
+      "displayName": "Area Urban Rural",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "VWzgQENmzPK",
+      "name": "Area Urban Rural",
+      "options": [
+        {
+          "id": "IHYwYAtvjCY"
+        },
+        {
+          "id": "HxFNfoxk7ac"
+        }
+      ],
+      "publicAccess": "rw------",
+      "translations": [
+        {
+          "locale": "pt",
+          "property": "NAME",
+          "value": "Área Urbana Rural"
+        },
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "Městská venkovská oblast"
+        },
+        {
+          "locale": "fr",
+          "property": "NAME",
+          "value": "Zone urbaine ou rurale"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Área Urbana Rural"
+        }
+      ],
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "valueType": "TEXT",
+      "version": 5
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "aggregationType": "COUNT",
+      "attributeValues": [],
+      "code": "area_urban_rural",
+      "confidential": false,
+      "description": "Whether client lives in an urban or rural setting",
+      "dimensionItem": "YCqoNJZKvAG",
+      "dimensionItemType": "PROGRAM_ATTRIBUTE",
+      "displayDescription": "Whether client lives in an urban or rural setting",
+      "displayFormName": "Area",
+      "displayInListNoProgram": false,
+      "displayName": "Area Urban Rural",
+      "displayOnVisitSchedule": false,
+      "displayShortName": "Area Urban Rural",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "formName": "Area",
+      "generated": false,
+      "id": "YCqoNJZKvAG",
+      "inherit": false,
+      "legendSets": [],
+      "name": "Area Urban Rural",
+      "optionSet": {
+        "id": "VWzgQENmzPK"
+      },
+      "optionSetValue": true,
+      "orgunitScope": false,
+      "pattern": "",
+      "publicAccess": "rw------",
+      "shortName": "Area Urban Rural",
+      "skipSynchronization": false,
+      "translations": [
+        {
+          "locale": "fr",
+          "property": "FORM_NAME",
+          "value": "Zone"
+        },
+        {
+          "locale": "pt",
+          "property": "DESCRIPTION",
+          "value": "Se o paciente mora em um ambiente urbano ou rural"
+        },
+        {
+          "locale": "pt",
+          "property": "NAME",
+          "value": "Área Urbana Rural"
+        },
+        {
+          "locale": "cs",
+          "property": "DESCRIPTION",
+          "value": "Ať už klient žije v městském nebo venkovském prostředí"
+        },
+        {
+          "locale": "fr",
+          "property": "SHORT_NAME",
+          "value": "Zone urbaine ou rurale"
+        },
+        {
+          "locale": "es",
+          "property": "SHORT_NAME",
+          "value": "Área Urbana Rural"
+        },
+        {
+          "locale": "cs",
+          "property": "FORM_NAME",
+          "value": "Oblast"
+        },
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "Městská venkovská oblast"
+        },
+        {
+          "locale": "es",
+          "property": "DESCRIPTION",
+          "value": "Si el cliente vive en un entorno urbano o rural"
+        },
+        {
+          "locale": "fr",
+          "property": "DESCRIPTION",
+          "value": "Le client vit en milieu urbain ou rural"
+        },
+        {
+          "locale": "cs",
+          "property": "SHORT_NAME",
+          "value": "Městská venkovská oblast"
+        },
+        {
+          "locale": "pt",
+          "property": "FORM_NAME",
+          "value": "Área"
+        },
+        {
+          "locale": "pt",
+          "property": "SHORT_NAME",
+          "value": "Área Urbana Rural"
+        },
+        {
+          "locale": "fr",
+          "property": "NAME",
+          "value": "Zone urbaine ou rurale"
+        },
+        {
+          "locale": "es",
+          "property": "FORM_NAME",
+          "value": "Área"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Área Urbana Rural"
+        }
+      ],
+      "unique": false,
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "valueType": "TEXT"
+    }
+  ],
+  "trackedEntityTypes": [
+    {
+      "allowAuditLog": false,
+      "attributeValues": [],
+      "code": "Person",
+      "description": "Person",
+      "displayDescription": "Person",
+      "displayFormName": "Person",
+      "displayName": "Person",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "featureType": "NONE",
+      "id": "NdUUIOhQPcu",
+      "maxTeiCountToReturn": 0,
+      "minAttributesRequiredToSearch": 1,
+      "name": "Person",
+      "publicAccess": "--------",
+      "style": {
+        "icon": "man_positive"
+      },
+      "trackedEntityTypeAttributes": [
+        {
+          "attributeValues": [],
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "externalAccess": false,
+          "favorite": false,
+          "favorites": [],
+          "id": "hKZ9AJpnVcG",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "YCqoNJZKvAG"
+          },
+          "trackedEntityType": {
+            "id": "NdUUIOhQPcu"
+          },
+          "translations": [],
+          "userAccesses": [],
+          "userGroupAccesses": [],
+          "valueType": "TEXT"
+        }
+      ],
+      "translations": [
+        {
+          "locale": "es",
+          "property": "DESCRIPTION",
+          "value": "Persona"
+        },
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "Osoba"
+        },
+        {
+          "locale": "uz",
+          "property": "NAME",
+          "value": "Шахс"
+        },
+        {
+          "locale": "id",
+          "property": "NAME",
+          "value": "Nama Belakang"
+        },
+        {
+          "locale": "uz_UZ",
+          "property": "NAME",
+          "value": "Shaxs"
+        },
+        {
+          "locale": "uz",
+          "property": "DESCRIPTION",
+          "value": "Шахс"
+        },
+        {
+          "locale": "pt",
+          "property": "DESCRIPTION",
+          "value": "Pessoa"
+        },
+        {
+          "locale": "fr",
+          "property": "DESCRIPTION",
+          "value": "Personne"
+        },
+        {
+          "locale": "nb",
+          "property": "DESCRIPTION",
+          "value": "Person"
+        },
+        {
+          "locale": "id",
+          "property": "DESCRIPTION",
+          "value": "Nama Belakang"
+        },
+        {
+          "locale": "nb",
+          "property": "NAME",
+          "value": "Person"
+        },
+        {
+          "locale": "uz_UZ",
+          "property": "DESCRIPTION",
+          "value": "Shaxs"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "Persona"
+        },
+        {
+          "locale": "fr",
+          "property": "NAME",
+          "value": "Personne"
+        },
+        {
+          "locale": "cs",
+          "property": "DESCRIPTION",
+          "value": "Osoba"
+        },
+        {
+          "locale": "pt",
+          "property": "NAME",
+          "value": "Pessoa"
+        }
+      ],
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "r-r-----",
+          "displayName": "COVAC - Covid-19 Immunization Data Analysis",
+          "id": "VLIaHu6ou8E",
+          "userGroupUid": "VLIaHu6ou8E"
+        },
+        {
+          "access": "rwrw----",
+          "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
+          "id": "AEAQ9LktNze",
+          "userGroupUid": "AEAQ9LktNze"
+        },
+        {
+          "access": "r-rw----",
+          "displayName": "COVAC - Covid-19 Immunization Data Entry",
+          "id": "q3Nh5xhJEy2",
+          "userGroupUid": "q3Nh5xhJEy2"
+        }
+      ]
+    },
+    {
+      "featureType": "NONE",
+      "userAccesses": [],
+      "attributeValues": [],
+      "maxTeiCountToReturn": 0,
+      "id": "bPJ0FMtcnEh",
+      "userGroupAccesses": [],
+      "publicAccess": "rw------",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdated": "2019-03-29T09:20:08.103",
+      "trackedEntityTypeAttributes": [
+        {
+          "translations": [],
+          "name": "Person Name",
+          "displayInList": false,
+          "trackedEntityType": {
+            "id": "bPJ0FMtcnEh"
+          },
+          "displayName": "Person Name",
+          "favorites": [],
+          "created": "2019-03-29T09:20:08.081",
+          "displayShortName": "null Name",
+          "lastUpdated": "2019-03-29T09:20:08.104",
+          "access": {
+            "externalize": true,
+            "read": true,
+            "manage": true,
+            "delete": true,
+            "update": true,
+            "write": true
+          },
+          "valueType": "TEXT",
+          "searchable": false,
+          "id": "QGq7SitG1U4",
+          "userGroupAccesses": [],
+          "externalAccess": false,
+          "attributeValues": [],
+          "mandatory": true,
+          "trackedEntityAttribute": {
+            "id": "YCqoNJZKvAG"
+          },
+          "favorite": false,
+          "userAccesses": []
+        }
+      ],
+      "created": "2019-03-29T09:20:08.103",
+      "allowAuditLog": false,
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "translations": [],
+      "name": "Person1"
+    }
+  ],
+  "userGroups": [
+    {
+      "attributeValues": [],
+      "displayName": "COVAC - Covid-19 Immunization Data Analysis",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "VLIaHu6ou8E",
+      "managedByGroups": [],
+      "managedGroups": [],
+      "name": "COVAC - Covid-19 Immunization Data Analysis",
+      "publicAccess": "rw------",
+      "translations": [
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "COVAC - Analýza dat imunizace Covid-19"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "COVAC - Análisis de datos de inmunización Covid-19"
+        }
+      ],
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "users": []
+    },
+    {
+      "attributeValues": [],
+      "displayName": "COVAC - Covid-19 Immunization Data Entry",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "q3Nh5xhJEy2",
+      "managedByGroups": [],
+      "managedGroups": [],
+      "name": "COVAC - Covid-19 Immunization Data Entry",
+      "publicAccess": "rw------",
+      "translations": [
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "COVAC - vstup dat imunizace Covid-19"
+        },
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "COVAC - Entrada de datos de inmunización Covid-19"
+        }
+      ],
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "users": []
+    },
+    {
+      "attributeValues": [],
+      "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "id": "AEAQ9LktNze",
+      "managedByGroups": [],
+      "managedGroups": [],
+      "name": "COVAC - Covid-19 Immunization Metadata Admin",
+      "publicAccess": "rw------",
+      "translations": [
+        {
+          "locale": "es",
+          "property": "NAME",
+          "value": "COVAC - Administrador de metadatos de inmunización Covid-19"
+        },
+        {
+          "locale": "cs",
+          "property": "NAME",
+          "value": "COVAC - správce metadat imunizace Covid-19"
+        }
+      ],
+      "user": {
+        "id": "vUeLeQMSwhN"
+      },
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "users": []
+    }
+  ],
+  "users": [
+    {
+      "attributeValues": [],
+      "dataViewOrganisationUnits": [],
+      "displayName": "Admin WHO",
+      "externalAccess": false,
+      "favorite": false,
+      "favorites": [],
+      "firstName": "Admin",
+      "id": "vUeLeQMSwhN",
+      "name": "Admin WHO",
+      "organisationUnits": [],
+      "surname": "WHO",
+      "teiSearchOrganisationUnits": [],
+      "translations": [],
+      "userAccesses": [],
+        "catDimensionConstraints": [],
+        "cogsDimensionConstraints": [],
+        "disabled": false,
+        "externalAuth": false,
+        "invitation": false,
+        "lastLogin": "2020-04-23T09:17:46.912",
+        "passwordLastUpdated": "2019-10-16T12:06:30.668",
+        "selfRegistered": false,
+        "twoFA": false,
+        "userGroupAccesses": [],
+        "userRoles": [
+          {
+            "id": "rKLtmQLRMU8"
+          }
+        ],
+        "username": "who"
+    }
+  ],
+  "userRoles": [
+    {
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_EXTERNAL",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_VISUALIZATION_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "id": "yrB6vc5Ip3r",
+      "lastUpdated": "2016-02-17T06:14:12.260+0000",
+      "name": "SuperuserX",
+      "userGroupAccesses": [ ],
+      "dataSets": [ ],
+      "programs": [ ],
+      "created": "2016-02-17T06:14:12.260+0000",
+      "publicAccess": "--------"
+    }]
+}

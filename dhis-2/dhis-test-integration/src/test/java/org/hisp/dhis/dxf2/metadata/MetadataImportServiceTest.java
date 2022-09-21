@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,14 +49,17 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.ThematicMapType;
@@ -98,9 +102,6 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DataSetService dataSetService;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -640,7 +641,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
         dbmsManager.clearSession();
-        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+        DataSet dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
         assertNotNull( dataset.getSections() );
         assertNotNull( manager.get( Section.class, "JwcV2ZifEQf" ) );
         metadata = renderService.fromMetadata(
@@ -714,7 +715,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
-        DataSet dataset = dataSetService.getDataSet( "em8Bg4LCr5k" );
+        DataSet dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
         assertNotNull( dataset.getSections() );
         assertNotNull( dataset.getDataElements() );
         assertTrue( dataset.getDataElements().stream().map( de -> de.getUid() ).collect( Collectors.toList() )
@@ -823,6 +824,63 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void testImportUserLegacyFormat()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/create_user_with_legacy_format.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        assertNotNull( manager.get( User.class, "sPWjoHSY03y" ) );
+    }
+
+    @Test
+    void testImportUserLegacyFormatWithPersistedReferences()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> userRoles = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/userrole.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, userRoles );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        User user = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( user );
+        assertTrue( user.getUserRoles().stream().anyMatch( userRole -> userRole.getUid().equals( "xJZBzAHI88H" ) ) );
+    }
+
+    @Test
+    void testImportUserNewFormatWithPersistedReferences()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> userRoles = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/userrole_new.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, userRoles );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/user_new.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+        User user = manager.get( User.class, "sPWjoHSY03y" );
+        assertNotNull( user );
+        assertTrue( user.getUserRoles().stream().anyMatch( userRole -> userRole.getUid().equals( "xJZBzAHI88H" ) ) );
+    }
+
+    @Test
     void testImportMapCreateAndUpdate()
         throws IOException
     {
@@ -889,7 +947,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
         assertEquals( 1, programStage.getSharing().getUserGroups().size() );
-        Program program = manager.get( "QIHW6CBdLsP" );
+        Program program = manager.get( Program.class, "QIHW6CBdLsP" );
         assertEquals( 1, program.getSharing().getUserGroups().size() );
     }
 
@@ -924,6 +982,71 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization.getLegendDefinitions().getLegendSet() );
         assertEquals( "CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid() );
+    }
+
+    @Test
+    void testImportAggregateDataExchange()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/aggregate_data_exchange.json" ).getInputStream(), RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        TypeReport typeReport = report.getTypeReport( AggregateDataExchange.class );
+
+        assertNotNull( report.getStats() );
+        assertNotNull( typeReport );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+        assertEquals( 0, report.getErrorReportsCount() );
+        assertEquals( 6, report.getStats().getCreated() );
+        assertEquals( 3, typeReport.getStats().getCreated() );
+
+        AggregateDataExchange aeA = manager.get( AggregateDataExchange.class, "iFOyIpQciyk" );
+        assertNotNull( aeA );
+        assertNotNull( aeA.getSource() );
+        assertNotNull( aeA.getSource().getParams() );
+        assertNotEmpty( aeA.getSource().getParams().getPeriodTypes() );
+        assertNotNull( aeA.getSource().getRequests() );
+        SourceRequest srA = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srA );
+        assertNotNull( srA.getName() );
+        assertNotNull( srA.getVisualization() );
+        assertNotNull( aeA.getTarget() );
+        assertEquals( "iFOyIpQciyk", aeA.getUid() );
+        assertEquals( TargetType.INTERNAL, aeA.getTarget().getType() );
+
+        AggregateDataExchange aeB = manager.get( AggregateDataExchange.class, "PnWccbwCJLQ" );
+        assertNotNull( aeB );
+        assertNotNull( aeB.getSource() );
+        assertNotNull( aeB.getSource().getParams() );
+        assertNotEmpty( aeB.getSource().getParams().getPeriodTypes() );
+        assertNotNull( aeB.getSource().getRequests() );
+        SourceRequest srB = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srB );
+        assertNotNull( srB.getName() );
+        assertNotNull( srB.getVisualization() );
+        assertNotNull( aeB.getTarget() );
+        assertEquals( "PnWccbwCJLQ", aeB.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeB.getTarget().getApi().getUrl() );
+        assertEquals( "admin", aeB.getTarget().getApi().getUsername() );
+        assertNotNull( aeB.getTarget().getApi().getPassword() );
+
+        AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
+        assertNotNull( aeC );
+        assertNotNull( aeC.getSource() );
+        assertNotNull( aeC.getSource().getParams() );
+        assertNotEmpty( aeC.getSource().getParams().getPeriodTypes() );
+        assertNotNull( aeC.getSource().getRequests() );
+        SourceRequest srC = aeA.getSource().getRequests().get( 0 );
+        assertNotNull( srC );
+        assertNotNull( srC.getName() );
+        assertNotNull( srC.getVisualization() );
+        assertNotNull( aeC.getTarget() );
+        assertEquals( "VpQ4qVEseyM", aeC.getUid() );
+        assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );
+        assertEquals( "https://play.dhis2.org/2.38.1", aeC.getTarget().getApi().getUrl() );
+        assertNotNull( aeC.getTarget().getApi().getAccessToken() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

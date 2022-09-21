@@ -32,7 +32,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.Status;
@@ -49,7 +48,7 @@ import org.springframework.retry.RetryContext;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-class MetadataRetryContextTest extends DhisSpringTest
+class MetadataRetryContextTest
 {
     @Mock
     RetryContext retryContext;

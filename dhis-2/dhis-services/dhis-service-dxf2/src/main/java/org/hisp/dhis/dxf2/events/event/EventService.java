@@ -58,10 +58,10 @@ public interface EventService
 
     Grid getEventsGrid( EventSearchParams params );
 
-    Event getEvent( ProgramStageInstance programStageInstance );
+    Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships );
 
     Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck );
+        boolean skipOwnershipCheck, boolean includeRelationships );
 
     // TODO remove these 2 methods and move the logic to the front-end
     List<Event> getEventsXml( InputStream inputStream )

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.system.deletion;
 
+import static java.lang.String.format;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -137,7 +139,7 @@ public class DefaultDeletionManager
                 {
                     ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, veto.getMessage() );
 
-                    log.debug( "Delete was not allowed by " + handlerName + ": " + errorMessage.toString() );
+                    log.debug( "Delete was not allowed by " + handlerName + ": " + errorMessage );
 
                     throw new DeleteNotAllowedException( errorMessage );
                 }
@@ -150,7 +152,9 @@ public class DefaultDeletionManager
         catch ( Exception ex )
         {
             log.error( "Deletion failed, veto handler '" + handlerName + "' threw an exception: ", ex );
-            return;
+            throw new DeleteNotAllowedException( new ErrorMessage( ErrorCode.E4060,
+                format( "handler '%s' threw an exception while trying to find related objects: %s", handlerName,
+                    ex.getMessage() ) ) );
         }
 
         // ---------------------------------------------------------------------
@@ -172,7 +176,9 @@ public class DefaultDeletionManager
         catch ( Exception ex )
         {
             log.error( "Deletion failed, deletion handler '" + handlerName + "' threw an exception: ", ex );
-            return;
+            throw new DeleteNotAllowedException( new ErrorMessage( ErrorCode.E4060,
+                format( "handler '%s' threw an exception while removing related objects: %s", handlerName,
+                    ex.getMessage() ) ) );
         }
 
         log.debug( "Deleted objects associated with object of type " + className );

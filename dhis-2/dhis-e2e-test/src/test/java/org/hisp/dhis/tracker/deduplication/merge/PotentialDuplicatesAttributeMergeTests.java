@@ -126,9 +126,8 @@ public class PotentialDuplicatesAttributeMergeTests
             .appendRootPath( String.format( "find{it.trackedEntityAttribute.id=='%s'}", attributes.get( 1 ) ) )
             .body( "value", equalTo( "attribute B" ) )
             .body( "auditType", equalTo( "CREATE" ) )
-            .rootPath(
-                String.format( "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}",
-                    attributes.get( 0 ) ) )
+            .rootPath( String.format(
+                "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}", attributes.get( 0 ) ) )
             .body( "value", equalTo( "attribute A - changed" ) )
             .body( "auditType", equalTo( "UPDATE" ) );
     }

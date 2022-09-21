@@ -119,7 +119,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class JdbcEventAnalyticsTableManagerTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -258,7 +257,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withColumnSize( 53 )
+            .withColumnSize( 55 )
             .withDefaultColumns( subject.getFixedColumns() )
             .addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
@@ -319,7 +318,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 60 )
+            .withColumnSize( 62 )
             .addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
@@ -375,7 +374,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 55 ).addColumns( periodColumns )
+            .withColumnSize( 57 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) )
             // Second Geometry column created from the OU column above
@@ -456,6 +455,44 @@ class JdbcEventAnalyticsTableManagerTest
 
         assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
         assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
+    }
+
+    @Test
+    void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable()
+    {
+        // Given fixtures/expectations
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
+        Program programA = createProgram( 'A' );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
+        tea.setId( 9999 );
+
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
+            tea );
+
+        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
+
+        when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true ), Integer.class ) )
+            .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
+        // When
+        subject.populateTable( params,
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+
+        // Then
+        verify( jdbcTemplate ).execute( sql.capture() );
+
+        String ouEnrollmentLeftJoin = "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid";
+        String ouRegistrationLeftJoin = "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid";
+
+        assertThat( sql.getValue(), containsString( ouEnrollmentLeftJoin ) );
+        assertThat( sql.getValue(), containsString( ouRegistrationLeftJoin ) );
     }
 
     @Test
@@ -623,7 +660,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        final String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 

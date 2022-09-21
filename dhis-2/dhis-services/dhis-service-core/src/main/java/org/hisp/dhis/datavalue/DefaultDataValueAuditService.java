@@ -29,9 +29,12 @@ package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,11 +56,20 @@ public class DefaultDataValueAuditService
 
     private final DataValueAuditStore dataValueAuditStore;
 
-    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore )
+    private final DataValueStore dataValueStore;
+
+    private final CategoryOptionComboStore categoryOptionComboStore;
+
+    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore, DataValueStore dataValueStore,
+        CategoryOptionComboStore categoryOptionComboStore )
     {
         checkNotNull( dataValueAuditStore );
+        checkNotNull( dataValueStore );
+        checkNotNull( categoryOptionComboStore );
 
         this.dataValueAuditStore = dataValueAuditStore;
+        this.dataValueStore = dataValueStore;
+        this.categoryOptionComboStore = categoryOptionComboStore;
     }
 
     // -------------------------------------------------------------------------
@@ -89,7 +101,14 @@ public class DefaultDataValueAuditService
     @Transactional( readOnly = true )
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
-        return dataValueAuditStore.getDataValueAudits( dataValue );
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataValue.getDataElement() ) )
+            .setPeriods( List.of( dataValue.getPeriod() ) )
+            .setOrgUnits( List.of( dataValue.getSource() ) )
+            .setCategoryOptionCombo( dataValue.getCategoryOptionCombo() )
+            .setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+
+        return dataValueAuditStore.getDataValueAudits( params );
     }
 
     @Override
@@ -98,37 +117,69 @@ public class DefaultDataValueAuditService
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
-        return dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
-            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
+        List<DataValueAudit> dataValueAudits = new ArrayList<>();
+        List<DataValueAudit> audits = new ArrayList<>();
+
+        CategoryOptionCombo defaultCoc = categoryOptionComboStore
+            .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+
+        DataValue dataValue = dataValueStore.getDataValue( dataElement, period, organisationUnit,
+            categoryOptionCombo, defaultCoc );
+
+        // if for whatever reason the DV is null, we just return a empty list
+        if ( dataValue == null )
+        {
+            return audits;
+        }
+
+        DataValueAudit currentDataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
+            dataValue.getStoredBy(), AuditType.UPDATE );
+
+        // inject current data value into audit list
+        dataValueAudits.add( currentDataValueAudit );
+
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElement ) )
+            .setPeriods( List.of( period ) )
+            .setOrgUnits( List.of( organisationUnit ) )
+            .setCategoryOptionCombo( categoryOptionCombo )
+            .setAttributeOptionCombo( attributeOptionCombo );
+
+        dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( params ) );
+
+        for ( int i = 0; i < dataValueAudits.size(); i++ )
+        {
+            DataValueAudit dva = dataValueAudits.get( i );
+            DataValueAudit dataValueAudit = DataValueAudit.from( dva );
+            audits.add( dataValueAudit );
+
+            if ( i < dataValueAudits.size() - 1 )
+            {
+                dataValueAudit.setCreated( dataValueAudits.get( i + 1 ).getCreated() );
+                dataValueAudit.setModifiedBy( dataValueAudits.get( i + 1 ).getModifiedBy() );
+            }
+            else if ( i == dataValueAudits.size() - 1 )
+            {
+                dataValueAudit.setAuditType( AuditType.CREATE );
+                dataValueAudit.setCreated( dataValue.getCreated() );
+                dataValueAudit.setModifiedBy( dataValue.getStoredBy() );
+            }
+        }
+
+        return audits;
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType )
+    public List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType );
+        return dataValueAuditStore.getDataValueAudits( params );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+    public int countDataValueAudits( DataValueAuditQueryParams params )
     {
-        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType, first, max );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
-    {
-        return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
-            attributeOptionCombo, auditType );
+        return dataValueAuditStore.countDataValueAudits( params );
     }
 }

@@ -166,7 +166,7 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder()
+        DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
             .apiVersion( apiVersion )
             .skipMeta( true ).build();
@@ -204,7 +204,7 @@ public class AnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder()
+        DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
             .apiVersion( apiVersion ).build();
 
@@ -223,7 +223,7 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder()
+        DataQueryRequest request = DataQueryRequest.newBuilder()
             .fromCriteria( criteria )
             .apiVersion( apiVersion ).build();
 

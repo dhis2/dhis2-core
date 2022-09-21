@@ -84,7 +84,8 @@ public class DefaultUserSettingService
 
     public DefaultUserSettingService( CacheProvider cacheProvider,
         CurrentUserService currentUserService,
-        UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
+        UserSettingStore userSettingStore, UserService userService,
+        SystemSettingManager systemSettingManager )
     {
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
@@ -148,6 +149,24 @@ public class DefaultUserSettingService
             userSetting.setValue( value );
 
             userSettingStore.updateUserSetting( userSetting );
+        }
+    }
+
+    @Override
+    @Transactional
+    public void saveUserSettings( UserSettings settings, User user )
+    {
+        if ( settings == null )
+        {
+            return; // nothing to do
+        }
+        for ( UserSettingKey key : UserSettingKey.values() )
+        {
+            Serializable value = key.getGetter().apply( settings );
+            if ( value != null )
+            {
+                saveUserSetting( key, value, user );
+            }
         }
     }
 

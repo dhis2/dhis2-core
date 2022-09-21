@@ -91,24 +91,6 @@ public class RedisNotifier implements Notifier
     // -------------------------------------------------------------------------
 
     @Override
-    public Notifier notify( JobConfiguration id, String message )
-    {
-        return notify( id, NotificationLevel.INFO, message, false );
-    }
-
-    @Override
-    public Notifier update( JobConfiguration id, String message, boolean completed )
-    {
-        return notify( id, NotificationLevel.INFO, message, completed );
-    }
-
-    @Override
-    public Notifier notify( JobConfiguration id, NotificationLevel level, String message )
-    {
-        return notify( id, level, message, false );
-    }
-
-    @Override
     public Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !(level != null && level.isOff()) )
@@ -145,29 +127,6 @@ public class RedisNotifier implements Notifier
 
             NotificationLoggerUtil.log( log, level, message );
         }
-        return this;
-    }
-
-    @Override
-    public Notifier update( JobConfiguration id, String message )
-    {
-        return update( id, NotificationLevel.INFO, message, false );
-    }
-
-    @Override
-    public Notifier update( JobConfiguration id, NotificationLevel level, String message )
-    {
-        return update( id, level, message, false );
-    }
-
-    @Override
-    public Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed )
-    {
-        if ( id != null && !(level != null && level.isOff()) )
-        {
-            notify( id, level, message, completed );
-        }
-
         return this;
     }
 
@@ -226,14 +185,8 @@ public class RedisNotifier implements Notifier
     }
 
     @Override
-    public Notifier addJobSummary( JobConfiguration id, Object jobSummary, Class<?> jobSummaryType )
-    {
-        return addJobSummary( id, NotificationLevel.INFO, jobSummary, jobSummaryType );
-    }
-
-    @Override
-    public Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary,
-        Class<?> jobSummaryType )
+    public <T> Notifier addJobSummary( JobConfiguration id, NotificationLevel level, T jobSummary,
+        Class<T> jobSummaryType )
     {
         if ( id != null && !(level != null && level.isOff()) && jobSummary.getClass().equals( jobSummaryType ) )
         {

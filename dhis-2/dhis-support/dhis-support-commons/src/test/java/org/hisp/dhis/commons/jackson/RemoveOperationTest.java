@@ -39,7 +39,6 @@ import java.util.Map;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,10 +53,8 @@ import com.fasterxml.jackson.databind.node.TextNode;
  */
 class RemoveOperationTest
 {
-
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Disabled( "for now we will allow 'removal' of invalid path keys" )
     @Test
     void testRemoveInvalidKeyShouldThrowException()
         throws JsonProcessingException

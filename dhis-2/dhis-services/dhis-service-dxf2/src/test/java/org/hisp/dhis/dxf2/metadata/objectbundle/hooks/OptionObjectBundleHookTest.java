@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.mock;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -54,7 +56,7 @@ import org.junit.jupiter.api.Test;
 class OptionObjectBundleHookTest
 {
 
-    private OptionObjectBundleHook hook = new OptionObjectBundleHook();
+    private OptionObjectBundleHook hook = new OptionObjectBundleHook( mock( OptionService.class ) );
 
     private Preheat preheat = new Preheat();
 

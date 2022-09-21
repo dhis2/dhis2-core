@@ -228,22 +228,32 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public List<LockException> getLockExceptionsBetween( int first, int max )
+    public List<LockException> getDataWriteLockExceptions()
     {
-        return lockExceptionStore.getAllOrderedName( first, max );
+        return lockExceptionStore.getLockExceptions( dataSetStore.getDataWriteAll() );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<LockException> getLockExceptionCombinations()
     {
-        return lockExceptionStore.getCombinations();
+        return lockExceptionStore.getLockExceptionCombinations();
     }
 
     @Override
     @Transactional( readOnly = true )
-    public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now )
+    public LockStatus getLockStatus( DataSet dataSet, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
+    {
+        User user = currentUserService.getCurrentUser();
+
+        return getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo, user, new Date() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now )
     {
         if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
         {
@@ -260,12 +270,12 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
+    public LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, User user, Date now, boolean useOrgUnitChildren )
     {
         if ( !useOrgUnitChildren )
         {
-            return getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo, now );
+            return getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo, user, now );
         }
 
         if ( organisationUnit == null || !organisationUnit.hasChild() )
@@ -275,7 +285,7 @@ public class DefaultDataSetService
 
         for ( OrganisationUnit child : organisationUnit.getChildren() )
         {
-            LockStatus childLockStatus = getLockStatus( user, dataSet, period, child, attributeOptionCombo, now );
+            LockStatus childLockStatus = getLockStatus( dataSet, period, child, attributeOptionCombo, user, now );
             if ( !childLockStatus.isOpen() )
             {
                 return childLockStatus;
@@ -287,9 +297,8 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public LockStatus getLockStatus( User user, DataElement dataElement, Period period,
-        OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now )
+    public LockStatus getLockStatus( DataElement dataElement, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, User user, Date now )
     {
         if ( user == null || !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
@@ -322,21 +331,21 @@ public class DefaultDataSetService
     @Transactional
     public void deleteLockExceptionCombination( DataSet dataSet, Period period )
     {
-        lockExceptionStore.deleteCombination( dataSet, period );
+        lockExceptionStore.deleteLockExceptions( dataSet, period );
     }
 
     @Override
     @Transactional
     public void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
-        lockExceptionStore.deleteCombination( dataSet, period, organisationUnit );
+        lockExceptionStore.deleteLockExceptions( dataSet, period, organisationUnit );
     }
 
     @Override
     @Transactional
     public void deleteLockExceptions( OrganisationUnit organisationUnit )
     {
-        lockExceptionStore.delete( organisationUnit );
+        lockExceptionStore.deleteLockExceptions( organisationUnit );
     }
 
     @Override

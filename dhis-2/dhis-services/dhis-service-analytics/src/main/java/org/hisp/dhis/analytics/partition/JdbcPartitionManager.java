@@ -33,13 +33,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -49,13 +49,13 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "org.hisp.dhis.analytics.partition.PartitionManager" )
+@RequiredArgsConstructor
 public class JdbcPartitionManager
     implements PartitionManager
 {
     private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public Set<String> getAnalyticsPartitions( AnalyticsTableType tableType )
@@ -65,7 +65,7 @@ public class JdbcPartitionManager
             return analyticsPartitions.get( tableType );
         }
 
-        final String sql = "select table_name from information_schema.tables " +
+        String sql = "select table_name from information_schema.tables " +
             "where table_name like '" + tableType.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
 
@@ -81,7 +81,7 @@ public class JdbcPartitionManager
     @Override
     public boolean tableExists( String table )
     {
-        final String sql = "select count(table_name) from information_schema.tables " +
+        String sql = "select count(table_name) from information_schema.tables " +
             "where table_name = '" + table + "' " +
             "and table_type = 'BASE TABLE'";
 

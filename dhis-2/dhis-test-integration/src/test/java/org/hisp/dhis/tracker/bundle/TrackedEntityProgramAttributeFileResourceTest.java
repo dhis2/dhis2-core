@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -87,7 +87,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
         assertFalse( fileResource.isAssigned() );
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/te_program_with_tea_fileresource_data.json" ) );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

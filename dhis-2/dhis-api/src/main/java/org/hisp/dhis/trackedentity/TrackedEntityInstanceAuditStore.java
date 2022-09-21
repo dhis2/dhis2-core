@@ -40,24 +40,26 @@ public interface TrackedEntityInstanceAuditStore
     String ID = TrackedEntityInstanceAuditStore.class.getName();
 
     /**
-     * Adds tracked entity instance audit
+     * Adds the given tracked entity instance audit.
      *
-     * @param trackedEntityInstanceAudit the audit to add
+     * @param trackedEntityInstanceAudit the {@link TrackedEntityInstanceAudit}
+     *        to add.
      */
     void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
 
     /**
-     * Adds multiple {@see TrackedEntityInstanceAudit} instances to the database
+     * Adds the given {@link TrackedEntityInstanceAudit} instances.
      *
-     * @param trackedEntityInstanceAudit the audit to add
+     * @param trackedEntityInstanceAudit the list of
+     *        {@link TrackedEntityInstanceAudit}.
      */
     void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit );
 
     /**
      * Deletes tracked entity instance audit for the given tracked entity
-     * instance
+     * instance.
      *
-     * @param trackedEntityInstance the tracked entity instance
+     * @param trackedEntityInstance the {@link TrackedEntityInstance}.
      */
     void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );
 
@@ -65,7 +67,7 @@ public interface TrackedEntityInstanceAuditStore
      * Returns tracked entity instance audits matching query params
      *
      * @param params tracked entity instance audit query params
-     * @return matching TrackedEntityInstanceAudits
+     * @return a list of {@link TrackedEntityInstanceAudit}.
      */
     List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
 
@@ -73,7 +75,7 @@ public interface TrackedEntityInstanceAuditStore
      * Returns count of tracked entity instance audits matching query params
      *
      * @param params tracked entity instance audit query params
-     * @return count of TrackedEntityInstanceAudits
+     * @return count of audits.
      */
     int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 }

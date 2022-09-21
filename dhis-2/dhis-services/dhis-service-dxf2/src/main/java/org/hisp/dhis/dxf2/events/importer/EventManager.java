@@ -365,7 +365,7 @@ public class EventManager
             else if ( !dv.getValue().equals( eventDataValue.getValue() ) )
             {
                 auditType = AuditType.UPDATE;
-                persistedDataValue = dv.getValue();
+                persistedDataValue = eventDataValue.getValue();
             }
 
             TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();

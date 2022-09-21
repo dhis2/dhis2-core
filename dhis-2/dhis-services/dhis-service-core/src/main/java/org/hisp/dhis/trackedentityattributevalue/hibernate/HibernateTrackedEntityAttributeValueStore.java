@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue.hibernate;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,34 +110,6 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> entityInstances )
-    {
-        if ( entityInstances == null || entityInstances.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
-
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances",
-            entityInstances );
-
-        return getList( typedQuery );
-    }
-
-    @Override
-    public List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText )
-    {
-        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :searchText";
-
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
-            .setParameter( "attribute", attribute )
-            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText ) + "%" );
-
-        return getList( typedQuery );
-    }
-
-    @Override
     public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, Collection<String> values )
     {
         String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) in :values";
@@ -177,7 +148,7 @@ public class HibernateTrackedEntityAttributeValueStore
     @Override
     public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
     {
-        Query query = getQuery(
+        Query<?> query = getQuery(
             "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
         query.setParameter( "attribute", attribute );
 

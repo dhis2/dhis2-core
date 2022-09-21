@@ -325,7 +325,9 @@ public class FieldPathHelper
             || Sharing.class.isAssignableFrom( property.getKlass() )
             || Access.class.isAssignableFrom( property.getKlass() )
             || UserAccess.class.isAssignableFrom( property.getKlass() )
-            || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
+            || org.hisp.dhis.user.UserAccess.class.isAssignableFrom( property.getKlass() )
+            || UserGroupAccess.class.isAssignableFrom( property.getKlass() )
+            || org.hisp.dhis.user.UserGroupAccess.class.isAssignableFrom( property.getKlass() );
     }
 
     /**

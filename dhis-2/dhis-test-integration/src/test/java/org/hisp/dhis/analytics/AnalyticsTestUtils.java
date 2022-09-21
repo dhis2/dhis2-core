@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.analytics;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
@@ -88,8 +92,8 @@ public class AnalyticsTestUtils
                     key.append( "-" );
                 }
             }
-            Double expected = (Double) keyValue.get( key.toString() );
-            Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
+            Number expected = (Number) keyValue.get( key.toString() );
+            Number actual = (Number) aggregatedResultData.getValue( i, numberOfDimensions );
             assertNotNull( expected, "Did not find " + key + " in provided results" );
             assertNotNull( aggregatedResultData.getRow( i ) );
             assertEquals( expected, actual,
@@ -110,10 +114,17 @@ public class AnalyticsTestUtils
         {
             String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
             assertNotNull( keyValue.get( key ) );
-            Double actual = Double.parseDouble( dataValue.getValue() );
-            Double expected = (Double) keyValue.get( key );
-            assertEquals( expected, actual,
-                "Value for key: '" + key + "' not matching expected value: '" + expected + "'" );
+            try
+            {
+                Number actual = NumberFormat.getInstance().parse( dataValue.getValue() );
+                Number expected = (Number) keyValue.get( key );
+                assertEquals( expected, actual,
+                    "Value for key: '" + key + "' not matching expected value: '" + expected + "'" );
+            }
+            catch ( ParseException e )
+            {
+                fail( format( "Failed to parse number: %s. Error: %s", dataValue.getValue(), e.getMessage() ) );
+            }
         }
     }
 }

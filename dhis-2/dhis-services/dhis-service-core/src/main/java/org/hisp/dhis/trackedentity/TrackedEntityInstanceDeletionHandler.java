@@ -51,13 +51,13 @@ public class TrackedEntityInstanceDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        String sql = "select count(*) from trackedentityinstance where organisationunitid = :id";
+        String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", unit.getId() ) );
     }
 
     private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = :id";
+        String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", trackedEntityType.getId() ) );
     }
 }

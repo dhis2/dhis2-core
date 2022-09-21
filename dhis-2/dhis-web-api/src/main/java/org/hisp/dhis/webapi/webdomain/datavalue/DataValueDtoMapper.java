@@ -42,9 +42,12 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
  */
 public class DataValueDtoMapper
 {
+    DataValueDtoMapper()
+    {
+    }
+
     /**
-     * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}
-     * object.
+     * Converts a {@link DataValueAudit} object to a {@link DataValueAuditDto}.
      *
      * @param audit the {@link DataValueAudit}.
      * @return a {@link DataValueAuditDto}.
@@ -64,7 +67,7 @@ public class DataValueDtoMapper
     }
 
     /**
-     * Converts a {@link DataValue} object to a {@link DataValueDto} object.
+     * Converts a {@link DataValue} object to a {@link DataValueDto}.
      *
      * @param value the {@link DataValue}.
      * @return a {@link DataValueDto}.
@@ -87,7 +90,7 @@ public class DataValueDtoMapper
 
     /**
      * Converts an attribute {@link CategoryOptionCombo} object to a
-     * {@link DataValueCategoryDto} object.
+     * {@link DataValueCategoryDto}.
      *
      * @param attribute the attribute {@link CategoryOptionCombo}.
      * @return a {@link DataValueCategoryDto}.
@@ -100,8 +103,7 @@ public class DataValueDtoMapper
     }
 
     /**
-     * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}
-     * object.
+     * Converts a {@link MinMaxDataElement} object to a {@link MinMaxValueDto}.
      *
      * @param value the {@link MinMaxDataElement}.
      * @return a {@link MinMaxValueDto}.

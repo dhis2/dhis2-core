@@ -32,19 +32,16 @@ import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Base for integration tests that use a single setup for the class instead of a
- * setup for each individual test.
+ * setup for each individual test. Run with profile <code>integration</code>.
  *
  * @author Jim Grace
  */
-@ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
@@ -67,11 +64,5 @@ public abstract class SingleSetupIntegrationTestBase
         throws Exception
     {
         nonTransactionalAfter();
-    }
-
-    @Override
-    protected final boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

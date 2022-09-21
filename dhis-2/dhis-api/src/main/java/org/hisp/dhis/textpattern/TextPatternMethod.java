@@ -43,7 +43,7 @@ public enum TextPatternMethod
      * <p>
      * This is the only method that has no keyword associated with it.
      */
-    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ) ),
+    TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*+)\"" ) ) ),
 
     /**
      * Generator methods has a required param, that needs to be between 1 and 12

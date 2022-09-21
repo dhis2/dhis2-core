@@ -82,7 +82,6 @@ public class DataValueAudit
         this.organisationUnit = dataValue.getSource();
         this.categoryOptionCombo = dataValue.getCategoryOptionCombo();
         this.attributeOptionCombo = dataValue.getAttributeOptionCombo();
-
         this.value = value;
         this.modifiedBy = modifiedBy;
         this.created = new Date();
@@ -102,6 +101,19 @@ public class DataValueAudit
         this.modifiedBy = modifiedBy;
         this.created = new Date();
         this.auditType = auditType;
+    }
+
+    public static DataValueAudit from( DataValueAudit dataValueAudit )
+    {
+        return new DataValueAudit(
+            dataValueAudit.getDataElement(),
+            dataValueAudit.getPeriod(),
+            dataValueAudit.getOrganisationUnit(),
+            dataValueAudit.getCategoryOptionCombo(),
+            dataValueAudit.getAttributeOptionCombo(),
+            dataValueAudit.getValue(),
+            dataValueAudit.getModifiedBy(),
+            dataValueAudit.getAuditType() );
     }
 
     @Override

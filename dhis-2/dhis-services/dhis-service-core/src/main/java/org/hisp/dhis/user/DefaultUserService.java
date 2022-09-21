@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.ZoneId.systemDefault;
 import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
@@ -47,6 +48,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -60,6 +62,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -67,12 +70,13 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.joda.time.DateTime;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -91,8 +95,6 @@ public class DefaultUserService
     implements UserService
 {
     private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
-
-    private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -116,12 +118,14 @@ public class DefaultUserService
 
     private final Cache<String> userDisplayNameCache;
 
+    private final AclService aclService;
+
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserRoleStore userRoleStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
         CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry,
-        @Lazy SecurityService securityService )
+        @Lazy SecurityService securityService, AclService aclService )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
@@ -130,6 +134,7 @@ public class DefaultUserService
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
         checkNotNull( securityService );
+        checkNotNull( aclService );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
@@ -140,6 +145,7 @@ public class DefaultUserService
         this.sessionRegistry = sessionRegistry;
         this.securityService = securityService;
         this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
+        this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
@@ -325,9 +331,22 @@ public class DefaultUserService
             params.setInactiveSince( cal.getTime() );
         }
 
-        if ( params.isUserOrgUnits() && params.hasUser() )
+        if ( params.hasUser() )
         {
-            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
+            UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
+            if ( params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE )
+            {
+                params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
+                params.setOrgUnitBoundary( UserOrgUnitType.DATA_CAPTURE );
+            }
+            else if ( orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT )
+            {
+                params.setOrganisationUnits( params.getUser().getDataViewOrganisationUnits() );
+            }
+            else if ( orgUnitBoundary == UserOrgUnitType.TEI_SEARCH )
+            {
+                params.setOrganisationUnits( params.getUser().getTeiSearchOrganisationUnits() );
+            }
         }
     }
 
@@ -732,23 +751,6 @@ public class DefaultUserService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<User> getExpiringUsers()
-    {
-        int daysBeforePasswordChangeRequired = systemSettingManager
-            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
-
-        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
-            .toDate();
-
-        UserQueryParams userQueryParams = new UserQueryParams()
-            .setDisabled( false )
-            .setPasswordLastUpdated( daysPassed );
-
-        return userStore.getExpiringUsers( userQueryParams );
-    }
-
-    @Override
     public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
     {
         return userStore.getExpiringUserAccounts( inDays );
@@ -756,9 +758,25 @@ public class DefaultUserService
 
     @Override
     @Transactional
-    public void set2FA( User user, Boolean twoFa )
+    public void set2FA( User user, boolean enable )
     {
-        user.setTwoFA( twoFa );
+        // Do nothing if current state is the same as the requested state
+        if ( user.getTwoFA() == enable )
+        {
+            return;
+        }
+
+        if ( user.getSecret() == null )
+        {
+            throw new IllegalStateException( "User secret not set!" );
+        }
+
+        if ( !enable )
+        {
+            user.setSecret( null );
+        }
+
+        user.setTwoFA( enable );
 
         updateUser( user );
     }
@@ -788,6 +806,13 @@ public class DefaultUserService
     public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween( Date from, Date to )
+    {
+        return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween( from, to );
     }
 
     @Override
@@ -839,6 +864,62 @@ public class DefaultUserService
             .credentialsNonExpired( credentialsNonExpired )
             .authorities( user.getAuthorities() )
             .userSettings( new HashMap<>() )
+            .userGroupIds( currentUserService.getCurrentUserGroupsInfo( user.getUid() ).getUserGroupUIDs() )
+            .isSuper( user.isSuper() )
             .build();
+    }
+
+    @Override
+    @Transactional
+    public void disableTwoFA( User currentUser, String userUid, Consumer<ErrorReport> errors )
+    {
+        User user = getUser( userUid );
+        if ( user == null )
+        {
+            throw new IllegalArgumentException( "User not found" );
+        }
+
+        if ( currentUser.getUid().equals( user.getUid() ) )
+        {
+            // Cannot disable 2FA for yourself with this API endpoint.
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3021, currentUser.getUsername(),
+                user.getName() ) );
+        }
+
+        if ( !canCurrentUserCanModify( currentUser, user, errors ) )
+        {
+            return;
+        }
+
+        set2FA( user, false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean canCurrentUserCanModify( User currentUser, User userToModify, Consumer<ErrorReport> errors )
+    {
+        if ( !aclService.canUpdate( currentUser, userToModify ) )
+        {
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3001, currentUser.getUsername(),
+                userToModify.getName() ) );
+            return false;
+        }
+
+        if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+            || !currentUser.canModifyUser( userToModify ) )
+        {
+            errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3020, userToModify.getName() ) );
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public void generateTwoFactorSecret( User user )
+    {
+        user.setSecret( Base32.random() );
+        updateUser( user );
     }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
@@ -74,6 +75,14 @@ import com.google.common.collect.Sets;
 public class JdbcCompletenessTargetTableManager
     extends AbstractJdbcTableManager
 {
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+        new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
+        new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
+        new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
+        new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
+        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
+
     public JdbcCompletenessTargetTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -85,14 +94,6 @@ public class JdbcCompletenessTargetTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
     }
-
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
-        new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
-        new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
-        new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
-        new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
-        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
-        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -130,19 +131,13 @@ public class JdbcCompletenessTargetTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList();
-    }
-
-    @Override
-    protected String getPartitionColumn()
-    {
-        return null;
+        return emptyList();
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String sql = "insert into " + tableName + " (";
 

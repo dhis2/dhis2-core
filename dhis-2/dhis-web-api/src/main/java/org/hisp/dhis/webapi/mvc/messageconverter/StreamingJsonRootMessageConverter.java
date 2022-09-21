@@ -164,7 +164,10 @@ public class StreamingJsonRootMessageConverter extends AbstractHttpMessageConver
             else
             {
                 generator.writeStartObject();
-                generator.writeObjectField( "pager", jsonRoot.getPager() );
+                if ( jsonRoot.getPager() != null )
+                {
+                    generator.writeObjectField( "pager", jsonRoot.getPager() );
+                }
                 generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
                 fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
                 generator.writeEndArray();

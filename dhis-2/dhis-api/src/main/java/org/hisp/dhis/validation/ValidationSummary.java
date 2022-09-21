@@ -30,6 +30,9 @@ package org.hisp.dhis.validation;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
@@ -41,16 +44,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Lars Helge Overland
  */
+@Setter
+@NoArgsConstructor
 @JacksonXmlRootElement( localName = "validationSummary", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationSummary
 {
     private List<ValidationResult> validationRuleViolations = new ArrayList<>();
 
     private List<DataElementOperand> commentRequiredViolations = new ArrayList<>();
-
-    public ValidationSummary()
-    {
-    }
 
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "validationRuleViolations", namespace = DxfNamespaces.DXF_2_0 )
@@ -60,21 +61,11 @@ public class ValidationSummary
         return validationRuleViolations;
     }
 
-    public void setValidationRuleViolations( List<ValidationResult> validationRuleViolations )
-    {
-        this.validationRuleViolations = validationRuleViolations;
-    }
-
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "commentRequiredViolations", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "commentRequiredViolation", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataElementOperand> getCommentRequiredViolations()
     {
         return commentRequiredViolations;
-    }
-
-    public void setCommentRequiredViolations( List<DataElementOperand> commentRequiredViolations )
-    {
-        this.commentRequiredViolations = commentRequiredViolations;
     }
 }

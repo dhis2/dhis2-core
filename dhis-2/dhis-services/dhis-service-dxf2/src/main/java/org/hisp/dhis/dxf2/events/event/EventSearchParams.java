@@ -141,6 +141,14 @@ public class EventSearchParams
 
     private Date dueDateEnd;
 
+    private Date enrollmentEnrolledBefore;
+
+    private Date enrollmentEnrolledAfter;
+
+    private Date enrollmentOccurredBefore;
+
+    private Date enrollmentOccurredAfter;
+
     private CategoryOptionCombo categoryOptionCombo;
 
     private IdSchemes idSchemes = new IdSchemes();
@@ -155,9 +163,11 @@ public class EventSearchParams
 
     private boolean includeRelationships;
 
-    private List<OrderParam> orders;
+    private final List<OrderParam> orders = new ArrayList<>();
 
-    private List<OrderParam> gridOrders;
+    private final List<OrderParam> gridOrders = new ArrayList<>();
+
+    private final List<OrderParam> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
 
@@ -170,7 +180,9 @@ public class EventSearchParams
     /**
      * Filters for the response.
      */
-    private List<QueryItem> filters = new ArrayList<>();
+    private final List<QueryItem> filters = new ArrayList<>();
+
+    private final List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -275,7 +287,7 @@ public class EventSearchParams
      */
     public boolean hasFilters()
     {
-        return filters != null && !filters.isEmpty();
+        return !filters.isEmpty();
     }
 
     /**
@@ -513,6 +525,50 @@ public class EventSearchParams
         return this;
     }
 
+    public Date getEnrollmentEnrolledBefore()
+    {
+        return enrollmentEnrolledBefore;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledBefore( Date enrollmentEnrolledBefore )
+    {
+        this.enrollmentEnrolledBefore = enrollmentEnrolledBefore;
+        return this;
+    }
+
+    public Date getEnrollmentEnrolledAfter()
+    {
+        return enrollmentEnrolledAfter;
+    }
+
+    public EventSearchParams setEnrollmentEnrolledAfter( Date enrollmentEnrolledAfter )
+    {
+        this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredBefore()
+    {
+        return enrollmentOccurredBefore;
+    }
+
+    public EventSearchParams setEnrollmentOccurredBefore( Date enrollmentOccurredBefore )
+    {
+        this.enrollmentOccurredBefore = enrollmentOccurredBefore;
+        return this;
+    }
+
+    public Date getEnrollmentOccurredAfter()
+    {
+        return enrollmentOccurredAfter;
+    }
+
+    public EventSearchParams setEnrollmentOccurredAfter( Date enrollmentOccurredAfter )
+    {
+        this.enrollmentOccurredAfter = enrollmentOccurredAfter;
+        return this;
+    }
+
     public IdSchemes getIdSchemes()
     {
         return idSchemes;
@@ -592,23 +648,34 @@ public class EventSearchParams
 
     public List<OrderParam> getOrders()
     {
-        return this.orders;
+        return Collections.unmodifiableList( this.orders );
     }
 
-    public EventSearchParams setOrders( List<OrderParam> orders )
+    public EventSearchParams addOrders( List<OrderParam> orders )
     {
-        this.orders = orders;
+        this.orders.addAll( orders );
         return this;
     }
 
     public List<OrderParam> getGridOrders()
     {
-        return this.gridOrders;
+        return Collections.unmodifiableList( this.gridOrders );
     }
 
-    public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
+    public EventSearchParams addGridOrders( List<OrderParam> gridOrders )
     {
-        this.gridOrders = gridOrders;
+        this.gridOrders.addAll( gridOrders );
+        return this;
+    }
+
+    public List<OrderParam> getAttributeOrders()
+    {
+        return Collections.unmodifiableList( this.attributeOrders );
+    }
+
+    public EventSearchParams addAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders.addAll( attributeOrders );
         return this;
     }
 
@@ -647,12 +714,35 @@ public class EventSearchParams
 
     public List<QueryItem> getFilters()
     {
-        return filters;
+        return Collections.unmodifiableList( this.filters );
     }
 
-    public EventSearchParams setFilters( List<QueryItem> filters )
+    public EventSearchParams addFilter( QueryItem item )
     {
-        this.filters = filters;
+        this.filters.add( item );
+        return this;
+    }
+
+    public EventSearchParams addFilters( List<QueryItem> items )
+    {
+        this.filters.addAll( items );
+        return this;
+    }
+
+    public List<QueryItem> getFilterAttributes()
+    {
+        return Collections.unmodifiableList( this.filterAttributes );
+    }
+
+    public EventSearchParams addFilterAttributes( List<QueryItem> item )
+    {
+        this.filterAttributes.addAll( item );
+        return this;
+    }
+
+    public EventSearchParams addFilterAttributes( QueryItem item )
+    {
+        this.filterAttributes.add( item );
         return this;
     }
 

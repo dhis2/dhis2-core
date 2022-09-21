@@ -39,7 +39,7 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.analytics.shared.LabelMapper;
+import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -68,11 +68,11 @@ public class DefaultEnrollmentAnalyticsService
 
     private static final String NAME_STORED_BY = "Stored by";
 
-    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by (display name)";
+    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by";
 
-    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by (display name)";
+    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by";
 
-    private static final String NAME_LAST_UPDATED = "Last Updated";
+    private static final String NAME_LAST_UPDATED = "Last updated on";
 
     private static final String NAME_LONGITUDE = "Longitude";
 
@@ -88,8 +88,6 @@ public class DefaultEnrollmentAnalyticsService
 
     private final EventQueryPlanner queryPlanner;
 
-    private final SchemaIdResponseMapper schemaIdResponseMapper;
-
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
         AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
         SchemaIdResponseMapper schemaIdResponseMapper )
@@ -102,7 +100,6 @@ public class DefaultEnrollmentAnalyticsService
 
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
         this.queryPlanner = queryPlanner;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------

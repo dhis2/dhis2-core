@@ -75,6 +75,14 @@ public interface UserSettingService
     void saveUserSetting( UserSettingKey key, Serializable value, User user );
 
     /**
+     * Updates all non-null settings in the {@link UserSettings} collection.
+     *
+     * @param settings settings to store, maybe null
+     * @param user owner/target of the settings
+     */
+    void saveUserSettings( UserSettings settings, User user );
+
+    /**
      * Deletes a UserSetting.
      *
      * @param userSetting the UserSetting to delete.

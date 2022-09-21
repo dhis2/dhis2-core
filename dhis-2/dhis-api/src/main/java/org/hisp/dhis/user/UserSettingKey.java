@@ -34,8 +34,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import lombok.Getter;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DisplayProperty;
@@ -43,17 +46,23 @@ import org.hisp.dhis.common.DisplayProperty;
 /**
  * @author Lars Helge Overland
  */
+@Getter
 public enum UserSettingKey
 {
-    STYLE( "keyStyle" ),
-    MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", true, Boolean.class ),
-    MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", true, Boolean.class ),
-    UI_LOCALE( "keyUiLocale", Locale.class ),
-    DB_LOCALE( "keyDbLocale", Locale.class ),
-    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", DisplayProperty.class ),
-    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" );
+    STYLE( "keyStyle", UserSettings::getStyle ),
+    MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", UserSettings::getMessageEmailNotification, true,
+        Boolean.class ),
+    MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", UserSettings::getMessageSmsNotification, true,
+        Boolean.class ),
+    UI_LOCALE( "keyUiLocale", UserSettings::getUiLocale, Locale.class ),
+    DB_LOCALE( "keyDbLocale", UserSettings::getDbLocale, Locale.class ),
+    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", UserSettings::getAnalysisDisplayProperty,
+        DisplayProperty.class ),
+    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout", UserSettings::getTrackerDashboardLayout );
 
     private final String name;
+
+    private Function<UserSettings, ? extends Serializable> getter;
 
     private final Serializable defaultValue;
 
@@ -67,23 +76,21 @@ public enum UserSettingKey
     // Constructors
     // -------------------------------------------------------------------------
 
-    UserSettingKey( String name )
+    UserSettingKey( String name, Function<UserSettings, String> getter )
     {
-        this.name = name;
-        this.defaultValue = null;
-        this.clazz = String.class;
+        this( name, getter, null, String.class );
     }
 
-    UserSettingKey( String name, Class<?> clazz )
+    <T extends Serializable> UserSettingKey( String name, Function<UserSettings, T> getter, Class<T> clazz )
     {
-        this.name = name;
-        this.defaultValue = null;
-        this.clazz = clazz;
+        this( name, getter, null, clazz );
     }
 
-    UserSettingKey( String name, Serializable defaultValue, Class<?> clazz )
+    <T extends Serializable> UserSettingKey( String name, Function<UserSettings, T> getter, T defaultValue,
+        Class<T> clazz )
     {
         this.name = name;
+        this.getter = getter;
         this.defaultValue = defaultValue;
         this.clazz = clazz;
     }
@@ -91,11 +98,6 @@ public enum UserSettingKey
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    public Serializable getDefaultValue()
-    {
-        return defaultValue;
-    }
 
     public boolean hasDefaultValue()
     {
@@ -154,16 +156,6 @@ public enum UserSettingKey
     // -------------------------------------------------------------------------
     // Getters
     // -------------------------------------------------------------------------
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public Class<?> getClazz()
-    {
-        return clazz;
-    }
 
     public static Map<String, Serializable> getDefaultUserSettingsMap()
     {

@@ -353,13 +353,14 @@ class PredictionDataValueFetcherTest
         PredictionData data1 = fetcher.getData();
         assertNotNull( data1 );
         assertEquals( orgUnitB, data1.getOrgUnit() );
-        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
-        assertContainsOnly( data1.getOldPredictions(), dataValueY );
+        assertContainsOnly( List.of( foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE ),
+            data1.getValues() );
+        assertContainsOnly( List.of( dataValueY ), data1.getOldPredictions() );
 
         PredictionData data2 = fetcher.getData();
         assertNotNull( data2 );
         assertEquals( orgUnitC, data2.getOrgUnit() );
-        assertContainsOnly( data2.getValues(), foundValueB );
+        assertContainsOnly( List.of( foundValueB ), data2.getValues() );
         assertTrue( data2.getOldPredictions().isEmpty() );
 
         PredictionData data3 = fetcher.getData();
@@ -398,13 +399,14 @@ class PredictionDataValueFetcherTest
         PredictionData data1 = fetcher.getData();
         assertNotNull( data1 );
         assertEquals( orgUnitB, data1.getOrgUnit() );
-        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
-        assertContainsOnly( data1.getOldPredictions(), dataValueW, dataValueY );
+        assertContainsOnly( List.of( foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE ),
+            data1.getValues() );
+        assertContainsOnly( List.of( dataValueW, dataValueY ), data1.getOldPredictions() );
 
         PredictionData data2 = fetcher.getData();
         assertNotNull( data2 );
         assertEquals( orgUnitC, data2.getOrgUnit() );
-        assertContainsOnly( data2.getValues(), foundValueB );
+        assertContainsOnly( List.of( foundValueB ), data2.getValues() );
         assertTrue( data2.getOldPredictions().isEmpty() );
 
         PredictionData data3 = fetcher.getData();

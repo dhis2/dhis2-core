@@ -44,7 +44,7 @@ class ProgramInstanceQueryParamsTest
         ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
         assertFalse( programInstanceQueryParams.isSorting() );
         programInstanceQueryParams.setOrder( ImmutableList
-            .of( OrderParam.builder().field( "aField" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+            .of( new OrderParam( "aField", OrderParam.SortDirection.ASC ) ) );
         assertTrue( programInstanceQueryParams.isSorting() );
     }
 }

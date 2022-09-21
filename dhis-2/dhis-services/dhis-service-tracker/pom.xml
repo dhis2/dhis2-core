@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.39-SNAPSHOT</version>
+    <version>2.40-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-tracker</artifactId>
@@ -167,6 +167,11 @@
     </dependency>
 
     <!-- Test -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>

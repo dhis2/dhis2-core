@@ -34,5 +34,12 @@ import java.util.List;
  */
 public interface OrgUnitQueryPlanner
 {
+    /**
+     * Creates a query plan for the given query. Optimizes the given query by
+     * splitting it into a list of queries.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a list of {@link OrgUnitQueryParams}.
+     */
     List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params );
 }

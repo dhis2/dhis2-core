@@ -247,7 +247,7 @@ public class AnalyticsAggregationType
             return false;
         }
 
-        final AnalyticsAggregationType other = (AnalyticsAggregationType) object;
+        AnalyticsAggregationType other = (AnalyticsAggregationType) object;
 
         return Objects.equals( this.aggregationType, other.aggregationType ) &&
             Objects.equals( this.periodAggregationType, other.periodAggregationType ) &&

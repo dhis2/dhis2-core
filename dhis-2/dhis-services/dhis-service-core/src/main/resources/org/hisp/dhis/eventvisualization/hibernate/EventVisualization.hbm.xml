@@ -293,7 +293,7 @@
 
         <property name="userOrgUnitType" length="12">
             <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.analytics.UserOrgUnitType</param>
+                <param name="enumClass">org.hisp.dhis.common.UserOrgUnitType</param>
                 <param name="useNamed">true</param>
                 <param name="type">12</param>
             </type>

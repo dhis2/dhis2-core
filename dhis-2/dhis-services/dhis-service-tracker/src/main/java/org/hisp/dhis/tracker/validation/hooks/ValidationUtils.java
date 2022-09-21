@@ -61,6 +61,11 @@ import com.google.common.collect.Lists;
  */
 public class ValidationUtils
 {
+    private ValidationUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     static void validateGeometry( ValidationErrorReporter reporter, TrackerDto dto, Geometry geometry,
         FeatureType featureType )
     {

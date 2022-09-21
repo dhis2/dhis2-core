@@ -512,6 +512,9 @@
       "trackedEntityAttributeAttribute": true,
       "organisationUnitAttribute": true,
       "dataElementAttribute": true,
+      "relationshipTypeAttribute": true,
+      "categoryOptionAttribute": true,
+      "categoryOptionComboAttribute": true,
       "id": "f3JrwRTeSSz"
     }
   ],

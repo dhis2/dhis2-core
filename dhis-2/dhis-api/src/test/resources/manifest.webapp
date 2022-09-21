@@ -3,6 +3,7 @@
     "name": "Test App",
     "description": "Test Description",
     "launch_path": "/index.html",
+    "plugin_launch_path": "/plugin.html",
     "icons": {
         "16": "/img/icons/mortar-16.png",
         "48": "/img/icons/mortar-48.png",

@@ -89,7 +89,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class QueryItemLocatorTest
 {
-
     @Mock
     private ProgramStageService programStageService;
 

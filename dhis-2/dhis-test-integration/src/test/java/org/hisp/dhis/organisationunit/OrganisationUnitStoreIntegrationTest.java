@@ -28,13 +28,11 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.POINT;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -79,27 +77,16 @@ class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest
         manager.save( ouC );
         manager.save( ouD );
         List<OrganisationUnit> ous = getOUsFromPointToDistance( point, _150KM );
-        assertContainsOnly( ous, ouA );
+        assertContainsOnly( List.of( ouA ), ous );
         ous = getOUsFromPointToDistance( point, _190KM );
-        assertContainsOnly( ous, ouA, ouC );
+        assertContainsOnly( List.of( ouA, ouC ), ous );
         ous = getOUsFromPointToDistance( point, _250KM );
-        assertContainsOnly( ous, ouA, ouB, ouC, ouD );
+        assertContainsOnly( List.of( ouA, ouB, ouC, ouD ), ous );
     }
 
     private List<OrganisationUnit> getOUsFromPointToDistance( Geometry point, long distance )
     {
         double[] box = GeoUtils.getBoxShape( point.getCoordinate().x, point.getCoordinate().y, distance );
         return organisationUnitStore.getWithinCoordinateArea( box );
-    }
-
-    private void assertContainsOnly( List<OrganisationUnit> ous, OrganisationUnit... ou )
-    {
-        List<String> ouNames = ous.stream().map( BaseIdentifiableObject::getName ).collect( Collectors.toList() );
-        for ( OrganisationUnit organisationUnit : ou )
-        {
-            if ( !ouNames.contains( organisationUnit.getName() ) )
-                fail( "Org Unit with name " + organisationUnit.getName()
-                    + " is not part of list of Org Units returned from query" );
-        }
     }
 }

@@ -37,12 +37,9 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramInstanceService
 {
-    String ID = ProgramInstanceService.class.getName();
-
     /**
      * Adds an {@link ProgramInstance}
      *
@@ -81,6 +78,12 @@ public interface ProgramInstanceService
      */
     void updateProgramInstance( ProgramInstance programInstance );
 
+    /**
+     * Updates an {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to update.
+     * @param user the current user.
+     */
     void updateProgramInstance( ProgramInstance programInstance, User user );
 
     /**
@@ -230,16 +233,6 @@ public interface ProgramInstanceService
     ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate,
         OrganisationUnit orgunit );
-
-    /**
-     * Check a program instance if it can be completed automatically. If there
-     * is some event of this program-isntance uncompleted or this program has
-     * any repeatable stage, then this program cannot be completed automatically
-     *
-     * @param programInstance ProgramInstance
-     * @return True/False value
-     */
-    boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance );
 
     /**
      * Complete a program instance. Besides, program template messages will be

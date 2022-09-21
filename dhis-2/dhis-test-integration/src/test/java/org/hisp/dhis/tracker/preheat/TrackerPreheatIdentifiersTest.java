@@ -67,7 +67,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerPreheatIdentifiersTest extends TrackerTest
 {
-
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 
@@ -240,9 +239,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdSchemeParam idSchemeParam,
         String id )
     {
-        assertThat(
-            "Expecting a preheated object for idSchemeParam: " + idSchemeParam.getIdScheme().name() + " with value: "
-                + id,
+        assertThat( "Expecting a preheated object for idSchemeParam: " +
+            idSchemeParam.getIdScheme().name() + " with value: " + id,
             preheat.get( klazz, id ), is( notNullValue() ) );
     }
 

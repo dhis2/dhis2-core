@@ -46,13 +46,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.TrackerUserService;
+import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,14 +68,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleImportReportTest extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class TrackerBundleImportReportTest
 {
+    @Mock
+    private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+    @Mock
+    private TrackerValidationService trackerValidationService;
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+    @Mock
+    private TrackerPreprocessService trackerPreprocessService;
+
+    @Mock
+    private TrackerUserService trackerUserService;
+
+    @Mock
+    private Notifier notifier;
+
+    @InjectMocks
+    private DefaultTrackerImportService trackerImportService;
+
+    private ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
     void testImportReportErrors()

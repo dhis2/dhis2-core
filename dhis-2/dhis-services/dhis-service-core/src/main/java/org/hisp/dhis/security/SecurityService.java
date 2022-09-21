@@ -301,4 +301,14 @@ public interface SecurityService
      * @return true of false depending on outcome of DATA_READ check
      */
     boolean canDataRead( IdentifiableObject identifiableObject );
+
+    /**
+     * If the user is not a superuser, and the user is not updating their own
+     * 2FA settings, then the user must have the proper permissions to update
+     * the user
+     *
+     * @param before The user object before the update.
+     * @param after The user object that is being updated.
+     */
+    void validate2FAUpdate( boolean before, boolean after, User user );
 }

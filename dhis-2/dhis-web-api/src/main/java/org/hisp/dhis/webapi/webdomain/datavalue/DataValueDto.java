@@ -34,6 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -86,11 +87,13 @@ public class DataValueDto
     @JsonProperty
     private Boolean force;
 
+    @JsonIgnore
     public boolean isFollowUp()
     {
         return followUp != null && followUp;
     }
 
+    @JsonIgnore
     public boolean isForce()
     {
         return force != null && force;

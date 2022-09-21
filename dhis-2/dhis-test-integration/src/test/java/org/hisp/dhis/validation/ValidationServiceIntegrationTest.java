@@ -88,12 +88,6 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
     @Autowired
     private UserService injectUserService;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     private DataElement dataElementA;
 
     private Period periodA;

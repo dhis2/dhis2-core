@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -99,7 +99,7 @@ public class MetadataImportTest
             .body( "deleted", Matchers.equalTo( 0 ) )
             .body( "total", equalTo( response.extract( "response.stats." + expected ) ) );
 
-        List<HashMap> typeReports = response.extractList( "response.typeReports.stats" );
+        List<Map<?, ?>> typeReports = response.extractList( "response.typeReports.stats" );
 
         typeReports.forEach( x -> {
             assertEquals( x.get( expected ), x.get( "total" ), expected + " for " + x + " not equals to total" );
@@ -129,7 +129,7 @@ public class MetadataImportTest
             .body( "typeReports.stats", notNullValue() )
             .body( "typeReports.objectReports", Matchers.notNullValue() );
 
-        List<HashMap> stats = response.extractList( "response.typeReports.stats" );
+        List<Map<?, ?>> stats = response.extractList( "response.typeReports.stats" );
 
         stats.forEach( x -> {
             assertEquals( x.get( "total" ), x.get( "created" ) );

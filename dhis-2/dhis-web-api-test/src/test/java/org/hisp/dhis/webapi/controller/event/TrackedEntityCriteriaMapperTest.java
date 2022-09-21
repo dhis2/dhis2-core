@@ -60,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.jupiter.api.Test;
@@ -90,7 +89,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private TrackedEntityCriteriaMapper trackedEntityCriteriaMapper;
+    private TrackedEntityInstanceCriteriaMapper trackedEntityCriteriaMapper;
 
     private Program programA;
 
@@ -213,7 +212,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
         assertTrue( queryParams.getOrders().stream().anyMatch( orderParam -> orderParam
-            .equals( OrderParam.builder().field( "created" ).direction( OrderParam.SortDirection.ASC ).build() ) ) );
+            .equals( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) ) );
     }
 
     @Test

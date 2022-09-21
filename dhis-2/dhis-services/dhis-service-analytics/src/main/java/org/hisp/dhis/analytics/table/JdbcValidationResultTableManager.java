@@ -77,6 +77,12 @@ import com.google.common.collect.Sets;
 public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
+        new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
+        new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
+        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
+
     public JdbcValidationResultTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -88,12 +94,6 @@ public class JdbcValidationResultTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
     }
-
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
-        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
-        new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
-        new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
-        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -144,15 +144,9 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    protected String getPartitionColumn()
-    {
-        return "year";
-    }
-
-    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        final String tableName = partition.getTempTableName();
+        String tableName = partition.getTempTableName();
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
@@ -192,7 +186,7 @@ public class JdbcValidationResultTableManager
             "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and vrs.created is not null";
 
-        final String sql = insert + select;
+        String sql = insert + select;
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }

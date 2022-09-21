@@ -84,7 +84,7 @@ public class ProgramStageDeletionHandler extends JdbcDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "select count(*) from programstagedataelement where dataelementid=:id";
+        String sql = "select 1 from programstagedataelement where dataelementid=:id limit 1";
         return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
     }
 }

@@ -37,10 +37,14 @@ package org.hisp.dhis.period;
 public class WeeklyWednesdayPeriodType
     extends WeeklyAbstractPeriodType
 {
-    public static final String NAME = "WeeklyWednesday";
-
     public WeeklyWednesdayPeriodType()
     {
-        super( NAME, 3, "yyyyWedWn", "P7D", 7, "1 week", "WedW" );
+        super( PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), 3, "yyyyWedWn", "P7D", 7, "1 week", "WedW" );
+    }
+
+    @Override
+    public PeriodTypeEnum getPeriodTypeEnum()
+    {
+        return PeriodTypeEnum.WEEKLY_WEDNESDAY;
     }
 }

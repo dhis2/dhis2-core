@@ -53,10 +53,7 @@ public class OrderParamsHelper
             .orElse( Collections.emptyList() )
             .stream()
             .filter( Objects::nonNull )
-            .map( orderCriteria -> OrderParam.builder()
-                .direction( orderCriteria.getDirection() )
-                .field( orderCriteria.getField() )
-                .build() )
+            .map( orderCriteria -> new OrderParam( orderCriteria.getField(), orderCriteria.getDirection() ) )
             .collect( Collectors.toList() );
     }
 

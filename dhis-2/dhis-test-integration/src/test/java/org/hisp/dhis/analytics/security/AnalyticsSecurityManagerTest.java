@@ -109,12 +109,6 @@ class AnalyticsSecurityManagerTest extends TransactionalIntegrationTest
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
     {
         userService = _userService;

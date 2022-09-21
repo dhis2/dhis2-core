@@ -39,6 +39,11 @@ import org.hisp.dhis.jsontree.JsonList;
  */
 public interface JsonUser extends JsonIdentifiableObject
 {
+    default String getUsername()
+    {
+        return getString( "username" ).string();
+    }
+
     default String getSurname()
     {
         return getString( "surname" ).string();

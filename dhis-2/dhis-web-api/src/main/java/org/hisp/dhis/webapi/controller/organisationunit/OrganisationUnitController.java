@@ -214,7 +214,7 @@ public class OrganisationUnitController
 
         IdentifiableObject member;
 
-        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
+        if ( memberObject != null && memberCollection != null && (member = manager.find( memberObject )) != null )
         {
             for ( OrganisationUnit unit : list )
             {

@@ -79,12 +79,6 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
     private Event event = new Event();
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
         throws Exception
     {

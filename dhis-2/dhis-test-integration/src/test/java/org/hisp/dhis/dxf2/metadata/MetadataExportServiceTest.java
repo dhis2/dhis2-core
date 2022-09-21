@@ -55,7 +55,6 @@ import com.google.common.collect.Sets;
  */
 class MetadataExportServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private MetadataExportService metadataExportService;
 
@@ -198,11 +197,5 @@ class MetadataExportServiceTest extends TransactionalIntegrationTest
         // assertNull( object.getUser() );
         assertTrue( object.getUserGroupAccesses().isEmpty() );
         // assertFalse( object.getExternalAccess() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

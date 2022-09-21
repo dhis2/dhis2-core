@@ -29,22 +29,36 @@ package org.hisp.dhis.analytics.orgunit;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitAnalyticsServiceTest extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
 {
+    @Mock
+    private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private OrgUnitAnalyticsService subject;
+    @Mock
+    private OrgUnitAnalyticsManager analyticsManager;
+
+    @Mock
+    private OrgUnitQueryPlanner queryPlanner;
+
+    @InjectMocks
+    private DefaultOrgUnitAnalyticsService subject;
 
     @Test
     void testValidateNoOrgUnits()

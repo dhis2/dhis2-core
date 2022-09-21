@@ -27,28 +27,40 @@
  */
 package org.hisp.dhis.credentials;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static java.time.ZoneId.systemDefault;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.email.EmailResponse;
+import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.i18n.I18n;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,35 +68,22 @@ import org.springframework.stereotype.Component;
  * have a chance to update their credentials.
  *
  * @author zubair (original)
- * @author Jan Bernitt (job progress tracking)
+ * @author Jan Bernitt (job progress tracking, sending on specific days only)
  */
 @Slf4j
 @Component
+@AllArgsConstructor
 public class CredentialsExpiryAlertJob implements Job
 {
-    private static final String SUBJECT = "Password Expiry Alert";
-
-    private static final String TEXT = "Dear %s, Please change your password. It will expire in %d days.";
-
-    private static final String KEY_TASK = "credentialsExpiryAlertTask";
-
     private final UserService userService;
 
-    private final MessageSender emailMessageSender;
+    private final EmailService emailService;
+
+    private final LocaleManager localeManager;
+
+    private final I18nManager i18nManager;
 
     private final SystemSettingManager systemSettingManager;
-
-    public CredentialsExpiryAlertJob( UserService userService,
-        @Qualifier( "emailMessageSender" ) MessageSender emailMessageSender, SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( userService );
-        checkNotNull( emailMessageSender );
-        checkNotNull( systemSettingManager );
-
-        this.userService = userService;
-        this.emailMessageSender = emailMessageSender;
-        this.systemSettingManager = systemSettingManager;
-    }
 
     @Override
     public JobType getJobType()
@@ -93,26 +92,9 @@ public class CredentialsExpiryAlertJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        if ( !systemSettingManager.getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT ) )
-        {
-            log.info( format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
-            return;
-        }
-
-        progress.startingProcess( "User account expire alerts" );
-        progress.startingStage( "finding and preparing email recipients" );
-        List<User> users = progress.runStage( List.of(),
-            recipients -> format( "%d recipients", recipients.size() ), userService::getExpiringUsers );
-        sendExpiryAlert( users, progress );
-        progress.completedProcess( null );
-    }
-
-    @Override
     public ErrorReport validate()
     {
-        if ( !emailMessageSender.isConfigured() )
+        if ( !emailService.emailConfigured() )
         {
             return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010,
                 "EMAIL gateway configuration does not exist" );
@@ -120,32 +102,83 @@ public class CredentialsExpiryAlertJob implements Job
         return Job.super.validate();
     }
 
-    private void sendExpiryAlert( List<User> users, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        progress.startingStage( "sending expiry alert emails", users.size(), SKIP_ITEM_OUTLIER );
-        if ( emailMessageSender.isConfigured() )
+        if ( !systemSettingManager.getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT ) )
         {
-            progress.runStage( users,
-                user -> "to: " + user.getUsername(),
-                user -> emailMessageSender.sendMessage( SUBJECT, createText( user ), user.getEmail() ) );
+            log.info( "credentialsExpiryAlertTask aborted. Expiry alerts are disabled" );
+            return;
         }
-        else
+        progress.startingProcess( "User password expiry alerts" );
+        int daysUntilDisable = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES_REMINDER_IN_DAYS );
+        int daysBeforePasswordChangeRequired = systemSettingManager
+            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        if ( daysBeforePasswordChangeRequired <= 0 )
         {
-            progress.failedStage( "Email service is not configured" );
+            progress.completedProcess( "Passwords expire after n months is configured to zero (feature disabled)" );
+            return;
         }
+        LocalDate lastUpdatedBefore = LocalDate.now().minusDays( daysBeforePasswordChangeRequired );
+        do
+        {
+            sendReminderEmail( lastUpdatedBefore, daysUntilDisable, progress );
+            daysUntilDisable = daysUntilDisable / 2;
+        }
+        while ( daysUntilDisable > 0 );
+        progress.completedProcess( null );
     }
 
-    private String createText( User user )
+    private void sendReminderEmail( LocalDate lastUpdatedBefore, int daysUntilChangeRequired, JobProgress progress )
     {
-        return format( TEXT, user.getUsername(), getRemainingDays( user ) );
+        LocalDate referenceDay = lastUpdatedBefore.plusDays( daysUntilChangeRequired );
+        ZonedDateTime nDaysPriorToChangeRequired = referenceDay.atStartOfDay( systemDefault() );
+        ZonedDateTime nDaysPriorToChangeRequiredEod = referenceDay.plusDays( 1 ).atStartOfDay( systemDefault() );
+
+        progress.startingStage(
+            format( "Fetching users for reminder, %d days until password change is required", daysUntilChangeRequired ),
+            SKIP_STAGE );
+        Map<String, Optional<Locale>> receivers = progress.runStage( Map.of(),
+            map -> format( "Found %d receivers", map.size() ),
+            () -> userService.findNotifiableUsersWithPasswordLastUpdatedBetween(
+                Date.from( nDaysPriorToChangeRequired.toInstant() ),
+                Date.from( nDaysPriorToChangeRequiredEod.toInstant() ) ) );
+        if ( receivers.isEmpty() )
+        {
+            return;
+        }
+        // send reminders by language
+        Locale fallback = localeManager.getFallbackLocale();
+        Map<Locale, Set<String>> receiversByLocale = new HashMap<>();
+        for ( Map.Entry<String, Optional<Locale>> e : receivers.entrySet() )
+        {
+            receiversByLocale.computeIfAbsent( e.getValue().orElse( fallback ), key -> new HashSet<>() )
+                .add( e.getKey() );
+        }
+        progress.startingStage(
+            format( "Sending reminder for %d days until password change is required", daysUntilChangeRequired ),
+            receiversByLocale.size(), JobProgress.FailurePolicy.SKIP_ITEM );
+        progress.runStage( receiversByLocale.entrySet().stream(),
+            e -> format( "Sending email to %d user(s) in %s", e.getValue().size(), e.getKey().getDisplayLanguage() ),
+            OutboundMessageResponse::getDescription,
+            e -> sendReminderEmailInLanguage( e.getKey(), e.getValue(), daysUntilChangeRequired ), null );
     }
 
-    private int getRemainingDays( User user )
+    private OutboundMessageResponse sendReminderEmailInLanguage( Locale language, Set<String> receiverEmails,
+        int daysUntilChangeRequired )
     {
-        int daysBeforeChangeRequired = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        I18n i18n = i18nManager.getI18n( language );
+        String subject = i18n.getString( "notification.password_change_required.subject",
+            "Password Expiry Alert" );
+        String body = i18n.getString( "notification.password_change_required.body",
+            "Please change your password. It will expire in {0} day(s)." );
+        OutboundMessageResponse response = emailService.sendEmail( subject,
+            format( body.replace( "{0}", "%d" ), daysUntilChangeRequired ), receiverEmails );
 
-        Date passwordLastUpdated = user.getPasswordLastUpdated();
-
-        return (daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ));
+        if ( response.getResponseObject() != EmailResponse.SENT )
+        {
+            throw new UncheckedIOException( response.getDescription(), new IOException() );
+        }
+        return response;
     }
 }

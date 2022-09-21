@@ -50,6 +50,12 @@ public class DefaultOrgUnitQueryPlanner
         return groupByOrgUnitLevel( params );
     }
 
+    /**
+     * Groups the given query by organisation unit level.
+     *
+     * @param params the {@link OrgUnitQueryParams}.
+     * @return a list of {@link OrgUnitQueryParams}.
+     */
     private List<OrgUnitQueryParams> groupByOrgUnitLevel( OrgUnitQueryParams params )
     {
         List<OrgUnitQueryParams> queries = new ArrayList<>();

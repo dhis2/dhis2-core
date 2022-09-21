@@ -35,7 +35,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.system.util.AnnotationUtils;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -86,7 +88,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             return false;
         }
 
-        if ( ctx.isMapType() )
+        if ( ctx.isAlwaysExpand() )
         {
             return true;
         }
@@ -107,7 +109,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
         Object currentValue = null;
-        boolean mapType = false;
+        boolean alwaysExpand = false;
 
         if ( sc != null )
         {
@@ -118,10 +120,10 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         while ( sc != null )
         {
-            if ( isMapType( sc.getCurrentValue() ) )
+            if ( isAlwaysExpandType( sc.getCurrentValue() ) )
             {
                 sc = sc.getParent();
-                mapType = true;
+                alwaysExpand = true;
                 continue;
             }
 
@@ -134,12 +136,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        if ( isMapType( currentValue ) )
+        if ( isAlwaysExpandType( currentValue ) )
         {
-            mapType = true;
+            alwaysExpand = true;
         }
 
-        return new PathContext( nestedPath.toString(), currentValue, mapType );
+        return new PathContext( nestedPath.toString(), currentValue, alwaysExpand );
     }
 
     @Override
@@ -156,10 +158,17 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         }
     }
 
-    private boolean isMapType( Object object )
+    private boolean isAlwaysExpandType( Object object )
     {
-        return object != null && (Map.class.isAssignableFrom( object.getClass() )
-            || JobParameters.class.isAssignableFrom( object.getClass() ));
+        if ( object == null )
+        {
+            return false;
+        }
+
+        Class<?> klass = object.getClass();
+
+        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
+            || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
     }
 }
 
@@ -174,5 +183,8 @@ class PathContext
 
     private final Object currentValue;
 
-    private final boolean mapType;
+    /**
+     * true if special type we do not support field filtering on.
+     */
+    private final boolean alwaysExpand;
 }

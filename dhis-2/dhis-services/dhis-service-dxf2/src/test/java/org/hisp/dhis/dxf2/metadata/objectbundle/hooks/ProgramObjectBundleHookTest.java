@@ -163,7 +163,6 @@ class ProgramObjectBundleHookTest
 
         assertEquals( 1, errors.size() );
         assertEquals( errors.get( 0 ).getErrorCode(), ErrorCode.E6000 );
-        assertEquals( errors.get( 0 ).getMessage(), "Program `ProgramA` has more than one Program Instances" );
     }
 
     @Test

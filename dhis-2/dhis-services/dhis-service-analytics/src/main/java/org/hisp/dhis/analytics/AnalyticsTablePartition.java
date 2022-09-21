@@ -88,7 +88,7 @@ public class AnalyticsTablePartition
 
         if ( masterTable.getProgram() != null )
         {
-            name += PartitionUtils.SEP + masterTable.getProgram().getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, masterTable.getProgram() );
         }
 
         if ( year != null )
@@ -105,7 +105,7 @@ public class AnalyticsTablePartition
 
         if ( masterTable.getProgram() != null )
         {
-            name += PartitionUtils.SEP + masterTable.getProgram().getUid().toLowerCase();
+            name = PartitionUtils.getTableName( name, masterTable.getProgram() );
         }
 
         if ( year != null )

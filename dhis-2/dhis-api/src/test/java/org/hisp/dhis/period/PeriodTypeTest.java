@@ -120,4 +120,15 @@ class PeriodTypeTest
         assertNull( periods.get( inxYearly ) );
         assertEquals( fyApril2018, periods.get( inxFinancialApril ) );
     }
+
+    @Test
+    void testGetPeriodType()
+    {
+        assertEquals( PeriodTypeEnum.QUARTERLY,
+            PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ).getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.MONTHLY,
+            PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.YEARLY,
+            PeriodType.getPeriodType( PeriodTypeEnum.YEARLY ).getPeriodTypeEnum() );
+    }
 }

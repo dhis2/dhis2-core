@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.security;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -67,6 +67,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "org.hisp.dhis.analytics.AnalyticsSecurityManager" )
+@RequiredArgsConstructor
 public class DefaultAnalyticsSecurityManager
     implements AnalyticsSecurityManager
 {
@@ -83,25 +84,6 @@ public class DefaultAnalyticsSecurityManager
     private final CurrentUserService currentUserService;
 
     private final OrganisationUnitService organisationUnitService;
-
-    public DefaultAnalyticsSecurityManager( DataApprovalLevelService approvalLevelService,
-        SystemSettingManager systemSettingManager, DimensionService dimensionService, AclService aclService,
-        CurrentUserService currentUserService, OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( approvalLevelService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( dimensionService );
-        checkNotNull( aclService );
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-
-        this.approvalLevelService = approvalLevelService;
-        this.systemSettingManager = systemSettingManager;
-        this.dimensionService = dimensionService;
-        this.aclService = aclService;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-    }
 
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation

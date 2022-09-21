@@ -54,7 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.cfg.Configuration;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -247,12 +246,9 @@ public class DefaultHibernateConfigurationProvider
         set( ConfigurationKey.ENCRYPTION_PASSWORD.getKey(),
             configProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), p );
 
-        if ( SystemUtils.isTestRun( environment.getActiveProfiles() ) )
-        {
-            set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
-            set( USE_SECOND_LEVEL_CACHE, "false", p );
-            set( USE_QUERY_CACHE, "false", p );
-        }
+        set( USE_SECOND_LEVEL_CACHE, configProvider.getProperty( ConfigurationKey.USE_SECOND_LEVEL_CACHE ), p );
+        set( USE_QUERY_CACHE, configProvider.getProperty( ConfigurationKey.USE_QUERY_CACHE ), p );
+        set( HBM2DDL_AUTO, configProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), p );
 
         // Enable Hibernate statistics if Hibernate Monitoring is enabled
         if ( configProvider.isEnabled( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ) )

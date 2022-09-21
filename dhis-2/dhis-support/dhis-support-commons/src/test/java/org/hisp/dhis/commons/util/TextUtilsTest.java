@@ -29,7 +29,6 @@ package org.hisp.dhis.commons.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -62,41 +61,42 @@ class TextUtilsTest
     public void testRemoveNonEssentialChars()
     {
         String same = "abcdefghijkl-";
-        assertEquals( same, removeNonEssentialChars( same ) );
+        assertEquals( same, TextUtils.removeNonEssentialChars( same ) );
 
-        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå" ) );
-        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå§!" ) );
-        assertEquals( " abcdefghijkl-", removeNonEssentialChars( " abcdefghijkl-øæå§!" ) );
-        assertEquals( " abcde fghijkl-", removeNonEssentialChars( "/(/%å^{} abcde fghijkl-øæå§!&" ) );
+        assertEquals( "abcdefghijkl-", TextUtils.removeNonEssentialChars( "abcdefghijkl-øæå" ) );
+        assertEquals( "abcdefghijkl-", TextUtils.removeNonEssentialChars( "abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcdefghijkl-", TextUtils.removeNonEssentialChars( " abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcde fghijkl-", TextUtils.removeNonEssentialChars( "/(/%å^{} abcde fghijkl-øæå§!&" ) );
     }
 
     @Test
     void testHtmlLinks()
     {
-        assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", htmlLinks( "http://dhis2.org" ) );
-        assertEquals( "<a href=\"https://dhis2.org\">https://dhis2.org</a>", htmlLinks( "https://dhis2.org" ) );
-        assertEquals( "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", htmlLinks( "www.dhis2.org" ) );
+        assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", TextUtils.htmlLinks( "http://dhis2.org" ) );
+        assertEquals( "<a href=\"https://dhis2.org\">https://dhis2.org</a>",
+            TextUtils.htmlLinks( "https://dhis2.org" ) );
+        assertEquals( "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", TextUtils.htmlLinks( "www.dhis2.org" ) );
         assertEquals(
             "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
-            htmlLinks( "Navigate to http://dhis2.org or www.dhis2.com to read more." ) );
+            TextUtils.htmlLinks( "Navigate to http://dhis2.org or www.dhis2.com to read more." ) );
     }
 
     @Test
     void testSubString()
     {
-        assertEquals( "abcdefghij", subString( STRING, 0, 10 ) );
-        assertEquals( "cdef", subString( STRING, 2, 4 ) );
-        assertEquals( "ghij", subString( STRING, 6, 4 ) );
-        assertEquals( "ghij", subString( STRING, 6, 6 ) );
-        assertEquals( "", subString( STRING, 11, 3 ) );
-        assertEquals( "j", subString( STRING, 9, 1 ) );
-        assertEquals( "", subString( STRING, 4, 0 ) );
+        assertEquals( "abcdefghij", TextUtils.subString( STRING, 0, 10 ) );
+        assertEquals( "cdef", TextUtils.subString( STRING, 2, 4 ) );
+        assertEquals( "ghij", TextUtils.subString( STRING, 6, 4 ) );
+        assertEquals( "ghij", TextUtils.subString( STRING, 6, 6 ) );
+        assertEquals( "", TextUtils.subString( STRING, 11, 3 ) );
+        assertEquals( "j", TextUtils.subString( STRING, 9, 1 ) );
+        assertEquals( "", TextUtils.subString( STRING, 4, 0 ) );
     }
 
     @Test
     void testTrim()
     {
-        assertEquals( "abcdefgh", trimEnd( "abcdefghijkl", 4 ) );
+        assertEquals( "abcdefgh", TextUtils.trimEnd( "abcdefghijkl", 4 ) );
     }
 
     @Test
@@ -134,11 +134,25 @@ class TextUtilsTest
     @Test
     void testRemoveLastComma()
     {
-        assertEquals( null, TextUtils.removeLastComma( null ) );
+        String nullValue = null;
+
+        assertEquals( null, TextUtils.removeLastComma( nullValue ) );
         assertEquals( "", TextUtils.removeLastComma( "" ) );
         assertEquals( "tom,john", TextUtils.removeLastComma( "tom,john," ) );
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john, " ) );
         assertEquals( "tom, john", TextUtils.removeLastComma( "tom, john,  " ) );
+    }
+
+    @Test
+    void testRemoveLastCommaStringBuilder()
+    {
+        final StringBuilder nullValue = null;
+
+        assertEquals( null, TextUtils.removeLastComma( nullValue ) );
+        assertEquals( "", TextUtils.removeLastComma( new StringBuilder() ).toString() );
+        assertEquals( "tom,john", TextUtils.removeLastComma( new StringBuilder( "tom,john," ) ).toString() );
+        assertEquals( "tom, john", TextUtils.removeLastComma( new StringBuilder( "tom, john, " ) ).toString() );
+        assertEquals( "tom, john", TextUtils.removeLastComma( new StringBuilder( "tom, john,  " ) ).toString() );
     }
 
     @Test

@@ -77,6 +77,15 @@ public class DashboardController
     // Search
     // -------------------------------------------------------------------------
 
+    @GetMapping( "/search" )
+    public @ResponseBody DashboardSearchResult searchAsParam( @RequestParam String q,
+        @RequestParam( required = false ) Set<DashboardItemType> max,
+        @RequestParam( required = false ) Integer count,
+        @RequestParam( required = false ) Integer maxCount )
+    {
+        return dashboardService.search( q, max, count, maxCount );
+    }
+
     @GetMapping( "/q/{query}" )
     public @ResponseBody DashboardSearchResult search( @PathVariable String query,
         @RequestParam( required = false ) Set<DashboardItemType> max,

@@ -45,7 +45,6 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIO
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_EXPRESSION_INFO;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionLexer.SUB_EXPRESSION;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AGGREGATION_TYPE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
@@ -66,12 +65,16 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GRO
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_PROGRAM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_IN_YEAR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_OFFSET;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUB_EXPRESSION;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.YEARLY_PERIOD_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.YEAR_TO_DATE;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
@@ -115,6 +118,8 @@ import org.hisp.dhis.expression.dataitem.DimItemProgramIndicator;
 import org.hisp.dhis.expression.dataitem.DimItemReportingRate;
 import org.hisp.dhis.expression.dataitem.ItemDays;
 import org.hisp.dhis.expression.dataitem.ItemOrgUnitGroupCount;
+import org.hisp.dhis.expression.dataitem.ItemPeriodInYear;
+import org.hisp.dhis.expression.dataitem.ItemYearlyPeriodCount;
 import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
 import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
@@ -133,6 +138,7 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.function.FunctionAggregationType;
 import org.hisp.dhis.parser.expression.function.FunctionMaxDate;
 import org.hisp.dhis.parser.expression.function.FunctionMinDate;
+import org.hisp.dhis.parser.expression.function.FunctionYearToDate;
 import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
@@ -213,8 +219,10 @@ public class DefaultExpressionService
         .put( AVG, new VectorAvg() )
         .put( COUNT, new VectorCount() )
         .put( MAX, new VectorMax() )
+        .put( MAX_DATE, new FunctionMaxDate() )
         .put( MEDIAN, new VectorMedian() )
         .put( MIN, new VectorMin() )
+        .put( MIN_DATE, new FunctionMinDate() )
         .put( PERCENTILE_CONT, new VectorPercentileCont() )
         .put( STDDEV, new VectorStddevSamp() )
         .put( STDDEV_POP, new VectorStddevPop() )
@@ -229,8 +237,11 @@ public class DefaultExpressionService
         .put( N_BRACE, new DimItemIndicator() )
         .put( MAX_DATE, new FunctionMaxDate() )
         .put( MIN_DATE, new FunctionMinDate() )
+        .put( PERIOD_IN_YEAR, new ItemPeriodInYear() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
         .put( SUB_EXPRESSION, new FunctionSubExpression() )
+        .put( YEARLY_PERIOD_COUNT, new ItemYearlyPeriodCount() )
+        .put( YEAR_TO_DATE, new FunctionYearToDate() )
         .build();
 
     private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
@@ -395,6 +406,7 @@ public class DefaultExpressionService
             .itemMap( itemMap )
             .valueMap( valueMap )
             .orgUnitCountMap( orgUnitCountMap )
+            .periods( periods )
             .days( days )
             .missingValueStrategy( SKIP_IF_ALL_VALUES_MISSING )
             .build();

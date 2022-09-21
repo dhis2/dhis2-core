@@ -35,7 +35,6 @@ import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.UserOrgUnitType;
 
 /**
  * This class contains all the criteria that can be used to execute a DHIS2

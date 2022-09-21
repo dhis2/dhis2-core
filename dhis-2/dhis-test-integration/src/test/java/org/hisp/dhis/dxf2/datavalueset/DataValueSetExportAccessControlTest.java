@@ -50,11 +50,10 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -70,12 +69,8 @@ import com.google.common.collect.Sets;
  */
 class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DataValueSetService dataValueSetService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -88,9 +83,6 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private DataValueSetStore dataValueSetStore;
 
     @Autowired
     private ObjectMapper jsonMapper;
@@ -134,7 +126,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         createAndInjectAdminUser();
 
         // Metadata
-        PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        PeriodType ptA = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         idObjectManager.save( Lists.newArrayList( deA, deB ) );

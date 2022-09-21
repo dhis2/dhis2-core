@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.expression;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 
 import java.time.LocalDate;
@@ -146,6 +147,14 @@ public class ExpressionParams
      */
     @Builder.Default
     private Map<String, Program> programMap = new HashMap<>();
+
+    /**
+     * The periods (if any) for which the expression is evaluated.
+     */
+    @ToString.Include
+    @EqualsAndHashCode.Include
+    @Builder.Default
+    private final List<Period> periods = emptyList();
 
     /**
      * The number of calendar days to be used in evaluating the expression.

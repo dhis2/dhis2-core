@@ -254,7 +254,8 @@ class MetadataIdentifierMapperTest
 
         Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( " RiNIt1yJoge;AiNIt1yJoge  ; ", params );
 
-        assertContainsOnly( ids, MetadataIdentifier.ofUid( "RiNIt1yJoge" ), MetadataIdentifier.ofUid( "AiNIt1yJoge" ) );
+        assertContainsOnly(
+            Set.of( MetadataIdentifier.ofUid( "RiNIt1yJoge" ), MetadataIdentifier.ofUid( "AiNIt1yJoge" ) ), ids );
     }
 
     @Test
@@ -268,8 +269,8 @@ class MetadataIdentifierMapperTest
 
         Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions( "clouds;fruits", params );
 
-        assertContainsOnly( ids, MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ),
-            MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "fruits" ) );
+        assertContainsOnly( Set.of( MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "clouds" ),
+            MetadataIdentifier.ofAttribute( "RiNIt1yJoge", "fruits" ) ), ids );
     }
 
     @Test

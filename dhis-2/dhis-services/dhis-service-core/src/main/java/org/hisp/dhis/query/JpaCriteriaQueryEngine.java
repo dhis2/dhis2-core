@@ -160,7 +160,8 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         if ( query.isCacheable() )
         {
             typedQuery.setHint( "org.hibernate.cacheable", true );
-            typedQuery.setHint( "org.hibernate.cacheRegion", getQueryCacheRegionName( klass, typedQuery ) );
+            typedQuery.setHint( "org.hibernate.cacheRegion",
+                queryCacheManager.getQueryCacheRegionName( klass, typedQuery ) );
         }
 
         return typedQuery.getResultList();
@@ -343,11 +344,5 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
                 addJunction( builder, root, junction, c );
             }
         }
-    }
-
-    private String getQueryCacheRegionName( Class<T> klass, TypedQuery<T> typedQuery )
-    {
-        String queryString = typedQuery.unwrap( org.hibernate.query.Query.class ).getQueryString();
-        return queryCacheManager.generateRegionName( klass, queryString );
     }
 }

@@ -33,6 +33,11 @@ function CommentSaver( de, co, comment )
 	    'comment' : comment
 	};
 
+	if ( $( '#input-' + de + "-" + co + '-val' ).length )
+	{
+		dataValue.value = $( '#input-' + de + "-" + co + '-val' ).val();
+	}
+
     var cc = dhis2.de.getCurrentCategoryCombo();
     var cp = dhis2.de.getCurrentCategoryOptionsQueryValue();
     

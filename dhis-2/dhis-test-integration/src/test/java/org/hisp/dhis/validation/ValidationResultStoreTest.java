@@ -59,8 +59,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
@@ -80,7 +78,6 @@ import com.google.common.collect.Sets;
  */
 class ValidationResultStoreTest extends TransactionalIntegrationTest
 {
-
     private static final String ACCESS_NONE = "--------";
 
     private static final String ACCESS_READ = "r-------";
@@ -111,9 +108,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -200,12 +194,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
     // Set up/tear down
     // -------------------------------------------------------------------------
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     public void setUpTest()
         throws Exception
     {
@@ -288,25 +276,10 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         validationResultAB.setNotificationSent( true );
     }
 
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationResultStore );
-    }
-
-    // -------------------------------------------------------------------------
-    // Test helper methods
-    // -------------------------------------------------------------------------
-    private void setMockUserService( CurrentUserService mockUserService )
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-            validationResultStore );
-    }
-
     // -------------------------------------------------------------------------
     // Test ValidationResultStore
     // -------------------------------------------------------------------------
+
     @Test
     void testSaveValidationResult()
         throws Exception

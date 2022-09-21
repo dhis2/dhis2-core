@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
@@ -129,6 +130,11 @@ public final class WebMessageUtils
         return createWebMessage( message, Status.ERROR, HttpStatus.CONFLICT, errorCode );
     }
 
+    public static WebMessage conflict( ErrorCode errorCode, Object... args )
+    {
+        return conflict( new ErrorMessage( errorCode, args ).getMessage(), errorCode );
+    }
+
     public static WebMessage conflict( String message, String devMessage )
     {
         return createWebMessage( message, devMessage, Status.ERROR, HttpStatus.CONFLICT );
@@ -152,6 +158,11 @@ public final class WebMessageUtils
     public static WebMessage badRequest( String message, String devMessage )
     {
         return createWebMessage( message, devMessage, Status.ERROR, HttpStatus.BAD_REQUEST );
+    }
+
+    public static WebMessage badRequest( String message, ErrorCode errorCode )
+    {
+        return createWebMessage( message, Status.ERROR, HttpStatus.BAD_REQUEST, errorCode );
     }
 
     public static WebMessage forbidden( String message )

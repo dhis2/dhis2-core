@@ -30,7 +30,6 @@ package org.hisp.dhis.datavalue;
 import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -75,7 +74,9 @@ public interface DataValueAuditService
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
     /**
-     * Returns data value audits for the given parameters.
+     * Returns data value audits for the given parameters. This is a special
+     * version that also adds current data value, and marks the first audit as
+     * type CREATE.
      *
      * @param dataElement the {@link DataElement}.
      * @param period the {@link Period}.
@@ -91,45 +92,16 @@ public interface DataValueAuditService
     /**
      * Returns data value audits for the given parameters.
      *
-     * @param dataElements the list of {@link DataElement}.
-     * @param periods the list of {@link Period}.
-     * @param organisationUnits the list of {@link OrganisationUnit}.
-     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
-     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
+     * @param params the {@link DataValueAuditQueryParams}.
      * @return a list of {@link DataValueAudit}.
      */
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType );
-
-    /**
-     * Returns data value audits for the given parameters.
-     *
-     * @param dataElements the list of {@link DataElement}.
-     * @param periods the list of {@link Period}.
-     * @param organisationUnits the list of {@link OrganisationUnit}.
-     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
-     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
-     * @param offset the item offset.
-     * @param limit the item limit.
-     * @return a list of {@link DataValueAudit}.
-     */
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType,
-        int offset, int limit );
+    List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params );
 
     /**
      * Returns the count of data value audits for the given parameters.
      *
-     * @param dataElements the list of {@link DataElement}.
-     * @param periods the list of {@link Period}.
-     * @param organisationUnits the list of {@link OrganisationUnit}.
-     * @param categoryOptionCombo the {@link CategoryOptionCombo}.
-     * @param attributeOptionCombo the {@link CategoryOptionCombo}.
-     * @return the count of data value audits.
+     * @param params the {@link DataValueAuditQueryParams}.
+     * @return a count of {@link DataValueAudit}.
      */
-    int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, AuditType auditType );
+    int countDataValueAudits( DataValueAuditQueryParams params );
 }

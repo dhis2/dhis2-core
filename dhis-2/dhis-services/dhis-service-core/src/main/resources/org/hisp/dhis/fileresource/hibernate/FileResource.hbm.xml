@@ -30,7 +30,7 @@
 
     <property name="hasMultipleStorageFiles" column="hasmultiplestoragefiles" />
 
-    <property name="fileResourceOwner" column="fileresourceowner" />
+    <property name="fileResourceOwner" column="fileresourceowner" length="255" />
 
     <property name="domain" length="40" column="domain">
       <type name="org.hibernate.type.EnumType">

@@ -41,7 +41,7 @@ public class AuditableEntity
      * Class of the AuditableEntity It will be used by
      * {@link org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory#collectAuditAttributes(Object)}
      */
-    Class entityClass;
+    Class<?> entityClass;
 
     /**
      * An object that is ready for serialized by Jackson. Means that this object

@@ -28,12 +28,14 @@
 package org.hisp.dhis.option;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -121,10 +123,30 @@ public class OptionSet
         options.clear();
     }
 
+    public void removeOption( Option option )
+    {
+        if ( !CollectionUtils.isEmpty( options ) )
+        {
+            options.remove( option );
+        }
+    }
+
     @Override
     public int increaseVersion()
     {
         return ++version;
+    }
+
+    public boolean hasAllOptions( Collection<String> optionCodes )
+    {
+        for ( String code : optionCodes )
+        {
+            if ( getOptionByCode( code ) == null )
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     public List<String> getOptionValues()
@@ -218,4 +240,5 @@ public class OptionSet
     {
         this.version = version;
     }
+
 }

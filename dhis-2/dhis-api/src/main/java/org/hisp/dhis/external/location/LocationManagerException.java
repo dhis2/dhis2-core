@@ -29,7 +29,6 @@ package org.hisp.dhis.external.location;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class LocationManagerException
     extends RuntimeException

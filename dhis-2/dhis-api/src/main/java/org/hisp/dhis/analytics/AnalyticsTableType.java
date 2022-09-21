@@ -38,6 +38,7 @@ public enum AnalyticsTableType
     ORG_UNIT_TARGET( "analytics_orgunittarget", false, false ),
     EVENT( "analytics_event", false, true ),
     ENROLLMENT( "analytics_enrollment", false, false ),
+    OWNERSHIP( "analytics_ownership", false, false ),
     VALIDATION_RESULT( "analytics_validationresult", true, false );
 
     private String tableName;

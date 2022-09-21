@@ -33,16 +33,13 @@ import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
@@ -73,23 +70,5 @@ public abstract class TransactionalIntegrationTest extends BaseSpringTest
         {
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
-
-        if ( emptyDatabaseAfterTest() )
-        {
-            try
-            {
-                dbmsManager.emptyDatabase();
-            }
-            catch ( Exception e )
-            {
-                log.info( "Failed to empty db, reason:" + e.getMessage() );
-            }
-        }
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

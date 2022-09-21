@@ -48,8 +48,6 @@ import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
 import org.hisp.dhis.startup.SchedulerStart;
 import org.hisp.dhis.startup.SettingUpgrader;
-import org.hisp.dhis.startup.TwoFAPopulator;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,16 +64,6 @@ public class StartupConfig
         PeriodTypePopulator populator = new PeriodTypePopulator( periodStore, sessionFactory );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 3 );
-        return populator;
-    }
-
-    @Bean
-    public TwoFAPopulator twoFAPopulator( UserService userService, CurrentUserService currentUserService )
-    {
-        TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
-        populator.setName( "TwoFAPopulator" );
-        populator.setRunlevel( 3 );
-        populator.setSkipInTests( true );
         return populator;
     }
 

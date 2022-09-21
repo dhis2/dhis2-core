@@ -275,8 +275,8 @@ public class CompleteDataSetRegistrationController
 
         for ( DataSet dataSet : dataSets )
         {
-            if ( !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo, null,
-                multiOu ).isOpen() )
+            if ( !dataSetService.getLockStatus(
+                dataSet, period, organisationUnit, attributeOptionCombo, user, null, multiOu ).isOpen() )
             {
                 lockedDataSets.add( dataSet.getUid() );
             }

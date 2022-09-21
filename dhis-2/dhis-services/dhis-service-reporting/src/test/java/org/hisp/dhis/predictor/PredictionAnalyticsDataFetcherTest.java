@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -271,7 +272,8 @@ class PredictionAnalyticsDataFetcherTest
 
         List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
 
-        assertContainsOnly( actual, expected1, expected2, expected3, expected4, expected5, expected6, expected7 );
+        assertContainsOnly( List.of( expected1, expected2, expected3, expected4, expected5, expected6, expected7 ),
+            actual );
     }
 
     @Test
@@ -281,6 +283,6 @@ class PredictionAnalyticsDataFetcherTest
 
         List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
 
-        assertContainsOnly( actual );
+        assertIsEmpty( actual );
     }
 }

@@ -39,6 +39,12 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
  */
 public class RelationshipValidationUtils
 {
+
+    private RelationshipValidationUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     public static TrackerType relationshipItemValueType( RelationshipItem item )
     {
         if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )

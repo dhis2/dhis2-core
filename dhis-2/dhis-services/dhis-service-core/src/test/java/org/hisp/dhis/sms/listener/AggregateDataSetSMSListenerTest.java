@@ -170,7 +170,7 @@ class AggregateDataSetSMSListenerTest extends
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( dataSetService.getDataSet( anyString() ) ).thenReturn( dataSet );
-        when( dataSetService.getLockStatus( any(), any( DataSet.class ), any(), any(), any(), any() ) )
+        when( dataSetService.getLockStatus( any( DataSet.class ), any(), any(), any() ) )
             .thenReturn( LockStatus.OPEN );
         when( dataValueService.addDataValue( any() ) ).thenReturn( true );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );

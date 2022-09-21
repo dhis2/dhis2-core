@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -38,7 +41,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping( value = DataElementSchemaDescriptor.API_ENDPOINT )
+@AllArgsConstructor
 public class DataElementController
     extends AbstractCrudController<DataElement>
 {
+    private final DataElementService dataElementService;
+
+    @Override
+    protected void preCreateEntity( DataElement entity )
+    {
+        dataElementService.validateDateElement( entity );
+    }
+
+    @Override
+    protected void preUpdateEntity( DataElement entity, DataElement newEntity )
+    {
+        dataElementService.validateDateElement( newEntity );
+    }
 }

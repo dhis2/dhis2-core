@@ -61,8 +61,7 @@ public class FlywayConfig
         classicConfiguration.setDataSource( dataSource );
         classicConfiguration.setBaselineOnMigrate( true );
         classicConfiguration.setOutOfOrder( configurationProvider.isEnabled( FLYWAY_OUT_OF_ORDER_MIGRATION ) );
-        classicConfiguration.setIgnoreMissingMigrations( true );
-        classicConfiguration.setIgnoreFutureMigrations( false );
+        classicConfiguration.setIgnoreMigrationPatterns( "*:missing" );
         classicConfiguration.setGroup( true );
         classicConfiguration.setLocations( new Location( FLYWAY_MIGRATION_FOLDER ) );
         classicConfiguration.setMixed( true );

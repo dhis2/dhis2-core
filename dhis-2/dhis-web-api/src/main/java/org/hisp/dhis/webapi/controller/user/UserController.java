@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -70,7 +72,9 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -227,7 +231,6 @@ public class UserController
 
         // Fetches all users if there are no query, i.e only filters...
         List<User> users = userService.getUsers( params, ordersAsString );
-
         query.setObjects( users );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setDefaultOrder();
@@ -249,6 +252,7 @@ public class UserController
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
         params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
         params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        params.setOrgUnitBoundary( UserOrgUnitType.fromValue( options.get( "orgUnitBoundary" ) ) );
 
         return params;
     }
@@ -281,7 +285,9 @@ public class UserController
 
         User user = userService.getUser( pvUid );
 
-        if ( user == null || user.getUserCredentials() == null )
+        if ( user == null
+            // TODO: To remove when we remove old UserCredentials compatibility
+            || user.getUserCredentials() == null )
         {
             throw new WebMessageException( conflict( "User not found: " + pvUid ) );
         }
@@ -319,6 +325,7 @@ public class UserController
     private WebMessage postObject( User user )
         throws WebMessageException
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
         User currentUser = currentUserService.getCurrentUser();
@@ -349,6 +356,7 @@ public class UserController
     private WebMessage postInvite( HttpServletRequest request, User user )
         throws WebMessageException
     {
+        // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
         User currentUser = currentUserService.getCurrentUser();
@@ -382,6 +390,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
+        // TODO: To remove when we remove old UserCredentials compatibility
         for ( User user : users.getUsers() )
         {
             populateUserCredentialsDtoFields( user );
@@ -570,10 +579,41 @@ public class UserController
         setExpires( uid, null );
     }
 
+    /**
+     * "Disable two-factor authentication for the user with the given uid."
+     * <p>
+     *
+     * @param uid The uid of the user to disable two-factor authentication for.
+     * @param currentUser This is the user that is currently logged in.
+     *
+     * @return A WebMessage object.
+     */
+    @PostMapping( "/{uid}/twoFA/disabled" )
+    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+        userService.disableTwoFA( currentUser, uid, error -> errors.add( error ) );
+
+        if ( errors.isEmpty() )
+        {
+            return WebMessageUtils.ok();
+        }
+
+        return WebMessageUtils.errorReports( errors );
+    }
+
     // -------------------------------------------------------------------------
     // PATCH
     //
 
+    /**
+     * > This function is used to PATCH a user object
+     *
+     * @param pvUid The user's uid
+     * @param rpParameters The request parameters
+     * @param currentUser The user that is currently logged in.
+     * @param request The request object
+     */
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     @Override
@@ -592,6 +632,8 @@ public class UserController
 
         User persistedObject = entities.get( 0 );
 
+        boolean twoFABefore = persistedObject.getTwoFA();
+
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
@@ -601,9 +643,15 @@ public class UserController
 
         mergeUserCredentialsMutations( patch );
 
-        prePatchEntity( persistedObject );
+        prePatchEntity( persistedObject, persistedObject );
         patchService.apply( patch, persistedObject );
+
+        boolean twoFAfter = persistedObject.getTwoFA();
+
+        securityService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
+
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
+
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -665,7 +713,15 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        populateUserCredentialsDtoFields( parsed );
+        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
+        if ( users.isEmpty() )
+        {
+            throw new WebMessageException(
+                conflict( getEntityName() + " does not exist: " + pvUid ) );
+        }
+
+        // TODO: To remove when we remove old UserCredentials compatibility
+        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -753,23 +809,16 @@ public class UserController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void prePatchEntity( User entity )
-        throws Exception
+    protected void prePatchEntity( User oldEntity, User newEntity )
     {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( entity ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
+        // TODO: To remove when we remove old UserCredentials compatibility
+        populateUserCredentialsDtoCopyOnlyChanges( oldEntity, newEntity );
     }
 
     @Override
     protected void postPatchEntity( User user )
     {
-        // Make sure we always expire all of the user's active sessions if we
+        // Make sure we always expire all the user's active sessions if we
         // have disabled the user.
         if ( user != null && user.isDisabled() )
         {

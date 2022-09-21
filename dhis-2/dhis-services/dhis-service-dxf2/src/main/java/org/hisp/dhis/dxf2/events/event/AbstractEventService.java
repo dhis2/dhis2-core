@@ -568,15 +568,15 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance )
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean includeRelationships )
     {
-        return getEvent( programStageInstance, false, false );
+        return getEvent( programStageInstance, false, false, includeRelationships );
     }
 
     @Transactional( readOnly = true )
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck )
+        boolean skipOwnershipCheck, boolean includeRelationships )
     {
         if ( programStageInstance == null )
         {
@@ -691,10 +691,15 @@ public abstract class AbstractEventService implements EventService
 
         event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
 
-        event.setRelationships( programStageInstance.getRelationshipItems().stream()
-            .filter( Objects::nonNull )
-            .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
-            .collect( Collectors.toSet() ) );
+        if ( includeRelationships )
+        {
+            event.setRelationships( programStageInstance.getRelationshipItems()
+                .stream()
+                .filter( Objects::nonNull )
+                .map( r -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE,
+                    user ) )
+                .collect( Collectors.toSet() ) );
+        }
 
         return event;
     }
@@ -856,6 +861,7 @@ public abstract class AbstractEventService implements EventService
                 return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
             }
 
+            programStageInstance.setAutoFields();
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )

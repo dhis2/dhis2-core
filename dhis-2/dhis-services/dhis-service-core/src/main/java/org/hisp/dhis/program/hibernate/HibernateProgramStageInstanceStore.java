@@ -44,7 +44,6 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -78,20 +77,6 @@ public class HibernateProgramStageInstanceStore
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
             aclService, false );
-    }
-
-    @Override
-    public ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        List<ProgramStageInstance> list = getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) )
-            .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
-            .addOrder( root -> builder.asc( root.get( "id" ) ) )
-            .setMaxResults( 1 ) );
-
-        return list.isEmpty() ? null : list.get( 0 );
     }
 
     @Override
@@ -133,7 +118,7 @@ public class HibernateProgramStageInstanceStore
             return false;
         }
 
-        Query query = getSession().createNativeQuery(
+        Query<?> query = getSession().createNativeQuery(
             "select exists(select 1 from programstageinstance where uid=:uid and deleted is false)" );
         query.setParameter( "uid", uid );
 
@@ -148,7 +133,7 @@ public class HibernateProgramStageInstanceStore
             return false;
         }
 
-        Query query = getSession().createNativeQuery(
+        Query<?> query = getSession().createNativeQuery(
             "select exists(select 1 from programstageinstance where uid=:uid)" );
         query.setParameter( "uid", uid );
 

@@ -42,6 +42,7 @@ import org.springframework.context.annotation.Primary;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -115,6 +116,12 @@ public class JacksonObjectMapperConfig
     public ObjectMapper xmlMapper()
     {
         return xmlMapper;
+    }
+
+    @Bean
+    public CsvMapper csvMapper()
+    {
+        return csvMapper;
     }
 
     public static ObjectMapper staticJsonMapper()
@@ -198,6 +205,14 @@ public class JacksonObjectMapperConfig
     private static CsvMapper configureCsvMapper( CsvMapper mapper )
     {
         mapper.disable( CsvParser.Feature.FAIL_ON_MISSING_COLUMNS );
+        mapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
+
+        mapper.registerModule( new SimpleModule()
+            .addSerializer( Date.class, new WriteDateStdSerializer() )
+            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
+
+        mapper.registerModule( new Jdk8Module() );
+
         return mapper;
     }
 }

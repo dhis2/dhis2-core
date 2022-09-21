@@ -42,12 +42,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
+ * The Node services are being deprecated so please do not use in new code.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
  */
-@Deprecated
 public abstract class AbstractNode implements Node
 {
     protected String name;

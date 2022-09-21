@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoImportErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ class TrackerEventBundleServiceTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         assertEquals( 8, trackerImportParams.getEvents().size() );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -82,11 +82,11 @@ class TrackerEventBundleServiceTest extends TrackerTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoImportErrors( trackerImportReport );
+        assertNoErrors( trackerImportReport );
 
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }

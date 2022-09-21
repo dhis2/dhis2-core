@@ -54,4 +54,7 @@ public class User
 
     @JsonProperty
     private String surname;
+
+    @JsonProperty
+    private String displayName;
 }

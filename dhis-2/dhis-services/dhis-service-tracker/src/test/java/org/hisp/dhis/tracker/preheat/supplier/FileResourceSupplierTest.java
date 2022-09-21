@@ -97,7 +97,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
+        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
     }
 
     @Test
@@ -130,7 +130,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
+        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
     }
 
     @Test
@@ -149,7 +149,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        assertContainsOnly( preheat.getAll( FileResource.class ), fileResource );
+        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
     }
 
     @Test

@@ -132,6 +132,13 @@ pipeline {
 
 
                         post {
+                            always {
+                                script {
+                                     dir("dhis-2/dhis-e2e-test") {
+                                        archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
+                                    }
+                                }
+                            }
                             failure {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {

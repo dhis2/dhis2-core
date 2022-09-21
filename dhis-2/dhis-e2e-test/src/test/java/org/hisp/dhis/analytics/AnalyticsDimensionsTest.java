@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +42,6 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Program;
@@ -66,8 +64,6 @@ public class AnalyticsDimensionsTest
     extends ApiTest
 {
     private Program trackerProgram = Constants.TRACKER_PROGRAM;
-
-    private String trackerProgramStage = trackerProgram.getProgramStages().get( 0 );
 
     private AnalyticsEnrollmentsActions analyticsEnrollmentsActions;
 
@@ -180,47 +176,6 @@ public class AnalyticsDimensionsTest
                 dimensionType ) );
         validate
             .accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
-    }
-
-    @Test
-    public void shouldOnlyReturnDataElementsAssociatedWithProgramStage()
-    {
-        List<String> dataElements = new ProgramStageActions()
-            .get( String.format( "/%s/programStageDataElements/gist?fields=dataElement", trackerProgramStage ) )
-            .extractList( "programStageDataElements.dataElement" );
-
-        analyticsEventActions.query().getDimensionsByDimensionType( trackerProgramStage, "DATA_ELEMENT" )
-            .validate()
-            .body( "dimensions", hasSize( equalTo( dataElements.size() ) ) )
-            .body( "dimensions.id", everyItem( startsWith( trackerProgramStage ) ) )
-            .body( "dimensions.id", everyItem( CustomMatchers.containsOneOf( dataElements ) ) );
-    }
-
-    @Test
-    public void shouldReturnAssociatedCategoriesWhenProgramHasCatCombo()
-    {
-        String programWithCatCombo = programActions
-            .get( "?filter=categoryCombo.code:!eq:default&filter=programType:eq:WITH_REGISTRATION" )
-            .extractString( "programs.id[0]" );
-
-        String programStage = programActions.get( programWithCatCombo + "/programStages" )
-            .extractString( "programStages[0].id" );
-
-        assertNotNull( programStage );
-
-        Consumer<ApiResponse> validate = response -> {
-            response.validate()
-                .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-                .body( "dimensions.dimensionType", everyItem( startsWith( "CATEGORY" ) ) )
-                .body( "dimensions.dimensionType", hasItems( "CATEGORY", "CATEGORY_OPTION_GROUP_SET" ) );
-        };
-
-        validate.accept( analyticsEventActions.aggregate()
-            .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
-
-        validate.accept( analyticsEventActions.query()
-            .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
-
     }
 
     Stream<Arguments> shouldFilter()

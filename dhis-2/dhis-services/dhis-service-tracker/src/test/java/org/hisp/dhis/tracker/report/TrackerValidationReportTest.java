@@ -55,7 +55,7 @@ class TrackerValidationReportTest
 
         assertNotNull( report.getErrors() );
         assertEquals( 1, report.getErrors().size() );
-        assertContainsOnly( report.getErrors(), error );
+        assertContainsOnly( List.of( error ), report.getErrors() );
 
         report.addError( error );
 
@@ -72,11 +72,11 @@ class TrackerValidationReportTest
 
         report.addError( error1 );
 
-        assertContainsOnly( report.getErrors(), error1 );
+        assertContainsOnly( List.of( error1 ), report.getErrors() );
 
         report.addErrors( List.of( error1, error2 ) );
 
-        assertContainsOnly( report.getErrors(), error1, error2 );
+        assertContainsOnly( List.of( error1, error2 ), report.getErrors() );
     }
 
     @Test
@@ -90,7 +90,7 @@ class TrackerValidationReportTest
 
         assertNotNull( report.getWarnings() );
         assertEquals( 1, report.getWarnings().size() );
-        assertContainsOnly( report.getWarnings(), warning );
+        assertContainsOnly( List.of( warning ), report.getWarnings() );
 
         report.addWarning( warning );
 
@@ -107,11 +107,11 @@ class TrackerValidationReportTest
 
         report.addWarning( warning1 );
 
-        assertContainsOnly( report.getWarnings(), warning1 );
+        assertContainsOnly( List.of( warning1 ), report.getWarnings() );
 
         report.addWarnings( List.of( warning1, warning2 ) );
 
-        assertContainsOnly( report.getWarnings(), warning1, warning2 );
+        assertContainsOnly( List.of( warning1, warning2 ), report.getWarnings() );
     }
 
     @Test

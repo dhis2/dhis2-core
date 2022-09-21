@@ -130,12 +130,6 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     private TrackedEntityType trackedEntityType;
 
     @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
     protected void setUpTest()
     {
         userService = _userService;

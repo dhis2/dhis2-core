@@ -307,6 +307,12 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
         return this;
     }
 
+    public String toCountString()
+    {
+        return String.format( "Imported %d, updated %d, deleted %d, ignored %d",
+            importCount.getImported(), importCount.getUpdated(), importCount.getDeleted(), importCount.getIgnored() );
+    }
+
     /**
      * Called to mark a data value that should be skipped/ignored during
      * validation.

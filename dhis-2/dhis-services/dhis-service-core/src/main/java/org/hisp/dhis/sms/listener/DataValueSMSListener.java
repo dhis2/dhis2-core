@@ -138,8 +138,8 @@ public class DataValueSMSListener
             return;
         }
 
-        if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit,
-            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ).isOpen() )
+        if ( !dataSetService.getLockStatus( dataSet, period, orgUnit,
+            dataElementCategoryService.getDefaultCategoryOptionCombo() ).isOpen() )
         {
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(),
                 ERROR );

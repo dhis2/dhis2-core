@@ -136,9 +136,9 @@ public class DataItemQueryController
         final OrderParams orderParams )
     {
         // Defining the input params.
-        final Set<String> fields = newHashSet( contextService.getParameterValues( FIELDS ) );
-        final Set<String> filters = newHashSet( contextService.getParameterValues( FILTER ) );
-        final WebOptions options = new WebOptions( urlParameters );
+        Set<String> fields = newHashSet( contextService.getParameterValues( FIELDS ) );
+        Set<String> filters = newHashSet( contextService.getParameterValues( FILTER ) );
+        WebOptions options = new WebOptions( urlParameters );
 
         if ( fields.isEmpty() )
         {
@@ -149,18 +149,18 @@ public class DataItemQueryController
         checkOrderParams( orderParams.getOrders() );
 
         // Extracting the target entities to be queried.
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
+        Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
             .extractTargetEntities( filters );
 
         // Checking if the user can read all the target entities.
         checkAuthorization( currentUser, targetEntities );
 
         // Retrieving the data items based on the input params.
-        final List<DataItem> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
+        List<DataItem> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
         // Creating the response node.
-        final RootNode rootNode = createMetadata();
+        RootNode rootNode = createMetadata();
 
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
         responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options,

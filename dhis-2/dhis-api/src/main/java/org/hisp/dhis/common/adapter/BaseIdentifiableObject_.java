@@ -41,4 +41,6 @@ public class BaseIdentifiableObject_
 
     public static final String SHARING = "sharing";
 
+    public static final String ATTRIBUTE_VALUES = "attributeValues";
+
 }

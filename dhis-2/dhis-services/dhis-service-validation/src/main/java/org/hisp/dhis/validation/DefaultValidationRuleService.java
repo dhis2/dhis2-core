@@ -183,7 +183,7 @@ public class DefaultValidationRuleService
 
     @Transactional( readOnly = true )
     @Override
-    public Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet )
+    public Set<ValidationRule> getValidationRulesForDataSet( DataSet dataSet )
     {
         Set<String> elementsAndOptionCombos = new HashSet<>();
 

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Color;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -68,7 +67,6 @@ class GeoToolsMapObjectTest
     }
 
     @Test
-    @Disabled
     void testSetGetRadius()
     {
         geoToolsMapObject.setRadius( 32 );

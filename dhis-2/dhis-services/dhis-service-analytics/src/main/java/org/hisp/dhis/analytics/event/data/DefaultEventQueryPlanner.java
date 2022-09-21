@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -57,6 +57,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
+@RequiredArgsConstructor
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
@@ -66,18 +67,6 @@ public class DefaultEventQueryPlanner
 
     private final PartitionManager partitionManager;
 
-    public DefaultEventQueryPlanner( QueryPlanner queryPlanner, QueryValidator queryValidator,
-        PartitionManager partitionManager )
-    {
-        checkNotNull( queryPlanner );
-        checkNotNull( queryValidator );
-        checkNotNull( partitionManager );
-
-        this.queryPlanner = queryPlanner;
-        this.queryValidator = queryValidator;
-        this.partitionManager = partitionManager;
-    }
-
     // -------------------------------------------------------------------------
     // EventQueryPlanner implementation
     // -------------------------------------------------------------------------
@@ -85,7 +74,7 @@ public class DefaultEventQueryPlanner
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
-        final List<EventQueryParams> queries = Lists.newArrayList( params );
+        List<EventQueryParams> queries = Lists.newArrayList( params );
 
         List<Function<EventQueryParams, List<EventQueryParams>>> groupers = new ImmutableList.Builder<Function<EventQueryParams, List<EventQueryParams>>>()
             .add( q -> groupByQueryItems( q ) )
@@ -167,7 +156,7 @@ public class DefaultEventQueryPlanner
      */
     private List<EventQueryParams> withTableNameAndPartitions( List<EventQueryParams> queries )
     {
-        final List<EventQueryParams> list = new ArrayList<>();
+        List<EventQueryParams> list = new ArrayList<>();
         queries.forEach( query -> list.add( withTableNameAndPartitions( query ) ) );
         return list;
     }

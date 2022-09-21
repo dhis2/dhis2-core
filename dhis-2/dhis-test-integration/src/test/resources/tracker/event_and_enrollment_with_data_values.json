@@ -165,7 +165,18 @@
           "identifier": "DATAEL00001"
         },
         "value": "value1"
-      }],
+      },
+        {
+          "createdAt": "2019-01-28T12:10:38.113",
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "providedElsewhere": false,
+          "dataElement": {
+            "idScheme": "UID",
+            "identifier": "DATAEL00002"
+          },
+          "value": "value2"
+        }],
       "notes": []
     },
     {

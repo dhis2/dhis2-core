@@ -45,7 +45,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +56,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.dataapproval.DataApprovalAuditService" )
 public class DefaultDataApprovalAuditService
-    implements DataApprovalAuditService, CurrentUserServiceTarget
+    implements DataApprovalAuditService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -67,7 +66,7 @@ public class DefaultDataApprovalAuditService
 
     private final DataApprovalLevelService dataApprovalLevelService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final AclService aclService;
 
@@ -89,12 +88,6 @@ public class DefaultDataApprovalAuditService
     // -------------------------------------------------------------------------
     // DataValueAuditService implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
 
     @Override
     @Transactional

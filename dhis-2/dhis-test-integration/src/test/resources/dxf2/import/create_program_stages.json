@@ -1,0 +1,219 @@
+{
+  "system": {
+    "id": "eed3d451-4ff5-4193-b951-ffcc68954299",
+    "rev": "4219a14",
+    "version": "2.35.0",
+    "date": "2020-11-24T07:46:15.538"
+  },
+  "organisationUnits": [
+    {
+      "path": "/y77LiPqLMoq",
+      "created": "2016-03-10T05:01:10.702+0000",
+      "attributeValues": [],
+      "shortName": "Country",
+      "name": "Country",
+      "uuid": "b8b03f02-6a01-4786-9343-937692400cec",
+      "openingDate": "2016-03-10",
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "lastUpdated": "2016-03-10T05:01:10.717+0000",
+      "id": "y77LiPqLMoq",
+      "featureType": "NONE",
+      "description": "",
+      "code": "OU_559"
+    }
+  ],
+  "users": [
+    {
+      "lastUpdated": "2016-03-10T05:01:28.993+0000",
+      "surname": "admin",
+      "firstName": "admin",
+      "dataViewOrganisationUnits": [],
+      "id": "ZK1wkC59FCw",
+      "organisationUnits": [
+        {
+          "id": "y77LiPqLMoq"
+        }
+      ],
+      "teiSearchOrganisationUnits": [],
+        "selfRegistered": false,
+        "externalAuth": false,
+        "invitation": false,
+        "cogsDimensionConstraints": [],
+        "username": "admin",
+        "disabled": false,
+        "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
+        "catDimensionConstraints": [],
+        "lastLogin": "2016-03-10T05:00:11.791+0000",
+        "user": {
+          "id": "ZK1wkC59FCw"
+        },
+        "userRoles": [
+          {
+            "id": "VIkpd2KHCb1"
+          }
+        ],
+      "attributeValues": [],
+      "created": "2016-03-10T05:00:11.766+0000"
+    }
+  ],
+  "userRoles": [
+    {
+      "created": "2016-03-10T05:00:11.778+0000",
+      "authorities": [
+        "ALL"
+      ],
+      "userGroupAccesses": [],
+      "dataSets": [],
+      "programs": [],
+      "publicAccess": "--------",
+      "id": "VIkpd2KHCb1",
+      "name": "Superuser",
+      "lastUpdated": "2016-03-10T05:00:11.778+0000"
+    }
+  ],
+  "programs": [
+    {
+      "lastUpdated": "2020-11-24T07:45:30.684",
+      "id": "VBqh0ynB2wv",
+      "created": "2016-03-30T20:18:31.020",
+      "name": "Malaria case registration",
+      "shortName": "Malaria case registration",
+      "code": "malaria_case",
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "enrollmentDateLabel": "Enrollment Date",
+      "onlyEnrollOnce": false,
+      "version": 3,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "incidentDateLabel": "Incident Date",
+      "selectEnrollmentDatesInFuture": false,
+      "useFirstStageDuringRegistration": false,
+      "completeEventsExpiryDays": 0,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "displayIncidentDate": false,
+      "expiryDays": 0,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "displayName": "John Traore",
+        "id": "ZK1wkC59FCw",
+        "username": "admin"
+      },
+      "style": {
+        "color": "#7c4dff",
+        "icon": "mosquito_positive"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "organisationUnits": [
+        {
+          "id": "y77LiPqLMoq"
+        }
+      ],
+      "programSections": [],
+      "programStages": [
+        {
+          "id": "pTo4uMt3xur"
+        }
+      ]
+    }
+  ],
+  "programStages": [
+    {
+      "lastUpdated": "2020-11-23T14:51:32.868",
+      "id": "pTo4uMt3xur",
+      "created": "2016-03-30T20:18:31.146",
+      "name": "Malaria case registration",
+      "code": "malaria_case",
+      "allowGenerateNextVisit": false,
+      "executionDateLabel": "Report date",
+      "preGenerateUID": false,
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "featureType": "POINT",
+      "remindCompleted": false,
+      "displayGenerateEventBox": false,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "VBqh0ynB2wv"
+      },
+      "lastUpdatedBy": {
+        "id": "ZK1wkC59FCw"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [
+        {
+          "lastUpdated": "2016-12-06T16:37:46.104",
+          "id": "FKHaErzkvEF",
+          "created": "2016-04-01T15:07:12.723",
+          "displayInReports": true,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "allowFutureDate": false,
+          "compulsory": true,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": false,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "pTo4uMt3xur"
+          },
+          "dataElement": {
+            "id": "F3ogKBuviRA"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "attributeValues": [],
+      "programStageSections": []
+    }
+  ],
+  "dataElements": [
+    {
+      "description": "DataElementDescriptionA",
+      "shortName": "DataElementShortA",
+      "attributeValues": [],
+      "lastUpdated": "2016-03-10T05:02:18.871+0000",
+      "code": "DataElementCodeA",
+      "name": "DataElementA",
+      "aggregationLevels": [],
+      "aggregationType": "SUM",
+      "id": "F3ogKBuviRA",
+      "publicAccess": "rw------",
+      "zeroIsSignificant": false,
+      "userGroupAccesses": [],
+      "valueType": "TEXT",
+      "created": "2016-03-10T05:02:18.868+0000",
+      "domainType": "AGGREGATE"
+    }
+  ]
+}

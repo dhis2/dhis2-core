@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.sms.config;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.TypeOfNumber;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonView;
 
 /**
  * @author Zubair Asghar
@@ -42,22 +40,22 @@ import com.fasterxml.jackson.annotation.JsonView;
 @JsonTypeName( "smpp" )
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private String systemType;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private NumberingPlanIndicator numberPlanIndicator = NumberingPlanIndicator.UNKNOWN;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private TypeOfNumber typeOfNumber = TypeOfNumber.UNKNOWN;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private BindType bindType = BindType.BIND_TX;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private int port;
 
-    @JsonView( SmsConfigurationViews.Public.class )
+    @JsonProperty
     private boolean compressed;
 
     @Override

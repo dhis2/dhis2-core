@@ -63,8 +63,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -104,7 +105,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -115,7 +115,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class ExpressionService2Test extends DhisSpringTest
+class ExpressionService2Test extends DhisConvenienceTest
 {
 
     @Mock
@@ -133,10 +133,10 @@ class ExpressionService2Test extends DhisSpringTest
     @Mock
     private StatementBuilder statementBuilder;
 
-    @Autowired
+    @Mock
     private I18nManager i18nManager;
 
-    @Autowired
+    @Mock
     private CacheProvider cacheProvider;
 
     private DefaultExpressionService target;
@@ -256,6 +256,7 @@ class ExpressionService2Test extends DhisSpringTest
     @BeforeEach
     public void setUp()
     {
+        when( cacheProvider.createAllConstantsCache() ).thenReturn( new NoOpCache<>() );
         target = new DefaultExpressionService( hibernateGenericStore, constantService, dimensionService,
             idObjectManager, statementBuilder, i18nManager, cacheProvider );
 
@@ -521,12 +522,13 @@ class ExpressionService2Test extends DhisSpringTest
             .parseType( PREDICTOR_EXPRESSION )
             .build() );
 
-        assertContainsOnly( info.getItemIds(), getId( opA ), getId( reportingRate ) );
-        assertContainsOnly( info.getSampleItemIds(), getId( deB ), getId( pdeA ) );
-        assertContainsOnly( info.getAllItemIds(), getId( opA ), getId( reportingRate ), getId( deB ), getId( pdeA ) );
-        assertContainsOnly( info.getOrgUnitGroupIds(), groupA.getUid(), groupB.getUid() );
-        assertContainsOnly( info.getOrgUnitDataSetIds(), dataSetA.getUid(), dataSetB.getUid() );
-        assertContainsOnly( info.getOrgUnitProgramIds(), programA.getUid(), programB.getUid() );
+        assertContainsOnly( Set.of( getId( opA ), getId( reportingRate ) ), info.getItemIds() );
+        assertContainsOnly( Set.of( getId( deB ), getId( pdeA ) ), info.getSampleItemIds() );
+        assertContainsOnly( Set.of( getId( opA ), getId( reportingRate ), getId( deB ), getId( pdeA ) ),
+            info.getAllItemIds() );
+        assertContainsOnly( Set.of( groupA.getUid(), groupB.getUid() ), info.getOrgUnitGroupIds() );
+        assertContainsOnly( Set.of( dataSetA.getUid(), dataSetB.getUid() ), info.getOrgUnitDataSetIds() );
+        assertContainsOnly( Set.of( programA.getUid(), programB.getUid() ), info.getOrgUnitProgramIds() );
         assertTrue( info.getOrgUnitGroupCountIds().isEmpty() );
     }
 
@@ -541,7 +543,7 @@ class ExpressionService2Test extends DhisSpringTest
             .parseType( INDICATOR_EXPRESSION )
             .build() );
 
-        assertContainsOnly( info.getOrgUnitGroupCountIds(), groupA.getUid(), groupB.getUid() );
+        assertContainsOnly( Set.of( groupA.getUid(), groupB.getUid() ), info.getOrgUnitGroupCountIds() );
         assertTrue( info.getItemIds().isEmpty() );
         assertTrue( info.getSampleItemIds().isEmpty() );
         assertTrue( info.getAllItemIds().isEmpty() );
@@ -570,8 +572,8 @@ class ExpressionService2Test extends DhisSpringTest
             .parseType( PREDICTOR_EXPRESSION )
             .build() );
 
-        assertContainsOnly( info.getItemIds(), getId( opA ), getId( pdeA ) );
-        assertContainsOnly( info.getSampleItemIds(), getId( deB ), getId( reportingRate ) );
+        assertContainsOnly( Set.of( getId( opA ), getId( pdeA ) ), info.getItemIds() );
+        assertContainsOnly( Set.of( getId( deB ), getId( reportingRate ) ), info.getSampleItemIds() );
     }
 
     @Test

@@ -55,7 +55,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Disabled
 class InterpretationServiceTest extends TransactionalIntegrationTest
 {
 
@@ -87,12 +86,6 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
     private Interpretation interpretationB;
 
     private Interpretation interpretationC;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest()

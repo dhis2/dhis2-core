@@ -70,10 +70,8 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,11 +83,11 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  * @author Stian Sandvold
  */
-@Service
+@Service( "org.hisp.dhis.validation.ValidationService" )
 @Transactional
 @Slf4j
 @RequiredArgsConstructor
-public class DefaultValidationService implements ValidationService, CurrentUserServiceTarget
+public class DefaultValidationService implements ValidationService
 {
     private final PeriodService periodService;
 
@@ -109,14 +107,7 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
 
     private final DataValidationRunner runner;
 
-    private CurrentUserService currentUserService;
-
-    @Override
-    @Autowired
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // ValidationRule business logic
@@ -222,7 +213,7 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
     {
         Collection<ValidationRule> validationRules = validationRuleGroup != null ? validationRuleGroup.getMembers()
             : validationRuleService.getAllValidationRules();
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
+        List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
 
         return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }
@@ -232,8 +223,8 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
     public ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnit,
         Period period )
     {
-        Collection<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
-        Collection<Period> periods = Sets.newHashSet( period );
+        Set<ValidationRule> validationRules = validationRuleService.getValidationRulesForDataSet( dataSet );
+        Set<Period> periods = Sets.newHashSet( period );
 
         return new ValidationAnalysisParams.Builder( validationRules, organisationUnit, periods );
     }

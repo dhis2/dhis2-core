@@ -84,6 +84,16 @@ public class ServiceConfig
             resourceTableService, systemSettingManager );
     }
 
+    @Bean( "org.hisp.dhis.analytics.OwnershipAnalyticsTableService" )
+    public DefaultAnalyticsTableService ownershipAnalyticsTableManager(
+        @Qualifier( "org.hisp.dhis.analytics.OwnershipAnalyticsTableManager" ) AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    {
+        return new DefaultAnalyticsTableService( tableManager, organisationUnitService, dataElementService,
+            resourceTableService, systemSettingManager );
+    }
+
     @Bean( "org.hisp.dhis.analytics.EventAnalyticsTableService" )
     public DefaultAnalyticsTableService eventAnalyticsTableService(
         @Qualifier( "org.hisp.dhis.analytics.EventAnalyticsTableManager" ) AnalyticsTableManager tableManager,

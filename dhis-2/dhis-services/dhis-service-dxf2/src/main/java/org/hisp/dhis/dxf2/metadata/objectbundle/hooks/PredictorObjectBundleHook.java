@@ -46,7 +46,7 @@ public class PredictorObjectBundleHook extends AbstractObjectBundleHook<Predicto
     }
 
     @Override
-    public void preUpdate( Predictor predictor, Predictor persistedObject, ObjectBundle bundle )
+    public void preUpdate( Predictor predictor, Predictor persistedPredictor, ObjectBundle bundle )
     {
         saveSkipTest( predictor, bundle );
     }

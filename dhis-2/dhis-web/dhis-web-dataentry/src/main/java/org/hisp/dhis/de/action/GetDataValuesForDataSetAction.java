@@ -57,8 +57,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -115,13 +113,6 @@ public class GetDataValuesForDataSetAction
     public void setFileResourceService( FileResourceService fileResourceService )
     {
         this.fileResourceService = fileResourceService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     @Autowired
@@ -250,8 +241,6 @@ public class GetDataValuesForDataSetAction
         // Validation
         // ---------------------------------------------------------------------
 
-        User currentUser = currentUserService.getCurrentUser();
-
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
         Period period = PeriodType.getPeriodFromIsoString( periodId );
@@ -336,8 +325,7 @@ public class GetDataValuesForDataSetAction
                 lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
-            locked = dataSetService.getLockStatus( currentUser, dataSet, period, organisationUnit,
-                attributeOptionCombo, null );
+            locked = dataSetService.getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo );
         }
         else
         {
@@ -349,8 +337,7 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.getLockStatus( currentUser, dataSet, period, ou,
-                        attributeOptionCombo, null );
+                    locked = dataSetService.getLockStatus( dataSet, period, ou, attributeOptionCombo );
 
                     if ( !locked.isOpen() )
                     {

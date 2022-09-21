@@ -17,7 +17,7 @@ updates:
       interval: "daily"
       time: "02:17" # GitHub says 'High load times include the start of every hour'
       timezone: "Europe/Oslo"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 8
     pull-request-branch-name:
       separator: "-"
     commit-message:

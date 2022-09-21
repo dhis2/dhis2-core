@@ -60,7 +60,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +74,7 @@ import com.google.common.collect.Sets;
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
 @AllArgsConstructor
 public class DefaultDataApprovalService
-    implements DataApprovalService, CurrentUserServiceTarget
+    implements DataApprovalService
 {
     private final DataApprovalStore dataApprovalStore;
 
@@ -87,15 +86,9 @@ public class DefaultDataApprovalService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final SystemSettingManager systemSettingManager;
-
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
 
     // -------------------------------------------------------------------------
     // Data approval workflow

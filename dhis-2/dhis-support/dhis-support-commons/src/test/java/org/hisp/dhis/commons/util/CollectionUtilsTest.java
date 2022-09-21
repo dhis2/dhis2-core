@@ -27,15 +27,22 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
+import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -70,6 +77,32 @@ class CollectionUtilsTest
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
 
         assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( deA ) );
+    }
+
+    @Test
+    public void testMapToSet()
+    {
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        DataElement deC = new DataElement();
+
+        CategoryCombo ccA = new CategoryCombo();
+        CategoryCombo ccB = new CategoryCombo();
+
+        ccA.setAutoFields();
+        ccB.setAutoFields();
+
+        deA.setCategoryCombo( ccA );
+        deB.setCategoryCombo( ccA );
+        deC.setCategoryCombo( ccB );
+
+        List<DataElement> dataElements = List.of( deA, deB, deC );
+
+        Set<CategoryCombo> categoryCombos = mapToSet( dataElements, DataElement::getCategoryCombo );
+
+        assertEquals( 2, categoryCombos.size() );
+        assertTrue( categoryCombos.contains( ccA ) );
     }
 
     @Test
@@ -85,8 +118,8 @@ class CollectionUtilsTest
     @Test
     void testDifference()
     {
-        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
-        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
+        List<String> collection1 = List.of( "One", "Two", "Three" );
+        List<String> collection2 = List.of( "One", "Two", "Four" );
         List<String> difference = CollectionUtils.difference( collection1, collection2 );
 
         assertEquals( 1, difference.size() );
@@ -100,5 +133,36 @@ class CollectionUtilsTest
 
         assertEquals( 3, mapToList( collection, Integer::parseInt ).size() );
         assertEquals( 1, mapToList( collection, Integer::parseInt ).get( 0 ) );
+    }
+
+    @Test
+    void testEmptyIfNullSet()
+    {
+        Set<String> setA = Set.of( "One", "Two", "Three" );
+        Set<String> setB = null;
+
+        assertEquals( setA, emptyIfNull( setA ) );
+        assertEquals( new HashSet<>(), emptyIfNull( setB ) );
+    }
+
+    @Test
+    void testEmptyIfNullList()
+    {
+        List<String> listA = List.of( "One", "Two", "Three" );
+        List<String> listB = null;
+
+        assertEquals( listA, emptyIfNull( listA ) );
+        assertEquals( new ArrayList<>(), emptyIfNull( listB ) );
+    }
+
+    @Test
+    void testAddIfNotNull()
+    {
+        List<String> list = new ArrayList<>();
+        addIfNotNull( list, "One" );
+        addIfNotNull( list, null );
+        addIfNotNull( list, "Three" );
+
+        assertEquals( 2, list.size() );
     }
 }

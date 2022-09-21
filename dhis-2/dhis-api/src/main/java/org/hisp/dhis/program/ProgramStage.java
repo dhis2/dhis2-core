@@ -132,6 +132,8 @@ public class ProgramStage
 
     private DataElement nextScheduleDate;
 
+    private boolean referral;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -569,5 +571,17 @@ public class ProgramStage
     public void setNextScheduleDate( DataElement nextScheduleDate )
     {
         this.nextScheduleDate = nextScheduleDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isReferral()
+    {
+        return referral;
+    }
+
+    public void setReferral( boolean referral )
+    {
+        this.referral = referral;
     }
 }

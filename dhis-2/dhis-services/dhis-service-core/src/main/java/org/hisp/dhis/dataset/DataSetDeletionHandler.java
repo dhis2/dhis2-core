@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
@@ -91,22 +90,8 @@ public class DataSetDeletionHandler extends DeletionHandler
 
         for ( DataSet dataSet : dataSets )
         {
-            boolean update = false;
-
-            Iterator<DataElementOperand> operands = dataSet.getCompulsoryDataElementOperands().iterator();
-
-            while ( operands.hasNext() )
-            {
-                DataElementOperand operand = operands.next();
-
-                if ( operand.getDataElement().equals( dataElement ) )
-                {
-                    operands.remove();
-                    update = true;
-                }
-            }
-
-            if ( update )
+            if ( dataSet.getCompulsoryDataElementOperands().removeIf(
+                operand -> operand.getDataElement().equals( dataElement ) ) )
             {
                 idObjectManager.updateNoAcl( dataSet );
             }

@@ -39,8 +39,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -87,12 +85,6 @@ class AclServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     protected void setUpTest()
@@ -252,46 +244,6 @@ class AclServiceTest extends TransactionalIntegrationTest
         map.getSharing().setOwner( user );
         map.setPublicAccess( AccessStringHelper.DEFAULT );
         assertTrue( aclService.canUpdate( user, map ) );
-    }
-
-    @Test
-    void testCanCreatePrivatePublicEventChart()
-    {
-        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-        assertFalse( aclService.canMakeClassPublic( user, EventChart.class ) );
-        assertTrue( aclService.canMakeClassPrivate( user, EventChart.class ) );
-    }
-
-    @Test
-    void testCanUpdatePrivateEventChart()
-    {
-        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-        EventChart eventChart = new EventChart();
-        eventChart.setAutoFields();
-        eventChart.setCreatedBy( user );
-        eventChart.getSharing().setOwner( user );
-        eventChart.setPublicAccess( AccessStringHelper.DEFAULT );
-        assertTrue( aclService.canUpdate( user, eventChart ) );
-    }
-
-    @Test
-    void testCanCreatePrivatePublicEventReport()
-    {
-        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-        assertFalse( aclService.canMakeClassPublic( user, EventReport.class ) );
-        assertTrue( aclService.canMakeClassPrivate( user, EventReport.class ) );
-    }
-
-    @Test
-    void testCanUpdatePrivateEventReport()
-    {
-        User user = createAndAddAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
-        EventReport eventReport = new EventReport();
-        eventReport.setAutoFields();
-        eventReport.setCreatedBy( user );
-        eventReport.getSharing().setOwner( user );
-        eventReport.setPublicAccess( AccessStringHelper.DEFAULT );
-        assertTrue( aclService.canUpdate( user, eventReport ) );
     }
 
     @Test
@@ -1207,7 +1159,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         User userA = makeUser( "A" );
         manager.save( userA );
         dbmsManager.flushSession();
-        de = manager.get( de.getUid() );
+        de = manager.get( DataElement.class, de.getUid() );
         assertEquals( AccessStringHelper.DEFAULT, de.getPublicAccess() );
         assertEquals( null, de.getSharing().getOwner() );
         assertTrue( de.getSharing().getUsers().isEmpty() );

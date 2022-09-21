@@ -69,12 +69,10 @@ public class ProgramStageDataElementDeletionHandler extends DeletionHandler
     {
         if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
         {
-            for ( ProgramStageDataElement element : programStageDataElementService.getAllProgramStageDataElements() )
+            for ( ProgramStageDataElement element : programStageDataElementService
+                .getProgramStageDataElements( dataElement ) )
             {
-                if ( element.getDataElement() != null && element.getDataElement().equals( dataElement ) )
-                {
-                    programStageDataElementService.deleteProgramStageDataElement( element );
-                }
+                programStageDataElementService.deleteProgramStageDataElement( element );
             }
         }
     }

@@ -31,13 +31,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,11 +53,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Controller
 @RequestMapping( value = OptionSetSchemaDescriptor.API_ENDPOINT )
+@AllArgsConstructor
 public class OptionSetController
     extends AbstractCrudController<OptionSet>
 {
-    @Autowired
-    private OptionService optionService;
+    private final OptionService optionService;
 
     @GetMapping( "/{uid}/metadata" )
     public ResponseEntity<JsonNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
@@ -71,5 +72,17 @@ public class OptionSetController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, optionSet, download );
+    }
+
+    @Override
+    protected void preCreateEntity( OptionSet entity )
+    {
+        optionService.validateOptionSet( entity );
+    }
+
+    @Override
+    protected void preUpdateEntity( OptionSet entity, OptionSet newEntity )
+    {
+        optionService.validateOptionSet( newEntity );
     }
 }

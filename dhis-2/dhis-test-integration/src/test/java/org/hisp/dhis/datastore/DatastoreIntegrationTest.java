@@ -78,6 +78,13 @@ class DatastoreIntegrationTest extends IntegrationTestBase
         addPet( "pig", "Oink", 6, List.of( "carrots", "potatoes" ) );
     }
 
+    @Override
+    protected void tearDownTest()
+        throws Exception
+    {
+        datastore.deleteNamespace( "pets" );
+    }
+
     private DatastoreEntry addEntry( String key, String value )
     {
         DatastoreEntry entry = new DatastoreEntry( "pets", key, value.replace( '\'', '"' ), false );

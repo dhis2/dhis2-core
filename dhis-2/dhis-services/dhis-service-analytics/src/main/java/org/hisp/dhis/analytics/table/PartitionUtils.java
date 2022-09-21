@@ -98,12 +98,12 @@ public class PartitionUtils
     /**
      * Returns partitions for the given list of periods.
      *
-     * @param period the period.
+     * @param periods the period.
      * @return partitions for the given list of periods.
      */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
     {
-        final Set<Integer> years = new HashSet<>();
+        Set<Integer> years = new HashSet<>();
 
         periods.forEach( p -> {
             Period period = (Period) p;
@@ -213,7 +213,7 @@ public class PartitionUtils
      */
     public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
     {
-        final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        List<AnalyticsTablePartition> partitions = Lists.newArrayList();
 
         for ( AnalyticsTable table : tables )
         {
@@ -252,7 +252,7 @@ public class PartitionUtils
      * Returns partition name. Aggregate only for now!
      *
      * @param tableName the table name.
-     * @param partitiont the partition.
+     * @param partition the partition.
      * @return the partition name.
      */
     public static String getPartitionName( String tableName, Integer partition )

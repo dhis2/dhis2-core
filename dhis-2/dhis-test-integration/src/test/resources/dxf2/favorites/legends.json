@@ -1,0 +1,55 @@
+{
+  "legendSets": [
+    {
+      "name": "ANC Coverage",
+      "id": "fqs276KXCXi",
+      "symbolizer": "color",
+      "lastUpdated": "2016-03-17T01:40:08.004+0000",
+      "created": "2016-03-17T01:40:08.002+0000",
+      "legends": [
+        {
+          "name": "Medium Plus",
+          "endValue": 70.0,
+          "color": "#FF6600",
+          "startValue": 60.0
+        },
+        {
+          "name": "Low",
+          "endValue": 40.0,
+          "color": "#FF0000",
+          "startValue": 0.0
+        },
+        {
+          "name": "Medium",
+          "endValue": 60.0,
+          "color": "#993300",
+          "startValue": 40.0
+        },
+        {
+          "name": "High Plus",
+          "endValue": 90.0,
+          "color": "#339966",
+          "startValue": 80.0
+        },
+        {
+          "name": "High",
+          "endValue": 80.0,
+          "color": "#99CC00",
+          "startValue": 70.0
+        },
+        {
+          "name": "Great",
+          "endValue": 120.0,
+          "color": "#00FF00",
+          "startValue": 90.0
+        },
+        {
+          "name": "Invalid",
+          "endValue": 990.0,
+          "color": "#99CCFF",
+          "startValue": 120.0
+        }
+      ]
+    }
+  ]
+}

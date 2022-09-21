@@ -49,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,7 +62,7 @@ import com.google.common.collect.Maps;
 @Slf4j
 @Service( "org.hisp.dhis.dataapproval.DataApprovalLevelService" )
 public class DefaultDataApprovalLevelService
-    implements DataApprovalLevelService, CurrentUserServiceTarget
+    implements DataApprovalLevelService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -75,7 +74,7 @@ public class DefaultDataApprovalLevelService
 
     private final CategoryService categoryService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final AclService aclService;
 
@@ -96,11 +95,6 @@ public class DefaultDataApprovalLevelService
         this.aclService = aclService;
     }
 
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
     // -------------------------------------------------------------------------
     // DataApprovalLevel
     // -------------------------------------------------------------------------

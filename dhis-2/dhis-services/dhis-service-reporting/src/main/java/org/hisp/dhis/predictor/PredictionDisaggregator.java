@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.predictor;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.predictor.CategoryComboDisaggregationMapGenerator.getCcDisagMap;
+import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.getSortedOptions;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.Collection;
@@ -38,6 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.activemq.artemis.utils.collections.ConcurrentHashSet;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -65,6 +71,8 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author Jim Grace
  */
+@Slf4j
+@Builder
 public class PredictionDisaggregator
 {
     /**
@@ -93,58 +101,32 @@ public class PredictionDisaggregator
     private final boolean disagPredictions;
 
     /**
-     * When disaggregated predictions are used, a map that, for each category
-     * combo (CC) UID found in an input data element, returns a map from the
-     * category option combinations (COCs) of that CC to the COCs of the output
-     * data element's category combo.
-     * <p>
-     * This contains entries only for category combos that are specified by a
-     * data element in the input expression (not a data element operand), and
-     * for only those category combos where every COC maps to a COC of the
-     * output data element's category combo.
+     * List for warnings of disaggregations we could not map.
      */
-    private final CategoryComboDisaggregationMap ccDisagMap;
+    private final Set<DataElementOperand> unmappedDeos = new ConcurrentHashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+    /**
+     * When disaggregated predictions are used, this maps sorted options to the
+     * output category option combination for the output data element.
+     */
+    @Builder.Default
+    private final Map<String, String> sortedOptionsToCoc = emptyMap();
 
-    public PredictionDisaggregator( Predictor predictor, CategoryOptionCombo defaultCOC,
-        Collection<DimensionalItemObject> items )
-    {
-        this.predictor = predictor;
-        this.defaultCOC = defaultCOC;
-        this.items = items;
-        this.outputCatCombo = predictor.getOutput().getCategoryCombo();
-        this.disagPredictions = !outputCatCombo.isDefault() && predictor.getOutputCombo() == null;
-
-        if ( disagPredictions )
-        {
-            Set<CategoryCombo> inputDataElementCategoryCombos = items.stream()
-                .filter( DataElement.class::isInstance )
-                .map( DataElement.class::cast )
-                .map( DataElement::getCategoryCombo )
-                .collect( toUnmodifiableSet() );
-
-            this.ccDisagMap = getCcDisagMap( outputCatCombo, inputDataElementCategoryCombos );
-        }
-        else
-        {
-            this.ccDisagMap = null;
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    /**
+     * UIDs of the data element category combos that will be mapped to the
+     * output category option combination of the output data element.
+     */
+    @Builder.Default
+    private final Set<String> mappedCategoryCombos = emptySet();
 
     /**
      * Gets the items we will fetch the data for, including fetching any
      * existing predictions.
      * <p>
      * If this is a disaggregation prediction, then replace any matching data
-     * elements (those with the same CC as the output data element) with a set
-     * of data element operands, one for each COC of the data element.
+     * elements (those with the same CC as the output data element) with a
+     * wildcard data element operand, to collect all category option combos for
+     * that data element.
      *
      * @return items to fetch data for
      */
@@ -166,9 +148,9 @@ public class PredictionDisaggregator
         for ( DimensionalItemObject item : inputItems )
         {
             if ( item instanceof DataElement &&
-                ccDisagMap.containsKey( ((DataElement) item).getCategoryCombo().getUid() ) )
+                mappedCategoryCombos.contains( ((DataElement) item).getCategoryCombo().getUid() ) )
             {
-                itemSet.addAll( disaggregateDataElement( (DataElement) item ) );
+                itemSet.add( new DataElementOperand( (DataElement) item, null ) );
             }
             else
             {
@@ -227,20 +209,21 @@ public class PredictionDisaggregator
             .collect( toUnmodifiableList() );
     }
 
+    public void issueMappingWarnings()
+    {
+        if ( !unmappedDeos.isEmpty() )
+        {
+            String deos = unmappedDeos.stream()
+                .map( deo -> deo.getDataElement().getUid() + "." + deo.getCategoryOptionCombo().getUid() )
+                .collect( joining( ", " ) );
+
+            log.warn( String.format( "Predictor %s unmapped input disaggregations: %s", predictor.getUid(), deos ) );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Disaggregates a data element into one data element operand for each
-     * category option combination of the data element.
-     */
-    private static List<DataElementOperand> disaggregateDataElement( DataElement de )
-    {
-        return de.getCategoryOptionCombos().stream()
-            .map( coc -> new DataElementOperand( de, coc ) )
-            .collect( toUnmodifiableList() );
-    }
 
     /**
      * Disaggregates a prediction context into a list of prediction contexts,
@@ -294,9 +277,7 @@ public class PredictionDisaggregator
                 {
                     DataElementOperand deo = (DataElementOperand) item;
 
-                    if ( coc.getUid().equals( ccDisagMap.getOutputDisag(
-                        deo.getDataElement().getCategoryCombo().getUid(),
-                        deo.getCategoryOptionCombo().getUid() ) ) )
+                    if ( coc.getUid().equals( getCoc( deo ) ) )
                     {
                         disMap.putEntry( period, deo.getDataElement(), value );
                     }
@@ -305,5 +286,31 @@ public class PredictionDisaggregator
         }
 
         return disMap;
+    }
+
+    /**
+     * If a DEO's input COC maps to an output COC, returns the output COC, else
+     * returns null.
+     * <p>
+     * If the input data element should map to the output COCs, but this COC
+     * does not map, add the DEO to the list of unmapped DEOs so we can log it.
+     */
+    private String getCoc( DataElementOperand deo )
+    {
+        if ( !mappedCategoryCombos.contains( deo.getDataElement().getCategoryCombo().getUid() ) )
+        {
+            return null;
+        }
+
+        String sortedOptions = getSortedOptions( deo.getCategoryOptionCombo() );
+
+        String coc = sortedOptionsToCoc.get( sortedOptions );
+
+        if ( coc == null )
+        {
+            unmappedDeos.add( deo );
+        }
+
+        return coc;
     }
 }

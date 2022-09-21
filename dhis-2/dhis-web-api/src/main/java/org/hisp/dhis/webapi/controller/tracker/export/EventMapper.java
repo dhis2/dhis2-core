@@ -63,6 +63,7 @@ interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, 
             .username( event.getAssignedUserUsername() )
             .firstName( event.getAssignedUserFirstName() )
             .surname( event.getAssignedUserSurname() )
+            .displayName( event.getAssignedUserDisplayName() )
             .build();
     }
 }

@@ -28,9 +28,11 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
-import java.util.Map;
 
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 
 /**
  * @author Enrico Colasante
@@ -40,16 +42,15 @@ public interface RuleActionImplementer
     /**
      * Get the validation for enrollment evaluated by rule engine
      *
-     * @param bundle
-     * @return A map of enrollment and list of issues
+     * @return list of issues
      */
-    Map<String, List<ProgramRuleIssue>> validateEnrollments( TrackerBundle bundle );
+    List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
+        Enrollment enrollment );
 
     /**
      * Get the validation for event evaluated by rule engine
      *
-     * @param bundle
      * @return A map of events and list of issues
      */
-    Map<String, List<ProgramRuleIssue>> validateEvents( TrackerBundle bundle );
+    List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event );
 }
