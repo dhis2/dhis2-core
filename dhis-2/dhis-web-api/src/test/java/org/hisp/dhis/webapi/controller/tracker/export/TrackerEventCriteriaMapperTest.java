@@ -40,7 +40,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -603,17 +602,6 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
-    void testFilterWhenTEAInFilterDoesNotExist()
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilter( Set.of( "JM5zWuf1mkb:eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Dataelement does not exist: JM5zWuf1mkb", exception.getMessage() );
-    }
-
-    @Test
     void testFilterAttributesWhenTEAHasMultipleFilters()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -637,43 +625,6 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
-    void testFilterAttributesWhenNumberOfFilterSegmentsIsEven()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( "eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Query item or filter is invalid: eq:2", exception.getMessage() );
-    }
-
-    @Test
-    void testFilterAttributesWhenNoTEAExist()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
-    }
-
-    @Test
-    void testFilterAttributesWhenTEAInFilterDoesNotExist()
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( "JM5zWuf1mkb:eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
-    }
-
-    @Test
     void testFilterAttributesWhenTEAUidIsDuplicated()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -694,7 +645,6 @@ class TrackerEventCriteriaMapperTest
     @Test
     void testFilterAttributesUsingOnlyUID()
     {
-
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
 

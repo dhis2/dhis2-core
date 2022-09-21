@@ -317,43 +317,6 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void testFilterWhenNumberOfFilterSegmentsIsEven()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
-        criteria.setFilter( Set.of( "eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Query item or filter is invalid: eq:2", exception.getMessage() );
-    }
-
-    @Test
-    void testFilterWhenNoTEAExist()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
-        criteria.setFilter( Set.of( TEA_1_UID + ":eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
-    }
-
-    @Test
-    void testFilterWhenTEAInFilterDoesNotExist()
-    {
-        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
-        criteria.setFilter( Set.of( "JM5zWuf1mkb:eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
-    }
-
-    @Test
     void testAttributes()
     {
         TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();

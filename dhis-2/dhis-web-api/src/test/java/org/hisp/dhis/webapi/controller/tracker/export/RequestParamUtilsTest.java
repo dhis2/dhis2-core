@@ -80,7 +80,7 @@ class RequestParamUtilsTest
     }
 
     @Test
-    void testParseQueryItemWithIdentifier()
+    void testParseQueryItemWithOnlyIdentifier()
     {
         String param = TEA_1_UID;
 
@@ -106,7 +106,7 @@ class RequestParamUtilsTest
     }
 
     @Test
-    void testParseQueryItemMissingValue()
+    void testParseQueryItemWithMissingValue()
     {
         String param = TEA_1_UID + ":lt";
 
@@ -116,7 +116,7 @@ class RequestParamUtilsTest
     }
 
     @Test
-    void testParseQueryItemMissingValueWithTrailingColon()
+    void testParseQueryItemWithMissingValueAndTrailingColon()
     {
         String param = TEA_1_UID + ":lt:";
 
