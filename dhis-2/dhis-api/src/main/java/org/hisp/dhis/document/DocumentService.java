@@ -33,12 +33,9 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface DocumentService
 {
-    String ID = DocumentService.class.getName();
-
     String DIR = "documents";
 
     /**

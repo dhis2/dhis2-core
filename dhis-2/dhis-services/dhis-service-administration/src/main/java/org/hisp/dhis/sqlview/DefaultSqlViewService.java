@@ -36,6 +36,7 @@ import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,10 @@ import com.google.common.collect.Sets;
 public class DefaultSqlViewService
     implements SqlViewService
 {
+    private static final String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
+
+    private static final Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

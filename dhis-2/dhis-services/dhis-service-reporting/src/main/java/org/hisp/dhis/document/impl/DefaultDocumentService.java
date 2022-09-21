@@ -41,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Transactional
 @Service( "org.hisp.dhis.document.DocumentService" )

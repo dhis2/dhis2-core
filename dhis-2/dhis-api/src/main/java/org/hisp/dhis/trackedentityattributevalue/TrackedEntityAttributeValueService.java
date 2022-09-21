@@ -36,12 +36,9 @@ import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface TrackedEntityAttributeValueService
 {
-    String ID = TrackedEntityAttributeValueService.class.getName();
-
     /**
      * Adds an {@link TrackedEntityAttribute}
      *

@@ -29,7 +29,6 @@ package org.hisp.dhis.category.comparator;
 
 /**
  * @author Abyot Asalefew Gizaw
- * @version $Id$
  */
 import java.util.Comparator;
 

@@ -34,8 +34,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Chau Thu Tran
- * @version ProgramStageInstanceVisitDateComparator.java 8:24:02 PM Mar 5, 2013
- *          $
  */
 public class ProgramStageInstanceVisitDateComparator
     implements Comparator<ProgramStageInstance>

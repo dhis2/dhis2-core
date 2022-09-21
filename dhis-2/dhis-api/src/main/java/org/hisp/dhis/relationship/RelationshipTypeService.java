@@ -31,12 +31,9 @@ import java.util.List;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface RelationshipTypeService
 {
-    String ID = RelationshipTypeService.class.getName();
-
     /**
      * Adds an {@link RelationshipType}
      *

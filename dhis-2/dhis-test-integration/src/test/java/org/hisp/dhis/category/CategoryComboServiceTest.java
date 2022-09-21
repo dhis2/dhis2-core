@@ -48,7 +48,6 @@ import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 class CategoryComboServiceTest extends TransactionalIntegrationTest
 {

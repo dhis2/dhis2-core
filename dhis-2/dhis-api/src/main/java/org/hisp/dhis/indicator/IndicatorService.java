@@ -31,12 +31,9 @@ import java.util.List;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface IndicatorService
 {
-    String ID = IndicatorService.class.getName();
-
     // -------------------------------------------------------------------------
     // Indicator
     // -------------------------------------------------------------------------

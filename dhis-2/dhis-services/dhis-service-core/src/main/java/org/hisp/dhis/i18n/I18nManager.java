@@ -32,7 +32,6 @@ import java.util.Locale;
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
- * @version $Id: I18nManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 public interface I18nManager
 {

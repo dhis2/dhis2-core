@@ -37,7 +37,6 @@ import org.joda.time.DateTimeConstants;
  * fifth month after the startDate.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: SixMonthlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
 public class SixMonthlyPeriodType
     extends SixMonthlyAbstractPeriodType

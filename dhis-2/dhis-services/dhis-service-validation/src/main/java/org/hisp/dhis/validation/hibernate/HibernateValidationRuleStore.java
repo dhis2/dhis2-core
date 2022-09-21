@@ -47,7 +47,6 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Chau Thu Tran
- * @version HibernateValidationRuleStore.java May 19, 2010 1:48:44 PM
  */
 @Repository( "org.hisp.dhis.validation.ValidationRuleStore" )
 public class HibernateValidationRuleStore

@@ -32,7 +32,6 @@ import java.io.OutputStream;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface ConfigurationManager<T>
 {
