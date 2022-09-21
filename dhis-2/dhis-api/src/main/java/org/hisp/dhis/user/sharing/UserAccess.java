@@ -41,19 +41,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.*;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
     implements Serializable
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String access;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String id;
+
+    private transient String displayName;
+
+    public UserAccess( String access, String id )
+    {
+        this.access = access;
+        this.id = id;
+    }
 
     public UserAccess( User user, String access )
     {
@@ -70,6 +73,42 @@ public class UserAccess
     public void setUser( User user )
     {
         this.id = user.getUid();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAccess()
+    {
+        return access;
+    }
+
+    public void setAccess( String access )
+    {
+        this.access = access;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     public org.hisp.dhis.user.UserAccess toDtoObject()
