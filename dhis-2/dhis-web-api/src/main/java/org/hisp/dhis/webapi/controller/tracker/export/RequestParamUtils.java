@@ -45,6 +45,11 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+/**
+ * RequestParamUtils are functions used to parse and transform tracker request
+ * parameters. This class is intended to only house functions without any
+ * dependencies on services or components.
+ */
 class RequestParamUtils
 {
     private RequestParamUtils()
@@ -59,7 +64,7 @@ class RequestParamUtils
      * @param func function to be called if arg is not empty
      * @param arg arg to be checked
      * @return result of func
-     * @param <T>
+     * @param <T> base identifiable object to be returned from func
      */
     static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
     {
@@ -105,7 +110,7 @@ class RequestParamUtils
     /**
      * Parse request parameter to filter tracked entity attributes using
      * identifier, operator and values. Refer to
-     * {@link #parseAttributeQueryItem(String, Map)} for details on the expected
+     * {@link #parseQueryItem(String, Function)} for details on the expected
      * item format.
      *
      * @param item query item string composed of identifier, operator and value
@@ -136,13 +141,13 @@ class RequestParamUtils
     }
 
     /**
-     * Creates a QueryItem with QueryFilters from the given item string. Item is
-     * on format
-     * {identifier}:{operator}:{filter-value}[:{operator}:{filter-value}]. Only
-     * the identifier is mandatory.
+     * Creates a QueryItem with QueryFilters from the given item string.
+     * Expected item format is
+     * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
+     * is mandatory. Multiple operator:value pairs are allowed.
      * <p>
      * The identifier is passed to given map function which translates the
-     * identifier to a QueryItem. A QueryFilter for each operator:value pair are
+     * identifier to a QueryItem. A QueryFilter for each operator:value pair is
      * then added to this QueryItem.
      */
     public static QueryItem parseQueryItem( String item, Function<String, QueryItem> map )

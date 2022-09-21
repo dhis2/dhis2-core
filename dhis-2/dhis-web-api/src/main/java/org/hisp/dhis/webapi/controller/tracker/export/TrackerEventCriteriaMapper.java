@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,11 +50,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -169,7 +167,7 @@ class TrackerEventCriteriaMapper
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
         List<QueryItem> dataElements = dataElementOrders.keySet()
             .stream()
-            .map( this::getQueryItem )
+            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
             .collect( Collectors.toList() );
 
         Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
@@ -182,7 +180,7 @@ class TrackerEventCriteriaMapper
 
         List<QueryItem> filters = eventCriteria.getFilter()
             .stream()
-            .map( this::getQueryItem )
+            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
             .collect( Collectors.toList() );
 
         Set<String> programInstances = eventCriteria.getEnrollments().stream()
@@ -404,30 +402,7 @@ class TrackerEventCriteriaMapper
         return attributes;
     }
 
-    private QueryItem getQueryItem( String item )
-    {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-        if ( split == null || split.length % 2 != 1 )
-        {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
-        }
-
-        QueryItem queryItem = getItem( split[0] );
-
-        if ( split.length > 1 )
-        {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
-        }
-
-        return queryItem;
-    }
-
-    private QueryItem getItem( String item )
+    private QueryItem dataElementToQueryItem( String item )
     {
         DataElement de = dataElementService.getDataElement( item );
 

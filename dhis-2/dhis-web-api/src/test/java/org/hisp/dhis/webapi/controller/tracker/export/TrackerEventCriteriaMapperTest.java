@@ -89,11 +89,15 @@ import org.mockito.quality.Strictness;
 class TrackerEventCriteriaMapperTest
 {
 
-    public static final String TEA_1_UID = "TvjwTPToKHO";
+    private static final String DE_1_UID = "OBzmpRP6YUh";
 
-    public static final String TEA_2_UID = "cy2oRh2sNr6";
+    private static final String DE_2_UID = "KSd4PejqBf9";
 
-    public static final String PROGRAM_UID = "programuid";
+    private static final String TEA_1_UID = "TvjwTPToKHO";
+
+    private static final String TEA_2_UID = "cy2oRh2sNr6";
+
+    private static final String PROGRAM_UID = "programuid";
 
     @Mock
     private CurrentUserService currentUserService;
@@ -153,7 +157,6 @@ class TrackerEventCriteriaMapperTest
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
 
         OrganisationUnit ou = new OrganisationUnit();
-        DataElement de = new DataElement();
 
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
@@ -167,7 +170,12 @@ class TrackerEventCriteriaMapperTest
         when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
         when( attributeService.getTrackedEntityAttribute( TEA_1_UID ) ).thenReturn( tea1 );
 
-        when( dataElementService.getDataElement( any() ) ).thenReturn( de );
+        DataElement de1 = new DataElement();
+        de1.setUid( DE_1_UID );
+        when( dataElementService.getDataElement( DE_1_UID ) ).thenReturn( de1 );
+        DataElement de2 = new DataElement();
+        de2.setUid( DE_2_UID );
+        when( dataElementService.getDataElement( DE_2_UID ) ).thenReturn( de2 );
 
         Schema eventSchema = new Schema( Event.class, "event", "events" );
         Property prop1 = new Property();
@@ -507,6 +515,38 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
+    void testFilter()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID,
+            DE_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        // the following block is needed because of that
+        // assertion is order independent as the order of QueryItems is not
+        // guaranteed
+        Map<String, QueryFilter> expectedFilters = Map.of(
+            DE_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
+            DE_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
+        assertAll( items.stream().map( i -> (Executable) () -> {
+            String uid = i.getItem().getUid();
+            QueryFilter expected = expectedFilters.get( uid );
+            assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
+                () -> String.format( "QueryFilter mismatch for DE with UID %s", uid ) );
+        } ).collect( Collectors.toList() ) );
+    }
+
+    @Test
     void testFilterAttributes()
     {
 
@@ -537,6 +577,40 @@ class TrackerEventCriteriaMapperTest
             assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
                 () -> String.format( "QueryFilter mismatch for TEA with UID %s", uid ) );
         } ).collect( Collectors.toList() ) );
+    }
+
+    @Test
+    void testFilterWhenDEHasMultipleFilters()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
+
+        EventSearchParams params = mapper.map( criteria );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
+    void testFilterWhenTEAInFilterDoesNotExist()
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilter( Set.of( "JM5zWuf1mkb:eq:2" ) );
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Dataelement does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 
     @Test
