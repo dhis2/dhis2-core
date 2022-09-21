@@ -1,4 +1,5 @@
 package org.hisp.dhis.helpers.extensions;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -27,7 +28,12 @@ package org.hisp.dhis.helpers.extensions;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+
+
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
@@ -50,7 +56,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataSetupExtension
-    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
+        implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
 {
     private static boolean started = false;
 
@@ -77,6 +83,11 @@ public class MetadataSetupExtension
                 "src/test/resources/setup/userGroups.json",
                 "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/metadata.json",
+<<<<<<< HEAD
+=======
+                "src/test/resources/setup/userRoles.json",
+                "src/test/resources/setup/users.json",
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                 "src/test/resources/setup/users.json"
             };
 
@@ -84,34 +95,84 @@ public class MetadataSetupExtension
             for ( String fileName : files )
             {
                 metadataActions.importAndValidateMetadata( new File( fileName ), queryParams );
+<<<<<<< HEAD
+=======
+            }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                 createdData.putAll( TestRunStorage.getCreatedEntities() );
+=======
+            setupUsers();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                 iterateCreatedData( id -> {
                     TestRunStorage.removeEntity( createdData.get( id ), id );
                 } );
+=======
+            createdData.putAll( TestRunStorage.getCreatedEntities() );
+            TestRunStorage.removeAllEntities();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
             }
 
             setupSuperuser();
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
     }
 
+<<<<<<< HEAD
     private void setupSuperuser()
     {
         logger.info( "Setting up super user" );
+=======
+    private void setupUsers()
+    {
+        logger.info( "Adding users to the TA user group" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         UserActions userActions = new UserActions();
+<<<<<<< HEAD
         String userRoleId = "yrB6vc5Ip7r";
         String userGroupId = "OPVIvvXzNTw";
+=======
+        String[] users =  {
+            TestConfiguration.get().superUserUsername(),
+            TestConfiguration.get().defaultUserUsername(),
+            TestConfiguration.get().adminUserUsername()
+        };
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         String userId = userActions.get( "?username=" + TestConfiguration.get().superUserUsername() )
             .extractString( "users.id[0]" );
+=======
+        String userGroupId = Constants.USER_GROUP_ID;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         userActions.addUserToUserGroup( userId, userGroupId );
         userActions.addURoleToUser( userId, userRoleId );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         TestRunStorage.removeEntity( "/users", userId );
+=======
+        for ( String user : users )
+        {
+            String userId = userActions.get( String.format(
+                "?filter=userCredentials.username:eq:%s", user ))
+                .extractString( "users.id[0]" );
+
+            userActions.addUserToUserGroup( userId, userGroupId );
+            TestRunStorage.removeEntity( "users", userId );
+        }
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     private void iterateCreatedData( Consumer<String> stringConsumer )
@@ -127,7 +188,7 @@ public class MetadataSetupExtension
 
     @Override
     public void close()
-        throws Throwable
+            throws Throwable
     {
         TestCleanUp testCleanUp = new TestCleanUp();
 

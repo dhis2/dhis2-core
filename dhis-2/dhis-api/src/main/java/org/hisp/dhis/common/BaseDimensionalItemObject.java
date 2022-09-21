@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,17 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.legend.LegendSet;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.legend.LegendSet;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -58,6 +62,12 @@ public class BaseDimensionalItemObject
      * The aggregation type for this dimension.
      */
     protected AggregationType aggregationType;
+
+    /**
+     * A value representing a period offset that can be applied to Dimensional
+     * Item Object within a Indicator formula
+     */
+    protected transient int periodOffset = 0;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -103,7 +113,7 @@ public class BaseDimensionalItemObject
     {
         return getPropertyValue( idScheme );
     }
-    
+
     @Override
     public TotalAggregationType getTotalAggregationType()
     {
@@ -160,5 +170,39 @@ public class BaseDimensionalItemObject
     public void setAggregationType( AggregationType aggregationType )
     {
         this.aggregationType = aggregationType;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPeriodOffset()
+    {
+        return periodOffset;
+    }
+
+    public void setPeriodOffset( int periodOffset )
+    {
+        this.periodOffset = periodOffset;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
+
+        final BaseDimensionalItemObject that = (BaseDimensionalItemObject) o;
+
+        return periodOffset == that.periodOffset;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = super.hashCode();
+        result = 31 * result + periodOffset;
+        return result;
     }
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.sync;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,6 +39,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
@@ -50,7 +58,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -59,15 +70,27 @@ import lombok.extern.slf4j.Slf4j;
 public class EventSynchronization extends DataSynchronizationWithPaging
 {
     private final EventService eventService;
+
     private final SystemSettingManager systemSettingManager;
+
     private final RestTemplate restTemplate;
+
     private final RenderService renderService;
+
     private final ProgramStageDataElementService programStageDataElementService;
 
     private Date skipChangedBefore;
+<<<<<<< HEAD
     private Map<String, Set<String>> psdesWithSkipSyncTrue;
 
     public EventSynchronization( EventService eventService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService,
+=======
+
+    private Map<String, Set<String>> psdesWithSkipSyncTrue;
+
+    public EventSynchronization( EventService eventService, SystemSettingManager systemSettingManager,
+        RestTemplate restTemplate, RenderService renderService,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         ProgramStageDataElementService programStageDataElementService )
     {
         checkNotNull( eventService );
@@ -88,7 +111,8 @@ public class EventSynchronization extends DataSynchronizationWithPaging
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed. Remote server is unavailable." );
+            return SynchronizationResult.newFailureResultWithMessage(
+                "Event programs data synchronization failed. Remote server is unavailable." );
         }
 
         initializeSyncVariables( pageSize );
@@ -96,7 +120,8 @@ public class EventSynchronization extends DataSynchronizationWithPaging
         if ( objectsToSynchronize == 0 )
         {
             log.info( "Skipping synchronization, no new or updated events found" );
-            return SynchronizationResult.newSuccessResultWithMessage( "Event programs data synchronization skipped. No new or updated events found." );
+            return SynchronizationResult.newSuccessResultWithMessage(
+                "Event programs data synchronization skipped. No new or updated events found." );
         }
 
         runSyncWithPaging( pageSize );
@@ -104,7 +129,8 @@ public class EventSynchronization extends DataSynchronizationWithPaging
         if ( syncResult )
         {
             clock.logTime( "SUCCESS! Event programs data sync was successfully done! It took " );
-            return SynchronizationResult.newSuccessResultWithMessage( "Event programs data synchronization done. It took " + clock.getTime() + " ms." );
+            return SynchronizationResult.newSuccessResultWithMessage(
+                "Event programs data synchronization done. It took " + clock.getTime() + " ms." );
         }
 
         return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed." );
@@ -113,7 +139,12 @@ public class EventSynchronization extends DataSynchronizationWithPaging
     private void initializeSyncVariables( final int pageSize )
     {
         clock = new Clock( log ).startClock().logTime( "Starting Event programs data synchronization job." );
+<<<<<<< HEAD
         skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+=======
+        skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
 
         log.info( "Events last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -121,15 +152,32 @@ public class EventSynchronization extends DataSynchronizationWithPaging
         if ( objectsToSynchronize != 0 )
         {
             instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager, SyncEndpoint.EVENTS );
+<<<<<<< HEAD
             //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
             pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );
+=======
+            // Have to use this as (int) Match.ceil doesn't work until I am
+            // casting int to double
+            pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
             log.info( "Remote server URL for Event programs POST synchronization: " + instance.getUrl() );
+<<<<<<< HEAD
             log.info( "Event programs data synchronization job has " + pages + " pages to synchronize. With page size: " +
                 pageSize );
+=======
+            log.info(
+                "Event programs data synchronization job has " + pages + " pages to synchronize. With page size: " +
+                    pageSize );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
             psdesWithSkipSyncTrue = programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+=======
+            psdesWithSkipSyncTrue = programStageDataElementService
+                .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
     }
 
@@ -165,20 +213,20 @@ public class EventSynchronization extends DataSynchronizationWithPaging
             event.setDataValues(
                 event.getDataValues().stream()
                     .filter( dv -> !dv.isSkipSynchronization() )
-                    .collect( Collectors.toSet() )
-            );
+                    .collect( Collectors.toSet() ) );
         }
     }
 
     private boolean sendSyncRequest( Events events )
     {
-        final RequestCallback requestCallback = request ->
-        {
+        final RequestCallback requestCallback = request -> {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
+                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
             renderService.toJson( request.getBody(), events );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.EVENTS );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
+            SyncEndpoint.EVENTS );
     }
 }

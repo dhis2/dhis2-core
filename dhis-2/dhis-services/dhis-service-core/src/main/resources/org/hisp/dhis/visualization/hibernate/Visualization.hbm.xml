@@ -215,6 +215,11 @@
                  cascade="all-delete-orphan" foreign-key="fk_visualization_relativeperiodsid"/>
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
+<<<<<<< HEAD
+=======
+    
+    <property name="colorSet"/>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     <property name="percentStackedValues"/>
 

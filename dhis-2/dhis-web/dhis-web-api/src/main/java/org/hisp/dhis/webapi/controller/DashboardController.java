@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,18 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
+<<<<<<< HEAD
+=======
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.springframework.beans.BeanUtils.copyProperties;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -54,6 +67,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+<<<<<<< HEAD
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +75,8 @@ import java.util.Set;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Lars Helge Overland
  */
@@ -98,7 +114,8 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
@@ -112,6 +129,7 @@ public class DashboardController
     }
 
     /**
+<<<<<<< HEAD
      * Logic required to keep the backward compatibility with Chart and ReporTable.
      * Otherwise it would always return VISUALIZATION type for any Chart or ReportTable.
      *
@@ -180,6 +198,86 @@ public class DashboardController
                     case YEAR_OVER_YEAR_COLUMN:
                     case YEAR_OVER_YEAR_LINE:
                         dashboardItem.setChart( convertToChart ( dashboardItem.getVisualization() ) );
+=======
+     * Logic required to keep the backward compatibility with Chart and
+     * ReporTable. Otherwise it would always return VISUALIZATION type for any
+     * Chart or ReportTable.
+     * <p>
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
+     *
+     * @param dashboards
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntities( final List<Dashboard> dashboards, final WebOptions options,
+        final java.util.Map<String, String> parameters )
+    {
+        if ( isNotEmpty( dashboards ) )
+        {
+            for ( final Dashboard dashboard : dashboards )
+            {
+                postProcessResponseEntity( dashboard, options, parameters );
+            }
+        }
+    }
+
+    /**
+     * Logic required to keep the backward compatibility with Chart and
+     * ReportTable. Otherwise it would always return VISUALIZATION type for any
+     * Chart or ReportTable.
+     * <p>
+     * Only needed during the transition from Chart/ReportTable APIs to
+     * Visualization API. Once the Visualization API is fully enabled this logic
+     * should be removed.
+     *
+     * @param dashboard
+     * @param options
+     * @param parameters
+     */
+    @Override
+    @Deprecated
+    protected void postProcessResponseEntity( final Dashboard dashboard, final WebOptions options,
+        final Map<String, String> parameters )
+    {
+        if ( dashboard != null && isNotEmpty( dashboard.getItems() ) )
+        {
+            final List<DashboardItem> dashboardItems = dashboard.getItems();
+
+            for ( final DashboardItem dashboardItem : dashboardItems )
+            {
+                if ( dashboardItem == null )
+                {
+                    continue;
+                }
+
+                if ( dashboardItem.getVisualization() != null )
+                {
+                    final VisualizationType type = dashboardItem.getVisualization().getType();
+
+                    switch ( type )
+                    {
+                    case PIVOT_TABLE:
+                        dashboardItem.setReportTable( convertToReportTable( dashboardItem.getVisualization() ) );
+                        break;
+                    case AREA:
+                    case BAR:
+                    case COLUMN:
+                    case GAUGE:
+                    case LINE:
+                    case PIE:
+                    case RADAR:
+                    case SINGLE_VALUE:
+                    case STACKED_AREA:
+                    case STACKED_BAR:
+                    case STACKED_COLUMN:
+                    case YEAR_OVER_YEAR_COLUMN:
+                    case YEAR_OVER_YEAR_LINE:
+                        dashboardItem.setChart( convertToChart( dashboardItem.getVisualization() ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                         break;
                     }
                 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.validation;
 
 /*
@@ -227,6 +228,258 @@ public class ValidationRuleServiceTest
         dataElementService.updateDataElement( dataElementE );
 
         validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly, true ); // deA + deB = deC - deD
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.validation;
+
+import static junit.framework.TestCase.*;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.greater_than;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.YearlyPeriodType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * @author Lars Helge Overland
+ * @author Jim Grace
+ */
+public class ValidationRuleServiceTest
+    extends DhisSpringTest
+{
+    @Autowired
+    private ValidationRuleService validationRuleService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    private DataElement dataElementA;
+
+    private DataElement dataElementB;
+
+    private DataElement dataElementC;
+
+    private DataElement dataElementD;
+
+    private DataElement dataElementE;
+
+    private Set<CategoryOptionCombo> optionCombos;
+
+    private CategoryOptionCombo optionCombo;
+
+    private Expression expressionA;
+
+    private Expression expressionB;
+
+    private Expression expressionC;
+
+    private Expression expressionD;
+
+    private DataSet dataSetWeekly;
+
+    private DataSet dataSetMonthly;
+
+    private DataSet dataSetYearly;
+
+    private OrganisationUnit sourceA;
+
+    private OrganisationUnit sourceB;
+
+    private OrganisationUnit sourceC;
+
+    private OrganisationUnit sourceD;
+
+    private OrganisationUnit sourceE;
+
+    private OrganisationUnit sourceF;
+
+    private OrganisationUnit sourceG;
+
+    private Set<OrganisationUnit> sourcesA = new HashSet<>();
+
+    private Set<OrganisationUnit> allSources = new HashSet<>();
+
+    private ValidationRule validationRuleA;
+
+    private ValidationRule validationRuleB;
+
+    private PeriodType periodTypeWeekly;
+
+    private PeriodType periodTypeMonthly;
+
+    private PeriodType periodTypeYearly;
+
+    // -------------------------------------------------------------------------
+    // Fixture
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void setUpTest()
+        throws Exception
+    {
+        periodTypeWeekly = new WeeklyPeriodType();
+        periodTypeMonthly = new MonthlyPeriodType();
+        periodTypeYearly = new YearlyPeriodType();
+
+        dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        dataElementC = createDataElement( 'C' );
+        dataElementD = createDataElement( 'D' );
+        dataElementE = createDataElement( 'E' );
+
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
+        dataElementService.addDataElement( dataElementC );
+        dataElementService.addDataElement( dataElementD );
+        dataElementService.addDataElement( dataElementE );
+
+        optionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        String suffix = SEPARATOR + optionCombo.getUid();
+
+        optionCombos = new HashSet<>();
+        optionCombos.add( optionCombo );
+
+        expressionA = new Expression(
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA" );
+        expressionB = new Expression(
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB" );
+        expressionC = new Expression(
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionC" );
+        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionD" );
+
+        dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
+        dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
+        dataSetYearly = createDataSet( 'Y', periodTypeYearly );
+
+        sourceA = createOrganisationUnit( 'A' );
+        sourceB = createOrganisationUnit( 'B' );
+        sourceC = createOrganisationUnit( 'C', sourceB );
+        sourceD = createOrganisationUnit( 'D', sourceB );
+        sourceE = createOrganisationUnit( 'E', sourceD );
+        sourceF = createOrganisationUnit( 'F', sourceD );
+        sourceG = createOrganisationUnit( 'G' );
+
+        sourcesA.add( sourceA );
+        sourcesA.add( sourceB );
+
+        allSources.add( sourceA );
+        allSources.add( sourceB );
+        allSources.add( sourceC );
+        allSources.add( sourceD );
+        allSources.add( sourceE );
+        allSources.add( sourceF );
+        allSources.add( sourceG );
+
+        dataSetMonthly.addOrganisationUnit( sourceA );
+        dataSetMonthly.addOrganisationUnit( sourceB );
+        dataSetMonthly.addOrganisationUnit( sourceC );
+        dataSetMonthly.addOrganisationUnit( sourceD );
+        dataSetMonthly.addOrganisationUnit( sourceE );
+        dataSetMonthly.addOrganisationUnit( sourceF );
+
+        dataSetWeekly.addOrganisationUnit( sourceB );
+        dataSetWeekly.addOrganisationUnit( sourceC );
+        dataSetWeekly.addOrganisationUnit( sourceD );
+        dataSetWeekly.addOrganisationUnit( sourceE );
+        dataSetWeekly.addOrganisationUnit( sourceF );
+        dataSetWeekly.addOrganisationUnit( sourceG );
+
+        dataSetYearly.addOrganisationUnit( sourceB );
+        dataSetYearly.addOrganisationUnit( sourceC );
+        dataSetYearly.addOrganisationUnit( sourceD );
+        dataSetYearly.addOrganisationUnit( sourceE );
+        dataSetYearly.addOrganisationUnit( sourceF );
+
+        organisationUnitService.addOrganisationUnit( sourceA );
+        organisationUnitService.addOrganisationUnit( sourceB );
+        organisationUnitService.addOrganisationUnit( sourceC );
+        organisationUnitService.addOrganisationUnit( sourceD );
+        organisationUnitService.addOrganisationUnit( sourceE );
+        organisationUnitService.addOrganisationUnit( sourceF );
+        organisationUnitService.addOrganisationUnit( sourceG );
+
+        dataSetMonthly.addDataSetElement( dataElementA );
+        dataSetMonthly.addDataSetElement( dataElementB );
+        dataSetMonthly.addDataSetElement( dataElementC );
+        dataSetMonthly.addDataSetElement( dataElementD );
+
+        dataSetWeekly.addDataSetElement( dataElementE );
+
+        dataSetYearly.addDataSetElement( dataElementE );
+
+        dataSetService.addDataSet( dataSetWeekly );
+        dataSetService.addDataSet( dataSetMonthly );
+        dataSetService.addDataSet( dataSetYearly );
+
+        dataElementService.updateDataElement( dataElementA );
+        dataElementService.updateDataElement( dataElementB );
+        dataElementService.updateDataElement( dataElementC );
+        dataElementService.updateDataElement( dataElementD );
+        dataElementService.updateDataElement( dataElementE );
+
+        validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly,
+            true ); // deA
+        // +
+        // deB
+        // =
+        // deC
+        // -
+        // deD
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         validationRuleB = createValidationRule( "B", greater_than, expressionC, expressionD,
             periodTypeMonthly ); // deC - deD > deB * 2
     }

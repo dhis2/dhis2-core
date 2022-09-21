@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain.sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -94,7 +97,7 @@ public class SharingUserAccess
 
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "id", id ).add( "name", name ).add( "access", access ).toString();
+        return MoreObjects.toStringHelper( this ).add( "id", id ).add( "name", name ).add( "access", access )
+            .toString();
     }
 }

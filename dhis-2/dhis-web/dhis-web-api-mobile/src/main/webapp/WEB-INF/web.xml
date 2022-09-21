@@ -31,7 +31,11 @@
   </filter>
   <filter>
     <filter-name>shallowEtagHeaderFilter</filter-name>
+<<<<<<< HEAD
     <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+=======
+    <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <async-supported>true</async-supported>
     <init-param>
       <param-name>excludeUriRegex</param-name>

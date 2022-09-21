@@ -1,5 +1,6 @@
 package org.hisp.dhis.utils;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +28,9 @@ package org.hisp.dhis.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import com.github.javafaker.Faker;
 import com.google.gson.JsonElement;
@@ -58,7 +62,11 @@ public class DataGenerator
         return RandomStringUtils.randomAlphabetic( 6 );
     }
 
+<<<<<<< HEAD
     public static String randomString( int count ) 
+=======
+    public static String randomString( int count )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         return RandomStringUtils.randomAlphabetic( count );
     }
@@ -81,7 +89,7 @@ public class DataGenerator
         {
         case STRING:
             jsonElement = new JsonPrimitive(
-                generateStringByFieldName( property.getName(), (int) property.getMin(), (int) property.getMax() ) );
+                generateStringByFieldName( property.getName(), property.getMin().intValue(), property.getMax().intValue() ) );
             break;
 
         case DATE:
@@ -105,7 +113,8 @@ public class DataGenerator
             break;
 
         case NUMBER:
-            jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
+            jsonElement = new JsonPrimitive(
+                faker.number().numberBetween( property.getMin().intValue(), property.getMax().intValue() ) );
             break;
 
         default:

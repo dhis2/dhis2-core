@@ -1,18 +1,9 @@
-package org.hisp.dhis.preheat;
-
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.User;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +29,19 @@ import java.util.Set;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.preheat;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.User;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

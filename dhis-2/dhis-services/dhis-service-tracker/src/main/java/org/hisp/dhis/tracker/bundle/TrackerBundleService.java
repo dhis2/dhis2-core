@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,16 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+=======
+package org.hisp.dhis.tracker.bundle;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.List;
+
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,14 +49,31 @@ public interface TrackerBundleService
      * Creates and prepares tracker bundle.
      *
      * @param params Params object for this bundle.
-     * @return Configured TrackerBundle instance(s) (if bundle splitting is enabled)
+     * @return Configured TrackerBundle instance(s) (if bundle splitting is
+     *         enabled)
      */
     List<TrackerBundle> create( TrackerBundleParams params );
 
     /**
-     * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
+     * Call rule engine for tracker bundles.
+     *
+     * @return Tracker bundles populated with rule effects
+     */
+    List<TrackerBundle> runRuleEngine( List<TrackerBundle> bundles );
+
+    /**
+     * Commits objects from bundle into persistence store if bundle mode COMMIT
+     * is enabled.
      *
      * @param bundle TrackerBundle to commit.
      */
     TrackerBundleReport commit( TrackerBundle bundle );
+
+    /**
+     * Deletes objects in the bundle from persistence store if bundle mode
+     * DELETE is enabled.
+     *
+     * @param bundle TrackerBundle to delete.
+     */
+    TrackerBundleReport delete( TrackerBundle bundle );
 }

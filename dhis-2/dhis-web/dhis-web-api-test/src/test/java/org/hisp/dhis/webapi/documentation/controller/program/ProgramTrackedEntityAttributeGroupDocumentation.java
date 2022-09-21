@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 package org.hisp.dhis.webapi.documentation.controller.program;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +34,17 @@ package org.hisp.dhis.webapi.documentation.controller.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.documentation.controller.program;
 
+<<<<<<< HEAD
 import org.hisp.dhis.program.Program;
 
+=======
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import org.hisp.dhis.program.Program;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -39,19 +54,16 @@ import org.junit.Test;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
 
 public class ProgramTrackedEntityAttributeGroupDocumentation
     extends AbstractWebApiTest<ProgramTrackedEntityAttributeGroup>
 {
     @Test
-    public void testAddAndRemoveMember() throws Exception
+    public void testAddAndRemoveMember()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
@@ -78,20 +90,17 @@ public class ProgramTrackedEntityAttributeGroupDocumentation
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
             .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) );
 
-
-         mvc.perform( delete( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
+        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().isNoContent() );
 
-
-         mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() )
+        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() )
             .session( session )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
             .andExpect( jsonPath( "$.attributes.length()" ).value( 0 ) );
-
 
     }
 }

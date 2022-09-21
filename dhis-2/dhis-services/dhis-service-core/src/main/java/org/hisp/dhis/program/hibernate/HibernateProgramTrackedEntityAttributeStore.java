@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 package org.hisp.dhis.program.hibernate;
 
@@ -48,22 +59,44 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" )
 public class HibernateProgramTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttribute>
-        implements ProgramTrackedEntityAttributeStore
+    implements ProgramTrackedEntityAttributeStore
 {
     public HibernateProgramTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttribute.class, currentUserService,
+=======
+        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttribute.class, currentUserService, deletedObjectService,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             aclService, true );
     }
 
     @Override
-    public ProgramTrackedEntityAttribute get(Program program, TrackedEntityAttribute attribute )
+    public ProgramTrackedEntityAttribute get( Program program, TrackedEntityAttribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) ) );
+    }
+
+    @Override
+    public List<TrackedEntityAttribute> getAttributes( List<Program> programs )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<TrackedEntityAttribute> query = builder.createQuery( TrackedEntityAttribute.class );
+        Root<ProgramTrackedEntityAttribute> root = query.from( ProgramTrackedEntityAttribute.class );
+        query.select( root.get( "attribute" ) );
+        query.where( root.get( "program" ).in( programs ) );
+        query.distinct( true );
+
+        return getSession().createQuery( query ).getResultList();
     }
 }

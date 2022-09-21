@@ -1,7 +1,9 @@
-package org.hisp.dhis.scheduling;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -45,6 +48,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PostConstruct;
 
+<<<<<<< HEAD
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,6 +60,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.message.MessageService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
@@ -216,7 +233,12 @@ public class DefaultSchedulingManager
 
                 futures.put( jobConfiguration.getUid(), future );
 
+<<<<<<< HEAD
                 log.info( String.format( "Scheduled job: %s with start time: %s", jobConfiguration, getMediumDateString( startTime ) ) );
+=======
+                log.info( String.format( "Scheduled job: %s with start time: %s", jobConfiguration,
+                    getMediumDateString( startTime ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             }
         }
     }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.program.message;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,14 @@ package org.hisp.dhis.program.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.user.User;
 
 /**
@@ -69,8 +72,8 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     /**
-     * Send message batch based on their {@link DeliveryChannel channel}.
-     * If the DeliveryChannel is not configured with suitable value, batch will be
+     * Send message batch based on their {@link DeliveryChannel channel}. If the
+     * DeliveryChannel is not configured with suitable value, batch will be
      * invalidated.
      *
      * @param programMessages the ProgramMessage.
@@ -96,7 +99,7 @@ public interface ProgramMessageService
     // -------------------------------------------------------------------------
 
     long saveProgramMessage( ProgramMessage programMessage );
-    
+
     void updateProgramMessage( ProgramMessage programMessage );
 
     // -------------------------------------------------------------------------

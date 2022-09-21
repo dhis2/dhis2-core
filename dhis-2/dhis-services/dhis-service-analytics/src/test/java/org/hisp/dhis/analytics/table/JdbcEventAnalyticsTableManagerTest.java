@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 package org.hisp.dhis.analytics.table;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +34,7 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.table;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -212,7 +220,11 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
         when( jdbcTemplate.queryForList(
+<<<<<<< HEAD
             getYearQueryForCurrentYear( program, true),
+=======
+            getYearQueryForCurrentYear( program, true ),
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -258,7 +270,11 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
             + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
+<<<<<<< HEAD
         String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+=======
+        String aliasD5 = "(select ou.uid from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
@@ -266,12 +282,21 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
+<<<<<<< HEAD
+=======
+        String aliasD5_name = "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+            + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).withToday( today ).build();
 
         when( jdbcTemplate.queryForList(
+<<<<<<< HEAD
             getYearQueryForCurrentYear( program, true),
+=======
+            getYearQueryForCurrentYear( program, true ),
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
@@ -280,7 +305,11 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+<<<<<<< HEAD
             .withColumnSize( 47 ).addColumns( periodColumns )
+=======
+            .withColumnSize( 48 ).addColumns( periodColumns )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
@@ -288,9 +317,27 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
+<<<<<<< HEAD
             .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element d5
                                                                                                        // also creates a
                                                                                                        // Geo column
+=======
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element
+            // d5
+            // also
+            // creates
+            // a
+            // Geo
+            // column
+            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element
+            // d5
+            // also
+            // creates
+            // a
+            // Name
+            // column
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -324,9 +371,14 @@ public class JdbcEventAnalyticsTableManagerTest
             .withStartTime( START_TIME ).withToday( today ).build();
 
         when( jdbcTemplate.queryForList(
+<<<<<<< HEAD
             getYearQueryForCurrentYear( program, true),
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
+=======
+            getYearQueryForCurrentYear( program, true ),
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -334,12 +386,23 @@ public class JdbcEventAnalyticsTableManagerTest
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() ).withTableType( AnalyticsTableType.EVENT )
+<<<<<<< HEAD
             .withColumnSize( 42 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
+=======
+            .withColumnSize( 43 ).addColumns( periodColumns )
+            .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
+            .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             // Second Geometry column created from the OU column above
             .addColumn( tea1.getUid() + "_geom", GEOMETRY,
                 String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
+<<<<<<< HEAD
+=======
+            .addColumn( tea1.getUid() + "_name", TEXT,
+                String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -369,11 +432,19 @@ public class JdbcEventAnalyticsTableManagerTest
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
+<<<<<<< HEAD
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' from programstageinstance where "
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+            + d5.getUid() + ", value}' from programstageinstance where "
+            + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
+
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     @Test
@@ -405,11 +476,18 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
+<<<<<<< HEAD
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+=======
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
+            +
+            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     @Test
@@ -563,11 +641,18 @@ public class JdbcEventAnalyticsTableManagerTest
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
+<<<<<<< HEAD
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
             + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+=======
+        final String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = "
+            +
+            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
     }
 
     private String toAlias( String template, String uid )
@@ -583,9 +668,15 @@ public class JdbcEventAnalyticsTableManagerTest
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
         String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+<<<<<<< HEAD
                 + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
                 + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
                 + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+=======
+            + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
+            + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
+            + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( withExecutionDate )
         {

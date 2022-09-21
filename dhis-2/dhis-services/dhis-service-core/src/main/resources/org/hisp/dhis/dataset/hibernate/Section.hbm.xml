@@ -53,6 +53,11 @@
     <property name="showRowTotals" />
 
     <property name="showColumnTotals" />
+<<<<<<< HEAD
+=======
+    
+    <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     <!-- Dynamic attribute values -->
 

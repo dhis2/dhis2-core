@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,14 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.sms.SmsPublisher" )
 public class SmsPublisher
@@ -62,7 +65,7 @@ public class SmsPublisher
     {
         messageQueue.initialize();
 
-        future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000 );
+        future = taskScheduler.scheduleWithFixedDelay( smsConsumer::spawnSmsConsumer, 5000 );
     }
 
     public void stop()

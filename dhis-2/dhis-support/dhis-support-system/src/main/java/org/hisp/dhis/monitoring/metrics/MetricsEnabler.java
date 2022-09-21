@@ -1,7 +1,11 @@
 package org.hisp.dhis.monitoring.metrics;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +31,19 @@ package org.hisp.dhis.monitoring.metrics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
+=======
+package org.hisp.dhis.monitoring.metrics;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;

@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.outbound;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.sms.outbound;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.outbound;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -41,7 +44,7 @@ public enum GatewayResponse
     SERVICE_NOT_AVAILABLE( "service not available", "" ),
     ENCODING_FAILURE( "encoding failed", "" ),
     PROCESSING( "processing", "" ),
-    QUEUED( "queued" ,"" ),
+    QUEUED( "queued", "" ),
     NO_GATEWAY_CONFIGURATION( "no gateway configuration found", "" ),
     NO_DEFAULT_GATEWAY( "no gateway is set to default", "" ),
     AUTHENTICATION_FAILED( "authentication failed", "" ),
@@ -64,6 +67,7 @@ public enum GatewayResponse
     RESULT_CODE_28( "pstream quota exceeded", "" ),
     RESULT_CODE_40( "temporarily unavailable", "" ),
     RESULT_CODE_201( "maximum batch size exceeded", "" ),
+    RESULT_CODE_403( "Forbidden", "" ),
 
     // -------------------------------------------------------------------------
     // Clickatell response codes
@@ -71,7 +75,8 @@ public enum GatewayResponse
 
     RESULT_CODE_200( "success", "The request was successfully completed" ),
     RESULT_CODE_202( "accepted", "The message(s) will be processed" ),
-    RESULT_CODE_207( "multi-status", "More than  one message was submitted to the API; however, not all messages have the same status" ),
+    RESULT_CODE_207( "multi-status",
+        "More than  one message was submitted to the API; however, not all messages have the same status" ),
     RESULT_CODE_400( "bad request", "Validation failure (such as missing/invalid parameters or headers)" ),
     RESULT_CODE_401( "unauthorized", "Authentication failure. This can also be caused by IP lockdown settings" ),
     RESULT_CODE_402( "payment required", "Not enough credit to send message" ),
@@ -102,4 +107,3 @@ public enum GatewayResponse
         return responseMessageDetail;
     }
 }
-

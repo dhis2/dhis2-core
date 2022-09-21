@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,30 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+=======
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
@@ -122,9 +143,12 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
-        throws IOException, InvalidTypeException
+    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = {
+        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        HttpServletResponse response )
+        throws IOException,
+        InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
 
@@ -143,8 +167,10 @@ public class SystemController
     }
 
     @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { "application/csv" } )
-    public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
-        throws IOException, InvalidTypeException
+    public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        HttpServletResponse response )
+        throws IOException,
+        InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
 
@@ -166,9 +192,12 @@ public class SystemController
         csvGenerator.flush();
     }
 
-    @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit, HttpServletResponse response )
-        throws IOException, InvalidTypeException
+    @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE,
+        MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        HttpServletResponse response )
+        throws IOException,
+        InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
 
@@ -201,8 +230,16 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+<<<<<<< HEAD
     @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
+=======
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29,
+        DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34,
+        DhisApiVersion.V35 } )
+    public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId,
+        HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         throws IOException
     {
         List<Notification> notifications = new ArrayList<>();
@@ -219,8 +256,16 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+<<<<<<< HEAD
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
+=======
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32,
+        DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34,
+        DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
+        throws IOException
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         Map<String, LinkedList<Notification>> notifications = new HashMap<>();
 
@@ -235,7 +280,8 @@ public class SystemController
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
-    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
     public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -257,8 +303,16 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
+<<<<<<< HEAD
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+=======
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32,
+        DhisApiVersion.V33, DhisApiVersion.V34,
+        DhisApiVersion.V35 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -274,8 +328,16 @@ public class SystemController
         response.setContentType( CONTENT_TYPE_JSON );
     }
 
+<<<<<<< HEAD
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35 } )
+=======
+    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29,
+        DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34,
+        DhisApiVersion.V35 } )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -291,7 +353,8 @@ public class SystemController
         response.setContentType( CONTENT_TYPE_JSON );
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -310,7 +373,9 @@ public class SystemController
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException
     {
-        if ( summary != null && ImportSummary.class.isInstance( summary ) ) //TODO improve this
+        if ( summary != null && ImportSummary.class.isInstance( summary ) ) // TODO
+                                                                            // improve
+                                                                            // this
         {
             ImportSummary importSummary = (ImportSummary) summary;
             renderService.toJson( response.getOutputStream(), importSummary );
@@ -325,8 +390,10 @@ public class SystemController
     // Various
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
+    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
+        HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -346,7 +413,7 @@ public class SystemController
     @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectCounts()
     {
-        Map<Objects, Integer> objectCounts = statisticsProvider.getObjectCounts();
+        Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
         RootNode rootNode = NodeUtils.createRootNode( "objectCounts" );
 
         for ( Objects objects : objectCounts.keySet() )

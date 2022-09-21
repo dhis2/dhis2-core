@@ -1,7 +1,9 @@
-package org.hisp.dhis.trackedentityfilter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.trackedentityfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityfilter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,6 +42,8 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -49,16 +54,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrackedEntityInstanceFilterServiceTest
     extends DhisSpringTest
 {
-
     @Autowired
     private ProgramService programService;
 
     @Autowired
     private TrackedEntityInstanceFilterService trackedEntityInstanceFilterService;
 
+    @Autowired
+    private UserService _userService;
+
     private Program programA;
 
     private Program programB;
+
+    @Before
+    public void init()
+    {
+        userService = _userService;
+    }
 
     @Override
     public void setUpTest()
@@ -164,4 +177,29 @@ public class TrackedEntityInstanceFilterServiceTest
         assertNull( trackedEntityInstanceFilterService.get( idA ) );
         assertNotNull( trackedEntityInstanceFilterService.get( idB ) );
     }
+
+    @Test
+    public void testSaveWithoutAuthority()
+    {
+        createUserAndInjectSecurityContext( false );
+
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+
+        assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
+    }
+
+    @Test
+    public void testSaveWithAuthority()
+    {
+        createUserAndInjectSecurityContext( false, "F_PROGRAMSTAGE_ADD" );
+
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+
+        assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
+    }
+
 }

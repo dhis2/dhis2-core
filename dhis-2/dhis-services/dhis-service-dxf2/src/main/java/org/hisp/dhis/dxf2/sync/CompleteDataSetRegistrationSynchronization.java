@@ -1,6 +1,9 @@
-package org.hisp.dhis.dxf2.sync;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,10 +29,14 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
+=======
+package org.hisp.dhis.dxf2.sync;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -45,6 +52,22 @@ import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Date;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.CodecUtils;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.RestTemplate;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -57,6 +80,13 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
     private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
     private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
+<<<<<<< HEAD
+=======
+    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+
+    private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Date lastUpdatedAfter;
 
     public CompleteDataSetRegistrationSynchronization( SystemSettingManager systemSettingManager,
@@ -90,7 +120,12 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
             SyncUtils.setLastSyncSuccess( systemSettingManager,
                 SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
             log.info( "Skipping completeness synchronization, no new or updated data" );
+<<<<<<< HEAD
             return SynchronizationResult.newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
+=======
+            return SynchronizationResult
+                .newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         if ( sendSyncRequest() )
@@ -114,6 +149,7 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
 
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
+<<<<<<< HEAD
         final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
         objectsToSynchronize = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
@@ -143,5 +179,39 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
         };
 
         return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+=======
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        objectsToSynchronize = completeDataSetRegistrationService
+            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
+
+        log.info(
+            "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
+
+        if ( objectsToSynchronize != 0 )
+        {
+            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
+                SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+
+            log.info( objectsToSynchronize + " completed data set registrations to synchronize were found." );
+            log.info( "Remote server URL for completeness POST synchronization: " + instance.getUrl() );
+        }
+    }
+
+    private boolean sendSyncRequest()
+    {
+        final RequestCallback requestCallback = request -> {
+            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
+            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
+                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+
+            completeDataSetRegistrationExchangeService
+                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
+        };
+
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
+            SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

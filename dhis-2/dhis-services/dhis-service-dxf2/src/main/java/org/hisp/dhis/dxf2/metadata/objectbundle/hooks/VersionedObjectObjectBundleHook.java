@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.VersionedObject;
@@ -37,13 +44,9 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
  * Handles increase of version for objects such as data set and option set.
- * 
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
@@ -55,10 +58,10 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
         if ( VersionedObject.class.isInstance( object ) )
         {
             VersionedObject versionObj = (VersionedObject) object;
-            int persistedVersion = ( ( VersionedObject ) persistedObject ).getVersion();
+            int persistedVersion = ((VersionedObject) persistedObject).getVersion();
 
-            versionObj.setVersion( persistedVersion > versionObj.getVersion() ? persistedVersion :
-                persistedVersion < versionObj.getVersion() ? versionObj.getVersion() : versionObj.increaseVersion() );
+            versionObj.setVersion( persistedVersion > versionObj.getVersion() ? persistedVersion
+                : persistedVersion < versionObj.getVersion() ? versionObj.getVersion() : versionObj.increaseVersion() );
         }
     }
 
@@ -66,7 +69,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
         VersionedObject versionedObject = null;
-        
+
         if ( Section.class.isInstance( persistedObject ) )
         {
             versionedObject = ((Section) persistedObject).getDataSet();
@@ -84,13 +87,13 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass,
+        List<T> objects, ObjectBundle bundle )
     {
         if ( Section.class.isAssignableFrom( klass ) )
         {
             Set<DataSet> dataSets = new HashSet<>();
-            objects.forEach( o ->
-            {
+            objects.forEach( o -> {
                 DataSet dataSet = ((Section) o).getDataSet();
 
                 if ( dataSet != null && dataSet.getId() > 0 )
@@ -99,8 +102,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
                 }
             } );
 
-            dataSets.forEach( ds ->
-            {
+            dataSets.forEach( ds -> {
                 ds.increaseVersion();
                 sessionFactory.getCurrentSession().save( ds );
             } );
@@ -109,8 +111,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
         {
             Set<OptionSet> optionSets = new HashSet<>();
 
-            objects.forEach( o ->
-            {
+            objects.forEach( o -> {
                 Option option = (Option) o;
 
                 if ( option.getOptionSet() != null && option.getId() > 0 )
@@ -119,8 +120,7 @@ public class VersionedObjectObjectBundleHook extends AbstractObjectBundleHook
                 }
             } );
 
-            optionSets.forEach( os ->
-            {
+            optionSets.forEach( os -> {
                 os.increaseVersion();
                 sessionFactory.getCurrentSession().save( os );
             } );

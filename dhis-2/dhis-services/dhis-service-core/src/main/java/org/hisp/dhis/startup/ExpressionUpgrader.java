@@ -1,7 +1,9 @@
-package org.hisp.dhis.startup;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
@@ -35,6 +38,11 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.constant.Constant;
@@ -49,8 +57,11 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Upgrades indicator formulas, expressions (for validation rules) and custom
  * data entry forms from using identifiers to using uids.
@@ -62,11 +73,16 @@ public class ExpressionUpgrader
     extends TransactionContextStartupRoutine
 {
     private static final String OLD_OPERAND_EXPRESSION = "\\[(\\d+)\\.?(\\d*)\\]";
+
     private static final String OLD_CONSTANT_EXPRESSION = "\\[C(\\d+?)\\]";
 
     private static final Pattern OLD_OPERAND_PATTERN = Pattern.compile( OLD_OPERAND_EXPRESSION );
+
+<<<<<<< HEAD
+=======
     private static final Pattern OLD_CONSTANT_PATTERN = Pattern.compile( OLD_CONSTANT_EXPRESSION );
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final DataEntryFormService dataEntryFormService;
 
     private final DataElementService dataElementService;
@@ -185,7 +201,8 @@ public class ExpressionUpgrader
 
                 if ( matcher.groupCount() == 2 && matcher.group( 2 ) != null && !matcher.group( 2 ).trim().isEmpty() )
                 {
-                    CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
+                    CategoryOptionCombo coc = categoryService
+                        .getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
                     replacement += "." + coc.getUid();
                 }
 
@@ -216,7 +233,8 @@ public class ExpressionUpgrader
 
         for ( DataEntryForm form : forms )
         {
-            if ( DataEntryForm.CURRENT_FORMAT > form.getFormat() && form.getHtmlCode() != null && !form.getHtmlCode().trim().isEmpty() )
+            if ( DataEntryForm.CURRENT_FORMAT > form.getFormat() && form.getHtmlCode() != null
+                && !form.getHtmlCode().trim().isEmpty() )
             {
                 try
                 {
@@ -230,7 +248,8 @@ public class ExpressionUpgrader
                     while ( matcher.find() )
                     {
                         DataElement de = dataElementService.getDataElement( Integer.parseInt( matcher.group( 1 ) ) );
-                        CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
+                        CategoryOptionCombo coc = categoryService
+                            .getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
                         String replacement = "id=\"" + de.getUid() + "-" + coc.getUid() + "-val\"";
                         matcher.appendReplacement( sb, replacement );
                     }

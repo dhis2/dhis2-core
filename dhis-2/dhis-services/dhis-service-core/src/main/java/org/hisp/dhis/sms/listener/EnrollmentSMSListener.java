@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.listener;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,19 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
 
+<<<<<<< HEAD
+=======
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,6 +79,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -73,6 +88,8 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.EnrollmentSMSListener" )
 @Transactional
@@ -139,7 +156,7 @@ public class EnrollmentSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
         }
 
-        if ( !program.hasOrganisationUnit( orgUnit ) )
+        if ( !programService.hasOrgUnit( program, orgUnit ) )
         {
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
@@ -228,7 +245,10 @@ public class EnrollmentSMSListener
         return SmsResponse.SUCCESS;
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
         Set<TrackedEntityAttributeValue> attributeValues )
     {
@@ -290,7 +310,11 @@ public class EnrollmentSMSListener
 
         TrackedEntityAttribute attribute = trackedEntityAttributeService
             .getTrackedEntityAttribute( attribUid.getUid() );
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );

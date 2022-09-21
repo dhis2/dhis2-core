@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.csv;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.csv;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -37,9 +40,9 @@ public class CsvImportOptions
 
     private boolean firstRowIsHeader;
 
-    //---------------------------------------------------
-    //  Constructor
-    //---------------------------------------------------
+    // ---------------------------------------------------
+    // Constructor
+    // ---------------------------------------------------
 
     public CsvImportOptions()
     {
@@ -51,9 +54,9 @@ public class CsvImportOptions
         this.firstRowIsHeader = firstRowIsHeader;
     }
 
-    //---------------------------------------------------
-    //  Getter & Setter
-    //---------------------------------------------------
+    // ---------------------------------------------------
+    // Getter & Setter
+    // ---------------------------------------------------
 
     public CsvImportClass getImportClass()
     {

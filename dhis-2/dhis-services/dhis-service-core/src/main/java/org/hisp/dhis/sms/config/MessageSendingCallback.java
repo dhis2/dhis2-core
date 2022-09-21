@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,13 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.springframework.stereotype.Component;
@@ -83,7 +91,8 @@ public class MessageSendingCallback
                 int successful = result.getSent();
                 int failed = result.getFailed();
 
-                log.info( String.format( "%s Message sending status: Successful: %d Failed: %d", result.getChannel().name(), successful, failed ) );
+                log.info( String.format( "%s Message sending status: Successful: %d Failed: %d",
+                    result.getChannel().name(), successful, failed ) );
             }
         };
     }

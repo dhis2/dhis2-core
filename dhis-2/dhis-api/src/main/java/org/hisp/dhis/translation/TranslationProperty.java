@@ -1,7 +1,9 @@
-package org.hisp.dhis.translation;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,14 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum TranslationProperty
 {
+<<<<<<< HEAD
     NAME ( "name" ),
     SHORT_NAME ( "shortName" ),
     DESCRIPTION ("description" ),
@@ -41,6 +45,26 @@ public enum TranslationProperty
     DENOMINATOR_DESCRIPTION ( "denominatorDescription" ),
     RELATIONSHIP_FROM_TO_NAME ("fromToName" ),
     RELATIONSHIP_TO_FROM_NAME ("toFromName" );
+=======
+    NAME( "name" ),
+    SHORT_NAME( "shortName" ),
+    DESCRIPTION( "description" ),
+    FORM_NAME( "formName" ),
+    NUMERATOR_DESCRIPTION( "numeratorDescription" ),
+    DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
+    RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
+    RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
+    INSTRUCTION( "instruction" ),
+    CONTENT( "content" ),
+    domainAxisLabel( "domainAxisLabel" ),
+    rangeAxisLabel( "rangeAxisLabel" ),
+    targetLineLabel( "targetLineLabel" ),
+    baseLineLabel( "baseLineLabel" ),
+    title( "title" ),
+    subtitle( "subtitle" ),
+    SUBJECT_TEMPLATE( "notificationSubjectTemplate" ),
+    MESSAGE_TEMPLATE( "notificationMessageTemplate" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     private String name;
 

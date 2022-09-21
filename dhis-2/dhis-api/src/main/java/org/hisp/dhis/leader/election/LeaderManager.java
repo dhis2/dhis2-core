@@ -1,7 +1,9 @@
-package org.hisp.dhis.leader.election;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +29,30 @@ package org.hisp.dhis.leader.election;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.leader.election;
 
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
+<<<<<<< HEAD
  * Manages cluster leader node elections, renewals, revocations and to check whether
  * the current instance is the leader in the cluster.
+=======
+ * Manages cluster leader node elections, renewals, revocations and to check
+ * whether the current instance is the leader in the cluster.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  *
  * @author Ameen Mohamed
  */
 public interface LeaderManager
 {
     /**
+<<<<<<< HEAD
      * Extend the expiration time of leadership if this node is the current leader.
+=======
+     * Extend the expiration time of leadership if this node is the current
+     * leader.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     void renewLeader();
 
@@ -56,7 +69,12 @@ public interface LeaderManager
     boolean isLeader();
 
     /**
+<<<<<<< HEAD
      * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
+=======
+     * Setter to set the scheduling manager to gain access to systems scheduling
+     * mechanisms.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param schedulingManager the instantiated scheduling manager.
      */

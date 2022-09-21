@@ -10,6 +10,8 @@
       <generator class="native" />
     </id>
 
+    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
+
     <property name="originator" index="sms_originator_index" not-null="true" />
 
     <property name="encoding" not-null="true">

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.datavalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,14 @@ package org.hisp.dhis.dxf2.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalue;
 
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Lars Helge Overland
@@ -42,9 +44,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
 public class DataValue
 {
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Properties
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected String dataElement;
 
@@ -67,20 +69,20 @@ public class DataValue
     protected String comment;
 
     protected Boolean followup;
-    
+
     protected Boolean deleted;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public DataValue()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public boolean hasLastUpdated()
     {
@@ -93,7 +95,7 @@ public class DataValue
         String creat = getCreated();
         return creat != null && !creat.isEmpty();
     }
-    
+
     public String getPrimaryKey()
     {
         return new StringBuilder()
@@ -104,18 +106,18 @@ public class DataValue
             .append( attributeOptionCombo )
             .toString();
     }
-    
+
     public boolean isNullValue()
     {
         return getValue() == null && getComment() == null;
     }
-    
+
     public boolean isDeletedValue()
     {
         Boolean deleted = getDeleted();
         return deleted != null && deleted;
     }
-    
+
     @Override
     public String toString()
     {
@@ -132,9 +134,9 @@ public class DataValue
             .toString();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )

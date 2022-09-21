@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,13 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,20 +52,9 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,11 +63,26 @@ import java.util.stream.Collectors;
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
+<<<<<<< HEAD
     private final TrackerPreheatService trackerPreheatService;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
     public EventTrackerConverterService( TrackerPreheatService trackerPreheatService )
+=======
+    private final NotesConverterService notesConverterService;
+
+    public EventTrackerConverterService( NotesConverterService notesConverterService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         this.trackerPreheatService = trackerPreheatService;
+=======
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override
@@ -86,7 +99,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
@@ -110,8 +122,11 @@ public class EventTrackerConverterService
             event.setCompletedAt( DateUtils.getIso8601NoTz( psi.getCompletedDate() ) );
             event.setCreatedAt( DateUtils.getIso8601NoTz( psi.getCreated() ) );
             event.setUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdated() ) );
+<<<<<<< HEAD
             event.setClientCreatedAt( DateUtils.getIso8601NoTz( psi.getCreatedAtClient() ) );
             event.setClientUpdatedAt( DateUtils.getIso8601NoTz( psi.getLastUpdatedAtClient() ) );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
@@ -120,8 +135,11 @@ public class EventTrackerConverterService
             if ( ou != null )
             {
                 event.setOrgUnit( ou.getUid() );
+<<<<<<< HEAD
                 // TODO do we need this? this is not even the translated name..
                 // event.setOrgUnitName( ou.getName() );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             }
 
             Program program = psi.getProgramInstance().getProgram();
@@ -155,19 +173,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance from( Event event )
-    {
-        List<ProgramStageInstance> programStageInstances = from( Collections.singletonList( event ) );
-
-        if ( programStageInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programStageInstances.get( 0 );
-    }
-
-    @Override
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
         List<ProgramStageInstance> programStageInstances = from( preheat, Collections.singletonList( event ) );
@@ -181,13 +186,6 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public List<ProgramStageInstance> from( List<Event> events )
-    {
-        return from( preheat( events ), events );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();
@@ -195,7 +193,12 @@ public class EventTrackerConverterService
         events.forEach( e -> {
             ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, e.getEvent() );
             ProgramStage programStage = preheat.get( TrackerIdScheme.UID, ProgramStage.class, e.getProgramStage() );
+<<<<<<< HEAD
             OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
+=======
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, e.getOrgUnit() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             if ( programStageInstance == null )
             {
@@ -225,8 +228,11 @@ public class EventTrackerConverterService
                 preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, e.getAttributeOptionCombo() ) );
             programStageInstance.setGeometry( e.getGeometry() );
             programStageInstance.setStatus( e.getStatus() );
+<<<<<<< HEAD
             programStageInstance.setCreatedAtClient( DateUtils.parseDate( e.getClientCreatedAt() ) );
             programStageInstance.setLastUpdatedAtClient( DateUtils.parseDate( e.getClientUpdatedAt() ) );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             if ( programStageInstance.isCompleted() )
             {
@@ -241,6 +247,7 @@ public class EventTrackerConverterService
                 programStageInstance.setCompletedBy( e.getCompletedBy() );
             }
 
+<<<<<<< HEAD
             // data values
             Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -254,6 +261,12 @@ public class EventTrackerConverterService
             } );
 
             programStageInstance.setEventDataValues( eventDataValues );
+=======
+            if ( isNotEmpty( e.getNotes() ) )
+            {
+                programStageInstance.getComments().addAll( notesConverterService.from( preheat, e.getNotes() ) );
+            }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             programStageInstances.add( programStageInstance );
         } );
@@ -261,7 +274,12 @@ public class EventTrackerConverterService
         return programStageInstances;
     }
 
+<<<<<<< HEAD
     private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment, Program program )
+=======
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
+        Program program )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         if ( !StringUtils.isEmpty( enrollment ) )
         {
@@ -273,9 +291,11 @@ public class EventTrackerConverterService
             return preheat.getEnrollment( identifier, program.getUid() );
         }
 
-        // no valid enrollment given and program not single event, just return null
+        // no valid enrollment given and program not single event, just return
+        // null
         return null;
     }
+<<<<<<< HEAD
 
     private TrackerPreheat preheat( List<Event> events )
     {
@@ -285,4 +305,6 @@ public class EventTrackerConverterService
 
         return trackerPreheatService.preheat( params );
     }
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

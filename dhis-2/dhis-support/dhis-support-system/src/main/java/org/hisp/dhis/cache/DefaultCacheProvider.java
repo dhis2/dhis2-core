@@ -1,6 +1,9 @@
-package org.hisp.dhis.cache;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +29,14 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
+
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -54,9 +62,21 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Override
+<<<<<<< HEAD
     public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
     {
         return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
+=======
+    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
+    {
+        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
+    }
+
+    @Override
+    public <V> ExtendedCacheBuilder<Set<V>> newCacheBuilderForSet( Class<V> valueType )
+    {
+        return new ExtendedCacheBuilder<Set<V>>( redisTemplate, configurationProvider );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Autowired
@@ -66,6 +86,7 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Autowired( required = false )
+    @Qualifier( "redisTemplate" )
     public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
     {
         this.redisTemplate = redisTemplate;

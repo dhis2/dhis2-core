@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,15 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.xpath.XPathExpressionException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -47,12 +58,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author bobj
@@ -107,8 +113,10 @@ public class DefaultExportServiceTest
         dsA = DhisConvenienceTest.createDataSet( 'A', new MonthlyPeriodType() );
         ouA = DhisConvenienceTest.createOrganisationUnit( 'A' );
         ouB = DhisConvenienceTest.createOrganisationUnit( 'B' );
-        peA = DhisConvenienceTest.createPeriod( DhisConvenienceTest.getDate( 2012, 1, 1 ), DhisConvenienceTest.getDate( 2012, 1, 31 ) );
-        peB = DhisConvenienceTest.createPeriod( DhisConvenienceTest.getDate( 2012, 2, 1 ), DhisConvenienceTest.getDate( 2012, 2, 29 ) );
+        peA = DhisConvenienceTest.createPeriod( DhisConvenienceTest.getDate( 2012, 1, 1 ),
+            DhisConvenienceTest.getDate( 2012, 1, 31 ) );
+        peB = DhisConvenienceTest.createPeriod( DhisConvenienceTest.getDate( 2012, 2, 1 ),
+            DhisConvenienceTest.getDate( 2012, 2, 29 ) );
 
         deA.setUid( "f7n9E0hX8qk" );
         deB.setUid( "Ix2HsbDMLea" );
@@ -136,13 +144,16 @@ public class DefaultExportServiceTest
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void exportMetaDataTest() throws IOException, XPathExpressionException
+    public void exportMetaDataTest()
+        throws IOException,
+        XPathExpressionException
     {
         MetadataExportParams params = new MetadataExportParams();
         params.addQuery( Query.from( schemaService.getSchema( DataElement.class ) ) );
         params.addQuery( Query.from( schemaService.getSchema( OrganisationUnit.class ) ) );
 
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap = exportService.getMetadata( params );
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap = exportService
+            .getMetadata( params );
 
         Metadata metadata = new Metadata();
         metadata.setDataElements( (List<DataElement>) metadataMap.get( DataElement.class ) );

@@ -1,4 +1,5 @@
 package org.hisp.dhis.actions.metadata;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -28,6 +29,11 @@ package org.hisp.dhis.actions.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+
+
 
 import io.restassured.matcher.RestAssuredMatchers;
 import org.hisp.dhis.actions.RestApiActions;
@@ -53,7 +59,7 @@ public class MetadataActions
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=NONE", "importReportMode=FULL" );
+        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
 
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );

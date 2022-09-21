@@ -1,7 +1,9 @@
-package org.hisp.dhis.credentials;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,9 @@ package org.hisp.dhis.credentials;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.credentials;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,6 +40,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -50,8 +60,11 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Created by zubair on 29.03.17.
  */
@@ -101,7 +114,8 @@ public class CredentialsExpiryAlertJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        boolean isExpiryAlertEnabled = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
+        boolean isExpiryAlertEnabled = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
 
         if ( !isExpiryAlertEnabled )
         {
@@ -116,7 +130,7 @@ public class CredentialsExpiryAlertJob
 
         Map<String, String> content = new HashMap<>();
 
-        for ( User user :  users )
+        for ( User user : users )
         {
             if ( user.getEmail() != null )
             {
@@ -134,13 +148,14 @@ public class CredentialsExpiryAlertJob
     {
         if ( !emailMessageSender.isConfigured() )
         {
-            return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010, "EMAIL gateway configuration does not exist" );
+            return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010,
+                "EMAIL gateway configuration does not exist" );
         }
 
         return super.validate();
     }
 
-    private void sendExpiryAlert( Map<String,String> content )
+    private void sendExpiryAlert( Map<String, String> content )
     {
         if ( emailMessageSender.isConfigured() )
         {
@@ -162,10 +177,11 @@ public class CredentialsExpiryAlertJob
 
     private int getRemainingDays( UserCredentials userCredentials )
     {
-        int daysBeforeChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        int daysBeforeChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES )
+            * 30;
 
         Date passwordLastUpdated = userCredentials.getPasswordLastUpdated();
 
-        return ( daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ) );
+        return (daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ));
     }
 }

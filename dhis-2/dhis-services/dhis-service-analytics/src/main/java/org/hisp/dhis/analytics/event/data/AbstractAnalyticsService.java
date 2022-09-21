@@ -1,7 +1,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -43,6 +48,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+=======
+package org.hisp.dhis.analytics.event.data;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
@@ -52,8 +60,27 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
+import org.opengis.geometry.primitive.Point;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -97,12 +124,30 @@ public abstract class AbstractAnalyticsService
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader(
+                new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),
+                    ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            if ( item.getValueType() == ValueType.ORGANISATION_UNIT
+                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+            { // Special case: if the request contains an item of Org Unit value
+              // type and the item uid
+              // is linked to coordinates (coordinateField), then create an
+              // Header of ValueType
+              // COORDINATE and type "Point"
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                    Point.class.getName(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
+            else
+            {
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                    item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
         }
 
         // ---------------------------------------------------------------------
@@ -163,7 +208,8 @@ public abstract class AbstractAnalyticsService
             if ( params.isHierarchyMeta() || params.isShowHierarchy() )
             {
                 User user = securityManager.getCurrentUser( params );
-                List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+                List<OrganisationUnit> organisationUnits = asTypedList(
+                    params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
                 Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
 
                 if ( params.isHierarchyMeta() )
@@ -173,7 +219,8 @@ public abstract class AbstractAnalyticsService
 
                 if ( params.isShowHierarchy() )
                 {
-                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
+                        getParentNameGraphMap( organisationUnits, roots, true ) );
                 }
             }
 
@@ -196,17 +243,42 @@ public abstract class AbstractAnalyticsService
         if ( params.hasValueDimension() )
         {
             DimensionalItemObject value = params.getValue();
-            metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
+            metadataItemMap.put( value.getUid(),
+                new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ),
+                    includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 
+<<<<<<< HEAD
         params.getItemLegends().forEach( legend -> metadataItemMap.put( legend.getUid(),
             new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) ) );
+=======
+        params.getItemLegends().stream()
+            .filter( legend -> legend != null )
+            .forEach( legend -> metadataItemMap.put( legend.getUid(),
+                new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
+                    legend.getCode() ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         params.getItemOptions().forEach( option -> metadataItemMap.put( option.getUid(),
             new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) ) );
+=======
+        params.getItemOptions().stream()
+            .filter( option -> option != null )
+            .forEach( option -> metadataItemMap.put( option.getUid(),
+                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    option.getCode() ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         params.getItemsAndItemFilters().forEach( item -> metadataItemMap.put( item.getItemId(),
             new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+=======
+        params.getItemsAndItemFilters().stream()
+            .filter( item -> item != null )
+            .forEach( item -> metadataItemMap.put( item.getItemId(),
+                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return metadataItemMap;
     }
@@ -222,9 +294,14 @@ public abstract class AbstractAnalyticsService
     {
         Calendar calendar = PeriodType.getCalendar();
 
+<<<<<<< HEAD
         List<String> periodUids = calendar.isIso8601() ?
             getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+=======
+        List<String> periodUids = calendar.isIso8601() ? getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) )
+            : getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         Map<String, List<String>> dimensionItems = new HashMap<>();
 

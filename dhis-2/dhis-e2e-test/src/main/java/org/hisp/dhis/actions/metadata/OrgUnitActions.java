@@ -1,5 +1,6 @@
 package org.hisp.dhis.actions.metadata;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -28,6 +29,11 @@ package org.hisp.dhis.actions.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+=======
+
+
+import com.google.gson.JsonArray;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -124,5 +130,26 @@ public class OrgUnitActions
         orgUnit.setParent( parentId );
 
         return create( orgUnit );
+<<<<<<< HEAD
+=======
+    }
+
+    public void addAttributeValue(String orgUnit, String attributeId, String attributeValue) {
+        JsonObject orgUnitObj = this.get( orgUnit ).getBody();
+
+        JsonObject attributeObj = new JsonObject();
+        attributeObj.addProperty( "id", attributeId );
+
+        JsonObject attributeValueObj = new JsonObject();
+        attributeValueObj.addProperty( "value", attributeValue );
+        attributeValueObj.add("attribute", attributeObj );
+
+        JsonArray attributeValues = orgUnitObj.getAsJsonArray( "attributeValues" );
+        attributeValues.add( attributeValueObj );
+
+        orgUnitObj.add( "attributeValue", attributeValues );
+
+        this.update( orgUnit, orgUnitObj ).validate().statusCode( 200 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

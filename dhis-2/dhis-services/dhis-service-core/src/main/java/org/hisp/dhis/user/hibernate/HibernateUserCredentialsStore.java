@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 package org.hisp.dhis.user.hibernate;
 
 import java.util.UUID;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +36,17 @@ import java.util.UUID;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
+
+import java.util.UUID;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserCredentials;
@@ -50,9 +64,17 @@ public class HibernateUserCredentialsStore
     implements UserCredentialsStore
 {
     public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, currentUserService, aclService, true );
+=======
+        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override

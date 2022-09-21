@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.security;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,13 @@ package org.hisp.dhis.analytics.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.security;
+
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -46,6 +55,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,13 +84,23 @@ public class AnalyticsSecurityManagerTest
     private OrganisationUnitService organisationUnitService;
 
     private CategoryOption coA;
+<<<<<<< HEAD
     private CategoryOption coB;
+=======
+
+    private CategoryOption coB;
+
+    private CategoryOption coNotReadable;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Category caA;
 
     private DataElement deA;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private Set<OrganisationUnit> userOrgUnits;
@@ -87,6 +108,7 @@ public class AnalyticsSecurityManagerTest
     @Override
     public void setUpTest()
     {
+<<<<<<< HEAD
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
 
@@ -99,6 +121,8 @@ public class AnalyticsSecurityManagerTest
 
         Set<Category> catDimensionConstraints = Sets.newHashSet( caA );
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         deA = createDataElement( 'A' );
 
         dataElementService.addDataElement( deA );
@@ -115,7 +139,30 @@ public class AnalyticsSecurityManagerTest
 
         userService = (UserService) getBean( UserService.ID );
 
+<<<<<<< HEAD
         createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false, "F_VIEW_EVENT_ANALYTICS" );
+=======
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+
+        User user = createUser( 'U' );
+        userService.addUser( user );
+        coNotReadable = createCategoryOption( 'N' );
+        coNotReadable.setPublicAccess( AccessStringHelper.READ );
+        coNotReadable.setUser( user );
+
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+        categoryService.addCategoryOption( coNotReadable );
+
+        caA = createCategory( 'A', coA, coB, coNotReadable );
+        categoryService.addCategory( caA );
+
+        Set<Category> catDimensionConstraints = Sets.newHashSet( caA );
+
+        createUserAndInjectSecurityContext( userOrgUnits, userOrgUnits, catDimensionConstraints, false,
+            "F_VIEW_EVENT_ANALYTICS" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -156,6 +203,7 @@ public class AnalyticsSecurityManagerTest
     }
 
     @Test
+<<<<<<< HEAD
     public void testWithUserConstraintsAlreadyPresentDataQueryParams()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -208,5 +256,86 @@ public class AnalyticsSecurityManagerTest
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
         assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
         assertEquals( coA.getDimensionItem(), params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+=======
+    public void testWithUserConstraintsEventQueryParamsCheckingNotReadableCategoryOption()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( new QueryItem( deA ) )
+            .withStartDate( getDate( 2018, 1, 1 ) )
+            .withEndDate( getDate( 2018, 4, 1 ) )
+            .build();
+
+        // When
+        params = securityManager.withUserConstraints( params );
+
+        // Then
+        int authorizedCatOptions = 2;
+
+        assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+        assertEquals( authorizedCatOptions, params.getFilter( caA.getDimension() ).getItems().size() );
+        assertThat( params.getFilter( caA.getDimension() ).getItems(), not( hasItem( coNotReadable ) ) );
+    }
+
+    @Test
+    public void testWithUserConstraintsAlreadyPresentDataQueryParams()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( Lists.newArrayList( deA ) )
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .build();
+
+        params = securityManager.withUserConstraints( params );
+
+        assertEquals( Lists.newArrayList( ouB ), params.getOrganisationUnits() );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+        assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+    }
+
+    @Test
+    public void testWithUserConstraintsEventQueryParams()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( new QueryItem( deA ) )
+            .withStartDate( getDate( 2018, 1, 1 ) )
+            .withEndDate( getDate( 2018, 4, 1 ) )
+            .build();
+
+        params = securityManager.withUserConstraints( params );
+
+        assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+    }
+
+    @Test
+    public void testWithUserConstraintsAlreadyPresentEventQueryParams()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( new QueryItem( deA ) )
+            .withStartDate( getDate( 2018, 1, 1 ) )
+            .withEndDate( getDate( 2018, 4, 1 ) )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .addFilter(
+                new BaseDimensionalObject( caA.getDimension(), DimensionType.CATEGORY, Lists.newArrayList( coA ) ) )
+            .build();
+
+        params = securityManager.withUserConstraints( params );
+
+        assertEquals( Lists.newArrayList( ouB ), params.getOrganisationUnits() );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+        assertNotNull( params.getFilter( caA.getDimension() ).getItems().get( 0 ) );
+        assertEquals( coA.getDimensionItem(),
+            params.getFilter( caA.getDimension() ).getItems().get( 0 ).getDimensionItem() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

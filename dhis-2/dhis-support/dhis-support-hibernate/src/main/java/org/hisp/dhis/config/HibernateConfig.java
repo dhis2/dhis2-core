@@ -1,7 +1,9 @@
-package org.hisp.dhis.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,20 @@ package org.hisp.dhis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.config;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.beans.PropertyVetoException;
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.datasource.DataSourceManager;
 import org.hisp.dhis.datasource.DefaultDataSourceManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -52,9 +60,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
-import java.util.List;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * @author Luciano Fiandesio
@@ -82,7 +88,7 @@ public class HibernateConfig
     }
 
     @Bean
-    @DependsOn("flyway")
+    @DependsOn( "flyway" )
     public LocalSessionFactoryBean sessionFactory()
         throws Exception
     {
@@ -115,17 +121,43 @@ public class HibernateConfig
         dataSource.setJdbcUrl( (String) getConnectionProperty( "hibernate.connection.url" ) );
         dataSource.setUser( (String) getConnectionProperty( "hibernate.connection.username" ) );
         dataSource.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
+<<<<<<< HEAD
         dataSource.setMinPoolSize( 5 );
         dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
         dataSource.setInitialPoolSize( 5 );
         dataSource.setAcquireIncrement( 5 );
         dataSource.setMaxIdleTime( 7200 );
+=======
+        dataSource.setMaxPoolSize( Integer.parseInt( (String) getConnectionProperty( "hibernate.c3p0.max_size" ) ) );
+        dataSource.setMinPoolSize( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey() ) ) );
+        dataSource.setInitialPoolSize( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE.getKey() ) ) );
+        dataSource.setAcquireIncrement( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR.getKey() ) ) );
+        dataSource.setMaxIdleTime( Integer
+            .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME.getKey() ) ) );
+        dataSource.setTestConnectionOnCheckin( Boolean.parseBoolean(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey() ) ) );
+        dataSource.setTestConnectionOnCheckout( Boolean.parseBoolean(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey() ) ) );
+        dataSource.setMaxIdleTimeExcessConnections( Integer.parseInt(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON.getKey() ) ) );
+        dataSource.setIdleConnectionTestPeriod( Integer.parseInt(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD.getKey() ) ) );
+        dataSource.setPreferredTestQuery(
+            (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_TEST_QUERY.getKey() ) );
+        dataSource.setNumHelperThreads(
+            Integer
+                .parseInt( (String) getConnectionProperty( ConfigurationKey.CONNECTION_POOL_NUM_THREADS.getKey() ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return dataSource;
     }
 
     @Bean
-    public DataSourceManager dataSourceManager() throws PropertyVetoException
+    public DataSourceManager dataSourceManager()
+        throws PropertyVetoException
     {
         DefaultDataSourceManager defaultDataSourceManager = new DefaultDataSourceManager();
         defaultDataSourceManager.setConfig( dhisConfigurationProvider );
@@ -135,9 +167,11 @@ public class HibernateConfig
     }
 
     @Bean
-    public DataSource readOnlyDataSource() throws PropertyVetoException
+    public DataSource readOnlyDataSource()
+        throws PropertyVetoException
     {
-        // FIXME Luciano why do we need this? Can't we use @Transactional readonly?
+        // FIXME Luciano why do we need this? Can't we use @Transactional
+        // readonly?
 
         return dataSourceManager().getReadOnlyDataSource();
     }
@@ -164,7 +198,7 @@ public class HibernateConfig
         throws Exception
     {
         DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory(sessionFactory().getObject());
+        cacheManager.setSessionFactory( sessionFactory().getObject() );
         return cacheManager;
     }
 
@@ -174,7 +208,7 @@ public class HibernateConfig
     {
         HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
         hibernateDbmsManager.setCacheManager( cacheManager() );
-        hibernateDbmsManager.setSessionFactory(sessionFactory().getObject());
+        hibernateDbmsManager.setSessionFactory( sessionFactory().getObject() );
         hibernateDbmsManager.setJdbcTemplate( jdbcTemplate() );
         return hibernateDbmsManager;
     }

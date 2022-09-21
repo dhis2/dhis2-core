@@ -1,27 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)">
-  <path id="rect4803" d="m0 0v48h48v-48h-48zm14.566 4c3.97 0.0023 7.609 2.2113 9.442 5.7324 1.831-3.5198 5.467-5.7286 9.435-5.7324 5.882-0.0002 10.651 4.7669 10.651 10.648-0.005 9.354-12.639 16.903-20.153 29.352-4.449-7.421-10.668-13.046-14.994-18.383h7.76l4.334-8.65 4.475 16.345c3.632-5.102 3.844-5.672 6.107-9.082h3.414c1.658 0.012 1.721-2.465 0-2.535h-4.654l-4.199 6.676c-1.035-4.452-4.891-17.805-4.891-17.805-0.417 0.541-3.867 9.264-6.15 12.514h-8.1137c-1.8899-2.754-3.1037-5.493-3.1113-8.432-0.0002-5.8811 4.7669-10.648 10.648-10.648z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)" fill="#333"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M0 0V47.9994H47.9994V0H0ZM14.5658 3.99995C18.5358 4.00225 22.1747 6.21122 24.0077 9.73228C25.8387 6.21252 29.4746 4.00375 33.4426 3.99995C39.3245 3.99975 44.0934 8.76679 44.0934 14.6478C44.0885 24.0017 31.4546 31.5506 23.9407 43.9995C19.4918 36.5785 13.2728 30.9536 8.94689 25.6167H16.7068L21.0407 16.9668L25.5157 33.3116C29.1476 28.2096 29.3596 27.6397 31.6226 24.2297H35.0366C36.6945 24.2417 36.7575 21.7647 35.0366 21.6947H30.3826L26.1837 28.3706C25.1487 23.9187 21.2927 10.5659 21.2927 10.5659C20.8757 11.1069 17.4258 19.8298 15.1428 23.0797H7.02921C5.13934 20.3257 3.92555 17.5868 3.91795 14.6478C3.91775 8.76679 8.68479 3.99995 14.5658 3.99995Z" fill="#333333"/>
 </svg>

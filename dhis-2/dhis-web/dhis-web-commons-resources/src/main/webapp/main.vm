@@ -56,6 +56,16 @@
       } );
     </script>
 
+<<<<<<< HEAD
+=======
+
+    <!-- Menu dependencies -->
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/react/react-15.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/rxjs/rx.lite.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/lodash/lodash.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/lodash/lodash-functional.js?_rev=$!{buildRevision}"></script>
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <!-- Menu script is up here due to perceived loading time increase -->
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/babel-polyfill.js?_rev=$!{buildRevision}"></script>
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>

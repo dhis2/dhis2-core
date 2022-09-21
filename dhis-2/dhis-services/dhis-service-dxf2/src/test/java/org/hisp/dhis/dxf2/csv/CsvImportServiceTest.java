@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.csv;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,13 @@ package org.hisp.dhis.dxf2.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.csv;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
@@ -41,12 +50,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class CsvImportServiceTest
     extends DhisSpringTest
@@ -123,7 +126,7 @@ public class CsvImportServiceTest
 
         Metadata metadata = csvImportService.fromCsv( inputBasicObjects, new CsvImportOptions()
             .setImportClass( CsvImportClass.CATEGORY_OPTION )
-            .setFirstRowIsHeader( false )  );
+            .setFirstRowIsHeader( false ) );
 
         assertEquals( 3, metadata.getCategoryOptions().size() );
 

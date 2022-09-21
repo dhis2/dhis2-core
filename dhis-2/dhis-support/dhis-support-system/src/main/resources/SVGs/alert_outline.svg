@@ -1,27 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" transform="translate(0,-284.3)" fill="#333">
-  <path id="path879" d="m22.439 12.832 0.19727 15.91h2.543l0.21289-15.91zm0.52539 0.50781h1.9062l-0.19922 14.889-1.5273 0.003906zm1.0273 18.631c-0.54812 0-0.96384 0.158-1.248 0.47266-0.27406 0.30451-0.41211 0.68386-0.41211 1.1406 0 0.45677 0.13805 0.83807 0.41211 1.1426 0.28421 0.29436 0.69993 0.44141 1.248 0.44141 0.54812 0 0.96384-0.14705 1.248-0.44141 0.28421-0.30451 0.42773-0.68581 0.42773-1.1426 0-0.45677-0.14352-0.83611-0.42773-1.1406-0.28421-0.31466-0.69993-0.47266-1.248-0.47266zm-0.17188 0.51367h0.32031c0.33388 0.021884 0.97783 0.18211 1 0.98828v0.32031c-0.11179 0.70969-0.52189 0.79377-0.93945 0.86133h-0.32031c-0.65086-0.019087-0.95925-0.34988-1.0332-0.89453v-0.32031c0.069072-0.59246 0.34207-0.96574 0.97266-0.95508z" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 29.4999C22.9011 29.4999 22 28.5988 22 27.4999V10.4999C22 9.40106 22.9011 8.49992 24 8.49992C25.0989 8.49992 26 9.40106 26 10.4999V27.4999C26 28.5988 25.0989 29.4999 24 29.4999ZM24 35.4999C25.1046 35.4999 26 36.3954 26 37.4999C26 38.6045 25.1046 39.4999 24 39.4999C22.8954 39.4999 22 38.6045 22 37.4999C22 36.3954 22.8954 35.4999 24 35.4999Z" stroke="#333333"/>
 </svg>

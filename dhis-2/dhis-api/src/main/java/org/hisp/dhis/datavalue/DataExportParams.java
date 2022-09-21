@@ -1,7 +1,9 @@
-package org.hisp.dhis.datavalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,17 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -45,9 +48,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -77,6 +80,10 @@ public class DataExportParams
     private boolean includeChildren;
 
     private boolean returnParentOrgUnit;
+
+    private boolean orderByOrgUnitPath;
+
+    private boolean orderByPeriod;
 
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
@@ -238,39 +245,41 @@ public class DataExportParams
     }
 
     /**
-     * Indicates whether this parameters represents a single data value set, implying
-     * that it contains exactly one of data sets, periods and organisation units.
+     * Indicates whether this parameters represents a single data value set,
+     * implying that it contains exactly one of data sets, periods and
+     * organisation units.
      */
     public boolean isSingleDataValueSet()
     {
-        return dataSets.size() == 1 && periods.size() == 1 && organisationUnits.size() == 1 && dataElementGroups.isEmpty();
+        return dataSets.size() == 1 && periods.size() == 1 && organisationUnits.size() == 1
+            && dataElementGroups.isEmpty();
     }
 
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).
-            add( "data elements", dataElements ).
-            add( "data element operands", dataElementOperands ).
-            add( "data sets", dataSets ).
-            add( "data element groups", dataElementGroups ).
-            add( "periods", periods ).
-            add( "period types", periodTypes ).
-            add( "start date", startDate ).
-            add( "end date", endDate ).
-            add( "included date", includedDate ).
-            add( "org units", organisationUnits ).
-            add( "children", includeChildren ).
-            add( "return parent org unit", returnParentOrgUnit ).
-            add( "org unit groups", organisationUnitGroups ).
-            add( "attribute option combos", attributeOptionCombos ).
-            add( "category option dimension constraints", coDimensionConstraints ).
-            add( "category option group dimension constraints", cogDimensionConstraints ).
-            add( "deleted", includeDeleted ).
-            add( "last updated", lastUpdated ).
-            add( "last updated duration", lastUpdatedDuration ).
-            add( "limit", limit ).
-            add( "output id schemes", outputIdSchemes ).toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "data elements", dataElements )
+            .add( "data element operands", dataElementOperands )
+            .add( "data sets", dataSets )
+            .add( "data element groups", dataElementGroups )
+            .add( "periods", periods )
+            .add( "period types", periodTypes )
+            .add( "start date", startDate )
+            .add( "end date", endDate )
+            .add( "included date", includedDate )
+            .add( "org units", organisationUnits )
+            .add( "children", includeChildren )
+            .add( "order by org unit path", orderByOrgUnitPath )
+            .add( "order by period", orderByPeriod )
+            .add( "return parent org unit", returnParentOrgUnit )
+            .add( "org unit groups", organisationUnitGroups )
+            .add( "attribute option combos", attributeOptionCombos )
+            .add( "category option dimension constraints", coDimensionConstraints )
+            .add( "category option group dimension constraints", cogDimensionConstraints )
+            .add( "deleted", includeDeleted ).add( "last updated", lastUpdated )
+            .add( "last updated duration", lastUpdatedDuration ).add( "limit", limit )
+            .add( "output id schemes", outputIdSchemes ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -406,6 +415,28 @@ public class DataExportParams
     public DataExportParams setReturnParentOrgUnit( boolean returnParentOrgUnit )
     {
         this.returnParentOrgUnit = returnParentOrgUnit;
+        return this;
+    }
+
+    public boolean isOrderByOrgUnitPath()
+    {
+        return orderByOrgUnitPath;
+    }
+
+    public DataExportParams setOrderByOrgUnitPath( boolean orderByOrgUnitPath )
+    {
+        this.orderByOrgUnitPath = orderByOrgUnitPath;
+        return this;
+    }
+
+    public boolean isOrderByPeriod()
+    {
+        return orderByPeriod;
+    }
+
+    public DataExportParams setOrderByPeriod( boolean orderByPeriod )
+    {
+        this.orderByPeriod = orderByPeriod;
         return this;
     }
 

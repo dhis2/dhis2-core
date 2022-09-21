@@ -1,7 +1,9 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,13 @@ package org.hisp.dhis.deletedobject.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deletedobject.hibernate;
 
 import lombok.extern.slf4j.Slf4j;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -68,7 +75,11 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
             }
             catch ( Exception ex )
             {
+<<<<<<< HEAD
                 log.error( "Failed to save DeletedObject: "+ deletedObject );
+=======
+                log.error( "Failed to save DeletedObject: " + deletedObject );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                 session.getTransaction().rollback();
             }
             finally

@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.utils;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -112,8 +115,8 @@ public class FileResourceUtils
      * @param key the key to associate to the {@link FileResource}
      * @param file a {@link MultipartFile}
      * @param domain a {@link FileResourceDomain}
-     * @return a valid {@link FileResource} populated with data from the provided
-     *         file
+     * @return a valid {@link FileResource} populated with data from the
+     *         provided file
      * @throws IOException if hashing fails
      *
      */
@@ -131,7 +134,8 @@ public class FileResourceUtils
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {
-                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), dimension.getDimension() ) );
+                fileResource
+                    .setStorageKey( StringUtils.join( fileResource.getStorageKey(), dimension.getDimension() ) );
             }
         }
     }
@@ -186,9 +190,9 @@ public class FileResourceUtils
 
         File tmpFile = toTempFile( file );
 
-       fileResourceService.saveFileResource( fileResource, tmpFile );
+        fileResourceService.saveFileResource( fileResource, tmpFile );
 
-       return fileResource;
+        return fileResource;
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -62,6 +65,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -93,7 +100,11 @@ import com.google.common.collect.ImmutableMap;
  * @author Stian Sandvold
  */
 @RestController
+<<<<<<< HEAD
 @RequestMapping(RESOURCE_PATH)
+=======
+@RequestMapping( RESOURCE_PATH )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 public class StaticContentController
@@ -113,15 +124,19 @@ public class StaticContentController
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
     private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+<<<<<<< HEAD
             LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
             LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
+=======
+        LOGO_BANNER, USE_CUSTOM_LOGO_BANNER,
+        LOGO_FRONT, USE_CUSTOM_LOGO_FRONT );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     @Autowired
     public StaticContentController(
         SystemSettingManager systemSettingManager,
         StyleManager styleManager,
-        JCloudsFileResourceContentStore contentStore
-    )
+        JCloudsFileResourceContentStore contentStore )
     {
         checkNotNull( systemSettingManager );
         checkNotNull( styleManager );
@@ -132,11 +147,19 @@ public class StaticContentController
     }
 
     /**
+<<<<<<< HEAD
      * Serves the descriptor object for the file associated with the given key. If
      * the given key of the associated file is not found, this endpoint will return
      * HTTP NOT_FOUND. The attribute "Accept=application/json" in the HTTP Header
      * should be set in order to trigger this endpoint. The only supported image
      * type at this moment is PNG.
+=======
+     * Serves the descriptor object for the file associated with the given key.
+     * If the given key of the associated file is not found, this endpoint will
+     * return HTTP NOT_FOUND. The attribute "Accept=application/json" in the
+     * HTTP Header should be set in order to trigger this endpoint. The only
+     * supported image type at this moment is PNG.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param key the key associated with the static file.
      * @param request the current HttpServletRequest.
@@ -184,8 +207,7 @@ public class StaticContentController
     @RequestMapping( value = "/{key}", method = GET )
     public void getStaticContent(
         @PathVariable( "key" ) String key, HttpServletRequest request,
-        HttpServletResponse response
-    )
+        HttpServletResponse response )
         throws WebMessageException
     {
         if ( !KEY_WHITELIST_MAP.containsKey( key ) )
@@ -227,9 +249,10 @@ public class StaticContentController
     }
 
     /**
-     * Uploads PNG images based on a key. Only accepts PNG and white listed keys.
+     * Uploads PNG images based on a key. Only accepts PNG and white listed
+     * keys.
      *
-     * @param key  the key.
+     * @param key the key.
      * @param file the image file.
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -283,7 +306,8 @@ public class StaticContentController
     /**
      * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not exist.
+     * @param key the key associated with the logo or null if the key does not
+     *        exist.
      * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )

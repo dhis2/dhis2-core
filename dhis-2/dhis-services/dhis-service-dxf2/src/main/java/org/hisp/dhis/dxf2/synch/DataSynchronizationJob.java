@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,8 +53,36 @@ import org.springframework.stereotype.Component;
 public class DataSynchronizationJob extends SynchronizationJob
 {
     private final SynchronizationManager synchronizationManager;
+<<<<<<< HEAD
     private final Notifier notifier;
     private final DataValueSynchronization dataValueSynchronization;
+    private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+    public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
+        CompleteDataSetRegistrationSynchronization completenessSynchronization,
+        SynchronizationManager synchronizationManager )
+    {
+        checkNotNull( notifier );
+        checkNotNull( dataValueSynchronization );
+        checkNotNull( completenessSynchronization );
+        checkNotNull( synchronizationManager );
+=======
+    private final Notifier notifier;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+        this.notifier = notifier;
+        this.dataValueSynchronization = dataValueSynchronization;
+        this.completenessSynchronization = completenessSynchronization;
+        this.synchronizationManager = synchronizationManager;
+    }
+
+=======
+    private final DataValueSynchronization dataValueSynchronization;
+
     private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
 
     public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
@@ -68,7 +99,7 @@ public class DataSynchronizationJob extends SynchronizationJob
         this.completenessSynchronization = completenessSynchronization;
         this.synchronizationManager = synchronizationManager;
     }
-
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -83,8 +114,13 @@ public class DataSynchronizationJob extends SynchronizationJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
+<<<<<<< HEAD
         DataSynchronizationJobParameters jobParameters =
             (DataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+=======
+        DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
+            .getJobParameters();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
         notifier.notify( jobConfiguration, "Data value sync successful" );
 

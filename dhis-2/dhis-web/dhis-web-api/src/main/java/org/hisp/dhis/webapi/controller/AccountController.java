@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,26 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+=======
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -41,6 +60,7 @@ import org.hisp.dhis.security.RecaptchaResponse;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
+import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -54,7 +74,10 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+<<<<<<< HEAD
 import org.springframework.security.authentication.AuthenticationManager;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -65,15 +88,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Lars Helge Overland
@@ -85,9 +100,11 @@ import java.util.Set;
 public class AccountController
 {
     private static final int MAX_LENGTH = 80;
+
     private static final int MAX_PHONE_NO_LENGTH = 30;
 
     private final UserService userService;
+<<<<<<< HEAD
     private final AuthenticationManager authenticationManager;
     private final ConfigurationService configurationService;
     private final PasswordManager passwordManager;
@@ -96,7 +113,10 @@ public class AccountController
     private final WebMessageService webMessageService;
     private final PasswordValidationService passwordValidationService;
     private final ObjectMapper jsonMapper;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
     public AccountController(
         UserService userService,
         AuthenticationManager authenticationManager,
@@ -110,6 +130,37 @@ public class AccountController
     {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
+=======
+    private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+
+    private final ConfigurationService configurationService;
+
+    private final PasswordManager passwordManager;
+
+    private final SecurityService securityService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    private final WebMessageService webMessageService;
+
+    private final PasswordValidationService passwordValidationService;
+
+    private final ObjectMapper jsonMapper;
+
+    public AccountController(
+        UserService userService,
+        TwoFactorAuthenticationProvider authenticationManager,
+        ConfigurationService configurationService,
+        PasswordManager passwordManager,
+        SecurityService securityService,
+        SystemSettingManager systemSettingManager,
+        WebMessageService webMessageService,
+        PasswordValidationService passwordValidationService,
+        ObjectMapper jsonMapper )
+    {
+        this.userService = userService;
+        this.twoFactorAuthenticationProvider = authenticationManager;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         this.configurationService = configurationService;
         this.passwordManager = passwordManager;
         this.securityService = securityService;
@@ -123,7 +174,8 @@ public class AccountController
     public void recoverAccount(
         @RequestParam String username,
         HttpServletRequest request,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException
     {
         String rootPath = ContextUtils.getContextPath( request );
 
@@ -139,7 +191,8 @@ public class AccountController
             throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + username ) );
         }
 
-        boolean recover = securityService.sendRestoreMessage( credentials, rootPath, RestoreOptions.RECOVER_PASSWORD_OPTION );
+        boolean recover = securityService
+            .sendRestoreMessage( credentials, rootPath, RestoreOptions.RECOVER_PASSWORD_OPTION );
 
         if ( !recover )
         {
@@ -157,7 +210,8 @@ public class AccountController
         @RequestParam String token,
         @RequestParam String password,
         HttpServletRequest request,
-        HttpServletResponse response ) throws WebMessageException
+        HttpServletResponse response )
+        throws WebMessageException
     {
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
@@ -184,6 +238,7 @@ public class AccountController
         CredentialsInfo credentialsInfo;
         User user = credentials.getUserInfo();
 
+<<<<<<< HEAD
         // if user is null then something is internally wrong and request should be terminated.
         if ( user == null )
         {
@@ -192,6 +247,19 @@ public class AccountController
         else
         {
             credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+=======
+        // if user is null then something is internally wrong and request should
+        // be terminated.
+        if ( user == null )
+        {
+            throw new WebMessageException(
+                WebMessageUtils.error( String.format( "No user found for username: %s", username ) ) );
+        }
+        else
+        {
+            credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "",
+                false );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
@@ -227,7 +295,8 @@ public class AccountController
         @RequestParam( value = "g-recaptcha-response", required = false ) String recapResponse,
         HttpServletRequest request,
         HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         UserCredentials credentials = null;
 
@@ -344,12 +413,14 @@ public class AccountController
             // Check result from API, return 500 if validation failed
             // ---------------------------------------------------------------------
 
-            RecaptchaResponse recaptchaResponse = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+            RecaptchaResponse recaptchaResponse = securityService
+                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
 
             if ( !recaptchaResponse.success() )
             {
                 log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                throw new WebMessageException( WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
+                throw new WebMessageException(
+                    WebMessageUtils.badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() ) );
             }
         }
 
@@ -432,7 +503,8 @@ public class AccountController
         @RequestParam String oldPassword,
         @RequestParam String password,
         HttpServletRequest request,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
         String username = (String) request.getSession().getAttribute( "username" );
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
@@ -449,7 +521,8 @@ public class AccountController
             return;
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password, credentials.getUserInfo().getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
+            credentials.getUserInfo().getEmail(), false );
 
         if ( userService.credentialsNonExpired( credentials ) )
         {
@@ -500,7 +573,8 @@ public class AccountController
     }
 
     @RequestMapping( value = "/username", method = RequestMethod.GET )
-    public void validateUserNameGet( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNameGet( @RequestParam String username, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validateUserName( username );
 
@@ -508,7 +582,8 @@ public class AccountController
     }
 
     @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
-    public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validateUserName( username );
 
@@ -516,7 +591,8 @@ public class AccountController
     }
 
     @RequestMapping( value = "/password", method = RequestMethod.GET )
-    public void validatePasswordGet( @RequestParam String password, HttpServletResponse response ) throws IOException
+    public void validatePasswordGet( @RequestParam String password, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validatePassword( password );
 
@@ -524,7 +600,8 @@ public class AccountController
     }
 
     @RequestMapping( value = "/validatePassword", method = RequestMethod.POST )
-    public void validatePasswordPost( @RequestParam String password, HttpServletResponse response ) throws IOException
+    public void validatePasswordPost( @RequestParam String password, HttpServletResponse response )
+        throws IOException
     {
         Map<String, String> result = validatePassword( password );
 
@@ -565,13 +642,14 @@ public class AccountController
         return result;
     }
 
-    private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities, HttpServletRequest request )
+    private void authenticate( String username, String rawPassword, Collection<GrantedAuthority> authorities,
+        HttpServletRequest request )
     {
-        UsernamePasswordAuthenticationToken token =
-            new UsernamePasswordAuthenticationToken( username, rawPassword, authorities );
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken( username, rawPassword,
+            authorities );
         token.setDetails( new TwoFactorWebAuthenticationDetails( request ) );
 
-        Authentication auth = authenticationManager.authenticate( token );
+        Authentication auth = twoFactorAuthenticationProvider.authenticate( token );
 
         SecurityContextHolder.getContext().setAuthentication( auth );
 

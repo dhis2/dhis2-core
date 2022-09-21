@@ -1,6 +1,9 @@
-package org.hisp.dhis.datastatistics;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,9 +29,11 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
  * DataStatistics object to be saved as snapshot.
@@ -40,24 +45,51 @@ public class DataStatistics
     extends BaseIdentifiableObject
 {
     private Double mapViews;
+
     private Double chartViews;
+
     private Double reportTableViews;
+<<<<<<< HEAD
     private Double visualizationViews;
+=======
+
+    private Double visualizationViews;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Double eventReportViews;
+
     private Double eventChartViews;
+
     private Double dashboardViews;
+
     private Double dataSetReportViews;
+
     private Double totalViews;
+
     private Double savedMaps;
+
     private Double savedCharts;
+
     private Double savedReportTables;
+<<<<<<< HEAD
     private Double savedVisualizations;
+=======
+
+    private Double savedVisualizations;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Double savedEventReports;
+
     private Double savedEventCharts;
+
     private Double savedDashboards;
+
     private Double savedIndicators;
+
     private Double savedDataValues;
+
     private Integer activeUsers;
+
     private Integer users;
 
     public DataStatistics()
@@ -313,7 +345,8 @@ public class DataStatistics
         this.users = users;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return super.toString() + "DataStatistics{" +
             "mapViews=" + mapViews +

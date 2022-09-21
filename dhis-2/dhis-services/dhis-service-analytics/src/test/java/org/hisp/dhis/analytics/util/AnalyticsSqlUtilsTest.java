@@ -1,7 +1,11 @@
 package org.hisp.dhis.analytics.util;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,10 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.analytics.util;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -45,6 +53,8 @@ public class AnalyticsSqlUtilsTest
         assertThat( AnalyticsSqlUtils.getClosingParentheses( "" ), is( "" ) );
         assertThat( AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ), is( ")" ) );
         assertThat( AnalyticsSqlUtils.getClosingParentheses( "((" ), is( "))" ) );
-        assertThat( AnalyticsSqlUtils.getClosingParentheses( "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ), is( ")" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses(
+            "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ),
+            is( ")" ) );
     }
 }

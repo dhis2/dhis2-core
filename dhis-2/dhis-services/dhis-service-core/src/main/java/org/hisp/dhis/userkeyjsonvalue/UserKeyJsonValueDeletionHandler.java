@@ -1,7 +1,9 @@
-package org.hisp.dhis.userkeyjsonvalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,14 @@ package org.hisp.dhis.userkeyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.userkeyjsonvalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler" )
 public class UserKeyJsonValueDeletionHandler
@@ -57,6 +60,6 @@ public class UserKeyJsonValueDeletionHandler
     @Override
     public void deleteUser( User user )
     {
-        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId());
+        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId() );
     }
 }

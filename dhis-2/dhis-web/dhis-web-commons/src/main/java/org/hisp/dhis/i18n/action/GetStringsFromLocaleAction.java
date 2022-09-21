@@ -1,7 +1,9 @@
-package org.hisp.dhis.i18n.action;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +29,19 @@ package org.hisp.dhis.i18n.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.action;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Map;
+
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.setting.TranslateSystemSettingManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Hashtable;
-import java.util.Locale;
-import java.util.Map;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +52,7 @@ public class GetStringsFromLocaleAction
     // -------------------------------------------------------------------------
     // Dependency
     // -------------------------------------------------------------------------
-    
+
     @Autowired
     private I18nManager manager;
 
@@ -64,7 +68,7 @@ public class GetStringsFromLocaleAction
     {
         this.loc = loc;
     }
-    
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -94,12 +98,12 @@ public class GetStringsFromLocaleAction
         if ( loc != null )
         {
             Locale locale = LocaleUtils.getLocale( loc );
-    
+
             i18nObject = manager.getI18n( this.getClass(), locale );
-        
+
             translations = translateSystemSettingManager.getTranslationSystemAppearanceSettings( loc );
         }
-        
+
         return SUCCESS;
     }
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.sync;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,14 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.metadata.version.MetadataVersion;
+package org.hisp.dhis.dxf2.metadata.sync;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.metadata.version.MetadataVersion;
 
 /**
  * Defines the structure of metadata sync params

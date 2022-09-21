@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 public enum HideEmptyItemStrategy
 {
@@ -35,7 +38,7 @@ public enum HideEmptyItemStrategy
     AFTER_LAST,
     BEFORE_FIRST_AFTER_LAST,
     ALL;
-    
+
     public boolean isHide()
     {
         return this == BEFORE_FIRST || this == AFTER_LAST || this == BEFORE_FIRST_AFTER_LAST || this == ALL;

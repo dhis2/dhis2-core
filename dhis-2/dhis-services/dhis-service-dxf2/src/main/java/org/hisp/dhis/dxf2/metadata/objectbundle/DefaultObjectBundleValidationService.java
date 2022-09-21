@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -43,8 +51,11 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -56,8 +67,16 @@ public class DefaultObjectBundleValidationService
     ObjectBundleValidationService
 {
     private final ValidationFactory validationFactory;
+<<<<<<< HEAD
+    private final SchemaService schemaService;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+=======
     private final SchemaService schemaService;
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public DefaultObjectBundleValidationService( ValidationFactory validationFactory, SchemaService schemaService )
     {
         this.schemaService = schemaService;

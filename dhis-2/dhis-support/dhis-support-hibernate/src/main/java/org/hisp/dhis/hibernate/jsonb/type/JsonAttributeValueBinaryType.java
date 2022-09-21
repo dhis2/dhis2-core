@@ -1,7 +1,9 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hibernate.HibernateException;
-import org.hisp.dhis.attribute.AttributeValue;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -41,6 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.AttributeValue;
+
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonAttributeValueBinaryType
     extends JsonBinaryType
@@ -54,7 +58,11 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
+<<<<<<< HEAD
     @SuppressWarnings("unchecked")
+=======
+    @SuppressWarnings( "unchecked" )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public String convertObjectToJson( Object object )
     {
         try
@@ -82,7 +90,8 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
-    public Object deepCopy( Object value ) throws HibernateException
+    public Object deepCopy( Object value )
+        throws HibernateException
     {
         String json = convertObjectToJson( value );
         return convertJsonToObject( json );

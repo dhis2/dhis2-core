@@ -1,0 +1,65 @@
+<script type="text/javascript">
+var currentDataElementId = '$!{dataElementId}';
+var currentOptionComboId = '$!{optionComboId}';
+var currentAttributeOptionComboId = '$!{attributeOptionComboId}';
+var titleName = '$titleName';
+var approvalValidationMap = {};
+
+#set($apprVList=$approvalValidationMap)
+#set($apprVEntry="")
+
+#foreach($apprVEntry in $apprVList.keySet())
+   approvalValidationMap["$apprVEntry"] = $apprVList.get($apprVEntry);
+#end
+
+
+$( document ).ready( function() {
+	tableSorter( 'listTable' );	
+} );
+</script>
+
+#set( $approvalValidationRuleSize = $approvalValidationRules.size() )
+<table>
+    <tr>  
+        <td >
+            <div id="approvalValidationRule">
+                    #if( $approvalValidationRuleSize > 0 )
+                        <table class="listTable" id="listTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 200px; padding: 5px 0;">$encoder.htmlEncode( $i18n.getString( "name" ) )</th>
+                                    <th style="width: 340px; padding: 5px 0;">$encoder.htmlEncode( $i18n.getString( "description" ) )</th>
+                                    <th style="width: 80px; padding: 5px 0;">$encoder.htmlEncode( $i18n.getString( "verified" ) )</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            #foreach( $approvalValidationRule in $approvalValidationRules )
+                            	#set( $approvalValidationRuleId = $approvalValidationRule.id )
+                            	#set( $checkedApprovalValidation = $approvalValidationMap.get( $approvalValidationRule.id ) )
+                                #set( $checked = false )
+                                #set( $checked = $checkedApprovalValidation )
+                                <tr>
+                                    <td>
+                                        $approvalValidationRule.name
+                                    </td>
+                                    <td>
+                                        #if( $approvalValidationRule.description )
+                                            $approvalValidationRule.description
+                                        #else
+                                            $encoder.htmlEncode( $i18n.getString( "no_value" ) )
+                                        #end
+                                    </td>
+                                    <td>
+                                        <input name="$approvalValidationRuleId" class="approvalvalidationruleselect" id="$approvalValidationRuleId" type="checkbox" #if($checked) checked="checked"#end>
+                                    </td>
+                                </tr>
+                            #end
+                            </tbody>
+                        </table>
+                    #else
+                        <div class="tipText">$encoder.htmlEncode( $i18n.getString( "there_is_no_approval_validation_rule" ) )</div>
+                    #end
+            </div>
+        </td>
+    </tr>
+</table>

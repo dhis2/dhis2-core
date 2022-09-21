@@ -1,7 +1,9 @@
-package org.hisp.dhis.schema;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,12 @@ package org.hisp.dhis.schema;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Objects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -40,9 +42,11 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,12 +65,14 @@ public class Property implements Ordered, Klass
     private PropertyType propertyType;
 
     /**
-     * If this property is a collection, this is the class of the items inside the collection.
+     * If this property is a collection, this is the class of the items inside
+     * the collection.
      */
     private Class<?> itemKlass;
 
     /**
-     * If this property is a collection, this is the normalized type of the items inside the collection.
+     * If this property is a collection, this is the normalized type of the
+     * items inside the collection.
      */
     private PropertyType itemPropertyType;
 
@@ -81,19 +87,20 @@ public class Property implements Ordered, Klass
     private Method setterMethod;
 
     /**
-     * Name for this property, if this class is a collection, it is the name of the items -inside- the collection
-     * and not the collection wrapper itself.
+     * Name for this property, if this class is a collection, it is the name of
+     * the items -inside- the collection and not the collection wrapper itself.
      */
     private String name;
 
     /**
-     * Name for actual field, used to persistence operations and getting setter/getter.
+     * Name for actual field, used to persistence operations and getting
+     * setter/getter.
      */
     private String fieldName;
 
     /**
-     * Is this property persisted somewhere. This property will be used to create criteria queries
-     * on demand (default: false)
+     * Is this property persisted somewhere. This property will be used to
+     * create criteria queries on demand (default: false)
      */
     private boolean persisted;
 
@@ -103,7 +110,8 @@ public class Property implements Ordered, Klass
     private String collectionName;
 
     /**
-     * If this Property is a collection, should it be wrapped with collectionName?
+     * If this Property is a collection, should it be wrapped with
+     * collectionName?
      */
     private Boolean collectionWrapping;
 
@@ -125,29 +133,31 @@ public class Property implements Ordered, Klass
     private boolean attribute;
 
     /**
-     * This property is true if the type pointed to does not export any properties itself, it is then
-     * assumed to be a primitive type. If collection is true, this this check is done on the generic type
-     * of the collection, e.g. List<String> would set simple to be true, but List<DataElement> would set it
-     * to false.
+     * This property is true if the type pointed to does not export any
+     * properties itself, it is then assumed to be a primitive type. If
+     * collection is true, this this check is done on the generic type of the
+     * collection, e.g. List<String> would set simple to be true, but
+     * List<DataElement> would set it to false.
      */
     private boolean simple;
 
     /**
-     * This property is true if the type of this property is a sub-class of Collection.
+     * This property is true if the type of this property is a sub-class of
+     * Collection.
      *
      * @see java.util.Collection
      */
     private boolean collection;
 
     /**
-     * This property is true if collection=true and klass points to a implementation with
-     * a stable order (i.e. List).
+     * This property is true if collection=true and klass points to a
+     * implementation with a stable order (i.e. List).
      */
     private boolean ordered;
 
     /**
-     * If this property is a complex object or a collection, is this property considered
-     * the owner of that relationship (important for imports etc).
+     * If this property is a complex object or a collection, is this property
+     * considered the owner of that relationship (important for imports etc).
      */
     private boolean owner;
 
@@ -246,7 +256,8 @@ public class Property implements Ordered, Klass
     private List<String> constants;
 
     /**
-     * Used by LinkService to link to the Schema describing this type (if reference).
+     * Used by LinkService to link to the Schema describing this type (if
+     * reference).
      */
     private String href;
 
@@ -259,6 +270,12 @@ public class Property implements Ordered, Klass
      * Used by LinkService to link to the API endpoint containing this type.
      */
     private String apiEndpoint;
+
+    /**
+     * PropertyTransformer to apply to this property before and field filtering
+     * is applied.
+     */
+    private Class<? extends PropertyTransformer> propertyTransformer;
 
     /**
      * Default value of the Property
@@ -540,7 +557,7 @@ public class Property implements Ordered, Klass
         return analyticalObject;
     }
 
-    public void setAnalyticalObject(boolean analyticalObject)
+    public void setAnalyticalObject( boolean analyticalObject )
     {
         this.analyticalObject = analyticalObject;
     }
@@ -762,6 +779,23 @@ public class Property implements Ordered, Klass
         this.apiEndpoint = apiEndpoint;
     }
 
+    @JsonProperty( "propertyTransformer" )
+    @JacksonXmlProperty( localName = "propertyTransformer", namespace = DxfNamespaces.DXF_2_0 )
+    public boolean hasPropertyTransformer()
+    {
+        return propertyTransformer != null;
+    }
+
+    public Class<? extends PropertyTransformer> getPropertyTransformer()
+    {
+        return propertyTransformer;
+    }
+
+    public void setPropertyTransformer( Class<? extends PropertyTransformer> propertyTransformer )
+    {
+        this.propertyTransformer = propertyTransformer;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Object getDefaultValue()
@@ -771,7 +805,7 @@ public class Property implements Ordered, Klass
 
     public void setDefaultValue( Object defaultValue )
     {
-        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ))
+        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ) )
         {
             this.defaultValue = defaultValue;
         }
@@ -800,9 +834,12 @@ public class Property implements Ordered, Klass
     @Override
     public int hashCode()
     {
-        return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name, fieldName, persisted, collectionName,
-            collectionWrapping, description, namespace, attribute, simple, collection, owner, identifiableObject, nameableObject, readable, writable,
-            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants, defaultValue );
+        return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name,
+            fieldName, persisted, collectionName,
+            collectionWrapping, description, namespace, attribute, simple, collection, owner, identifiableObject,
+            nameableObject, readable, writable,
+            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole,
+            constants, defaultValue );
     }
 
     @Override

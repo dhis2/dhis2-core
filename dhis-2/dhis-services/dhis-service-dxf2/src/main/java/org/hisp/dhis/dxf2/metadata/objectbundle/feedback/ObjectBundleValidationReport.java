@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +29,19 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.TypeReport;
+package org.hisp.dhis.dxf2.metadata.objectbundle.feedback;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,9 +54,9 @@ public class ObjectBundleValidationReport
     {
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public List<ErrorReport> getErrorReportsByCode( Class<?> klass, ErrorCode errorCode )
     {
@@ -80,7 +84,8 @@ public class ObjectBundleValidationReport
 
     public void addTypeReport( TypeReport report )
     {
-        if ( report == null ) return;
+        if ( report == null )
+            return;
 
         if ( !typeReportMap.containsKey( report.getKlass() ) )
         {
@@ -89,12 +94,12 @@ public class ObjectBundleValidationReport
         }
 
         TypeReport typeReport = typeReportMap.get( report.getKlass() );
-        typeReport.merge( typeReport );
+        typeReport.merge( report );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Getters and Setters
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public boolean isEmpty()
     {

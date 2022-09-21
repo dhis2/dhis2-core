@@ -1,7 +1,9 @@
-package org.hisp.dhis.system;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,24 @@ package org.hisp.dhis.system;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system;
 
+<<<<<<< HEAD
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
+=======
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -52,6 +69,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+<<<<<<< HEAD
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +78,9 @@ import java.util.List;
 import java.util.Properties;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+=======
+import com.google.common.collect.ImmutableList;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Lars Helge Overland
@@ -140,11 +161,24 @@ public class DefaultSystemService
             return null;
         }
 
+<<<<<<< HEAD
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         Date lastAnalyticsTablePartitionSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
         String lastAnalyticsTablePartitionRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
+=======
+        Date lastAnalyticsTableSuccess = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        String lastAnalyticsTableRuntime = (String) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastAnalyticsTablePartitionSuccess = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        String lastAnalyticsTablePartitionRuntime = (String) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
+        Date lastSystemMonitoringSuccess = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
@@ -159,7 +193,12 @@ public class DefaultSystemService
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
 
         info.setLastAnalyticsTablePartitionSuccess( lastAnalyticsTablePartitionSuccess );
+<<<<<<< HEAD
         info.setIntervalSinceLastAnalyticsTablePartitionSuccess( DateUtils.getPrettyInterval( lastAnalyticsTablePartitionSuccess, now ) );
+=======
+        info.setIntervalSinceLastAnalyticsTablePartitionSuccess(
+            DateUtils.getPrettyInterval( lastAnalyticsTablePartitionSuccess, now ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         info.setLastAnalyticsTablePartitionRuntime( lastAnalyticsTablePartitionRuntime );
 
         info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
@@ -276,18 +315,24 @@ public class DefaultSystemService
 
     private void setSystemMetadataVersionInfo( SystemInfo info )
     {
-        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
-        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
-        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
-        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
+        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager
+            .getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String systemMetadataVersion = (String) systemSettingManager
+            .getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync,
+            metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
         info.setSystemMetadataVersion( systemMetadataVersion );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
-    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
+    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime,
+        Date lastFailedMetadataSyncTime )
     {
         if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
         {
@@ -298,6 +343,7 @@ public class DefaultSystemService
             return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
         }
 
-        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
+        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime
+            : lastSuccessfulMetadataSyncTime;
     }
 }

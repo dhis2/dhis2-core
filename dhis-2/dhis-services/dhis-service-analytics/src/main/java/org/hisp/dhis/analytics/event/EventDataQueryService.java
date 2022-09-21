@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.event;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
 
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
@@ -40,13 +43,23 @@ public interface EventDataQueryService
     /**
      * Creates an {@link EventQueryParams} based on the given request.
      *
+<<<<<<< HEAD
      * @param request the {@link EventDataQueryRequest} containing the URL parameters.
+=======
+     * @param request the {@link EventDataQueryRequest} containing the URL
+     *        parameters.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * @return an {@link EventQueryParams}.
      */
     EventQueryParams getFromRequest( EventDataQueryRequest request );
 
     /**
+<<<<<<< HEAD
      * Creates an {@link EventQueryParams} based on the given event analytical object.
+=======
+     * Creates an {@link EventQueryParams} based on the given event analytical
+     * object.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param request the {@link EventAnalyticalObject}.
      * @return an {@link EventQueryParams}.
@@ -54,8 +67,9 @@ public interface EventDataQueryService
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 
     /**
-     * Returns the coordinate column field to use for the given coordinate field. Coordinate field
-     * must match EVENT, a data element identifier or an attribute identifier.
+     * Returns the coordinate column field to use for the given coordinate
+     * field. Coordinate field must match EVENT, a data element identifier or an
+     * attribute identifier.
      *
      * @param coordinate the coordinate field.
      * @return the coordinate column field.

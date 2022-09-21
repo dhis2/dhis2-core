@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,9 +46,6 @@ import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class ProgramStageDataElementObjectBundleHook
     extends AbstractObjectBundleHook
@@ -54,7 +57,8 @@ public class ProgramStageDataElementObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>();
 
         /*
-         * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+         * Validate that the RenderType (if any) conforms to the constraints of
+         * ValueType or OptionSet.
          */
         if ( object != null && object.getClass().isAssignableFrom( ProgramStageDataElement.class ) )
         {

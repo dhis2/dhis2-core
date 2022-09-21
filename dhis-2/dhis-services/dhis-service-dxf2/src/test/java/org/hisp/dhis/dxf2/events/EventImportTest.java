@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +29,47 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
+<<<<<<< HEAD
 import static org.junit.Assert.*;
 import static junit.framework.TestCase.assertTrue;
+=======
+import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+<<<<<<< HEAD
+=======
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+<<<<<<< HEAD
+=======
+import java.util.stream.Collectors;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
-import org.hisp.dhis.DhisSpringTest;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,26 +83,50 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+<<<<<<< HEAD
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
+=======
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.FeatureType;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+<<<<<<< HEAD
 import org.hisp.dhis.program.*;
+=======
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+<<<<<<< HEAD
+=======
+import com.google.common.collect.Lists;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventImportTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private EventService eventService;
@@ -102,6 +155,9 @@ public class EventImportTest
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private SessionFactory sessionFactory;
+
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
     private OrganisationUnit organisationUnitA;
@@ -128,6 +184,17 @@ public class EventImportTest
 
     private Event event;
 
+<<<<<<< HEAD
+=======
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Override
     protected void setUpTest()
         throws Exception
@@ -150,16 +217,32 @@ public class EventImportTest
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
+        CategoryOption categoryOption1 = new CategoryOption( "male" );
+        categoryOption1.setAutoFields();
+        CategoryOption categoryOption2 = new CategoryOption( "female" );
+        categoryOption2.setAutoFields();
+        manager.save( Lists.newArrayList( categoryOption1, categoryOption2 ) );
+
+        Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
+        cat1.setCategoryOptions( Lists.newArrayList( categoryOption1, categoryOption2 ) );
+        manager.save( Lists.newArrayList( cat1 ) );
+
+        CategoryCombo categoryCombo = manager.getByName( CategoryCombo.class, "default" );
+        categoryCombo.setCategories( Lists.newArrayList( cat1 ) );
+
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
+        dataElementA.setCategoryCombo( categoryCombo );
         manager.save( dataElementA );
 
         dataElementA2 = createDataElement( 'a' );
         dataElementA2.setValueType( ValueType.INTEGER );
+        dataElementA2.setCategoryCombo( categoryCombo );
         manager.save( dataElementA2 );
 
         dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.INTEGER );
+        dataElementB.setCategoryCombo( categoryCombo );
         manager.save( dataElementB );
 
         programStageA = createProgramStage( 'A', 0 );
@@ -177,10 +260,12 @@ public class EventImportTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
+        programA.setCategoryCombo( categoryCombo );
         manager.save( programA );
 
         programB = createProgram( 'B', new HashSet<>(), organisationUnitB );
         programB.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        programB.setCategoryCombo( categoryCombo );
         manager.save( programB );
 
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
@@ -221,10 +306,19 @@ public class EventImportTest
         pi.setProgram( programB );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
+<<<<<<< HEAD
+=======
+        pi.setName( "EventImportTestPI" );
+        pi.setUid( CodeGenerator.generateUid() );
+        manager.save( pi );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         event = createEvent( "eventUid001" );
 
         createUserAndInjectSecurityContext( true );
+
+        // Flush all data to disk
+        manager.flush();
     }
 
     @Test
@@ -237,7 +331,12 @@ public class EventImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    /**
+     * TODO: LUCIANO: this test has been ignored because the Importer should not
+     * import an event linked to a Program with 2 or more Program Instances
+     */
     @Test
+    @Ignore
     public void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
         throws IOException
     {
@@ -284,8 +383,15 @@ public class EventImportTest
 
     @Test
     public void testAddEventOnProgramWithRegistration()
-        throws IOException
+        throws IOException,
+        ParseException
     {
+<<<<<<< HEAD
+=======
+        String lastupdateDateBefore = trackedEntityInstanceService
+            .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated();
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
@@ -295,6 +401,14 @@ public class EventImportTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        cleanSession();
+
+        assertTrue( simpleDateFormat.parse(
+            trackedEntityInstanceService
+                .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated() )
+            .getTime() > simpleDateFormat
+                .parse( lastupdateDateBefore ).getTime() );
     }
 
     @Test
@@ -321,7 +435,10 @@ public class EventImportTest
         assertThat( importSummaries.getImportSummaries().get( 0 ).getDescription(),
             CoreMatchers.containsString(
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: null" ) );
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -353,6 +470,7 @@ public class EventImportTest
     }
 
     @Test
+<<<<<<< HEAD
     public void testEventDeletion()
         throws IOException
     {
@@ -454,20 +572,312 @@ public class EventImportTest
     @SuppressWarnings( "unchecked" )
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
+=======
+    public void testAddOneValidAndOneInvalidEvent()
+        throws IOException
+    {
+        Event validEvent = createEvent( "eventUid004" );
+        Event invalidEvent = createEvent( "eventUid005" );
+        invalidEvent.setOrgUnit( "INVALID" );
+        InputStream is = createEventsJsonInputStream( Lists.newArrayList( validEvent, invalidEvent ), dataElementA,
+            "10" );
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
+        assertEquals( 1, importSummaries.getImported() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 0, importSummaries.getDeleted() );
+        assertEquals( 0, importSummaries.getUpdated() );
+    }
+
+    @Test
+    public void testAddValidEnrollmentWithOneValidAndOneInvalidEvent()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event validEvent = createEvent( "eventUid004" );
+        validEvent.setOrgUnit( organisationUnitA.getUid() );
+        Event invalidEvent = createEvent( "eventUid005" );
+        invalidEvent.setOrgUnit( "INVALID" );
+        enrollment.setEvents( Lists.newArrayList( validEvent, invalidEvent ) );
+
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        assertEquals( 1, importSummary.getImportCount().getImported() );
+        assertEquals( 0, importSummary.getImportCount().getIgnored() );
+        assertEquals( 0, importSummary.getImportCount().getDeleted() );
+        assertEquals( 0, importSummary.getImportCount().getUpdated() );
+
+        ImportSummaries eventImportSummaries = importSummary.getEvents();
+        assertEquals( ImportStatus.ERROR, eventImportSummaries.getStatus() );
+        assertEquals( 1, eventImportSummaries.getImported() );
+        assertEquals( 1, eventImportSummaries.getIgnored() );
+        assertEquals( 0, eventImportSummaries.getDeleted() );
+        assertEquals( 0, eventImportSummaries.getUpdated() );
+    }
+
+    @Test
+    public void testEventDeletion()
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        assertNotNull( psi );
+
+        importSummary = eventService.deleteEvent( event.getUid() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        assertNull( psi );
+
+        boolean existsDeleted = programStageInstanceService
+            .programStageInstanceExistsIncludingDeleted( event.getUid() );
+        assertTrue( existsDeleted );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedEvent()
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        eventService.addEvent( event, importOptions, false );
+        eventService.deleteEvent( event.getUid() );
+
+        manager.flush();
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        event.setDeleted( true );
+        ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getIgnored() );
+        assertTrue( importSummary.getDescription().contains( "already exists or was deleted earlier" ) );
+    }
+
+    @Test
+    public void testAddAlreadyDeletedEventInBulk()
+    {
+        programInstanceService.addProgramInstance( pi );
+
+        ImportOptions importOptions = new ImportOptions();
+
+        eventService.addEvent( event, importOptions, false );
+        eventService.deleteEvent( event.getUid() );
+
+        manager.flush();
+
+        Event event2 = createEvent( "eventUid002" );
+        Event event3 = createEvent( "eventUid003" );
+
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        event.setDeleted( true );
+
+        List<Event> events = new ArrayList<>();
+        events.add( event );
+        events.add( event2 );
+        events.add( event3 );
+
+        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, true );
+
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
+        assertEquals( 1, importSummaries.getIgnored() );
+        assertEquals( 2, importSummaries.getImported() );
+        assertTrue( importSummaries.getImportSummaries().stream()
+            .anyMatch( is -> is.getDescription().contains( "already exists or was deleted earlier" ) ) );
+
+        manager.flush();
+        List<String> uids = new ArrayList<>();
+        uids.add( "eventUid001" );
+        uids.add( "eventUid002" );
+        uids.add( "eventUid003" );
+        List<String> fetchedUids = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted( uids );
+
+        assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
+    }
+
+    @Test
+    public void testGeometry()
+        throws IOException
+    {
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+    }
+
+    //
+    // UPDATE EVENT TESTS
+    //
+
+    @Test
+    public void testVerifyEventCanBeUpdatedUsingProgramOnly2()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT - Program is not specified
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setStatus( EventStatus.COMPLETED );
+
+        final ImportSummary summary = eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(),
+            false );
+        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
+        assertThat( summary.getDescription(), is( "Event.program does not point to a valid program: null" ) );
+        assertThat( summary.getReference(), is( uid ) );
+    }
+
+    @Test
+    public void testVerifyEventCanBeUpdatedUsingProgramOnly()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT (no actual changes, except for empty data value)
+        // USE ONLY PROGRAM
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setProgram( programB.getUid() );
+        event.setStatus( EventStatus.COMPLETED );
+
+        assertEquals( ImportStatus.SUCCESS,
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+
+        cleanSession();
+
+        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getCreated(), is( psi2.getCreated() ) );
+        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
+        assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
+        assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
+        assertThat( psi.getStatus().getValue(), is( psi2.getStatus().getValue() ) );
+        assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
+        assertThat( psi.getCompletedDate(), is( psi2.getCompletedDate() ) );
+        assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
+        assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
+        assertThat( psi.getEventDataValues().size(), is( 1 ) );
+        assertThat( psi2.getEventDataValues().size(), is( 0 ) );
+    }
+
+    @Test
+    public void testVerifyEventUncompleteSetsCompletedDateToNull()
+        throws IOException
+    {
+        // CREATE A NEW EVENT
+        InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
+            organisationUnitB.getUid(), null, dataElementB, "10" );
+
+        ImportSummaries importSummaries = eventService.addEventsJson( is, null );
+        String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        // FETCH NEWLY CREATED EVENT
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+
+        // UPDATE EVENT (no actual changes, except for empty data value and
+        // status
+        // change)
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setProgram( programB.getUid() );
+        event.setStatus( EventStatus.ACTIVE );
+
+        assertEquals( ImportStatus.SUCCESS,
+            eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
+
+        cleanSession();
+
+        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+
+        assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
+        assertThat( psi.getCreated(), is( psi2.getCreated() ) );
+        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
+        assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
+        assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
+        assertThat( psi2.getStatus(), is( EventStatus.ACTIVE ) );
+        assertThat( psi.getExecutionDate(), is( psi2.getExecutionDate() ) );
+        assertThat( psi2.getCompletedDate(), is( nullValue() ) );
+        assertThat( psi.getCompletedBy(), is( psi2.getCompletedBy() ) );
+        assertThat( psi.isDeleted(), is( psi2.isDeleted() ) );
+        assertThat( psi.getEventDataValues().size(), is( 1 ) );
+        assertThat( psi2.getEventDataValues().size(), is( 0 ) );
+    }
+
+    private void cleanSession()
+    {
+        sessionFactory.getCurrentSession().flush();
+        sessionFactory.getCurrentSession().clear();
+    }
+
+    private InputStream createEventsJsonInputStream( List<Event> events, DataElement dataElement, String value )
+    {
+
+        List<JSONObject> objects = events.stream().map( e -> createEventJSONObject( e, dataElement, value ) )
+            .collect( Collectors.toList() );
+        JSONObject jsonEvents = new JSONObject();
+        jsonEvents.put( "events", objects );
+        return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
+        DataElement dataElement, String value )
+    {
+        Event event = createEvent( null );
+        event.setProgram( program );
+        event.setProgramStage( programStage );
+        event.setOrgUnit( orgUnit );
+        event.setTrackedEntityInstance( person );
+
+        return new ByteArrayInputStream( createEventJSONObject( event, dataElement, value ).toString().getBytes() );
+    }
+
+    private JSONObject createEventJSONObject( Event event, DataElement dataElement, String value )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         JSONObject eventJsonPayload = new JSONObject();
-        eventJsonPayload.put( "program", program );
-        eventJsonPayload.put( "programStage", programStage );
-        eventJsonPayload.put( "orgUnit", orgUnit );
+        eventJsonPayload.put( "program", event.getProgram() );
+        eventJsonPayload.put( "programStage", event.getProgramStage() );
+        eventJsonPayload.put( "orgUnit", event.getOrgUnit() );
         eventJsonPayload.put( "status", "COMPLETED" );
         eventJsonPayload.put( "eventDate", "2018-08-20" );
         eventJsonPayload.put( "completedDate", "2018-08-27" );
-        eventJsonPayload.put( "trackedEntityInstance", person );
+        eventJsonPayload.put( "trackedEntityInstance", event.getTrackedEntityInstance() );
 
         JSONObject dataValue = new JSONObject();
         dataValue.put( "dataElement", dataElement.getUid() );
         dataValue.put( "value", value );
 
+<<<<<<< HEAD
         JSONObject geometry = new JSONObject();
         geometry.put( "type", "Point" );
         JSONArray coordinates = new JSONArray();
@@ -475,14 +885,21 @@ public class EventImportTest
         coordinates.add( "-21.9954" );
         geometry.put( "coordinates", coordinates );
         eventJsonPayload.put( "geometry", geometry );
+=======
+        // JSONObject geometry = new JSONObject();
+        // geometry.put( "type", "Point" );
+        // JSONArray coordinates = new JSONArray();
+        // coordinates.add( "1.33343" );
+        // coordinates.add( "-21.9954" );
+        // geometry.put( "coordinates", coordinates );
+        // eventJsonPayload.put( "geometry", geometry );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         JSONArray dataValues = new JSONArray();
         dataValues.add( dataValue );
         eventJsonPayload.put( "dataValues", dataValues );
 
-        InputStream is = new ByteArrayInputStream( eventJsonPayload.toString().getBytes() );
-
-        return is;
+        return eventJsonPayload;
     }
 
     private Enrollment createEnrollment( String program, String person )

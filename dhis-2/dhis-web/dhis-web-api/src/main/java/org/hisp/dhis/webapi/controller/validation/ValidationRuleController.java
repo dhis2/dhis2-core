@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller.validation;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,15 @@ package org.hisp.dhis.webapi.controller.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.validation;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -52,9 +61,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
@@ -79,7 +86,8 @@ public class ValidationRuleController
     private I18nManager i18nManager;
 
     @Override
-    protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         if ( options.contains( "dataSet" ) )
@@ -103,7 +111,12 @@ public class ValidationRuleController
     {
         I18n i18n = i18nManager.getI18n();
 
+<<<<<<< HEAD
         ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, VALIDATION_RULE_EXPRESSION );
+=======
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression,
+            VALIDATION_RULE_EXPRESSION );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -111,7 +124,12 @@ public class ValidationRuleController
 
         if ( result.isValid() )
         {
+<<<<<<< HEAD
             message.setDescription( expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) );
+=======
+            message
+                .setDescription( expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         webMessageService.sendJson( message, response );

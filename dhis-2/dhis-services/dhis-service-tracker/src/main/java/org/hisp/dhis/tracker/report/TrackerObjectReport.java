@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.report;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,26 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerType;
+=======
+package org.hisp.dhis.tracker.report;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,9 +97,13 @@ public class TrackerObjectReport
         return errorReports;
     }
 
+<<<<<<< HEAD
     //-----------------------------------------------------------------------------------
+=======
+    // -----------------------------------------------------------------------------------
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public boolean isEmpty()
     {

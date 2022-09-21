@@ -1,5 +1,6 @@
 package org.hisp.dhis.helpers;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +28,9 @@ package org.hisp.dhis.helpers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
@@ -54,16 +58,31 @@ public class QueryParamsBuilder
      */
     public QueryParamsBuilder add( String param )
     {
+<<<<<<< HEAD
         String[] splited = param.split( "=" );
         MutablePair pair = getByKey( splited[0] );
+=======
+        String[] split = param.split( "=" );
+        MutablePair pair = getByKey( split[0] );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
         if ( pair != null )
         {
             pair.setRight( splited[1] );
+=======
+        if ( pair != null && !pair.getKey().equals( "filter") )
+        {
+            pair.setRight( split[1] );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             return this;
         }
 
+<<<<<<< HEAD
         queryParams.add( MutablePair.of( splited[0], splited[1] ) );
+=======
+        queryParams.add( MutablePair.of( split[0], split[1] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return this;
     }

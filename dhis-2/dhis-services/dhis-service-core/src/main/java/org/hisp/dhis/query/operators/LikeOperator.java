@@ -1,7 +1,9 @@
-package org.hisp.dhis.query.operators;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.MatchMode;
@@ -51,7 +54,8 @@ public class LikeOperator extends Operator
         this.matchMode = getMatchMode( matchMode );
     }
 
-    public LikeOperator( String name, Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public LikeOperator( String name, Object arg, boolean caseSensitive,
+        org.hisp.dhis.query.operators.MatchMode matchMode )
     {
         super( name, Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
@@ -63,11 +67,13 @@ public class LikeOperator extends Operator
     {
         if ( caseSensitive )
         {
-            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
+            return Restrictions.like( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ),
+                matchMode );
         }
         else
         {
-            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ), matchMode );
+            return Restrictions.ilike( queryPath.getPath(), String.valueOf( args.get( 0 ) ).replace( "%", "\\%" ),
+                matchMode );
         }
     }
 
@@ -88,14 +94,14 @@ public class LikeOperator extends Operator
 
             switch ( matchMode )
             {
-                case EXACT:
-                    return s2.equals( s1 );
-                case START:
-                    return s2.startsWith( s1 );
-                case END:
-                    return s2.endsWith( s1 );
-                case ANYWHERE:
-                    return s2.contains( s1 );
+            case EXACT:
+                return s2.equals( s1 );
+            case START:
+                return s2.startsWith( s1 );
+            case END:
+                return s2.endsWith( s1 );
+            case ANYWHERE:
+                return s2.contains( s1 );
             }
         }
 

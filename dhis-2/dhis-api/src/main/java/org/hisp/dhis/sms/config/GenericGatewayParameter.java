@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,19 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
+import java.util.Objects;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+=======
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
+import com.fasterxml.jackson.annotation.JsonView;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -69,11 +79,14 @@ public class GenericGatewayParameter
 
     public String getValue()
     {
+<<<<<<< HEAD
         return confidential ? "" : value;
     }
 
     public String getDisplayValue()
     {
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         return value;
     }
 
@@ -110,5 +123,32 @@ public class GenericGatewayParameter
     public void setEncode( boolean encode )
     {
         this.encode = encode;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        GenericGatewayParameter parameter = (GenericGatewayParameter) o;
+        return header == parameter.header &&
+            encode == parameter.encode &&
+            confidential == parameter.confidential &&
+            Objects.equals( key, parameter.key ) &&
+            Objects.equals( value, parameter.value );
+    }
+
+    @Override
+    public int hashCode()
+    {
+
+        return Objects.hash( key, value, header, encode, confidential );
     }
 }

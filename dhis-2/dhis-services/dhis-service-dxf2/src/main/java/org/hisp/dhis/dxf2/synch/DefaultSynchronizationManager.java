@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,21 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+=======
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -56,11 +70,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+=======
+import com.fasterxml.jackson.databind.ObjectMapper;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Lars Helge Overland
@@ -73,12 +91,52 @@ public class DefaultSynchronizationManager
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
     private final DataValueSetService dataValueSetService;
+<<<<<<< HEAD
     private final DataValueService dataValueService;
     private final MetadataImportService importService;
     private final SchemaService schemaService;
     private final CurrentUserService currentUserService;
     private final SystemSettingManager systemSettingManager;
     private final RestTemplate restTemplate;
+    private final ObjectMapper jsonMapper;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+    public DefaultSynchronizationManager(
+        DataValueSetService dataValueSetService,
+        DataValueService dataValueService,
+        MetadataImportService importService,
+        SchemaService schemaService,
+        CurrentUserService currentUserService,
+        SystemSettingManager systemSettingManager,
+        RestTemplate restTemplate,
+        ObjectMapper jsonMapper )
+    {
+        checkNotNull( dataValueSetService );
+        checkNotNull( dataValueService );
+        checkNotNull( importService );
+        checkNotNull( schemaService );
+        checkNotNull( currentUserService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+        checkNotNull( jsonMapper );
+=======
+    private final DataValueService dataValueService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+=======
+    private final MetadataImportService importService;
+
+    private final SchemaService schemaService;
+
+    private final CurrentUserService currentUserService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    private final RestTemplate restTemplate;
+
     private final ObjectMapper jsonMapper;
 
     public DefaultSynchronizationManager(
@@ -100,6 +158,7 @@ public class DefaultSynchronizationManager
         checkNotNull( restTemplate );
         checkNotNull( jsonMapper );
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         this.dataValueSetService = dataValueSetService;
         this.dataValueService = dataValueService;
         this.importService = importService;
@@ -190,6 +249,7 @@ public class DefaultSynchronizationManager
 
         final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
 
+<<<<<<< HEAD
         Optional<AbstractWebMessageResponse> responseSummary =
             SyncUtils.runSyncRequest(
                 restTemplate,
@@ -197,6 +257,14 @@ public class DefaultSynchronizationManager
                 SyncEndpoint.DATA_VALUE_SETS.getKlass(),
                 instance.getUrl(),
                 maxSyncAttempts );
+=======
+        Optional<AbstractWebMessageResponse> responseSummary = SyncUtils.runSyncRequest(
+            restTemplate,
+            requestCallback,
+            SyncEndpoint.DATA_VALUE_SETS.getKlass(),
+            instance.getUrl(),
+            maxSyncAttempts );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         ImportSummary summary = null;
         if ( responseSummary.isPresent() )

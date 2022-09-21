@@ -1,7 +1,9 @@
-package org.hisp.dhis.scheduling;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,13 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
@@ -42,10 +46,14 @@ import org.springframework.util.concurrent.ListenableFuture;
  * <p>
  * <ul>
  * <li>Create a job configuration {@link JobConfiguration}</li>
- * <li>This job configuration needs a job specific parameters object {@link JobParameters}, ie {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
+ * <li>This job configuration needs a job specific parameters object
+ * {@link JobParameters}, ie
+ * {@link org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters}.</li>
  * <li>Call scheduleJob with the job configuration.</li>
- * <li>The schedulingManager calls the spring scheduler with a runnable object {@link JobInstance}.</li>
- * <li>When the cron expression occurs the job will try to execute from the runnable object, job instance.</li>
+ * <li>The schedulingManager calls the spring scheduler with a runnable object
+ * {@link JobInstance}.</li>
+ * <li>When the cron expression occurs the job will try to execute from the
+ * runnable object, job instance.</li>
  * </ul>
  *
  * @author Henning Håkonsen
@@ -70,9 +78,16 @@ public interface SchedulingManager
     /**
      * Set up default behavior for a finished job.
      * <p>
+<<<<<<< HEAD
      * A special case is if a job is disabled when running, but the job does not stop. The job will run normally one last
      * time and try to set finished status. Since the job is disabled we manually set these parameters in this method so
      * that the job is not automatically rescheduled.
+=======
+     * A special case is if a job is disabled when running, but the job does not
+     * stop. The job will run normally one last time and try to set finished
+     * status. Since the job is disabled we manually set these parameters in
+     * this method so that the job is not automatically rescheduled.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * <p>
      * Also we don't want to update a job configuration if the job is deleted.
      *
@@ -81,6 +96,7 @@ public interface SchedulingManager
     void jobConfigurationFinished( JobConfiguration jobConfiguration );
 
     /**
+<<<<<<< HEAD
      * Schedules a job with the given job configuration. The job will be scheduled
      * based on the {@link JobConfiguration#cronExpression} property.
      *
@@ -92,6 +108,20 @@ public interface SchedulingManager
      * Schedule a job with the given start time.
      *
      * @param jobConfiguration The jobConfiguration with job details to be scheduled
+=======
+     * Schedules a job with the given job configuration. The job will be
+     * scheduled based on the {@link JobConfiguration#cronExpression} property.
+     *
+     * @param jobConfiguration the job to schedule.
+     */
+    void scheduleJob( JobConfiguration jobConfiguration );
+
+    /**
+     * Schedule a job with the given start time.
+     *
+     * @param jobConfiguration The jobConfiguration with job details to be
+     *        scheduled
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * @param startTime The time at which the job should start
      */
     void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime );
@@ -133,7 +163,8 @@ public interface SchedulingManager
     <T> ListenableFuture<T> executeJob( Callable<T> callable );
 
     /**
-     * Returns a list of all scheduled jobs sorted based on cron expression and the current time.
+     * Returns a list of all scheduled jobs sorted based on cron expression and
+     * the current time.
      *
      * @return list of jobs
      */

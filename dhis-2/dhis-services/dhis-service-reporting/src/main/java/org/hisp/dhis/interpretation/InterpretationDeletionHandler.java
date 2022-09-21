@@ -1,7 +1,9 @@
-package org.hisp.dhis.interpretation;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,25 @@ package org.hisp.dhis.interpretation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation;
+
+<<<<<<< HEAD
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
+import org.springframework.stereotype.Component;
+=======
+import static com.google.common.base.Preconditions.checkNotNull;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+import java.util.List;
 
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland

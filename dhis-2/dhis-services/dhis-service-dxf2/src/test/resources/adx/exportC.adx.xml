@@ -1,0 +1,16 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="MalariaDSSS" period="2020-01-01/P1M" orgUnit="Provincial Hospital">
+        <dataValue dataElement="Mal_num" ageeeeeeeee="Under 5" sexxxxxxxxx="Female" value="1"/>
+    </group>
+    <group dataSet="MalariaDSSS" period="2020-02-01/P1M" orgUnit="Provincial Hospital">
+        <dataValue dataElement="Mal_text" value="0">
+            <annotation>Some text</annotation>
+        </dataValue>
+    </group>
+    <group dataSet="MalariaMech" period="2020-01-01/P1M" orgUnit="District Hospital" mechanismmm="McDonalds mechanism">
+        <dataValue dataElement="Mal_num" ageeeeeeeee="Over 5" sexxxxxxxxx="Male" value="2"/>
+    </group>
+    <group dataSet="MalariaMech" period="2020-01-01/P1M" orgUnit="District Hospital" mechanismmm="PEPFAR mechanism">
+        <dataValue dataElement="Mal_num" ageeeeeeeee="Over 5" sexxxxxxxxx="Female" value="3"/>
+    </group>
+</adx>

@@ -38,6 +38,7 @@
       "attributeValues": [ ],
       "id": "em8Bg4LCr5k",
       "indicators": [ ],
+<<<<<<< HEAD
       "userGroupAccesses": [
         {
           "access": "rwrw----",
@@ -71,3 +72,23 @@
     }
   ]
 }
+=======
+      "periodType": "Monthly",
+      "mobile": false,
+      "lastUpdated": "2016-03-08T07:32:42.146+0000",
+      "notifyCompletingUser": false,
+      "openFuturePeriods": 0,
+      "created": "2016-03-08T07:31:30.424+0000",
+      "organisationUnits": [
+        {
+          "id": "x3gVvpbVgqy"
+        }
+      ],
+      "renderHorizontally": false,
+      "user": {
+        "id": "T12jeH7KPzk"
+      }
+    }
+  ]
+}
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za

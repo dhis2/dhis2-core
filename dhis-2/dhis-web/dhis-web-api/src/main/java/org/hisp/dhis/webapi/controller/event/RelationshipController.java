@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,21 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -59,6 +76,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+<<<<<<< HEAD
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -72,6 +90,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Stian Sandvold
  */
@@ -114,8 +134,7 @@ public class RelationshipController
     public List<Relationship> getRelationships(
         @RequestParam( required = false ) String tei,
         @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) String event
-    )
+        @RequestParam( required = false ) String event )
         throws WebMessageException
     {
         if ( tei != null )
@@ -165,8 +184,7 @@ public class RelationshipController
 
     @GetMapping( "/{id}" )
     public Relationship getRelationship(
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
@@ -187,8 +205,12 @@ public class RelationshipController
     public void postRelationshipJson(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
+<<<<<<< HEAD
         HttpServletRequest request, HttpServletResponse response
     )
+=======
+        HttpServletRequest request, HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -206,8 +228,12 @@ public class RelationshipController
     public void postRelationshipXml(
         @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
         ImportOptions importOptions,
+<<<<<<< HEAD
         HttpServletRequest request, HttpServletResponse response
     )
+=======
+        HttpServletRequest request, HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -229,8 +255,12 @@ public class RelationshipController
     public void updateRelationshipJson(
         @PathVariable String id,
         ImportOptions importOptions,
+<<<<<<< HEAD
         HttpServletRequest request, HttpServletResponse response
     )
+=======
+        HttpServletRequest request, HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -244,8 +274,7 @@ public class RelationshipController
     public ImportSummary updateRelationshipXml(
         @PathVariable String id,
         ImportOptions importOptions,
-        HttpServletRequest request
-    )
+        HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -260,8 +289,12 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     @DeleteMapping( value = "/{id}" )
+<<<<<<< HEAD
     public void deleteRelationship( @PathVariable String id, HttpServletRequest request, HttpServletResponse response
     )
+=======
+    public void deleteRelationship( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         throws WebMessageException
     {
         Relationship relationship = relationshipService.getRelationshipByUid( id );
@@ -280,7 +313,8 @@ public class RelationshipController
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a Predicate that filters out ImportSummary depending on importOptions and the summary itself
+     * Returns a Predicate that filters out ImportSummary depending on
+     * importOptions and the summary itself
      *
      * @param importOptions
      * @return a Predicate for ImportSummary
@@ -294,8 +328,9 @@ public class RelationshipController
     }
 
     /**
-     * Creates a Consumer that takes an ImportSummary and sets the href property, based on the request root path,
-     * api endpoint and the reference from the import summary.
+     * Creates a Consumer that takes an ImportSummary and sets the href
+     * property, based on the request root path, api endpoint and the reference
+     * from the import summary.
      *
      * @param request
      * @return a Consumer for ImportSummary

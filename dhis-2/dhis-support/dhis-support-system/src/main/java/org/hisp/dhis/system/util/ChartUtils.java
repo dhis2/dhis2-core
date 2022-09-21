@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.util;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,21 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import org.jfree.chart.JFreeChart;
+=======
+package org.hisp.dhis.system.util;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+<<<<<<< HEAD
+=======
+import org.jfree.chart.JFreeChart;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 public class ChartUtils
 {

@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,16 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+<<<<<<< HEAD
+=======
+import java.util.HashMap;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -42,14 +50,22 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.rules.DataItem;
+import org.hisp.dhis.rules.ItemValueType;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.utils.RuleEngineUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,6 +145,29 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             prv -> prv.getDataElement().getValueType() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
             prv -> prv.getDataElement().getValueType() )
+<<<<<<< HEAD
+=======
+        .build();
+
+    private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>> DESCRIPTION_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, DataItem>>()
+        .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> {
+            TrackedEntityAttribute attribute = prv.getAttribute();
+
+            return DataItem.builder()
+                .value( ObjectUtils.firstNonNull( attribute.getDisplayName(), attribute.getDisplayFormName(),
+                    attribute.getName() ) )
+                .valueType( getItemValueType( attribute.getValueType() ) )
+                .build();
+        } )
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> DataItem.builder()
+            .value( ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
+            .valueType( ItemValueType.TEXT )
+            .build() )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::getDisplayName )
+        .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, this::getDisplayName )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         .build();
 
     private final CachingMap<String, ValueType> dataElementToValueTypeCache = new CachingMap<>();
@@ -143,30 +182,31 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final DataElementService dataElementService;
 
+    private final ConstantService constantService;
+
+    private final I18nManager i18nManager;
+
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
-        ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService )
+        ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService,
+        ConstantService constantService, I18nManager i18nManager )
     {
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( dataElementService );
+        checkNotNull( constantService );
+        checkNotNull( i18nManager );
 
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;
+        this.constantService = constantService;
+        this.i18nManager = i18nManager;
     }
 
     @Override
     public List<Rule> toMappedProgramRules()
     {
         List<ProgramRule> programRules = programRuleService.getAllProgramRule();
-
-        return toMappedProgramRules( programRules );
-    }
-
-    @Override
-    public List<Rule> toMappedProgramRules( Program program )
-    {
-        List<ProgramRule> programRules = programRuleService.getProgramRule( program );
 
         return toMappedProgramRules( programRules );
     }
@@ -186,14 +226,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public List<RuleVariable> toMappedProgramRuleVariables( Program program )
-    {
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
-
-        return toMappedProgramRuleVariables( programRuleVariables );
-    }
-
-    @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
         return programRuleVariables
@@ -205,9 +237,30 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public Rule toMappedProgramRule( ProgramRule programRule )
+    public Map<String, DataItem> getItemStore( List<ProgramRuleVariable> programRuleVariables )
     {
-        return toRule( programRule );
+        Map<String, DataItem> itemStore = new HashMap<>();
+
+        // program rule variables
+        programRuleVariables
+            .forEach( prv -> itemStore.put( ObjectUtils.firstNonNull( prv.getName(), prv.getDisplayName() ),
+                DESCRIPTION_MAPPER.get( prv.getSourceType() ).apply( prv ) ) );
+
+        // constants
+        constantService.getAllConstants().forEach( constant -> itemStore.put( constant.getUid(),
+            DataItem.builder()
+                .value( ObjectUtils.firstNonNull( constant.getDisplayName(), constant.getDisplayFormName(),
+                    constant.getName() ) )
+                .valueType( ItemValueType.NUMBER )
+                .build() ) );
+
+        // program variables
+        RuleEngineUtils.ENV_VARIABLES.entrySet().forEach( var -> itemStore.put( var.getKey(), DataItem.builder()
+            .value( ObjectUtils.firstNonNull( i18nManager.getI18n().getString( var.getKey() ), var.getKey() ) )
+            .valueType( var.getValue() )
+            .build() ) );
+
+        return itemStore;
     }
 
     @Override
@@ -244,12 +297,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     @Override
     public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
+<<<<<<< HEAD
         Optional<ProgramStageInstance> psiToEvaluate )
+=======
+        ProgramStageInstance psiToEvaluate )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         return programStageInstances
             .stream()
             .filter( Objects::nonNull )
+<<<<<<< HEAD
             .filter( psi -> !(psiToEvaluate.isPresent() && psi.getUid().equals( psiToEvaluate.get().getUid() )) )
+=======
+            .filter( psi -> !(psiToEvaluate != null && psi.getUid().equals( psiToEvaluate.getUid() )) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .map( this::toMappedRuleEvent )
             .collect( Collectors.toList() );
     }
@@ -275,7 +336,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
                     psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
                 .collect( Collectors.toList() ),
+<<<<<<< HEAD
             psi.getProgramStage().getName() );
+=======
+            psi.getProgramStage().getName(), ObjectUtils.defaultIfNull( psi.getCompletedDate(), null ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     // ---------------------------------------------------------------------
@@ -320,7 +385,12 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
             rule = Rule.create(
                 programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
+<<<<<<< HEAD
                 programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
+=======
+                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName(),
+                programRule.getUid() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
         catch ( Exception e )
         {
@@ -513,5 +583,42 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
             return dataElement.getValueType();
         } );
+    }
+
+    private ItemValueType getItemValueType( ValueType valueType )
+    {
+        if ( valueType.isDate() )
+        {
+            return ItemValueType.DATE;
+        }
+
+        if ( valueType.isNumeric() )
+        {
+            return ItemValueType.NUMBER;
+        }
+
+        if ( valueType.isText() )
+        {
+            return ItemValueType.TEXT;
+        }
+
+        if ( valueType.isBoolean() )
+        {
+            return ItemValueType.BOOLEAN;
+        }
+
+        // default
+        return ItemValueType.TEXT;
+    }
+
+    private DataItem getDisplayName( ProgramRuleVariable prv )
+    {
+        DataElement dataElement = prv.getDataElement();
+
+        return DataItem.builder()
+            .value( ObjectUtils.firstNonNull( dataElement.getDisplayFormName(), dataElement.getFormName(),
+                dataElement.getName() ) )
+            .valueType( getItemValueType( dataElement.getValueType() ) )
+            .build();
     }
 }

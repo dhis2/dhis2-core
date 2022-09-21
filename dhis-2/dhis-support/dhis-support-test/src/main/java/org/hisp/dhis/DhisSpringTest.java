@@ -1,7 +1,9 @@
-package org.hisp.dhis;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +29,37 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
 import java.lang.reflect.Method;
+<<<<<<< HEAD
+=======
+import java.util.List;
+import java.util.stream.Collectors;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+import org.hisp.dhis.user.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+<<<<<<< HEAD
+=======
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Trygve Laugstoel
@@ -124,4 +145,57 @@ public abstract class DhisSpringTest
             method.invoke( object, new Object[0] );
         }
     }
+
+    @SuppressWarnings( "all" )
+    protected void preCreateInjectAdminUserWithoutPersistence()
+    {
+        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            "admin", "district", grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+    }
+
+    @SuppressWarnings( "all" )
+    protected User preCreateInjectAdminUser()
+    {
+        List<GrantedAuthority> grantedAuthorities = ImmutableList.of( new SimpleGrantedAuthority( "ALL" ) );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            "admin", "district", grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+
+        return createAndInjectAdminUser( "ALL" );
+    }
+
+    @Override
+    protected User createAndInjectAdminUser( String... authorities )
+    {
+        User user = createAdminUser( authorities );
+
+        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
+            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
+
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication( authentication );
+        SecurityContextHolder.setContext( securityContext );
+
+        return user;
+    }
+
 }

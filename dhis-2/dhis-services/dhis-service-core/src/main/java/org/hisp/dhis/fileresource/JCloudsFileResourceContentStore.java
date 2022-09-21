@@ -1,7 +1,9 @@
-package org.hisp.dhis.fileresource;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,6 +45,11 @@ import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,8 +74,11 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Halvdan Hoem Grelland
@@ -98,8 +109,8 @@ public class JCloudsFileResourceContentStore
 
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS =
-        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
+    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM,
+        JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -133,14 +144,12 @@ public class JCloudsFileResourceContentStore
         config = new BlobStoreProperties(
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) );
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET ) );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
@@ -204,11 +213,25 @@ public class JCloudsFileResourceContentStore
         }
         catch ( IOException e )
         {
-            log.warn( String.format( "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage() ) );
+            log.warn(
+                String.format( "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage() ) );
             return null;
         }
     }
     
+    @Override
+    public long getFileResourceContentLength( String key )
+    {
+        final Blob blob = getBlob( key );
+
+        if ( blob == null )
+        {
+            return 0;
+        }
+
+        return blob.getMetadata().getContentMetadata().getContentLength();
+    }
+
     @Override
     public long getFileResourceContentLength( String key )
     {
@@ -367,7 +390,8 @@ public class JCloudsFileResourceContentStore
 
     @Override
     public void copyContent( String key, OutputStream output )
-        throws IOException, NoSuchElementException
+        throws IOException,
+        NoSuchElementException
     {
         if ( !blobExists( key ) )
         {
@@ -425,18 +449,17 @@ public class JCloudsFileResourceContentStore
 
     private boolean requestSigningSupported( BlobRequestSigner signer )
     {
-        return !( signer instanceof RequestSigningUnsupported) && !( signer instanceof LocalBlobRequestSigner );
+        return !(signer instanceof RequestSigningUnsupported) && !(signer instanceof LocalBlobRequestSigner);
     }
 
     private static Location createRegionLocation( BlobStoreProperties config, Location provider )
     {
-        return config.location != null ?
-            new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build() : null;
+        return config.location != null ? new LocationBuilder()
+            .scope( LocationScope.REGION )
+            .id( config.location )
+            .description( config.location )
+            .parent( provider )
+            .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
@@ -491,8 +514,8 @@ public class JCloudsFileResourceContentStore
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

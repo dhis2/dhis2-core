@@ -1,4 +1,5 @@
 package org.hisp.dhis.actions;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -27,6 +28,23 @@ package org.hisp.dhis.actions;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
+import java.io.File;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.TestRunStorage;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
@@ -241,6 +259,21 @@ public class RestApiActions
             this.given().body( object, ObjectMapperType.GSON )
                 .when()
                 .put( resourceId );
+
+        return new ApiResponse( response );
+    }
+
+    /**
+     * Sends PATCH request to specified resource
+     * @param resourceId
+     * @param object
+     * @return
+     */
+    public ApiResponse patch( String resourceId, Object object) {
+        Response response =
+            this.given().body( object, ObjectMapperType.GSON )
+                .when()
+                .patch( resourceId );
 
         return new ApiResponse( response );
     }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.parser.expression.function;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,24 @@ package org.hisp.dhis.parser.expression.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression.function;
 
+<<<<<<< HEAD
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+=======
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+=======
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * Function firstNonNull

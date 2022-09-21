@@ -1,7 +1,9 @@
-package org.hisp.dhis.appmanager;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,6 +40,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+<<<<<<< HEAD
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -51,6 +55,22 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Saptarshi Purkayastha
@@ -60,6 +80,11 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultAppManager
     implements AppManager
 {
+<<<<<<< HEAD
+=======
+    public static final String INVALID_FILTER_MSG = "Invalid filter: ";
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final CurrentUserService currentUserService;
@@ -72,7 +97,12 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
+<<<<<<< HEAD
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+=======
+    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
+        CurrentUserService currentUserService,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
         KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
@@ -107,7 +137,8 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
+            .collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
@@ -137,7 +168,7 @@ public class DefaultAppManager
         // If no apps are found, check for original name
         for ( App app : appCache.getAll() )
         {
-            if ( app.getName().equals( appName ) )
+            if ( app.getShortName().equals( appName ) )
             {
                 return app;
             }
@@ -157,10 +188,52 @@ public class DefaultAppManager
     @Override
     public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
     {
-        return apps.stream().filter( app -> (
-            ("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) ).
-            collect( Collectors.toList() );
+        return apps.stream().filter(
+            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
+                ||
+                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getAppsByShortName( final String name, Collection<App> apps, final String operator )
+    {
+        return apps.stream()
+            .filter( app -> (("ilike".equalsIgnoreCase( operator )
+                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
+                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
+            .collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
+    {
+        return apps
+            .stream()
+            .filter( app -> app.isBundled() == isBundled )
+            .collect( Collectors.toList() );
+    }
+
+    private void applyFilter( Set<App> apps, String key, String operator, String value )
+    {
+        if ( "appType".equalsIgnoreCase( key ) )
+        {
+            String appType = value != null ? value.toUpperCase() : null;
+            apps.retainAll( getAppsByType( AppType.valueOf( appType ), apps ) );
+        }
+        else if ( "name".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( getAppsByName( value, apps, operator ) );
+        }
+        else if ( "shortName".equalsIgnoreCase( key ) )
+        {
+            apps.retainAll( getAppsByShortName( value, apps, operator ) );
+        }
+        else if ( "bundled".equalsIgnoreCase( key ) )
+        {
+            boolean isBundled = "true".equalsIgnoreCase( value );
+            apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
+        }
     }
 
     @Override
@@ -175,18 +248,22 @@ public class DefaultAppManager
 
             if ( split.length != 3 )
             {
-                throw new QueryParserException( "Invalid filter: " + filter );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "appType".equalsIgnoreCase( split[0] ) )
+            if ( !"name".equalsIgnoreCase( split[0] ) && !"shortName".equalsIgnoreCase( split[0] )
+                && !"eq".equalsIgnoreCase( split[1] ) )
             {
-                String appType = split[2] != null ? split[2].toUpperCase() : null;
-                returnList.retainAll( getAppsByType( AppType.valueOf( appType ), returnList ) );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
-            else if ( "name".equalsIgnoreCase( split[0] ) )
+
+            if ( "bundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+                && !"false".equalsIgnoreCase( split[2] ) )
             {
-                returnList.retainAll( getAppsByName( split[2], returnList, split[1] ) );
+                throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
+
+            applyFilter( returnList, split[0], split[1], split[2] );
         }
 
         return new ArrayList<>( returnList );
@@ -275,6 +352,7 @@ public class DefaultAppManager
     @Override
     public String getAppHubUrl()
     {
+<<<<<<< HEAD
         String baseUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
         String apiUrl = StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
 
@@ -282,6 +360,17 @@ public class DefaultAppManager
                 "\"baseUrl\": \"" + baseUrl + "\", " +
                 "\"apiUrl\": \"" + apiUrl + "\"" +
                 "}";
+=======
+        String baseUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
+        String apiUrl = StringUtils
+            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
+
+        return "{" +
+            "\"baseUrl\": \"" + baseUrl + "\", " +
+            "\"apiUrl\": \"" + apiUrl + "\"" +
+            "}";
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     /**
@@ -308,7 +397,7 @@ public class DefaultAppManager
     @Override
     public boolean isAccessible( App app, User user )
     {
-        if ( user == null || user.getUserCredentials() == null || app == null || app.getName() == null )
+        if ( app == null || app.getShortName() == null || user == null || user.getUserCredentials() == null )
         {
             return false;
         }

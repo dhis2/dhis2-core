@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,12 +41,26 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+=======
+package org.hisp.dhis.tracker.converter;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+<<<<<<< HEAD
+=======
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Service;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,12 +69,15 @@ import java.util.stream.Collectors;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
+<<<<<<< HEAD
     private final TrackerPreheatService trackerPreheatService;
 
     public TrackedEntityTrackerConverterService( TrackerPreheatService trackerPreheatService )
     {
         this.trackerPreheatService = trackerPreheatService;
     }
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     @Override
     public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
@@ -73,7 +93,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         return trackedEntityInstances.stream().map( tei -> {
@@ -85,9 +104,11 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat,
+        TrackedEntity trackedEntityInstance )
     {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( Collections.singletonList( trackedEntityInstance ) );
+        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat,
+            Collections.singletonList( trackedEntityInstance ) );
 
         if ( trackedEntityInstances.isEmpty() )
         {
@@ -98,26 +119,6 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity trackedEntityInstance )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat, Collections.singletonList( trackedEntityInstance ) );
-
-        if ( trackedEntityInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return trackedEntityInstances.get( 0 );
-    }
-
-    @Override
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntity> trackedEntityInstances )
-    {
-        return from( preheat( trackedEntityInstances ), trackedEntityInstances );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntity> trackedEntityInstances )
     {
@@ -126,8 +127,15 @@ public class TrackedEntityTrackerConverterService
         trackedEntityInstances.forEach( te -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
                 TrackerIdScheme.UID, te.getTrackedEntity() );
+<<<<<<< HEAD
             OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
             TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
+=======
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, te.getOrgUnit() );
+            TrackedEntityType trackedEntityType = preheat
+                .get( TrackerIdScheme.UID, TrackedEntityType.class, te.getTrackedEntityType() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             if ( trackedEntity == null )
             {
@@ -158,6 +166,7 @@ public class TrackedEntityTrackerConverterService
 
         return trackedEntities;
     }
+<<<<<<< HEAD
 
     private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
     {
@@ -168,3 +177,6 @@ public class TrackedEntityTrackerConverterService
         return trackerPreheatService.preheat( params );
     }
 }
+=======
+}
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za

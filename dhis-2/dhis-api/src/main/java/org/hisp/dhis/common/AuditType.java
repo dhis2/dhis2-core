@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,23 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 /**
  * This class is deprecated in favor of new async auditing solution, do not use.
+<<<<<<< HEAD
+=======
+ *
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * @author Halvdan Hoem Grelland
  */
 public enum AuditType
 {
-    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" ), READ( "read" ), SEARCH( "search" );
+    CREATE( "create" ),
+    UPDATE( "update" ),
+    DELETE( "delete" ),
+    READ( "read" ),
+    SEARCH( "search" );
 
     private final String value;
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.i18n.ui.resourcebundle;
 
 /*
@@ -152,6 +153,161 @@ public class DefaultResourceBundleManager
         }
 
         locales.sort(LocaleNameComparator.INSTANCE);
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.i18n.ui.resourcebundle;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.hisp.dhis.common.comparator.LocaleNameComparator;
+import org.hisp.dhis.commons.util.PathUtils;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+
+/**
+ * @author Torgeir Lorange Ostby
+ * @author Pham Thi Thuy
+ * @author Nguyen Dang Quang
+ */
+public class DefaultResourceBundleManager
+    implements ResourceBundleManager
+{
+    private static final String EXT_RESOURCE_BUNDLE = ".properties";
+
+    // -------------------------------------------------------------------------
+    // Configuration
+    // -------------------------------------------------------------------------
+
+    private final String globalResourceBundleName;
+
+    private final String specificResourceBundleName;
+
+    public DefaultResourceBundleManager( String globalResourceBundleName, String specificResourceBundleName )
+    {
+        checkNotNull( globalResourceBundleName );
+        checkNotNull( specificResourceBundleName );
+
+        this.globalResourceBundleName = globalResourceBundleName;
+        this.specificResourceBundleName = specificResourceBundleName;
+    }
+
+    // -------------------------------------------------------------------------
+    // ResourceBundleManager implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public ResourceBundle getSpecificResourceBundle( Class<?> clazz, Locale locale )
+    {
+        return getSpecificResourceBundle( clazz.getName(), locale );
+    }
+
+    @Override
+    public ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale )
+    {
+        String path = PathUtils.getClassPath( clazzName );
+
+        for ( String dir = path; dir != null; dir = PathUtils.getParent( dir ) )
+        {
+            String baseName = PathUtils.addChild( dir, specificResourceBundleName );
+
+            try
+            {
+                return ResourceBundle.getBundle( baseName, locale );
+            }
+            catch ( MissingResourceException ignored )
+            {
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public ResourceBundle getGlobalResourceBundle( Locale locale )
+        throws ResourceBundleManagerException
+    {
+        try
+        {
+            return ResourceBundle.getBundle( globalResourceBundleName, locale );
+        }
+        catch ( MissingResourceException e )
+        {
+            throw new ResourceBundleManagerException( "Failed to get global resource bundle" );
+        }
+    }
+
+    @Override
+    public List<Locale> getAvailableLocales()
+        throws ResourceBundleManagerException
+    {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+        URL url = classLoader.getResource( globalResourceBundleName + EXT_RESOURCE_BUNDLE );
+
+        if ( url == null )
+        {
+            throw new ResourceBundleManagerException( "Failed to find global resource bundle" );
+        }
+
+        List<Locale> locales;
+
+        if ( url.toExternalForm().startsWith( "jar:" ) )
+        {
+            locales = new ArrayList<>( getAvailableLocalesFromJar( url ) );
+        }
+        else
+        {
+            String dirPath = new File( url.getFile() ).getParent();
+
+            locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
+        }
+
+        locales.sort( LocaleNameComparator.INSTANCE );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return locales;
     }

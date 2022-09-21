@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,11 +37,16 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -49,23 +57,35 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
+<<<<<<< HEAD
+=======
+    private final PBEStringEncryptor pbeStringEncryptor;
+
+    private final RestTemplate restTemplate;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final RestTemplate restTemplate;
-
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate,
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
+        checkNotNull( pbeStringEncryptor );
+
         this.restTemplate = restTemplate;
+        this.pbeStringEncryptor = pbeStringEncryptor;
     }
 
     // -------------------------------------------------------------------------
@@ -92,30 +112,57 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder;
 
         ResponseEntity<String> responseEntity = null;
 
+<<<<<<< HEAD
         HttpEntity<String> requestEntity = null;
+=======
+        HttpEntity<String> requestEntity;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         URI uri;
 
         try
         {
+<<<<<<< HEAD
             if ( genericConfig.isSendUrlParameters() )
             {
                 uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
+=======
+            requestEntity = getRequestEntity( genericConfig, text, recipients );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                 requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
             }
             else
             {
                 uri = uriBuilder.build().encode().toUri();
+=======
+            if ( genericConfig.isSendUrlParameters() )
+            {
+                uriBuilder = UriComponentsBuilder
+                    .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
+            }
+            else
+            {
+                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+            }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                 requestEntity = getRequestEntity( genericConfig, text, recipients );
             }
 
             responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+=======
+            uri = uriBuilder.build().encode().toUri();
+
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
+                requestEntity, String.class );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
         catch ( HttpClientErrorException ex )
         {
@@ -139,6 +186,7 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
+<<<<<<< HEAD
         Map<String, String> valueStore = getValueStore( config, text, recipients );
 
         final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
@@ -165,23 +213,81 @@ public class SimplisticHttpGetGateWay
     }
 
     private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+=======
+        final StringSubstitutor substitutor = new StringSubstitutor(
+            getRequestData( config, text, recipients ) ); // Matches
+        // on
+        // ${...}
+
+        String data = substitutor.replace( config.getConfigurationTemplate() );
+
+        return new HttpEntity<>( data, getRequestHeaderParameters( config ) );
+    }
+
+    private Map<String, String> getRequestData( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         List<GenericGatewayParameter> parameters = config.getParameters();
 
         Map<String, String> valueStore = new HashMap<>();
 
         for ( GenericGatewayParameter parameter : parameters )
+<<<<<<< HEAD
+=======
         {
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
+                valueStore.put( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
             }
         }
 
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
+
+        return valueStore;
+    }
+
+    private HttpHeaders getRequestHeaderParameters( GenericHttpGatewayConfig config )
+    {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : config.getParameters() )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+        {
+            if ( !parameter.isHeader() )
+            {
+<<<<<<< HEAD
+                valueStore.put( parameter.getKey(), parameter.getDisplayValue() );
+=======
+                if ( parameter.getKey().equals( HttpHeaders.AUTHORIZATION ) )
+                {
+                    httpHeaders.add( parameter.getKey(), BASIC + encodeAndDecryptParameter( parameter ) );
+                }
+                else
+                {
+                    httpHeaders.add( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
+                }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+            }
+        }
+
+<<<<<<< HEAD
         valueStore.put( KEY_TEXT, text );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         return valueStore;
+=======
+        return httpHeaders;
+    }
+
+    private String encodeAndDecryptParameter( GenericGatewayParameter parameter )
+    {
+        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+            : parameter.getValue();
+
+        return parameter.isEncode() ? Base64.getEncoder().encodeToString( value.getBytes() ) : value;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )

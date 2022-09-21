@@ -1,6 +1,10 @@
 [main]
 host = https://www.transifex.com
+<<<<<<< HEAD
 lang_map = fa_AF: prs, uz@Cyrl: uz_Cyrl, uz@Latn: uz_Latn
+=======
+lang_map = fa_AF: prs, uz@Cyrl: uz, uz@Latn: uz_Latn
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 [app-server-side-resources.dataentry-i18n-module-properties]
 file_filter = dhis-2/dhis-web/dhis-web-dataentry/src/main/resources/org/hisp/dhis/de/i18n_module_<lang>.properties

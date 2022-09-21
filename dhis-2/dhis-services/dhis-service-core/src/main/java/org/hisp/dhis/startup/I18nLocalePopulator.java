@@ -1,7 +1,9 @@
-package org.hisp.dhis.startup;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +29,30 @@ package org.hisp.dhis.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.startup;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Locale;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 import com.google.common.collect.ImmutableSet;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Populates default I18nLocales if none exists.
  *
@@ -59,8 +72,8 @@ public class I18nLocalePopulator
     }
 
     private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
-        "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",
-        "km","lo","my","ne","nl","no","ps","pt","ru","rw","sw","tg","vi","zh" );
+        "af", "ar", "bi", "am", "de", "dz", "en", "es", "fa", "fr", "gu", "hi", "id", "it",
+        "km", "lo", "my", "ne", "nl", "no", "ps", "pt", "ru", "rw", "sw", "tg", "vi", "zh" );
 
     @Override
     public void executeInTransaction()

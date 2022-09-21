@@ -1,7 +1,9 @@
-package org.hisp.dhis.dataanalysis;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,12 @@ package org.hisp.dhis.dataanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataanalysis;
 
 /**
- * DataAnalysisMeasures contains the average and standard deviation measures
- * of data for a given combination of organisation unit and
- * category option combo. (The data element is fixed.)
+ * DataAnalysisMeasures contains the average and standard deviation measures of
+ * data for a given combination of organisation unit and category option combo.
+ * (The data element is fixed.)
  *
  * @author Jim Grace
  */

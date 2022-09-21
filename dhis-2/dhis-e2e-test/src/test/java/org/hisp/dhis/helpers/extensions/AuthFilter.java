@@ -1,5 +1,6 @@
 package org.hisp.dhis.helpers.extensions;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +28,9 @@ package org.hisp.dhis.helpers.extensions;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import io.restassured.authentication.NoAuthScheme;
 import io.restassured.authentication.PreemptiveBasicAuthScheme;

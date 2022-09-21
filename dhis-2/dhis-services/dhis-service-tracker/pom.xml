@@ -1,20 +1,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
+<<<<<<< HEAD
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
     <version>2.35-SNAPSHOT</version>
   </parent>
+=======
+    <parent>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-services</artifactId>
+        <version>2.35.8-EMBARGOED</version>
+    </parent>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-  <artifactId>dhis-service-tracker</artifactId>
-  <packaging>jar</packaging>
-  <name>DHIS Tracker services</name>
+    <artifactId>dhis-service-tracker</artifactId>
+    <packaging>jar</packaging>
+    <name>DHIS Tracker services</name>
 
-  <dependencies>
+    <dependencies>
 
+<<<<<<< HEAD
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
@@ -58,7 +67,53 @@
     </dependency>
     
     <!-- Test -->
+=======
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-schema</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-dxf2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-service-acl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
 
+        <!-- Test -->
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
@@ -68,4 +123,15 @@
   <properties>
     <rootDir>../../</rootDir>
   </properties>
+=======
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+        </dependency>
+
+    </dependencies>
+    <properties>
+        <rootDir>../../</rootDir>
+    </properties>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 </project>

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
@@ -43,7 +46,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( object ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) object;
 
@@ -53,7 +57,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( object ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) object;
 
@@ -63,7 +68,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) persistedObject;
 
@@ -73,7 +79,8 @@ public class DataSetNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) ) return;
+        if ( !DataSetNotificationTemplate.class.isInstance( persistedObject ) )
+            return;
 
         DataSetNotificationTemplate template = (DataSetNotificationTemplate) persistedObject;
 

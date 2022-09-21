@@ -1,7 +1,9 @@
-package org.hisp.dhis.dataapproval;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,13 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,10 +52,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -85,17 +89,23 @@ public class DataApprovalStoreUserTest
     private Period periodA;
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
+
     private DataApprovalLevel level3;
 
     private DataApprovalWorkflow workflowA;
 
     private OrganisationUnit orgUnitA;
+
     private OrganisationUnit orgUnitB;
+
     private OrganisationUnit orgUnitC;
+
     private OrganisationUnit orgUnitD;
 
     private CurrentUserService mockCurrentUserService;
+
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
@@ -144,10 +154,12 @@ public class DataApprovalStoreUserTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-        mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
+        mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ),
+            Sets.newHashSet( orgUnitA ) );
 
         setDependency( dataApprovalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+        setDependency( dataApprovalLevelService, "currentUserService", mockCurrentUserService,
+            CurrentUserService.class );
     }
 
     @Override

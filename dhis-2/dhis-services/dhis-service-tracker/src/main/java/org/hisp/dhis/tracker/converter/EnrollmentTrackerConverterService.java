@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,9 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
+<<<<<<< HEAD
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -42,11 +46,28 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+=======
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,11 +76,26 @@ import java.util.List;
 public class EnrollmentTrackerConverterService
     implements TrackerConverterService<Enrollment, ProgramInstance>
 {
+<<<<<<< HEAD
     private final TrackerPreheatService trackerPreheatService;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
     public EnrollmentTrackerConverterService( TrackerPreheatService trackerPreheatService )
+=======
+    private final NotesConverterService notesConverterService;
+
+    public EnrollmentTrackerConverterService( NotesConverterService notesConverterService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         this.trackerPreheatService = trackerPreheatService;
+=======
+        checkNotNull( notesConverterService );
+
+        this.notesConverterService = notesConverterService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override
@@ -76,29 +112,15 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<Enrollment> to( List<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
 
         programInstances.forEach( tei -> {
-
+            // TODO: Add implementation
         } );
 
         return enrollments;
-    }
-
-    @Override
-    public ProgramInstance from( Enrollment enrollment )
-    {
-        List<ProgramInstance> programInstances = from( Collections.singletonList( enrollment ) );
-
-        if ( programInstances.isEmpty() )
-        {
-            return null;
-        }
-
-        return programInstances.get( 0 );
     }
 
     @Override
@@ -115,22 +137,32 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public List<ProgramInstance> from( List<Enrollment> enrollments )
-    {
-        return from( preheat( enrollments ), enrollments );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
 
         enrollments.forEach( enrollment -> {
+<<<<<<< HEAD
             ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
             OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
             Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
             TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+=======
+
+            OrganisationUnit organisationUnit = preheat
+                .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+
+            checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
+
+            Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+
+            checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+
+            TrackedEntityInstance trackedEntityInstance = preheat
+                .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             if ( programInstance == null )
             {
@@ -164,12 +196,17 @@ public class EnrollmentTrackerConverterService
 
             programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
+            if ( isNotEmpty( enrollment.getNotes() ) )
+            {
+                programInstance.getComments().addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
+            }
 
             programInstances.add( programInstance );
         } );
 
         return programInstances;
     }
+<<<<<<< HEAD
 
     private TrackerPreheat preheat( List<Enrollment> enrollments )
     {
@@ -179,4 +216,6 @@ public class EnrollmentTrackerConverterService
 
         return trackerPreheatService.preheat( params );
     }
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

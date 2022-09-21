@@ -1,7 +1,9 @@
-package org.hisp.dhis.result;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.result;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.result;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
@@ -45,9 +48,9 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.Result;
 
 /**
- * Creates a PDF representation of the given Grid or list of Grids and writes
- * it to the servlet outputstream. One of the grid or grids arguments must be set.
- * 
+ * Creates a PDF representation of the given Grid or list of Grids and writes it
+ * to the servlet outputstream. One of the grid or grids arguments must be set.
+ *
  * @author Lars Helge Overland
  */
 public class GridPdfResult
@@ -77,12 +80,18 @@ public class GridPdfResult
     {
         this.grids = grids;
     }
-   
+
     private boolean attachment = true;
-    
+
     protected boolean isAttachment()
     {
         return attachment;
+    }
+    
+    private String selectedNoOfSignatures;
+    public void setSelectedNoOfSignatures(String selectedNoOfSignatures)
+    {
+    	this.selectedNoOfSignatures = selectedNoOfSignatures;
     }
 
     // -------------------------------------------------------------------------
@@ -103,9 +112,18 @@ public class GridPdfResult
         grid = _grid != null ? _grid : grid;
 
         List<Grid> _grids = (List<Grid>) invocation.getStack().findValue( "grids" );
-        
+
         grids = _grids != null ? _grids : grids;
         
+        String _selectedNoOfSignatures = (String) invocation.getStack().findValue( "selectedNoOfSignatures" );
+        
+        selectedNoOfSignatures = _selectedNoOfSignatures != null ? _selectedNoOfSignatures : selectedNoOfSignatures;
+        
+        int selectedNoOfSign = 0;
+        if(selectedNoOfSignatures != null){
+        	selectedNoOfSign = Integer.parseInt(selectedNoOfSignatures);
+        }
+
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
@@ -114,8 +132,10 @@ public class GridPdfResult
 
         OutputStream out = response.getOutputStream();
 
-        String filename = filenameEncode( defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) ) + ".pdf";
-        
+        String filename = filenameEncode(
+            defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) )
+            + ".pdf";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, true, filename, isAttachment() );
 
         // ---------------------------------------------------------------------
@@ -128,7 +148,7 @@ public class GridPdfResult
         }
         else
         {
-            GridUtils.toPdf( grids, out );
+            GridUtils.toPdfCustom( grids, out,selectedNoOfSign );
         }
     }
 }

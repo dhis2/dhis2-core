@@ -1,7 +1,11 @@
 package org.hisp.dhis.analytics;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +31,16 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+=======
+package org.hisp.dhis.analytics;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Luciano Fiandesio
@@ -37,5 +48,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
 public enum UserOrgUnitType
 {
-    DATA_CAPTURE, DATA_OUTPUT, TEI_SEARCH
+    DATA_CAPTURE,
+    DATA_OUTPUT,
+    TEI_SEARCH
 }

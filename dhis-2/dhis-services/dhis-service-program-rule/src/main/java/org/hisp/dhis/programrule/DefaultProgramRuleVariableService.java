@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +29,55 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.util.List;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Program;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+package org.hisp.dhis.programrule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author markusbekken
  */
-@Transactional
 @Service( "org.hisp.dhis.programrule.ProgramRuleVariableService" )
 public class DefaultProgramRuleVariableService
     implements ProgramRuleVariableService
 {
+
+    private final Environment environment;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private ProgramRuleVariableStore programRuleVariableStore;
 
-    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore )
+    private final Cache<Boolean> programRuleVariablesCache;
+
+    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore,
+        CacheProvider cacheProvider, Environment environment )
     {
         checkNotNull( programRuleVariableStore );
+        checkNotNull( environment );
 
         this.programRuleVariableStore = programRuleVariableStore;
+        this.environment = environment;
+        final boolean nonTestEnv = !isTestRun( this.environment.getActiveProfiles() );
+
+        this.programRuleVariablesCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "programRuleVariablesCache" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withMaximumSize( nonTestEnv ? 1000 : 0 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -63,6 +85,7 @@ public class DefaultProgramRuleVariableService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.save( programRuleVariable );
@@ -70,50 +93,62 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
+    @Transactional
     public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.delete( programRuleVariable );
+        programRuleVariablesCache.invalidateAll();
     }
 
     @Override
+    @Transactional
     public void updateProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.update( programRuleVariable );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramRuleVariable getProgramRuleVariable( long id )
     {
         return programRuleVariableStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getAllProgramRuleVariable()
     {
         return programRuleVariableStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getProgramRuleVariable( Program program )
     {
         return programRuleVariableStore.get( program );
     }
 
     @Override
-    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    @Transactional( readOnly = true )
+    public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
     {
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
-
-        return !ruleVariables.isEmpty();
+        return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
+            List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
+                .getProgramVariables( program, dataElement );
+            return !ruleVariables.isEmpty();
+        } )
+            .orElse( false );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getVariablesWithNoDataElement()
     {
         return programRuleVariableStore.getVariablesWithNoDataElement();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramRuleVariable> getVariablesWithNoAttribute()
     {
         return programRuleVariableStore.getVariablesWithNoAttribute();

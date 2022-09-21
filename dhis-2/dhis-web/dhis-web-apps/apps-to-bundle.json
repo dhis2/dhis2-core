@@ -1,4 +1,5 @@
 [
+<<<<<<< HEAD
     "https://github.com/d2-ci/app-management-app",
     "https://github.com/d2-ci/cache-cleaner-app",
     "https://github.com/d2-ci/capture-app",
@@ -24,4 +25,32 @@
     "https://github.com/d2-ci/usage-analytics-app",
     "https://github.com/d2-ci/user-app",
     "https://github.com/d2-ci/user-profile-app"
+=======
+  "https://github.com/d2-ci/app-management-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/cache-cleaner-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/capture-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/dashboard-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/data-administration-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/data-visualizer-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/data-quality-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/datastore-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/event-reports-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/event-charts-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/import-export-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/interpretation-app#2.35.8-EMBARGOED",  
+  "https://github.com/HISPSA/maintenance-app-compiled#2.35.8-EMBARGOED_za", 
+  "https://github.com/d2-ci/maps-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/menu-management-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/messaging-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/pivot-tables-app#2.35.8-EMBARGOED",
+  "https://github.com/HISPSA/reports-app-Compiled#2.35.8-EMBARGOED_za",
+  "https://github.com/d2-ci/scheduler-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/settings-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/sms-configuration-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/tracker-capture-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/translations-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/usage-analytics-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/user-app#2.35.8-EMBARGOED",
+  "https://github.com/d2-ci/user-profile-app#2.35.8-EMBARGOED"
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 ]

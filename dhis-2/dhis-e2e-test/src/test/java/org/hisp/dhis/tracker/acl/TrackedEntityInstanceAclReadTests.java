@@ -5,12 +5,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.collections.ListUtils;
+<<<<<<< HEAD
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.beans.HasProperty;
 import org.hamcrest.collection.IsEmptyCollection;
 import org.hamcrest.core.IsNot;
+=======
+import org.hamcrest.Matchers;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;

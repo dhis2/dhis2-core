@@ -32,6 +32,11 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_externalmaplayer_legendsetid" />
 
+<<<<<<< HEAD
+=======
+    <property name="translations" type="jblTranslations"/>
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <!-- Access properties -->
 
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_externalmaplayer_userid" />

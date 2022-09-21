@@ -1,7 +1,9 @@
-package org.hisp.dhis.parser.expression;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,9 @@ package org.hisp.dhis.parser.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression;
 
+<<<<<<< HEAD
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
@@ -44,7 +48,30 @@ import org.hisp.dhis.period.PeriodType;
 
 import java.util.List;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+<<<<<<< HEAD
+=======
+
+import java.util.List;
+
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
+import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
+import org.hisp.dhis.parser.expression.function.FunctionGreatest;
+import org.hisp.dhis.parser.expression.function.FunctionIf;
+import org.hisp.dhis.parser.expression.function.FunctionIsNotNull;
+import org.hisp.dhis.parser.expression.function.FunctionIsNull;
+import org.hisp.dhis.parser.expression.function.FunctionLeast;
+import org.hisp.dhis.parser.expression.function.PeriodOffset;
+import org.hisp.dhis.parser.expression.operator.*;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * Utilities for ANTLR parsing
@@ -55,7 +82,12 @@ public class ParserUtils
 {
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
+<<<<<<< HEAD
     public final static ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExpressionItem>builder()
+=======
+    public final static ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap
+        .<Integer, ExpressionItem> builder()
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         // Non-comparison operators
 
@@ -90,6 +122,11 @@ public class ParserUtils
         .put( IS_NOT_NULL, new FunctionIsNotNull() )
         .put( IS_NULL, new FunctionIsNull() )
         .put( LEAST, new FunctionLeast() )
+        .put( PERIOD_OFFSET, new PeriodOffset() )
+
+        // Data items
+
+        .put( C_BRACE, new ItemConstant() )
 
         // Data items
 
@@ -110,15 +147,25 @@ public class ParserUtils
     public final static ExpressionItemMethod ITEM_REGENERATE = ExpressionItem::regenerate;
 
     /**
+<<<<<<< HEAD
      * Used for syntax checking when we don't have a list of actual
      * periods for collecting samples.
+=======
+     * Used for syntax checking when we don't have a list of actual periods for
+     * collecting samples.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
+<<<<<<< HEAD
     public final static List<Period> DEFAULT_SAMPLE_PERIODS =
         Lists.newArrayList( PeriodType.getPeriodFromIsoString( "20010101" ) );
+=======
+    public final static List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
+        PeriodType.getPeriodFromIsoString( "20010101" ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     /**
-     * Assume that an item of the form #{...} has a syntax that could be used
-     * in a program indicator expression for #{programStageUid.dataElementUid}
+     * Assume that an item of the form #{...} has a syntax that could be used in
+     * a program indicator expression for #{programStageUid.dataElementUid}
      *
      * @param ctx the item context
      */
@@ -131,8 +178,8 @@ public class ParserUtils
     }
 
     /**
-     * Assume that an item of the form A{...} has a syntax that could be used
-     * in an expression for A{progamUid.attributeUid}
+     * Assume that an item of the form A{...} has a syntax that could be used in
+     * an expression for A{progamUid.attributeUid}
      *
      * @param ctx the item context
      */
@@ -145,8 +192,8 @@ public class ParserUtils
     }
 
     /**
-     * Assume that an item of the form A{...} has a syntax that could be used
-     * be used in an program expression for A{attributeUid}
+     * Assume that an item of the form A{...} has a syntax that could be used be
+     * used in an program expression for A{attributeUid}
      *
      * @param ctx the item context
      */

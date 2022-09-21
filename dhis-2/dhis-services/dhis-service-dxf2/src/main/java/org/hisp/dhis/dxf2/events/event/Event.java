@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +29,27 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.vividsolutions.jts.geom.Geometry;
-import org.hisp.dhis.common.BaseLinkableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.event.EventStatus;
+package org.hisp.dhis.dxf2.events.event;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,6 +58,8 @@ import java.util.Set;
 public class Event
     extends BaseLinkableObject
 {
+    private Long eventId;
+
     private String uid;
 
     private String event;
@@ -58,6 +67,8 @@ public class Event
     private EventStatus status = EventStatus.ACTIVE;
 
     private String program;
+
+    private ProgramType programType;
 
     private String programStage;
 
@@ -91,7 +102,11 @@ public class Event
 
     private String created;
 
+    private UserInfoSnapshot createdByUserInfo;
+
     private String lastUpdated;
+
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String createdAtClient;
 
@@ -113,6 +128,7 @@ public class Event
 
     private String assignedUserUsername;
 
+    private String assignedUserDisplayName;
 
     public Event()
     {
@@ -183,6 +199,18 @@ public class Event
     public void setProgram( String program )
     {
         this.program = program;
+    }
+
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( isAttribute = true )
+    public ProgramType getProgramType()
+    {
+        return programType;
+    }
+
+    public void setProgramType( ProgramType programType )
+    {
+        this.programType = programType;
     }
 
     @JsonProperty( required = true )
@@ -345,6 +373,18 @@ public class Event
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getLastUpdated()
     {
         return lastUpdated;
@@ -353,6 +393,18 @@ public class Event
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     @JsonProperty( required = true )
@@ -497,27 +549,54 @@ public class Event
         this.assignedUserUsername = assignedUserUsername;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUserDisplayName()
+    {
+        return assignedUserDisplayName;
+    }
+
+    public void setAssignedUserDisplayName( String assignedUserDisplayName )
+    {
+        this.assignedUserDisplayName = assignedUserDisplayName;
+    }
+
+    @JsonIgnore
+    public Long getId()
+    {
+        return eventId;
+    }
+
+    public void setId( Long eventId )
+    {
+        this.eventId = eventId;
+    }
+
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         Event event1 = (Event) o;
 
-        if ( event != null ? !event.equals( event1.event ) : event1.event != null ) return false;
-
-        return true;
+        if ( uid != null ? !uid.equals( event1.uid ) : event1.uid != null )
+            return false;
+        return event != null ? event.equals( event1.event ) : event1.event == null;
     }
 
     @Override
     public int hashCode()
     {
-        return event != null ? event.hashCode() : 0;
+        int result = uid != null ? uid.hashCode() : 0;
+        result = 31 * result + (event != null ? event.hashCode() : 0);
+        return result;
     }
 
-
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "Event{" +
             "event='" + event + '\'' +

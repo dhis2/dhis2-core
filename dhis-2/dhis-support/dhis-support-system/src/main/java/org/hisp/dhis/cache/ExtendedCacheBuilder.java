@@ -1,7 +1,9 @@
-package org.hisp.dhis.cache;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,13 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import lombok.extern.slf4j.Slf4j;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,21 +43,27 @@ import org.springframework.data.redis.core.RedisTemplate;
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
- * 
+ *
  * @author Ameen Mohamed
  *
  * @param <V> The Value type to be stored in cache
  */
 @Slf4j
+<<<<<<< HEAD
 public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
+=======
+public class ExtendedCacheBuilder<V>
+    extends SimpleCacheBuilder<V>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 {
     private DhisConfigurationProvider configurationProvider;
 
     private RedisTemplate<String, ?> redisTemplate;
 
     private boolean forceInMemory;
-    
-    public ExtendedCacheBuilder( RedisTemplate<String, ?> redisTemplate, DhisConfigurationProvider configurationProvider )
+
+    public ExtendedCacheBuilder( RedisTemplate<String, ?> redisTemplate,
+        DhisConfigurationProvider configurationProvider )
     {
         super();
         this.configurationProvider = configurationProvider;
@@ -58,11 +71,11 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         this.forceInMemory = false;
     }
 
-
     /**
-     * Configure the cache instance to use local inmemory storage even in clustered or standalone environment.
-     * Ideally used in scenarios where stale data is not critical and faster lookup is preferred.
-     * 
+     * Configure the cache instance to use local inmemory storage even in
+     * clustered or standalone environment. Ideally used in scenarios where
+     * stale data is not critical and faster lookup is preferred.
+     *
      * @return The builder instance.
      */
     @Override
@@ -71,7 +84,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         this.forceInMemory = true;
         return this;
     }
-    
+
     /**
      * Creates and returns a cacheInstance based on the system configuration and
      * the cache builder parameters. If {@code maximumSize} is 0 then a
@@ -84,7 +97,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
      * every instance created using this method will be logically separate and
      * will not share any state. However, when using Redis Cache, every instance
      * created using this method will use the same redis store.
-     * 
+     *
      * @return A cache instance based on the system configuration and input
      *         parameters. Returns one of {@link RedisCache}, {@link LocalCache}
      *         or {@link NoOpCache}

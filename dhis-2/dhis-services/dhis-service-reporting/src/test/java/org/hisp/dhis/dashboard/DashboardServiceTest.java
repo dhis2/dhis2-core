@@ -1,7 +1,9 @@
-package org.hisp.dhis.dashboard;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -49,7 +52,10 @@ import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+<<<<<<< HEAD
 import org.hisp.dhis.visualization.VisualizationType;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -74,16 +80,31 @@ public class DashboardServiceTest
     private IdentifiableObjectManager objectManager;
 
     private Dashboard dbA;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Dashboard dbB;
 
     private DashboardItem diA;
+
     private DashboardItem diB;
+
     private DashboardItem diC;
+
     private DashboardItem diD;
 
     private Visualization vzA;
+<<<<<<< HEAD
+    private Visualization vzB;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+=======
     private Visualization vzB;
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private Document dcA;
 
     @Override
@@ -221,13 +242,18 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
 
+<<<<<<< HEAD
         DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
+=======
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
+            vzA.getUid() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
 
-    @Test( expected = DeleteNotAllowedException.class)
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDeleteWithDashboardItem()
     {
         Program prA = createProgram( 'A', null, null );
@@ -246,7 +272,8 @@ public class DashboardServiceTest
 
         dashboardService.saveDashboard( dashboard );
 
-        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART,
+            eventChart.getUid() );
 
         assertNotNull( itemA );
 

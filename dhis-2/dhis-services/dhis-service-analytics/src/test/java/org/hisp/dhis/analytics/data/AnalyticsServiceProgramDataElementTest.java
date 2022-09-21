@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.hasSize;
@@ -71,8 +74,9 @@ public class AnalyticsServiceProgramDataElementTest
     AnalyticsServiceBaseTest
 {
     /**
-     * This test verifies that a call to the Analytics Service with a Data Element
-     * of type Program Data Element, triggers a call to the Event Analytics Service
+     * This test verifies that a call to the Analytics Service with a Data
+     * Element of type Program Data Element, triggers a call to the Event
+     * Analytics Service
      */
     @Test
     public void verifyProgramDataElementInQueryCallsEventsAnalytics()
@@ -102,7 +106,7 @@ public class AnalyticsServiceProgramDataElementTest
         when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ) ) )
             .thenReturn( new ListGrid() );
 
-        target.getAggregatedDataValues( params );
+        target.getAggregatedDataValueGrid( params );
 
         verify( eventAnalyticsService ).getAggregatedEventData( capturedParams.capture() );
         EventQueryParams data = capturedParams.getValue();

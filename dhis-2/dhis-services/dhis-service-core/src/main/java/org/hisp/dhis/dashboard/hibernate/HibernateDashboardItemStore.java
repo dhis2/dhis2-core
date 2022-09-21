@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard.hibernate;
 
 package org.hisp.dhis.dashboard.hibernate;
 
@@ -56,7 +61,11 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     implements DashboardItemStore
 {
     public HibernateDashboardItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         super( sessionFactory, jdbcTemplate, publisher, DashboardItem.class, currentUserService, aclService, false );
     }
@@ -82,7 +91,12 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countEventChartDashboardItems( EventChart eventChart )
     {
+<<<<<<< HEAD
         Query<Long> query = getTypedQuery("select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
+=======
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where c.eventChart=:eventChart" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         query.setParameter( "eventChart", eventChart );
 
         return query.getSingleResult().intValue();
@@ -101,7 +115,12 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countVisualizationDashboardItems( Visualization visualization )
     {
+<<<<<<< HEAD
         Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where c.visualization=:visualization" );
+=======
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where c.visualization=:visualization" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         query.setParameter( "visualization", visualization );
 
         return query.getSingleResult().intValue();
@@ -110,7 +129,8 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countReportDashboardItems( Report report )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where :report in elements(c.reports)" );
         query.setParameter( "report", report );
 
         return query.getSingleResult().intValue();
@@ -119,7 +139,8 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countDocumentDashboardItems( Document document )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
         query.setParameter( "document", document );
 
         return query.getSingleResult().intValue();
@@ -128,7 +149,8 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     @Override
     public int countUserDashboardItems( User user )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
         query.setParameter( "user", user );
 
         return query.getSingleResult().intValue();

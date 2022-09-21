@@ -1,7 +1,9 @@
-package org.hisp.dhis.container;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,14 @@ package org.hisp.dhis.container;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.container;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Custom {@link PostgreSQLContainer} that provides additional fluent API to
@@ -44,7 +48,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
 {
     private Set<String> customPostgresConfigs = new HashSet<>();
 
-    public DhisPostgreSQLContainer( final String dockerImageName )
+    public DhisPostgreSQLContainer( DockerImageName dockerImageName )
     {
         super( dockerImageName );
     }
@@ -92,6 +96,4 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         }
         return self();
     }
-
-
 }

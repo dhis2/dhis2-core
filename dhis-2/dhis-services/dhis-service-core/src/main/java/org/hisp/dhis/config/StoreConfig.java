@@ -1,7 +1,9 @@
-package org.hisp.dhis.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.config;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.chart.Chart;
@@ -80,7 +83,7 @@ public class StoreConfig
 
     @Autowired
     private CurrentUserService currentUserService;
-
+    
     @Autowired
     private AclService aclService;
 
@@ -88,28 +91,44 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<IndicatorType> indicatorTypeStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             IndicatorType.class, currentUserService, aclService, true );
+=======
+            IndicatorType.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupStore" )
     public HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, IndicatorGroup.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, IndicatorGroup.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupSetStore" )
     public HibernateIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             IndicatorGroupSet.class, currentUserService, aclService, true );
+=======
+            IndicatorGroupSet.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.predictor.PredictorGroupStore" )
     public HibernateIdentifiableObjectStore<PredictorGroup> predictorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, PredictorGroup.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, PredictorGroup.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.expression.ExpressionStore" )
@@ -123,7 +142,11 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<UserGroup> userGroupStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, UserGroup.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )
@@ -151,55 +174,84 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<Constant> constantStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             Constant.class, currentUserService, aclService, true );
+=======
+            Constant.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.scheduling.JobConfigurationStore" )
     public HibernateIdentifiableObjectStore<JobConfiguration> jobConfigurationStore()
     {
         return new HibernateIdentifiableObjectStore<>(
+<<<<<<< HEAD
             sessionFactory, jdbcTemplate, publisher, JobConfiguration.class, currentUserService, aclService, true );
+=======
+            sessionFactory, jdbcTemplate, publisher, JobConfiguration.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.option.OptionSetStore" )
     public HibernateIdentifiableObjectStore<OptionSet> optionSetStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             OptionSet.class, currentUserService, aclService, true );
+=======
+            OptionSet.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.legend.LegendSetStore" )
     public HibernateIdentifiableObjectStore<LegendSet> legendSetStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             LegendSet.class, currentUserService, aclService, true );
+=======
+            LegendSet.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.program.ProgramIndicatorGroupStore" )
     public HibernateIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             ProgramIndicatorGroup.class, currentUserService, aclService, true );
+=======
+            ProgramIndicatorGroup.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.report.ReportStore" )
     public HibernateIdentifiableObjectStore<Report> reportStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, Report.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, Report.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.chart.ChartStore" )
     public HibernateAnalyticalObjectStore<Chart> chartStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, Chart.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, Chart.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.reporttable.ReportTableStore" )
     public HibernateAnalyticalObjectStore<ReportTable> reportTableStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, ReportTable.class, currentUserService, aclService, true );
     }
 
@@ -208,13 +260,27 @@ public class StoreConfig
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, Visualization.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+    }
+
+    @Bean( "org.hisp.dhis.visualization.generic.VisualizationStore" )
+    public HibernateAnalyticalObjectStore<Visualization> visualizationStore()
+    {
+        return new HibernateAnalyticalObjectStore<>( sessionFactory,
+            jdbcTemplate, publisher, Visualization.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )
     public HibernateIdentifiableObjectStore<Dashboard> dashboardStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, Dashboard.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, Dashboard.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.program.ProgramExpressionStore" )
@@ -228,27 +294,43 @@ public class StoreConfig
     public HibernateAnalyticalObjectStore<EventReport> eventReportStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, EventReport.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, EventReport.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.eventchart.EventChartStore" )
     public HibernateAnalyticalObjectStore<EventChart> eventChartStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
+<<<<<<< HEAD
             jdbcTemplate, publisher, EventChart.class, currentUserService, aclService, true );
+=======
+            jdbcTemplate, publisher, EventChart.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             ProgramNotificationTemplate.class, currentUserService, aclService, true );
+=======
+            ProgramNotificationTemplate.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore()
     {
         return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, publisher,
+<<<<<<< HEAD
             ProgramNotificationInstance.class, currentUserService, aclService, true );
+=======
+            ProgramNotificationInstance.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

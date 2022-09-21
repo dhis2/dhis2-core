@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,32 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
+<<<<<<< HEAD
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
+=======
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
+import org.hisp.dhis.analytics.data.handling.DataAggregator;
+import org.hisp.dhis.analytics.data.handling.DataHandler;
+import org.hisp.dhis.analytics.data.handling.HeaderHandler;
+import org.hisp.dhis.analytics.data.handling.MetadataHandler;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -44,10 +68,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+<<<<<<< HEAD
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Luciano Fiandesio
@@ -101,16 +128,31 @@ public abstract class AnalyticsServiceBaseTest
     @Mock
     private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
+<<<<<<< HEAD
     AnalyticsService target;
+=======
+    DataAggregator target;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     @Before
     public void baseSetUp()
     {
         DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager, nestedIndicatorCyclicDependencyInspector );
 
+<<<<<<< HEAD
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
             eventAnalyticsService, dataQueryService, resolver, analyticsCache );
+=======
+        HeaderHandler headerHandler = new HeaderHandler();
+        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService );
+        DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
+            resolver, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
+            organisationUnitService );
+
+        target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
+        target.feedHandlers();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
         when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
@@ -119,9 +161,13 @@ public abstract class AnalyticsServiceBaseTest
     void initMock( DataQueryParams params )
     {
         when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
+<<<<<<< HEAD
                 .thenReturn( params );
+=======
+            .thenReturn( params );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
         when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
     }
 }

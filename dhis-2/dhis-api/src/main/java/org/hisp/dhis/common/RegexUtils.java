@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -39,8 +42,9 @@ import java.util.regex.Pattern;
 public class RegexUtils
 {
     /**
-     * Return the matches in the given input based on the given pattern and group number.
-     * 
+     * Return the matches in the given input based on the given pattern and
+     * group number.
+     *
      * @param pattern the pattern.
      * @param input the input. If the input is null, an empty set is returned.
      * @param group the group, can be null.
@@ -49,25 +53,26 @@ public class RegexUtils
     public static Set<String> getMatches( Pattern pattern, String input, Integer group )
     {
         group = group != null ? group : 0;
-        
+
         Set<String> set = new HashSet<>();
-        
+
         if ( input != null )
         {
             Matcher matcher = pattern.matcher( input );
-            
+
             while ( matcher.find() )
             {
                 set.add( matcher.group( group ) );
             }
         }
-        
+
         return set;
     }
-    
+
     /**
-     * Return the matches in the given input based on the given pattern and group name.
-     * 
+     * Return the matches in the given input based on the given pattern and
+     * group name.
+     *
      * @param pattern the pattern.
      * @param input the input.
      * @param groupName the group name, not null.
@@ -76,14 +81,14 @@ public class RegexUtils
     public static Set<String> getMatches( Pattern pattern, String input, String groupName )
     {
         Set<String> set = new HashSet<>();
-        
+
         Matcher matcher = pattern.matcher( input );
-        
+
         while ( matcher.find() )
         {
             set.add( matcher.group( groupName ) );
         }
-        
+
         return set;
     }
 }

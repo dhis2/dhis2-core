@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 package org.hisp.dhis.attribute.hibernate;
 
@@ -53,10 +63,20 @@ public class HibernateAttributeStore
     implements AttributeStore
 {
     @Autowired
+<<<<<<< HEAD
     public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
+=======
+    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, aclService, true );
+=======
+        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override

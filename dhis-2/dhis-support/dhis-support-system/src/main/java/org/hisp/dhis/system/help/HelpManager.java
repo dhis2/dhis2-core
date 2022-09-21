@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.help;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,20 @@ package org.hisp.dhis.system.help;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.help;
 
+<<<<<<< HEAD
 
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
+=======
+import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Locale;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -41,11 +52,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
 
-import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Lars Helge Overland
@@ -102,7 +111,8 @@ public class HelpManager
     // -------------------------------------------------------------------------
 
     private static Transformer getTransformer( String stylesheetName )
-        throws IOException, TransformerConfigurationException
+        throws IOException,
+        TransformerConfigurationException
     {
         Source stylesheet = new StreamSource( new ClassPathResource( stylesheetName ).getInputStream(), ENCODING_UTF8 );
 
@@ -112,7 +122,11 @@ public class HelpManager
     private static ClassPathResource resolveHelpFileResource( Locale locale )
     {
         String helpFile;
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         ClassPathResource classPathResource;
 
         if ( locale != null && locale.getDisplayLanguage() != null )
@@ -133,7 +147,7 @@ public class HelpManager
         if ( !classPathResource.exists() )
         {
             log.warn( "Help file: " + helpFile + " not available on classpath, falling back to defaul" );
-            
+
             helpFile = "help_content.xml";
 
             classPathResource = new ClassPathResource( helpFile );

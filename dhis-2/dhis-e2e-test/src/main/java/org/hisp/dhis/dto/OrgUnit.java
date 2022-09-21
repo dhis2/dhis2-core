@@ -1,5 +1,6 @@
 package org.hisp.dhis.dto;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +28,9 @@ package org.hisp.dhis.dto;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import com.google.gson.annotations.Expose;
 
@@ -42,6 +46,8 @@ public class OrgUnit
     private String shortName;
 
     private String openingDate;
+
+    private String code;
 
     @Expose( serialize = false, deserialize = false )
     private String parent;
@@ -106,5 +112,15 @@ public class OrgUnit
     public void setLevel( Integer level )
     {
         this.level = level;
+    }
+
+    public String getCode()
+    {
+        return code;
+    }
+
+    public void setCode( String code )
+    {
+        this.code = code;
     }
 }

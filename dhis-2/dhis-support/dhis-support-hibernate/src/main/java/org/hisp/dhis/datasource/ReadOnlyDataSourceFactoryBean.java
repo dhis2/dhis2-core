@@ -1,7 +1,9 @@
-package org.hisp.dhis.datasource;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,16 @@ package org.hisp.dhis.datasource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datasource;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.FactoryBean;
+
 /**
  * Factory bean which provides a {@link CircularRoutingDataSource} containing a
  * list of data sources connecting to read replica database instances.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ReadOnlyDataSourceFactoryBean

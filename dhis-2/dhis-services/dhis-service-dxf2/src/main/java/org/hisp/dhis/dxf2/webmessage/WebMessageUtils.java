@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.webmessage;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,9 @@ package org.hisp.dhis.dxf2.webmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.webmessage;
+
+import java.util.List;
 
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -45,8 +50,6 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -60,7 +63,12 @@ public final class WebMessageUtils
         return webMessage;
     }
 
+<<<<<<< HEAD
     public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus, ErrorCode errorCode )
+=======
+    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus,
+        ErrorCode errorCode )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         WebMessage webMessage = new WebMessage( status, httpStatus );
         webMessage.setErrorCode( errorCode );

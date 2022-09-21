@@ -1,7 +1,9 @@
-package org.hisp.dhis.external.conf;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +29,17 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.conf;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 /**
- * Factory bean which allows for DHIS configuration property values to be 
- * injected into target beans. 
- * 
+ * Factory bean which allows for DHIS configuration property values to be
+ * injected into target beans.
+ *
  * @param key must reflect a {@link ConfigurationKey}.
- * 
  * @author Lars Helge Overland
  */
 public class ConfigurationPropertyFactoryBean
@@ -49,14 +51,14 @@ public class ConfigurationPropertyFactoryBean
 
     @Autowired
     private DhisConfigurationProvider configurationProvider;
-    
+
     private ConfigurationKey key;
-    
+
     public ConfigurationPropertyFactoryBean( ConfigurationKey key )
     {
         this.key = key;
     }
-    
+
     // -------------------------------------------------------------------------
     // FactoryBean implementation
     // -------------------------------------------------------------------------
@@ -65,7 +67,7 @@ public class ConfigurationPropertyFactoryBean
     public Object getObject()
     {
         Assert.notNull( key, "Configuration key must be specified" );
-        
+
         return configurationProvider.getProperty( key );
     }
 

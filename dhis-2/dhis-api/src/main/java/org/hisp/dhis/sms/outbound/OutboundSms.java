@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.outbound;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,16 @@ package org.hisp.dhis.sms.outbound;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.outbound;
+
+import java.util.Date;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @JacksonXmlRootElement( localName = "outboundsms" )
 public class OutboundSms
@@ -58,14 +60,14 @@ public class OutboundSms
 
     public OutboundSms()
     {
+        setAutoFields();
     }
 
-    public OutboundSms( String subject, String message, String... recipients )
+    public OutboundSms( String subject, String message, Set<String> recipients )
     {
         this.subject = subject;
         this.message = message;
-        this.recipients = new HashSet<>();
-        Collections.addAll( this.recipients, recipients );
+        this.recipients = recipients;
     }
 
     @JsonProperty( value = "recipients" )
@@ -80,6 +82,7 @@ public class OutboundSms
         this.recipients = recipients;
     }
 
+    @JsonProperty( value = "date" )
     public Date getDate()
     {
         return date;
@@ -102,6 +105,7 @@ public class OutboundSms
         this.message = message;
     }
 
+    @JsonProperty( value = "sender" )
     public String getSender()
     {
         return sender;
@@ -112,6 +116,7 @@ public class OutboundSms
         this.sender = sender;
     }
 
+    @JsonProperty( value = "status" )
     public OutboundSmsStatus getStatus()
     {
         return status;
@@ -145,6 +150,7 @@ public class OutboundSms
         return numbers.substring( 0, numbers.length() - 2 );
     }
 
+    @JsonProperty( value = "subject" )
     public String getSubject()
     {
         return subject;

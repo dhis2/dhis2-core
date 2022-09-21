@@ -1,7 +1,9 @@
-package org.hisp.dhis.cache;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,19 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
 
+<<<<<<< HEAD
+import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.springframework.util.Assert.hasText;
+
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -56,7 +66,7 @@ public class LocalCache<V> implements Cache<V>
      *
      * @param cacheBuilder CacheBuilder instance
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
@@ -110,15 +120,17 @@ public class LocalCache<V> implements Cache<V>
         }
 
         V value = cache2kInstance.get( key );
+
         if ( value == null )
         {
             value = mappingFunction.apply( key );
+
+            if ( value != null )
+            {
+                cache2kInstance.put( key, value );
+            }
         }
 
-        if ( value != null )
-        {
-            cache2kInstance.put( key, value );
-        }
         return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
     }
 

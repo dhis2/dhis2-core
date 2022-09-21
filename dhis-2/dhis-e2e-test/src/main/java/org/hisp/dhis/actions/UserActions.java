@@ -1,5 +1,6 @@
 package org.hisp.dhis.actions;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -27,6 +28,9 @@ package org.hisp.dhis.actions;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.TestRunStorage;
@@ -74,7 +78,7 @@ public class UserActions
         return id;
     }
 
-    public void addURoleToUser( String userId, String userRoleId )
+    public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
         if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) )
@@ -89,7 +93,7 @@ public class UserActions
 
         object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void addUserToUserGroup( String userId, String userGroupId )
@@ -107,7 +111,7 @@ public class UserActions
 
         object.get( "userGroups" ).getAsJsonArray().add( userGroupAccess );
 
-        this.update( userId, object );
+        this.update( userId, object ).validate().statusCode( 200 );
     }
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,35 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @Author Zubair Asghar.
@@ -43,8 +65,7 @@ import java.util.function.Consumer;
 @Component
 public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook
 {
-    private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>
-        SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
+    private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>> SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, this::processCalculatedValue )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::processDataElement )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::processDataElement )
@@ -53,14 +74,124 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, this::processTEA )
         .build();
 
+    private static final Set<ImportStrategy> UPDATE_STRATEGIES = ImmutableSet.of(
+        ImportStrategy.UPDATE,
+        ImportStrategy.CREATE_AND_UPDATE,
+        ImportStrategy.NEW_AND_UPDATES,
+        ImportStrategy.UPDATES );
+
+    private static final String FROM_PROGRAM_RULE_VARIABLE = " from ProgramRuleVariable prv where prv.name = :name and prv.program.uid = :programUid";
+
+    private final String programRuleVariableNameInvalidKeywordRegex;
+
+    ProgramRuleVariableObjectBundleHook()
+    {
+        programRuleVariableNameInvalidKeywordRegex = "("
+            + String.join( "|", PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS ) + ")";
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    {
+        if ( object instanceof ProgramRuleVariable )
+        {
+            ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) object;
+
+            List<ErrorReport> uniqueProgramRuleNameErrorReport = validateUniqueProgramRuleName( bundle,
+                programRuleVariable );
+            List<ErrorReport> programRuleNameKeyWordsErrorReport = validateProgramRuleNameKeyWords(
+                programRuleVariable );
+
+            List<ErrorReport> errorReports = Stream
+                .concat( uniqueProgramRuleNameErrorReport.stream(), programRuleNameKeyWordsErrorReport.stream() )
+                .collect( Collectors.toList() );
+
+            if ( !errorReports.isEmpty() )
+                return errorReports;
+        }
+
+        return super.validate( object, bundle );
+    }
+
+    private List<ErrorReport> validateUniqueProgramRuleName( ObjectBundle bundle,
+        ProgramRuleVariable programRuleVariable )
+    {
+        List<ProgramRuleVariable> prvWithSameNameAndSameProgram = getProgramRuleVariableQuery( programRuleVariable )
+            .getResultList();
+
+        // update
+        if ( UPDATE_STRATEGIES.contains( bundle.getImportMode() ) )
+        {
+            if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
+            {
+                return prvWithSameNameAlreadyExistsError( programRuleVariable );
+            }
+        }
+
+        // insert
+        else if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
+        {
+            return prvWithSameNameAlreadyExistsError( programRuleVariable );
+        }
+
+        return Collections.emptyList();
+    }
+
+    private boolean isLegitUpdate( ProgramRuleVariable programRuleVariable,
+        List<ProgramRuleVariable> existingPrvs )
+    {
+        return existingPrvs.isEmpty() ||
+            existingPrvs.stream()
+                .anyMatch( existingPrv -> hasSameUid( existingPrv, programRuleVariable ) );
+    }
+
+    private boolean hasSameUid( ProgramRuleVariable existingPrv, ProgramRuleVariable programRuleVariable )
+    {
+        return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
+    }
+
+    private List<ErrorReport> prvWithSameNameAlreadyExistsError( ProgramRuleVariable programRuleVariable )
+    {
+        return Collections.singletonList(
+            new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4032, programRuleVariable.getName(),
+                programRuleVariable.getProgram().getUid() ) );
+    }
+
+    private Query<ProgramRuleVariable> getProgramRuleVariableQuery( ProgramRuleVariable programRuleVariable )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        Query<ProgramRuleVariable> query = session.createQuery( FROM_PROGRAM_RULE_VARIABLE, ProgramRuleVariable.class );
+
+        query.setParameter( "name", programRuleVariable.getName() );
+        query.setParameter( "programUid", programRuleVariable.getProgram().getUid() );
+        return query;
+    }
+
+    private List<ErrorReport> validateProgramRuleNameKeyWords( ProgramRuleVariable programRuleVariable )
+    {
+        String[] split = programRuleVariable.getName().split( "\\s" );
+
+        if ( IntStream.range( 0, split.length )
+            .anyMatch( i -> split[i].matches( programRuleVariableNameInvalidKeywordRegex ) ) )
+        {
+
+            return ImmutableList.of(
+                new ErrorReport( ProgramRuleVariable.class, ErrorCode.E4033, programRuleVariable.getName() ) );
+        }
+
+        return new ArrayList<>();
+    }
+
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if( !ProgramRuleVariable.class.isInstance( object ) ) return;
+        if ( object instanceof ProgramRuleVariable )
+        {
+            ProgramRuleVariable variable = (ProgramRuleVariable) object;
 
-        ProgramRuleVariable variable = (ProgramRuleVariable) object;
-
-        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {} ).accept( variable );
+            SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
+            } ).accept( variable );
+        }
     }
 
     private void processCalculatedValue( ProgramRuleVariable variable )

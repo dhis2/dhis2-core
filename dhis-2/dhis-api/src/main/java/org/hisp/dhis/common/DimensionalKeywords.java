@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +85,7 @@ public class DimensionalKeywords
     {
         this.groupBy = new ArrayList<>();
 
-        this.groupBy.addAll( groupBy.stream().map(this::toKeyword).collect( Collectors.toList() ) );
+        this.groupBy.addAll( groupBy.stream().map( this::toKeyword ).collect( Collectors.toList() ) );
     }
 
     public DimensionalKeywords()
@@ -117,7 +120,7 @@ public class DimensionalKeywords
     {
         return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
     }
-    
+
     public boolean isEmpty()
     {
         return groupBy.isEmpty();

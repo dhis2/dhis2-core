@@ -729,7 +729,13 @@ dhis2.de.loadForm = function()
 
 	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
 	                {
-	                    $( "#tabs" ).tabs();
+	                    $( "#tabs" ).tabs({
+							activate: function(){
+								//populate section row/column totals
+								dhis2.de.populateRowTotals();
+								dhis2.de.populateColumnTotals();
+							}
+						});
 	                }
 
 	                dhis2.de.enableSectionFilter();	               
@@ -760,7 +766,13 @@ dhis2.de.loadForm = function()
 
        	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
        	                {
-       	                    $( "#tabs" ).tabs();
+       	                    $( "#tabs" ).tabs({
+								activate: function(){
+									//populate section row/column totals
+									dhis2.de.populateRowTotals();
+									dhis2.de.populateColumnTotals();
+								}
+							});
        	                }
 
        	                dhis2.de.enableSectionFilter();
@@ -789,7 +801,13 @@ dhis2.de.loadForm = function()
             {
                 if ( dhis2.de.dataSets[dataSetId].renderAsTabs ) 
                 {
-                    $( "#tabs" ).tabs();
+                    $( "#tabs" ).tabs({
+						activate: function(){
+							//populate section row/column totals
+							dhis2.de.populateRowTotals();
+							dhis2.de.populateColumnTotals();
+						}
+					});
                 }
 
                 dhis2.de.enableSectionFilter();
@@ -1535,13 +1553,28 @@ dhis2.de.getCurrentCategoryOptionsQueryValue = function()
 
 /**
  * Tests to see if a category option is valid during a period.
- * 
- * TODO proper date comparison
  */
 dhis2.de.optionValidWithinPeriod = function( option, period )
 {
-    return ( !option.start || option.start <= dhis2.de.periodChoices[ period ].endDate )
-        && ( !option.end || option.end >= dhis2.de.periodChoices[ period ].startDate )
+    var optionStartDate, optionEndDate;
+
+    if ( option.start ) {
+        optionStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.start );
+    }
+
+    if ( option.end ) {
+        optionEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, option.end );
+        var ds = dhis2.de.dataSets[dhis2.de.currentDataSetId];
+        if ( ds.openPeriodsAfterCoEndDate ) {
+            optionEndDate = dhis2.period.generator.datePlusPeriods( ds.periodType, optionEndDate, parseInt( ds.openPeriodsAfterCoEndDate ) );
+        }
+    }
+
+    var periodStartDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].startDate );
+    var periodEndDate = dhis2.period.calendar.parseDate( dhis2.period.format, dhis2.de.periodChoices[ period ].endDate );
+
+    return ( !optionStartDate || optionStartDate <= periodEndDate )
+        && ( !optionEndDate || optionEndDate >= periodStartDate )
 }
 
 /**
@@ -1673,6 +1706,7 @@ function loadDataValues()
     dhis2.de.currentOrganisationUnitId = selection.getSelected()[0];
 
     getAndInsertDataValues();
+	getGreyFieldsByOrgUnit();
     displayEntryFormCompleted();
 }
 
@@ -1763,6 +1797,54 @@ function getAndInsertDataValues()
             dhis2.de.populateColumnTotals();
         }
 	} );
+}
+
+//Grey Fields
+function getGreyFieldsByOrgUnit()
+{
+    var dataSetId = $( '#selectedDataSetId' ).val();
+
+    // grey disabled fields
+
+    $( '.entryfield' ).filter( ':disabled' ).css( 'background-color', dhis2.de.cst.colorGrey );
+
+    var params = {
+        dataSetId : dataSetId,
+        organisationUnitId : dhis2.de.getCurrentOrganisationUnit()
+    };
+    
+    $.ajax( {
+    	url: 'getGreyFieldsByOrgUnit.action',
+    	data: params,
+	    dataType: 'json',
+	    error: function(error) // offline
+	    {
+	    	console.log("error:" + error);
+	    },
+	    success: function( json ) // online
+	    {
+	    	greyFieldsByOrgUnitAll( json );
+        },
+        complete: function()
+        {
+        	console.log("complete");
+        }
+	} );
+}
+
+function greyFieldsByOrgUnitAll( json )
+{
+   
+    $.safeEach( json.greyedFieldsByOrgUnit, function( i, greyedField )
+    {
+        var fieldId = '#' + greyedField.id + '-val';
+        
+        $( fieldId ).attr( 'disabled', 'disabled' );
+        
+    } );
+    
+    $( '.entryfield' ).filter( ':disabled' ).css( 'background-color', dhis2.de.cst.colorGrey );
+
 }
 
 function getOfflineDataValueJson( params )

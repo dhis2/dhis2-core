@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,10 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -72,21 +78,33 @@ public class EventQueryValidatorTest
     private Program prA;
 
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
+
     private DataElement deD;
     private DataElement deE;
 
+    private DataElement deE;
+
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private LegendSet lsA;
+
+<<<<<<< HEAD
+=======
     private OptionSet osA;
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -116,8 +134,15 @@ public class EventQueryValidatorTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
+<<<<<<< HEAD
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
+=======
+        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
+        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
         idObjectManager.save( deA );

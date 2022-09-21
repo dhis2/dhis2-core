@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
@@ -63,7 +66,9 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -84,6 +89,12 @@ import com.fasterxml.jackson.core.JsonParseException;
 @ControllerAdvice
 public class CrudControllerAdvice
 {
+    // Add sensitive exceptions into this array
+    private static final Class<?>[] SENSITIVE_EXCEPTIONS = { BadSqlGrammarException.class,
+        org.hibernate.QueryException.class, DataAccessResourceFailureException.class };
+
+    private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
+
     @Autowired
     private WebMessageService webMessageService;
 
@@ -93,7 +104,8 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( Date.class, new PropertyEditorSupport()
         {
             @Override
-            public void setAsText( String value ) throws IllegalArgumentException
+            public void setAsText( String value )
+                throws IllegalArgumentException
             {
                 setValue( DateUtils.parseDate( value ) );
             }
@@ -101,6 +113,7 @@ public class CrudControllerAdvice
     }
 
     @ExceptionHandler( IllegalQueryException.class )
+<<<<<<< HEAD
     public void illegalQueryExceptionHandler( IllegalQueryException ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
@@ -114,6 +127,31 @@ public class CrudControllerAdvice
 
     @ExceptionHandler( { DeleteNotAllowedException.class, InvalidIdentifierReferenceException.class } )
     public void conflictsExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
+=======
+    public void illegalQueryExceptionHandler( IllegalQueryException ex, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( QueryRuntimeException.class )
+    public void queryRuntimeExceptionHandler( QueryRuntimeException ex, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( DeleteNotAllowedException.class )
+    public void deleteNotAllowedExceptionHandler( DeleteNotAllowedException ex, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        webMessageService.send( WebMessageUtils.conflict( ex.getMessage(), ex.getErrorCode() ), response, request );
+    }
+
+    @ExceptionHandler( InvalidIdentifierReferenceException.class )
+    public void invalidIdentifierReferenceExceptionHandler( InvalidIdentifierReferenceException ex,
+        HttpServletResponse response, HttpServletRequest request )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
@@ -137,115 +175,151 @@ public class CrudControllerAdvice
     }
 
     @ExceptionHandler( FieldFilterException.class )
-    public void fieldFilterExceptionHandler( FieldFilterException ex, HttpServletRequest request, HttpServletResponse response )
+    public void fieldFilterExceptionHandler( FieldFilterException ex, HttpServletRequest request,
+        HttpServletResponse response )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
 
     @ExceptionHandler( NotAuthenticatedException.class )
+<<<<<<< HEAD
     public void notAuthenticatedExceptionHandler( NotAuthenticatedException ex, HttpServletResponse response, HttpServletRequest request )
+=======
+    public void notAuthenticatedExceptionHandler( NotAuthenticatedException ex, HttpServletResponse response,
+        HttpServletRequest request )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         webMessageService.send( WebMessageUtils.unathorized( ex.getMessage() ), response, request );
     }
 
     @ExceptionHandler( NotFoundException.class )
+<<<<<<< HEAD
     public void notFoundExceptionHandler( NotFoundException ex, HttpServletResponse response, HttpServletRequest request )
+=======
+    public void notFoundExceptionHandler( NotFoundException ex, HttpServletResponse response,
+        HttpServletRequest request )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         webMessageService.send( WebMessageUtils.notFound( ex.getMessage() ), response, request );
     }
 
     @ExceptionHandler( ConstraintViolationException.class )
-    public void constraintViolationExceptionHandler( ConstraintViolationException ex, HttpServletResponse response, HttpServletRequest request )
+    public void constraintViolationExceptionHandler( ConstraintViolationException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( getExceptionMessage( ex ) ), response, request );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
-    public void maintenanceModeExceptionHandler( MaintenanceModeException ex, HttpServletResponse response, HttpServletRequest request )
+    public void maintenanceModeExceptionHandler( MaintenanceModeException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.serviceUnavailable( ex.getMessage() ), response, request );
     }
 
     @ExceptionHandler( AccessDeniedException.class )
-    public void accessDeniedExceptionHandler( AccessDeniedException ex, HttpServletResponse response, HttpServletRequest request )
+    public void accessDeniedExceptionHandler( AccessDeniedException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
     }
 
     @ExceptionHandler( WebMessageException.class )
-    public void webMessageExceptionHandler( WebMessageException ex, HttpServletResponse response, HttpServletRequest request )
+    public void webMessageExceptionHandler( WebMessageException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( ex.getWebMessage(), response, request );
     }
 
     @ExceptionHandler( HttpStatusCodeException.class )
-    public void httpStatusCodeExceptionHandler( HttpStatusCodeException ex, HttpServletResponse response, HttpServletRequest request )
+    public void httpStatusCodeExceptionHandler( HttpStatusCodeException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ), response, request );
+        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ),
+            response, request );
     }
 
     @ExceptionHandler( HttpClientErrorException.class )
-    public void httpClientErrorExceptionHandler( HttpClientErrorException ex, HttpServletRequest request, HttpServletResponse response )
+    public void httpClientErrorExceptionHandler( HttpClientErrorException ex, HttpServletRequest request,
+        HttpServletResponse response )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ), response, request );
+        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ),
+            response, request );
     }
 
     @ExceptionHandler( HttpServerErrorException.class )
-    public void httpServerErrorExceptionHandler( HttpServerErrorException ex, HttpServletRequest request, HttpServletResponse response )
+    public void httpServerErrorExceptionHandler( HttpServerErrorException ex, HttpServletRequest request,
+        HttpServletResponse response )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ), response, request );
+        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() ),
+            response, request );
     }
 
     @ExceptionHandler( HttpRequestMethodNotSupportedException.class )
-    public void httpRequestMethodNotSupportedExceptionHandler( HttpRequestMethodNotSupportedException ex, HttpServletRequest request, HttpServletResponse response )
+    public void httpRequestMethodNotSupportedExceptionHandler( HttpRequestMethodNotSupportedException ex,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED ), response, request );
+        webMessageService.send(
+            WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED ), response,
+            request );
     }
 
     @ExceptionHandler( HttpMediaTypeNotAcceptableException.class )
-    public void httpMediaTypeNotAcceptableExceptionHandler( HttpMediaTypeNotAcceptableException ex, HttpServletRequest request, HttpServletResponse response )
+    public void httpMediaTypeNotAcceptableExceptionHandler( HttpMediaTypeNotAcceptableException ex,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE ), response, request );
+        webMessageService.send(
+            WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE ), response,
+            request );
     }
 
     @ExceptionHandler( HttpMediaTypeNotSupportedException.class )
-    public void httpMediaTypeNotSupportedExceptionHandler( HttpMediaTypeNotSupportedException ex, HttpServletRequest request, HttpServletResponse response )
+    public void httpMediaTypeNotSupportedExceptionHandler( HttpMediaTypeNotSupportedException ex,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        webMessageService.send( WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE ), response, request );
+        webMessageService.send(
+            WebMessageUtils.createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE ),
+            response, request );
     }
 
     @ExceptionHandler( ServletException.class )
-    public void servletExceptionHandler( ServletException ex ) throws ServletException
+    public void servletExceptionHandler( ServletException ex )
+        throws ServletException
     {
         throw ex;
     }
 
     @ExceptionHandler( BadRequestException.class )
-    public void handleBadRequest( BadRequestException badRequestException, HttpServletResponse response, HttpServletRequest request )
+    public void handleBadRequest( BadRequestException badRequestException, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.badRequest( badRequestException.getMessage() ), response, request );
     }
 
     @ExceptionHandler( MetadataVersionException.class )
-    public void handleMetaDataVersionException( MetadataVersionException metadataVersionException, HttpServletResponse response, HttpServletRequest request )
+    public void handleMetaDataVersionException( MetadataVersionException metadataVersionException,
+        HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( metadataVersionException.getMessage() ), response, request );
     }
 
     @ExceptionHandler( MetadataSyncException.class )
-    public void handleMetaDataSyncException( MetadataSyncException metadataSyncException, HttpServletResponse response, HttpServletRequest request )
+    public void handleMetaDataSyncException( MetadataSyncException metadataSyncException, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.error( metadataSyncException.getMessage() ), response, request );
     }
 
     @ExceptionHandler( DhisVersionMismatchException.class )
-    public void handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException, HttpServletResponse response, HttpServletRequest request )
+    public void handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException,
+        HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( versionMismatchException.getMessage() ), response, request );
     }
 
     @ExceptionHandler( MetadataImportConflictException.class )
-    public void handleMetadataImportConflictException( MetadataImportConflictException conflictException, HttpServletResponse response, HttpServletRequest request )
+    public void handleMetadataImportConflictException( MetadataImportConflictException conflictException,
+        HttpServletResponse response, HttpServletRequest request )
     {
         if ( conflictException.getMetadataSyncSummary() == null )
         {
@@ -260,16 +334,19 @@ public class CrudControllerAdvice
     }
 
     @ExceptionHandler( OperationNotAllowedException.class )
-    public void handleOperationNotAllowedException( OperationNotAllowedException ex, HttpServletResponse response, HttpServletRequest request )
+    public void handleOperationNotAllowedException( OperationNotAllowedException ex, HttpServletResponse response,
+        HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
     }
 
     /**
-     * Catches default exception and send back to user, but re-throws internally so it still ends up in server logs.
+     * Catches default exception and send back to user, but re-throws internally
+     * so it still ends up in server logs.
      */
     @ExceptionHandler( Exception.class )
-    public void defaultExceptionHandler( Exception ex, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void defaultExceptionHandler( Exception ex, HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         webMessageService.send( WebMessageUtils.error( getExceptionMessage( ex ) ), response, request );
         ex.printStackTrace();
@@ -277,13 +354,43 @@ public class CrudControllerAdvice
 
     private String getExceptionMessage( Exception ex )
     {
+        boolean isMessageSensitive = false;
+
         String message = ex.getMessage();
+
+        if ( isSensitiveException( ex ) )
+        {
+            isMessageSensitive = true;
+        }
 
         if ( ex.getCause() != null )
         {
             message = ex.getCause().getMessage();
+
+            if ( isSensitiveException( ex.getCause() ) )
+            {
+                isMessageSensitive = true;
+            }
+        }
+
+        if ( isMessageSensitive )
+        {
+            message = GENERIC_ERROR_MESSAGE;
         }
 
         return message;
+    }
+
+    private boolean isSensitiveException( Throwable e )
+    {
+        for ( Class<?> exClass : SENSITIVE_EXCEPTIONS )
+        {
+            if ( exClass.isAssignableFrom( e.getClass() ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

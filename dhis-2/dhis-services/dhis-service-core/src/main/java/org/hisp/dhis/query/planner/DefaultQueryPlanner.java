@@ -1,7 +1,9 @@
-package org.hisp.dhis.query.planner;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.query.planner;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.planner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -39,6 +42,10 @@ import java.util.Set;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.category.CategoryOption;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.query.Conjunction;
 import org.hisp.dhis.query.Criterion;
 import org.hisp.dhis.query.Disjunction;
@@ -52,7 +59,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -79,9 +89,17 @@ public class DefaultQueryPlanner implements QueryPlanner
     public QueryPlan planQuery( Query query, boolean persistedOnly )
     {
         // if only one filter, always set to Junction.Type AND
+<<<<<<< HEAD
         Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
         
         if ( (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+=======
+        Junction.Type junctionType = query.getCriterions().size() <= 1 ? Junction.Type.AND
+            : query.getRootJunctionType();
+
+        if ( !isFilterCategoryOptionsByCategories( query.getSchema(), query.getCriterions() )
+            && (!isFilterOnPersistedFieldOnly( query ) || Junction.Type.OR == junctionType) && !persistedOnly )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
             return QueryPlan.QueryPlanBuilder.newBuilder()
                 .persistedQuery( Query.from( query.getSchema() ).setPlannedQuery( true ) )
@@ -93,7 +111,8 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         Query pQuery = getQuery( npQuery, persistedOnly ).setUser( query.getUser() ).setPlannedQuery( true );
 
-        // if there are any non persisted criterions left, we leave the paging to the in-memory engine
+        // if there are any non persisted criterions left, we leave the paging
+        // to the in-memory engine
         if ( !npQuery.getCriterions().isEmpty() )
         {
             pQuery.setSkipPaging( true );
@@ -142,7 +161,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
             if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
             {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[] {} ) );
             }
 
             if ( curProperty.isCollection() )
@@ -157,11 +176,11 @@ public class DefaultQueryPlanner implements QueryPlanner
             }
             else
             {
-                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[] {} ) );
             }
         }
 
-        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
+        return new QueryPath( curProperty, persisted, alias.toArray( new String[] {} ) );
     }
 
     @Override
@@ -251,6 +270,13 @@ public class DefaultQueryPlanner implements QueryPlanner
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( restriction ) ) )
+                {
+                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    pQuery.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
+                }
             }
         }
 
@@ -266,8 +292,8 @@ public class DefaultQueryPlanner implements QueryPlanner
     private Junction handleJunction( Query query, Junction queryJunction, boolean persistedOnly )
     {
         Iterator<org.hisp.dhis.query.Criterion> iterator = queryJunction.getCriterions().iterator();
-        Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ?
-            new Disjunction( query.getSchema() ) : new Conjunction( query.getSchema() );
+        Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ? new Disjunction( query.getSchema() )
+            : new Conjunction( query.getSchema() );
 
         while ( iterator.hasNext() )
         {
@@ -295,9 +321,18 @@ public class DefaultQueryPlanner implements QueryPlanner
 
                 if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias( 1 ) )
                 {
-                    criteriaJunction.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    criteriaJunction.getAliases()
+                        .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
+                }
+                else if ( isFilterCategoryOptionsByCategories( query.getSchema(), Arrays.asList( criterion ) ) )
+                {
+                    criteriaJunction.getAliases()
+                        .addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
+                    criteriaJunction.getCriterions().add( criterion );
+                    iterator.remove();
+                    query.getCriterions().remove( restriction );
                 }
                 else if ( persistedOnly )
                 {
@@ -311,6 +346,7 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
+<<<<<<< HEAD
      * Check if all the criteria for the given query are associated to "persisted" properties
      *
      * @param query a {@see Query} object
@@ -362,6 +398,133 @@ public class DefaultQueryPlanner implements QueryPlanner
                 }
             }
         }
+=======
+     * Check if all the criteria for the given query are associated to
+     * "persisted" properties
+     *
+     * @param query a {@see Query} object
+     * @return true, if all criteria are on persisted properties
+     */
+    private boolean isFilterOnPersistedFieldOnly( Query query )
+    {
+        Set<String> persistedFields = query.getSchema().getPersistedProperties().keySet();
+        if ( nonPersistedFieldExistsInCriterions( persistedFields, query.getCriterions() ) )
+        {
+            return false;
+        }
+
+        for ( Order order : query.getOrders() )
+        {
+
+            if ( !persistedFields.contains( order.getProperty().getName() ) )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Recursive function that checks if any of the criterions or subcriterions
+     * are associated with fields that are not persisted.
+     *
+     * @param persistedFields The set of persistedFields in the schema
+     * @param criterions List of criterions
+     * @return true if there is any non persisted field in any of the criteria
+     *         at any level. false otherwise.
+     */
+    private boolean nonPersistedFieldExistsInCriterions( Set<String> persistedFields, List<Criterion> criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+                if ( !persistedFields.contains( restriction.getPath() ) )
+                {
+                    return true;
+                }
+            }
+            else if ( criterion instanceof Junction )
+            {
+                if ( nonPersistedFieldExistsInCriterions( persistedFields, ((Junction) criterion).getCriterions() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Fix performance issue DHIS2-11032.
+     * <p>
+     * Check if the given list of {@link Criterion} has filter
+     * {@link CategoryOption} by Category.
+     * </p>
+     *
+     * <p>
+     * This method is only applied to {@link CategoryOption},
+     * </p>
+     *
+     * @param schema the {@link Schema} of {@link Query} for checking if
+     *        schema's klass is {@link CategoryOption}
+     * @param criterionList list of {@link Criterion} for checking filters.
+     * @return
+     *         <p>
+     *         false if given schema's klass is not {@link CategoryOption}
+     *         </p>
+     *         <p>
+     *         true if query filters CategoryOptions by Categories, false
+     *         otherwise.
+     *         </p>
+     */
+    private boolean isFilterCategoryOptionsByCategories( Schema schema, List<Criterion> criterionList )
+    {
+        if ( !CategoryOption.class.isAssignableFrom( schema.getKlass() ) )
+        {
+            return false;
+        }
+
+        if ( isFilterByCategories( criterionList ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if any of the given criterions has "categories" as the Restriction
+     * path.
+     *
+     * @param criterions List of criterions.
+     * @return true if the find "categories" in any of the criterions, false
+     *         otherwise.
+     */
+    private boolean isFilterByCategories( List<Criterion> criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            if ( criterion instanceof Restriction )
+            {
+                Restriction restriction = (Restriction) criterion;
+
+                if ( restriction.getPath().contains( "categories" ) )
+                {
+                    return true;
+                }
+            }
+            else if ( criterion instanceof Junction )
+            {
+                if ( isFilterByCategories( ((Junction) criterion).getCriterions() ) )
+                {
+                    return true;
+                }
+            }
+        }
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         return false;
     }
 }

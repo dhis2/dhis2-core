@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category.hibernate;
+
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 
 package org.hisp.dhis.category.hibernate;
 
@@ -64,15 +78,25 @@ public class HibernateCategoryOptionComboStore
     private DbmsManager dbmsManager;
 
     public HibernateCategoryOptionComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         AclService aclService, DbmsManager dbmsManager )
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, CategoryOptionCombo.class, currentUserService, aclService, true );
+=======
+        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionCombo.class, currentUserService, deletedObjectService, aclService,
+            true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         this.dbmsManager = dbmsManager;
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
     {
         String hql = "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo";
 
@@ -96,7 +120,8 @@ public class HibernateCategoryOptionComboStore
     @Override
     public void updateNames()
     {
-        List<CategoryOptionCombo> categoryOptionCombos = getQuery( "from CategoryOptionCombo co where co.name is null" ).list();
+        List<CategoryOptionCombo> categoryOptionCombos = getQuery( "from CategoryOptionCombo co where co.name is null" )
+            .list();
         int counter = 0;
 
         Session session = getSession();
@@ -105,7 +130,7 @@ public class HibernateCategoryOptionComboStore
         {
             session.update( coc );
 
-            if ( ( counter % 400 ) == 0 )
+            if ( (counter % 400) == 0 )
             {
                 dbmsManager.clearSession();
             }

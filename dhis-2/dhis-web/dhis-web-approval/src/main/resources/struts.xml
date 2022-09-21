@@ -24,5 +24,17 @@
       <result name="pdf" type="gridPdfResult" />
     </action>
     
+<<<<<<< HEAD
+=======
+    <!-- Approval Validation Rule -->
+    <action name="viewApprovalValidationRule" class="org.hisp.dhis.approval.dataapproval.action.GetApprovalValidationRuleAction">
+      <result name="success" type="velocity">/dhis-web-approval/approvalValidationRule.vm</result>
+    </action>
+    
+    <action name="addApprovalValidation" class="org.hisp.dhis.approval.dataapproval.action.AddApprovalValidationAction">
+      <result name="success" type="redirect">index.action</result>
+    </action>
+    
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
   </package>
 </struts>

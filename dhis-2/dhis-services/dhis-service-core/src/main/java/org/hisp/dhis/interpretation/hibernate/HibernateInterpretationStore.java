@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation.hibernate;
 
 package org.hisp.dhis.interpretation.hibernate;
 
@@ -54,7 +59,11 @@ public class HibernateInterpretationStore
 {
     @Autowired
     public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, aclService, false );
     }
@@ -96,9 +105,16 @@ public class HibernateInterpretationStore
     @Override
     public long countVisualizationInterpretations( Visualization visualization )
     {
+<<<<<<< HEAD
         Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
             .setParameter( "visualization", visualization )
             .setCacheable( cacheable );
+=======
+        Query query = getQuery(
+            "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+                .setParameter( "visualization", visualization )
+                .setCacheable( cacheable );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return ((Long) query.uniqueResult()).intValue();
     }

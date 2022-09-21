@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.dimension;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.dimension;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +105,11 @@ public class DefaultAnalyticsDimensionService
 
         dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
 
+<<<<<<< HEAD
         //TODO Filter org unit group sets
+=======
+        // TODO Filter org unit group sets
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return dimensions.stream()
             .filter( d -> aclService.canDataOrMetadataRead( user, d ) )

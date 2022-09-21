@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.util;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,11 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
@@ -43,6 +49,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +62,8 @@ import org.hisp.dhis.user.User;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+
+@Slf4j
 public class SmsUtils
 {
     private static final int MAX_CHAR = 160;
@@ -84,9 +94,14 @@ public class SmsUtils
 
     public static boolean isBase64( IncomingSms sms )
     {
+        return isBase64( sms.getText() );
+    }
+
+    public static boolean isBase64( String text )
+    {
         try
         {
-            Base64.getDecoder().decode( sms.getText() );
+            Base64.getDecoder().decode( text );
             return true;
         }
         catch ( IllegalArgumentException e )
@@ -122,6 +137,23 @@ public class SmsUtils
         }
 
         return userOrgUnitMap;
+    }
+
+    public static String encode( String value )
+    {
+        if ( !StringUtils.isBlank( value ) )
+        {
+            try
+            {
+                return URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+            }
+            catch ( UnsupportedEncodingException e )
+            {
+                log.error( "SMS text encoding failed: ", e );
+            }
+        }
+
+        return value;
     }
 
     public static Date lookForDate( String message )

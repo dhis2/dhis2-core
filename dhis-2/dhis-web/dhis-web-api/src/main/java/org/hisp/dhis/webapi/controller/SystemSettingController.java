@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,17 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,9 +83,43 @@ import org.springframework.web.bind.annotation.*;
 public class SystemSettingController
 {
     private final SystemSettingManager systemSettingManager;
+<<<<<<< HEAD
     private final RenderService renderService;
     private final WebMessageService webMessageService;
     private final CurrentUserService currentUserService;
+    private final UserSettingService userSettingService;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+    public SystemSettingController( SystemSettingManager systemSettingManager, RenderService renderService,
+        WebMessageService webMessageService, CurrentUserService currentUserService,
+        UserSettingService userSettingService )
+    {
+        checkNotNull( systemSettingManager );
+        checkNotNull( renderService );
+        checkNotNull( webMessageService );
+        checkNotNull( currentUserService );
+        checkNotNull( userSettingService );
+=======
+    private final RenderService renderService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+        this.systemSettingManager = systemSettingManager;
+        this.renderService = renderService;
+        this.webMessageService = webMessageService;
+        this.currentUserService = currentUserService;
+        this.userSettingService = userSettingService;
+    }
+=======
+    private final WebMessageService webMessageService;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+<<<<<<< HEAD
+=======
+    private final CurrentUserService currentUserService;
+
     private final UserSettingService userSettingService;
 
     public SystemSettingController( SystemSettingManager systemSettingManager, RenderService renderService,
@@ -92,6 +139,7 @@ public class SystemSettingController
         this.userSettingService = userSettingService;
     }
 
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @RequestMapping( value = "/{key}", method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_TEXT, ContextUtils.CONTENT_TYPE_HTML } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -129,11 +177,22 @@ public class SystemSettingController
 
         systemSettingManager.saveSystemSetting( setting, valueObject );
 
+<<<<<<< HEAD
         webMessageService.send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response, request );
     }
 
     private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
         HttpServletResponse response, HttpServletRequest request) throws WebMessageException
+=======
+        webMessageService.send(
+            WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response,
+            request );
+    }
+
+    private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         try
         {
@@ -158,20 +217,24 @@ public class SystemSettingController
 
         if ( value == null && valuePayload == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
         }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response, HttpServletRequest request )
+    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
+        HttpServletRequest request )
         throws WebMessageException
     {
-        List<String> invalidKeys = settings.keySet().stream().filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );
+        List<String> invalidKeys = settings.keySet().stream()
+            .filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );
 
         if ( invalidKeys.size() > 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
         }
 
         for ( String key : settings.keySet() )
@@ -190,6 +253,7 @@ public class SystemSettingController
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return getSystemSettingOrTranslation( key, locale );
+<<<<<<< HEAD
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
@@ -255,10 +319,90 @@ public class SystemSettingController
         }
 
         return Optional.empty();
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
+<<<<<<< HEAD
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
+=======
+    @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_HTML } )
+    public @ResponseBody void getSystemSettingOrTranslationAsJson( @PathVariable( "key" ) String key,
+        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+        throws IOException
+    {
+<<<<<<< HEAD
+        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
+=======
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
+        String systemSettingValue = getSystemSettingOrTranslation( key, locale );
+
+        Map<String, String> systemSettingsForJsonGeneration = new HashMap<>();
+        systemSettingsForJsonGeneration.put( key, systemSettingValue );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        renderService.toJson( response.getOutputStream(), systemSettingsForJsonGeneration );
+    }
+
+    private String getSystemSettingOrTranslation( String key, String locale )
+    {
+        Optional<SettingKey> settingKey = SettingKey.getByName( key );
+        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
+        {
+            Optional<String> localeToFetch = getLocaleToFetch( locale, key );
+
+            if ( localeToFetch.isPresent() )
+            {
+                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(),
+                    localeToFetch.get() );
+
+                if ( translation.isPresent() )
+                {
+                    return translation.get();
+                }
+            }
+
+            Serializable setting = systemSettingManager.getSystemSetting( settingKey.get() );
+            return setting != null ? String.valueOf( setting ) : StringUtils.EMPTY;
+        }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+        return StringUtils.EMPTY;
+    }
+
+    private Optional<String> getLocaleToFetch( String locale, String key )
+    {
+        if ( systemSettingManager.isTranslatable( key ) )
+        {
+            User currentUser = currentUserService.getCurrentUser();
+
+            if ( StringUtils.isNotEmpty( locale ) )
+            {
+                return Optional.of( locale );
+            }
+            else if ( currentUser != null )
+            {
+                Locale userLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, currentUser );
+
+                if ( userLocale != null )
+                {
+                    return Optional.of( userLocale.getLanguage() );
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_HTML } )
+    public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys,
+        HttpServletResponse response )
         throws IOException
     {
         Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );

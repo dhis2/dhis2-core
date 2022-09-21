@@ -1,7 +1,9 @@
-package org.hisp.dhis.relationship.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,15 @@ package org.hisp.dhis.relationship.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship.hibernate;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -119,7 +130,8 @@ public class RelationshipStoreTest
     @Test
     public void getByTrackedEntityInstance()
     {
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
@@ -128,7 +140,7 @@ public class RelationshipStoreTest
     @Test
     public void getByProgramStageInstance()
     {
-        Program programA = createProgram('A', new HashSet<>(), organisationUnit );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( programA );
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
@@ -163,7 +175,8 @@ public class RelationshipStoreTest
 
         relationshipService.addRelationship( relationshipA );
 
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, true );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -174,7 +187,8 @@ public class RelationshipStoreTest
     @Test
     public void getByRelationshipType()
     {
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByRelationshipType( relationshipType );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
@@ -188,7 +202,10 @@ public class RelationshipStoreTest
         assertTrue( existing.isPresent() );
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Override
     public boolean emptyDatabaseAfterTest()
     {

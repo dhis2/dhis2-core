@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.sync;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,15 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.sync;
 
 import java.util.Map;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
@@ -44,8 +52,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Performs the tasks after metadata sync happens
  *
@@ -53,13 +64,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component( "metadataSyncPostProcessor" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class MetadataSyncPostProcessor
 {
     @Autowired
     private EmailService emailService;
 
-    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary, 
+    public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary,
         MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
@@ -74,7 +85,8 @@ public class MetadataSyncPostProcessor
         Status syncStatus = importReport.getStatus();
         log.info( "Import completed. Import Status: " + syncStatus );
 
-        if ( Status.OK.equals( syncStatus ) || ( Status.WARNING.equals( syncStatus ) && VersionType.BEST_EFFORT.equals( dataVersion.getType() ) ) )
+        if ( Status.OK.equals( syncStatus )
+            || (Status.WARNING.equals( syncStatus ) && VersionType.BEST_EFFORT.equals( dataVersion.getType() )) )
         {
             sendSuccessMailToAdmin( metadataSyncSummary );
             return false;
@@ -89,16 +101,20 @@ public class MetadataSyncPostProcessor
         return false;
     }
 
-    public void handleVersionAlreadyExists ( MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    public void handleVersionAlreadyExists( MetadataRetryContext retryContext, MetadataVersion dataVersion )
     {
-        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC, "Version already exists in system and hence stopping the sync", dataVersion, null );
+        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC,
+            "Version already exists in system and hence stopping the sync", dataVersion, null );
         sendFailureMailToAdmin( retryContext );
-        log.info( "Aborting Metadata sync. Version already exists in system and hence stopping the sync. Check mail and logs for more details." );
+        log.info(
+            "Aborting Metadata sync. Version already exists in system and hence stopping the sync. Check mail and logs for more details." );
     }
 
-    private void handleImportFailedContext( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext, MetadataVersion dataVersion )
+    private void handleImportFailedContext( MetadataSyncSummary metadataSyncSummary, MetadataRetryContext retryContext,
+        MetadataVersion dataVersion )
     {
-        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC, "Import of metadata objects was unsuccessful", dataVersion, metadataSyncSummary );
+        retryContext.updateRetryContext( MetadataSyncJob.METADATA_SYNC, "Import of metadata objects was unsuccessful",
+            dataVersion, metadataSyncSummary );
         sendFailureMailToAdmin( retryContext );
         log.info( "Aborting Metadata sync Import Failure happened. Check mail and logs for more details." );
     }
@@ -106,10 +122,11 @@ public class MetadataSyncPostProcessor
     public void sendSuccessMailToAdmin( MetadataSyncSummary metadataSyncSummary )
     {
         ImportReport importReport = metadataSyncSummary.getImportReport();
-        StringBuilder text = new StringBuilder( "Successful Import Report for the scheduler run for Metadata synchronization \n\n" )
-            .append( "Imported Version Details \n " )
-            .append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" )
-            .append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
+        StringBuilder text = new StringBuilder(
+            "Successful Import Report for the scheduler run for Metadata synchronization \n\n" )
+                .append( "Imported Version Details \n " )
+                .append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" )
+                .append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
 
         Map<Class<?>, TypeReport> typeReportMap = importReport.getTypeReportMap();
 
@@ -160,13 +177,15 @@ public class MetadataSyncPostProcessor
         if ( text.length() > 0 )
         {
             log.info( "Success mail will be sent with the following message: " + text );
-            emailService.sendSystemEmail( new Email( "Success Notification: Metadata Synchronization", text.toString() ) );
+            emailService
+                .sendSystemEmail( new Email( "Success Notification: Metadata Synchronization", text.toString() ) );
         }
     }
 
     public void sendFailureMailToAdmin( MetadataRetryContext retryContext )
     {
-        StringBuilder text = new StringBuilder( "Following Exceptions were encountered while the scheduler run for metadata sync \n\n" );
+        StringBuilder text = new StringBuilder(
+            "Following Exceptions were encountered while the scheduler run for metadata sync \n\n" );
 
         for ( String name : MetadataSyncJob.keys )
         {
@@ -186,7 +205,7 @@ public class MetadataSyncPostProcessor
         if ( report != null )
         {
             String reportString = (String) report;
-            
+
             text.append( MetadataSyncJob.METADATA_SYNC_REPORT )
                 .append( "\n " )
                 .append( reportString );
@@ -202,7 +221,8 @@ public class MetadataSyncPostProcessor
         if ( text.length() > 0 )
         {
             log.info( "Failure mail will be sent with the following message: " + text );
-            emailService.sendSystemEmail( new Email( "Action Required: MetadataSync Failed Notification", text.toString() ) );
+            emailService
+                .sendSystemEmail( new Email( "Action Required: MetadataSync Failed Notification", text.toString() ) );
         }
     }
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
@@ -34,11 +37,19 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DAT
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+<<<<<<< HEAD
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+=======
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.Date;
 import java.util.List;
@@ -91,7 +102,9 @@ public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
+
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
+
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
@@ -249,6 +262,7 @@ public class DefaultEventDataQueryService
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
+            .withPaging( request.isPaging() )
             .withProgramStatus( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .build();
@@ -280,7 +294,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 
@@ -295,7 +310,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 
@@ -326,24 +342,32 @@ public class DefaultEventDataQueryService
 
         if ( dataElement != null )
         {
+<<<<<<< HEAD
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
                 throwIllegalQueryEx( ErrorCode.E7129, coordinateField );
             }
 
             return dataElement.getUid();
+=======
+            return getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
         if ( attribute != null )
         {
+<<<<<<< HEAD
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
                 throwIllegalQueryEx( ErrorCode.E7130, coordinateField );
             }
 
             return attribute.getUid();
+=======
+            return getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
@@ -429,4 +453,16 @@ public class DefaultEventDataQueryService
 
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
     }
+<<<<<<< HEAD
+=======
+
+    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
+    {
+        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
+        {
+            throwIllegalQueryEx( errorCode, field );
+        }
+        return field;
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

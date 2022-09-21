@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.util;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,7 +63,7 @@ public class StreamUtilsTest
         zipStream = new BufferedInputStream( classLoader.getResourceAsStream( "dxfA.zip" ) );
 
         gzipStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml.gz" ) );
-        
+
         plainStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml" ) );
     }
 
@@ -71,7 +74,7 @@ public class StreamUtilsTest
         zipStream.close();
 
         gzipStream.close();
-        
+
         plainStream.close();
     }
 
@@ -81,7 +84,7 @@ public class StreamUtilsTest
         assertTrue( StreamUtils.isZip( zipStream ) );
 
         assertFalse( StreamUtils.isGZip( zipStream ) );
-        
+
         assertFalse( StreamUtils.isZip( plainStream ) );
     }
 
@@ -91,16 +94,16 @@ public class StreamUtilsTest
         assertTrue( StreamUtils.isGZip( gzipStream ) );
 
         assertFalse( StreamUtils.isZip( gzipStream ) );
-        
+
         assertFalse( StreamUtils.isGZip( plainStream ) );
     }
-    
+
     @Test
     public void testWrapAndCheckZip()
         throws Exception
     {
         Reader reader = new InputStreamReader( StreamUtils.wrapAndCheckCompressionFormat( zipStream ) );
-        
+
         assertEquals( '<', reader.read() );
         assertEquals( '?', reader.read() );
         assertEquals( 'x', reader.read() );

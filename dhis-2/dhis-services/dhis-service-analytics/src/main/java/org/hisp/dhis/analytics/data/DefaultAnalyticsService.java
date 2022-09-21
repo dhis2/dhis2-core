@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,10 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+<<<<<<< HEAD
 import static org.hisp.dhis.analytics.DataQueryParams.Builder;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
@@ -67,9 +71,17 @@ import static org.hisp.dhis.common.ReportingRateMetric.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
+=======
+import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetFromGrid;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
+import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 
 import java.util.ArrayList;
+<<<<<<< HEAD
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -80,29 +92,35 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+=======
+import java.util.List;
+import java.util.Map;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.DimensionItem;
-import org.hisp.dhis.analytics.OutputFormat;
-import org.hisp.dhis.analytics.ProcessingHint;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
+<<<<<<< HEAD
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+=======
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.data.handling.DataAggregator;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+<<<<<<< HEAD
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -117,14 +135,25 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.common.ValueType;
+=======
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.CombinationGenerator;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+<<<<<<< HEAD
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+<<<<<<< HEAD
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -136,15 +165,22 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.system.grid.ListGrid;
+<<<<<<< HEAD
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.hisp.dhis.visualization.Visualization;
 
+=======
+import org.hisp.dhis.visualization.Visualization;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+<<<<<<< HEAD
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -152,6 +188,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Lars Helge Overland
@@ -161,6 +199,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultAnalyticsService
     implements AnalyticsService
 {
+<<<<<<< HEAD
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
 
@@ -168,72 +207,66 @@ public class DefaultAnalyticsService
 
     private final RawAnalyticsManager rawAnalyticsManager;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final AnalyticsSecurityManager securityManager;
-
-    private final QueryPlanner queryPlanner;
 
     private final QueryValidator queryValidator;
 
-    private final ExpressionService expressionService;
-
-    private final ConstantService constantService;
-
-    private final OrganisationUnitService organisationUnitService;
-
-    private final SystemSettingManager systemSettingManager;
-
-    private final EventAnalyticsService eventAnalyticsService;
-
     private final DataQueryService dataQueryService;
 
-    private final ExpressionResolver resolver;
-
     private final AnalyticsCache analyticsCache;
+
+<<<<<<< HEAD
+    private final AnalyticsCache analyticsCache;
+=======
+    private final DataAggregator dataAggregator;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
     @Autowired
+<<<<<<< HEAD
     public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
         AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
         ConstantService constantService, ExpressionService expressionService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService, ExpressionResolver resolver,
         AnalyticsCache analyticsCache )
+=======
+    public DefaultAnalyticsService( AnalyticsSecurityManager securityManager, QueryValidator queryValidator,
+        DataQueryService dataQueryService, AnalyticsCache analyticsCache, DataAggregator dataAggregator )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
-        checkNotNull( analyticsManager );
-        checkNotNull( rawAnalyticsManager );
         checkNotNull( securityManager );
-        checkNotNull( queryPlanner );
         checkNotNull( queryValidator );
-        checkNotNull( constantService );
-        checkNotNull( expressionService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( systemSettingManager );
-        checkNotNull( eventAnalyticsService );
         checkNotNull( dataQueryService );
+<<<<<<< HEAD
         checkNotNull( resolver );
         checkNotNull(analyticsCache);
+=======
+        checkNotNull( analyticsCache );
+        checkNotNull( dataAggregator );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-        this.analyticsManager = analyticsManager;
-        this.rawAnalyticsManager = rawAnalyticsManager;
         this.securityManager = securityManager;
-        this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
-        this.constantService = constantService;
-        this.expressionService = expressionService;
-        this.organisationUnitService = organisationUnitService;
-        this.systemSettingManager = systemSettingManager;
-        this.eventAnalyticsService = eventAnalyticsService;
         this.dataQueryService = dataQueryService;
+<<<<<<< HEAD
         this.resolver = resolver;
         this.analyticsCache = analyticsCache;
+=======
+        this.analyticsCache = analyticsCache;
+        this.dataAggregator = dataAggregator;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
+<<<<<<< HEAD
         // ---------------------------------------------------------------------
         // Decide access, add constraints and validate
         // ---------------------------------------------------------------------
@@ -242,52 +275,65 @@ public class DefaultAnalyticsService
 
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withUserConstraints( params );
+=======
+        params = checkSecurityConstraints( params );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         queryValidator.validate( params );
 
         if ( analyticsCache.isEnabled() )
         {
+<<<<<<< HEAD
             final DataQueryParams immutableParams = DataQueryParams.newBuilder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedDataValueGridInternal( immutableParams ) );
+=======
+            final DataQueryParams immutableParams = newBuilder( params ).build();
+
+            return analyticsCache.getOrFetch( params,
+                p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
-        return getAggregatedDataValueGridInternal( params );
+        return dataAggregator.getAggregatedDataValueGrid( params );
     }
 
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        return AnalyticsUtils.isTableLayout( columns, rows ) ?
-            getAggregatedDataValuesTableLayout( params, columns, rows ) :
-            getAggregatedDataValues( params );
+        return isTableLayout( columns, rows ) ? getAggregatedDataValuesTableLayout( params, columns, rows )
+            : getAggregatedDataValues( params );
     }
 
     @Override
     public Grid getRawDataValues( DataQueryParams params )
     {
+<<<<<<< HEAD
         securityManager.decideAccess( params );
 
         params = securityManager.withDataApprovalConstraints( params );
         params = securityManager.withUserConstraints( params );
+=======
+        params = checkSecurityConstraints( params );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         queryValidator.validate( params );
 
-        return getRawDataGrid( params );
+        return dataAggregator.getRawDataGrid( params );
     }
 
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
-        DataQueryParams query = DataQueryParams.newBuilder( params )
+        DataQueryParams query = newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
             .withIncludeNumDen( false )
-            .withOutputFormat( OutputFormat.DATA_VALUE_SET )
+            .withOutputFormat( DATA_VALUE_SET )
             .build();
 
-        Grid grid = getAggregatedDataValueGridInternal( query );
+        Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
 
-        return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
+        return getDataValueSetFromGrid( params, grid );
     }
 
     @Override
@@ -301,7 +347,7 @@ public class DefaultAnalyticsService
     @Override
     public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
     {
-        Grid grid = getAggregatedDataValues( DataQueryParams.newBuilder( params )
+        Grid grid = getAggregatedDataValues( newBuilder( params )
             .withIncludeNumDen( false ).build() );
 
         return AnalyticsUtils.getAggregatedDataValueMapping( grid );
@@ -327,80 +373,24 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a grid with aggregated data.
+     * Check the common security constraints that should be applied to the given
+     * params. Decide access, add constraints and validate.
      *
-     * @param params the {@link DataQueryParams}.
-     * @return a grid with aggregated data.
+     * @param params
+     * @return the params after the security constraints appliance.
      */
-    private Grid getAggregatedDataValueGridInternal( DataQueryParams params )
+    private DataQueryParams checkSecurityConstraints( DataQueryParams params )
     {
-        params = preHandleQuery( params );
+        securityManager.decideAccess( params );
 
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
-
-        Grid grid = new ListGrid();
-
-        addHeaders( params, grid );
-
-        // ---------------------------------------------------------------------
-        // Data
-        // ---------------------------------------------------------------------
-
-        addIndicatorValues( params, grid );
-
-        addDataElementValues( params, grid );
-
-        addDataElementOperandValues( params, grid );
-
-        addReportingRates( params, grid );
-
-        addProgramDataElementAttributeIndicatorValues( params, grid );
-
-        addDynamicDimensionValues( params, grid );
-
-        addValidationResultValues( params, grid );
-
-        // ---------------------------------------------------------------------
-        // Meta-data
-        // ---------------------------------------------------------------------
-
-        addMetaData( params, grid );
-
-        handleDataValueSet( params, grid );
-
-        applyIdScheme( params, grid );
-
-        postHandleGrid( params, grid );
-
-        return grid;
-    }
-
-    /**
-     * Performs pre-handling of the given query and returns the immutable,
-     * handled query. If the query has a single indicator as item for the data
-     * filter, the filter is set as a dimension and removed as a filter.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return a {@link DataQueryParams}.
-     */
-    private DataQueryParams preHandleQuery( DataQueryParams params )
-    {
-        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleReportingRateAsDataFilter() )
-        {
-            DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
-
-            params = DataQueryParams.newBuilder( params )
-                .addDimension( dx )
-                .removeFilter( DATA_X_DIM_ID )
-                .addProcessingHint( ProcessingHint.SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM ).build();
-        }
+        params = securityManager.withDataApprovalConstraints( params );
+        params = securityManager.withUserConstraints( params );
 
         return params;
     }
 
     /**
+<<<<<<< HEAD
      * Performs post-handling of the given grid. If the query has the single
      * indicator as data filter item, the column at the data dimension index is
      * removed. If the query has sorting order, then the grid is ordered on the
@@ -977,6 +967,8 @@ public class DefaultAnalyticsService
     }
 
     /**
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * Returns a Grid with aggregated data in table layout.
      *
      * @param params the {@link DataQueryParams}.
@@ -990,8 +982,8 @@ public class DefaultAnalyticsService
 
         Grid grid = getAggregatedDataValues( params );
 
-        ListUtils.removeEmptys( columns );
-        ListUtils.removeEmptys( rows );
+        removeEmptys( columns );
+        removeEmptys( rows );
 
         queryValidator.validateTableLayout( params, columns, rows );
 
@@ -1004,6 +996,11 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : columns )
             {
+<<<<<<< HEAD
+=======
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                 visualization.getColumnDimensions().add( dimension );
                 tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
@@ -1013,6 +1010,11 @@ public class DefaultAnalyticsService
         {
             for ( String dimension : rows )
             {
+<<<<<<< HEAD
+=======
+                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                 visualization.getRowDimensions().add( dimension );
                 tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
@@ -1032,6 +1034,7 @@ public class DefaultAnalyticsService
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
+<<<<<<< HEAD
         return visualization.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 
@@ -1413,5 +1416,9 @@ public class DefaultAnalyticsService
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
 
         return (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
+=======
+        return visualization.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap,
+            params.getDisplayProperty(), false );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.scheduling;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,14 @@ package org.hisp.dhis.sms.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.scheduling;
 
+<<<<<<< HEAD
+=======
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import java.util.Date;
 import java.util.List;
 
@@ -45,9 +54,12 @@ import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 @Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob
     extends AbstractJob
@@ -99,7 +111,8 @@ public class SendScheduledMessageJob
     {
         if ( !smsSender.isConfigured() )
         {
-            return new ErrorReport( SendScheduledMessageJob.class, ErrorCode.E7010, "SMS gateway configuration does not exist" );
+            return new ErrorReport( SendScheduledMessageJob.class, ErrorCode.E7010,
+                "SMS gateway configuration does not exist" );
         }
 
         return super.validate();
@@ -111,7 +124,7 @@ public class SendScheduledMessageJob
 
     private void sendMessages()
     {
-        List<OutboundSms> outboundSmsList = outboundSmsService.getOutboundSms( OutboundSmsStatus.OUTBOUND );
+        List<OutboundSms> outboundSmsList = outboundSmsService.get( OutboundSmsStatus.OUTBOUND );
 
         if ( outboundSmsList != null )
         {

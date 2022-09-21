@@ -1,4 +1,5 @@
 package org.hisp.dhis.helpers.extensions;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -27,13 +28,21 @@ package org.hisp.dhis.helpers.extensions;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+
 
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.config.JsonConfig;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.cookie.CookieFilter;
 import io.restassured.filter.session.SessionFilter;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
+import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.specification.RequestSpecification;
 import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -49,7 +58,15 @@ public class ConfigurationExtension
     public void beforeAll( ExtensionContext context )
     {
         RestAssured.baseURI = TestConfiguration.get().baseUrl();
+<<<<<<< HEAD
+=======
+
+        RestAssured.config = RestAssuredConfig.config()
+            .jsonConfig( new JsonConfig().numberReturnType( JsonPathConfig.NumberReturnType.BIG_DECIMAL ) );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();
     }

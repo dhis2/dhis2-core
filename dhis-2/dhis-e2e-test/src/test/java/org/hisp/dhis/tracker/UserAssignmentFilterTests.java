@@ -1,4 +1,5 @@
 package org.hisp.dhis.tracker;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -27,6 +28,10 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
@@ -35,6 +40,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
@@ -88,12 +94,16 @@ public class UserAssignmentFilterTests
         userUsername = "EventFiltersUser" + DataGenerator.randomString();
 
         loginActions.loginAsSuperUser();
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
 
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
+<<<<<<< HEAD
         userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
+=======
+        userActions.addRoleToUser( userId, "yrB6vc5Ip7r" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
@@ -191,7 +201,7 @@ public class UserAssignmentFilterTests
     private ApiResponse createEvents( Object body )
         throws Exception
     {
-        ApiResponse eventResponse = eventActions.post( body );
+        ApiResponse eventResponse = eventActions.post( body, new QueryParamsBuilder().add(  "skipCache=true" ) );
 
         eventResponse.validate().statusCode( 200 );
 

@@ -1,7 +1,9 @@
-package org.hisp.dhis.validation.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,18 @@ package org.hisp.dhis.validation.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 import java.util.*;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -54,8 +62,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Stian Sandvold
  */
@@ -87,14 +98,14 @@ public class HibernateValidationResultStore
     public List<ValidationResult> getAllUnreportedValidationResults()
     {
         return getQuery( "from ValidationResult vr where vr.notificationSent = false"
-            + getRestrictions( "and") ).list();
+            + getRestrictions( "and" ) ).list();
     }
 
     @Override
     public ValidationResult getById( long id )
     {
         return getSingleResult( getQuery( "from ValidationResult vr where vr.id = :id"
-            + getRestrictions( "and") ).setParameter( "id", id ) );
+            + getRestrictions( "and" ) ).setParameter( "id", id ) );
     }
 
     @Override
@@ -115,7 +126,8 @@ public class HibernateValidationResultStore
     @Override
     public int count( ValidationResultQuery validationResultQuery )
     {
-        Query<Long> hibernateQuery = getTypedQuery(  "select count(*) from ValidationResult vr" + getRestrictions( "where" ) );
+        Query<Long> hibernateQuery = getTypedQuery(
+            "select count(*) from ValidationResult vr" + getRestrictions( "where" ) );
 
         return hibernateQuery.getSingleResult().intValue();
     }
@@ -131,12 +143,13 @@ public class HibernateValidationResultStore
 
         String orgUnitFilter = orgUnit == null ? "" : "vr.organisationUnit.path like :orgUnitPath and ";
 
-        Query<ValidationResult> query = getQuery( "from ValidationResult vr where " + orgUnitFilter + "vr.validationRule in :validationRules and vr.period in :periods " );
+        Query<ValidationResult> query = getQuery( "from ValidationResult vr where " + orgUnitFilter
+            + "vr.validationRule in :validationRules and vr.period in :periods " );
 
         if ( orgUnit != null )
         {
             query.setParameter( "orgUnitPath", orgUnit.getPath()
-                + ( includeOrgUnitDescendants ? "%" : "" ) );
+                + (includeOrgUnitDescendants ? "%" : "") );
         }
 
         query.setParameter( "validationRules", validationRules );
@@ -157,12 +170,12 @@ public class HibernateValidationResultStore
     // -------------------------------------------------------------------------
 
     /**
-     * If we should, restrict which validation results the user is entitled
-     * to see, based on the user's organisation units and on the user's
-     * dimension constraints if the user has them.
+     * If we should, restrict which validation results the user is entitled to
+     * see, based on the user's organisation units and on the user's dimension
+     * constraints if the user has them.
      * <p>
-     * If the current user is null (e.g. running a system process or
-     * a JUnit test) or superuser, there is no restriction.
+     * If the current user is null (e.g. running a system process or a JUnit
+     * test) or superuser, there is no restriction.
      *
      * @param whereAnd "where" or "and", to add restrictions to where clause.
      * @return String to add restrictions to the HQL query.
@@ -188,7 +201,7 @@ public class HibernateValidationResultStore
         {
             for ( OrganisationUnit ou : userOrgUnits )
             {
-                restrictions += ( restrictions.length() == 0 ? " " + whereAnd + " (" : " or " )
+                restrictions += (restrictions.length() == 0 ? " " + whereAnd + " (" : " or ")
                     + "locate('" + ou.getUid() + "',vr.organisationUnit.path) <> 0";
             }
             restrictions += ")";
@@ -203,12 +216,13 @@ public class HibernateValidationResultStore
 
         if ( !CollectionUtils.isEmpty( categories ) )
         {
-            String validCategoryOptionByCategory =
-                isReadable( "co", user ) +
+            String validCategoryOptionByCategory = isReadable( "co", user ) +
                 " and exists (select 'x' from Category c where co in elements(c.categoryOptions)" +
-                " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," ) + ") )";
+                " and c.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( categories ), "," )
+                + ") )";
 
-            restrictions += " " + whereAnd + " 1 = (select min(case when " +  validCategoryOptionByCategory + " then 1 else 0 end)" +
+            restrictions += " " + whereAnd + " 1 = (select min(case when " + validCategoryOptionByCategory
+                + " then 1 else 0 end)" +
                 " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
 
@@ -223,15 +237,14 @@ public class HibernateValidationResultStore
 
         if ( !CollectionUtils.isEmpty( cogsets ) )
         {
-            String validCategoryOptionByCategoryOptionGroup =
-                "exists (select 'x' from CategoryOptionGroup g" +
-                    " join g.groupSets s" +
-                    " where g.id in elements(co.groups)" +
-                    " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
-                    " and " + isReadable( "g", user ) + " )";
+            String validCategoryOptionByCategoryOptionGroup = "exists (select 'x' from CategoryOptionGroup g" +
+                " join g.groupSets s" +
+                " where g.id in elements(co.groups)" +
+                " and s.id in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( cogsets ), "," ) + ")" +
+                " and " + isReadable( "g", user ) + " )";
 
             restrictions += " " + whereAnd +
-                " 1 = (select min(case when " +  validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
+                " 1 = (select min(case when " + validCategoryOptionByCategoryOptionGroup + " then 1 else 0 end)" +
                 " from CategoryOption co" +
                 " where co in elements(vr.attributeOptionCombo.categoryOptions) )";
         }
@@ -242,8 +255,8 @@ public class HibernateValidationResultStore
     }
 
     /**
-     * Returns a HQL string that determines whether an object is readable
-     * by a user.
+     * Returns a HQL string that determines whether an object is readable by a
+     * user.
      *
      * @param x the object to test for readability.
      * @param u the user who might be able to read the object.

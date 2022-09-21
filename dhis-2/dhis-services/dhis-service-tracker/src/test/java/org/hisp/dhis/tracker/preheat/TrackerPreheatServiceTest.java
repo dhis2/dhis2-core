@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,26 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+<<<<<<< HEAD
 import com.google.common.collect.Lists;
 import org.hisp.dhis.IntegrationTestBase;
+=======
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -56,6 +75,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+<<<<<<< HEAD
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +85,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+=======
+import com.google.common.collect.Lists;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,6 +113,8 @@ public class TrackerPreheatServiceTest
     @Override
     protected void setUpTest()
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
     }
@@ -101,7 +126,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testEventMetadata() throws IOException
+    public void testEventMetadata()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -119,7 +145,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testCollectIdentifiersSimple() throws IOException
+    public void testCollectIdentifiersSimple()
+        throws IOException
     {
         TrackerBundleParams params = new TrackerBundleParams();
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
@@ -127,10 +154,12 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testCollectIdentifiersEvents() throws IOException
+    public void testCollectIdentifiersEvents()
+        throws IOException
     {
-        TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class );
+        TrackerBundleParams params = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );
@@ -139,6 +168,12 @@ public class TrackerPreheatServiceTest
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
 
         assertTrue( collectedMap.containsKey( DataElement.class ) );
+        assertTrue( collectedMap.containsKey( Program.class ) );
+        assertTrue( collectedMap.containsKey( ProgramStage.class ) );
+        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
+        assertTrue( collectedMap.containsKey( CategoryOptionCombo.class ) );
+        assertTrue( collectedMap.containsKey( CategoryOption.class ) );
+
         Set<String> dataElements = collectedMap.get( DataElement.class );
 
         assertTrue( dataElements.contains( "DSKTW8qFP0z" ) );
@@ -161,13 +196,16 @@ public class TrackerPreheatServiceTest
         assertTrue( dataElements.contains( "gfEoDU4GtXK" ) );
         assertTrue( dataElements.contains( "qw67QlOlzdp" ) );
 
-        assertTrue( collectedMap.containsKey( Program.class ) );
-        assertTrue( collectedMap.containsKey( ProgramStage.class ) );
-        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
+        Set<String> categoryCombos = collectedMap.get( CategoryOptionCombo.class );
+        assertTrue( categoryCombos.contains( "HllvX50cXC0" ) );
+
+        Set<String> categoryOptions = collectedMap.get( CategoryOption.class );
+        assertTrue( categoryOptions.contains( "xYerKDKCefk" ) );
     }
 
     @Test
     public void testCollectIdentifiersAttributeValues()
+<<<<<<< HEAD
     {
         TrackerBundleParams params = TrackerBundleParams.builder()
             .identifiers( TrackerIdentifierParams.builder()
@@ -200,9 +238,47 @@ public class TrackerPreheatServiceTest
 
     @Test
     public void testPreheatValidation() throws IOException
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
-        TrackerBundle bundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundleParams params = TrackerBundleParams.builder()
+            .identifiers( TrackerIdentifierParams.builder()
+                .idScheme(
+                    TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" ).build() )
+                .build() )
+            .trackedEntities( Lists.newArrayList(
+                TrackedEntity.builder()
+                    .trackedEntity( "TEI12345678" )
+                    .orgUnit( "OU123456789" )
+                    .build() ) )
+            .build();
+
+        assertFalse( params.getTrackedEntities().isEmpty() );
+        assertTrue( params.getEnrollments().isEmpty() );
+        assertTrue( params.getEvents().isEmpty() );
+
+        Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
+
+        assertTrue( collectedMap.containsKey( TrackedEntity.class ) );
+        Set<String> trackedEntities = collectedMap.get( TrackedEntity.class );
+
+        assertTrue( collectedMap.containsKey( OrganisationUnit.class ) );
+        Set<String> organisationUnits = collectedMap.get( OrganisationUnit.class );
+
+        assertTrue( organisationUnits.contains( "OU123456789" ) );
+        assertEquals( 1, organisationUnits.size() );
+        assertTrue( trackedEntities.contains( "TEI12345678" ) );
+        assertEquals( 1, trackedEntities.size() );
+    }
+
+    @Test
+    public void testPreheatValidation()
+        throws IOException
+    {
+        TrackerBundle bundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertTrue( bundle.getTrackedEntities().isEmpty() );
         assertTrue( bundle.getEnrollments().isEmpty() );
@@ -213,7 +289,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testPreheatEvents() throws IOException
+    public void testPreheatEvents()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -229,8 +306,10 @@ public class TrackerPreheatServiceTest
 
         objectBundleService.commit( objectBundle );
 
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
         assertTrue( trackerBundle.getEnrollments().isEmpty() );
@@ -253,5 +332,12 @@ public class TrackerPreheatServiceTest
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( OrganisationUnit.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( Program.class ) );
         assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( ProgramStage.class ) );
+<<<<<<< HEAD
+=======
+        assertNotNull( preheat.getMap().get( TrackerIdScheme.UID ).get( CategoryOptionCombo.class ) );
+
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOptionCombo.class, "XXXvX50cXC0" ) );
+        assertNotNull( preheat.get( TrackerIdScheme.UID, CategoryOption.class, "XXXrKDKCefk" ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

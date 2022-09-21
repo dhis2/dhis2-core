@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.sync;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.sync;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,6 +37,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -52,8 +60,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Import handler for metadata sync service
  *
@@ -61,7 +72,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class MetadataSyncImportHandler
 {
     @Autowired
@@ -107,8 +118,8 @@ public class MetadataSyncImportHandler
         catch ( Exception e )
         {
             String message = "Exception occurred while trying to import the metadata. " + e.getMessage();
-            log.error( message,e );
-            throw new MetadataSyncImportException( message,e );
+            log.error( message, e );
+            throw new MetadataSyncImportException( message, e );
         }
 
         boolean addNewVersion = handleImportReport( importReport, version );
@@ -132,9 +143,9 @@ public class MetadataSyncImportHandler
         return metadataSyncSummary;
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private boolean handleImportReport( ImportReport importReport, MetadataVersion version )
     {

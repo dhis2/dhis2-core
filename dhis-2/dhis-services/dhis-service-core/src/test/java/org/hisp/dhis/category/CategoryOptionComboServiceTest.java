@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.category;
 
 /*
@@ -364,6 +365,376 @@ public class CategoryOptionComboServiceTest
 
         assertNotNull( categoryOptionCombos );
         assertEquals( 4, categoryOptionCombos.size() ); // Including default category option combo
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.category;
+
+import static org.junit.Assert.*;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.ValueType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+/**
+ * @author Lars Helge Overland
+ */
+public class CategoryOptionComboServiceTest
+    extends DhisSpringTest
+{
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private AttributeService attributeService;
+
+    private Category categoryA;
+
+    private Category categoryB;
+
+    private CategoryCombo categoryComboA;
+
+    private CategoryCombo categoryComboB;
+
+    private CategoryOption categoryOptionA;
+
+    private CategoryOption categoryOptionB;
+
+    private CategoryOption categoryOptionC;
+
+    private CategoryOption categoryOptionD;
+
+    private CategoryOptionCombo categoryOptionComboA;
+
+    private CategoryOptionCombo categoryOptionComboB;
+
+    private CategoryOptionCombo categoryOptionComboC;
+
+    // -------------------------------------------------------------------------
+    // Fixture
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void setUpTest()
+        throws Exception
+    {
+        categoryOptionA = new CategoryOption( "Male" );
+        categoryOptionB = new CategoryOption( "Female" );
+        categoryOptionC = new CategoryOption( "0-20" );
+        categoryOptionD = new CategoryOption( "20-100" );
+
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategoryOption( categoryOptionC );
+        categoryService.addCategoryOption( categoryOptionD );
+
+        categoryA = new Category( "Gender", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
+
+        categoryA.addCategoryOption( categoryOptionA );
+        categoryA.addCategoryOption( categoryOptionB );
+        categoryB.addCategoryOption( categoryOptionC );
+        categoryB.addCategoryOption( categoryOptionD );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        categoryComboA = new CategoryCombo( "GenderAgegroup", DataDimensionType.DISAGGREGATION );
+        categoryComboB = new CategoryCombo( "Gender", DataDimensionType.DISAGGREGATION );
+
+        categoryComboA.addCategory( categoryA );
+        categoryComboA.addCategory( categoryB );
+        categoryComboB.addCategory( categoryA );
+
+        categoryService.addCategoryCombo( categoryComboA );
+        categoryService.addCategoryCombo( categoryComboB );
+    }
+
+    // -------------------------------------------------------------------------
+    // Tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testAddGetCategoryOptionCombo()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionB );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
+        long id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+
+        categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
+
+        assertNotNull( categoryOptionComboA );
+        assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
+        assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
+    }
+
+    @Test
+    public void testUpdateGetCategoryOptionCombo()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
+        long id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+
+        categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
+
+        assertNotNull( categoryOptionComboA );
+        assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
+        assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboB );
+
+        categoryService.updateCategoryOptionCombo( categoryOptionComboA );
+
+        categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
+
+        assertNotNull( categoryOptionComboA );
+        assertEquals( categoryComboB, categoryOptionComboA.getCategoryCombo() );
+        assertEquals( categoryOptions, categoryOptionComboA.getCategoryOptions() );
+    }
+
+    @Test
+    public void testDeleteCategoryOptionCombo()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+        categoryOptionComboB = new CategoryOptionCombo();
+        categoryOptionComboC = new CategoryOptionCombo();
+
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboB.setCategoryCombo( categoryComboA );
+        categoryOptionComboC.setCategoryCombo( categoryComboA );
+
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+        categoryOptionComboB.setCategoryOptions( categoryOptions );
+        categoryOptionComboC.setCategoryOptions( categoryOptions );
+
+        long idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        long idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
+
+        assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategoryOptionCombo( categoryService.getCategoryOptionCombo( idA ) );
+
+        assertNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategoryOptionCombo( categoryService.getCategoryOptionCombo( idB ) );
+
+        assertNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategoryOptionCombo( categoryService.getCategoryOptionCombo( idC ) );
+
+        assertNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNull( categoryService.getCategoryOptionCombo( idC ) );
+    }
+
+    @Test
+    public void testDeleteCategoryOptionComboLinkedToCategory()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+        categoryOptionComboB = new CategoryOptionCombo();
+        categoryOptionComboC = new CategoryOptionCombo();
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboB.setCategoryCombo( categoryComboA );
+        categoryOptionComboC.setCategoryCombo( categoryComboA );
+
+        categoryOptionComboA.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionC ) );
+        categoryOptionComboB.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionB ) );
+        categoryOptionComboC.setCategoryOptions( Sets.newHashSet( categoryOptionB, categoryOptionC ) );
+
+        long idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        long idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
+
+        categoryComboA.setCategories( Lists.newArrayList( categoryA ) );
+        categoryComboA
+            .setOptionCombos( Sets.newHashSet( categoryOptionComboA, categoryOptionComboB, categoryOptionComboC ) );
+
+        categoryService.updateCategoryCombo( categoryComboA );
+
+        categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA ) );
+
+        categoryService.updateCategory( categoryA );
+
+        assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategoryOptionCombo( categoryService.getCategoryOptionCombo( idA ) );
+
+        assertNull( categoryService.getCategoryOptionCombo( idA ) );
+        Set<CategoryOptionCombo> optionCombos = categoryService.getCategory( categoryA.getId() ).getCategoryCombos()
+            .stream().flatMap( cc -> cc.getOptionCombos().stream() ).collect( Collectors.toSet() );
+        assertFalse( optionCombos.contains( categoryOptionComboA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertTrue( optionCombos.contains( categoryOptionComboB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+        assertTrue( optionCombos.contains( categoryOptionComboC ) );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDeleteCategory()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+        categoryOptionComboB = new CategoryOptionCombo();
+        categoryOptionComboC = new CategoryOptionCombo();
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboB.setCategoryCombo( categoryComboA );
+        categoryOptionComboC.setCategoryCombo( categoryComboA );
+
+        categoryOptionComboA.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionC ) );
+        categoryOptionComboB.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionB ) );
+        categoryOptionComboC.setCategoryOptions( Sets.newHashSet( categoryOptionB, categoryOptionC ) );
+
+        long idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        long idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
+
+        categoryComboA.setCategories( Lists.newArrayList( categoryA ) );
+        categoryComboA
+            .setOptionCombos( Sets.newHashSet( categoryOptionComboA, categoryOptionComboB, categoryOptionComboC ) );
+
+        categoryService.updateCategoryCombo( categoryComboA );
+
+        categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA ) );
+
+        categoryService.updateCategory( categoryA );
+
+        assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategory( categoryA );
+    }
+
+    @Test
+    public void testDeleteCategoryCombo()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+        categoryOptionComboB = new CategoryOptionCombo();
+        categoryOptionComboC = new CategoryOptionCombo();
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboB.setCategoryCombo( categoryComboA );
+        categoryOptionComboC.setCategoryCombo( categoryComboA );
+
+        categoryOptionComboA.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionC ) );
+        categoryOptionComboB.setCategoryOptions( Sets.newHashSet( categoryOptionA, categoryOptionB ) );
+        categoryOptionComboC.setCategoryOptions( Sets.newHashSet( categoryOptionB, categoryOptionC ) );
+
+        long idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        long idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
+
+        long comboId = categoryComboA.getId();
+
+        categoryComboA.setCategories( Lists.newArrayList( categoryA ) );
+        categoryComboA
+            .setOptionCombos( Sets.newHashSet( categoryOptionComboA, categoryOptionComboB, categoryOptionComboC ) );
+
+        categoryService.updateCategoryCombo( categoryComboA );
+
+        categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA ) );
+
+        categoryService.updateCategory( categoryA );
+
+        assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
+
+        categoryService.deleteCategoryCombo( categoryComboA );
+
+        assertNull( categoryService.getCategoryCombo( comboId ) );
+        assertNull( categoryService.getCategoryOptionCombo( idA ) );
+        assertNull( categoryService.getCategoryOptionCombo( idB ) );
+        assertNull( categoryService.getCategoryOptionCombo( idC ) );
+    }
+
+    @Test
+    public void testGetAllCategoryOptionCombos()
+    {
+        categoryOptionComboA = new CategoryOptionCombo();
+        categoryOptionComboB = new CategoryOptionCombo();
+        categoryOptionComboC = new CategoryOptionCombo();
+
+        Set<CategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionC );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboB.setCategoryCombo( categoryComboA );
+        categoryOptionComboC.setCategoryCombo( categoryComboA );
+
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+        categoryOptionComboB.setCategoryOptions( categoryOptions );
+        categoryOptionComboC.setCategoryOptions( categoryOptions );
+
+        categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        categoryService.addCategoryOptionCombo( categoryOptionComboC );
+
+        List<CategoryOptionCombo> categoryOptionCombos = categoryService.getAllCategoryOptionCombos();
+
+        assertNotNull( categoryOptionCombos );
+        assertEquals( 4, categoryOptionCombos.size() ); // Including default
+        // category option combo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.validation;
 
 /*
@@ -256,6 +257,269 @@ public class ValidationResult
      * @param other The other ValidationResult to compare with.
      * @return a negative integer, zero, or a positive integer as this object
      *         is less than, equal to, or greater than the specified object.
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.validation;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.apache.commons.lang.builder.CompareToBuilder;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+/**
+ * Class representing a validation violation. The validationRule, period and org
+ * unit properties make up a composite unique key.
+ *
+ * @author Margrethe Store
+ */
+@JacksonXmlRootElement( localName = "validationResult", namespace = DxfNamespaces.DXF_2_0 )
+public class ValidationResult
+    implements Comparable<ValidationResult>, Serializable
+{
+    private long id;
+
+    private Date created;
+
+    private ValidationRule validationRule;
+
+    private Period period;
+
+    private OrganisationUnit organisationUnit;
+
+    private CategoryOptionCombo attributeOptionCombo;
+
+    /**
+     * The leftsideValue at the time of the violation
+     */
+    private Double leftsideValue;
+
+    /**
+     * The rightsideValue at the time of the violation
+     */
+    private Double rightsideValue;
+
+    /**
+     * This property is a reference to which data was used to generate the
+     * result. For rules comparing fixed periods, this dayInPeriod only
+     * indicates when in a period the validation was done For rules comparing
+     * sliding windows, this will indicate where the end-position of the sliding
+     * window was during the validation (IE: the window will span over the days:
+     * (period.startDate + dayInPeriod - period.daysInPeriod) to
+     * (period.startDate + dayInPeriod)
+     */
+    private int dayInPeriod;
+
+    /**
+     * Indicated whether this ValidationResult has generated a notification for
+     * users or not.
+     */
+    private Boolean notificationSent = false;
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
+    public ValidationResult()
+    {
+    }
+
+    public ValidationResult( ValidationRule validationRule, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo,
+        Double leftsideValue, Double rightsideValue, int dayInPeriod )
+    {
+        this.validationRule = validationRule;
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.leftsideValue = leftsideValue;
+        this.rightsideValue = rightsideValue;
+        this.dayInPeriod = dayInPeriod;
+    }
+
+    public String getUid()
+    {
+        return validationRule != null ? validationRule.getUid() : null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Equals, compareTo, hashCode and toString
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((validationRule == null) ? 0 : validationRule.hashCode());
+        result = prime * result + ((period == null) ? 0 : period.hashCode());
+        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
+
+        return result;
+    }
+
+    /**
+     * Note: this method is called from threads in which it may not be possible
+     * to initialize lazy Hibernate properties. So object properties to compare
+     * must be chosen accordingly.
+     */
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        final ValidationResult other = (ValidationResult) object;
+
+        if ( period == null )
+        {
+            if ( other.period != null )
+            {
+                return false;
+            }
+        }
+        else if ( !period.equals( other.period ) )
+        {
+            return false;
+        }
+
+        if ( attributeOptionCombo == null )
+        {
+            if ( other.attributeOptionCombo != null )
+            {
+                return false;
+            }
+        }
+        else if ( attributeOptionCombo.getId() != other.attributeOptionCombo.getId() )
+        {
+            return false;
+        }
+
+        if ( organisationUnit == null )
+        {
+            if ( other.organisationUnit != null )
+            {
+                return false;
+            }
+        }
+        else if ( !organisationUnit.equals( other.organisationUnit ) )
+        {
+            return false;
+        }
+
+        if ( validationRule == null )
+        {
+            if ( other.validationRule != null )
+            {
+                return false;
+            }
+        }
+        else if ( !validationRule.equals( other.validationRule ) )
+        {
+            return false;
+        }
+
+        if ( leftsideValue == null )
+        {
+            if ( other.leftsideValue != null )
+            {
+                return false;
+            }
+        }
+        else if ( other.leftsideValue == null )
+        {
+            return false;
+        }
+        else if ( Math.round( 100.0 * leftsideValue ) != Math.round( 100.0 * other.leftsideValue ) )
+        {
+            return false;
+        }
+
+        if ( rightsideValue == null )
+        {
+            if ( other.rightsideValue != null )
+            {
+                return false;
+            }
+        }
+        else if ( other.rightsideValue == null )
+        {
+            return false;
+        }
+        else if ( Math.round( 100.0 * rightsideValue ) != Math.round( 100.0 * other.rightsideValue ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[Org unit: " + organisationUnit.getUid() +
+            ", period: " + period.getUid() +
+            ", validation rule: " + validationRule.getUid() +
+            "(" + validationRule.getDisplayName() + ")" +
+            ", left side value: " + leftsideValue +
+            ", right side value: " + rightsideValue + "]";
+    }
+
+    /**
+     * Compare ValidationResults so they will be listed in the desired order: by
+     * validationRule, period, attributeOptionCombo and orgUnit.
+     *
+     * @param other The other ValidationResult to compare with.
+     * @return a negative integer, zero, or a positive integer as this object is
+     *         less than, equal to, or greater than the specified object.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     @Override
     public int compareTo( ValidationResult other )

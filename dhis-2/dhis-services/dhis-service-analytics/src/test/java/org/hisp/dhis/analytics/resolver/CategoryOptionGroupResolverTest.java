@@ -1,7 +1,11 @@
 package org.hisp.dhis.analytics.resolver;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,10 @@ package org.hisp.dhis.analytics.resolver;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.analytics.resolver;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
@@ -40,7 +48,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -57,6 +64,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -201,7 +209,7 @@ public class CategoryOptionGroupResolverTest
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( COCS_IN_COG , expressionList.size() );
+        assertEquals( COCS_IN_COG, expressionList.size() );
 
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, buildExpectedExpression( elem1, elem2, cocs1 ) );
     }
@@ -210,19 +218,23 @@ public class CategoryOptionGroupResolverTest
     public void verifySecondElementIsCocThirdElementIsAoc()
     {
         DimensionalItemId dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, elem1,
-                elem2, elem3 );
+            elem2, elem3 );
 
         // #{DEUID.COCUID.AOCUID}
         String exp = createIndicatorExp();
 
         when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
+<<<<<<< HEAD
                 .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+=======
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         String expression = resolver.resolve( exp );
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1 , expressionList.size() );
+        assertEquals( 1, expressionList.size() );
 
         // original expression is returned
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );
@@ -237,13 +249,17 @@ public class CategoryOptionGroupResolverTest
         String exp = "#{" + elem1 + "}";
 
         when( expressionService.getExpressionDimensionalItemIds( exp, INDICATOR_EXPRESSION ) )
+<<<<<<< HEAD
                 .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+=======
+            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         String expression = resolver.resolve( exp );
 
         // split resolved expression into a List of Strings
         List<String> expressionList = Arrays.asList( expression.split( "\\+" ) );
-        assertEquals( 1 , expressionList.size() );
+        assertEquals( 1, expressionList.size() );
 
         // original expression is returned
         collectionsHaveIdenticalValuesIgnoreOrder( expressionList, Lists.newArrayList( exp ) );

@@ -252,6 +252,7 @@ function saveSettings ()
 {
 	var url = "../api/gateways?type=http";
 	var httpFields = jQuery('#genericHTTPFields');
+<<<<<<< HEAD
 	var data = {
 		name: httpFields.find("#name")[0].value,
 		type: "http",
@@ -259,6 +260,17 @@ function saveSettings ()
 		recipientParameter: httpFields.find("#recipientParameter")[0].value,
 		urlTemplate: httpFields.find("#urlTemplate")[0].value
 	};
+=======
+    var data = {
+        name: httpFields.find("#name")[0].value,
+        type: "http",
+        useGet: httpFields.find("#useGet")[0].checked ? true: false,
+        sendUrlParameters: httpFields.find("#sendUrlParameters")[0].checked ? true: false,
+        contentType: httpFields.find("#contentType")[0].value,
+        configurationTemplate: httpFields.find("#configurationTemplate")[0].value,
+        urlTemplate: httpFields.find("#urlTemplate")[0].value
+    };
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 	var newParams = getHttpKeyValueParamsAddedByTheUser(httpFields);
 

@@ -1,7 +1,9 @@
-package org.hisp.dhis.email;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +29,21 @@ package org.hisp.dhis.email;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.email;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.MessageBatchCreatorService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.program.message.ProgramMessage;
 import org.springframework.stereotype.Service;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 @Service( "org.hisp.dhis.email.EmailMessageBatchCreator" )
 public class EmailMessageBatchCreatorService
     implements MessageBatchCreatorService
@@ -50,15 +53,15 @@ public class EmailMessageBatchCreatorService
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
             .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
-            .map(this::createEmailMessage)
+            .map( this::createEmailMessage )
             .collect( Collectors.toList() );
-        
+
         return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
     }
 
     private OutboundMessage createEmailMessage( ProgramMessage programMessage )
     {
         return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
-                programMessage.getRecipients().getEmailAddresses() );
+            programMessage.getRecipients().getEmailAddresses() );
     }
 }

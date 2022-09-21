@@ -1,7 +1,9 @@
-package org.hisp.dhis.feedback;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,13 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
+
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,9 +49,12 @@ public class TypeReportTest
         ObjectReport objectReport1 = new ObjectReport( DataElement.class, 1 );
         ObjectReport objectReport2 = new ObjectReport( DataElement.class, 2 );
 
-        objectReport0.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport1.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport2.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport0
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport1
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport2
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
 
         TypeReport typeReport0 = new TypeReport( DataElement.class );
         typeReport0.addObjectReport( objectReport0 );
@@ -62,9 +68,12 @@ public class TypeReportTest
         ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
         ObjectReport objectReport5 = new ObjectReport( DataElement.class, 5 );
 
-        objectReport3.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport4.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport5.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport3
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport4
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport5
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
 
         TypeReport typeReport1 = new TypeReport( DataElement.class );
         typeReport1.addObjectReport( objectReport0 );
@@ -82,9 +91,12 @@ public class TypeReportTest
         ObjectReport objectReport1 = new ObjectReport( DataElement.class, 1 );
         ObjectReport objectReport2 = new ObjectReport( DataElement.class, 2 );
 
-        objectReport0.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport1.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport2.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport0
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport1
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport2
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
 
         TypeReport typeReport0 = new TypeReport( DataElement.class );
         typeReport0.addObjectReport( objectReport0 );
@@ -98,9 +110,12 @@ public class TypeReportTest
         ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
         ObjectReport objectReport5 = new ObjectReport( DataElement.class, 5 );
 
-        objectReport3.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport4.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
-        objectReport5.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport3
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport4
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport5
+            .addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
 
         TypeReport typeReport1 = new TypeReport( DataElement.class );
         typeReport1.addObjectReport( objectReport3 );

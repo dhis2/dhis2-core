@@ -6,6 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
+<<<<<<< HEAD
     <version>2.35-SNAPSHOT</version>
   </parent>
   
@@ -19,6 +20,19 @@
   
   <dependencies>
     
+=======
+    <version>2.35.8-EMBARGOED</version>
+  </parent>
+  
+  <artifactId>dhis-web-approval</artifactId>
+  <packaging>war</packaging>
+  <name>DHIS Web Approval</name>
+  
+  <build>
+    <finalName>dhis-web-approval</finalName>
+  </build>  
+  <dependencies>    
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>

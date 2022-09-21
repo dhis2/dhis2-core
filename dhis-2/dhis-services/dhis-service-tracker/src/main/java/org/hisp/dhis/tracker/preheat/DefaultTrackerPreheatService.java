@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,9 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
+<<<<<<< HEAD
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.Attribute;
@@ -67,11 +71,62 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+=======
+import static com.google.api.client.util.Preconditions.checkNotNull;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.timer.SystemTimer;
+import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.Restriction;
+import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierCollector;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Lists;
 
 
 /**
@@ -82,6 +137,12 @@ import java.util.Set;
 public class DefaultTrackerPreheatService
     implements TrackerPreheatService
 {
+<<<<<<< HEAD
+=======
+
+    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final SchemaService schemaService;
 
     private final QueryService queryService;
@@ -98,8 +159,11 @@ public class DefaultTrackerPreheatService
 
     private final ProgramStageInstanceStore programStageInstanceStore;
 
+<<<<<<< HEAD
     private final IdentifiableObjectManager identifiableObjectManager;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final RelationshipStore relationshipStore;
 
     private List<TrackerPreheatHook> preheatHooks = new ArrayList<>();
@@ -119,7 +183,10 @@ public class DefaultTrackerPreheatService
         TrackedEntityInstanceStore trackedEntityInstanceStore,
         ProgramInstanceStore programInstanceStore,
         ProgramStageInstanceStore programStageInstanceStore,
+<<<<<<< HEAD
         IdentifiableObjectManager identifiableObjectManager,
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         RelationshipStore relationshipStore )
     {
         this.schemaService = schemaService;
@@ -141,28 +208,46 @@ public class DefaultTrackerPreheatService
         Timer timer = new SystemTimer().start();
 
         TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdentifiers( params.getIdentifiers() );
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
+        User importingUser = getImportingUser( preheat.getUser() );
+        preheat.setUser( importingUser );
 
+<<<<<<< HEAD
         if ( preheat.getUser() == null )
         {
             preheat.setUser( currentUserService.getCurrentUser() );
         }
+=======
+        checkNotNull( preheat.getUser(), "Preheater is missing the user object." );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         Map<Class<?>, Set<String>> identifierMap = TrackerIdentifierCollector.collect( params );
 
         for ( Class<?> klass : identifierMap.keySet() )
         {
+<<<<<<< HEAD
             Set<String> identifiers = identifierMap
                 .get( klass ); // assume UID for now, will be done according to IdSchemes
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
+=======
+            Set<String> identifiers = identifierMap.get( klass );
+
+            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             if ( klass.isAssignableFrom( TrackedEntity.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
+<<<<<<< HEAD
                     List<TrackedEntityInstance> trackedEntityInstances =
                         trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
+=======
+                    List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
+                        preheat.getUser() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                     preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
                 }
             }
@@ -211,6 +296,23 @@ public class DefaultTrackerPreheatService
 
                 queryForIdentifiableObjects( preheat, schema, identifier, splitList );
             }
+<<<<<<< HEAD
+=======
+            else if ( klass.isAssignableFrom( CategoryOptionCombo.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( CategoryOptionCombo.class );
+                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOptionComboIdScheme();
+
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+            }
+            else if ( klass.isAssignableFrom( CategoryOption.class ) )
+            {
+                Schema schema = schemaService.getDynamicSchema( CategoryOption.class );
+                TrackerIdentifier identifier = params.getIdentifiers().getCategoryOption();
+
+                queryForIdentifiableObjects( preheat, schema, identifier, splitList );
+            }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             else if ( klass.isAssignableFrom( Relationship.class ) )
             {
                 for ( List<String> ids : splitList )
@@ -228,9 +330,14 @@ public class DefaultTrackerPreheatService
             }
         }
 
-        // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        // since TrackedEntityTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
         // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
+
+        // since RelationshipTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
@@ -240,6 +347,17 @@ public class DefaultTrackerPreheatService
         List<ProgramInstance> programInstances = programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         programInstances.forEach( pi -> preheat.putEnrollment( TrackerIdScheme.UID, pi.getProgram().getUid(), pi ) );
 
+<<<<<<< HEAD
+=======
+        Set<String> userUids = params.getEvents().stream()
+            .filter( event -> event.getAssignedUser() != null )
+            .map( event -> event.getAssignedUser().getUid() )
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
+
+        preheat.put( TrackerIdentifier.UID, manager.getByUid( User.class, userUids ) );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         preheatHooks.forEach( hook -> hook.preheat( params, preheat ) );
 
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
@@ -250,7 +368,7 @@ public class DefaultTrackerPreheatService
     @Override
     public void validate( TrackerPreheatParams params )
     {
-
+        // TODO: Implement validation
     }
 
     private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
@@ -265,7 +383,11 @@ public class DefaultTrackerPreheatService
         }
     }
 
+<<<<<<< HEAD
     @SuppressWarnings("unchecked")
+=======
+    @SuppressWarnings( "unchecked" )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList )
     {
@@ -278,6 +400,7 @@ public class DefaultTrackerPreheatService
             {
                 Attribute attribute = new Attribute();
                 attribute.setUid( identifier.getValue() );
+<<<<<<< HEAD
                 objects = identifiableObjectManager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
@@ -291,5 +414,33 @@ public class DefaultTrackerPreheatService
 
             preheat.put( identifier, objects );
         }
+=======
+                objects = manager.getAllByAttributeAndValues(
+                    (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
+            }
+            else
+            {
+                Query query = Query.from( schema );
+                query.setUser( preheat.getUser() );
+                query.add( generateRestrictionFromIdentifiers( idScheme, ids ) );
+                query.setDefaults( Defaults.INCLUDE );
+                objects = queryService.query( query );
+            }
+
+            preheat.put( identifier, objects );
+        }
+    }
+
+    private User getImportingUser( User user )
+    {
+        // ıf user already set, reload the user to make sure its loaded in the
+        // current tx
+        if ( user != null )
+        {
+            return manager.get( User.class, user.getUid() );
+        }
+
+        return currentUserService.getCurrentUser();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

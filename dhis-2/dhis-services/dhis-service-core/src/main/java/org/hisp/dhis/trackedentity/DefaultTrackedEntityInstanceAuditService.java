@@ -1,7 +1,9 @@
-package org.hisp.dhis.trackedentity;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,21 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
+import java.util.stream.Collectors;
+=======
+package org.hisp.dhis.trackedentity;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,6 +71,15 @@ public class DefaultTrackedEntityInstanceAuditService
     private final TrackerAccessManager trackerAccessManager;
     private final CurrentUserService currentUserService;
 
+<<<<<<< HEAD
+=======
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+
+    private final TrackerAccessManager trackerAccessManager;
+
+    private final CurrentUserService currentUserService;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public DefaultTrackedEntityInstanceAuditService( TrackerAccessManager trackerAccessManager,
         TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore,
         TrackedEntityInstanceStore trackedEntityInstanceStore, CurrentUserService currentUserService )
@@ -84,6 +108,14 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
+    @Async
+    @Transactional
+    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
+    {
+        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
+    }
+
+    @Override
     @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {
@@ -102,7 +134,7 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );

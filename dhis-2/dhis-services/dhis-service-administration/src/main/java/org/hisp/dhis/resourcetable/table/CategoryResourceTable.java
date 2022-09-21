@@ -1,7 +1,9 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +29,20 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.resourcetable.ResourceTable;
-import org.hisp.dhis.resourcetable.ResourceTableType;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.resourcetable.ResourceTable;
+import org.hisp.dhis.resourcetable.ResourceTableType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -89,8 +93,7 @@ public class CategoryResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() + " " +
+        String sql = "insert into " + getTempTableName() + " " +
             "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
 
         for ( Category category : objects )
@@ -118,7 +121,8 @@ public class CategoryResourceTable
                 "select cog.name from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
+                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
+                +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
@@ -127,7 +131,8 @@ public class CategoryResourceTable
                 "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
                 "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid " +
+                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
+                +
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";

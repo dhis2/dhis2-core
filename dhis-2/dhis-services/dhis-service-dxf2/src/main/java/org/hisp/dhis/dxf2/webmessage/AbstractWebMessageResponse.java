@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.webmessage;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.webmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.webmessage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,8 +40,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class AbstractWebMessageResponse implements WebMessageResponse
 {
     /**
-     * Optional type property. Since we are using the somewhat generic name 'response' for the data
-     * part of the message, this can be used to signal what kind of response this is.
+     * Optional type property. Since we are using the somewhat generic name
+     * 'response' for the data part of the message, this can be used to signal
+     * what kind of response this is.
      * <p/>
      * Some examples might be 'ImportCount', 'ImportSummary', etc.
      */

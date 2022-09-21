@@ -1,7 +1,9 @@
-package org.hisp.dhis.category;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -34,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+<<<<<<< HEAD
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +45,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Sets;
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -82,7 +95,6 @@ public class DefaultCategoryManager
 
         boolean modified = false;
 
-
         Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
 
         while ( iterator.hasNext() )
@@ -93,7 +105,8 @@ public class DefaultCategoryManager
 
             for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
             {
-                if ( optionCombo.equals( persistedOptionCombo ) || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
+                if ( optionCombo.equals( persistedOptionCombo )
+                    || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
                 {
                     isDelete = false;
                     if ( !optionCombo.getName().equals( persistedOptionCombo.getName() ) )
@@ -119,7 +132,8 @@ public class DefaultCategoryManager
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( persistedOptionCombo );
 
-                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
+                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: "
+                    + categoryCombo.getName() );
                 modified = true;
             }
         }
@@ -131,11 +145,11 @@ public class DefaultCategoryManager
                 categoryCombo.getOptionCombos().add( optionCombo );
                 categoryService.addCategoryOptionCombo( optionCombo );
 
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
+                log.info( "Added missing category option combo: " + optionCombo + " for category combo: "
+                    + categoryCombo.getName() );
                 modified = true;
             }
         }
-
 
         if ( modified )
         {

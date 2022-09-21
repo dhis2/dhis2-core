@@ -1,7 +1,9 @@
-package org.hisp.dhis.de.action;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.de.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.de.action;
 
 import static org.hisp.dhis.commons.util.TextUtils.SEP;
 
@@ -108,13 +111,13 @@ public class GetMetaDataAction
     {
         this.currentUserService = currentUserService;
     }
-    
+
     @Autowired
     private DataSetService dataSetService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
-    
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -206,20 +209,22 @@ public class GetMetaDataAction
         User user = currentUserService.getCurrentUser();
 
         Date lastUpdated = DateUtils.max( Sets.newHashSet(
-            identifiableObjectManager.getLastUpdated( DataElement.class ), 
+            identifiableObjectManager.getLastUpdated( DataElement.class ),
             identifiableObjectManager.getLastUpdated( OptionSet.class ),
             identifiableObjectManager.getLastUpdated( Indicator.class ),
             identifiableObjectManager.getLastUpdated( DataSet.class ),
             identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
             identifiableObjectManager.getLastUpdated( Category.class ),
             identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
-        String tag = lastUpdated != null && user != null ? ( DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid() ): null;
-        
+        String tag = lastUpdated != null && user != null
+            ? (DateUtils.getLongDateString( lastUpdated ) + SEP + user.getUid())
+            : null;
+
         if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
         {
             return SUCCESS;
         }
-                
+
         if ( user != null && user.getOrganisationUnits().isEmpty() )
         {
             emptyOrganisationUnits = true;
@@ -244,7 +249,7 @@ public class GetMetaDataAction
         expressionService.substituteIndicatorExpressions( indicators );
 
         dataSets = dataSetService.getUserDataWrite( user );
-        
+
         Set<CategoryCombo> categoryComboSet = new HashSet<>();
         Set<Category> categorySet = new HashSet<>();
 

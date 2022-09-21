@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.sync;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,6 +38,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -50,8 +58,11 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Performs the tasks before metadata sync happens
  *
@@ -60,15 +71,27 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component( "metadataSyncPreProcessor" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class MetadataSyncPreProcessor
 {
     private final SystemSettingManager systemSettingManager;
+
     private final MetadataVersionService metadataVersionService;
+
     private final MetadataVersionDelegate metadataVersionDelegate;
+<<<<<<< HEAD
     private final DataSynchronizationWithPaging trackerSync;
     private final DataSynchronizationWithPaging eventSync;
     private final DataSynchronizationWithPaging dataValueSync;
+=======
+
+    private final DataSynchronizationWithPaging trackerSync;
+
+    private final DataSynchronizationWithPaging eventSync;
+
+    private final DataSynchronizationWithPaging dataValueSync;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final DataSynchronizationWithoutPaging completeDataSetRegistrationSync;
 
     public MetadataSyncPreProcessor(
@@ -104,41 +127,60 @@ public class MetadataSyncPreProcessor
 
     public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
+<<<<<<< HEAD
         SynchronizationResult dataValuesSynchronizationResult =
             dataValueSync.synchronizeData( jobParameters.getDataValuesPageSize() );
+=======
+        SynchronizationResult dataValuesSynchronizationResult = dataValueSync
+            .synchronizeData( jobParameters.getDataValuesPageSize() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, dataValuesSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, dataValuesSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( dataValuesSynchronizationResult.message );
         }
     }
 
     public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
+<<<<<<< HEAD
         SynchronizationResult trackerSynchronizationResult =
             trackerSync.synchronizeData( jobParameters.getTrackerProgramPageSize() );
+=======
+        SynchronizationResult trackerSynchronizationResult = trackerSync
+            .synchronizeData( jobParameters.getTrackerProgramPageSize() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( trackerSynchronizationResult.message );
         }
     }
 
     public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
+<<<<<<< HEAD
         SynchronizationResult eventsSynchronizationResult =
             eventSync.synchronizeData( jobParameters.getEventProgramPageSize() );
+=======
+        SynchronizationResult eventsSynchronizationResult = eventSync
+            .synchronizeData( jobParameters.getEventProgramPageSize() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null,
+                null );
             throw new MetadataSyncServiceException( eventsSynchronizationResult.message );
         }
     }
 
-    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context, MetadataVersion metadataVersion )
+    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context,
+        MetadataVersion metadataVersion )
     {
         log.debug( "Fetching the list of remote versions" );
 
@@ -193,7 +235,8 @@ public class MetadataSyncPreProcessor
         return metadataVersionList;
     }
 
-    private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion metadataVersion, Exception e )
+    private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion metadataVersion,
+        Exception e )
     {
         String message = "Exception happened while trying to get remote metadata versions difference " + e.getMessage();
         context.updateRetryContext( MetadataSyncJob.GET_METADATAVERSIONSLIST, e.getMessage(), metadataVersion, null );
@@ -229,9 +272,9 @@ public class MetadataSyncPreProcessor
         return metadataVersion;
     }
 
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
     // Private Methods
-    //----------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
     {
@@ -255,13 +298,20 @@ public class MetadataSyncPreProcessor
         return null;
     }
 
+<<<<<<< HEAD
     public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context ) {
         SynchronizationResult completenessSynchronizationResult =
             completeDataSetRegistrationSync.synchronizeData();
+=======
+    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context )
+    {
+        SynchronizationResult completenessSynchronizationResult = completeDataSetRegistrationSync.synchronizeData();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, completenessSynchronizationResult.message, null, null );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, completenessSynchronizationResult.message,
+                null, null );
             throw new MetadataSyncServiceException( completenessSynchronizationResult.message );
         }
     }

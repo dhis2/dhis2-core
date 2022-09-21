@@ -1,7 +1,9 @@
-package org.hisp.dhis.trackedentitydatavalue.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,16 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentitydatavalue.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -37,6 +49,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
 import org.springframework.stereotype.Repository;
 
+<<<<<<< HEAD
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
@@ -45,6 +58,8 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -83,8 +98,14 @@ public class HibernateTrackedEntityDataValueAuditStore
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( root );
 
+<<<<<<< HEAD
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
         query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
+=======
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
+            auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         query.orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( query ).getResultList();
@@ -99,31 +120,53 @@ public class HibernateTrackedEntityDataValueAuditStore
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( root );
 
+<<<<<<< HEAD
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
         query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
+=======
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
+            auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         query.orderBy( builder.desc( root.get( "created" ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( query )
-                .setFirstResult( first )
-                .setMaxResults( max )
-                .getResultList();
+            .setFirstResult( first )
+            .setMaxResults( max )
+            .getResultList();
     }
 
     @Override
+<<<<<<< HEAD
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
+=======
+    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances, AuditType auditType )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
         query.select( builder.countDistinct( root.get( "id" ) ) );
 
+<<<<<<< HEAD
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, root );
         query.where( predicates.toArray( new Predicate[ predicates.size() ] ) );
+=======
+        List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances,
+            auditType, builder, root );
+        query.where( predicates.toArray( new Predicate[predicates.size()] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
     }
 
+<<<<<<< HEAD
     private  List<Predicate> getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
+=======
+    private List<Predicate> getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         AuditType auditType, CriteriaBuilder builder, Root<TrackedEntityDataValueAudit> root )
     {
         List<Predicate> predicates = new ArrayList<>();

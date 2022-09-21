@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.adx;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,13 @@ package org.hisp.dhis.dxf2.adx;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.adx;
 
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 
 /**
  * Simple class for ADX checked exceptions which can wrap an ImportConflict.
- * 
+ *
  * @author bobj
  */
 public class AdxException
@@ -48,10 +51,10 @@ public class AdxException
     public AdxException()
     {
     }
-    
+
     public AdxException( String msg )
     {
-        super( msg );
+        this( "ADX Error", msg );
     }
 
     public AdxException( String object, String msg )

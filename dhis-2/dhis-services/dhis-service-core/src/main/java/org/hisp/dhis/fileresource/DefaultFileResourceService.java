@@ -1,7 +1,9 @@
-package org.hisp.dhis.fileresource;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,10 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+<<<<<<< HEAD
 
 import java.io.File;
 import java.io.IOException;
@@ -56,8 +60,37 @@ import org.joda.time.Hours;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
 import com.google.common.collect.Sets;
+=======
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Hours;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Halvdan Hoem Grelland
@@ -69,12 +102,15 @@ public class DefaultFileResourceService
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
     public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
+<<<<<<< HEAD
 
     private static final Set<String> CONTENT_TYPE_BLACKLIST = Sets.newHashSet( "text/html",
         "application/vnd.debian.binary-package", "application/x-rpm", "application/x-ms-dos-executable",
         "application/vnd.microsoft.portable-executable" );
 
     private static final Set<String> FILE_EXTENSION_BLACKLIST = Sets.newHashSet( "html", "deb", "rpm", "exe" );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -191,15 +227,27 @@ public class DefaultFileResourceService
     @Transactional
     public void deleteFileResource( FileResource fileResource )
     {
-        if ( fileResource == null || fileResourceStore.get( fileResource.getId() ) == null )
+        if ( fileResource == null )
         {
             return;
         }
 
+<<<<<<< HEAD
         FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(),
             fileResource.getContentType(), fileResource.getDomain() );
+=======
+        FileResource existingResource = fileResourceStore.get( fileResource.getId() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-        fileResourceStore.delete( fileResource );
+        if ( existingResource == null )
+        {
+            return;
+        }
+
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( existingResource.getStorageKey(),
+            existingResource.getContentType(), existingResource.getDomain() );
+
+        fileResourceStore.delete( existingResource );
 
         fileEventPublisher.publishEvent( deleteFileEvent );
     }
@@ -220,8 +268,19 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional( readOnly = true )
+<<<<<<< HEAD
+=======
+    public long getFileResourceContentLength( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContentLength( fileResource.getStorageKey() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException, NoSuchElementException
+        throws IOException,
+        NoSuchElementException
     {
         fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }
@@ -294,6 +353,7 @@ public class DefaultFileResourceService
     private void validateFileResource( FileResource fileResource )
         throws IllegalQueryException
     {
+<<<<<<< HEAD
         String filename = fileResource.getName();
 
         if ( filename == null )
@@ -303,6 +363,14 @@ public class DefaultFileResourceService
 
         if ( CONTENT_TYPE_BLACKLIST.contains( fileResource.getContentType() )
             || FILE_EXTENSION_BLACKLIST.contains( FilenameUtils.getExtension( filename ) ) )
+=======
+        if ( fileResource.getName() == null )
+        {
+            throw new IllegalQueryException( ErrorCode.E6100 );
+        }
+
+        if ( !FileResourceBlocklist.isValid( fileResource ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
             throw new IllegalQueryException( ErrorCode.E6101 );
         }

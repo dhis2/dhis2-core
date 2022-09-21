@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.notification;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,17 @@ package org.hisp.dhis.system.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.notification;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobType;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -43,7 +47,12 @@ import java.util.Date;
 @JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
 public class Notification
 {
+<<<<<<< HEAD
     private String uid; // FIXME expose as "id" externally in next API version as "uid" is internal
+=======
+    private String uid; // FIXME expose as "id" externally in next API version
+    // as "uid" is internal
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     private NotificationLevel level;
 
@@ -92,7 +101,12 @@ public class Notification
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+<<<<<<< HEAD
     public String getId() // expose as ID also to be future proof, we should not expose UID fields
+=======
+    public String getId() // expose as ID also to be future proof, we should not
+    // expose UID fields
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         return uid;
     }

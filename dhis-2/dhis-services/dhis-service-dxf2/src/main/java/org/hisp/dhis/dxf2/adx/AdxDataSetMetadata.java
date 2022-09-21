@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.adx;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +29,21 @@ package org.hisp.dhis.dxf2.adx;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.xerces.util.XMLChar;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetElement;
+package org.hisp.dhis.dxf2.adx;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.xerces.util.XMLChar;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 
 /**
  * @author bobj
@@ -46,10 +51,10 @@ import java.util.Set;
 public class AdxDataSetMetadata
 {
     // Lookup category options per cat option combo
-    
+
     private final Map<Long, Map<String, String>> categoryOptionMap;
 
-    AdxDataSetMetadata( DataSet dataSet )
+    AdxDataSetMetadata( DataSet dataSet, IdSchemes idSchemes )
         throws AdxException
     {
         categoryOptionMap = new HashMap<>();
@@ -57,7 +62,7 @@ public class AdxDataSetMetadata
         Set<CategoryCombo> catCombos = new HashSet<>();
 
         catCombos.add( dataSet.getCategoryCombo() );
-        
+
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
             catCombos.add( element.getResolvedCategoryCombo() );
@@ -67,37 +72,42 @@ public class AdxDataSetMetadata
         {
             for ( CategoryOptionCombo catOptCombo : categoryCombo.getOptionCombos() )
             {
-                addExplodedCategoryAttributes( catOptCombo );
+                addExplodedCategoryAttributes( catOptCombo, idSchemes );
             }
         }
     }
 
-    private void addExplodedCategoryAttributes( CategoryOptionCombo coc )
+    private void addExplodedCategoryAttributes( CategoryOptionCombo coc, IdSchemes idSchemes )
         throws AdxException
     {
         Map<String, String> categoryAttributes = new HashMap<>();
+
+        IdScheme cScheme = idSchemes.getCategoryIdScheme();
+        IdScheme coScheme = idSchemes.getCategoryOptionIdScheme();
 
         if ( !coc.isDefault() )
         {
             for ( Category category : coc.getCategoryCombo().getCategories() )
             {
-                String categoryCode = category.getCode();
-                
-                if ( categoryCode == null || !XMLChar.isValidName( categoryCode ) )
+                String categoryId = category.getPropertyValue( cScheme );
+
+                if ( categoryId == null || !XMLChar.isValidName( categoryId ) )
                 {
                     throw new AdxException(
-                        "Category code for " + category.getName() + " is missing or invalid: " + categoryCode );
+                        "Category " + cScheme.name() + " for " + category.getName() + " is missing or invalid: "
+                            + categoryId );
                 }
 
-                String catOptCode = category.getCategoryOption( coc ).getCode();
-                
-                if ( catOptCode == null || catOptCode.isEmpty() )
+                String catOptId = category.getCategoryOption( coc ).getPropertyValue( coScheme );
+
+                if ( catOptId == null || catOptId.isEmpty() )
                 {
                     throw new AdxException(
-                        "CategoryOption code for " + category.getCategoryOption( coc ).getName() + " is missing" );
+                        "CategoryOption " + coScheme.name() + " for " + category.getCategoryOption( coc ).getName()
+                            + " is missing" );
                 }
 
-                categoryAttributes.put( categoryCode, catOptCode );
+                categoryAttributes.put( categoryId, catOptId );
             }
         }
 

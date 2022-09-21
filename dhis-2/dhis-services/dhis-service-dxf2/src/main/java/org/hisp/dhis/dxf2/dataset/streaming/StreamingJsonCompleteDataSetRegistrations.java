@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.dataset.streaming;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,27 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.apache.commons.compress.utils.IOUtils;
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
+=======
+package org.hisp.dhis.dxf2.dataset.streaming;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.commons.compress.utils.IOUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -78,9 +91,9 @@ public class StreamingJsonCompleteDataSetRegistrations
         return new StreamingJsonCompleteDataSetRegistration( jsonGenerator );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void open()
@@ -137,9 +150,9 @@ public class StreamingJsonCompleteDataSetRegistrations
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void setDataSetIdScheme( String dataSetIdScheme )

@@ -1,6 +1,9 @@
-package org.hisp.dhis.jdbc.batchhandler;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +29,15 @@ package org.hisp.dhis.jdbc.batchhandler;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.validation.ValidationResult;
-import org.hisp.quick.JdbcConfiguration;
-import org.hisp.quick.batchhandler.AbstractBatchHandler;
+package org.hisp.dhis.jdbc.batchhandler;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+
+import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
 /**
  * @author Stian Sandvold
@@ -84,8 +88,7 @@ public class ValidationResultBatchHandler
             "periodid",
             "organisationunitid",
             "attributeoptioncomboid",
-            "dayinperiod"
-        );
+            "dayinperiod" );
     }
 
     @Override
@@ -96,8 +99,7 @@ public class ValidationResultBatchHandler
             validationResult.getPeriod().getId(),
             validationResult.getOrganisationUnit().getId(),
             validationResult.getAttributeOptionCombo().getId(),
-            validationResult.getDayInPeriod()
-        );
+            validationResult.getDayInPeriod() );
     }
 
     @Override
@@ -110,8 +112,7 @@ public class ValidationResultBatchHandler
             "periodid",
             "organisationunitid",
             "attributeoptioncomboid",
-            "dayinperiod"
-        );
+            "dayinperiod" );
     }
 
     @Override
@@ -124,8 +125,7 @@ public class ValidationResultBatchHandler
             validationResult.getPeriod().getId(),
             validationResult.getOrganisationUnit().getId(),
             validationResult.getAttributeOptionCombo().getId(),
-            validationResult.getDayInPeriod()
-        );
+            validationResult.getDayInPeriod() );
     }
 
     @Override

@@ -1,7 +1,11 @@
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,10 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.monitoring.metrics.jdbc;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import javax.sql.DataSource;
 
@@ -38,35 +46,43 @@ import javax.sql.DataSource;
  * @since 2.0.0
  */
 public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-        implements DataSourcePoolMetadata {
+    implements DataSourcePoolMetadata
+{
 
     private final T dataSource;
 
     /**
      * Create an instance with the data source to use.
+     *
      * @param dataSource the data source
      */
-    protected AbstractDataSourcePoolMetadata(T dataSource) {
+    protected AbstractDataSourcePoolMetadata( T dataSource )
+    {
         this.dataSource = dataSource;
     }
 
     @Override
-    public Float getUsage() {
+    public Float getUsage()
+    {
         Integer maxSize = getMax();
         Integer currentSize = getActive();
-        if (maxSize == null || currentSize == null) {
+        if ( maxSize == null || currentSize == null )
+        {
             return null;
         }
-        if (maxSize < 0) {
+        if ( maxSize < 0 )
+        {
             return -1F;
         }
-        if (currentSize == 0) {
+        if ( currentSize == 0 )
+        {
             return 0F;
         }
         return (float) currentSize / (float) maxSize;
     }
 
-    protected final T getDataSource() {
+    protected final T getDataSource()
+    {
         return this.dataSource;
     }
 

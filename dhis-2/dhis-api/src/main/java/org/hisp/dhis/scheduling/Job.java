@@ -1,7 +1,9 @@
-package org.hisp.dhis.scheduling;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,28 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
 
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
+<<<<<<< HEAD
  * This interface is used for jobs in the system which are scheduled or executed by the Spring
  * scheduler. The actual job will contain an execute method which performs the appropriate actions.
+=======
+ * This interface is used for jobs in the system which are scheduled or executed
+ * by the Spring scheduler. The actual job will contain an execute method which
+ * performs the appropriate actions.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * <p>
+<<<<<<< HEAD
  * {@link JobInstance} is another interface connected to jobs. This interface is used for the
  * actual execution of the job. See {@link SchedulingManager} for more information about the scheduling.
+=======
+ * {@link JobInstance} is another interface connected to jobs. This interface is
+ * used for the actual execution of the job. See {@link SchedulingManager} for
+ * more information about the scheduling.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  *
  * @author Henning Håkonsen
  */

@@ -1,4 +1,5 @@
 package org.hisp.dhis.tracker.workinglists;
+<<<<<<< HEAD
 
 /*
  * Copyright (c) 2004-2020, University of Oslo
@@ -27,6 +28,10 @@ package org.hisp.dhis.tracker.workinglists;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;

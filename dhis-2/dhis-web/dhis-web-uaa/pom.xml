@@ -5,6 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-web</artifactId>
+<<<<<<< HEAD
     <version>2.35-SNAPSHOT</version>
   </parent>
 
@@ -27,6 +28,19 @@
       <type>war</type>
       <optional>true</optional>
     </dependency>
+=======
+    <version>2.35.8-EMBARGOED</version>
+  </parent>
+  <artifactId>dhis-web-uaa</artifactId>
+  <packaging>war</packaging>
+  <name>DHIS User Account and Authentication (UAA) Server</name>
+
+  <build>
+    <finalName>dhis-web-uaa</finalName>
+  </build>
+
+  <dependencies>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>

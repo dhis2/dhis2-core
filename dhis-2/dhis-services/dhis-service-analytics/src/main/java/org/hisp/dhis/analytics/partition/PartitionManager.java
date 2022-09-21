@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.partition;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.partition;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.partition;
 
 import java.util.Set;
 
@@ -56,8 +59,7 @@ public interface PartitionManager
     boolean tableExists( String table );
 
     /**
-     * Filters the set of integers for which a database partition table
-     * exists.
+     * Filters the set of integers for which a database partition table exists.
      *
      * @param partitions the partitions.
      * @param tableName the table name.

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 package org.hisp.dhis.sms.command.hibernate;
 
@@ -52,7 +61,11 @@ public class HibernateSMSCommandStore
     public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, SMSCommand.class, currentUserService, aclService, true );
+=======
+        super( sessionFactory, jdbcTemplate, publisher, SMSCommand.class, currentUserService, deletedObjectService, aclService, true );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override
@@ -71,11 +84,12 @@ public class HibernateSMSCommandStore
 
         List<SMSCommand> list = getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "parserType" ), parserType ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName, JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
 
         if ( list != null && !list.isEmpty() )
         {
-            return  list.get( 0 );
+            return list.get( 0 );
         }
 
         return null;
@@ -88,6 +102,6 @@ public class HibernateSMSCommandStore
         query.setParameter( "dataSet", dataSet );
         // TODO rename data set property
 
-        return  query.getSingleResult().intValue();
+        return query.getSingleResult().intValue();
     }
 }

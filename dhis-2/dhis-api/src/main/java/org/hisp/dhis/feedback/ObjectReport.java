@@ -1,7 +1,9 @@
-package org.hisp.dhis.feedback;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,7 +76,8 @@ public class ObjectReport
         this( object, objectIndexProvider, null );
     }
 
-    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider, @Nullable String uid )
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider,
+        @Nullable String uid )
     {
         this( object.getClass(), objectIndexProvider.mergeObjectIndex( object ), uid == null ? object.getUid() : uid );
     }
@@ -108,9 +112,9 @@ public class ObjectReport
         this.displayName = objectReport.getDisplayName();
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public void merge( ObjectReport objectReport )
     {
@@ -132,9 +136,9 @@ public class ObjectReport
         errorReportsByCode.get( errorReport.getErrorCode() ).add( errorReport );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Getters and Setters
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -179,12 +183,13 @@ public class ObjectReport
 
         return errorReports;
     }
-    
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
     public void setErrorReports( List<ErrorReport> errorReports )
     {
+        errorReportsByCode.clear();
         if ( errorReports != null )
         {
             errorReports.forEach( er -> {

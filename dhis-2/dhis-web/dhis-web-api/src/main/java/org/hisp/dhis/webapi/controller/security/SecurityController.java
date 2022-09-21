@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller.security;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,14 @@ package org.hisp.dhis.webapi.controller.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.security;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -45,11 +55,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+<<<<<<< HEAD
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+=======
+import com.fasterxml.jackson.databind.ObjectMapper;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Henning Håkonsen
@@ -72,7 +86,12 @@ public class SecurityController
     private ObjectMapper jsonMapper;
 
     @RequestMapping( value = "/qr", method = RequestMethod.GET, produces = "application/json" )
+<<<<<<< HEAD
     public void getQrCode( HttpServletRequest request, HttpServletResponse response ) throws IOException
+=======
+    public void getQrCode( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         User currentUser = currentUserService.getCurrentUser();
 

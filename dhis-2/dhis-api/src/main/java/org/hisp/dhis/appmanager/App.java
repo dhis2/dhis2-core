@@ -1,7 +1,9 @@
-package org.hisp.dhis.appmanager;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,15 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+=======
+package org.hisp.dhis.appmanager;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -39,6 +45,14 @@ import java.util.Set;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
+<<<<<<< HEAD
+=======
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Saptarshi
  */
@@ -52,6 +66,8 @@ public class App
     private static final long serialVersionUID = -6638197841892194228L;
 
     public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
+
+    public static final String INSTALLED_APP_PATH = "api/apps/";
 
     /**
      * Required.
@@ -75,7 +91,11 @@ public class App
     /**
      * Optional.
      */
+    private String shortName;
+
     private String description;
+
+    private String appHubId;
 
     private AppIcons icons;
 
@@ -91,6 +111,11 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
+    private boolean coreApp = false;
+
+    /**
+     * Generated.
+     */
     private AppStatus appState = AppStatus.OK;
 
     // -------------------------------------------------------------------------
@@ -104,11 +129,13 @@ public class App
      */
     public void init( String contextPath )
     {
-        this.baseUrl = contextPath + "/api/apps";
+        String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+
+        this.baseUrl = String.join( "/", contextPath, appPathPrefix ) + getUrlFriendlyName();
 
         if ( contextPath != null && name != null && launchPath != null )
         {
-            launchUrl = baseUrl + ("/" + getUrlFriendlyName() + "/" + launchPath).replaceAll( "//", "/" );
+            launchUrl = String.join( "/", baseUrl, launchPath.replaceFirst( "^/+", "" ) );
         }
     }
 
@@ -119,6 +146,31 @@ public class App
     public String getKey()
     {
         return getUrlFriendlyName();
+    }
+
+    /**
+     * Determine if this app will overload a bundled app
+     */
+    @JsonProperty
+    public boolean isBundled()
+    {
+        return AppManager.BUNDLED_APPS.contains( getShortName() );
+    }
+
+    /**
+     * Determine if the app is configured as a coreApp (to be served at the root
+     * namespace)
+     */
+    @JsonProperty( "core_app" )
+    @JacksonXmlProperty( localName = "core_app", namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCoreApp()
+    {
+        return coreApp;
+    }
+
+    public void setCoreApp( boolean coreApp )
+    {
+        this.coreApp = coreApp;
     }
 
     // -------------------------------------------------------------------------
@@ -135,6 +187,34 @@ public class App
     public void setVersion( String version )
     {
         this.version = version;
+    }
+
+    @JsonProperty( "app_hub_id" )
+    @JacksonXmlProperty( localName = "app_hub_id", namespace = DxfNamespaces.DXF_2_0 )
+    public String getAppHubId()
+    {
+        return appHubId;
+    }
+
+    public void setAppHubId( String appHubId )
+    {
+        this.appHubId = appHubId;
+    }
+
+    @JsonProperty( "short_name" )
+    @JacksonXmlProperty( localName = "short_name", namespace = DxfNamespaces.DXF_2_0 )
+    public String getShortName()
+    {
+        if ( shortName == null )
+        {
+            return name;
+        }
+        return shortName;
+    }
+
+    public void setShortName( String shortName )
+    {
+        this.shortName = shortName;
     }
 
     @JsonProperty
@@ -280,7 +360,8 @@ public class App
         this.launchUrl = launchUrl;
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getBaseUrl()
     {
         return baseUrl;
@@ -324,7 +405,7 @@ public class App
 
     public void setAppState( AppStatus appState )
     {
-         this.appState = appState;
+        this.appState = appState;
     }
 
     // -------------------------------------------------------------------------
@@ -335,7 +416,7 @@ public class App
     public int hashCode()
     {
         int hash = 7;
-        hash = 79 * hash + (this.name != null ? this.name.hashCode() : 0);
+        hash = 79 * hash + (this.getShortName() != null ? this.getShortName().hashCode() : 0);
         return hash;
     }
 
@@ -359,12 +440,8 @@ public class App
 
         final App other = (App) obj;
 
-        if ( (this.name == null) ? (other.name != null) : !this.name.equals( other.name ) )
-        {
-            return false;
-        }
-
-        return true;
+        return this.getShortName() == null ? other.getShortName() == null
+            : this.getShortName().equals( other.getShortName() );
     }
 
     @Override
@@ -373,19 +450,21 @@ public class App
         return "{" +
             "\"version:\"" + version + "\", " +
             "\"name:\"" + name + "\", " +
+            "\"shortName:\"" + getShortName() + "\", " +
             "\"appType:\"" + appType + "\", " +
+            "\"baseUrl:\"" + baseUrl + "\", " +
             "\"launchPath:\"" + launchPath + "\" " +
             "}";
     }
 
     public String getUrlFriendlyName()
     {
-        if ( name != null )
+        if ( getShortName() != null )
         {
-            return name
+            return getShortName()
                 .trim()
                 .replaceAll( "[^A-Za-z0-9\\s-]", "" )
-                .replaceAll( " ", "-" );
+                .replaceAll( "\\s+", "-" );
         }
 
         return null;
@@ -393,6 +472,7 @@ public class App
 
     public String getSeeAppAuthority()
     {
-        return SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
+        return SEE_APP_AUTHORITY_PREFIX
+            + getShortName().trim().replaceAll( "[^a-zA-Z0-9\\s]", "" ).replaceAll( "\\s+", "_" );
     }
 }

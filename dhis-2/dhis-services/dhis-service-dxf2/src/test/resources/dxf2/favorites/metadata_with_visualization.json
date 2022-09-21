@@ -325,6 +325,7 @@
           "underline": false,
           "textColor": "#2a2a2a",
           "textAlign": "CENTER"
+<<<<<<< HEAD
         }
       },
       "rangeAxisMinValue": -10,
@@ -589,6 +590,329 @@
           "textAlign": "CENTER"
         }
       },
+=======
+        },
+        "categoryAxisLabel": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        },
+        "targetLineLabel": {
+          "font": "ARIAL",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
+    },
+    {
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "showData": true,
+      "filterDimensions": [
+        "ou"
+      ],
+      "dataDimensionItems": [
+        {
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "JrpFZgTcp5m"
+            },
+            "categoryOptionCombo": {
+              "id": "c8yQa2ZIqhL"
+            }
+          },
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND"
+        },
+        {
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "Dy2uRmhOKbJ"
+            },
+            "categoryOptionCombo": {
+              "id": "c8yQa2ZIqhL"
+            }
+          }
+        }
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
+        }
+      ],
+      "completedOnly": false,
+      "externalAccess": false,
+      "publicAccess": "rw------",
+      "sortOrder": 0,
+      "relativePeriods": {
+        "lastYear": false,
+        "last2SixMonths": false,
+        "last52Weeks": false,
+        "lastMonth": false,
+        "last6Months": false,
+        "lastFinancialYear": false,
+        "lastBimonth": false,
+        "last5FinancialYears": false,
+        "last12Months": true,
+        "thisMonth": false,
+        "last12Weeks": false,
+        "thisBimonth": false,
+        "last6BiMonths": false,
+        "thisYear": false,
+        "quartersThisYear": false,
+        "lastQuarter": false,
+        "quartersLastYear": false,
+        "last3Months": false,
+        "thisFinancialYear": false,
+        "last4Weeks": false,
+        "last5Years": false,
+        "thisWeek": false,
+        "thisSixMonth": false,
+        "last4Quarters": false,
+        "lastSixMonth": false,
+        "monthsThisYear": false,
+        "lastWeek": false,
+        "thisQuarter": false,
+        "monthsLastYear": false
+      },
+      "dataElementGroups": [ ],
+      "categoryOptionGroups": [ ],
+      "category": "pe",
+      "organisationUnitLevels": [ ],
+      "organisationUnitGroups": [ ],
+      "name": "ChartB",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userOrganisationUnitChildren": false,
+      "hideEmptyRows": false,
+      "id": "qD72aBqsHvt",
+      "regression": false,
+      "type": "COLUMN",
+      "hideTitle": false,
+      "hideSubtitle": false,
+      "aggregationType": "SUM",
+      "userGroupAccesses": [ ],
+      "categoryDimensions": [ ],
+      "userOrganisationUnit": false,
+      "itemOrganisationUnitGroups": [ ],
+      "hideLegend": false,
+      "userOrganisationUnitGrandChildren": false,
+      "lastUpdated": "2016-03-17T01:57:13.118+0000",
+      "periods": [ ],
+      "created": "2016-03-17T01:57:13.118+0000",
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",
+          "textAlign": "CENTER"
+        },
+        "categoryAxisLabel": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        },
+        "targetLineLabel": {
+          "font": "ARIAL",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+      "rangeAxisMinValue": -10,
+      "rangeAxisMaxValue": 20,
+      "baseLineValue": -5,
+      "targetLineValue": 15
+    },
+    {
+      "aggregationType": "SUM",
+      "hideTitle": false,
+      "hideSubtitle": false,
+      "type": "COLUMN",
+      "regression": false,
+      "userOrganisationUnit": false,
+      "categoryDimensions": [ ],
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-17T01:57:32.354+0000",
+      "userOrganisationUnitGrandChildren": false,
+      "hideLegend": false,
+      "itemOrganisationUnitGroups": [ ],
+      "created": "2016-03-17T01:57:32.354+0000",
+      "periods": [ ],
+      "dataDimensionItems": [
+        {
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
+          "dataElementOperand": {
+            "categoryOptionCombo": {
+              "id": "O9ZA0CUVVmL"
+            },
+            "dataElement": {
+              "id": "JrpFZgTcp5m"
+            }
+          }
+        },
+        {
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "Dy2uRmhOKbJ"
+            },
+            "categoryOptionCombo": {
+              "id": "O9ZA0CUVVmL"
+            }
+          },
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND"
+        }
+      ],
+      "filterDimensions": [
+        "ou"
+      ],
+      "series": [
+        {
+          "dimensionItem": "JrpFZgTcp5m",
+          "visualizationType": "LINE",
+          "axis": 1
+        },
+        {
+          "dimensionItem": "Dy2uRmhOKbJ",
+          "visualizationType": "LINE"
+        }
+      ],
+      "showData": true,
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "externalAccess": false,
+      "completedOnly": false,
+      "category": "pe",
+      "categoryOptionGroups": [ ],
+      "dataElementGroups": [ ],
+      "relativePeriods": {
+        "quartersLastYear": false,
+        "thisFinancialYear": false,
+        "last3Months": false,
+        "lastQuarter": false,
+        "quartersThisYear": false,
+        "thisYear": false,
+        "last6BiMonths": false,
+        "thisBimonth": false,
+        "thisQuarter": false,
+        "lastWeek": false,
+        "monthsLastYear": false,
+        "monthsThisYear": false,
+        "lastSixMonth": false,
+        "last4Quarters": false,
+        "last5Years": false,
+        "thisWeek": false,
+        "thisSixMonth": false,
+        "last4Weeks": false,
+        "lastFinancialYear": false,
+        "lastMonth": false,
+        "last6Months": false,
+        "last52Weeks": false,
+        "last2SixMonths": false,
+        "lastYear": false,
+        "thisMonth": false,
+        "last12Weeks": false,
+        "last5FinancialYears": false,
+        "last12Months": true,
+        "lastBimonth": false
+      },
+      "sortOrder": 0,
+      "publicAccess": "rw------",
+      "id": "z3zvnIJYQ4J",
+      "hideEmptyRows": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userOrganisationUnitChildren": false,
+      "organisationUnitGroups": [ ],
+      "name": "ChartC",
+      "organisationUnitLevels": [ ],
+      "fontStyle": {
+        "visualizationTitle": {
+          "font": "VERDANA",
+          "fontSize": 16,
+          "bold": true,
+          "italic": false,
+          "underline": false,
+          "textColor": "#3a3a3a",
+          "textAlign": "LEFT"
+        },
+        "horizontalAxisTitle": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#2a2a2a",          
+          "textAlign": "CENTER"
+        },
+        "categoryAxisLabel": {
+          "font": "ROBOTO",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        },
+        "targetLineLabel": {
+          "font": "ARIAL",
+          "fontSize": 12,
+          "bold": false,
+          "italic": true,
+          "underline": false,
+          "textColor": "#dedede",
+          "textAlign": "CENTER"
+        }
+      },
+      "colorSet": "color_set_01",
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
       "rangeAxisMinValue": -10,
       "rangeAxisMaxValue": 20,
       "baseLineValue": -5,

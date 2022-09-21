@@ -1,7 +1,9 @@
-package org.hisp.dhis.schema;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,11 @@ package org.hisp.dhis.schema;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,7 +61,8 @@ public enum PropertyType
 
     public boolean isSimple()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this || PASSWORD == this || URL == this
+        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
+            || PASSWORD == this || URL == this
             || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
 }

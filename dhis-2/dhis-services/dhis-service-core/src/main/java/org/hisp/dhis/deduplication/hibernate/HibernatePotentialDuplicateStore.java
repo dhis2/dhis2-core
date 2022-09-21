@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deduplication.hibernate;
+
+import java.math.BigInteger;
+import java.util.List;
 
 package org.hisp.dhis.deduplication.hibernate;
 
@@ -50,7 +58,11 @@ public class HibernatePotentialDuplicateStore
     implements PotentialDuplicateStore
 {
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
@@ -89,7 +101,11 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
+<<<<<<< HEAD
     @SuppressWarnings("unchecked")
+=======
+    @SuppressWarnings( "unchecked" )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         NativeQuery<BigInteger> query;

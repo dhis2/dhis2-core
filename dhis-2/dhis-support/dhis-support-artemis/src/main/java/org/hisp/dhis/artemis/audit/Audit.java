@@ -1,7 +1,9 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,22 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
+=======
+import java.time.LocalDateTime;
+
+import lombok.Builder;
+import lombok.Data;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.artemis.SerializableMessage;
 import org.hisp.dhis.audit.AuditAttributes;
@@ -41,11 +52,24 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 
+<<<<<<< HEAD
 import java.time.LocalDateTime;
+=======
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
+<<<<<<< HEAD
  * Class for Audit messages, mostly compatible with {@link org.hisp.dhis.audit.Audit}
  * but has some additions relevant only to Artemis messages.
+=======
+ * Class for Audit messages, mostly compatible with
+ * {@link org.hisp.dhis.audit.Audit} but has some additions relevant only to
+ * Artemis messages.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -80,15 +104,26 @@ public class Audit implements SerializableMessage
     private AuditAttributes attributes = new AuditAttributes();
 
     /**
+<<<<<<< HEAD
      * This property holds the serialized Audited entity: it should not be used during the construction
      * of an instance of this object
+=======
+     * This property holds the serialized Audited entity: it should not be used
+     * during the construction of an instance of this object
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     @JsonProperty
     private Object data;
 
     /**
+<<<<<<< HEAD
      * This property should be used when constructing an Audit instance to send to the Audit sub-system
      * The AuditableEntity object allows the AuditManager to serialize the audited entity only if needed
+=======
+     * This property should be used when constructing an Audit instance to send
+     * to the Audit sub-system The AuditableEntity object allows the
+     * AuditManager to serialize the audited entity only if needed
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     @JsonIgnore
     private AuditableEntity auditableEntity;
@@ -100,8 +135,13 @@ public class Audit implements SerializableMessage
     }
 
     /**
+<<<<<<< HEAD
      * Converts the AMQP Audit object to a DAO Audit object.
      * The data property will only be set if data == string.
+=======
+     * Converts the AMQP Audit object to a DAO Audit object. The data property
+     * will only be set if data == string.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * <p>
      * TODO should we just do .toString() if its not a string objects?
      *
@@ -131,6 +171,10 @@ public class Audit implements SerializableMessage
     public static final class AuditBuilder
     {
         private String klass;
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         private String uid;
         private String code;
 

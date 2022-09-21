@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.webdomain.form;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.webdomain.form;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain.form;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,9 +50,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Group
 {
     private String label;
-    
+
     private String description;
-    
+
     private int dataElementCount;
 
     private List<Field> fields = new ArrayList<>();
@@ -78,7 +81,7 @@ public class Group
     {
         return description;
     }
-    
+
     public void setDescription( String description )
     {
         this.description = description;
@@ -90,12 +93,12 @@ public class Group
     {
         return dataElementCount;
     }
-    
+
     public void setDataElementCount( int dataElementCount )
     {
         this.dataElementCount = dataElementCount;
     }
-    
+
     @JsonProperty( value = "fields" )
     @JacksonXmlElementWrapper( localName = "fields", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "field", namespace = DxfNamespaces.DXF_2_0 )
@@ -116,7 +119,7 @@ public class Group
     {
         return metaData;
     }
-    
+
     public void setMetaData( Map<Object, Object> metaData )
     {
         this.metaData = metaData;

@@ -1,7 +1,9 @@
-package org.hisp.dhis.outboundmessage;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,28 @@ package org.hisp.dhis.outboundmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.outboundmessage;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.message.MessageSender;
+import org.springframework.transaction.annotation.Transactional;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Halvdan Hoem Grelland
@@ -97,8 +111,7 @@ public class DefaultOutboundMessageBatchService
             return new OutboundMessageResponseSummary(
                 errorMessage,
                 channel,
-                OutboundMessageBatchStatus.FAILED
-            );
+                OutboundMessageBatchStatus.FAILED );
         }
         else if ( !sender.isConfigured() )
         {
@@ -108,8 +121,7 @@ public class DefaultOutboundMessageBatchService
             return new OutboundMessageResponseSummary(
                 errorMessage,
                 channel,
-                OutboundMessageBatchStatus.FAILED
-            );
+                OutboundMessageBatchStatus.FAILED );
         }
 
         log.info( "Invoking message sender: " + sender.getClass().getSimpleName() );

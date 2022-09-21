@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.datavalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,12 @@ package org.hisp.dhis.dxf2.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalue;
+
+import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
-
-import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 
 /**
  * @author Lars Helge Overland
@@ -40,25 +43,38 @@ public class StreamingXmlDataValue
     extends DataValue
 {
     private static final String FIELD_DATAVALUE = "dataValue";
+
     private static final String FIELD_DATAELEMENT = "dataElement";
+
     private static final String FIELD_CATEGORY_OPTION_COMBO = "categoryOptionCombo";
+
     private static final String FIELD_ATTRIBUTE_OPTION_COMBO = "attributeOptionCombo";
+
     private static final String FIELD_PERIOD = "period";
+
     private static final String FIELD_ORGUNIT = "orgUnit";
+
     private static final String FIELD_VALUE = "value";
+
     private static final String FIELD_STOREDBY = "storedBy";
+
+    private static final String FIELD_CREATED = "created";
+
     private static final String FIELD_LAST_UPDATED = "lastUpdated";
+
     private static final String FIELD_COMMENT = "comment";
+
     private static final String FIELD_FOLLOWUP = "followUp";
+
     private static final String FIELD_DELETED = "deleted";
 
     private XMLWriter writer;
 
     private XMLReader reader;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public StreamingXmlDataValue( XMLWriter writer )
     {
@@ -72,9 +88,9 @@ public class StreamingXmlDataValue
         this.reader = reader;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public String getDataElement()
@@ -97,15 +113,19 @@ public class StreamingXmlDataValue
     @Override
     public String getCategoryOptionCombo()
     {
-        return categoryOptionCombo = categoryOptionCombo == null ? reader.getAttributeValue( FIELD_CATEGORY_OPTION_COMBO ) : categoryOptionCombo;
+        return categoryOptionCombo = categoryOptionCombo == null
+            ? reader.getAttributeValue( FIELD_CATEGORY_OPTION_COMBO )
+            : categoryOptionCombo;
     }
-    
+
     @Override
     public String getAttributeOptionCombo()
     {
-        return attributeOptionCombo = attributeOptionCombo == null ? reader.getAttributeValue( FIELD_ATTRIBUTE_OPTION_COMBO ) : attributeOptionCombo;
+        return attributeOptionCombo = attributeOptionCombo == null
+            ? reader.getAttributeValue( FIELD_ATTRIBUTE_OPTION_COMBO )
+            : attributeOptionCombo;
     }
-    
+
     @Override
     public String getValue()
     {
@@ -116,6 +136,12 @@ public class StreamingXmlDataValue
     public String getStoredBy()
     {
         return storedBy = storedBy == null ? reader.getAttributeValue( FIELD_STOREDBY ) : storedBy;
+    }
+
+    @Override
+    public String getCreated()
+    {
+        return created = created == null ? reader.getAttributeValue( FIELD_CREATED ) : created;
     }
 
     @Override
@@ -141,10 +167,10 @@ public class StreamingXmlDataValue
     {
         return deleted = deleted == null ? valueOf( reader.getAttributeValue( FIELD_DELETED ) ) : deleted;
     }
-    
-    //--------------------------------------------------------------------------
+
+    // --------------------------------------------------------------------------
     // Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void setDataElement( String dataElement )
@@ -175,7 +201,7 @@ public class StreamingXmlDataValue
     {
         writer.writeAttribute( FIELD_ATTRIBUTE_OPTION_COMBO, attributeOptionCombo );
     }
-    
+
     @Override
     public void setValue( String value )
     {
@@ -205,7 +231,7 @@ public class StreamingXmlDataValue
     {
         writer.writeAttribute( FIELD_FOLLOWUP, valueOf( followup ) );
     }
-    
+
     @Override
     public void setDeleted( Boolean deleted )
     {

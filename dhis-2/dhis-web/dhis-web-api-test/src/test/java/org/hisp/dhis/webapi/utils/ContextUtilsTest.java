@@ -1,6 +1,9 @@
-package org.hisp.dhis.webapi.utils;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +29,40 @@ package org.hisp.dhis.webapi.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.utils;
+
+import static java.time.ZonedDateTime.now;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.util.Calendar.YEAR;
+import static java.util.Calendar.getInstance;
+import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
+import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
+import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_10_MINUTES;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_15_MINUTES;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_HOUR;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_1_MINUTE;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_30_MINUTES;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_5_MINUTES;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_6AM_TOMORROW;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
+import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
+import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
+import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
+import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
+import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
+import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
+import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Calendar;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static java.time.ZonedDateTime.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -139,7 +176,12 @@ public class ContextUtilsTest
         assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
 
         response.reset();
+<<<<<<< HEAD
         systemSettingManager.saveSystemSetting( CACHE_STRATEGY, getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+=======
+        systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
+            getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         contextUtils.configureResponse( response, null, RESPECT_SYSTEM_SETTING, null, false );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
@@ -193,6 +235,7 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
 
         response.reset();
+<<<<<<< HEAD
         contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
@@ -221,6 +264,38 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false, params.getLatestEndDate() );
         assertEquals( "max-age=" + timeToLive +", public", response.getHeader( "Cache-Control" ) );
+=======
+        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false,
+            params.getLatestEndDate() );
+        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting()
+    {
+        Calendar dateBeforeToday = getInstance();
+        dateBeforeToday.add( YEAR, -5 );
+
+        // Cache strategy set to respect system settings
+        CacheStrategy respectSystemSetting = RESPECT_SYSTEM_SETTING;
+
+        // Defined TTL Factor
+        int ttlFactor = 10;
+
+        // Expected timeToLive. See {@link TimeToLive.compute()}
+        long timeToLive = DAYS.between( dateBeforeToday.toInstant(), now() ) * ttlFactor;
+
+        DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
+
+        // Progressive caching is not enabled
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
+        systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false,
+            params.getLatestEndDate() );
+        assertEquals( "max-age=" + timeToLive + ", public", response.getHeader( "Cache-Control" ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test

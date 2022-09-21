@@ -1,7 +1,9 @@
-package org.hisp.dhis.attribute;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,10 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.List;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -61,7 +65,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 
-import java.util.List;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -71,7 +75,7 @@ public interface AttributeStore
 {
     String ID = AttributeStore.class.getName();
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = ImmutableMap.<Class<?>, String>builder()
+    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = ImmutableMap.<Class<?>, String> builder()
         .put( DataElement.class, "dataElementAttribute" )
         .put( DataElementGroup.class, "dataElementGroupAttribute" )
         .put( Indicator.class, "indicatorAttribute" )
@@ -105,7 +109,8 @@ public interface AttributeStore
         .build();
 
     /**
-     * Get all metadata attributes for a given class, returns empty list for un-supported types.
+     * Get all metadata attributes for a given class, returns empty list for
+     * un-supported types.
      *
      * @param klass Class to get metadata attributes for
      * @return List of attributes for this class
@@ -113,7 +118,8 @@ public interface AttributeStore
     List<Attribute> getAttributes( Class<?> klass );
 
     /**
-     * Get all mandatory metadata attributes for a given class, returns empty list for un-supported types.
+     * Get all mandatory metadata attributes for a given class, returns empty
+     * list for un-supported types.
      *
      * @param klass Class to get metadata attributes for
      * @return List of mandatory metadata attributes for this class
@@ -121,7 +127,8 @@ public interface AttributeStore
     List<Attribute> getMandatoryAttributes( Class<?> klass );
 
     /**
-     * Get all unique metadata attributes for a given class, returns empty list for un-supported types.
+     * Get all unique metadata attributes for a given class, returns empty list
+     * for un-supported types.
      *
      * @param klass Class to get metadata attributes for
      * @return List of unique metadata attributes for this class

@@ -1,7 +1,11 @@
 package org.hisp.dhis.analytics.table;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,10 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.analytics.table;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
@@ -95,7 +103,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    public void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -110,17 +118,19 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).build();
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " +
+            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            +
             "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat( sql.getValue(), containsString( ouQuery ) );
+        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
     }
 }

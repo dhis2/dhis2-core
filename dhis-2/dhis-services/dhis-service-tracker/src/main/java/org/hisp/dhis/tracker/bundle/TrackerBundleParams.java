@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,40 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.FlushMode;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.converter.TrackerBundleParamsConverter;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
+import org.hisp.dhis.user.User;
+=======
+package org.hisp.dhis.tracker.bundle;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
@@ -48,14 +81,16 @@ import org.hisp.dhis.user.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
+<<<<<<< HEAD
  * Used for setting up bundle parameters, closely modelled around {@see org.hisp.dhis.tracker.TrackerImportParams}
  * and is usually not directly used (rather created by using {@see org.hisp.dhis.tracker.TrackerImportParams#toTrackerBundleParams}.
+=======
+ * Used for setting up bundle parameters, closely modelled around
+ * {@see org.hisp.dhis.tracker.TrackerImportParams} and is usually not directly
+ * used (rather created by using
+ * {@see org.hisp.dhis.tracker.TrackerImportParams#toTrackerBundleParams}.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -85,6 +120,21 @@ public class TrackerBundleParams
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
+<<<<<<< HEAD
+=======
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipTextPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
+
+    /**
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * Sets import strategy (create, update, etc).
      */
     @JsonProperty
@@ -166,6 +216,11 @@ public class TrackerBundleParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+<<<<<<< HEAD
+=======
+            .skipTextPatternValidation( skipTextPatternValidation )
+            .skipSideEffects( skipSideEffects )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .flushMode( flushMode )
             .validationMode( validationMode )
             .reportMode( reportMode )

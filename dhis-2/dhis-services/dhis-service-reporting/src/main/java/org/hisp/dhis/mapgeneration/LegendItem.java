@@ -1,7 +1,9 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -37,7 +40,7 @@ import java.awt.Stroke;
 /**
  * A legend item is a graphical presentation of a interval. It serves as a
  * helper for the Legend class.
- * 
+ *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
@@ -46,7 +49,9 @@ public class LegendItem
     private Interval interval;
 
     private static final int WIDTH = 22;
+
     private static final int HEIGHT = 20;
+
     private static final int LABEL_MARGIN = 6;
 
     public LegendItem( Interval interval )

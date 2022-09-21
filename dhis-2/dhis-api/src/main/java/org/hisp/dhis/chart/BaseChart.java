@@ -1,7 +1,9 @@
-package org.hisp.dhis.chart;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,12 @@ package org.hisp.dhis.chart;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.chart;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.hisp.dhis.schema.annotation.Property.Value.*;
 
+<<<<<<< HEAD
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,12 +55,29 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
+=======
+import java.util.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.i18n.*;
+import org.hisp.dhis.legend.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.schema.*;
+import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.*;
+import org.hisp.dhis.user.*;
 
+<<<<<<< HEAD
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+=======
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Lars Helge Overland
@@ -267,6 +284,13 @@ public abstract class BaseChart
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( TranslationProperty.domainAxisLabel, getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -279,6 +303,13 @@ public abstract class BaseChart
         return rangeAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( TranslationProperty.rangeAxisLabel, getRangeAxisLabel() );
+    }
+
     public void setRangeAxisLabel( String rangeAxisLabel )
     {
         this.rangeAxisLabel = rangeAxisLabel;
@@ -287,7 +318,11 @@ public abstract class BaseChart
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( required = TRUE, value = PropertyType.CONSTANT )
+<<<<<<< HEAD
     @PropertyRange( min = 1, max = 40)
+=======
+    @PropertyRange( min = 1, max = 40 )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public ChartType getType()
     {
         return type;
@@ -353,6 +388,13 @@ public abstract class BaseChart
         return targetLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( TranslationProperty.targetLineLabel, getTargetLineLabel() );
+    }
+
     public void setTargetLineLabel( String targetLineLabel )
     {
         this.targetLineLabel = targetLineLabel;
@@ -375,6 +417,13 @@ public abstract class BaseChart
     public String getBaseLineLabel()
     {
         return baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( TranslationProperty.baseLineLabel, getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )

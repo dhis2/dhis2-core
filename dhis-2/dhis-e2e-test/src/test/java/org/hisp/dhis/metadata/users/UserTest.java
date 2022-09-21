@@ -1,5 +1,6 @@
 package org.hisp.dhis.metadata.users;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -74,6 +75,56 @@ public class UserTest extends ApiTest
             Arguments.of( password, password, "Password must not be one of the previous 24 passwords", "newPassword is the same as old" ),
             Arguments.of( password, "test", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
             Arguments.of( password, DataGenerator.randomString(41), "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
+=======
+
+
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.UserActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class UserTest extends ApiTest
+{
+    private String username;
+    private String password = "Test1212?";
+
+    private UserActions userActions;
+    private LoginActions loginActions;
+    private RestApiActions meActions;
+
+    @BeforeEach
+    public void beforeEach() {
+        userActions = new UserActions();
+        loginActions = new LoginActions();
+        meActions = new RestApiActions( "/me" );
+
+        username = "user-tests-" + DataGenerator.randomString();
+        loginActions.loginAsSuperUser();
+        userActions.addUser( username, password );
+        loginActions.loginAsUser( username, password );
+    }
+
+    private Stream<Arguments> provideParams() {
+        return Stream.of( new Arguments[] {
+            Arguments.of( password, password, "Password must not be one of the previous 24 passwords", "newPassword is the same as old" ),
+            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 40 characters", "newPassword is too short" ),
+            Arguments.of( password, DataGenerator.randomString(41) + "1?", "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
             Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect", "oldPassword is incorrect" ),
             Arguments.of( password, "test1212?", "Password must have at least one upper case", "newPassword doesn't contain uppercase" ),

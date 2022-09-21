@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +40,7 @@ import java.util.Map;
 public class GridValue
 {
     private Object value;
-    
+
     private Map<Object, Object> attributes = new HashMap<>();
 
     // ---------------------------------------------------------------------
@@ -48,13 +51,13 @@ public class GridValue
     {
         this.value = value;
     }
-    
+
     public GridValue( Object value, Map<Object, Object> attributes )
     {
         this.value = value;
         this.attributes = attributes;
     }
-    
+
     // ---------------------------------------------------------------------
     // Logic
     // ---------------------------------------------------------------------
@@ -63,12 +66,12 @@ public class GridValue
     {
         this.attributes.put( attribute, value );
     }
-    
+
     public Object attr( Object attribute )
     {
         return this.attributes.get( attribute );
     }
-    
+
     public boolean hasAttr( Object attribute )
     {
         return this.attributes.containsKey( attribute );

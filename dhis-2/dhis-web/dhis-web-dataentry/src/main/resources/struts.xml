@@ -72,6 +72,13 @@
       <result name="success" type="outputStreamResult"></result>
       <result name="input" type="velocity">/dhis-web-dataentry/validationResult.vm</result>
     </action>
+<<<<<<< HEAD
+=======
+    
+    <action name="getGreyFieldsByOrgUnit" class="org.hisp.dhis.de.action.GetGreyFieldsByOrgUnitAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/responseGreyFieldsByOrgUnit.vm</result>
+    </action>
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
   </package>
 </struts>

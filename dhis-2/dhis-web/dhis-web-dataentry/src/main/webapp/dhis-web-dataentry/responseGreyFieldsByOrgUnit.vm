@@ -1,0 +1,8 @@
+#set( $size = $greyedFieldsByOrgUnit.size() )
+{ "greyedFieldsByOrgUnit": [
+	#foreach ($key in $greyedFieldsByOrgUnit.keySet())
+	{
+	    "id":"${key}"
+	}#if( $velocityCount < $size ),#end
+	#end ]
+}

@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,14 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -57,7 +67,11 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+<<<<<<< HEAD
 public class TrackerEventBundleServiceTest extends IntegrationTestBase
+=======
+public class TrackerEventBundleServiceTest extends DhisSpringTest
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -81,6 +95,8 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
     protected void setUpTest()
         throws IOException
     {
+        preCreateInjectAdminUserWithoutPersistence();
+
         renderService = _renderService;
         userService = _userService;
 
@@ -99,9 +115,16 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
         objectBundleService.commit( bundle );
     }
 
+<<<<<<< HEAD
     @Override
     public boolean emptyDatabaseAfterTest()
+=======
+    @Test
+    public void testCreateSingleEventData()
+        throws IOException
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         return true;
     }
 
@@ -109,6 +132,8 @@ public class TrackerEventBundleServiceTest extends IntegrationTestBase
     public void testCreateSingleEventData()
         throws IOException
     {
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/event_events_and_enrollment.json" ).getInputStream(),
                 TrackerBundleParams.class )

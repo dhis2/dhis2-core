@@ -1,7 +1,9 @@
-package org.hisp.dhis.fileresource;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,13 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
+
+import java.io.File;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.Map;
@@ -44,8 +53,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @Author Zubair Asghar.
  */
@@ -57,7 +69,7 @@ public class FileResourceEventListener
 
     private final FileResourceContentStore fileResourceContentStore;
 
-    public FileResourceEventListener(FileResourceService fileResourceService, FileResourceContentStore contentStore )
+    public FileResourceEventListener( FileResourceService fileResourceService, FileResourceContentStore contentStore )
     {
         this.fileResourceService = fileResourceService;
         this.fileResourceContentStore = contentStore;
@@ -131,11 +143,13 @@ public class FileResourceEventListener
             return;
         }
 
-        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() )
+            && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
         {
             String storageKey = deleteFileEvent.getStorageKey();
 
-            Stream.of( ImageFileDimension.values() ).forEach(d -> fileResourceContentStore.deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
+            Stream.of( ImageFileDimension.values() ).forEach( d -> fileResourceContentStore
+                .deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
         }
         else
         {
@@ -151,6 +165,7 @@ public class FileResourceEventListener
             return;
         }
 
-        log.info( String.format( "File stored with key: %s'. Upload finished in %s", storageId, timeDiff.toString( PeriodFormat.getDefault() ) ) );
+        log.info( String.format( "File stored with key: %s'. Upload finished in %s", storageId,
+            timeDiff.toString( PeriodFormat.getDefault() ) ) );
     }
 }

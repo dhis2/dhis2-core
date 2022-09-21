@@ -1,7 +1,9 @@
-package org.hisp.dhis.program;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.List;
 
@@ -40,23 +43,21 @@ public interface EventSyncStore
      * Returns the {@link ProgramStageInstance} with the given UID.
      *
      * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no
-     * match.
+     * @return the ProgramStageInstance with the given UID, or null if no match.
      */
     ProgramStageInstance getEvent( String uid );
-    
+
     /**
      * Returns the {@link ProgramInstance} with the given UID.
      *
      * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no
-     * match.
+     * @return the ProgramInstance with the given UID, or null if no match.
      */
     ProgramInstance getEnrollment( String uid );
-    
+
     /**
      * Get events (including deleted)
-     * 
+     *
      * @param uids UIDs of events to be fetched
      * @return list of events
      */

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dashboard;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -40,10 +43,14 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.Series;
+<<<<<<< HEAD
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
+=======
+import org.hisp.dhis.common.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -52,18 +59,33 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportParams;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Axis;
 import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.visualization.VisualizationType;
+import org.springframework.util.StringUtils;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.visualization.VisualizationType;
 import org.springframework.util.StringUtils;
+=======
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * Represents an item in the dashboard. An item can represent an embedded object
@@ -90,7 +112,7 @@ public class DashboardItem
     private EventReport eventReport;
 
     private String text;
-    
+
     private List<User> users = new ArrayList<>();
 
     private List<Report> reports = new ArrayList<>();
@@ -102,13 +124,13 @@ public class DashboardItem
     private String appKey;
 
     private DashboardItemShape shape;
-    
+
     private Integer x;
-    
+
     private Integer y;
-    
+
     private Integer height;
-    
+
     private Integer width;
 
     // -------------------------------------------------------------------------
@@ -234,8 +256,7 @@ public class DashboardItem
     {
         InterpretableObject object = getEmbeddedItem();
 
-        return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : 0;
+        return object != null ? object.getInterpretations().stream().mapToInt( Interpretation::getLikes ).sum() : 0;
     }
 
     /**
@@ -271,7 +292,7 @@ public class DashboardItem
         count += map != null ? 1 : 0;
         count += reportTable != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
-        count += text != null ? 1: 0;
+        count += text != null ? 1 : 0;
         count += users.size();
         count += reports.size();
         count += resources.size();
@@ -347,7 +368,11 @@ public class DashboardItem
     public void setChart( Chart chart )
     {
         this.chart = chart;
+<<<<<<< HEAD
         this.visualization = convertToVisualization ( chart );
+=======
+        this.visualization = convertToVisualization( chart );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @JsonProperty
@@ -361,7 +386,11 @@ public class DashboardItem
     public void setReportTable( ReportTable reportTable )
     {
         this.reportTable = reportTable;
+<<<<<<< HEAD
         this.visualization = convertToVisualization ( reportTable );
+=======
+        this.visualization = convertToVisualization( reportTable );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @JsonProperty
@@ -415,15 +444,24 @@ public class DashboardItem
         this.text = text;
     }
 
+<<<<<<< HEAD
     @JsonProperty( "users" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "users", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "user", namespace = DXF_2_0 )
+=======
+    @JsonProperty
+    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public List<User> getUsers()
     {
         return users;
     }
 
+    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
     public void setUsers( List<User> users )
     {
         this.users = users;
@@ -542,7 +580,12 @@ public class DashboardItem
     }
 
     /******************************
+<<<<<<< HEAD
      * Deprecated methods required to keep ReportTable and Chart backward compatible
+=======
+     * Deprecated methods required to keep ReportTable and Chart backward
+     * compatible
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      ******************************/
 
     private Visualization convertToVisualization( final Chart chart )

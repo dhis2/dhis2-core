@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.listener;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -62,13 +65,13 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -82,16 +85,27 @@ import com.google.common.collect.Sets;
 public class DataValueListenerTest extends DhisConvenienceTest
 {
     private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
+
     private static final String STORED_BY = "CGhost";
+
     private static final String LAST_UPDATED_BY = "CGhost";
+
     private static final String DATA_ENTRY_COMMAND = "dataentrycommand";
+
     private static final String SUCCESS_MESSAGE = "data entered successfully";
+
     private static final String SMS_TEXT = DATA_ENTRY_COMMAND + " " + "de=sample";
+
     private static final String SMS_TEXT_FOR_CUSTOM_SEPARATOR = DATA_ENTRY_COMMAND + " " + "de.sample";
+
     private static final String SMS_TEXT_FOR_COMPULSORY = DATA_ENTRY_COMMAND + " " + "de=sample=deb=sample2";
+
     private static final String SMS_TEXT_FOR_COMPULSORY2 = DATA_ENTRY_COMMAND + " " + "de=sample|deb=sample2";
+
     private static final String ORIGINATOR = "474000000";
+
     private static final String WRONG_FORMAT = "WRONG_FORMAT";
+
     private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
 
     @Rule
@@ -136,39 +150,59 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private DataValueSMSListener subject;
 
     private CompleteDataSetRegistration fetchedCompleteDataSetRegistration;
+
     private CompleteDataSetRegistration deletedCompleteDataSetRegistration;
 
     private DataValue fetchedDataValue;
+
     private DataValue updatedDataValue;
 
     private DataElement dataElement;
+
     private DataElement dataElementB;
 
     private CategoryOptionCombo defaultCategoryOptionCombo;
+
     private CategoryOptionCombo categoryOptionCombo;
 
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private DataSet dataSet;
+
     private Period period;
+
     private User user;
+
     private User userB;
+
     private User userC;
+
     private User userWithNoOu;
+
     private User userwithMultipleOu;
 
     private SMSCommand keyValueCommand;
+
     private SMSCode smsCode;
+
     private SMSCode smsCodeForcompulsory;
+
     private SMSSpecialCharacter smsSpecialCharacter;
+
     private IncomingSms incomingSms;
+
     private IncomingSms incomingSmsForCustomSeparator;
+
     private IncomingSms incomingSmsForCompulsoryCode;
+
     private IncomingSms updatedIncomingSms;
 
     private OutboundMessageResponse response;
 
     private boolean locked = false;
+
     private boolean smsConfigured = true;
 
     private String message = "";
@@ -205,16 +239,20 @@ public class DataValueListenerTest extends DhisConvenienceTest
         doAnswer( invocation -> {
             deletedCompleteDataSetRegistration = (CompleteDataSetRegistration) invocation.getArguments()[0];
             return deletedCompleteDataSetRegistration;
-        }).when( registrationService ).deleteCompleteDataSetRegistration( any() );
+        } ).when( registrationService ).deleteCompleteDataSetRegistration( any() );
 
         // Mock for dataValueService
         when( dataValueService.getDataValue( any(), any(), any(), any() ) )
+<<<<<<< HEAD
                 .thenReturn( fetchedDataValue );
+=======
+            .thenReturn( fetchedDataValue );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         doAnswer( invocation -> {
             updatedDataValue = (DataValue) invocation.getArguments()[0];
             return updatedDataValue;
-        }).when( dataValueService ).updateDataValue( any() );
+        } ).when( dataValueService ).updateDataValue( any() );
 
         // Mock for userService
         when( userService.getUser( anyString() ) ).thenReturn( user );
@@ -222,7 +260,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for dataElementCategoryService
         when( dataElementCategoryService.getDefaultCategoryOptionCombo() ).thenReturn( defaultCategoryOptionCombo );
 
+<<<<<<< HEAD
         Mockito.lenient().when ( dataElementCategoryService.getCategoryOptionCombo( anyInt() ) ).thenReturn( categoryOptionCombo );
+=======
+        Mockito.lenient().when( dataElementCategoryService.getCategoryOptionCombo( anyInt() ) )
+            .thenReturn( categoryOptionCombo );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
@@ -234,7 +277,11 @@ public class DataValueListenerTest extends DhisConvenienceTest
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
             return updatedIncomingSms;
+<<<<<<< HEAD
         }).when( incomingSmsService ).update( any() );
+=======
+        } ).when( incomingSmsService ).update( any() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -266,9 +313,16 @@ public class DataValueListenerTest extends DhisConvenienceTest
         assertTrue( updatedIncomingSms.isParsed() );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test( )
     public void testIfDataSetIsLocked()
     {
+<<<<<<< HEAD
+=======
+        ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass( IncomingSms.class );
+
+        mockSmsSender();
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         // Mock for userService
         when( userService.getUser( anyString() ) ).thenReturn( user );
 
@@ -279,12 +333,14 @@ public class DataValueListenerTest extends DhisConvenienceTest
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
         incomingSms.setUser( user );
-        when( dataSetService.isLocked( any(), any(DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
+        when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         subject.receive( incomingSms );
 
         verify( smsCommandService, times( 1 ) ).getSMSCommand( anyString(), any() );
-        verify( dataSetService, times( 1 ) ).isLocked( user, any(DataSet.class ), any(), any(), any(), any() );
-        verify( incomingSmsService, never() ).update( any() );
+        verify( incomingSmsService, times( 1 ) ).update( incomingSmsCaptor.capture() );
+
+        assertEquals( incomingSmsCaptor.getValue().getText(), incomingSms.getText() );
+        assertFalse( incomingSmsCaptor.getValue().isParsed() );
     }
 
     @Test
@@ -305,7 +361,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.NO_USER_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
     }
 
     @Test
@@ -322,13 +378,14 @@ public class DataValueListenerTest extends DhisConvenienceTest
         incomingSms.setUser( userwithMultipleOu );
 
         when( userService.getUser( anyString() ) ).thenReturn( userwithMultipleOu );
-        when( userService.getUsersByPhoneNumber( anyString() ) ).thenReturn( Collections.singletonList( userwithMultipleOu ) );
+        when( userService.getUsersByPhoneNumber( anyString() ) )
+            .thenReturn( Collections.singletonList( userwithMultipleOu ) );
 
         subject.receive( incomingSms );
 
         assertEquals( message, SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setMoreThanOneOrgUnitMessage( MORE_THAN_ONE_OU );
 
@@ -373,7 +430,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
         assertEquals( message, SMSCommand.WRONG_FORMAT_MESSAGE );
         assertNull( updatedIncomingSms );
-        verify( dataSetService, never() ).isLocked( any(), any(DataSet.class ), any(), any(), any(), any() );
+        verify( dataSetService, never() ).isLocked( any(), any( DataSet.class ), any(), any(), any(), any() );
 
         keyValueCommand.setWrongFormatMessage( WRONG_FORMAT );
         subject.receive( incomingSmsForCustomSeparator );
@@ -475,14 +532,15 @@ public class DataValueListenerTest extends DhisConvenienceTest
         userwithMultipleOu.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
         dataElement = createDataElement( 'D' );
-        dataElement.setValueType(ValueType.TEXT );
+        dataElement.setValueType( ValueType.TEXT );
         defaultCategoryOptionCombo = createCategoryOptionCombo( 'D' );
         categoryOptionCombo = createCategoryOptionCombo( 'C' );
 
         dataElementB = createDataElement( 'B' );
-        dataElementB.setValueType(ValueType.TEXT );
+        dataElementB.setValueType( ValueType.TEXT );
 
-        fetchedDataValue = createDataValue( dataElement, period, organisationUnitA, FETCHED_DATA_VALUE, categoryOptionCombo );
+        fetchedDataValue = createDataValue( dataElement, period, organisationUnitA, FETCHED_DATA_VALUE,
+            categoryOptionCombo );
 
         fetchedCompleteDataSetRegistration = new CompleteDataSetRegistration( dataSet, period, organisationUnitA,
             categoryOptionCombo, new Date(), STORED_BY, new Date(), LAST_UPDATED_BY, true );

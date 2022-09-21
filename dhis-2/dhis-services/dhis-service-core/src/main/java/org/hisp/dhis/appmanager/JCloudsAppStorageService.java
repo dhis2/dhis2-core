@@ -1,6 +1,9 @@
-package org.hisp.dhis.appmanager;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +29,47 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+=======
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -60,6 +93,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
+<<<<<<< HEAD
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
@@ -81,6 +115,11 @@ import java.util.zip.ZipFile;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
+=======
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Stian Sandvold
@@ -90,7 +129,12 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 public class JCloudsAppStorageService
     implements AppStorageService
 {
+<<<<<<< HEAD
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
+=======
+    private static final Pattern CONTAINER_NAME_PATTERN = Pattern
+        .compile( "^(?![.-])(?=.{1,63})([.-]?[a-zA-Z0-9]+)+$" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
@@ -112,8 +156,8 @@ public class JCloudsAppStorageService
 
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS =
-        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
+    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM,
+        JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -149,14 +193,12 @@ public class JCloudsAppStorageService
         config = new BlobStoreProperties(
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) );
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
-            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
-        );
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET ) );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
@@ -253,8 +295,7 @@ public class JCloudsAppStorageService
                 appMap.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from JClouds storage " );
-            }
-        );
+            } );
 
         if ( appList.isEmpty() )
         {
@@ -267,6 +308,64 @@ public class JCloudsAppStorageService
     public Map<String, App> getReservedNamespaces()
     {
         return reservedNamespaces;
+    }
+
+    private boolean validateApp( App app, Cache<App> appCache )
+    {
+        // -----------------------------------------------------------------
+        // Check if app with same key is currently being deleted
+        // (deletion_in_progress)
+        // -----------------------------------------------------------------
+        Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
+        if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
+        {
+            log.error( "Failed to install app: App with same name is currently being deleted" );
+
+            app.setAppState( AppStatus.DELETION_IN_PROGRESS );
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // Check for namespace and if it's already taken by another app
+        // -----------------------------------------------------------------
+
+        String namespace = app.getActivities().getDhis().getNamespace();
+
+        if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
+        {
+            log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
+                app.getName(), namespace ) );
+
+            app.setAppState( AppStatus.NAMESPACE_TAKEN );
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // Check that, iff this is a bundled app, it is configured as a core app
+        // -----------------------------------------------------------------
+
+        if ( app.isBundled() != app.isCoreApp() )
+        {
+            if ( app.isBundled() )
+            {
+                log.error(
+                    String.format(
+                        "Failed to install app '%s': bundled app overrides muse be declared with core_app=true",
+                        app.getShortName() ) );
+                app.setAppState( AppStatus.INVALID_BUNDLED_APP_OVERRIDE );
+            }
+            else
+            {
+                log.error(
+                    String.format(
+                        "Failed to install app '%s': apps declared with core_app=true must override a bundled app",
+                        app.getShortName() ) );
+                app.setAppState( AppStatus.INVALID_CORE_APP );
+            }
+
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -298,6 +397,7 @@ public class JCloudsAppStorageService
 
             app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
+<<<<<<< HEAD
 
             // -----------------------------------------------------------------
             // Check if app with same key is currently being deleted (deletion_in_progress)
@@ -306,27 +406,16 @@ public class JCloudsAppStorageService
             if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
             {
                 log.error( "Failed to install app: App with same name is currently being deleted" );
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+            if ( !this.validateApp( app, appCache ) )
+            {
                 zip.close();
-                app.setAppState( AppStatus.DELETION_IN_PROGRESS );
                 return app;
             }
-
-            // -----------------------------------------------------------------
-            // Check for namespace and if it's already taken by another app
-            // -----------------------------------------------------------------
 
             String namespace = app.getActivities().getDhis().getNamespace();
-
-            if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
-            {
-                log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
-                    app.getName(), namespace ) );
-
-                zip.close();
-                app.setAppState( AppStatus.NAMESPACE_TAKEN );
-                return app;
-            }
 
             // -----------------------------------------------------------------
             // Unzip the app
@@ -359,9 +448,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                + "New app '%s' installed"
+                + "\n\tInstall path: %s"
+                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -429,9 +518,24 @@ public class JCloudsAppStorageService
 
             String filepath = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER ) + "/" + key;
             filepath = filepath.replaceAll( "//", "/" );
-            File res = locationManager.getFileForReading( filepath );
+            File res;
 
-            if ( res.exists() )
+            try
+            {
+                res = locationManager.getFileForReading( filepath );
+            }
+            catch ( LocationManagerException e )
+            {
+                return null;
+            }
+
+            if ( res.isDirectory() )
+            {
+                String indexPath = pageName.replaceAll( "/+$", "" ) + "/index.html";
+                log.info( "Resource " + pageName + " (" + filepath + " is a directory, serving " + indexPath );
+                return getAppResource( app, indexPath );
+            }
+            else if ( res.exists() )
             {
                 return new FileSystemResource( res );
             }
@@ -446,13 +550,12 @@ public class JCloudsAppStorageService
 
     private static Location createRegionLocation( BlobStoreProperties config, Location provider )
     {
-        return config.location != null ?
-            new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build() : null;
+        return config.location != null ? new LocationBuilder()
+            .scope( LocationScope.REGION )
+            .id( config.location )
+            .description( config.location )
+            .parent( provider )
+            .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
@@ -507,8 +610,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

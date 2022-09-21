@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.approvalvalidationrule.ApprovalValidationAudit" table="approvalvalidationaudit">
+
+    <id name="id" column="approvalvalidationauditid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+      foreign-key="fk_approvalvalidationaudit_datasetid" not-null="true" />
+      
+    <many-to-one name="approvalValidationRule" class="org.hisp.dhis.approvalvalidationrule.ApprovalValidationRule" column="approvalvalidationruleid"
+      foreign-key="fk_approvalvalidation_approvalvalidationruleid" not-null="true" />
+
+    <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+      foreign-key="fk_approvalvalidationaudit_periodid" not-null="true" />
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_approvalvalidationaudit_organisationunitid" not-null="true" />
+
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo" column="attributeoptioncomboid"
+      foreign-key="fk_approvalvalidationaudit_attributeoptioncomboid" not-null="true" />
+
+    <property name="created" column="created" type="timestamp" not-null="false" index="id_approvalvalidationaudit_created" />
+
+    <property name="modifiedBy" column="modifiedby" />
+
+    <property name="auditType" column="audittype" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.AuditType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+  </class>
+</hibernate-mapping>

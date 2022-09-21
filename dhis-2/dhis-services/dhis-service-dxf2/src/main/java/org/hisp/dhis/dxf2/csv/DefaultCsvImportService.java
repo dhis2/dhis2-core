@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.csv;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.csv;
 
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
@@ -86,7 +89,7 @@ import com.csvreader.CsvReader;
 /**
  * @author Lars Helge Overland
  */
-@Service ( "org.hisp.dhis.dxf2.csv.CsvImportService" )
+@Service( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
 {
@@ -111,14 +114,15 @@ public class DefaultCsvImportService
     // CsvImportService implementation
     // -------------------------------------------------------------------------
 
-    //TODO Add unit tests
+    // TODO Add unit tests
 
     @Override
     public Metadata fromCsv( InputStream input, CsvImportOptions options )
         throws IOException
     {
         CsvReader reader = CsvUtils.getReader( input );
-        reader.setSafetySwitch( false ); // Disabled due to large geometry values for org units
+        reader.setSafetySwitch( false ); // Disabled due to large geometry
+        // values for org units
 
         if ( options.isFirstRowIsHeader() )
         {
@@ -129,6 +133,7 @@ public class DefaultCsvImportService
 
         switch ( options.getImportClass() )
         {
+<<<<<<< HEAD
             case DATA_ELEMENT:
                 metadata.setDataElements( dataElementsFromCsv( reader ) );
                 break;
@@ -179,6 +184,58 @@ public class DefaultCsvImportService
                 break;
             default:
                 break;
+=======
+        case DATA_ELEMENT:
+            metadata.setDataElements( dataElementsFromCsv( reader ) );
+            break;
+        case DATA_ELEMENT_GROUP:
+            metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
+            break;
+        case DATA_ELEMENT_GROUP_MEMBERSHIP:
+            metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
+            break;
+        case INDICATOR_GROUP_MEMBERSHIP:
+            metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
+            break;
+        case CATEGORY_OPTION:
+            metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
+            break;
+        case CATEGORY:
+            metadata.setCategories( categoriesFromCsv( reader ) );
+            break;
+        case CATEGORY_COMBO:
+            metadata.setCategoryCombos( categoryCombosFromCsv( reader ) );
+            break;
+        case CATEGORY_OPTION_GROUP:
+            metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
+            break;
+        case ORGANISATION_UNIT:
+            metadata.setOrganisationUnits( orgUnitsFromCsv( reader ) );
+            break;
+        case ORGANISATION_UNIT_GROUP:
+            metadata.setOrganisationUnitGroups( orgUnitGroupsFromCsv( reader ) );
+            break;
+        case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+            metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
+            break;
+        case VALIDATION_RULE:
+            metadata.setValidationRules( validationRulesFromCsv( reader ) );
+            break;
+        case OPTION_SET:
+            setOptionSetsFromCsv( reader, metadata );
+            break;
+        case OPTION_GROUP:
+            setOptionGroupsFromCsv( reader, metadata );
+            break;
+        case OPTION_GROUP_SET:
+            metadata.setOptionGroupSets( setOptionGroupSetFromCsv( reader ) );
+            break;
+        case OPTION_GROUP_SET_MEMBERSHIP:
+            metadata.setOptionGroupSets( optionGroupSetMembersFromCsv( reader ) );
+            break;
+        default:
+            break;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
 
         return metadata;
@@ -211,7 +268,8 @@ public class DefaultCsvImportService
                 object.setDomainType( DataElementDomain.fromValue( domainType ) );
                 object.setValueType( ValueType.valueOf( getSafe( values, 7, ValueType.INTEGER.toString(), 50 ) ) );
 
-                object.setAggregationType( AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
+                object.setAggregationType(
+                    AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
                 String categoryComboUid = getSafe( values, 9, null, 11 );
                 object.setUrl( getSafe( values, 10, null, 255 ) );
                 object.setZeroIsSignificant( Boolean.valueOf( getSafe( values, 11, "false", null ) ) );
@@ -380,7 +438,8 @@ public class DefaultCsvImportService
                 Category object = new Category();
                 setIdentifiableObject( object, values );
                 object.setDescription( getSafe( values, 3, null, 255 ) );
-                object.setDataDimensionType( DataDimensionType.valueOf( getSafe( values, 4, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
+                object.setDataDimensionType( DataDimensionType
+                    .valueOf( getSafe( values, 4, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
                 object.setDataDimension( Boolean.valueOf( getSafe( values, 5, Boolean.FALSE.toString(), 40 ) ) );
                 list.add( object );
             }
@@ -402,7 +461,8 @@ public class DefaultCsvImportService
             {
                 CategoryCombo object = new CategoryCombo();
                 setIdentifiableObject( object, values );
-                object.setDataDimensionType( DataDimensionType.valueOf( getSafe( values, 3, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
+                object.setDataDimensionType( DataDimensionType
+                    .valueOf( getSafe( values, 3, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
                 object.setSkipTotal( Boolean.valueOf( getSafe( values, 4, Boolean.FALSE.toString(), 40 ) ) );
                 list.add( object );
             }
@@ -451,9 +511,11 @@ public class DefaultCsvImportService
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
                 object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
-                // Index 6 was rule type which has been removed from the data model
+                // Index 6 was rule type which has been removed from the data
+                // model
                 object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
-                object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
+                object.setPeriodType(
+                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
@@ -479,7 +541,7 @@ public class DefaultCsvImportService
     private void setGeometry( OrganisationUnit ou, FeatureType featureType, String coordinates )
         throws IOException
     {
-        if ( !( featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
+        if ( !(featureType == FeatureType.NONE) && StringUtils.isNotBlank( coordinates ) )
         {
             ou.setGeometryAsJson( String.format( JSON_GEOM_TEMPL, featureType.value(), coordinates ) );
         }
@@ -498,7 +560,10 @@ public class DefaultCsvImportService
             {
                 OrganisationUnit object = new OrganisationUnit();
                 setIdentifiableObject( object, values );
-                String parentUid = getSafe( values, 3, null, 230 ); // Could be UID, code, name
+                String parentUid = getSafe( values, 3, null, 230 ); // Could be
+                // UID,
+                // code,
+                // name
                 object.setShortName( getSafe( values, 4, object.getName(), 50 ) );
                 object.setDescription( getSafe( values, 5, null, null ) );
                 object.setOpeningDate( getMediumDate( getSafe( values, 6, "1970-01-01", null ) ) );
@@ -563,7 +628,8 @@ public class DefaultCsvImportService
                 String groupUid = values[0];
                 String memberUid = values[1];
 
-                OrganisationUnitGroup persistedGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
+                OrganisationUnitGroup persistedGroup = organisationUnitGroupService
+                    .getOrganisationUnitGroup( groupUid );
 
                 if ( persistedGroup != null )
                 {
@@ -662,6 +728,7 @@ public class DefaultCsvImportService
      * <li>option set uid</li>
      * <li>option uid</li>
      * </ul>
+<<<<<<< HEAD
      * @param reader
      * @param metadata
      * @throws IOException
@@ -853,6 +920,203 @@ public class DefaultCsvImportService
                 }
 
                 OptionGroupSet persistedGroupSet = persistedGroupSetMap.get( groupSetUid, () -> optionService.getOptionGroupSet( groupSetUid ) );
+=======
+     *
+     * @param reader
+     * @param metadata
+     * @throws IOException
+     */
+    private void setOptionGroupsFromCsv( CsvReader reader, Metadata metadata )
+        throws IOException
+    {
+        ListMap<String, Option> nameOptionMap = new ListMap<>();
+        Map<String, OptionGroup> nameOptionGroupMap = new HashMap<>();
+        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                OptionGroup optionGroup = new OptionGroup();
+                setIdentifiableObject( optionGroup, values );
+                optionGroup.setShortName( getSafe( values, 3, null, 50 ) );
+                optionGroup.setAutoFields();
+
+                if ( optionGroup.getName() == null || optionGroup.getShortName() == null )
+                {
+                    continue;
+                }
+
+                OptionSet optionSet = new OptionSet();
+                optionSet.setUid( getSafe( values, 4, null, 11 ) );
+
+                if ( optionSet.getUid() == null )
+                {
+                    continue;
+                }
+
+                OptionSet persistedOptionSet = optionSet.getUid() != null
+                    ? mapOptionSet.get( optionSet.getUid(), () -> {
+                        OptionSet persistedOS = optionService.getOptionSet( optionSet.getUid() );
+                        persistedOS.getOptions();
+                        return persistedOS;
+                    } )
+                    : mapOptionSet.get( optionSet.getCode(), () -> {
+                        OptionSet persistedOS = optionService.getOptionSetByCode( optionSet.getCode() );
+                        persistedOS.getOptions();
+                        return persistedOS;
+                    } );
+
+                if ( persistedOptionSet == null )
+                {
+                    continue;
+                }
+
+                optionGroup.setOptionSet( optionSet );
+
+                Option option = new Option();
+                option.setUid( getSafe( values, 5, null, 11 ) );
+                option.setCode( getSafe( values, 6, null, 50 ) );
+
+                if ( option.getCode() == null && option.getUid() == null )
+                {
+                    continue;
+                }
+
+                Optional<Option> isOptionExisted = persistedOptionSet.getOptions().stream().filter( persistedOption -> {
+                    if ( option.getUid() != null )
+                    {
+                        return persistedOption.getUid().equals( option.getUid() );
+                    }
+                    else
+                    {
+                        return persistedOption.getCode().equals( option.getCode() );
+                    }
+                } ).findFirst();
+
+                if ( !isOptionExisted.isPresent() )
+                {
+                    continue;
+                }
+
+                nameOptionGroupMap.put( optionGroup.getName(), optionGroup );
+
+                nameOptionMap.putValue( optionGroup.getName(), isOptionExisted.get() );
+            }
+        }
+
+        // Read option groups from map and set in meta data
+
+        for ( String optionGroupName : nameOptionGroupMap.keySet() )
+        {
+            OptionGroup optionGroup = nameOptionGroupMap.get( optionGroupName );
+
+            Set<Option> options = new HashSet<>( nameOptionMap.get( optionGroupName ) );
+
+            optionGroup.setMembers( options );
+
+            metadata.getOptionGroups().add( optionGroup );
+        }
+    }
+
+    /**
+     * Option group set format:
+     * <p>
+     * <ul>
+     * <li>option group set name</li>
+     * <li>option group set uid</li>
+     * <li>option group set code</li>
+     * <li>option group set description</li>
+     * <li>data dimension</li>
+     * <li>option set uid</li>
+     * <li>option set code</li>
+     * </ul>
+     *
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    private List<OptionGroupSet> setOptionGroupSetFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<OptionGroupSet> optionGroupSets = new ArrayList<>();
+        CachingMap<String, OptionSet> mapOptionSet = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                OptionGroupSet optionGroupSet = new OptionGroupSet();
+                setIdentifiableObject( optionGroupSet, values );
+                optionGroupSet.setDescription( getSafe( values, 4, null, null ) );
+                optionGroupSet
+                    .setDataDimension(
+                        Boolean.valueOf( getSafe( values, 3, Boolean.FALSE.toString(), 40 ) ) ); // boolean
+
+                OptionSet optionSet = new OptionSet();
+                optionSet.setUid( getSafe( values, 5, null, 11 ) );
+                optionSet.setCode( getSafe( values, 6, null, 50 ) );
+
+                if ( optionSet.getUid() == null && optionSet.getCode() == null )
+                {
+                    continue;
+                }
+
+                OptionSet persistedOptionSet = optionSet.getUid() != null
+                    ? mapOptionSet.get( optionSet.getUid(), () -> optionService.getOptionSet( optionSet.getUid() ) )
+                    : mapOptionSet.get( optionSet.getCode(),
+                        () -> optionService.getOptionSetByCode( optionSet.getCode() ) );
+
+                if ( persistedOptionSet == null )
+                {
+                    continue;
+                }
+
+                optionGroupSet.setOptionSet( optionSet );
+
+                optionGroupSets.add( optionGroupSet );
+            }
+        }
+        return optionGroupSets;
+    }
+
+    /**
+     * Option Group Set Members format
+     * <ul>
+     * <li>option group set uid</li>
+     * <li>option group uid</li>
+     * </ul>
+     *
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    public List<OptionGroupSet> optionGroupSetMembersFromCsv( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, OptionGroupSet> uidMap = new CachingMap<>();
+        CachingMap<String, OptionGroupSet> persistedGroupSetMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupSetUid = getSafe( values, 0, null, 11 );
+                String groupUid = getSafe( values, 1, null, 11 );
+                if ( groupSetUid == null || groupUid == null )
+                {
+                    continue;
+                }
+
+                OptionGroupSet persistedGroupSet = persistedGroupSetMap.get( groupSetUid,
+                    () -> optionService.getOptionGroupSet( groupSetUid ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                 if ( persistedGroupSet != null )
                 {
@@ -893,10 +1157,10 @@ public class DefaultCsvImportService
     /**
      * Returns a string from the given array avoiding exceptions.
      *
-     * @param values       the string array.
-     * @param index        the array index of the string to get, zero-based.
+     * @param values the string array.
+     * @param index the array index of the string to get, zero-based.
      * @param defaultValue the default value in case index is out of bounds.
-     * @param maxChars     the max number of characters to return for the string.
+     * @param maxChars the max number of characters to return for the string.
      */
     private static String getSafe( String[] values, int index, String defaultValue, Integer maxChars )
     {

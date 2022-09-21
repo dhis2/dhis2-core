@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.sms.listener;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +36,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,12 +69,56 @@ import org.springframework.transaction.annotation.Transactional;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
+<<<<<<< HEAD
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+=======
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SmsResponse;
+import org.hisp.dhis.smscompression.models.AggregateDatasetSmsSubmission;
+import org.hisp.dhis.smscompression.models.SmsDataValue;
+import org.hisp.dhis.smscompression.models.SmsSubmission;
+import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" )
@@ -127,8 +178,13 @@ public class AggregateDataSetSMSListener
         }
 
         CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
+<<<<<<< HEAD
        
        if ( aoc == null )
+=======
+
+        if ( aoc == null )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }

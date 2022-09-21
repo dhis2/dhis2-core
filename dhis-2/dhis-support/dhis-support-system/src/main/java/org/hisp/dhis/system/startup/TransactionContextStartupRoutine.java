@@ -1,7 +1,9 @@
-package org.hisp.dhis.system.startup;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,12 @@ package org.hisp.dhis.system.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.startup;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -39,25 +42,25 @@ import org.springframework.transaction.support.TransactionCallback;
 public abstract class TransactionContextStartupRoutine
     extends AbstractStartupRoutine
 {
-   @Autowired
-   private TransactionTemplate transactionTemplate;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
-   /**
-    * Work performed in this method will run inside a transaction context.
-    */
-   public abstract void executeInTransaction();
+    /**
+     * Work performed in this method will run inside a transaction context.
+     */
+    public abstract void executeInTransaction();
 
-   @Override
-   public final void execute()
-   {
-       transactionTemplate.execute( new TransactionCallback<Object>()
-       {
-           @Override
-           public Object doInTransaction( TransactionStatus status )
-           {
-               executeInTransaction();
-               return null;
-           }
-       } );
-   }
+    @Override
+    public final void execute()
+    {
+        transactionTemplate.execute( new TransactionCallback<Object>()
+        {
+            @Override
+            public Object doInTransaction( TransactionStatus status )
+            {
+                executeInTransaction();
+                return null;
+            }
+        } );
+    }
 }

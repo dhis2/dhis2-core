@@ -1,7 +1,9 @@
-package org.hisp.dhis.query;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,15 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
@@ -42,12 +51,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,11 +61,14 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
     private final SchemaService schemaService;
+
     private final AclService aclService;
+
     private final CurrentUserService currentUserService;
 
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
+    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService,
+        CurrentUserService currentUserService )
     {
         checkNotNull( schemaService );
         checkNotNull( aclService );
@@ -77,9 +84,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         validateQuery( query );
         List<T> list = runQuery( query );
+
         list = runSorter( query, list );
 
-        return PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
+        return query.isSkipPaging() ? list
+            : PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
     }
 
     @Override
@@ -122,12 +131,12 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         List<T> sorted = new ArrayList<>( objects );
 
-        sorted.sort( ( o1, o2 ) ->
-        {
+        sorted.sort( ( o1, o2 ) -> {
             for ( Order order : query.getOrders() )
             {
                 int result = order.compare( o1, o2 );
-                if ( result != 0 ) return result;
+                if ( result != 0 )
+                    return result;
             }
 
             return 0;

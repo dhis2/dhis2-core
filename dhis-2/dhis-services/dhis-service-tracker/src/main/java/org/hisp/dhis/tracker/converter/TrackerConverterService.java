@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,11 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+package org.hisp.dhis.tracker.converter;
 
 import java.util.List;
+
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,11 +44,7 @@ public interface TrackerConverterService<From, To>
 
     List<From> to( List<To> objects );
 
-    To from( From object );
-
     To from( TrackerPreheat preheat, From object );
-
-    List<To> from( List<From> objects );
 
     List<To> from( TrackerPreheat preheat, List<From> objects );
 }

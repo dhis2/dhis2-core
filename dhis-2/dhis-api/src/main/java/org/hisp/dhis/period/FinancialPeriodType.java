@@ -1,7 +1,9 @@
-package org.hisp.dhis.period;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,15 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -48,6 +51,8 @@ public abstract class FinancialPeriodType
     private static final long serialVersionUID = 2649990007010207631L;
 
     public static final int FREQUENCY_ORDER = 365;
+
+    public static final String SQL_INTERVAL = "1 year";
 
     // -------------------------------------------------------------------------
     // Abstract methods
@@ -87,12 +92,18 @@ public abstract class FinancialPeriodType
         return FREQUENCY_ORDER;
     }
 
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
+    }
+
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-    
+
     @Override
-    public DateTimeUnit getDateWithOffset(  DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
         return calendar.plusYears( dateTimeUnit, offset );
     }

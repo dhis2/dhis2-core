@@ -1,7 +1,9 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,15 +39,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Dog
 {
     private String id;
-    
+
     private String name;
-    
+
     private String color;
-    
+
     public Dog()
     {
     }
-    
+
     public Dog( String id, String name, String color )
     {
         this.id = id;

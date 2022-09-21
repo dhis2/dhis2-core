@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,15 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import java.util.Date;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.ProgramInstance;
@@ -43,8 +51,11 @@ import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Zubair Asghar.
@@ -59,6 +70,24 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     protected final ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     protected final NotificationLoggingService notificationLoggingService;
+<<<<<<< HEAD
+=======
+
+    protected final ProgramInstanceService programInstanceService;
+
+    protected final ProgramStageInstanceService programStageInstanceService;
+
+    public NotificationRuleActionImplementer( ProgramNotificationTemplateStore programNotificationTemplateStore,
+        NotificationLoggingService notificationLoggingService,
+        ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService )
+    {
+        this.programNotificationTemplateStore = programNotificationTemplateStore;
+        this.notificationLoggingService = notificationLoggingService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     protected final ProgramInstanceService programInstanceService;
 
@@ -109,12 +138,13 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         return template.getUid() + programInstance.getUid();
     }
 
-    protected ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template, String date )
+    protected ProgramNotificationInstance createNotificationInstance( ProgramNotificationTemplate template,
+        String date )
     {
         ProgramNotificationInstance notificationInstance = new ProgramNotificationInstance();
         notificationInstance.setAutoFields();
         notificationInstance.setName( template.getName() );
-        notificationInstance.setScheduledAt(  DateUtils.parseDate( date ) );
+        notificationInstance.setScheduledAt( DateUtils.parseDate( date ) );
         notificationInstance.setProgramNotificationTemplate( template );
 
         return notificationInstance;

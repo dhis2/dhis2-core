@@ -1,7 +1,9 @@
-package org.hisp.dhis.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,7 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.Hibernate;
-import org.hibernate.collection.internal.PersistentSet;
-import org.hibernate.collection.spi.PersistentCollection;
-import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.proxy.pojo.javassist.SerializableProxy;
-import org.hisp.dhis.commons.util.DebugUtils;
+package org.hisp.dhis.hibernate;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
@@ -44,6 +40,26 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
+import org.hibernate.Hibernate;
+import org.hibernate.collection.internal.PersistentSet;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.pojo.javassist.SerializableProxy;
+import org.hisp.dhis.commons.util.DebugUtils;
+
+<<<<<<< HEAD
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+=======
+import com.google.common.base.Preconditions;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -51,7 +67,11 @@ public class HibernateUtils
 {
     public static boolean isProxy( Object object )
     {
+<<<<<<< HEAD
         return ( ( object instanceof HibernateProxy ) || ( object instanceof PersistentCollection ) );
+=======
+        return ((object instanceof HibernateProxy) || (object instanceof PersistentCollection));
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     /**
@@ -104,6 +124,7 @@ public class HibernateUtils
      */
     public static <T> T initializeProxy( T proxy )
     {
+<<<<<<< HEAD
         if ( !Hibernate.isInitialized( proxy ) )
         {
             Hibernate.initialize( proxy );
@@ -131,6 +152,36 @@ public class HibernateUtils
                     DebugUtils.getStackTrace( e );
                 }
             });
+=======
+        Preconditions.checkNotNull( proxy, "Proxy can not be null!" );
+
+        if ( !Hibernate.isInitialized( proxy ) )
+        {
+            Hibernate.initialize( proxy );
+        }
+
+        Field[] fields = proxy.getClass().getDeclaredFields();
+
+        Arrays.stream( fields )
+            .filter( f -> Collection.class.isAssignableFrom( f.getType() ) )
+            .forEach( f -> {
+                try
+                {
+                    PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
+
+                    Object persistentObject = pd.getReadMethod().invoke( proxy );
+
+                    if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    {
+                        Hibernate.initialize( persistentObject );
+                    }
+                }
+                catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
+                {
+                    DebugUtils.getStackTrace( e );
+                }
+            } );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return proxy;
     }

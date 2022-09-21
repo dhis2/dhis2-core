@@ -1,7 +1,9 @@
-package org.hisp.dhis.reservedvalue.hibernate;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,13 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue.hibernate;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Objects;
@@ -45,25 +52,22 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 public class HibernateReservedValueStoreTest
     extends DhisSpringTest
 {
     private static int counter = 1;
 
-    private final ReservedValue reservedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "001", null );
+    private final static String teaUid = "tea";
 
-    private final ReservedValue usedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "002", null );
+    private final static String prog001 = "001";
+
+    private final static String prog002 = "002";
+
+    private final ReservedValue reservedValue = ReservedValue.builder()
+        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( teaUid ).key( "00X" )
+        .value( prog001 ).build();
 
     private Date futureDate;
 
@@ -88,53 +92,48 @@ public class HibernateReservedValueStoreTest
         Calendar future = Calendar.getInstance();
         future.add( Calendar.DATE, 10 );
         futureDate = future.getTime();
-        reservedValueA.setExpiryDate( futureDate );
-        usedValueA.setExpiryDate( futureDate );
-
-        reservedValueStore.save( reservedValueA );
-
-        OrganisationUnit ou = createOrganisationUnit( "OU" );
-        organisationUnitStore.save( ou );
-
-        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
-        trackedEntityInstanceStore.save( tei );
-
-        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
-        tea.setUid( "A" );
-        trackedEntityAttributeStore.save( tea );
-
-        TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
-        teav.setValue( "002" );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
-
+        reservedValue.setExpiryDate( futureDate );
     }
 
     @Test
     public void reserveValuesSingleValue()
     {
+        reservedValueStore.save( reservedValue );
+
         int count = reservedValueStore.getCount();
-        ReservedValue rv = getFreeReservedValue();
+
+        ReservedValue rv = reservedValue.toBuilder().value( prog002 ).build();
+
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
         assertEquals( 1, res.size() );
-        assertEquals(reservedValueStore.getCount(), count + 1);
+        assertEquals( reservedValueStore.getCount(), count + 1 );
     }
 
     @Test
     public void isReservedShouldBeTrue()
     {
-        assertTrue( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
+        reservedValueStore.save( reservedValue );
+
+        assertTrue(
+            reservedValueStore.isReserved( reservedValue.getOwnerObject(), reservedValue.getOwnerUid(),
+                prog001 ) );
     }
 
     @Test
     public void isReservedShouldBeFalse()
     {
-        assertFalse( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
+        reservedValueStore.save( reservedValue );
+
+        assertFalse(
+            reservedValueStore.isReserved( reservedValue.getOwnerObject(), reservedValue.getOwnerUid(), "100" ) );
     }
 
     @Test
     public void reserveValuesMultipleValues()
     {
+        reservedValueStore.save( reservedValue );
+
         int count = reservedValueStore.getCount();
 
         ArrayList<String> values = new ArrayList<>();
@@ -148,61 +147,43 @@ public class HibernateReservedValueStoreTest
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( getFreeReservedValue(), values );
 
         assertEquals( n, res.size() );
-        assertEquals( ( count + n ), reservedValueStore.getCount() );
-    }
-
-    @Test
-    public void reserveValuesSingleValueAlreadyReserved()
-    {
-        int count = reservedValueStore.getCount();
-
-        List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
-
-        assertEquals( 0, res.size() );
-        assertEquals( count, reservedValueStore.getCount() );
-    }
-
-    @Test
-    public void reserveValuesSingleValueAlreadyUsed()
-    {
-        int count = reservedValueStore.getCount();
-
-        List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
-
-        assertEquals( 0, res.size() );
-        assertEquals( count, reservedValueStore.getCount() );
+        assertEquals( (count + n), reservedValueStore.getCount() );
     }
 
     @Test
     public void reserveValuesMultipleValuesAlreadyReservedAndUsed()
     {
+        reservedValueStore.save( reservedValue );
+
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValuesJpa( reservedValueA, Lists.newArrayList( "001", "002", "003", "004" ) );
+            .reserveValuesJpa( reservedValue, Lists.newArrayList( "002", "003", "004" ) );
 
         assertEquals( 1, count );
         assertEquals( 3, res.size() );
-        assertEquals( ( count + 3 ), reservedValueStore.getCount() );
+        assertEquals( (count + 3), reservedValueStore.getCount() );
     }
 
     @Test
     public void getIfReservedValuesReturnsReservedValue()
     {
-        List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
+        reservedValueStore.save( reservedValue );
 
-        assertEquals( reservedValueA, res.get( 0 ) );
+        List<ReservedValue> res = reservedValueStore
+            .getIfReservedValues( reservedValue, Lists.newArrayList( reservedValue.getValue() ) );
+
+        assertEquals( reservedValue, res.get( 0 ) );
         assertEquals( 1, res.size() );
     }
 
     @Test
     public void getIfReservedValuesReturnEmptyListWhenNotReserved()
     {
+        reservedValueStore.save( reservedValue );
+
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( getFreeReservedValue(), Lists.newArrayList( "999" ) );
+            .getIfReservedValues( reservedValue, Lists.newArrayList( "999" ) );
 
         assertEquals( 0, res.size() );
     }
@@ -210,10 +191,14 @@ public class HibernateReservedValueStoreTest
     @Test
     public void getIfReservedValuesReturnOnlyReservedValuesWhenSendingMultipleValues()
     {
-        List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( reservedValueA, Lists.newArrayList( "001", "002", "003" ) );
+        reservedValueStore.save( reservedValue );
 
-        assertEquals( reservedValueA, res.get( 0 ) );
+        List<ReservedValue> res = reservedValueStore
+            .getIfReservedValues( reservedValue, Lists.newArrayList( prog001, prog002 ) );
+
+        assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog001 ) ) );
+        assertFalse( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
+
         assertEquals( 1, res.size() );
     }
 
@@ -222,39 +207,123 @@ public class HibernateReservedValueStoreTest
     {
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
-        ReservedValue expired = getFreeReservedValue();
-        expired.setExpiryDate( pastDate.getTime() );
-        reservedValueStore.reserveValuesJpa( expired, Lists.newArrayList( expired.getValue() ) );
+        reservedValue.setExpiryDate( pastDate.getTime() );
 
-        assertEquals( expired,
-            reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) ).get( 0 ) );
+        reservedValueStore.reserveValuesJpa( reservedValue, Lists.newArrayList( reservedValue.getValue() ) );
 
-        reservedValueStore.removeExpiredReservations();
+        assertTrue( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001 ) );
 
-        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList(expired.getValue() ) )
-                .contains( expired ) );
+        reservedValueStore.removeUsedOrExpiredReservations();
+
+        assertFalse( reservedValueStore
+            .getIfReservedValues( reservedValue, Lists.newArrayList( reservedValue.getValue() ) )
+            .contains( reservedValue ) );
     }
 
     @Test
     public void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired()
     {
+        reservedValueStore.save( reservedValue );
+
         int num = reservedValueStore.getCount();
 
-        reservedValueStore.removeExpiredReservations();
+        reservedValueStore.removeUsedOrExpiredReservations();
 
         assertEquals( num, reservedValueStore.getCount() );
     }
 
-    // Helper methods
+    @Test
+    public void shouldNotAddAlreadyReservedValues()
+    {
+
+        reservedValueStore.save( reservedValue );
+
+        OrganisationUnit ou = createOrganisationUnit( "OU" );
+        organisationUnitStore.save( ou );
+
+        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
+        trackedEntityInstanceStore.save( tei );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
+        tea.setUid( teaUid );
+        trackedEntityAttributeStore.save( tea );
+
+        TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
+        teav.setValue( prog001 );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
+
+        reservedValueStore.reserveValuesAndCheckUniqueness( reservedValue,
+            new ArrayList<String>( Collections.singletonList( prog001 ) ) );
+
+        assertEquals( 1, reservedValueStore.getCount() );
+    }
+
+    @Test
+    public void shouldRemoveAlreadyUsedReservedValues()
+    {
+        reservedValueStore.save( reservedValue );
+
+        OrganisationUnit ou = createOrganisationUnit( "OU" );
+        organisationUnitStore.save( ou );
+
+        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
+        trackedEntityInstanceStore.save( tei );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
+        tea.setUid( teaUid );
+        trackedEntityAttributeStore.save( tea );
+
+        TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
+        teav.setValue( prog001 );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
+
+        reservedValueStore.removeUsedOrExpiredReservations();
+
+        assertFalse( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001 ) );
+
+        assertEquals( 0, reservedValueStore.getCount() );
+    }
+
+    @Test
+    public void shouldRemoveAlreadyUsedOrExpiredReservedValues()
+    {
+        // expired value
+        Calendar pastDate = Calendar.getInstance();
+        pastDate.add( Calendar.DATE, -1 );
+
+        reservedValueStore.reserveValuesJpa(
+            reservedValue.toBuilder().expiryDate( pastDate.getTime() ).value( prog002 ).build(),
+            Lists.newArrayList( prog002 ) );
+
+        // used value
+        OrganisationUnit ou = createOrganisationUnit( "OU" );
+        organisationUnitStore.save( ou );
+
+        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
+        trackedEntityInstanceStore.save( tei );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
+        tea.setUid( teaUid );
+        trackedEntityAttributeStore.save( tea );
+
+        TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
+        teav.setValue( prog001 );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
+
+        reservedValueStore.save( reservedValue );
+
+        reservedValueStore.removeUsedOrExpiredReservations();
+
+        assertFalse( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001 ) );
+        assertFalse( reservedValueStore.isReserved( Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog002 ) );
+
+        assertEquals( 0, reservedValueStore.getCount() );
+    }
 
     private ReservedValue getFreeReservedValue()
     {
-        return new ReservedValue(
-            Objects.TRACKEDENTITYATTRIBUTE.name(),
-            "FREE",
-            "00X",
-            String.format( "%03d", counter++ ),
-            futureDate
-        );
+        return ReservedValue.builder().ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() )
+            .ownerUid( "FREE" )
+            .key( "00X" ).value( String.format( "%03d", counter++ ) ).expiryDate( futureDate ).build();
     }
 }

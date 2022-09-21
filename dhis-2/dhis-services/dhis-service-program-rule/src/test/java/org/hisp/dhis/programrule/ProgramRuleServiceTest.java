@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,9 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
+<<<<<<< HEAD
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
@@ -38,26 +42,52 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+=======
+import static org.junit.Assert.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.deletedobject.DeletedObjectQuery;
+import org.hisp.dhis.deletedobject.DeletedObjectStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProgramRuleServiceTest
-    extends IntegrationTestBase
+import com.google.common.collect.Sets;
+
+public class ProgramRuleServiceTest extends IntegrationTestBase
 {
     private Program programA;
+
     private Program programB;
+
     private Program programC;
 
     private ProgramStage programStageA;
+
+    private ProgramStage programStageB;
+
+    private ProgramStageSection programStageSectionA;
+
     private ProgramRule programRuleA;
+
     private ProgramRuleAction programRuleActionA;
+
     private ProgramRuleAction programRuleActionB;
+
     private ProgramRuleVariable programRuleVariableA;
+
     private ProgramRuleVariable programRuleVariableB;
 
     @Autowired
@@ -66,6 +96,12 @@ public class ProgramRuleServiceTest
     @Autowired
     private ProgramStageService programStageService;
 
+<<<<<<< HEAD
+=======
+    @Autowired
+    private ProgramStageSectionService programStageSectionService;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Autowired
     private ProgramRuleService programRuleService;
 
@@ -95,6 +131,9 @@ public class ProgramRuleServiceTest
         programService.addProgram( programB );
         programService.addProgram( programC );
 
+        programStageSectionA = createProgramStageSection( 'A', 1 );
+        programStageSectionService.saveProgramStageSection( programStageSectionA );
+
         programStageA = createProgramStage( 'A', 1 );
         programStageA.setProgram( programA );
         Set<ProgramStage> stagesA = new HashSet<>();
@@ -103,7 +142,16 @@ public class ProgramRuleServiceTest
 
         programStageService.saveProgramStage( programStageA );
 
-        //Add a tree of variables, rules and actions to programA:
+        programStageB = createProgramStage( 'B', 1 );
+        programStageB.setProgram( programA );
+
+        programStageB.setProgramStageSections( Sets.newHashSet( programStageSectionA ) );
+        programStageService.saveProgramStage( programStageB );
+
+        programStageSectionA.setProgramStage( programStageB );
+        programStageSectionService.updateProgramStageSection( programStageSectionA );
+
+        // Add a tree of variables, rules and actions to programA:
         programRuleA = createProgramRule( 'A', programA );
         programRuleService.addProgramRule( programRuleA );
 
@@ -125,8 +173,14 @@ public class ProgramRuleServiceTest
     public void testAddGet()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
+<<<<<<< HEAD
         ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
         ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
+=======
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionA", programA, null, null, "$a < 1", 1 );
+        ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionA", programA, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         long idA = programRuleService.addProgramRule( ruleA );
         long idB = programRuleService.addProgramRule( ruleB );
@@ -153,7 +207,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -190,7 +244,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -335,8 +389,9 @@ public class ProgramRuleServiceTest
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null, "($a < 1 && $a > -10) && !$b", 0 );
-        //Add a rule that is not part of programB....
+        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
+        // Add a rule that is not part of programB....
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -344,27 +399,31 @@ public class ProgramRuleServiceTest
         programRuleService.addProgramRule( ruleF );
         programRuleService.addProgramRule( ruleG );
 
+<<<<<<< HEAD
         //Get all the 3 rules for programB
+=======
+        // Get all the 3 rules for programB
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         List<ProgramRule> rules = programRuleService.getProgramRule( programB );
         assertEquals( 3, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertTrue( rules.contains( ruleE ) );
         assertTrue( rules.contains( ruleF ) );
-        //Make sure that the rule connected to program A is not returned as part of list of rules in program B.
+        // Make sure that the rule connected to program A is not returned as
+        // part of list of rules in program B.
         assertFalse( rules.contains( ruleG ) );
-
 
         assertEquals( ruleD.getId(), programRuleService.getProgramRuleByName( "RuleD", programB ).getId() );
 
-        assertEquals( 3, programRuleService.getProgramRules( programB ,"rule" ).size() );
+        assertEquals( 3, programRuleService.getProgramRules( programB, "rule" ).size() );
     }
 
     @Test
-    public void testGetImplementableProgramRules()
+    public void testGetProgramRulesByActionTypes()
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        //Add a rule that is not part of programB....
+        // Add a rule that is not part of programB
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -379,9 +438,9 @@ public class ProgramRuleServiceTest
         ruleD.setProgramRuleActions( Sets.newHashSet( actionD ) );
         programRuleService.updateProgramRule( ruleD );
 
-
-        //Get all the 3 rules for programB
-        List<ProgramRule> rules = programRuleService.getImplementableProgramRules( programB, ProgramRuleActionType.getImplementedActions() );
+        // Get all the 3 rules for programB
+        List<ProgramRule> rules = programRuleService.getProgramRulesByActionTypes( programB,
+            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
         assertEquals( 1, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertFalse( rules.contains( ruleG ) );
@@ -431,6 +490,7 @@ public class ProgramRuleServiceTest
     @Test
     public void testDeleteDeletedObjectWithCascade()
     {
+<<<<<<< HEAD
         ProgramRule programRule = createProgramRule( 'A', programA );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
@@ -464,6 +524,39 @@ public class ProgramRuleServiceTest
     }
 
     /*TODO: Fix the functionality for 2 level cascading deletes.
+=======
+        ProgramRule programRule = createProgramRule( 'C', programA );
+
+        ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
+        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleAction.setProgramRule( programRule );
+
+        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
+
+        programRuleService.addProgramRule( programRule );
+
+        String programRuleUID = programRule.getUid();
+        String programRuleActionUID = programRuleAction.getUid();
+
+        programRuleService.deleteProgramRule( programRule );
+
+        ProgramRule programRule1 = createProgramRule( 'X', programA );
+        programRule1.setUid( programRuleUID );
+
+        ProgramRuleAction programRuleAction1 = createProgramRuleAction( 'D' );
+        programRuleAction1.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleAction1.setProgramRule( programRule1 );
+        programRuleAction1.setUid( programRuleActionUID );
+
+        programRule1.setProgramRuleActions( Sets.newHashSet( programRuleAction1 ) );
+
+        programRuleService.addProgramRule( programRule1 );
+
+        programRuleService.deleteProgramRule( programRule1 );
+
+        assertNotNull( deletedObjectStore.query( new DeletedObjectQuery( programRule1 ) ) );
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     @Test
     public void testCascadingDeleteProgram()
@@ -471,9 +564,63 @@ public class ProgramRuleServiceTest
         programService.deleteProgram( programA );
 
         assertNull( programRuleService.getProgramRule( programRuleA.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( assignAction.getId() ) );
-        assertNull( programRuleActonService.getProgramRuleAction( sendMessageAction.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionA.getId() ) );
+        assertNull( programRuleActonService.getProgramRuleAction( programRuleActionB.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableA.getId() ) );
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableB.getId() ) );
-    }*/
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRule()
+    {
+        programRuleA.setProgramStage( programStageA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDoNotAllowDeleteProgramStageSectionBecauseOfLinkWithProgramRuleAction()
+    {
+        programRuleActionA.setProgramStageSection( programStageSectionA );
+        programRuleActonService.updateProgramRuleAction( programRuleActionA );
+
+        programRuleA.getProgramRuleActions().add( programRuleActionA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageSectionService.deleteProgramStageSection( programStageSectionA );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleActionAndSection()
+    {
+        programRuleActionA.setProgramStageSection( programStageSectionA );
+        programRuleActonService.updateProgramRuleAction( programRuleActionA );
+
+        programRuleA.getProgramRuleActions().add( programRuleActionA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageService.deleteProgramStage( programStageB );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleAction()
+    {
+        programRuleActionA.setProgramStage( programStageA );
+        programRuleActonService.updateProgramRuleAction( programRuleActionA );
+
+        programRuleA.getProgramRuleActions().add( programRuleActionA );
+        programRuleService.updateProgramRule( programRuleA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleVariable()
+    {
+        programRuleVariableA.setProgramStage( programStageA );
+        programRuleVariableService.updateProgramRuleVariable( programRuleVariableA );
+
+        programStageService.deleteProgramStage( programStageA );
+    }
 }

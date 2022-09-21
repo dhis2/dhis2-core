@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.period;
 
 /*
@@ -97,6 +98,114 @@ public class YearlyPeriodType
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
     
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.period;
+
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
+
+/**
+ * PeriodType for yearly Periods. A valid yearly Period has startDate set to
+ * January 1st and endDate set to the last day of the same year.
+ *
+ * @author Torgeir Lorange Ostby
+ * @version $Id: YearlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
+ */
+public class YearlyPeriodType
+    extends CalendarPeriodType
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 3893035414025085437L;
+
+    private static final String ISO_FORMAT = "yyyy";
+
+    private static final String ISO8601_DURATION = "P1Y";
+
+    /**
+     * The name of the YearlyPeriodType, which is "Yearly".
+     */
+    public static final String NAME = "Yearly";
+
+    public static final int FREQUENCY_ORDER = 365;
+
+    public static final String SQL_INTERVAL = "1 year";
+
+    // -------------------------------------------------------------------------
+    // PeriodType functionality
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getName()
+    {
+        return NAME;
+    }
+
+    @Override
+    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
+    {
+        DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
+        DateTimeUnit end = new DateTimeUnit( dateTimeUnit );
+
+        start.setDay( 1 );
+        start.setMonth( 1 );
+
+        end.setMonth( calendar.monthsInYear() );
+        end.setDay( calendar.daysInMonth( end.getYear(), end.getMonth() ) );
+
+        return toIsoPeriod( start, end, calendar );
+    }
+
+    @Override
+    public int getFrequencyOrder()
+    {
+        return FREQUENCY_ORDER;
+    }
+
+    @Override
+    public String getSqlInterval()
+    {
+        return SQL_INTERVAL;
+    }
+
+    // -------------------------------------------------------------------------
+    // CalendarPeriodType functionality
+    // -------------------------------------------------------------------------
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Override
     public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {

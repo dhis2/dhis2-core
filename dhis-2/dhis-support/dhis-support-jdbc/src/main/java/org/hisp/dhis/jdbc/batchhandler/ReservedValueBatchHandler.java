@@ -1,7 +1,9 @@
-package org.hisp.dhis.jdbc.batchhandler;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,15 @@ package org.hisp.dhis.jdbc.batchhandler;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.jdbc.batchhandler;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -92,8 +94,7 @@ public class ReservedValueBatchHandler
             object.getOwnerObject(),
             object.getOwnerUid(),
             object.getKey(),
-            object.getValue()
-        );
+            object.getValue() );
     }
 
     @Override
@@ -111,31 +112,20 @@ public class ReservedValueBatchHandler
             object.getKey(),
             object.getValue(),
             object.getExpiryDate(),
-            object.getCreated()
-        );
+            object.getCreated() );
     }
 
     @Override
     public ReservedValue mapRow( ResultSet resultSet )
         throws SQLException
     {
-        Calendar expires = Calendar.getInstance();
-
-        ReservedValue rv = new ReservedValue();
-
-        expires.setTime( resultSet.getDate( "expirydate" ) );
-
-        rv.setId( resultSet.getInt( "reservedvalueid" ) );
-        rv.setOwnerObject( resultSet.getString( "ownerobject" ) );
-        rv.setOwnerUid( resultSet.getString( "ownerUid" ) );
-        rv.setKey( resultSet.getString( "key" ) );
-        rv.setValue( resultSet.getString( "value" ) );
-        rv.setExpiryDate( expires.getTime() );
-        rv.setCreated( resultSet.getDate( "created" ) );
-
-        return rv;
+        return ReservedValue.builder().id( resultSet.getInt( "reservedvalueid" ) )
+            .ownerObject( resultSet.getString( "ownerobject" ) ).ownerUid( resultSet.getString( "ownerUid" ) )
+            .key( resultSet.getString( "key" ) ).value( resultSet.getString( "value" ) )
+            .expiryDate( resultSet.getDate( "expirydate" ) )
+            .created( resultSet.getDate( "created" ) ).build();
     }
-    
+
     @Override
     public String getIdSequenceName()
     {

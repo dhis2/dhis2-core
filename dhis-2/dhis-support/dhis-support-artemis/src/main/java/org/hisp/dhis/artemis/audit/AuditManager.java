@@ -1,7 +1,9 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +29,39 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.springframework.stereotype.Component;
+=======
+package org.hisp.dhis.artemis.audit;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.artemis.AuditProducerConfiguration;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
+import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditAttributes;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,29 +71,61 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AuditManager
 {
     private final AuditProducerSupplier auditProducerSupplier;
+<<<<<<< HEAD
     private final AuditProducerConfiguration config;
+=======
+
+    private final AuditProducerConfiguration config;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final AuditScheduler auditScheduler;
     private final AuditMatrix auditMatrix;
 
     private final AuditObjectFactory objectFactory;
+
+    private final AuditMatrix auditMatrix;
+
+    private final UsernameSupplier usernameSupplier;
+
+    private final AuditObjectFactory objectFactory;
+
+    /**
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
+     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
+     * Method
+     */
+    private static final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
         AuditScheduler auditScheduler,
         AuditProducerConfiguration config,
         AuditMatrix auditMatrix,
+<<<<<<< HEAD
         AuditObjectFactory auditObjectFactory )
+=======
+        AuditObjectFactory auditObjectFactory,
+        UsernameSupplier usernameSupplier )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         checkNotNull( auditProducerSupplier );
         checkNotNull( config );
         checkNotNull( auditMatrix );
         checkNotNull( auditObjectFactory );
+<<<<<<< HEAD
+=======
+        checkNotNull( usernameSupplier );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         this.auditProducerSupplier = auditProducerSupplier;
         this.config = config;
         this.auditScheduler = auditScheduler;
         this.auditMatrix = auditMatrix;
         this.objectFactory = auditObjectFactory;
+<<<<<<< HEAD
+=======
+        this.usernameSupplier = usernameSupplier;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     public void send( Audit audit )
@@ -77,6 +136,7 @@ public class AuditManager
             return;
         }
 
+<<<<<<< HEAD
         if ( audit.getData() == null )
         {
             audit.setData( this.objectFactory.create(
@@ -87,6 +147,21 @@ public class AuditManager
         }
 
         audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity().getEntity() ) );
+=======
+        if ( StringUtils.isEmpty( audit.getCreatedBy() ) )
+        {
+            audit.setCreatedBy( usernameSupplier.get() );
+        }
+
+        if ( audit.getData() == null )
+        {
+            audit.setData( this.objectFactory.create(
+                audit.getAuditScope(),
+                audit.getAuditType(),
+                audit.getAuditableEntity().getEntity(),
+                audit.getCreatedBy() ) );
+        }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         if ( config.isUseQueue() )
         {
@@ -98,4 +173,53 @@ public class AuditManager
         }
     }
 
+<<<<<<< HEAD
+=======
+    public Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
+    {
+        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
+
+        if ( map == null )
+        {
+            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
+            cachedAuditAttributeFields.put( auditClass.getName(), map );
+        }
+
+        return map;
+    }
+
+    public AuditAttributes collectAuditAttributes( Object entity, Class entityClass )
+    {
+        AuditAttributes auditAttributes = new AuditAttributes();
+
+        getAuditAttributeFields( entityClass ).forEach( ( field, getterMethod ) -> auditAttributes.put( field.getName(),
+            getAttributeValue( entity, field.getName(), getterMethod ) ) );
+
+        return auditAttributes;
+    }
+
+    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
+    {
+        if ( auditObject instanceof Map )
+        {
+            return ((Map) auditObject).get( attributeName );
+        }
+
+        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
+
+        if ( value instanceof IdentifiableObject )
+        {
+            return ((IdentifiableObject) value).getUid();
+        }
+
+        if ( value instanceof RelationshipItem )
+        {
+            RelationshipItem ri = (RelationshipItem) value;
+            return ObjectUtils.firstNonNull( ri.getTrackedEntityInstance(), ri.getProgramInstance(),
+                ri.getProgramStageInstance() ).getUid();
+        }
+
+        return value;
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

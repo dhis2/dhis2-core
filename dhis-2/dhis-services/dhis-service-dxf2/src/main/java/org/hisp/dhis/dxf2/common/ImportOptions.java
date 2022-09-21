@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,8 @@ package org.hisp.dhis.dxf2.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
@@ -39,10 +39,14 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.MoreObjects;
+
 /**
- * The idScheme is a general setting which will apply to all objects. The idSchemes
- * can also be defined for specific objects such as dataElementIdScheme. The
- * general setting will override specific settings.
+ * The idScheme is a general setting which will apply to all objects. The
+ * idSchemes can also be defined for specific objects such as
+ * dataElementIdScheme. The general setting will override specific settings.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -102,17 +106,29 @@ public class ImportOptions
 
     private boolean skipLastUpdated;
 
-    //--------------------------------------------------------------------------
+    /**
+     * This flag signals the system that the request contains Event Data Values
+     * that have to be merged with the existing Data Values (as opposed to a
+     * full replacement)
+     */
+    private boolean mergeDataValues;
+
+    /**
+     * if true, caches for import are not used. Should only be used for testing
+     */
+    private boolean skipCache = false;
+
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public ImportOptions()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public ImportOptions instance()
     {
@@ -143,6 +159,8 @@ public class ImportOptions
         options.ignoreEmptyCollection = this.ignoreEmptyCollection;
         options.firstRowIsHeader = this.firstRowIsHeader;
         options.skipLastUpdated = this.skipLastUpdated;
+        options.skipCache = this.skipCache;
+        options.mergeDataValues = this.mergeDataValues;
 
         return options;
     }
@@ -180,9 +198,9 @@ public class ImportOptions
         return notificationLevel != null ? notificationLevel : defaultLevel;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public User getUser()
     {
@@ -387,9 +405,23 @@ public class ImportOptions
         return skipLastUpdated;
     }
 
-    //--------------------------------------------------------------------------
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipCache()
+    {
+        return skipCache;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMergeDataValues()
+    {
+        return mergeDataValues;
+    }
+
+    // --------------------------------------------------------------------------
     // Set methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public ImportOptions setIdSchemes( IdSchemes idSchemes )
     {
@@ -427,6 +459,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setCategoryIdScheme( String idScheme )
+    {
+        idSchemes.setCategoryIdScheme( idScheme );
+        return this;
+    }
+
     public ImportOptions setOrgUnitIdScheme( String idScheme )
     {
         idSchemes.setOrgUnitIdScheme( idScheme );
@@ -454,6 +492,12 @@ public class ImportOptions
     public ImportOptions setTrackedEntityAttributeIdScheme( String idScheme )
     {
         idSchemes.setTrackedEntityAttributeIdScheme( idScheme );
+        return this;
+    }
+
+    public ImportOptions setDataSetIdScheme( String idScheme )
+    {
+        idSchemes.setDataSetIdScheme( idScheme );
         return this;
     }
 
@@ -600,6 +644,16 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipCache( boolean skipCache )
+    {
+        this.skipCache = skipCache;
+    }
+
+    public void setMergeDataValues( boolean mergeDataValues )
+    {
+        this.mergeDataValues = mergeDataValues;
+    }
+
     @Override
     public String toString()
     {
@@ -625,6 +679,8 @@ public class ImportOptions
             .add( "force", force )
             .add( "firstRowIsHeader", firstRowIsHeader )
             .add( "skipLastUpdated", skipLastUpdated )
+            .add( "skipCache", skipCache )
+            .add( "skipDataValueMandatoryValidationCheck", mergeDataValues )
             .toString();
     }
 }

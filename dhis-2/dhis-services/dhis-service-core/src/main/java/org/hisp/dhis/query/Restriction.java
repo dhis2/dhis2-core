@@ -1,7 +1,9 @@
-package org.hisp.dhis.query;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -37,7 +40,8 @@ import org.hisp.dhis.query.planner.QueryPath;
 public class Restriction implements Criterion
 {
     /**
-     * Path to property you want to restrict only, one first-level properties are currently supported.
+     * Path to property you want to restrict only, one first-level properties
+     * are currently supported.
      */
     private String path;
 

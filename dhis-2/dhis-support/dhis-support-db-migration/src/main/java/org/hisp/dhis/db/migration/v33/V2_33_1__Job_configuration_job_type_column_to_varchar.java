@@ -1,6 +1,9 @@
-package org.hisp.dhis.db.migration.v33;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +29,10 @@ package org.hisp.dhis.db.migration.v33;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.db.migration.v33;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,22 +52,40 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
+<<<<<<< HEAD
 public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJavaMigration
 {
     private static final Logger log = LoggerFactory.getLogger( V2_33_1__Job_configuration_job_type_column_to_varchar.class );
+=======
+public class V2_33_1__Job_configuration_job_type_column_to_varchar
+    extends BaseJavaMigration
+{
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_33_1__Job_configuration_job_type_column_to_varchar.class );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
-        //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
+        // 1. Check whether migration is needed at all. Maybe it was already
+        // applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
         String sql = "SELECT data_type FROM information_schema.columns " +
             "WHERE table_name = 'jobconfiguration' AND column_name = 'jobtype';";
         try ( Statement stmt = context.getConnection().createStatement();
+<<<<<<< HEAD
               ResultSet rs = stmt.executeQuery( sql ); )
+=======
+            ResultSet rs = stmt.executeQuery( sql ); )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
+<<<<<<< HEAD
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
+=======
+            if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             {
                 continueWithMigration = true;
             }
@@ -68,17 +93,24 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
 
         if ( continueWithMigration )
         {
-            //2. Create a new JobType column of type VARCHAR in jobconfiguration table
+            // 2. Create a new JobType column of type VARCHAR in
+            // jobconfiguration table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
-                stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobtypevarchar VARCHAR(120)" );
+                stmt.executeUpdate(
+                    "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobtypevarchar VARCHAR(120)" );
             }
 
-            //3. Move existing jobtype from bytearray column into varchar column
+            // 3. Move existing jobtype from bytearray column into varchar
+            // column
             Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
             sql = "SELECT jobconfigurationid, jobtype FROM jobconfiguration WHERE jobtype IS NOT NULL";
             try ( Statement stmt = context.getConnection().createStatement();
+<<<<<<< HEAD
                   ResultSet rs = stmt.executeQuery( sql ); )
+=======
+                ResultSet rs = stmt.executeQuery( sql ); )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             {
                 while ( rs.next() )
                 {
@@ -111,13 +143,15 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
                 }
             } );
 
-            //4. Delete old byte array column for JobType in jobconfiguration table
+            // 4. Delete old byte array column for JobType in jobconfiguration
+            // table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN jobtype" );
             }
 
-            //5. Rename new jobtypevarchar column to the name of the now deleted column
+            // 5. Rename new jobtypevarchar column to the name of the now
+            // deleted column
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN jobtypevarchar TO jobtype" );

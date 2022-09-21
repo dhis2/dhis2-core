@@ -1,7 +1,11 @@
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,10 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.monitoring.metrics.jdbc;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,34 +44,41 @@ import java.util.List;
 import javax.sql.DataSource;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
- * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the
+ * first {@link DataSourcePoolMetadata} that is found by one of its delegate.
  *
  * @author Stephane Nicoll
  * @since 1.2.0
  */
-public class DataSourcePoolMetadataProviders implements DataSourcePoolMetadataProvider {
+public class DataSourcePoolMetadataProviders
+    implements DataSourcePoolMetadataProvider
+{
 
     private final List<DataSourcePoolMetadataProvider> providers;
 
     /**
      * Create a {@link DataSourcePoolMetadataProviders} instance with an initial
      * collection of delegates to use.
+     *
      * @param providers the data source pool metadata providers
      */
     public DataSourcePoolMetadataProviders(
-            Collection<? extends DataSourcePoolMetadataProvider> providers) {
+        Collection<? extends DataSourcePoolMetadataProvider> providers )
+    {
         this.providers = (providers == null
-                ? Collections.emptyList()
-                : new ArrayList<>(providers));
+            ? Collections.emptyList()
+            : new ArrayList<>( providers ));
     }
 
     @Override
-    public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-        for (DataSourcePoolMetadataProvider provider : this.providers) {
+    public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
+    {
+        for ( DataSourcePoolMetadataProvider provider : this.providers )
+        {
             DataSourcePoolMetadata metadata = provider
-                    .getDataSourcePoolMetadata(dataSource);
-            if (metadata != null) {
+                .getDataSourcePoolMetadata( dataSource );
+            if ( metadata != null )
+            {
                 return metadata;
             }
         }

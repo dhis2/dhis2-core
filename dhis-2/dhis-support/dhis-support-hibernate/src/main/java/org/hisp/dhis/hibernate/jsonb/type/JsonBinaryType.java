@@ -1,7 +1,9 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -49,6 +52,9 @@ import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
 import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.postgresql.util.PGobject;
+=======
+package org.hisp.dhis.hibernate.jsonb.type;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -57,7 +63,33 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
+
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.ParameterizedType;
+import org.hibernate.usertype.UserType;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
+import org.postgresql.util.PGobject;
+
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,6 +98,10 @@ import java.util.Properties;
 public class JsonBinaryType implements UserType, ParameterizedType
 {
     public static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT_TYPE_REFERENCE = new TypeReference<Map<String, Object>>()
+    {
+    };
 
     static
     {
@@ -93,7 +129,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
     @Override
     public int[] sqlTypes()
     {
-        return new int[]{ Types.JAVA_OBJECT };
+        return new int[] { Types.JAVA_OBJECT };
     }
 
     @Override
@@ -103,19 +139,48 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public boolean equals( Object x, Object y ) throws HibernateException
+    public boolean equals( Object x, Object y )
     {
-        return x == y || !(x == null || y == null) && x.equals( y );
+        return x == y || (x != null && y != null && (x.equals( y ) || safeContentBasedEquals( x, y )));
+    }
+
+    private boolean safeContentBasedEquals( Object x, Object y )
+    {
+        Optional<Map<String, Object>> first = safelyConvertToMap( x );
+        Optional<Map<String, Object>> second = safelyConvertToMap( y );
+
+        if ( first.isPresent() && second.isPresent() )
+        {
+            return first.equals( second );
+        }
+
+        return false;
+    }
+
+    private Optional<Map<String, Object>> safelyConvertToMap( Object o )
+    {
+        try
+        {
+            return Optional.of( resultingMapper.readValue( resultingMapper.writeValueAsString( o ),
+                MAP_STRING_OBJECT_TYPE_REFERENCE ) );
+        }
+        catch ( Exception e )
+        {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public int hashCode( Object x ) throws HibernateException
+    public int hashCode( Object x )
+        throws HibernateException
     {
         return null == x ? 0 : x.hashCode();
     }
 
     @Override
-    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner ) throws HibernateException, SQLException
+    public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
+        throws HibernateException,
+        SQLException
     {
         final Object result = rs.getObject( names[0] );
 
@@ -144,7 +209,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
+    public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session )
+        throws HibernateException,
+        SQLException
     {
         if ( value == null )
         {
@@ -160,7 +227,8 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public Object deepCopy( Object value ) throws HibernateException
+    public Object deepCopy( Object value )
+        throws HibernateException
     {
         if ( value == null )
         {
@@ -186,19 +254,22 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public Serializable disassemble( Object value ) throws HibernateException
+    public Serializable disassemble( Object value )
+        throws HibernateException
     {
         return (Serializable) this.deepCopy( value );
     }
 
     @Override
-    public Object assemble( Serializable cached, Object owner ) throws HibernateException
+    public Object assemble( Serializable cached, Object owner )
+        throws HibernateException
     {
         return this.deepCopy( cached );
     }
 
     @Override
-    public Object replace( Object original, Object target, Object owner ) throws HibernateException
+    public Object replace( Object original, Object target, Object owner )
+        throws HibernateException
     {
         return this.deepCopy( original );
     }
@@ -243,7 +314,8 @@ public class JsonBinaryType implements UserType, ParameterizedType
         return MAPPER.getTypeFactory().constructType( returnedClass );
     }
 
-    static Class<?> classForName( String name ) throws ClassNotFoundException
+    static Class<?> classForName( String name )
+        throws ClassNotFoundException
     {
         try
         {
@@ -297,12 +369,14 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    protected void writeValue( JsonGenerator gen, Object value ) throws IOException
+    protected void writeValue( JsonGenerator gen, Object value )
+        throws IOException
     {
         writer.writeValue( gen, value );
     }
 
-    protected <T> T readValue( JsonParser p ) throws IOException
+    protected <T> T readValue( JsonParser p )
+        throws IOException
     {
         return reader.readValue( p );
     }

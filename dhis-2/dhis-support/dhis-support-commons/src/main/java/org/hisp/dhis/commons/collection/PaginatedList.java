@@ -1,7 +1,9 @@
-package org.hisp.dhis.commons.collection;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.commons.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.collection;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -86,9 +89,10 @@ public class PaginatedList<T>
     }
 
     /**
-     * Returns the next page in the list. The page size is defined by the argument
-     * given in the constructor. If there is no more pages, null is returned. The
-     * returned page is not guaranteed to have the same size as the page size.
+     * Returns the next page in the list. The page size is defined by the
+     * argument given in the constructor. If there is no more pages, null is
+     * returned. The returned page is not guaranteed to have the same size as
+     * the page size.
      *
      * @return the next page.
      */
@@ -101,7 +105,7 @@ public class PaginatedList<T>
             return null;
         }
 
-        int toIndex = Math.min( ( fromIndex + pageSize ), size );
+        int toIndex = Math.min( (fromIndex + pageSize), size );
 
         List<T> page = subList( fromIndex, toIndex );
 
@@ -129,7 +133,7 @@ public class PaginatedList<T>
         int pages = count / pageSize;
         int mod = count % pageSize;
 
-        return mod == 0 ? pages : ( pages + 1 );
+        return mod == 0 ? pages : (pages + 1);
     }
 
     /**
@@ -143,7 +147,7 @@ public class PaginatedList<T>
 
         List<T> page = null;
 
-        while ( ( page = nextPage() ) != null )
+        while ( (page = nextPage()) != null )
         {
             pages.add( page );
         }

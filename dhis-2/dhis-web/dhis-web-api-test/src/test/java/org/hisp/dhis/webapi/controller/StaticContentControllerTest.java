@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -114,8 +117,13 @@ public class StaticContentControllerTest
             get( URL + LOGO_BANNER )
                 .accept( TEXT_HTML_VALUE )
                 .session( session ) )
+<<<<<<< HEAD
                     .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
                     .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
+=======
+            .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
+            .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -132,6 +140,7 @@ public class StaticContentControllerTest
             get( URL + LOGO_BANNER )
                 .accept( TEXT_HTML_VALUE )
                 .session( session ) )
+<<<<<<< HEAD
                     .andExpect( content().contentType( MIME_PNG ) )
                     .andExpect( content().bytes( mockMultipartFile.getBytes() ) )
                     .andExpect( status().is( SC_OK ) );
@@ -226,6 +235,102 @@ public class StaticContentControllerTest
                 .andExpect( content().string( containsString( theExpectedMessage ) ) )
                 .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
                 .andExpect( status().isNotFound() );
+=======
+            .andExpect( content().contentType( MIME_PNG ) )
+            .andExpect( content().bytes( mockMultipartFile.getBytes() ) )
+            .andExpect( status().is( SC_OK ) );
+    }
+
+    @Test
+    public void testGetStaticImagesCustomKey()
+        throws Exception
+    {
+        // Given
+        final String theExpectedType = "png";
+        final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
+
+        // a mock file in the content store used during the fetch
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
+            mockMultipartFile, DOCUMENT ), "image".getBytes() );
+
+        // a positive flag indicating the usage of a custom logo
+        systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
+
+        // When
+        final ResultActions result = mvc.perform(
+            get( URL + LOGO_BANNER )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
+
+        // Then
+        result
+            .andExpect( content().contentType( APPLICATION_JSON ) )
+            .andExpect( content().string( containsString( theExpectedType ) ) )
+            .andExpect( content().string( containsString( theExpectedApiUrl ) ) )
+            .andExpect( status().isFound() );
+    }
+
+    @Test
+    public void testGetStaticImagesUsingNonExistingKey()
+        throws Exception
+    {
+        // Given
+        final String theExpectedStatusMessage = "Not Found";
+        final String theExpectedStatusCode = "404";
+        final String theExpectedStatus = "ERROR";
+        final String theExpectedMessage = "Key does not exist.";
+        final String aNonExistingLogoBanner = "nonExistingLogo";
+
+        // a mock file in the content store used during the fetch
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
+            mockMultipartFile, DOCUMENT ), "image".getBytes() );
+
+        // When
+        final ResultActions result = mvc.perform(
+            get( URL + aNonExistingLogoBanner )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
+
+        // Then
+        result
+            .andExpect( content().contentType( APPLICATION_JSON ) )
+            .andExpect( content().string( not( containsString( "png" ) ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatus ) ) )
+            .andExpect( content().string( containsString( theExpectedMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
+            .andExpect( status().isNotFound() );
+    }
+
+    @Test
+    public void testGetStaticImagesUsingNonExistingLogo()
+        throws Exception
+    {
+        // Given
+        final String theExpectedStatusMessage = "Not Found";
+        final String theExpectedStatusCode = "404";
+        final String theExpectedStatus = "ERROR";
+        final String theExpectedMessage = "No custom file found.";
+
+        // a non existing logo in the content store used during the fetch
+        fileResourceContentStore.deleteFileResourceContent( makeKey( DOCUMENT, Optional.of( LOGO_BANNER ) ) );
+
+        // When
+        final ResultActions result = mvc.perform(
+            get( URL + LOGO_BANNER )
+                .accept( APPLICATION_JSON )
+                .session( session ) );
+
+        // Then
+        result
+            .andExpect( content().contentType( APPLICATION_JSON ) )
+            .andExpect( content().string( not( containsString( "png" ) ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatus ) ) )
+            .andExpect( content().string( containsString( theExpectedMessage ) ) )
+            .andExpect( content().string( containsString( theExpectedStatusCode ) ) )
+            .andExpect( status().isNotFound() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -233,7 +338,11 @@ public class StaticContentControllerTest
         throws Exception
     {
         mvc.perform(
+<<<<<<< HEAD
              multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
+=======
+            multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .andExpect( status().is( SC_NO_CONTENT ) );
     }
 

@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,10 +62,13 @@ import com.google.common.collect.Lists;
 public class PeriodTypeController
 {
     private final PeriodService periodService;
+
     private final ContextService contextService;
+
     private final FieldFilterService fieldFilterService;
 
-    public PeriodTypeController( PeriodService periodService, ContextService contextService, FieldFilterService fieldFilterService )
+    public PeriodTypeController( PeriodService periodService, ContextService contextService,
+        FieldFilterService fieldFilterService )
     {
         this.periodService = periodService;
         this.contextService = contextService;
@@ -83,12 +89,18 @@ public class PeriodTypeController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
+<<<<<<< HEAD
         rootNode.addChild( fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
+=======
+        rootNode.addChild(
+            fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         return rootNode;
     }
 
-    @RequestMapping( value = "/relativePeriodTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( value = "/relativePeriodTypes", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
     public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
     {
         return RelativePeriodEnum.values();

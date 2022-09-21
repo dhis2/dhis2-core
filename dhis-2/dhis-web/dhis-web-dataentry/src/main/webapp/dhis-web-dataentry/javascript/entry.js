@@ -207,7 +207,14 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
             }
             if ( type == 'NUMBER' && !dhis2.validation.isNumber( value ) )
             {
-                return dhis2.de.alertField( fieldId, i18n_value_must_number + '\n\n' + dataElementName );
+                if ( dhis2.validation.isNumber( '0' + value ) )
+                {
+                    value = '0' + value; // Prepend '0' to a leading decimal point
+                }
+                else
+                {
+                    return dhis2.de.alertField(fieldId, i18n_value_must_number + '\n\n' + dataElementName);
+                }
             }
             if ( type == 'INTEGER' && !dhis2.validation.isInt( value ) )
             {

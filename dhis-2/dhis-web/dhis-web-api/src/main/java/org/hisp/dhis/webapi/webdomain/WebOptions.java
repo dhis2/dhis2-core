@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.webdomain;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,13 @@ package org.hisp.dhis.webapi.webdomain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain;
+
+import java.util.Map;
 
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.Options;
 import org.hisp.dhis.query.Junction;
-
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,10 +44,22 @@ public class WebOptions
     extends Options
 {
     public final static String PAGING = "paging";
+<<<<<<< HEAD
     public final static String PAGE = "page";
     public final static String PAGE_SIZE = "pageSize";
     public final static String ROOT_JUNCTION = "rootJunction";
     public final static String VIEW_CLASS = "viewClass";
+=======
+
+    public final static String PAGE = "page";
+
+    public final static String PAGE_SIZE = "pageSize";
+
+    public final static String ROOT_JUNCTION = "rootJunction";
+
+    public final static String VIEW_CLASS = "viewClass";
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     public final static String MANAGE = "manage";
 
     public WebOptions( Map<String, String> options )
@@ -52,13 +67,30 @@ public class WebOptions
         super( options );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters for standard web options
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public boolean hasPaging()
     {
         return stringAsBoolean( options.get( PAGING ), true );
+<<<<<<< HEAD
+=======
+    }
+
+    /**
+     * This method will return a boolean flag depending on the current paging
+     * value and the given default return value. The input param will be used to
+     * force the return of this method in the cases where the PAGING is not set.
+     *
+     * @param defaultReturnValue is the value to be returned if the paging is
+     *        not set.
+     * @return the boolean flag.
+     */
+    public boolean hasPaging( boolean defaultReturnValue )
+    {
+        return stringAsBoolean( options.get( PAGING ), defaultReturnValue );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     public int getPage()

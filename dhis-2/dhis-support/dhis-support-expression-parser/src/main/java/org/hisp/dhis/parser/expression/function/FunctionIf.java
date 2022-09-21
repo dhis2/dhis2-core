@@ -1,7 +1,9 @@
-package org.hisp.dhis.parser.expression.function;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,26 @@ package org.hisp.dhis.parser.expression.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression.function;
+
+<<<<<<< HEAD
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 /**
  * Function if
+<<<<<<< HEAD
+=======
+ *
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * <pre>
  *
  * In-memory Logic:
@@ -68,8 +81,13 @@ public class FunctionIf
         return arg0 == null
             ? null
             : arg0
+<<<<<<< HEAD
             ? visitor.visit( ctx.expr( 1 ) )
             : visitor.visit( ctx.expr( 2 ) );
+=======
+                ? visitor.visit( ctx.expr( 1 ) )
+                : visitor.visit( ctx.expr( 2 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override

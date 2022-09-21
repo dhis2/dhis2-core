@@ -1,7 +1,9 @@
-package org.hisp.dhis.fileresource;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +62,10 @@ public interface FileResourceService
 
     /**
      * Copy fileResource content to outputStream and Return File content length
+<<<<<<< HEAD
+=======
+     *
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      * @param fileResource
      * @param outputStream
      * @return
@@ -66,7 +73,8 @@ public interface FileResourceService
      * @throws NoSuchElementException
      */
     void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException, NoSuchElementException;
+        throws IOException,
+        NoSuchElementException;
 
     boolean fileResourceExists( String uid );
 
@@ -79,6 +87,10 @@ public interface FileResourceService
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
 
     List<FileResource> getAllUnProcessedImagesFiles();
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     long getFileResourceContentLength( FileResource fileResource );
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +29,31 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
+=======
+package org.hisp.dhis.artemis.audit.listener;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
 /**
  * This component configures the Hibernate Auditing listeners. The listeners are
@@ -50,17 +65,24 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Luciano Fiandesio
  */
 @Component
+@DependsOn( "auditMatrix" )
 @Conditional( value = AuditEnabledCondition.class )
+@RequiredArgsConstructor
 public class HibernateListenerConfigurer
 {
     @PersistenceUnit
     private EntityManagerFactory emf;
 
+    @NonNull
     private final PostInsertAuditListener postInsertAuditListener;
+<<<<<<< HEAD
     private final PostUpdateAuditListener postUpdateEventListener;
     private final PostDeleteAuditListener postDeleteEventListener;
     private final PostLoadAuditListener postLoadEventListener;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
     public HibernateListenerConfigurer(
         PostInsertAuditListener postInsertAuditListener,
         PostUpdateAuditListener postUpdateEventListener,
@@ -71,12 +93,19 @@ public class HibernateListenerConfigurer
         checkNotNull( postUpdateEventListener );
         checkNotNull( postInsertAuditListener );
         checkNotNull( postLoadEventListener );
+=======
+    @NonNull
+    private final PostUpdateAuditListener postUpdateEventListener;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
-        this.postInsertAuditListener = postInsertAuditListener;
-        this.postUpdateEventListener = postUpdateEventListener;
-        this.postDeleteEventListener = postDeleteEventListener;
-        this.postLoadEventListener = postLoadEventListener;
-    }
+    @NonNull
+    private final PostDeleteAuditListener postDeleteEventListener;
+
+    @NonNull
+    private final PostLoadAuditListener postLoadEventListener;
+
+    @NonNull
+    private final AuditMatrix auditMatrix;
 
     @PostConstruct
     protected void init()
@@ -91,6 +120,9 @@ public class HibernateListenerConfigurer
 
         registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
 
-        registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
+        if ( auditMatrix.isReadEnabled() )
+        {
+            registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
+        }
     }
 }

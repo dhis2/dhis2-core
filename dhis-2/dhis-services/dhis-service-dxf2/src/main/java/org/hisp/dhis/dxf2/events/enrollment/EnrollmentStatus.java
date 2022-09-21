@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.events.enrollment;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.enrollment;
 
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -42,6 +45,7 @@ public enum EnrollmentStatus
     CANCELLED( 2, ProgramStatus.CANCELLED );
 
     private final int value;
+
     private final ProgramStatus programStatus;
 
     EnrollmentStatus( int value, ProgramStatus programStatus )
@@ -64,14 +68,30 @@ public enum EnrollmentStatus
     {
         switch ( programStatus )
         {
-            case ACTIVE:
-                return ACTIVE;
-            case CANCELLED:
-                return CANCELLED;
-            case COMPLETED:
-                return COMPLETED;
+        case ACTIVE:
+            return ACTIVE;
+        case CANCELLED:
+            return CANCELLED;
+        case COMPLETED:
+            return COMPLETED;
         }
 
         throw new IllegalArgumentException( "Enum value not found: " + programStatus );
+    }
+
+    public static EnrollmentStatus fromStatusString( String status )
+    {
+        switch ( status )
+        {
+        case "ACTIVE":
+            return ACTIVE;
+        case "CANCELLED":
+            return CANCELLED;
+        case "COMPLETED":
+            return COMPLETED;
+        default:
+            // Do nothing and fail
+        }
+        throw new IllegalArgumentException( "Enum value not found for string: " + status );
     }
 }

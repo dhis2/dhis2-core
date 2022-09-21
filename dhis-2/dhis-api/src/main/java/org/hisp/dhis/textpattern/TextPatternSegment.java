@@ -1,7 +1,9 @@
-package org.hisp.dhis.textpattern;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,15 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.textpattern;
+
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 /**
  * @author Stian Sandvold
@@ -79,11 +83,11 @@ public class TextPatternSegment
         this.parameter = parameter;
     }
 
-
     /* Helper methods */
 
     /**
-     * Recreates the original segment text from the method name and segment parameter.
+     * Recreates the original segment text from the method name and segment
+     * parameter.
      *
      * @return The original segment based on method and parameter
      */

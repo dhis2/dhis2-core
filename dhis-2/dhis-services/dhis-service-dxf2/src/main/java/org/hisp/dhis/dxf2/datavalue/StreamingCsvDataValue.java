@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.datavalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,16 @@ package org.hisp.dhis.dxf2.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalue;
 
-import com.csvreader.CsvWriter;
+import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hisp.dhis.commons.util.TextUtils.valueOf;
+import com.csvreader.CsvWriter;
 
 /**
  * @author Lars Helge Overland
@@ -58,18 +61,18 @@ public class StreamingCsvDataValue
         this.values = Arrays.asList( row );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private String getValue( int index )
     {
         return index >= 0 && index < values.size() ? values.get( index ) : null;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public String getDataElement()
@@ -100,7 +103,7 @@ public class StreamingCsvDataValue
     {
         return attributeOptionCombo = attributeOptionCombo == null ? getValue( 4 ) : attributeOptionCombo;
     }
-    
+
     @Override
     public String getValue()
     {
@@ -130,16 +133,16 @@ public class StreamingCsvDataValue
     {
         return followup = followup == null ? valueOf( getValue( 9 ) ) : followup;
     }
-    
+
     @Override
     public Boolean getDeleted()
     {
         return deleted = deleted == null ? valueOf( getValue( 10 ) ) : deleted;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void setDataElement( String dataElement )
@@ -200,7 +203,7 @@ public class StreamingCsvDataValue
     {
         values.add( valueOf( followup ) );
     }
-    
+
     @Override
     public void setDeleted( Boolean deleted )
     {
@@ -226,7 +229,7 @@ public class StreamingCsvDataValue
     {
         String[] headers = {
             "dataelement", "period", "orgunit",
-            "categoryoptioncombo", "attributeoptioncombo", "value", 
+            "categoryoptioncombo", "attributeoptioncombo", "value",
             "storedby", "lastupdated", "comment", "followup", "deleted" };
 
         return headers;

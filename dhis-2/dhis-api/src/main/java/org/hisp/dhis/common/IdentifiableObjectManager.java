@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +29,19 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
+package org.hisp.dhis.common;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -75,7 +78,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme, String value );
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme,
+        String value );
 
     <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code );
 
@@ -102,13 +106,18 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass,
+        List<Attribute> attributes );
+
+    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
+
+    <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
 
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
@@ -130,7 +139,8 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdScheme idScheme );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers );
+    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property,
+        Collection<String> identifiers );
 
     <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers );
 
@@ -160,9 +170,14 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+        AttributeValue attributeValue );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+        Attribute attribute, String value );
+
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass,
+        Attribute attribute, List<String> values );
 
     List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass, Attribute attribute, List<String> values );
 
@@ -177,7 +192,7 @@ public interface IdentifiableObjectManager
     boolean isDefault( IdentifiableObject object );
 
     List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
-    
+
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------

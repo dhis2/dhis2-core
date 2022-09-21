@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.adx;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +29,16 @@ package org.hisp.dhis.dxf2.adx;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.adx;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.Set;
-import org.hisp.dhis.common.IdSchemes;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -44,60 +47,72 @@ import org.hisp.dhis.scheduling.JobConfiguration;
  */
 public interface AdxDataService
 {
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // ADX standard constants
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-    String NAMESPACE = "urn:ihe:qrph:adx:2015";    
+    String NAMESPACE = "urn:ihe:qrph:adx:2015";
+
     String ROOT = "adx";
-    String GROUP = "group";
-    String DATASET = "dataSet";
-    String PERIOD = "period";
-    String ORGUNIT = "orgUnit";    
-    String DATAELEMENT = "dataElement";
-    String DATAVALUE = "dataValue";
-    String VALUE = "value";
-    String ANNOTATION = "annotation";
-    String ERROR = "error";
-    
-    //--------------------------------------------------------------------------
-    // DHIS 2 specific constants
-    //--------------------------------------------------------------------------
 
-    String CATOPTCOMBO = "categoryOptionCombo";    
+    String GROUP = "group";
+
+    String DATASET = "dataSet";
+
+    String PERIOD = "period";
+
+    String ORGUNIT = "orgUnit";
+
+    String DATAELEMENT = "dataElement";
+
+    String DATAVALUE = "dataValue";
+
+    String VALUE = "value";
+
+    String ANNOTATION = "annotation";
+
+    String ERROR = "error";
+
+    // --------------------------------------------------------------------------
+    // DHIS 2 specific constants
+    // --------------------------------------------------------------------------
+
+    String CATOPTCOMBO = "categoryOptionCombo";
+
     String ATTOPTCOMBO = "attributeOptionCombo";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-    DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate, 
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,  IdSchemes outputIdSchemes );
-    
-    
+    DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
+        Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration,
+        Integer limit, IdSchemes outputIdSchemes );
+
     /**
-     * Post data. Takes ADX Data from input stream and saves a series of DXF2 
+     * Post data. Takes ADX Data from input stream and saves a series of DXF2
      * DataValueSets.
-     * 
+     *
      * @param in the InputStream.
      * @param importOptions the importOptions.
      * @param id the task id, can be null.
-     * 
-     * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
+     *
+     * @return an ImportSummaries collection of ImportSummary for each
+     *         DataValueSet.
      */
     ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id );
 
     /**
      * Get data. Writes adx export data to output stream.
-     * 
-     * @param in the InputStream.
-     * @param importOptions the importOptions.
-     * @param id the task id, can be null.
-     * 
-     * @return an ImportSummaries collection of ImportSummary for each DataValueSet.
+     *
+     * @param params the data export params.
+     * @param out the output stream to write to.
+     *
+     * @return an ImportSummaries collection of ImportSummary for each
+     *         DataValueSet.
      * @throws AdxException for conflicts during export process.
      */
     void writeDataValueSet( DataExportParams params, OutputStream out )
         throws AdxException;
-
 }

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +29,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.oauth2.hibernate;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 package org.hisp.dhis.security.oauth2.hibernate;
 
@@ -49,7 +56,11 @@ public class HibernateOAuth2ClientStore
         implements OAuth2ClientStore
 {
     public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, aclService,
             true );
@@ -60,6 +71,7 @@ public class HibernateOAuth2ClientStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
+        return getSingleResult( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
     }
 }

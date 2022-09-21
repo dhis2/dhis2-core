@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 
@@ -58,7 +61,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
+
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
+
     private static final String RAW_DATA_PATH = "/rawData";
 
     private final DataQueryService dataQueryService;
@@ -79,7 +84,8 @@ public class AnalyticsController
     // Resources
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
@@ -113,7 +119,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).filter( filter )
             .aggregationType( aggregationType ).measureCriteria( measureCriteria )
@@ -128,8 +135,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        return analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
     }
 
     @RequestMapping( value = RESOURCE_PATH + ".xml", method = RequestMethod.GET )
@@ -166,7 +175,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -183,8 +193,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
@@ -222,7 +234,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -239,8 +252,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
@@ -278,7 +293,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -295,8 +311,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_HTML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
@@ -334,7 +352,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -351,8 +370,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true, params.getLatestEndDate() );
+        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
@@ -390,7 +411,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -407,8 +429,10 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
-        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ), getItemsFromParam( rows ) );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_EXCEL,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true, params.getLatestEndDate() );
+        Grid grid = analyticsService.getAggregatedDataValues( params, getItemsFromParam( columns ),
+            getItemsFromParam( rows ) );
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
@@ -444,7 +468,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).startDate( startDate ).endDate( endDate ).skipMeta( true )
@@ -452,13 +477,15 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false, params.getLatestEndDate() );
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
         GridUtils.toJrxml( grid, null, response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/debug/sql", method = RequestMethod.GET, produces = { "text/html", "text/plain" } )
+    @RequestMapping( value = RESOURCE_PATH + "/debug/sql", method = RequestMethod.GET, produces = { "text/html",
+        "text/plain" } )
     public @ResponseBody String getDebugSql(
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
@@ -492,7 +519,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
@@ -509,7 +537,8 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE,
+            "debug.sql", false, params.getLatestEndDate() );
         return AnalyticsUtils.getDebugDataSql( params );
     }
 
@@ -533,7 +562,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String userOrgUnit,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
@@ -544,7 +574,8 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getRawDataValues( params );
     }
 
@@ -564,7 +595,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String userOrgUnit,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( dimension ).startDate( startDate ).endDate( endDate ).skipMeta( skipMeta )
@@ -616,10 +648,12 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+            .measureCriteria( measureCriteria )
             .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
             .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
@@ -631,7 +665,8 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
@@ -666,10 +701,12 @@ public class AnalyticsController
         @RequestParam( required = false ) String rows,
         DhisApiVersion apiVersion,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         DataQueryRequest request = DataQueryRequest.newBuilder()
-            .dimension( dimension ).filter( filter ).aggregationType( aggregationType ).measureCriteria( measureCriteria )
+            .dimension( dimension ).filter( filter ).aggregationType( aggregationType )
+            .measureCriteria( measureCriteria )
             .preAggregationMeasureCriteria( preAggregationMeasureCriteria ).startDate( startDate ).endDate( endDate )
             .skipMeta( skipMeta ).skipData( skipData ).skipRounding( skipRounding ).completedOnly( completedOnly )
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
@@ -681,11 +718,13 @@ public class AnalyticsController
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
-        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    @RequestMapping( value = RESOURCE_PATH + "/tableTypes", method = RequestMethod.GET, produces = { "application/json",
+        "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();

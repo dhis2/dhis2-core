@@ -1,7 +1,11 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +31,20 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.dxf2.events.event;
+
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -38,9 +56,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +68,9 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
+=======
+import com.fasterxml.jackson.databind.ObjectMapper;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Luciano Fiandesio
@@ -68,20 +91,27 @@ public class JdbcEventStoreTest
     @Mock
     protected SqlRowSet rowSet;
 
+    @Mock
+    private Environment env;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Before
     public void setUp()
     {
-        subject = new JdbcEventStore(new PostgreSQLStatementBuilder(), jdbcTemplate, currentUserService, manager );
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+
+        when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
+            manager, env );
     }
 
     @Test
     public void verifyEventDataValuesAreProcessedOnceForEachPSI()
     {
-
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
 

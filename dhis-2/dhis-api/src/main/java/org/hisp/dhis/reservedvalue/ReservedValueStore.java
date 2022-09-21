@@ -1,7 +1,9 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +29,11 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.GenericStore;
+package org.hisp.dhis.reservedvalue;
 
 import java.util.List;
+
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Stian Sandvold
@@ -38,7 +41,10 @@ import java.util.List;
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-    List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    void reserveValues( List<ReservedValue> toAdd );
+
+    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
 
     List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
 
@@ -46,11 +52,11 @@ public interface ReservedValueStore
 
     int getNumberOfUsedValues( ReservedValue reservedValue );
 
-    void removeExpiredReservations();
-
     boolean useReservedValue( String ownerUID, String value );
 
     void deleteReservedValueByUid( String uid );
 
     boolean isReserved( String ownerObject, String ownerUID, String value );
+
+    void removeUsedOrExpiredReservations();
 }

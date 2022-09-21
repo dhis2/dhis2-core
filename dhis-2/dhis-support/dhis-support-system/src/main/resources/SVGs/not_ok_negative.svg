@@ -1,27 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
- <title id="title4753">UIO-icon</title>
- <metadata id="metadata5">
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>UIO-icon</dc:title>
-    <dc:creator>
-     <cc:Agent>
-      <dc:title>Joaquín Urbano</dc:title>
-     </cc:Agent>
-    </dc:creator>
-    <dc:rights>
-     <cc:Agent>
-      <dc:title>GPL</dc:title>
-     </cc:Agent>
-    </dc:rights>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g id="layer1" fill="#333" transform="translate(0,-284.3)">
-  <path id="rect1054" d="m24 4.5176c-10.76 0-19.482 8.7224-19.482 19.482-0.0004 10.76 8.722 19.482 19.482 19.482s19.482-8.722 19.482-19.482-8.722-19.482-19.482-19.482zm-6.854 9.3654c1.9529-0.001153 3.5367 2.0959 3.5371 4.6836 0.00040246 2.5884-1.5836 4.6867-3.5371 4.6855-1.9528-0.00027627-3.5356-2.0981-3.5352-4.6855 0.00041182-2.5866 1.583-4.6833 3.5352-4.6836zm12.904 0c1.9529-0.001153 3.5367 2.0959 3.5371 4.6836 0.00040246 2.5884-1.5836 4.6867-3.5371 4.6855-1.9528-0.00027627-3.5356-2.0981-3.5352-4.6855 0.00041182-2.5866 1.583-4.6833 3.5352-4.6836zm-13.425 16.146l14.906 4.6855-0.1543 0.49023-14.906-4.6855z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
- </g>
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M48 0H0V48H48V0ZM23.98 4C12.94 4 4 12.96 4 24C4 35.04 12.94 44 23.98 44C35.04 44 44 35.04 44 24C44 12.96 35.04 4 23.98 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40ZM20 19C20 20.6569 18.6569 22 17 22C15.3431 22 14 20.6569 14 19C14 17.3431 15.3431 16 17 16C18.6569 16 20 17.3431 20 19ZM24 33C25.0042 33 25.9423 33.1798 26.8075 33.5133C27.4875 33.7754 28.2201 33.7369 28.7021 33.1903C29.3197 32.4899 29.2471 31.3024 28.3933 30.9241C27.016 30.3138 25.5197 29.9963 24 30C22.3179 30 20.7391 30.3789 19.3246 31.0411C18.6161 31.3727 18.553 32.24 19.0071 32.8769C19.5348 33.617 20.5976 33.698 21.4597 33.4097C22.2533 33.1444 23.1 33 24 33ZM31 22C32.6569 22 34 20.6569 34 19C34 17.3431 32.6569 16 31 16C29.3431 16 28 17.3431 28 19C28 20.6569 29.3431 22 31 22Z" fill="#333333"/>
 </svg>

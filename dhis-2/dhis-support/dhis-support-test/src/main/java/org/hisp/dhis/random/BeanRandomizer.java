@@ -1,7 +1,9 @@
-package org.hisp.dhis.random;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,24 @@ package org.hisp.dhis.random;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.random;
 
+<<<<<<< HEAD
 import com.vividsolutions.jts.geom.Geometry;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.hisp.dhis.period.PeriodType;
+=======
+import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
+import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
-import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
+import org.hisp.dhis.period.PeriodType;
+
+import com.vividsolutions.jts.geom.Geometry;
+import io.github.benas.randombeans.api.EnhancedRandom;
 
 /**
  * @author Luciano Fiandesio
@@ -56,10 +66,12 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates an instance of the specified type and fill the instance's properties with random data
-     * @param type The bean type
-     * @param excludedFields a list of fields to exclude from the random population
+     * Generates an instance of the specified type and fill the instance's
+     * properties with random data
      *
+     * @param type The bean type
+     * @param excludedFields a list of fields to exclude from the random
+     *        population
      * @return an instance of the specified type
      */
     public <T> T randomObject( final Class<T> type, final String... excludedFields )
@@ -68,10 +80,13 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates multiple instances of the specified type and fills each instance's properties with random data
+     * Generates multiple instances of the specified type and fills each
+     * instance's properties with random data
+     *
      * @param type The bean type
      * @param amount the amount of beans to generate
-     * @param excludedFields a list of fields to exclude from the random population
+     * @param excludedFields a list of fields to exclude from the random
+     *        population
      *
      * @return an instance of the specified type
      */

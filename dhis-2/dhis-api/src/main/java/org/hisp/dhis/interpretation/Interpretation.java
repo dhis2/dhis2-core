@@ -1,7 +1,9 @@
-package org.hisp.dhis.interpretation;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,9 @@ package org.hisp.dhis.interpretation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation;
 
+<<<<<<< HEAD
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.CHART;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.DATASET_REPORT;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_CHART;
@@ -35,6 +39,9 @@ import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_REPORT;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.REPORT_TABLE;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
+=======
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.*;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.util.ArrayList;
@@ -54,11 +61,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+<<<<<<< HEAD
+=======
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -88,7 +101,8 @@ public class Interpretation
 
     private Period period; // Applicable to report table and data set report
 
-    private OrganisationUnit organisationUnit; // Applicable to chart, report table and data set report
+    private OrganisationUnit organisationUnit; // Applicable to chart, report
+    // table and data set report
 
     private String text;
 
@@ -177,13 +191,17 @@ public class Interpretation
     // Logic
     // -------------------------------------------------------------------------
 
+<<<<<<< HEAD
     /**
      * Overriding getUser in order to expose user in web api. Sharing is not enabled
      * for interpretations but "user" is used for representing the creator. Must be
      * removed when sharing is enabled for this class.
      */
     @Override
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @JsonProperty
+<<<<<<< HEAD
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public User getUser()
@@ -192,6 +210,8 @@ public class Interpretation
     }
 
     @JsonProperty
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public AnalyticsFavoriteType getType()
     {
@@ -512,7 +532,13 @@ public class Interpretation
     }
 
     @JsonProperty( "likedBy" )
+<<<<<<< HEAD
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+=======
+    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @JacksonXmlElementWrapper( localName = "likedBy", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "likeByUser", namespace = DXF_2_0 )
     public Set<User> getLikedBy()

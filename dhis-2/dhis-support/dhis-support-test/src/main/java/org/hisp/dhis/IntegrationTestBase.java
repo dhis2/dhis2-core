@@ -1,7 +1,9 @@
-package org.hisp.dhis;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -61,7 +64,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
-@ActiveProfiles( profiles = {"test-postgres"} )
+@ActiveProfiles( profiles = { "test-postgres" } )
 public abstract class IntegrationTestBase
         extends DhisConvenienceTest
         implements ApplicationContextAware
@@ -72,6 +75,7 @@ public abstract class IntegrationTestBase
     private static JdbcTemplate jdbcTemplate;
 
     /*
+<<<<<<< HEAD
     "Special" setter to allow setting JdbcTemplate as static field
      */
     @Autowired
@@ -84,6 +88,20 @@ public abstract class IntegrationTestBase
         Flag that determines if the IntegrationTestData annotation has
         been running the database init script. We only want to run
         the init script once per unit test
+=======
+     * "Special" setter to allow setting JdbcTemplate as static field
+     */
+    @Autowired
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        IntegrationTestBase.jdbcTemplate = jdbcTemplate;
+    }
+
+    /*
+     * Flag that determines if the IntegrationTestData annotation has been
+     * running the database init script. We only want to run the init script
+     * once per unit test
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     public static boolean dataInit = false;
 
@@ -110,6 +128,7 @@ public abstract class IntegrationTestBase
     }
 
     @AfterClass
+<<<<<<< HEAD
     public static void afterClass() {
 
         if ( dataInit ) // only truncate tables if IntegrationTestData is used
@@ -122,6 +141,21 @@ public abstract class IntegrationTestBase
                     "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" +
                     "  END LOOP;\n" +
                     "END $$;";
+=======
+    public static void afterClass()
+    {
+
+        if ( dataInit ) // only truncate tables if IntegrationTestData is used
+        {
+            // truncate all tables
+            String truncateAll = "DO $$ DECLARE\n" +
+                "  r RECORD;\n" +
+                "BEGIN\n" +
+                "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n" +
+                "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" +
+                "  END LOOP;\n" +
+                "END $$;";
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             jdbcTemplate.execute( truncateAll );
         }
@@ -163,7 +197,7 @@ public abstract class IntegrationTestBase
     {
         SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
         Session session = sessionFactory.openSession();
-        session.setHibernateFlushMode(FlushMode.ALWAYS);
+        session.setHibernateFlushMode( FlushMode.ALWAYS );
         TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
     }
 

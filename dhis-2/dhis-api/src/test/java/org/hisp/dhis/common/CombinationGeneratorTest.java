@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,11 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,8 +42,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -47,8 +49,11 @@ import static org.junit.Assert.*;
 public class CombinationGeneratorTest
 {
     private IdentifiableObject a = new DataElementGroup( "A" );
+
     private IdentifiableObject b = new DataElementGroup( "B" );
+
     private IdentifiableObject c = new DataElementGroup( "C" );
+
     private IdentifiableObject d = new DataElementGroup( "D" );
 
     @Test

@@ -19,6 +19,11 @@
 
     <property name="shortName" column="shortname" unique="true" length="50" />
 
+<<<<<<< HEAD
+=======
+    <property name="description" type="text" />
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="dataelementgroupmembers">

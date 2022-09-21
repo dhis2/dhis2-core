@@ -1,5 +1,6 @@
 package org.hisp.dhis.metadata.programs;
 
+<<<<<<< HEAD
 /*
  * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
@@ -59,6 +60,41 @@ public class ProgramStagesTest
 
     @BeforeAll
     public void preconditions()
+=======
+
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.hamcrest.Matchers.*;
+
+/**
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ */
+public class ProgramStagesTest
+    extends ApiTest
+{
+    private LoginActions loginActions;
+
+    private ProgramActions programActions;
+
+    private RestApiActions programStageActions;
+
+    private String programId;
+
+    private String programStageId;
+
+    @BeforeAll
+    public void beforeAll()
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         loginActions = new LoginActions();
         programActions = new ProgramActions();

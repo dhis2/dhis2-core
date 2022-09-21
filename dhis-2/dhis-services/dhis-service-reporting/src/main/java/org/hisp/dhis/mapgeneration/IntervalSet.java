@@ -1,7 +1,9 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +37,12 @@ import java.util.List;
 /**
  * An interval set is a collection of map objects that are distributed into
  * intervals according to their value.
- * 
+ *
  * The core functionality of this class is encapsulated into its method
  * applyIntervalSetToMapLayer, which takes a map layer as input, creates an
  * interval set for it, and distributes its map objects into intervals according
  * to the given distribution strategy.
- * 
+ *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class IntervalSet
@@ -47,7 +50,7 @@ public class IntervalSet
     private List<Interval> intervals = new ArrayList<>();
 
     private InternalMapObject objectLow;
-    
+
     private InternalMapObject objectHigh;
 
     // -------------------------------------------------------------------------
@@ -57,13 +60,14 @@ public class IntervalSet
     public IntervalSet()
     {
     }
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
     /**
-     * Populates object low and object high based on the given list of map objects.
+     * Populates object low and object high based on the given list of map
+     * objects.
      */
     public IntervalSet setLowHigh( List<InternalMapObject> mapObjects )
     {
@@ -73,16 +77,16 @@ public class IntervalSet
             {
                 setObjectLow( mapObject );
             }
-            
+
             if ( objectHigh == null || mapObject.getValue() > objectHigh.getValue() )
             {
                 setObjectHigh( mapObject );
             }
         }
-        
+
         return this;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

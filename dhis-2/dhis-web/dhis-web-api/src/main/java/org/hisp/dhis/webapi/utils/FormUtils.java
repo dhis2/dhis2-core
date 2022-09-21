@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.utils;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,9 @@ package org.hisp.dhis.webapi.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.utils;
+
+import java.util.*;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,13 +47,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.*;
+import org.hisp.dhis.webapi.webdomain.form.Category;
 import org.hisp.dhis.webapi.webdomain.form.CategoryCombo;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,6 +61,8 @@ public class FormUtils
     private static final String KEY_PERIOD_TYPE = "periodType";
 
     private static final String KEY_OPEN_FUTURE_PERIODS = "openFuturePeriods";
+
+    private static final String KEY_OPEN_PERIODS_AFTER_CO_END_DATE = "openPeriodsAfterCoEndDate";
 
     private static final String KEY_DATA_ELEMENTS = "dataElements";
 
@@ -75,6 +80,7 @@ public class FormUtils
 
         form.getOptions().put( KEY_PERIOD_TYPE, dataSet.getPeriodType().getName() );
         form.getOptions().put( KEY_OPEN_FUTURE_PERIODS, dataSet.getOpenFuturePeriods() );
+        form.getOptions().put( KEY_OPEN_PERIODS_AFTER_CO_END_DATE, dataSet.getOpenPeriodsAfterCoEndDate() );
         form.getOptions().put( KEY_EXPIRY_DAYS, dataSet.getExpiryDays() );
         form.setCategoryCombo( getCategoryCombo( dataSet, userOrganisationUnits ) );
 
@@ -127,7 +133,7 @@ public class FormUtils
         return form;
     }
 
-    private static CategoryCombo getCategoryCombo(DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
+    private static CategoryCombo getCategoryCombo( DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
     {
         if ( dataset.hasCategoryCombo() )
         {
@@ -169,18 +175,21 @@ public class FormUtils
 
                             Set<OrganisationUnit> catOptionOUs = option.getOrganisationUnits();
 
-                            if ( userOrganisationUnits == null || userOrganisationUnits.isEmpty() || catOptionOUs == null || catOptionOUs.isEmpty() )
+                            if ( userOrganisationUnits == null || userOrganisationUnits.isEmpty()
+                                || catOptionOUs == null || catOptionOUs.isEmpty() )
                             {
                                 c.getOptions().add( o );
                             }
-                            else if ( userOrganisationUnits != null && catOptionOUs != null && !Collections.disjoint( userOrganisationUnits, catOptionOUs ) )
+                            else if ( userOrganisationUnits != null && catOptionOUs != null
+                                && !Collections.disjoint( userOrganisationUnits, catOptionOUs ) )
                             {
                                 HashSet<OrganisationUnit> organisationUnits = new HashSet<>();
 
-                                catOptionOUs.stream().filter( ou -> userOrganisationUnits.contains( ou ) ).forEach( ou -> {
-                                    organisationUnits.add( ou );
-                                    organisationUnits.addAll( getChildren( ou , new HashSet<>() ) ) ;
-                                });
+                                catOptionOUs.stream().filter( ou -> userOrganisationUnits.contains( ou ) )
+                                    .forEach( ou -> {
+                                        organisationUnits.add( ou );
+                                        organisationUnits.addAll( getChildren( ou, new HashSet<>() ) );
+                                    } );
 
                                 o.setOrganisationUnits( organisationUnits );
 
@@ -265,11 +274,13 @@ public class FormUtils
         return form;
     }
 
-    private static List<Field> inputFromProgramStageDataElements( List<ProgramStageDataElement> programStageDataElements )
+    private static List<Field> inputFromProgramStageDataElements(
+        List<ProgramStageDataElement> programStageDataElements )
     {
         List<DataElement> dataElements = new ArrayList<>();
         programStageDataElements.stream()
-            .filter( programStageDataElement -> programStageDataElement != null && programStageDataElement.getDataElement() != null )
+            .filter( programStageDataElement -> programStageDataElement != null
+                && programStageDataElement.getDataElement() != null )
             .forEach( programStageDataElement -> dataElements.add( programStageDataElement.getDataElement() ) );
 
         return inputFromDataElements( dataElements, new ArrayList<>() );

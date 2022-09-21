@@ -1,7 +1,9 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.schema.Schema;
@@ -34,7 +37,6 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
 {
-
     public static final String SINGULAR = "programInstance";
 
     public static final String PLURAL = "programInstances";
@@ -44,9 +46,6 @@ public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ProgramInstance.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        return schema;
+        return new Schema( ProgramInstance.class, SINGULAR, PLURAL );
     }
 }

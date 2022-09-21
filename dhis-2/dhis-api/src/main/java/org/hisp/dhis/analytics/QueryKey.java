@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,10 @@ import org.apache.commons.lang.StringUtils;
 public class QueryKey
 {
     private static final char VALUE_SEP = ':';
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private static final char COMPONENT_SEP = '-';
 
     List<String> keyComponents = new ArrayList<>();
@@ -90,8 +97,13 @@ public class QueryKey
     }
 
     /**
+<<<<<<< HEAD
      * Adds a component value to this key if the given object is not null, supplied
      * by the given value supplier.
+=======
+     * Adds a component value to this key if the given object is not null,
+     * supplied by the given value supplier.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param property the key property.
      * @param object the object to check for null.
@@ -117,8 +129,8 @@ public class QueryKey
     }
 
     /**
-     * Returns a 40-character unique key. The key is a SHA-1 hash of
-     * the components of this key.
+     * Returns a 40-character unique key. The key is a SHA-1 hash of the
+     * components of this key.
      */
     public String build()
     {

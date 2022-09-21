@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +29,48 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
+=======
+package org.hisp.dhis.programrule.engine;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.List;
 
 import org.hisp.dhis.rules.models.RuleEffect;
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.rules.models.RuleValidationResult;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
 public interface ProgramRuleEngineService
 {
+<<<<<<< HEAD
+=======
+    /**
+     * Call rule engine to evaluate the target enrollment and get a list of rule
+     * effects, then run the actions present in these effects.
+     *
+     * @param enrollment identifier of the target enrollment.
+     * @return the list of rule effects calculated by rule engine.
+     */
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
 
+<<<<<<< HEAD
     List<RuleEffect> evaluateEventAndRunEffects( long event );
+=======
+    /**
+     * Call rule engine to evaluate the target event and get a list of rule
+     * effects, then run the actions present in these effects.
+     *
+     * @param event identifier (uid) of the target event.
+     * @return the list of rule effects calculated by rule engine
+     */
+    List<RuleEffect> evaluateEventAndRunEffects( String event );
+
+    RuleValidationResult getDescription( String condition, String programId );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

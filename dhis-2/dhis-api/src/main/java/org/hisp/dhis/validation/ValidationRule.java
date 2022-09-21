@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 package org.hisp.dhis.validation;
 
 /*
@@ -100,6 +101,111 @@ public class ValidationRule
      * Validation Rule will only be run for organisation units at these levels (or all levels if set is empty)
      */
     private Set<Integer> organisationUnitLevels = new HashSet<>(  );
+=======
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.validation;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+/**
+ * @author Kristian Nordal
+ */
+@JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
+public class ValidationRule
+    extends BaseDataDimensionalItemObject implements MetadataObject
+{
+    /**
+     * A description of the ValidationRule.
+     */
+    private String description;
+
+    /**
+     * Instruction to display to user when validation rule is violated.
+     */
+    private String instruction;
+
+    /**
+     * The user-assigned importance of this rule (e.g. high, medium or low).
+     */
+    private Importance importance = Importance.MEDIUM;
+
+    /**
+     * The comparison operator to compare left and right expressions in the
+     * rule.
+     */
+    private Operator operator;
+
+    /**
+     * The type of period in which this rule is evaluated.
+     */
+    private PeriodType periodType;
+
+    /**
+     * The left-side expression to be compared against the right side.
+     */
+    private Expression leftSide;
+
+    /**
+     * The right-side expression to be compared against the left side.
+     */
+    private Expression rightSide;
+
+    /**
+     * Skip this rule when validating forms.
+     */
+    private boolean skipFormValidation;
+
+    /**
+     * Validation Rule will only be run for organisation units at these levels
+     * (or all levels if set is empty)
+     */
+    private Set<Integer> organisationUnitLevels = new HashSet<>();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     /**
      * The set of ValidationRuleGroups to which this ValidationRule belongs.

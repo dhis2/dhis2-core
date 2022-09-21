@@ -1,7 +1,9 @@
-package org.hisp.dhis.hibernate.dialect;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,13 @@ package org.hisp.dhis.hibernate.dialect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate.dialect;
+
+import java.sql.Types;
 
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 import org.hibernate.type.StandardBasicTypes;
-
-import java.sql.Types;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,7 +48,14 @@ public class DhisPostgresDialect
     {
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
+<<<<<<< HEAD
         registerFunction( "jsonb_extract_path", new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
         registerFunction( "jsonb_extract_path_text", new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
+=======
+        registerFunction( "jsonb_extract_path",
+            new StandardSQLFunction( "jsonb_extract_path", StandardBasicTypes.STRING ) );
+        registerFunction( "jsonb_extract_path_text",
+            new StandardSQLFunction( "jsonb_extract_path_text", StandardBasicTypes.STRING ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 }

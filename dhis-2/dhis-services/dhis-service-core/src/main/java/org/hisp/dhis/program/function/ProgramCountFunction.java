@@ -1,7 +1,9 @@
-package org.hisp.dhis.program.function;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,20 @@ package org.hisp.dhis.program.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.function;
+
+<<<<<<< HEAD
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
+=======
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+import java.util.Date;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -34,10 +50,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-
-import java.util.Date;
-
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator count functions
@@ -71,11 +83,30 @@ public abstract class ProgramCountFunction
             columnName + " is not null and " + columnName + conditionSql + " " +
             (pi.getEndEventBoundary() != null ? ("and " +
                 sb.getBoundaryCondition( pi.getEndEventBoundary(), pi,
-                    startDate, endDate ) +
-                " ") : "") + (pi.getStartEventBoundary() != null ? ("and " +
-            sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
-                startDate, endDate ) +
-            " ") : "") + "and ps = '" + programStage + "')";
+                    startDate, endDate )
+                +
+                " ") : "")
+            + (pi.getStartEventBoundary() != null ? ("and " +
+                sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
+                    startDate, endDate )
+                +
+                " ") : "")
+            + "and ps = '" + programStage + "')";
+    }
+
+    /**
+     * Get the description for the first arg #{programStageUid.dataElementUid}
+     * and return a value with its data type.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return a dummy value for the item (of the right type, for type checking)
+     */
+    protected Object getProgramStageElementDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        validateCountFunctionArgs( ctx );
+
+        return (new ProgramItemStageElement()).getDescription( ctx, visitor );
     }
 
     /**
@@ -108,9 +139,16 @@ public abstract class ProgramCountFunction
 
     private void validateCountFunctionArgs( ExprContext ctx )
     {
+<<<<<<< HEAD
         if ( ! ( getProgramArgType( ctx ) instanceof ProgramItemStageElement ) )
         {
             throw new ParserExceptionWithoutContext( "First argument not supported for d2:count... functions: " + ctx.getText() );
+=======
+        if ( !(getProgramArgType( ctx ) instanceof ProgramItemStageElement) )
+        {
+            throw new ParserExceptionWithoutContext(
+                "First argument not supported for d2:count... functions: " + ctx.getText() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
     }
 }

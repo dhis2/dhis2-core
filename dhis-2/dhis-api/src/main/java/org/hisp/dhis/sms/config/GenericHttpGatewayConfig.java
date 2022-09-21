@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,17 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
+=======
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.Lists;
@@ -63,7 +71,11 @@ public class GenericHttpGatewayConfig
     public Map<String, String> getParametersMap()
     {
         return parameters.stream()
+<<<<<<< HEAD
             .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getDisplayValue ) );
+=======
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValue ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     public void setParameters( List<GenericGatewayParameter> parameters )

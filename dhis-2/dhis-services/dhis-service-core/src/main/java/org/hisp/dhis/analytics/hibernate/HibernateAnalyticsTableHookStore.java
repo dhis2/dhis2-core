@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +29,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.hibernate;
 
+<<<<<<< HEAD
 package org.hisp.dhis.analytics.hibernate;
 
 import java.util.List;
+=======
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -43,8 +54,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Lars Helge Overland
  */
@@ -54,10 +68,21 @@ public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore
 {
+<<<<<<< HEAD
     public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, AclService aclService )
+=======
+    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
+<<<<<<< HEAD
         super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, aclService, false );
+=======
+        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, deletedObjectService, aclService,
+            false );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Override
@@ -70,21 +95,25 @@ public class HibernateAnalyticsTableHookStore
     }
 
     @Override
-    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase,
+        ResourceTableType resourceTableType )
     {
-        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
-            .setParameter( "phase", phase )
-            .setParameter( "resourceTableType", resourceTableType )
-            .getResultList();
+        return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+                .setParameter( "phase", phase )
+                .setParameter( "resourceTableType", resourceTableType )
+                .getResultList();
     }
 
     @Override
-    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase,
+        AnalyticsTableType analyticsTableType )
     {
-        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
-            .setParameter( "phase", phase )
-            .setParameter( "analyticsTableType", analyticsTableType )
-            .getResultList();
+        return getQuery(
+            "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+                .setParameter( "phase", phase )
+                .setParameter( "analyticsTableType", analyticsTableType )
+                .getResultList();
     }
 
     @Override

@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,24 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.junit.Test;
 
+<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+=======
+import com.google.common.collect.Lists;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -192,7 +202,12 @@ public class TrackerPreheatTest
         assertFalse( preheat.isEmpty( TrackerIdScheme.UID ) );
         assertTrue( preheat.isEmpty( TrackerIdScheme.CODE ) );
 
+<<<<<<< HEAD
         preheat.remove( TrackerIdScheme.UID, DataElement.class, Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
+=======
+        preheat.remove( TrackerIdScheme.UID, DataElement.class,
+            Lists.newArrayList( de1.getUid(), de2.getUid(), de3.getUid() ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( TrackerIdScheme.UID, DataElement.class, de2.getUid() ) );

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dataapproval;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
 import java.util.List;
 
@@ -47,8 +50,8 @@ public interface DataApprovalLevelStore
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a list of all data approval levels, ordered by level in ascending order,
-     * i.e. from 1 to n.
+     * Gets a list of all data approval levels, ordered by level in ascending
+     * order, i.e. from 1 to n.
      *
      * @return List of all data approval levels, ordered from 1 to n.
      */
@@ -56,7 +59,7 @@ public interface DataApprovalLevelStore
 
     /**
      * Gets data approval levels by org unit level.
-     * 
+     *
      * @param orgUnitLevel the org unit level.
      * @return a list of data approval levels, ordered by level number.
      */

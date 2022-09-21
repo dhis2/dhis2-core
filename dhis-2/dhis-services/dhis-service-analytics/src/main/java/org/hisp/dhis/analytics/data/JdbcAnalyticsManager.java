@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang.time.DateUtils.addYears;
@@ -61,6 +64,11 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -113,9 +121,10 @@ public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
     private static final String COL_APPROVALLEVEL = "approvallevel";
+
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String>builder()
+    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String> builder()
         .put( MeasureFilter.EQ, "=" )
         .put( MeasureFilter.GT, ">" )
         .put( MeasureFilter.GE, ">=" )
@@ -127,7 +136,8 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    public JdbcAnalyticsManager( QueryPlanner queryPlanner, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public JdbcAnalyticsManager( QueryPlanner queryPlanner,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
@@ -142,14 +152,15 @@ public class JdbcAnalyticsManager
 
     @Override
     @Async
-    public Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType, int maxLimit )
+    public Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType,
+        int maxLimit )
     {
         assertQuery( params );
 
         try
         {
-            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap =
-                params.getDataPeriodAggregationPeriodMap();
+            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = params
+                .getDataPeriodAggregationPeriodMap();
 
             if ( params.isDisaggregation() && params.hasDataPeriodType() )
             {
@@ -226,9 +237,11 @@ public class JdbcAnalyticsManager
 
                 Assert.notNull( periodKey, String.format( "Period key cannot be null, key: '%s'", key ) );
 
-                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap.get( PeriodType.getPeriodFromIsoString( periodKey ) );
+                List<DimensionalItemObject> periods = dataPeriodAggregationPeriodMap
+                    .get( PeriodType.getPeriodFromIsoString( periodKey ) );
 
-                Assert.notNull( periods, String.format( "Period list cannot be null, key: '%s', map: '%s'", key, dataPeriodAggregationPeriodMap.toString() ) );
+                Assert.notNull( periods, String.format( "Period list cannot be null, key: '%s', map: '%s'", key,
+                    dataPeriodAggregationPeriodMap.toString() ) );
 
                 Object value = dataValueMap.get( key );
 
@@ -245,7 +258,7 @@ public class JdbcAnalyticsManager
                     {
                         Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
                             (Double) dataValueMap.get( replacementKey ), (Double) value,
-                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
+                            AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
 
                         dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
                     }
@@ -294,7 +307,8 @@ public class JdbcAnalyticsManager
 
         AnalyticsAggregationType aggType = params.getAggregationType();
 
-        if ( aggType.isAggregationType( SUM ) && aggType.isPeriodAggregationType( AVERAGE ) && aggType.isNumericDataType() )
+        if ( aggType.isAggregationType( SUM ) && aggType.isPeriodAggregationType( AVERAGE )
+            && aggType.isNumericDataType() )
         {
             sql = "sum(daysxvalue) / " + params.getDaysForAvgSumIntAggregation();
         }
@@ -347,11 +361,16 @@ public class JdbcAnalyticsManager
 
         if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
         {
-            sql += getFirstOrLastValueSubquerySql( params );
+            Date earliest = addYears( params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET );
+            sql += getFirstOrLastValueSubquerySql( params, earliest );
         }
         else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
             sql += getPreMeasureCriteriaSubquerySql( params );
+        }
+        else if ( params.getAggregationType().isLastInPeriodAggregationType() )
+        {
+            sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
         }
         else
         {
@@ -373,7 +392,7 @@ public class JdbcAnalyticsManager
 
             return PartitionUtils.getPartitionName( params.getTableName(), partition );
         }
-        else if ( ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple() ) )
+        else if ( (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple()) )
         {
             String sql = "(";
 
@@ -411,7 +430,8 @@ public class JdbcAnalyticsManager
             {
                 String col = quoteAlias( dim.getDimensionName() );
 
-                sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                sql += sqlHelper.whereAnd() + " " + col + " in ("
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
             }
         }
 
@@ -470,15 +490,19 @@ public class JdbcAnalyticsManager
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() ) + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
-                "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() ) + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
+                "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() )
+                + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
+                "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() )
+                + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
         }
 
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction() )
         {
             sql += sqlHelper.whereAnd() + " (" +
-                "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() ) + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
-                "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() ) + "' or " + quoteAlias( "coenddate" ) +  " is null)) ";
+                "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() )
+                + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
+                "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() )
+                + "' or " + quoteAlias( "coenddate" ) + " is null)) ";
         }
 
         if ( tableType.hasPeriodDimension() && params.hasStartEndDate() )
@@ -507,7 +531,7 @@ public class JdbcAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
@@ -532,15 +556,15 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates a sub query which provides a view of the data where each row is
-     * ranked by the start date, then end date of the data value period, latest first.
-     * The data is partitioned by data element, org unit, category option combo and
-     * attribute option combo. A column {@code pe_rank} defines the rank. Only data
-     * for the last 10 years relative to the period end date is included.
+     * ranked by the start date, then end date of the data value period, latest
+     * first. The data is partitioned by data element, org unit, category option
+     * combo and attribute option combo. A column {@code pe_rank} defines the
+     * rank. Only data for the last 10 years relative to the period end date is
+     * included.
      */
-    private String getFirstOrLastValueSubquerySql(DataQueryParams params )
+    private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliest )
     {
         Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
@@ -553,10 +577,9 @@ public class JdbcAnalyticsManager
 
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
-        sql +=
-            "row_number() over (" +
-                "partition by dx, ou, co, ao " +
-                "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
+        sql += "row_number() over (" +
+            "partition by dx, ou, co, ao " +
+            "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
@@ -566,18 +589,19 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns quoted names of columns for the {@link AggregationType#LAST} sub query.
-     * It is assumed that {@link AggregationType#LAST} type only applies to aggregate
-     * data analytics. The period dimension is replaced by the name of the single period
-     * in the given query.
+     * Returns quoted names of columns for the {@link AggregationType#LAST} sub
+     * query. It is assumed that {@link AggregationType#LAST} type only applies
+     * to aggregate data analytics. The period dimension is replaced by the name
+     * of the single period in the given query.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns(DataQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns( DataQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
-        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
+        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno",
+            "value", "textvalue" );
 
-        cols = cols.stream().map(AnalyticsSqlUtils::quote).collect( Collectors.toList() );
+        cols = cols.stream().map( AnalyticsSqlUtils::quote ).collect( Collectors.toList() );
 
         if ( params.isDataApproval() )
         {
@@ -607,8 +631,9 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a sub query which provides a filtered view of the data according
-     * to the criteria. If not, returns the full view of the partition.
+     * Generates a sub query which provides a filtered view of the data
+     * according to the criteria. If not, returns the full view of the
+     * partition.
      */
     private String getPreMeasureCriteriaSubquerySql( DataQueryParams params )
     {
@@ -631,7 +656,8 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a having clause restricting the result based on the measure criteria.
+     * Returns a having clause restricting the result based on the measure
+     * criteria.
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
@@ -643,15 +669,16 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
+            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
+                + " " + criterion + " ";
         }
 
         return sql;
     }
 
     /**
-     * Retrieves data from the database based on the given query and SQL and puts
-     * into a value key and value mapping.
+     * Retrieves data from the database based on the given query and SQL and
+     * puts into a value key and value mapping.
      */
     private Map<String, Object> getKeyValueMap( DataQueryParams params, String sql, int maxLimit )
     {
@@ -733,7 +760,8 @@ public class JdbcAnalyticsManager
     {
         Assert.notNull( params.getDataType(), "Data type must be present" );
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
-        Assert.isTrue( !( params.getAggregationType().isFirstOrLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
+        Assert.isTrue(
+            !(params.getAggregationType().isFirstOrLastPeriodAggregationType() && params.getPeriods().size() > 1),
             "Max one dimension period can be present per query for last period aggregation" );
     }
 }

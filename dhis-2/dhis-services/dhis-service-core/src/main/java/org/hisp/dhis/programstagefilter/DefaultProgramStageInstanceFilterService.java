@@ -1,6 +1,9 @@
-package org.hisp.dhis.programstagefilter;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +29,7 @@ package org.hisp.dhis.programstagefilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programstagefilter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @Service( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService" )
-@Transactional(readOnly = true)
+@Transactional( readOnly = true )
 public class DefaultProgramStageInstanceFilterService implements ProgramStageInstanceFilterService
 {
 
@@ -60,7 +64,8 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
 
     private OrganisationUnitService organisationUnitService;
 
-    public DefaultProgramStageInstanceFilterService( ProgramService programService, ProgramStageService programStageService,
+    public DefaultProgramStageInstanceFilterService( ProgramService programService,
+        ProgramStageService programStageService,
         OrganisationUnitService organisationUnitService )
     {
         this.programService = programService;
@@ -96,7 +101,8 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             ProgramStage ps = programStageService.getProgramStage( programStageInstanceFilter.getProgramStage() );
             if ( ps == null )
             {
-                errors.add( "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage() );
+                errors.add(
+                    "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage() );
             }
         }
 
@@ -111,18 +117,22 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
                     errors.add( "Org unit is specified but does not exist: " + eventQC.getOrganisationUnit() );
                 }
             }
-            if ( eventQC.getAssignedUserMode() != null && eventQC.getAssignedUsers() != null && !eventQC.getAssignedUsers().isEmpty()
+            if ( eventQC.getAssignedUserMode() != null && eventQC.getAssignedUsers() != null
+                && !eventQC.getAssignedUsers().isEmpty()
                 && !eventQC.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
             {
                 errors.add( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
             }
 
-            if ( eventQC.getEvents() != null && !eventQC.getEvents().isEmpty() && eventQC.getDataFilters() != null && !eventQC.getDataFilters().isEmpty() )
+            if ( eventQC.getEvents() != null && !eventQC.getEvents().isEmpty() && eventQC.getDataFilters() != null
+                && !eventQC.getDataFilters().isEmpty() )
             {
                 errors.add( "Event UIDs and filters can not be specified at the same time" );
             }
 
-            if ( eventQC.getDisplayColumnOrder() != null && eventQC.getDisplayColumnOrder().size() > 0 && (new HashSet<String>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder().size() )
+            if ( eventQC.getDisplayColumnOrder() != null && eventQC.getDisplayColumnOrder().size() > 0
+                && (new HashSet<String>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder()
+                    .size() )
             {
                 errors.add( "Event query criteria can not have duplicate column ordering fields" );
             }

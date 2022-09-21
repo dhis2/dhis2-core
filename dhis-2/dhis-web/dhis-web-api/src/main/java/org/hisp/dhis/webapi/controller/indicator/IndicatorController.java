@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller.indicator;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,17 @@ package org.hisp.dhis.webapi.controller.indicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.indicator;
 
+<<<<<<< HEAD
+=======
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.expression.ExpressionService;
@@ -45,11 +57,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+<<<<<<< HEAD
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */

@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +47,30 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
+=======
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
+=======
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hibernate.Session;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataInputPeriod;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */

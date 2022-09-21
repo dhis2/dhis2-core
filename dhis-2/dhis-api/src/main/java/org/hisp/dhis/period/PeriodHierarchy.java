@@ -1,7 +1,9 @@
-package org.hisp.dhis.period;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,9 +43,9 @@ import java.util.Set;
 public class PeriodHierarchy
 {
     private Map<Long, Set<Long>> intersectingPeriods = new HashMap<>();
-    
+
     private Map<Long, Set<Long>> periodsBetween = new HashMap<>();
-    
+
     public Map<Long, Set<Long>> getIntersectingPeriods()
     {
         return intersectingPeriods;
@@ -52,13 +55,13 @@ public class PeriodHierarchy
     {
         return new HashSet<>( intersectingPeriods.get( period.getId() ) );
     }
-    
+
     public Set<Long> getIntersectingPeriods( Collection<Period> periods )
     {
         periods = new HashSet<>( periods );
-        
+
         Set<Long> set = new HashSet<>();
-        
+
         for ( Period period : periods )
         {
             if ( intersectingPeriods.containsKey( period.getId() ) )
@@ -66,7 +69,7 @@ public class PeriodHierarchy
                 set.addAll( intersectingPeriods.get( period.getId() ) );
             }
         }
-        
+
         return set;
     }
 
@@ -79,13 +82,13 @@ public class PeriodHierarchy
     {
         return new HashSet<>( periodsBetween.get( period.getId() ) );
     }
-    
+
     public Set<Long> getPeriodsBetween( Collection<Period> periods )
     {
         periods = new HashSet<>( periods );
-        
+
         Set<Long> set = new HashSet<>();
-        
+
         for ( Period period : periods )
         {
             if ( periodsBetween.containsKey( period.getId() ) )
@@ -93,7 +96,7 @@ public class PeriodHierarchy
                 set.addAll( periodsBetween.get( period.getId() ) );
             }
         }
-        
+
         return set;
     }
 }

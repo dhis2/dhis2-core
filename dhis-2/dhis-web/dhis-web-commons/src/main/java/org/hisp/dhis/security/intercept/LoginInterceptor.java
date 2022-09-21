@@ -1,7 +1,9 @@
-package org.hisp.dhis.security.intercept;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +29,18 @@ package org.hisp.dhis.security.intercept;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.intercept;
 
 import java.util.ArrayList;
 import java.util.List;
 
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.struts2.ServletActionContext;
 
 import com.opensymphony.xwork2.Action;
@@ -41,7 +49,7 @@ import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
  * Interceptor that will run a list of actions when the user first logins.
- * 
+ *
  * @author mortenoh
  */
 @Slf4j

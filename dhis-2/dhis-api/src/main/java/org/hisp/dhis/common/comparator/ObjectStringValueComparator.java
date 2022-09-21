@@ -1,7 +1,9 @@
-package org.hisp.dhis.common.comparator;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.common.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common.comparator;
 
 import java.util.Comparator;
 import java.util.Objects;
@@ -34,16 +37,16 @@ import java.util.Objects;
 /**
  * Converts the given objects based on their string value. Null objects are
  * interpreted as empty strings.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ObjectStringValueComparator
     implements Comparator<Object>
 {
     public static final ObjectStringValueComparator INSTANCE = new ObjectStringValueComparator();
-    
+
     private static final String NULL_REPLACEMENT = "";
-    
+
     @Override
     public int compare( Object o1, Object o2 )
     {

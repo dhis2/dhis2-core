@@ -1,7 +1,9 @@
-package org.hisp.dhis.program.function;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +29,29 @@ package org.hisp.dhis.program.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.function;
 
+<<<<<<< HEAD
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+=======
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.Date;
 
+<<<<<<< HEAD
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+=======
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @Author Zubair Asghar.
@@ -62,7 +77,11 @@ public abstract class ProgramMinMaxFunction
         {
             columnName = "\"executiondate\"";
         }
+<<<<<<< HEAD
         else //  arg: #{programStageUid.dataElementUid}
+=======
+        else // arg: #{programStageUid.dataElementUid}
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
             String dataElement = ctx.uid1.getText();
             columnName = "\"" + dataElement + "\"";
@@ -79,14 +98,25 @@ public abstract class ProgramMinMaxFunction
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String programStage = ctx.uid0.getText();
 
+<<<<<<< HEAD
         return  "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
+=======
+        return "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
-            ( pi.getEndEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) +
-            ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
+            (pi.getEndEventBoundary() != null
+                ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ")
+                : "")
+            +
+            (pi.getStartEventBoundary() != null
+                ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ")
+                : "")
+            + "and ps = '" + programStage + "')";
     }
 
     /***
      * Generate the function part of the SQL
+     *
      * @return string sql min/max functions
      */
     public abstract String getAggregationOperator();

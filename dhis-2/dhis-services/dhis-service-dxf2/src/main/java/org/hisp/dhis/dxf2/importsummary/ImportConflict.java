@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.importsummary;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.importsummary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.importsummary;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -44,7 +47,7 @@ public class ImportConflict
     public ImportConflict()
     {
     }
-    
+
     public ImportConflict( String object, String value )
     {
         this.object = object;
@@ -87,13 +90,14 @@ public class ImportConflict
     public int hashCode()
     {
         int result = object != null ? object.hashCode() : 0;
-        result = 31 * result + ( value != null ? value.hashCode() : 0 );
+        result = 31 * result + (value != null ? value.hashCode() : 0);
 
         return result;
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )

@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +29,10 @@ package org.hisp.dhis.sms.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.incoming;
 
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.user.User;
 
@@ -40,23 +43,28 @@ public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
 
-    IncomingSms getNextUnprocessed();
-
     void update( IncomingSms sms );
 
-    IncomingSms findBy( Integer id );
+    IncomingSms get( long id );
 
-    List<IncomingSms> listAllMessage();
+    IncomingSms get( String uid );
 
-    void deleteById( Integer id );
+    List<IncomingSms> getAll();
 
-    int save( IncomingSms sms );
+    List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
 
-    int save( String message, String originator, String gateway, Date receivedTime, User user );
+    void delete( long id );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
+    void delete( String uid );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
+    long save( IncomingSms sms );
+
+    long save( String message, String originator, String gateway, Date receivedTime, User user );
+
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String originator );
+
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max,
+        boolean hasPagination );
 
     List<IncomingSms> getAllUnparsedMessages();
 }

@@ -1,7 +1,9 @@
-package org.hisp.dhis.predictor;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.predictor;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,6 +44,11 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsign
 import java.util.*;
 import java.util.stream.Collectors;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -165,7 +173,11 @@ public class DefaultPredictionService
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
+<<<<<<< HEAD
     public void setCurrentUserService(CurrentUserService currentUserService)
+=======
+    public void setCurrentUserService( CurrentUserService currentUserService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         this.currentUserService = currentUserService;
     }
@@ -175,9 +187,15 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     /**
+<<<<<<< HEAD
      * String that is not an Attribute Option Combo UID.
      * This is used for holding analytics data that is not stored by AOC, and
      * therefore is used in expressions for every AOC value.
+=======
+     * String that is not an Attribute Option Combo UID. This is used for
+     * holding analytics data that is not stored by AOC, and therefore is used
+     * in expressions for every AOC value.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      */
     private final static String NON_AOC = "x";
 
@@ -209,7 +227,8 @@ public class DefaultPredictionService
         {
             log.error( DebugUtils.getStackTrace( ex ) );
 
-            predictionSummary = new PredictionSummary( PredictionStatus.ERROR, "Predictions failed: " + ex.getMessage() );
+            predictionSummary = new PredictionSummary( PredictionStatus.ERROR,
+                "Predictions failed: " + ex.getMessage() );
 
             notifier.update( jobId, ERROR, predictionSummary.getDescription(), true );
         }
@@ -217,7 +236,8 @@ public class DefaultPredictionService
         return predictionSummary;
     }
 
-    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors, List<String> predictorGroups )
+    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors,
+        List<String> predictorGroups )
     {
         List<Predictor> predictorList = new ArrayList<>();
 
@@ -245,14 +265,16 @@ public class DefaultPredictionService
 
         PredictionSummary predictionSummary = new PredictionSummary();
 
-        log.info( "Running " + predictorList.size() + " predictors from " + startDate.toString() + " to " + endDate.toString() );
+        log.info( "Running " + predictorList.size() + " predictors from " + startDate.toString() + " to "
+            + endDate.toString() );
 
         for ( Predictor predictor : predictorList )
         {
             predict( predictor, startDate, endDate, predictionSummary );
         }
 
-        log.info( "Finished predictors from " + startDate.toString() + " to " + endDate.toString() + ": " + predictionSummary.toString() );
+        log.info( "Finished predictors from " + startDate.toString() + " to " + endDate.toString() + ": "
+            + predictionSummary.toString() );
 
         return predictionSummary;
     }
@@ -271,12 +293,25 @@ public class DefaultPredictionService
         // periods defined by the sequential and annual sample counts. These
         // two types of data are fetched and stored in different collections.
 
+<<<<<<< HEAD
         Set<DimensionalItemObject> items = new HashSet<>(); // Non-sampled items.
         Set<DimensionalItemObject> sampleItems = new HashSet<>(); // Sampled items.
         expressionService.getExpressionDimensionalItemObjects( generator.getExpression(), PREDICTOR_EXPRESSION, items, sampleItems );
         if ( skipTest != null )
         {
             expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST, sampleItems, new HashSet<>() );
+=======
+        Set<DimensionalItemObject> items = new HashSet<>(); // Non-sampled
+        // items.
+        Set<DimensionalItemObject> sampleItems = new HashSet<>(); // Sampled
+        // items.
+        expressionService.getExpressionDimensionalItemObjects( generator.getExpression(), PREDICTOR_EXPRESSION, items,
+            sampleItems );
+        if ( skipTest != null )
+        {
+            expressionService.getExpressionDimensionalItemObjects( skipTest.getExpression(), PREDICTOR_SKIP_TEST,
+                sampleItems, new HashSet<>() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
         Map<String, Constant> constantMap = constantService.getConstantMap();
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
@@ -288,11 +323,23 @@ public class DefaultPredictionService
         Set<Period> outputPeriodSet = new HashSet<>( outputPeriods );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         Set<String> defaultOptionComboAsSet = Sets.newHashSet( defaultCategoryOptionCombo.getUid() );
+<<<<<<< HEAD
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ? defaultCategoryOptionCombo : predictor.getOutputCombo();
+=======
+        CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null ? defaultCategoryOptionCombo
+            : predictor.getOutputCombo();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
         Date now = new Date();
+<<<<<<< HEAD
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP && ( !items.isEmpty() || !sampleItems.isEmpty() );
         DimensionalItemObject predictionReference = getPredictionReference( outputDataElement, outputOptionCombo, sampleItems );
+=======
+        boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP
+            && (!items.isEmpty() || !sampleItems.isEmpty());
+        DimensionalItemObject predictionReference = getPredictionReference( outputDataElement, outputOptionCombo,
+            sampleItems );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         String storedBy = "system-process";
@@ -327,11 +374,23 @@ public class DefaultPredictionService
 
             for ( List<OrganisationUnit> orgUnits : orgUnitLists )
             {
+<<<<<<< HEAD
                 Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> sampleMap4 = sampleItems.isEmpty() ?
                     new Map4<>() : getDataValues( sampleItems, allSamplePeriods, existingSamplePeriods, orgUnits );
+=======
+                Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> sampleMap4 = sampleItems.isEmpty()
+                    ? new Map4<>()
+                    : getDataValues( sampleItems, allSamplePeriods, existingSamplePeriods, orgUnits );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                 Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> valueMap4 = items.isEmpty() ?
                         new Map4<>() : getDataValues( items, outputPeriodSet, existingOutputPeriods, orgUnits );
+=======
+                Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> valueMap4 = items.isEmpty()
+                    ? new Map4<>()
+                    : getDataValues( items, outputPeriodSet, existingOutputPeriods, orgUnits );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                 List<DataValue> predictions = new ArrayList<>();
 
@@ -344,51 +403,98 @@ public class DefaultPredictionService
 
                 for ( OrganisationUnit orgUnit : orgUnits )
                 {
+<<<<<<< HEAD
                     MapMapMap<String, Period, DimensionalItemObject, Double> sampleMap3 = firstNonNull( sampleMap4.get( orgUnit ), new MapMapMap<>() );
                     MapMapMap<String, Period, DimensionalItemObject, Double> valueMap3 = firstNonNull( valueMap4.get( orgUnit ), new MapMapMap<>() );
+=======
+                    MapMapMap<String, Period, DimensionalItemObject, Double> sampleMap3 = firstNonNull(
+                        sampleMap4.get( orgUnit ), new MapMapMap<>() );
+                    MapMapMap<String, Period, DimensionalItemObject, Double> valueMap3 = firstNonNull(
+                        valueMap4.get( orgUnit ), new MapMapMap<>() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                     MapMap<Period, DimensionalItemObject, Double> sampleMapNonAoc = firstNonNull( sampleMap3.get( NON_AOC ), new MapMap<>() );
                     MapMap<Period, DimensionalItemObject, Double> valueMapNonAoc = firstNonNull( valueMap3.get( NON_AOC ), new MapMap<>() );
+=======
+                    MapMap<Period, DimensionalItemObject, Double> sampleMapNonAoc = firstNonNull(
+                        sampleMap3.get( NON_AOC ), new MapMap<>() );
+                    MapMap<Period, DimensionalItemObject, Double> valueMapNonAoc = firstNonNull(
+                        valueMap3.get( NON_AOC ), new MapMap<>() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                     Set<String> attributeOptionCombos = getAttributeOptionCombos( sampleMap3, valueMap3, defaultOptionComboAsSet );
+=======
+                    Set<String> attributeOptionCombos = getAttributeOptionCombos( sampleMap3, valueMap3,
+                        defaultOptionComboAsSet );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                     // Predict independently for each AOC, adding in the data,
                     // if any, that is stored without an AOC.
 
                     for ( String aoc : attributeOptionCombos )
                     {
+<<<<<<< HEAD
                         MapMap<Period, DimensionalItemObject, Double> sampleMap2 = firstNonNull( sampleMap3.get( aoc ), new MapMap<>() );
                         MapMap<Period, DimensionalItemObject, Double> valueMap2 = firstNonNull( valueMap3.get( aoc ), new MapMap<>() );
+=======
+                        MapMap<Period, DimensionalItemObject, Double> sampleMap2 = firstNonNull( sampleMap3.get( aoc ),
+                            new MapMap<>() );
+                        MapMap<Period, DimensionalItemObject, Double> valueMap2 = firstNonNull( valueMap3.get( aoc ),
+                            new MapMap<>() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                         sampleMap2.putMap( sampleMapNonAoc );
                         valueMap2.putMap( valueMapNonAoc );
 
+<<<<<<< HEAD
                         MapMap<Period, DimensionalItemObject, Double> periodValueMap = applySkipTest( sampleMap2, skipTest, constantMap );
+=======
+                        MapMap<Period, DimensionalItemObject, Double> periodValueMap = applySkipTest( sampleMap2,
+                            skipTest, constantMap );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                         // Predict for each output period.
 
                         for ( Period outputPeriod : outputPeriods )
                         {
+<<<<<<< HEAD
                             Map<DimensionalItemObject, Double> valueMap = firstNonNull( valueMap2.get( outputPeriod ), new HashMap<>() );
+=======
+                            Map<DimensionalItemObject, Double> valueMap = firstNonNull( valueMap2.get( outputPeriod ),
+                                new HashMap<>() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
+<<<<<<< HEAD
                             if ( requireData && dataIsAbsent( outputPeriod, valueMap, samplePeriodsMap, periodValueMap ) )
+=======
+                            if ( requireData
+                                && dataIsAbsent( outputPeriod, valueMap, samplePeriodsMap, periodValueMap ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                             {
                                 continue;
                             }
 
                             Double value = castDouble( expressionService.getExpressionValue( generator.getExpression(),
+<<<<<<< HEAD
                                     PREDICTOR_EXPRESSION, valueMap, constantMap, null,
                                     outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(),
                                     samplePeriodsMap.get( outputPeriod ), periodValueMap ) );
+=======
+                                PREDICTOR_EXPRESSION, valueMap, constantMap, null,
+                                outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(),
+                                samplePeriodsMap.get( outputPeriod ), periodValueMap ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
                             carryPredictionForward( value, outputPeriod, predictionReference, periodValueMap );
 
                             if ( value != null && !value.isNaN() && !value.isInfinite() &&
                                 !dataValueIsZeroAndInsignificant( Double.toString( value ), outputDataElement ) )
                             {
-                                String valueString = outputDataElement.getValueType().isInteger() ?
-                                    Long.toString( Math.round( value ) ) :
-                                    Double.toString( MathUtils.roundFraction( value, 4 ) );
+                                String valueString = outputDataElement.getValueType().isInteger()
+                                    ? Long.toString( Math.round( value ) )
+                                    : Double.toString( MathUtils.roundFraction( value, 4 ) );
 
                                 predictions.add( new DataValue( outputDataElement,
                                     outputPeriod, orgUnit, outputOptionCombo,
@@ -437,8 +543,13 @@ public class DefaultPredictionService
     }
 
     /**
+<<<<<<< HEAD
      * Checks to see if a dimensional item object has values
      * stored in the database by attribute option combo.
+=======
+     * Checks to see if a dimensional item object has values stored in the
+     * database by attribute option combo.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param o dimensional item object
      * @return true if values are stored by attribuete option combo.
@@ -446,14 +557,21 @@ public class DefaultPredictionService
     private boolean hasAttributeOptions( DimensionalItemObject o )
     {
         return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ( (ProgramIndicator)o ).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+            || ((ProgramIndicator) o).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
+<<<<<<< HEAD
      * Evaluates the skip test expression for any sample periods in which
      * skip test data occurs. For any combination of period and attribute
      * option combo where the skip test is true, removes all sample data with
      * that combination of period and attribute option combo.
+=======
+     * Evaluates the skip test expression for any sample periods in which skip
+     * test data occurs. For any combination of period and attribute option
+     * combo where the skip test is true, removes all sample data with that
+     * combination of period and attribute option combo.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param sampleMap2 data values from sampled periods.
      * @param skipTest the skip test expression.
@@ -473,11 +591,19 @@ public class DefaultPredictionService
 
         for ( Period p : sampleMap2.keySet() )
         {
+<<<<<<< HEAD
             if ( sampleMap2.get( p ) != null && Boolean.TRUE !=
                 expressionService.getExpressionValue( skipTest.getExpression(),
                 PREDICTOR_SKIP_TEST, sampleMap2.get( p ), constantMap, null,
                 p.getDaysInPeriod(), skipTest.getMissingValueStrategy(),
                 DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) )
+=======
+            if ( sampleMap2.get( p ) != null
+                && Boolean.TRUE != expressionService.getExpressionValue( skipTest.getExpression(),
+                    PREDICTOR_SKIP_TEST, sampleMap2.get( p ), constantMap, null,
+                    p.getDaysInPeriod(), skipTest.getMissingValueStrategy(),
+                    DEFAULT_SAMPLE_PERIODS, new MapMap<>() ) )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             {
                 periodValueMap.put( p, sampleMap2.get( p ) );
             }
@@ -530,11 +656,15 @@ public class DefaultPredictionService
      * @param predictor the predictor
      * @return map from output periods to sample periods
      */
+<<<<<<< HEAD
     private ListMap<Period, Period> getSamplePeriodsMap( List<Period> outputPeriods, Predictor predictor)
+=======
+    private ListMap<Period, Period> getSamplePeriodsMap( List<Period> outputPeriods, Predictor predictor )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         int sequentialCount = predictor.getSequentialSampleCount();
         int annualCount = predictor.getAnnualSampleCount();
-        int skipCount = firstNonNull( predictor.getSequentialSkipCount(),  0 );
+        int skipCount = firstNonNull( predictor.getSequentialSkipCount(), 0 );
         PeriodType periodType = predictor.getPeriodType();
 
         ListMap<Period, Period> samplePeriodsMap = new ListMap<>();
@@ -575,10 +705,9 @@ public class DefaultPredictionService
     /**
      * Finds the set of periods that exist, from a list of periods.
      *
-     * Only adds the period if it is found in the database, because:
-     * (a) We will need the period id, and
-     * (b) If the period does not exist in the database, then
-     *     there is no data in the database to look for.
+     * Only adds the period if it is found in the database, because: (a) We will
+     * need the period id, and (b) If the period does not exist in the database,
+     * then there is no data in the database to look for.
      *
      * @param periods the periods to look for
      * @return the set of periods that exist, with ids.
@@ -589,8 +718,8 @@ public class DefaultPredictionService
 
         for ( Period period : periods )
         {
-            Period existingPeriod = period.getId() != 0 ? period :
-                periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
+            Period existingPeriod = period.getId() != 0 ? period
+                : periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
 
             if ( existingPeriod != null )
             {
@@ -601,6 +730,7 @@ public class DefaultPredictionService
     }
 
     /**
+<<<<<<< HEAD
      * Checks to see if the output predicted value should be used as input
      * to subsequent (later period) predictions. If so, returns the
      * DimensionalItemObject that should be updated with the predicted value.
@@ -660,6 +790,67 @@ public class DefaultPredictionService
      * Returns true if there is no data for this period and no sample data
      * to be used for a prediction in this period. This allows us to
      * save time by not evaluating an expression where there is no data.
+=======
+     * Checks to see if the output predicted value should be used as input to
+     * subsequent (later period) predictions. If so, returns the
+     * DimensionalItemObject that should be updated with the predicted value.
+     *
+     * Note that we make the simplifying assumption that if the output data
+     * element is sampled in an expression without a catOptionCombo, the
+     * predicted data value will be used. This is usually what the user wants,
+     * but would break if the expression assumes a sum of catOptionCombos
+     * including the predicted value and other catOptionCombos.
+     *
+     * @param outputDataElement the data element to output predicted value to.
+     * @param outputOptionCombo the option combo to output predicted value to.
+     * @param sampleItems the sample items used in future predictions.
+     * @return the DimensionalItemObject, if any, for the predicted value.
+     */
+    private DimensionalItemObject getPredictionReference( DataElement outputDataElement,
+        CategoryOptionCombo outputOptionCombo, Set<DimensionalItemObject> sampleItems )
+    {
+        for ( DimensionalItemObject item : sampleItems )
+        {
+            if ( item.equals( outputDataElement ) )
+            {
+                return item;
+            }
+
+            if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND
+                && ((DataElementOperand) item).getDataElement().equals( outputDataElement )
+                && ((DataElementOperand) item).getCategoryOptionCombo().equals( outputOptionCombo ) )
+            {
+                return item;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * If the predicted value might be used in a future period prediction,
+     * insert it into the period value map.
+     *
+     * @param value the predicted value.
+     * @param outputPeriod the period the value is predicted for.
+     * @param predictionReference the item for the prediction, if any.
+     * @param periodValueMap the period value map.
+     */
+    private void carryPredictionForward( Double value, Period outputPeriod,
+        DimensionalItemObject predictionReference,
+        MapMap<Period, DimensionalItemObject, Double> periodValueMap )
+    {
+        if ( value != null && predictionReference != null )
+        {
+            periodValueMap.putEntry( outputPeriod, predictionReference, value );
+        }
+    }
+
+    /**
+     * Returns true if there is no data for this period and no sample data to be
+     * used for a prediction in this period. This allows us to save time by not
+     * evaluating an expression where there is no data.
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
      *
      * @param outputPeriod the current output period.
      * @param valueMap the current output period value map.
@@ -706,7 +897,7 @@ public class DefaultPredictionService
      */
     private Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> getDataValues(
         Set<DimensionalItemObject> dimensionItems, Set<Period> allPeriods, Set<Period> existingPeriods,
-        List<OrganisationUnit> orgUnits)
+        List<OrganisationUnit> orgUnits )
     {
         Set<DataElement> dataElements = new HashSet<>();
         Set<DataElementOperand> dataElementOperands = new HashSet<>();
@@ -734,7 +925,11 @@ public class DefaultPredictionService
             }
         }
 
+<<<<<<< HEAD
         if ( ( !dataElements.isEmpty() || !dataElementOperands.isEmpty() ) && !existingPeriods.isEmpty() )
+=======
+        if ( (!dataElements.isEmpty() || !dataElementOperands.isEmpty()) && !existingPeriods.isEmpty() )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         {
             dataValues = fetchDataValues( dataElements, dataElementOperands, existingPeriods, orgUnits );
         }
@@ -753,7 +948,12 @@ public class DefaultPredictionService
     }
 
     private Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> fetchDataValues(
+<<<<<<< HEAD
         Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands, Set<Period> periods, List<OrganisationUnit> orgUnits )
+=======
+        Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands, Set<Period> periods,
+        List<OrganisationUnit> orgUnits )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         DataExportParams params = new DataExportParams();
         params.setDataElements( dataElements );
@@ -764,11 +964,14 @@ public class DefaultPredictionService
 
         List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-        Map<Long, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
+        Map<Long, DataElement> dataElementLookup = dataElements.stream()
+            .collect( Collectors.toMap( DataElement::getId, de -> de ) );
         Map<String, DataElementOperand> dataElementOperandLookup = dataElementOperands.stream().collect(
-            Collectors.toMap( deo -> deo.getDataElement().getId() + "." + deo.getCategoryOptionCombo().getId(), deo -> deo ) );
+            Collectors.toMap( deo -> deo.getDataElement().getId() + "." + deo.getCategoryOptionCombo().getId(),
+                deo -> deo ) );
         Map<Long, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
-        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream()
+            .collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
         Map<Long, CategoryOptionCombo> aocLookup = new HashMap<>();
 
         Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> dataValues = new Map4<>();
@@ -776,7 +979,8 @@ public class DefaultPredictionService
         for ( DeflatedDataValue dv : deflatedDataValues )
         {
             DataElement dataElement = dataElementLookup.get( dv.getDataElementId() );
-            DataElementOperand dataElementOperand = dataElementOperandLookup.get( dv.getDataElementId() + "." + dv.getCategoryOptionComboId() );
+            DataElementOperand dataElementOperand = dataElementOperandLookup
+                .get( dv.getDataElementId() + "." + dv.getCategoryOptionComboId() );
             Period p = periodLookup.get( dv.getPeriodId() );
             OrganisationUnit orgUnit = orgUnitLookup.get( dv.getSourceId() );
             CategoryOptionCombo attributeOptionCombo = aocLookup.get( dv.getAttributeOptionComboId() );
@@ -809,7 +1013,12 @@ public class DefaultPredictionService
     }
 
     private void putDataValue( Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> dataValues,
+<<<<<<< HEAD
         OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo, Period p, DimensionalItemObject dimensionItem,
+=======
+        OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo, Period p,
+        DimensionalItemObject dimensionItem,
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         String stringValue )
     {
         Double value;
@@ -834,9 +1043,9 @@ public class DefaultPredictionService
     }
 
     /**
-     * Gets data values for a set of Event dimensionItems over a set of
-     * Periods for a list of organisation units and/or any of the organisation
-     * units' descendants.
+     * Gets data values for a set of Event dimensionItems over a set of Periods
+     * for a list of organisation units and/or any of the organisation units'
+     * descendants.
      *
      * Returns the values mapped by OrganisationUnit, Period, attribute option
      * combo UID, and DimensionalItemObject.
@@ -847,12 +1056,17 @@ public class DefaultPredictionService
      * @return the map of values
      */
     private Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> getEventDataValues(
+<<<<<<< HEAD
         Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions, Set<Period> periods, List<OrganisationUnit> orgUnits )
+=======
+        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions, Set<Period> periods,
+        List<OrganisationUnit> orgUnits )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         Map4<OrganisationUnit, String, Period, DimensionalItemObject, Double> eventDataValues = new Map4<>();
 
         DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder()
-            .withPeriods(new ArrayList<>(periods) )
+            .withPeriods( new ArrayList<>( periods ) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
             .withOrganisationUnits( orgUnits );
 
@@ -869,9 +1083,11 @@ public class DefaultPredictionService
         int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
-        Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap(Period::getIsoDate, p -> p ) );
-        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream().collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) );
-        Map<String, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap(BaseIdentifiableObject::getUid, o -> o ) );
+        Map<String, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getIsoDate, p -> p ) );
+        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream()
+            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
+        Map<String, OrganisationUnit> orgUnitLookup = orgUnits.stream()
+            .collect( Collectors.toMap( BaseIdentifiableObject::getUid, o -> o ) );
 
         for ( List<Object> row : grid.getRows() )
         {
@@ -879,7 +1095,11 @@ public class DefaultPredictionService
             String dx = (String) row.get( dxInx );
             String ou = (String) row.get( ouInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : NON_AOC;
+<<<<<<< HEAD
             Double vl = ( (Number)row.get( vlInx ) ).doubleValue();
+=======
+            Double vl = ((Number) row.get( vlInx )).doubleValue();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
@@ -892,8 +1112,8 @@ public class DefaultPredictionService
     }
 
     /**
-     * Writes the predicted values to the database. Also updates the
-     * prediction summmary per-record counts.
+     * Writes the predicted values to the database. Also updates the prediction
+     * summmary per-record counts.
      *
      * @param predictions Predictions to write to the database.
      * @param outputDataElement Predictor output data elmeent.
@@ -908,7 +1128,8 @@ public class DefaultPredictionService
         List<OrganisationUnit> orgUnits, String storedBy, PredictionSummary summary )
     {
         DataExportParams params = new DataExportParams();
-        params.setDataElementOperands( Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
+        params.setDataElementOperands(
+            Sets.newHashSet( new DataElementOperand( outputDataElement, outputOptionCombo ) ) );
         params.setPeriods( periods );
         params.setOrganisationUnits( new HashSet<>( orgUnits ) );
         params.setIncludeDeleted( true );
@@ -918,13 +1139,16 @@ public class DefaultPredictionService
         Map<String, DeflatedDataValue> oldValues = oldValueList.stream().collect( Collectors.toMap(
             d -> d.getPeriodId() + "-" + d.getSourceId() + "-" + d.getAttributeOptionComboId(), d -> d ) );
 
-        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory
+            .createBatchHandler( DataValueBatchHandler.class ).init();
 
         for ( DataValue newValue : predictions )
         {
-            boolean zeroInsignificant = dataValueIsZeroAndInsignificant( newValue.getValue(), newValue.getDataElement() );
+            boolean zeroInsignificant = dataValueIsZeroAndInsignificant( newValue.getValue(),
+                newValue.getDataElement() );
 
-            String key = newValue.getPeriod().getId() + "-" + newValue.getSource().getId() + "-" + newValue.getAttributeOptionCombo().getId();
+            String key = newValue.getPeriod().getId() + "-" + newValue.getSource().getId() + "-"
+                + newValue.getAttributeOptionCombo().getId();
 
             DeflatedDataValue oldValue = oldValues.get( key );
 
@@ -962,7 +1186,9 @@ public class DefaultPredictionService
                 {
                     if ( zeroInsignificant )
                     {
-                        continue; // Leave the old value to be deleted because the new value, insigificant, won't be stored.
+                        continue; // Leave the old value to be deleted because
+                        // the new value, insigificant, won't be
+                        // stored.
                     }
 
                     summary.incrementUpdated();
@@ -974,7 +1200,8 @@ public class DefaultPredictionService
             }
         }
 
-        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream()
+            .collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
 
         for ( DeflatedDataValue oldValue : oldValues.values() )
         {

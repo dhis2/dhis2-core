@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -41,9 +44,28 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
+=======
+package org.hisp.dhis.tracker;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.user.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -106,6 +128,18 @@ public class TrackerImportParams
     @JsonProperty
     @Builder.Default
     private ValidationMode validationMode = ValidationMode.FULL;
+
+    /**
+     * Should text pattern validation be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipPatternValidation;
+
+    /**
+     * Should side effects be skipped or not, default is not.
+     */
+    @JsonProperty
+    private boolean skipSideEffects;
 
     /**
      * Name of file that was used for import (if available).
@@ -182,6 +216,11 @@ public class TrackerImportParams
             .user( user )
             .importMode( importMode )
             .importStrategy( importStrategy )
+<<<<<<< HEAD
+=======
+            .skipTextPatternValidation( skipPatternValidation )
+            .skipSideEffects( skipSideEffects )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             .identifiers( identifiers )
             .atomicMode( atomicMode )
             .flushMode( flushMode )

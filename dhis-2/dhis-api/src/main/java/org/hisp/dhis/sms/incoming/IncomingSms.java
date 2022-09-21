@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +29,23 @@ package org.hisp.dhis.sms.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.incoming;
 
 import java.io.Serializable;
 import java.util.Date;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.user.User;
 
 @JacksonXmlRootElement( localName = "inboundsms" )
 public class IncomingSms
+    extends BaseIdentifiableObject
     implements Serializable
 {
     private static final long serialVersionUID = 3954710607630454226L;
-
-    private Integer id;
 
     private SmsMessageEncoding encoding = SmsMessageEncoding.ENC7BIT;
 
@@ -70,26 +73,19 @@ public class IncomingSms
 
     private boolean parsed = false;
 
-    private User user;
+    public IncomingSms()
+    {
+        setAutoFields();
+    }
 
     /**
      * Incoming smses are one of two types, text or binary.
-     * 
+     *
      * @return is this message a text (not binary) message?
      */
     public boolean isTextSms()
     {
         return text != null;
-    }
-
-    public Integer getId()
-    {
-        return id;
-    }
-
-    public void setId( Integer id )
-    {
-        this.id = id;
     }
 
     @JsonProperty( value = "smsencoding", defaultValue = "1" )
@@ -159,19 +155,7 @@ public class IncomingSms
         return text;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "user" )
-    public User getUser()
-    {
-        return user;
-    }
-
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
-
-    public void setText(String text )
+    public void setText( String text )
     {
         if ( bytes != null )
         {

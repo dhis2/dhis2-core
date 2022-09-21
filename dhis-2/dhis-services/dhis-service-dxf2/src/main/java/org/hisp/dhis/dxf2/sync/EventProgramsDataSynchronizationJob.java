@@ -1,6 +1,9 @@
-package org.hisp.dhis.dxf2.sync;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +29,17 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Optional;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
@@ -40,8 +49,11 @@ import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobPa
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
+<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -50,8 +62,15 @@ import lombok.extern.slf4j.Slf4j;
 public class EventProgramsDataSynchronizationJob extends SynchronizationJob
 {
     private final Notifier notifier;
+
     private final MessageService messageService;
+<<<<<<< HEAD
     private final DataSynchronizationWithPaging eventSync;
+=======
+
+    private final DataSynchronizationWithPaging eventSync;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private final SynchronizationManager synchronizationManager;
 
     public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -78,8 +97,13 @@ public class EventProgramsDataSynchronizationJob extends SynchronizationJob
     {
         try
         {
+<<<<<<< HEAD
             EventProgramsDataSynchronizationJobParameters jobParameters =
                 (EventProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+=======
+            EventProgramsDataSynchronizationJobParameters jobParameters = (EventProgramsDataSynchronizationJobParameters) jobConfiguration
+                .getJobParameters();
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             eventSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }

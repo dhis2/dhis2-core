@@ -1,7 +1,9 @@
-package org.hisp.dhis.programstagefilter;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.programstagefilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programstagefilter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -34,6 +37,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -43,7 +47,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageInstanceFilter extends BaseIdentifiableObject implements MetadataObject
+public class ProgramStageInstanceFilter
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     private static final long serialVersionUID = 1L;
@@ -62,6 +68,8 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
      * Property indicating description of programStageInstanceFilter
      */
     private String description;
+
+    private transient String displayDescription;
 
     /**
      * Criteria object representing selected projections, filtering and sorting
@@ -115,6 +123,14 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     public String getDescription()
     {
         return description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
     }
 
     public void setDescription( String description )

@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -88,11 +91,13 @@ public class TokenController
 
     @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
-        throws WebMessageException, ExecutionException
+        throws WebMessageException,
+        ExecutionException
     {
         setNoStore( response );
 
-        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken().get() );
+        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY,
+            c -> config.getGoogleAccessToken().get() );
 
         if ( !tokenOptional.isPresent() )
         {

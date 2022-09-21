@@ -1,7 +1,9 @@
-package org.hisp.dhis.external.conf;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,10 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.conf;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -36,13 +42,14 @@ import java.util.Optional;
  */
 public enum ConfigurationKey
 {
-    SYSTEM_READ_ONLY_MODE( "system.read_only_mode", "off", false ),
+    SYSTEM_READ_ONLY_MODE( "system.read_only_mode", Constants.OFF, false ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
-    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", "off", false ),
+    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", Constants.OFF, false ),
     SYSTEM_MONITORING_URL( "system.monitoring.url" ),
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
-    SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", "on", false ),
+    SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
+    SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -52,6 +59,16 @@ public enum ConfigurationKey
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
     CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
+    CONNECTION_POOL_MIN_SIZE( "connection.pool.min_size", "5", false ),
+    CONNECTION_POOL_INITIAL_SIZE( "connection.pool.initial_size", "5", false ),
+    CONNECTION_POOL_ACQUIRE_INCR( "connection.pool.acquire_incr", "5", false ),
+    CONNECTION_POOL_MAX_IDLE_TIME( "connection.pool.max_idle_time", "7200", false ),
+    CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON( "connection.pool.max_idle_time_excess_con", "0", false ),
+    CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "connection.pool.idle.con.test.period", "0", false ),
+    CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
+    CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
+    CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
+    CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -72,9 +89,10 @@ public enum ConfigurationKey
     REDIS_HOST( "redis.host", "localhost", false ),
     REDIS_PORT( "redis.port", "6379", false ),
     REDIS_PASSWORD( "redis.password", "", true ),
-    REDIS_ENABLED( "redis.enabled", "false", false ),
-    REDIS_USE_SSL( "redis.use.ssl", "false", false ),
-    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
+    REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
+    REDIS_USE_SSL( "redis.use.ssl", Constants.FALSE, false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
+    FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.FALSE, false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
@@ -83,13 +101,21 @@ public enum ConfigurationKey
     ARTEMIS_PORT( "artemis.port", "25672" ),
     ARTEMIS_USERNAME( "artemis.username", "guest", true ),
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
-    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", "false" ),
-    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", "false" ),
+    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_THREADS( "artemis.embedded.threads", "5" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
+<<<<<<< HEAD
+=======
+    LOGGING_REQUEST_ID_ENABLED( "logging.request_id.enabled", Constants.ON, false ),
+    LOGGING_REQUEST_ID_HASH( "logging.request_id.hash", "SHA-256", false ),
+    LOGGING_REQUEST_ID_MAXSIZE( "logging.request_id.max_size", "-1", false ),
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     SERVER_BASE_URL( "server.base.url", "", false ),
-    SERVER_HTTPS( "server.https", "off" ),
+    SERVER_HTTPS( "server.https", Constants.OFF ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
+<<<<<<< HEAD
     MONITORING_API_ENABLED( "monitoring.api.enabled", "off", false ),
     MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "off", false ),
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
@@ -107,6 +133,36 @@ public enum ConfigurationKey
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false );
+=======
+    MONITORING_API_ENABLED( "monitoring.api.enabled", Constants.OFF, false ),
+    MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", Constants.OFF, false ),
+    MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", Constants.OFF, false ),
+    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", Constants.OFF, false ),
+    MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", Constants.OFF, false ),
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", Constants.OFF, false ),
+    APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
+    APPHUB_API_URL( "apphub.api.url", "https://apps.dhis2.org/api", false ),
+    CHANGELOG_AGGREGATE( "changelog.aggregate", Constants.ON ),
+    CHANGELOG_TRACKER( "changelog.tracker", Constants.ON ),
+    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
+    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
+    AUDIT_LOGGER( "audit.logger", Constants.OFF, false ),
+    AUDIT_DATABASE( "audit.database", Constants.ON, false ),
+    AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
+    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
+    AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+    OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", Constants.OFF, false ),
+    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
+    OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
+    OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
+    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
+    OIDC_PROVIDER_WSO2_CLIENT_ID( "oidc.provider.wso2.client_id", "", false ),
+    OIDC_PROVIDER_WSO2_CLIENT_SECRET( "oidc.provider.wso2.client_secret", "", false ),
+    OIDC_PROVIDER_WSO2_MAPPING_CLAIM( "oidc.provider.wso2.mapping_claim", "email", false ),
+    OIDC_PROVIDER_WSO2_SERVER_URL( "oidc.provider.wso2.server_url", "", false ),
+    OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
+    OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
     private final String key;
 
@@ -154,4 +210,18 @@ public enum ConfigurationKey
     {
         return Arrays.stream( ConfigurationKey.values() ).filter( k -> k.key.equals( key ) ).findFirst();
     }
+<<<<<<< HEAD
+=======
+
+    private static final class Constants
+    {
+        public static final String FALSE = Boolean.FALSE.toString();
+
+        public static final String TRUE = Boolean.TRUE.toString();
+
+        public static final String OFF = "off";
+
+        public static final String ON = "on";
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

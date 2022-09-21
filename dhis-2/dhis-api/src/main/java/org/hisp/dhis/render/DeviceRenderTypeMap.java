@@ -1,7 +1,9 @@
-package org.hisp.dhis.render;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +29,29 @@ package org.hisp.dhis.render;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.render;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.util.LinkedHashMap;
 
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
- * This class represents the relationship between a RenderingType and a RenderDevice. A RenderDevice can have one RenderType.
- * @param <T> an object wrapping an enum representing options for rendering a specific object
+ * This class represents the relationship between a RenderingType and a
+ * RenderDevice. A RenderDevice can have one RenderType.
+ *
+ * @param <T> an object wrapping an enum representing options for rendering a
+ *        specific object
  */
+<<<<<<< HEAD
 @JacksonXmlRootElement(localName = "renderType", namespace = DxfNamespaces.DXF_2_0 )
+=======
+@JacksonXmlRootElement( localName = "renderType", namespace = DxfNamespaces.DXF_2_0 )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 public class DeviceRenderTypeMap<T>
     extends LinkedHashMap<RenderDevice, T>
 {

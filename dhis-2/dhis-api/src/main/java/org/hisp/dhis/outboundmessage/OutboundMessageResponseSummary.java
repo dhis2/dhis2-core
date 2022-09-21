@@ -1,7 +1,9 @@
-package org.hisp.dhis.outboundmessage;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +29,15 @@ package org.hisp.dhis.outboundmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.outboundmessage;
+
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -43,26 +47,27 @@ import org.hisp.dhis.common.DeliveryChannel;
 public class OutboundMessageResponseSummary
 {
     private int total;
-    
+
     private int failed;
-    
+
     private int pending;
-    
+
     private int sent;
-    
+
     private OutboundMessageBatchStatus batchStatus;
-    
+
     private String responseMessage;
-    
+
     private String errorMessage;
-    
+
     private DeliveryChannel channel;
-    
+
     public OutboundMessageResponseSummary()
     {
     }
-    
-    public OutboundMessageResponseSummary( String errorMessage, DeliveryChannel channel, OutboundMessageBatchStatus status )
+
+    public OutboundMessageResponseSummary( String errorMessage, DeliveryChannel channel,
+        OutboundMessageBatchStatus status )
     {
         this.errorMessage = errorMessage;
         this.channel = channel;
@@ -165,7 +170,8 @@ public class OutboundMessageResponseSummary
         this.channel = channel;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return MoreObjects.toStringHelper( this )
             .add( "total", total )

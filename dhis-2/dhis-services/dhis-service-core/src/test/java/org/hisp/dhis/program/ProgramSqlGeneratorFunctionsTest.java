@@ -1,7 +1,9 @@
-package org.hisp.dhis.program;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,25 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
@@ -57,6 +78,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+<<<<<<< HEAD
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -75,6 +97,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Jim Grace
  */
@@ -86,11 +110,17 @@ public class ProgramSqlGeneratorFunctionsTest
     private Program programA;
 
     private DataElement dataElementA;
+
     private DataElement dataElementB;
     private DataElement dataElementC;
     private DataElement dataElementD;
 
+    private DataElement dataElementC;
+
+    private DataElement dataElementD;
+
     private ProgramStage programStageA;
+
     private ProgramStage programStageB;
 
     private TrackedEntityAttribute attributeA;
@@ -176,7 +206,11 @@ public class ProgramSqlGeneratorFunctionsTest
         programIndicator.setAnalyticsType( AnalyticsType.EVENT );
 
         relTypeA = new RelationshipType();
+<<<<<<< HEAD
         relTypeA.setUid( "RelatnTypeA");
+=======
+        relTypeA.setUid( "RelatnTypeA" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -184,8 +218,14 @@ public class ProgramSqlGeneratorFunctionsTest
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+<<<<<<< HEAD
         when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
                 .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
+=======
+        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
+            eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         String sql = test( "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10 + 5,3 * 2)" );
         assertThat( sql, is( "case when (coalesce(\"DataElmentA\"::numeric,0) > 3) then 10 + 5 else 3 * 2 end" ) );
@@ -261,8 +301,14 @@ public class ProgramSqlGeneratorFunctionsTest
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+<<<<<<< HEAD
         when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
                 .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
+=======
+        when( programIndicatorService.getAnalyticsSql( anyString(), eq( programIndicator ), eq( startDate ),
+            eq( endDate ) ) )
+                .thenAnswer( i -> test( (String) i.getArguments()[0] ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         String sql = test( "d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
@@ -277,7 +323,11 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
 
+<<<<<<< HEAD
         String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},55)");
+=======
+        String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},55)" );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
@@ -293,7 +343,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
         dataElementA.setValueType( TEXT );
 
-        String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},'ABC')");
+        String sql = test( "d2:countIfValue(#{ProgrmStagA.DataElmentA},'ABC')" );
         assertThat( sql, is( "(select count(\"DataElmentA\") " +
             "from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi " +
@@ -342,7 +392,12 @@ public class ProgramSqlGeneratorFunctionsTest
         when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
 
         String sql = test( "d2:minutesBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
+<<<<<<< HEAD
         assertThat( sql, is( "(extract(epoch from (cast(\"DataElmentD\" as timestamp) - cast(\"DataElmentC\" as timestamp))) / 60)" ) );
+=======
+        assertThat( sql, is(
+            "(extract(epoch from (cast(\"DataElmentD\" as timestamp) - cast(\"DataElmentC\" as timestamp))) / 60)" ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -355,8 +410,14 @@ public class ProgramSqlGeneratorFunctionsTest
 
         String sql = test( "d2:monthsBetween(#{ProgrmStagA.DataElmentC},#{ProgrmStagB.DataElmentD})" );
 
+<<<<<<< HEAD
         assertThat( sql, is( "((date_part('year',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date)))) * 12 + " +
            "date_part('month',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date))))" ) );
+=======
+        assertThat( sql,
+            is( "((date_part('year',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date)))) * 12 + " +
+                "date_part('month',age(cast(\"DataElmentD\" as date), cast(\"DataElmentC\" as date))))" ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     }
 
     @Test
@@ -603,7 +664,12 @@ public class ProgramSqlGeneratorFunctionsTest
     private void setStartEventBoundary()
     {
         Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+<<<<<<< HEAD
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+=======
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         setBoundaries( boundaries );
     }
@@ -611,7 +677,12 @@ public class ProgramSqlGeneratorFunctionsTest
     private void setEndEventBoundary()
     {
         Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+<<<<<<< HEAD
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+=======
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         setBoundaries( boundaries );
     }
@@ -619,8 +690,15 @@ public class ProgramSqlGeneratorFunctionsTest
     private void setStartAndEndEventBoundary()
     {
         Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+<<<<<<< HEAD
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+=======
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         setBoundaries( boundaries );
     }
@@ -628,10 +706,21 @@ public class ProgramSqlGeneratorFunctionsTest
     private void setAllBoundaries()
     {
         Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
+<<<<<<< HEAD
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+=======
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
+            AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         setBoundaries( boundaries );
     }

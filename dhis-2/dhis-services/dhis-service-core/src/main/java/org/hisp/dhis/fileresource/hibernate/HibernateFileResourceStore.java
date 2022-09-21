@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +29,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.fileresource.hibernate;
 
+<<<<<<< HEAD
+package org.hisp.dhis.fileresource.hibernate;
+
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +65,11 @@ public class HibernateFileResourceStore
         .build();
 
     public HibernateFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+<<<<<<< HEAD
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+=======
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     {
         super( sessionFactory, jdbcTemplate, publisher, FileResource.class, currentUserService, aclService, false );
     }
@@ -75,7 +87,7 @@ public class HibernateFileResourceStore
                 "and dva.dataelementid in " +
                 "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
                 "on dva.value = fr.uid " +
-                "where fr.isassigned = true; ", FileResource.class)
+                "where fr.isassigned = true; ", FileResource.class )
             .setParameter( "date", expires.toDate() )
             .getResultList();
 
@@ -85,10 +97,11 @@ public class HibernateFileResourceStore
     @Override
     public List<FileResource> getAllUnProcessedImages()
     {
-        return getQuery( "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-            .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
-            .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-            .setParameter( "hasMultipleStorageFiles", false )
-            .setMaxResults( 50 ).getResultList();
+        return getQuery(
+            "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
+                .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
+                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
+                .setParameter( "hasMultipleStorageFiles", false )
+                .setMaxResults( 50 ).getResultList();
     }
 }

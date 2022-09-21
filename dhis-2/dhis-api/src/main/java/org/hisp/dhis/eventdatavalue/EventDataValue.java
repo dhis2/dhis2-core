@@ -1,6 +1,9 @@
-package org.hisp.dhis.eventdatavalue;
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +29,17 @@ package org.hisp.dhis.eventdatavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.eventdatavalue;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
@@ -51,7 +57,11 @@ public class EventDataValue implements Serializable
 
     private Date created = new Date();
 
+    private UserInfoSnapshot createdByUserInfo;
+
     private Date lastUpdated = new Date();
+
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String value;
 
@@ -84,10 +94,12 @@ public class EventDataValue implements Serializable
         setValue( value );
     }
 
-    public EventDataValue( String dataElement, String value, String storedBy )
+    public EventDataValue( String dataElement, String value, UserInfoSnapshot userInfo )
     {
         this.dataElement = dataElement;
-        this.storedBy = storedBy;
+        this.storedBy = userInfo.getUsername();
+        this.createdByUserInfo = userInfo;
+        this.lastUpdatedByUserInfo = userInfo;
         setValue( value );
     }
 
@@ -125,12 +137,13 @@ public class EventDataValue implements Serializable
             return false;
         }
 
-        return dataElement.equals( ( (EventDataValue) object ).dataElement );
+        return dataElement.equals( ((EventDataValue) object).dataElement );
     }
 
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+    @JsonProperty
     public Boolean getProvidedElsewhere()
     {
         return providedElsewhere;
@@ -152,6 +165,7 @@ public class EventDataValue implements Serializable
         return dataElement;
     }
 
+    @JsonProperty
     public Date getCreated()
     {
         return created;
@@ -162,9 +176,32 @@ public class EventDataValue implements Serializable
         this.created = created;
     }
 
+    @JsonProperty
+    public UserInfoSnapshot getCreatedByUserInfo()
+    {
+        return createdByUserInfo;
+    }
+
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
+    {
+        this.createdByUserInfo = createdByUserInfo;
+    }
+
+    @JsonProperty
     public Date getLastUpdated()
     {
         return lastUpdated;
+    }
+
+    @JsonProperty
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
+    {
+        return lastUpdatedByUserInfo;
+    }
+
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
+    {
+        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     public void setLastUpdated( Date lastUpdated )
@@ -185,11 +222,13 @@ public class EventDataValue implements Serializable
         this.value = value;
     }
 
+    @JsonProperty
     public String getValue()
     {
         return value;
     }
 
+    @JsonProperty
     public String getStoredBy()
     {
         return storedBy;

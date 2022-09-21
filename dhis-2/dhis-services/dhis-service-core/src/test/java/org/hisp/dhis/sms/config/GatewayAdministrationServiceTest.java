@@ -1,7 +1,9 @@
-package org.hisp.dhis.sms.config;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +29,12 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,22 +43,23 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
-
-
 /**
  * @author Zubair Asghar.
  */
 public class GatewayAdministrationServiceTest
 {
-    private static final String BULKSMS = "bulksms";
-    private static final String CLICKATELL = "clickatell";
-    private static final String GENERIC_GATEWAY = "generic";
+    private static final String BULKSMS = BulkSmsGatewayConfig.class.getName();
+
+    private static final String CLICKATELL = ClickatellGatewayConfig.class.getName();
+
+    private static final String GENERIC_GATEWAY = GenericHttpGatewayConfig.class.getName();
 
     private BulkSmsGatewayConfig bulkConfig;
+
     private ClickatellGatewayConfig clickatellConfig;
+
     private GenericHttpGatewayConfig genericHttpGatewayConfig;
+
     private SmsConfiguration spyConfiguration;
 
     // -------------------------------------------------------------------------
@@ -64,20 +72,29 @@ public class GatewayAdministrationServiceTest
     @Mock
     private SmsConfigurationManager smsConfigurationManager;
 
+    @Mock
+    private PBEStringEncryptor pbeStringEncryptor;
+
     private DefaultGatewayAdministrationService subject;
 
     @Before
     public void setUp()
     {
 
+<<<<<<< HEAD
         subject = new DefaultGatewayAdministrationService( smsConfigurationManager );
+=======
+        subject = new DefaultGatewayAdministrationService( smsConfigurationManager, pbeStringEncryptor );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         spyConfiguration = new SmsConfiguration();
         bulkConfig = new BulkSmsGatewayConfig();
         bulkConfig.setName( BULKSMS );
+        bulkConfig.setPassword( "password@123" );
 
         clickatellConfig = new ClickatellGatewayConfig();
         clickatellConfig.setName( CLICKATELL );
+        clickatellConfig.setPassword( "123abc" );
 
         genericHttpGatewayConfig = new GenericHttpGatewayConfig();
         genericHttpGatewayConfig.setName( GENERIC_GATEWAY );
@@ -129,6 +146,13 @@ public class GatewayAdministrationServiceTest
         assertTrue( spyConfiguration.getGateways().get( 0 ).isDefault() );
 
         assertTrue( subject.addGateway( genericHttpGatewayConfig ) );
+
+        assertEquals( subject.getGatewayConfigurationMap().size(), 2 );
+
+        subject.addGateway( bulkConfig );
+
+        // bulksms gateway already exist so it will not be added.
+        assertEquals( subject.getGatewayConfigurationMap().size(), 2 );
     }
 
     @Test
@@ -137,7 +161,6 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         BulkSmsGatewayConfig updated = new BulkSmsGatewayConfig();
         updated.setName( "changedbulksms" );
@@ -155,14 +178,13 @@ public class GatewayAdministrationServiceTest
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
         assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
-        assertEquals( bulkConfig, subject.getDefaultGateway() );
 
         subject.addGateway( clickatellConfig );
 
         assertEquals( 2, spyConfiguration.getGateways().size() );
 
         ClickatellGatewayConfig updated = new ClickatellGatewayConfig();
-        updated.setName( "changedclickatell" );
+        updated.setName( CLICKATELL );
         updated.setUid( "tempUId" );
 
         subject.updateGateway( clickatellConfig, updated );
@@ -227,7 +249,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void  testRemoveGateway()
+    public void testRemoveGateway()
     {
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
@@ -262,7 +284,8 @@ public class GatewayAdministrationServiceTest
     {
         subject.addGateway( bulkConfig );
 
-        Class<? extends SmsGatewayConfig> config = subject.getGatewayType( subject.getGatewayConfigurationMap().get( BULKSMS ) );
+        Class<? extends SmsGatewayConfig> config = subject
+            .getGatewayType( subject.getGatewayConfigurationMap().get( BULKSMS ) );
 
         assertNotNull( config );
         assertEquals( config, BulkSmsGatewayConfig.class );
@@ -282,4 +305,24 @@ public class GatewayAdministrationServiceTest
     {
         assertFalse( subject.addGateway( null ) );
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    public void testUpdateGateway()
+    {
+        assertTrue( subject.addGateway( bulkConfig ) );
+        assertEquals( bulkConfig, subject.getDefaultGateway() );
+        assertEquals( BULKSMS, subject.getDefaultGateway().getName() );
+
+        BulkSmsGatewayConfig updated = bulkConfig;
+        updated.setName( "bulksms2" );
+
+        subject.updateGateway( bulkConfig, updated );
+
+        assertEquals( 1, subject.getGatewayConfigurationMap().size() );
+        assertTrue( subject.getGatewayConfigurationMap().get( BULKSMS ).isDefault() );
+        assertEquals( "bulksms2", subject.getGatewayConfigurationMap().get( BULKSMS ).getName() );
+    }
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 }

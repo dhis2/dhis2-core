@@ -1,7 +1,9 @@
-package org.hisp.dhis.calendar;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,14 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar;
 
 import java.util.List;
 
 /**
- * Simple service for returning all available calendars, and also giving the current system calendar.
+ * Simple service for returning all available calendars, and also giving the
+ * current system calendar.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see Calendar
  */
@@ -39,24 +44,28 @@ public interface CalendarService
 {
     /**
      * Gets all available calendars as a sorted list.
+     *
      * @return All available calendars
      */
     List<Calendar> getAllCalendars();
 
     /**
      * Gets all available date formats as list.
+     *
      * @return All available date formats
      */
     List<DateFormat> getAllDateFormats();
 
     /**
      * Gets the currently selected system calendar.
+     *
      * @return System calendar
      */
     Calendar getSystemCalendar();
 
     /**
      * Gets the currently selected date format.
+     *
      * @return Date format
      * @see DateFormat
      */

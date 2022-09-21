@@ -1,7 +1,9 @@
-package org.hisp.dhis.tracker.domain;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.tracker.domain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+<<<<<<< HEAD
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vividsolutions.jts.geom.Geometry;
@@ -37,11 +40,29 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
+=======
+package org.hisp.dhis.tracker.domain;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.BaseLinkableObject;
+import org.hisp.dhis.common.adapter.UidJsonSerializer;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.user.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,6 +74,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Event
     extends BaseLinkableObject
+    implements TrackerDto
 {
     private String uid;
 
@@ -82,6 +104,10 @@ public class Event
     private String trackedEntity;
 
     @JsonProperty
+<<<<<<< HEAD
+=======
+    @Builder.Default
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private List<Relationship> relationships = new ArrayList<>();
 
     @JsonProperty
@@ -106,12 +132,15 @@ public class Event
     private String updatedAt;
 
     @JsonProperty
+<<<<<<< HEAD
     private String clientCreatedAt;
 
     @JsonProperty
     private String clientUpdatedAt;
 
     @JsonProperty
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private String attributeOptionCombo;
 
     @JsonProperty
@@ -127,10 +156,22 @@ public class Event
     private Geometry geometry;
 
     @JsonProperty
+<<<<<<< HEAD
     @Builder.Default
+    private Set<DataValue> dataValues = new HashSet<>();
+=======
+    @JsonSerialize( using = UidJsonSerializer.class )
+    private User assignedUser;
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
+
+    @JsonProperty
+    @Builder.Default
+<<<<<<< HEAD
+=======
     private Set<DataValue> dataValues = new HashSet<>();
 
     @JsonProperty
     @Builder.Default
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private List<Note> notes = new ArrayList<>();
 }

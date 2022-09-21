@@ -1,7 +1,9 @@
-package org.hisp.dhis.commons.util;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +38,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * Utility class for concurrency operations.
  *
@@ -70,8 +78,8 @@ public class ConcurrentUtils
     }
 
     /**
-     * Returns a {@link Future} which is immediately completed and has its
-     * value set to an empty string.
+     * Returns a {@link Future} which is immediately completed and has its value
+     * set to an empty string.
      *
      * @return a future which is immediately completed.
      */

@@ -1,0 +1,35 @@
+{
+  "programStages": [
+    {
+      "programStageSections" : [],
+      "lastUpdated": "2019-01-28T11:23:20.850",
+      "id": "NpsdDv6kKSO",
+      "created": "2019-01-28T11:23:20.850",
+      "name": "ProgramA",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "lastUpdatedBy": {
+        "id": "T12jeH7KPzk"
+      },
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "notificationTemplates": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ]
+}

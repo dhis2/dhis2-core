@@ -1,7 +1,9 @@
-package org.hisp.dhis.security.authority;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +29,11 @@ package org.hisp.dhis.security.authority;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
+package org.hisp.dhis.security.authority;
 
 import java.util.Collection;
+
+import org.hisp.dhis.schema.SchemaService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -39,8 +41,12 @@ import java.util.Collection;
 public class SchemaAuthoritiesProvider
     implements SystemAuthoritiesProvider
 {
-    @Autowired
     private SchemaService schemaService;
+
+    public SchemaAuthoritiesProvider( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public Collection<String> getSystemAuthorities()

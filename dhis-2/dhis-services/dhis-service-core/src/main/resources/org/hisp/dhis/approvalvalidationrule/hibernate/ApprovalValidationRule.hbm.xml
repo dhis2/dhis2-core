@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.approvalvalidationrule.ApprovalValidationRule" table="approvalvalidationrule">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="approvalvalidationruleid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrule_userid" />
+    
+    <property name="skipApprovalValidation" /> 
+    
+    <set name="organisationUnitLevels" table="approvalvalidationruleorganisationunitlevels">
+      <cache usage="read-write" />
+      <key column="approvalvalidationruleid" foreign-key="fk_organisationunitlevel_approvalvalidationruleid" />
+      <element column="organisationunitlevel" type="int" />
+    </set>
+
+
+  </class>
+
+</hibernate-mapping>

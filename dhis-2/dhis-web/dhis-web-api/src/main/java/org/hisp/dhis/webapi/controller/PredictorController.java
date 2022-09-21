@@ -1,7 +1,9 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +29,23 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+<<<<<<< HEAD
+import lombok.extern.slf4j.Slf4j;
+=======
+import static org.hisp.dhis.expression.ParseType.*;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -49,6 +66,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+<<<<<<< HEAD
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -57,6 +75,8 @@ import java.util.List;
 
 import static org.hisp.dhis.expression.ParseType.*;
 
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 /**
  * @author Ken Haase (ken@dhis2.org)
  */
@@ -88,7 +108,8 @@ public class PredictorController
         @RequestParam Date startDate,
         @RequestParam Date endDate,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         Predictor predictor = predictorService.getPredictor( uid );
 
@@ -98,13 +119,17 @@ public class PredictorController
 
             predictionService.predict( predictor, startDate, endDate, predictionSummary );
 
-            webMessageService.send( WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response, request );
+            webMessageService.send(
+                WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response,
+                request );
         }
         catch ( Exception ex )
         {
             log.error( "Unable to predict " + predictor.getName(), ex );
 
-            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+            webMessageService.send(
+                WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
+                request );
         }
     }
 
@@ -114,7 +139,8 @@ public class PredictorController
         @RequestParam Date startDate,
         @RequestParam Date endDate,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         int count = 0;
 
@@ -134,7 +160,9 @@ public class PredictorController
             {
                 log.error( "Unable to predict " + predictor.getName(), ex );
 
-                webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+                webMessageService.send(
+                    WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response,
+                    request );
 
                 return;
             }

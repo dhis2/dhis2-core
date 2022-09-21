@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,18 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.StringWriter;
+import java.io.Writer;
+
+import javax.xml.namespace.QName;
+
+import org.hisp.dhis.user.User;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -34,15 +48,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.xml.namespace.QName;
-import java.io.StringWriter;
-import java.io.Writer;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for {@link CustomLastUpdatedUserSerializer}.
@@ -63,7 +68,8 @@ public class CustomLastUpdatedUserSerializerTest
     }
 
     @Test
-    public void serializeXml() throws Exception
+    public void serializeXml()
+        throws Exception
     {
         Writer jsonWriter = new StringWriter();
         ToXmlGenerator jsonGenerator = new XmlFactory().createGenerator( jsonWriter );
@@ -71,11 +77,13 @@ public class CustomLastUpdatedUserSerializerTest
         jsonGenerator.setNextName( new QName( "urn:test", "lastUpdatedBy" ) );
         new CustomLastUpdatedUserSerializer().serialize( user, jsonGenerator, serializerProvider );
         jsonGenerator.flush();
-        assertEquals( "<wstxns1:lastUpdatedBy xmlns:wstxns1=\"urn:test\" id=\"jshfdkd323\" name=\"Peter Brown\"/>", jsonWriter.toString() );
+        assertEquals( "<wstxns1:lastUpdatedBy xmlns:wstxns1=\"urn:test\" id=\"jshfdkd323\" name=\"Peter Brown\"/>",
+            jsonWriter.toString() );
     }
 
     @Test
-    public void serializeJson() throws Exception
+    public void serializeJson()
+        throws Exception
     {
         Writer jsonWriter = new StringWriter();
         JsonGenerator jsonGenerator = new JsonFactory().createGenerator( jsonWriter );

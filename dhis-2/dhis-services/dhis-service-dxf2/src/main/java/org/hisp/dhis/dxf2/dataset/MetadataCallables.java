@@ -1,7 +1,9 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -52,8 +55,8 @@ class MetadataCallables
 
     private final IdentifiableObjectCallable<Period> periodCallable;
 
-    MetadataCallables(ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
-                      CategoryService categoryService )
+    MetadataCallables( ImportConfig config, IdentifiableObjectManager idObjManager, PeriodService periodService,
+        CategoryService categoryService )
     {
         dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.getDsScheme(), null );
         orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.getOuScheme(),

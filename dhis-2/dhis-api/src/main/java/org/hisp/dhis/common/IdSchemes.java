@@ -1,7 +1,9 @@
-package org.hisp.dhis.common;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +29,30 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.util.ObjectUtils;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Identifier schemes used to map meta data. The general identifier
- * scheme can be overridden by id schemes specific to individual
- * object types. The default id scheme is UID.
+ * Identifier schemes used to map meta data. The general identifier scheme can
+ * be overridden by id schemes specific to individual object types. The default
+ * id scheme is UID.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdSchemes
 {
-    private IdScheme idScheme = IdScheme.UID;
+    private IdScheme idScheme;
 
     private IdScheme dataElementIdScheme;
 
     private IdScheme categoryOptionComboIdScheme;
 
     private IdScheme categoryOptionIdScheme;
+
+    private IdScheme categoryIdScheme;
 
     private IdScheme orgUnitIdScheme;
 
@@ -70,12 +76,12 @@ public class IdSchemes
 
     public IdScheme getScheme( IdScheme idScheme )
     {
-        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, this.idScheme ) );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, getIdScheme() ) );
     }
 
     public IdScheme getIdScheme()
     {
-        return IdScheme.from( idScheme );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, IdScheme.UID ) );
     }
 
     public IdSchemes setIdScheme( String idScheme )
@@ -84,9 +90,18 @@ public class IdSchemes
         return this;
     }
 
-    //--------------------------------------------------------------------------
+    public IdSchemes setDefaultIdScheme( IdScheme idScheme )
+    {
+        if ( this.idScheme == null )
+        {
+            this.idScheme = idScheme;
+        }
+        return this;
+    }
+
+    // --------------------------------------------------------------------------
     // Object type id schemes
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public IdScheme getDataElementIdScheme()
     {
@@ -118,6 +133,17 @@ public class IdSchemes
     public IdSchemes setCategoryOptionIdScheme( String idScheme )
     {
         this.categoryOptionIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getCategoryIdScheme()
+    {
+        return getScheme( categoryIdScheme );
+    }
+
+    public IdSchemes setCategoryIdScheme( String idScheme )
+    {
+        this.categoryIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
@@ -209,9 +235,9 @@ public class IdSchemes
         return this;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get value methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public static String getValue( String uid, String code, IdentifiableProperty identifiableProperty )
     {
@@ -258,6 +284,7 @@ public class IdSchemes
             .add( "dataElementIdScheme", dataElementIdScheme )
             .add( "categoryOptionComboIdScheme", categoryOptionComboIdScheme )
             .add( "categoryOptionIdScheme", categoryOptionIdScheme )
+            .add( "categoryIdScheme", categoryIdScheme )
             .add( "orgUnitIdScheme", orgUnitIdScheme )
             .add( "programIdScheme", programIdScheme )
             .add( "programStageIdScheme", programStageIdScheme )

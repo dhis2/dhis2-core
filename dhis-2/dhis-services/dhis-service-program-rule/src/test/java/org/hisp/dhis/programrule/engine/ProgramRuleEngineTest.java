@@ -1,7 +1,9 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,6 +63,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -96,6 +100,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Program programA;
 
+    private Program programB;
+
     private Program programS;
 
     private ProgramRule programRuleA;
@@ -103,6 +109,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramRule programRuleA2;
 
     private ProgramRule programRuleC;
+
+    private ProgramRule programRuleE;
 
     private ProgramRule programRuleS;
 
@@ -128,6 +136,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private TrackedEntityAttribute attributeB;
 
+    private TrackedEntityAttribute attributeEmail;
+
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
@@ -140,6 +150,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String expressionC = "A{C1234567890}=='test'";
 
+<<<<<<< HEAD
+=======
+    private String expressionE = "d2:hasValue('attribute_email')";
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     private String expressionS = "A{S1234567890}=='xmen'";
 
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
@@ -148,7 +163,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private Date psEventDate;
 
+<<<<<<< HEAD
     @Qualifier( "oldRuleEngine" )
+=======
+    @Qualifier( "notificationRuleEngine" )
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
     @Autowired
     ProgramRuleEngine programRuleEngine;
 
@@ -218,6 +237,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeB = createTrackedEntityAttribute( 'B' );
+        attributeEmail = createTrackedEntityAttribute( 'E' );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -230,6 +250,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         attributeService.addTrackedEntityAttribute( attributeA );
         attributeService.addTrackedEntityAttribute( attributeB );
+        attributeService.addTrackedEntityAttribute( attributeEmail );
 
         Calendar cal = Calendar.getInstance();
         cal.setTime( simpleDateFormat.parse( dob ) );
@@ -248,8 +269,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
 
+<<<<<<< HEAD
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Optional.empty(),
             Sets.newHashSet() );
+=======
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -263,6 +288,33 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
+    public void testNotificationWhenUsingD2HasValueWithTEA()
+    {
+        setUpNotificationForD2HasValue();
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionSendMessage );
+
+        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
+
+        assertEquals( "PNT-2", ruleActionSendMessage.notification() );
+
+        ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
+
+        assertNotNull( template );
+        assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
+        assertEquals( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template.getNotificationRecipient() );
+        assertEquals( "message_template", template.getMessageTemplate() );
+    }
+
+    @Test
     public void testSendMessageForEvent()
     {
         setUpSendMessageForEnrollment();
@@ -270,7 +322,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+<<<<<<< HEAD
             Optional.of( programStageInstance ), Sets.newHashSet() );
+=======
+            programStageInstance, Sets.newHashSet() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -281,6 +337,13 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
 
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
+
+        ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
+
+        assertNotNull( template );
+        assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
+        assertEquals( ProgramNotificationRecipient.USER_GROUP, template.getNotificationRecipient() );
+        assertEquals( "message_template", template.getMessageTemplate() );
     }
 
     @Test
@@ -318,7 +381,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
 
-        // duplicate enrollment/events will be ignored and validation will be failed.
+        // duplicate enrollment/events will be ignored and validation will be
+        // failed.
         assertFalse( ruleActionImplementers.validate( ruleEffects2.get( 0 ), programInstance ) );
     }
 
@@ -330,7 +394,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+<<<<<<< HEAD
             Optional.of( programStageInstance ), Sets.newHashSet() );
+=======
+            programStageInstance, Sets.newHashSet() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -344,7 +412,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
+<<<<<<< HEAD
             Optional.of( programStageInstance ), Sets.newHashSet() );
+=======
+            programStageInstance, Sets.newHashSet() );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -360,20 +432,29 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programS = createProgram( 'S', new HashSet<>(), organisationUnitB );
+        programB = createProgram( 'E', new HashSet<>(), organisationUnitA );
 
         programService.addProgram( programA );
         programService.addProgram( programS );
+        programService.addProgram( programB );
 
         ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( programS, attributeB );
         attribute.setUid( "ATTR-UID" );
 
+        ProgramTrackedEntityAttribute programAttributeEmail = createProgramTrackedEntityAttribute( programB,
+            attributeEmail );
+        attribute.setUid( "ATTR-UID2" );
+
+        programTrackedEntityAttributeStore.save( attribute );
         programTrackedEntityAttributeStore.save( attribute );
 
         programA.setProgramAttributes( Arrays.asList( attribute ) );
         programS.setProgramAttributes( Arrays.asList( attribute ) );
+        programB.setProgramAttributes( Arrays.asList( programAttributeEmail ) );
 
         programService.updateProgram( programA );
         programService.updateProgram( programS );
+        programService.updateProgram( programB );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
         ProgramStage programStageAge = createProgramStage( 'S', programA );
@@ -437,6 +518,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         TrackedEntityInstance entityInstanceS = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceS );
 
+<<<<<<< HEAD
+=======
+        TrackedEntityInstance entityInstanceE = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceE );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
@@ -447,6 +534,14 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         TrackedEntityAttributeValue attributeValueS = new TrackedEntityAttributeValue( attributeB, entityInstanceS,
             "xmen" );
+<<<<<<< HEAD
+=======
+
+        TrackedEntityAttributeValue attributeValueEmail = new TrackedEntityAttributeValue( attributeEmail,
+            entityInstanceE,
+            "zubair@dhis2.org" );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
 
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
@@ -458,22 +553,42 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
 
+<<<<<<< HEAD
+=======
+        entityInstanceE.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueEmail ) );
+        entityInstanceService.updateTrackedEntityInstance( entityInstanceE );
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
-        Date incidenDate = testDate1.toDate();
+        Date incidentDate = testDate1.toDate();
 
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
 
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+<<<<<<< HEAD
             programA, enrollmentDate, incidenDate, organisationUnitA );
+=======
+            programA, enrollmentDate, incidentDate, organisationUnitA );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         programInstanceA.setUid( "UID-P1" );
         programInstanceService.updateProgramInstance( programInstanceA );
 
+<<<<<<< HEAD
         ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
             programS, enrollmentDate, incidenDate, organisationUnitB );
+=======
+        ProgramInstance programInstanceE = programInstanceService.enrollTrackedEntityInstance( entityInstanceE,
+            programB, enrollmentDate, incidentDate, organisationUnitA );
+        programInstanceE.setUid( "UID-P2" );
+        programInstanceService.updateProgramInstance( programInstanceE );
+
+        ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
+            programS, enrollmentDate, incidentDate, organisationUnitB );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
 
@@ -538,9 +653,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleC.setCondition( expressionC );
         programRuleService.addProgramRule( programRuleC );
 
+        programRuleE = createProgramRule( 'E', programB );
+        programRuleE.setCondition( expressionE );
+        programRuleService.addProgramRule( programRuleE );
+
         programRuleS = createProgramRule( 'S', programS );
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
+
+        ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariable( 'E', programB );
+        programRuleVariableEmail.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableEmail.setAttribute( attributeEmail );
+        programRuleVariableEmail.setName( "attribute_email" );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableEmail );
 
         ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
@@ -601,6 +726,30 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleC.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
+    }
+
+    private void setUpNotificationForD2HasValue()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setRecipientProgramAttribute( attributeEmail );
+        pnt.setNotificationRecipient( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-2" );
+
+        programNotificationTemplateStore.save( pnt );
+
+        ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'C', programRuleE );
+        programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
+        programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
+        programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
+
+        programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
+        programRuleService.updateProgramRule( programRuleE );
     }
 
     private void setUpScheduleMessage()

@@ -1,7 +1,9 @@
-package org.hisp.dhis.analytics.data;
-
 /*
+<<<<<<< HEAD
  * Copyright (c) 2004-2020, University of Oslo
+=======
+ * Copyright (c) 2004-2021, University of Oslo
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +29,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
@@ -37,6 +40,11 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
 
+<<<<<<< HEAD
+=======
+import lombok.extern.slf4j.Slf4j;
+
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
@@ -52,8 +60,11 @@ import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+<<<<<<< HEAD
 
 import lombok.extern.slf4j.Slf4j;
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
 /**
  * @author Lars Helge Overland
@@ -88,7 +99,13 @@ public class DefaultQueryValidator
 
         if ( error != null )
         {
+<<<<<<< HEAD
             log.warn( String.format( "Analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+=======
+            log.warn( String.format(
+                "Analytics validation failed, code: '%s', message: '%s'",
+                error.getErrorCode(), error.getMessage() ) );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
 
             throw new IllegalQueryException( error );
         }
@@ -105,8 +122,10 @@ public class DefaultQueryValidator
         }
 
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
-        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
+        params.getProgramDataElements()
+            .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
+            AggregatableDataElementFilter.INSTANCE );
 
         if ( !params.isSkipDataDimensionValidation() )
         {
@@ -114,15 +133,18 @@ public class DefaultQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7101 );
             }
+<<<<<<< HEAD
 
             if ( !params.isSkipData() &&
+=======
+            else if ( !params.isSkipData() &&
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
                 params.getDataDimensionAndFilterOptions().isEmpty() &&
                 params.getAllDataElementGroups().isEmpty() )
             {
                 error = new ErrorMessage( ErrorCode.E7102 );
             }
-
-            if ( !params.getDimensionsAsFilters().isEmpty() )
+            else if ( !params.getDimensionsAsFilters().isEmpty() )
             {
                 error = new ErrorMessage( ErrorCode.E7103, getDimensions( params.getDimensionsAsFilters() ) );
             }
@@ -132,60 +154,57 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7104 );
         }
-
-        if ( params.hasPeriods() && params.hasStartEndDate() )
+        else if ( params.hasPeriods() && params.hasStartEndDate() )
         {
             error = new ErrorMessage( ErrorCode.E7105 );
         }
-
-        if ( params.hasStartEndDate() && params.startDateAfterEndDate() )
+        else if ( params.hasStartEndDate() && params.startDateAfterEndDate() )
         {
             error = new ErrorMessage( ErrorCode.E7106 );
         }
-
-        if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
+        else if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
+<<<<<<< HEAD
             error = new ErrorMessage( ErrorCode.E7107 );;
+=======
+            error = new ErrorMessage( ErrorCode.E7107 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
-
-        if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( (!params.getFilterIndicators().isEmpty() || !params.getFilterProgramIndicators().isEmpty())
+            && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7108 );
         }
-
-        if ( !params.getFilterReportingRates().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
+        else if ( !params.getFilterReportingRates().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
             error = new ErrorMessage( ErrorCode.E7109 );
         }
-
-        if ( params.getFilters().contains( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID ) ) )
+        else if ( params.getFilters().contains( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID ) ) )
         {
             error = new ErrorMessage( ErrorCode.E7110 );
         }
-
-        if ( !params.getDuplicateDimensions().isEmpty() )
+        else if ( !params.getDuplicateDimensions().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7111, getDimensions( params.getDuplicateDimensions() ) );
         }
-
-        if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
+        else if ( !params.getAllReportingRates().isEmpty()
+            && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
             error = new ErrorMessage( ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES );
         }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
+        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7113 );
         }
-
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        else if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID )
+            && (params.getAllDataElements().size() != params.getAllDataDimensionItems().size()) )
         {
             error = new ErrorMessage( ErrorCode.E7114 );
         }
-
-        if ( !nonAggDataElements.isEmpty() )
+        else if ( !nonAggDataElements.isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
+<<<<<<< HEAD
         }
 
         if ( !params.getIndicators().isEmpty() )
@@ -198,23 +217,26 @@ public class DefaultQueryValidator
             {
                 error = new ErrorMessage( ErrorCode.E7116, cre.getMessage() );
             }
+=======
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
         }
-
-        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
+        else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7117 );
             }
-
-            if ( !params.hasDimension( PERIOD_DIM_ID ) )
+            else if ( !params.hasDimension( PERIOD_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7118 );
             }
-
-            if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
+            else if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
+<<<<<<< HEAD
                 error = new ErrorMessage( ErrorCode.E7119 );;
+=======
+                error = new ErrorMessage( ErrorCode.E7119 );
+>>>>>>> refs/remotes/origin/2.35.8-EMBARGOED_za
             }
         }
 
