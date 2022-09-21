@@ -27,16 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
-
 import java.util.Date;
-import java.util.Optional;
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -56,9 +52,9 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
-    private Set<String> attribute;
+    private Set<String> attribute = new HashSet<>();
 
-    private Set<String> filter;
+    private Set<String> filter = new HashSet<>();
 
     /**
      * Semicolon-delimited list of Organizational Unit UIDs
@@ -189,51 +185,5 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
     public boolean isLegacy()
     {
         return false;
-    }
-
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return isLegacy
-            ? translate( dtoFieldName, TrackerTrackedEntityCriteria.LegacyDtoToEntityFieldTranslator.values() )
-            : translate( dtoFieldName, TrackerTrackedEntityCriteria.DtoToEntityFieldTranslator.values() );
-    }
-
-    /**
-     * Dto to database field translator for new tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.TrackedEntity fields, just with
-         * different case
-         *
-         * example: org.hisp.dhis.tracker.domain.TrackedEntity.updatedAtClient
-         * --> UPDATED_AT_CLIENT
-         */
-        TRACKED_ENTITY( "trackedEntityInstance" ),
-        CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
-    /**
-     * Dto to database field translator for old tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        TRACKED_ENTITY( "uid" );
-
-        @Getter
-        private final String entityName;
-
     }
 }
