@@ -106,13 +106,12 @@ public class TrackerTrackedEntityCriteriaMapper
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
         validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
-        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-
         User user = currentUserService.getCurrentUser();
-
-        if ( user != null )
+        Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( orgUnitIds, user );
+        if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+            orgUnits.addAll( user.getOrganisationUnits() );
         }
 
         QueryFilter queryFilter = getQueryFilter( criteria.getQuery() );
@@ -128,37 +127,12 @@ public class TrackerTrackedEntityCriteriaMapper
             .map( f -> this.getQueryItem( f, attributes ) )
             .collect( Collectors.toUnmodifiableList() );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-
-        Set<String> orgUnits = parseUids( criteria.getOrgUnit() );
-        for ( String orgUnit : orgUnits )
-        {
-            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnit );
-
-            if ( organisationUnit == null )
-            {
-                throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
-            }
-
-            if ( user != null && !user.isSuper()
-                && !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
-            {
-                throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
-            }
-
-            params.getOrganisationUnits().add( organisationUnit );
-        }
-
-        if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
-        {
-            params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
-        }
-
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
         validateOrderParams( orderParams, attributes );
 
         Set<String> trackedEntities = parseUids( criteria.getTrackedEntity() );
 
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( validateProgramStage( criteria, program ) )
@@ -172,6 +146,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .setProgramIncidentStartDate( criteria.getEnrollmentOccurredAfter() )
             .setProgramIncidentEndDate( criteria.getEnrollmentOccurredBefore() )
             .setTrackedEntityType( trackedEntityType )
+            .addOrganisationUnits( orgUnits )
             .setOrganisationUnitMode( criteria.getOuMode() )
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventOccurredAfter() )
@@ -191,6 +166,31 @@ public class TrackerTrackedEntityCriteriaMapper
             .setUser( user )
             .setOrders( orderParams );
         return params;
+    }
+
+    private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+    {
+
+        Set<OrganisationUnit> orgUnits = new HashSet<>();
+        for ( String orgUnitId : orgUnitIds )
+        {
+            OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
+
+            if ( orgUnit == null )
+            {
+                throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnitId );
+            }
+
+            if ( user != null && !user.isSuper()
+                && !organisationUnitService.isInUserHierarchy( orgUnit.getUid(),
+                    user.getTeiSearchOrganisationUnitsWithFallback() ) )
+            {
+                throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnitId );
+            }
+            orgUnits.add( orgUnit );
+        }
+
+        return orgUnits;
     }
 
     /**
