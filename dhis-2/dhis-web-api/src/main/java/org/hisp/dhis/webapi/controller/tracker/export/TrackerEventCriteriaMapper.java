@@ -29,10 +29,9 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -308,27 +308,21 @@ class TrackerEventCriteriaMapper
             .stream()
             .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<QueryItem> result = new ArrayList<>();
-        for ( String filter : filterAttributes )
-        {
-            result.add( parseAttributeQueryItem( filter, attributes ) );
-        }
-        addAttributeQueryItemsFromOrder( result, attributes, attributeOrderParams );
+        List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
+        List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
 
-        return result;
+        return Stream.concat( filterItems.stream(), orderItems.stream() ).collect( Collectors.toUnmodifiableList() );
     }
 
-    private void addAttributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
+    private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
         Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
     {
-        List<QueryItem> orderQueryItems = attributeOrderParams.stream()
+        return attributeOrderParams.stream()
             .map( OrderParam::getField )
             .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
             .map( attributes::get )
             .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
-            .collect( Collectors.toList() );
-
-        filterAttributes.addAll( orderQueryItems );
+            .collect( Collectors.toUnmodifiableList() );
     }
 
     private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )

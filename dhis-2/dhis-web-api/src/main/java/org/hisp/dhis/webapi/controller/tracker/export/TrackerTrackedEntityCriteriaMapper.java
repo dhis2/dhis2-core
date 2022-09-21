@@ -32,7 +32,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.Order
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
 import java.util.HashSet;
@@ -121,13 +121,9 @@ public class TrackerTrackedEntityCriteriaMapper
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<QueryItem> attributeItems = criteria.getAttribute().stream()
-            .map( a -> parseAttributeQueryItem( a, attributes ) )
-            .collect( Collectors.toUnmodifiableList() );
+        List<QueryItem> attributeItems = parseAttributeQueryItems( criteria.getAttribute(), attributes );
 
-        List<QueryItem> filters = criteria.getFilter().stream()
-            .map( f -> parseAttributeQueryItem( f, attributes ) )
-            .collect( Collectors.toUnmodifiableList() );
+        List<QueryItem> filters = parseAttributeQueryItems( criteria.getFilter(), attributes );
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
         validateOrderParams( orderParams, attributes );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -105,6 +106,27 @@ class RequestParamUtils
     {
         return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
             .stream();
+    }
+
+    /**
+     * Parse request parameter to filter tracked entity attributes using
+     * identifier, operator and values. Refer to
+     * {@link #parseQueryItem(String, Function)} for details on the expected
+     * item format.
+     *
+     * @param items query item strings each composed of identifier, operator and
+     *        value
+     * @param attributes tracked entity attribute map from identifiers to
+     *        attributes
+     * @return query items each of a tracked entity attribute with attached
+     *         query filters
+     */
+    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
+        Map<String, TrackedEntityAttribute> attributes )
+    {
+        return items.stream()
+            .map( i -> parseAttributeQueryItem( i, attributes ) )
+            .collect( Collectors.toUnmodifiableList() );
     }
 
     /**
