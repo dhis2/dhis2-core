@@ -131,4 +131,40 @@ class PeriodTypeTest
         assertEquals( PeriodTypeEnum.YEARLY,
             PeriodType.getPeriodType( PeriodTypeEnum.YEARLY ).getPeriodTypeEnum() );
     }
+
+    @Test
+    void testGetShiftedPeriod()
+    {
+        Period aug2022 = PeriodType.getPeriodFromIsoString( "202208" );
+        Period sep2022 = PeriodType.getPeriodFromIsoString( "202209" );
+        PeriodType monthly = aug2022.getPeriodType();
+
+        assertEquals( aug2022, monthly.getShiftedPeriod( aug2022, 0 ) );
+        assertEquals( sep2022, monthly.getShiftedPeriod( aug2022, 1 ) );
+        assertEquals( aug2022, monthly.getShiftedPeriod( sep2022, -1 ) );
+    }
+
+    @Test
+    void testGetNextPeriod()
+    {
+        Period aug2022 = PeriodType.getPeriodFromIsoString( "202208" );
+        Period sep2022 = PeriodType.getPeriodFromIsoString( "202209" );
+        PeriodType monthly = aug2022.getPeriodType();
+
+        assertEquals( sep2022, monthly.getNextPeriod( aug2022 ) );
+        assertEquals( aug2022, monthly.getNextPeriod( aug2022, 0 ) );
+        assertEquals( sep2022, monthly.getNextPeriod( aug2022, 1 ) );
+    }
+
+    @Test
+    void testGetPreviousPeriod()
+    {
+        Period aug2022 = PeriodType.getPeriodFromIsoString( "202208" );
+        Period sep2022 = PeriodType.getPeriodFromIsoString( "202209" );
+        PeriodType monthly = aug2022.getPeriodType();
+
+        assertEquals( aug2022, monthly.getPreviousPeriod( sep2022 ) );
+        assertEquals( sep2022, monthly.getPreviousPeriod( sep2022, 0 ) );
+        assertEquals( aug2022, monthly.getPreviousPeriod( sep2022, 1 ) );
+    }
 }
