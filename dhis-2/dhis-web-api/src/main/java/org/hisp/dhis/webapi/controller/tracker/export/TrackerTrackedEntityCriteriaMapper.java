@@ -32,7 +32,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.Order
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
 import java.util.HashSet;
@@ -122,11 +122,11 @@ public class TrackerTrackedEntityCriteriaMapper
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
         List<QueryItem> attributeItems = criteria.getAttribute().stream()
-            .map( a -> parseQueryItem( a, attributes ) )
+            .map( a -> parseAttributeQueryItem( a, attributes ) )
             .collect( Collectors.toUnmodifiableList() );
 
         List<QueryItem> filters = criteria.getFilter().stream()
-            .map( f -> parseQueryItem( f, attributes ) )
+            .map( f -> parseAttributeQueryItem( f, attributes ) )
             .collect( Collectors.toUnmodifiableList() );
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );

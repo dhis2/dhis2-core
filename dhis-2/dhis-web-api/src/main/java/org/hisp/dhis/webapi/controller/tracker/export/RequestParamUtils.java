@@ -103,11 +103,49 @@ class RequestParamUtils
     }
 
     /**
-     * Creates a QueryItem from the given item string. Item is on format
-     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
-     * Only the attribute-id is mandatory.
+     * Parse request parameter to filter tracked entity attributes using
+     * identifier, operator and values. Refer to
+     * {@link #parseAttributeQueryItem(String, Map)} for details on the expected
+     * item format.
+     *
+     * @param item query item string composed of identifier, operator and value
+     * @param attributes tracked entity attribute map from identifiers to
+     *        attributes
+     * @return query item of tracked entity attribute with attached query
+     *         filters
      */
-    public static QueryItem parseQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
+    }
+
+    private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
+    {
+        if ( attributes.isEmpty() )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+        }
+
+        TrackedEntityAttribute at = attributes.get( identifier );
+        if ( at == null )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+        }
+
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
+    }
+
+    /**
+     * Creates a QueryItem with QueryFilters from the given item string. Item is
+     * on format
+     * {identifier}:{operator}:{filter-value}[:{operator}:{filter-value}]. Only
+     * the identifier is mandatory.
+     * <p>
+     * The identifier is passed to given map function which translates the
+     * identifier to a QueryItem. A QueryFilter for each operator:value pair are
+     * then added to this QueryItem.
+     */
+    public static QueryItem parseQueryItem( String item, Function<String, QueryItem> map )
     {
         String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
 
@@ -116,7 +154,7 @@ class RequestParamUtils
             throw new IllegalQueryException( "Query item or filter is invalid: " + item );
         }
 
-        QueryItem queryItem = getItem( split[0], attributes );
+        QueryItem queryItem = map.apply( split[0] );
 
         if ( split.length > 1 ) // Filters specified
         {
@@ -128,22 +166,6 @@ class RequestParamUtils
         }
 
         return queryItem;
-    }
-
-    private static QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        TrackedEntityAttribute at = attributes.get( item );
-        if ( at == null )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
 }

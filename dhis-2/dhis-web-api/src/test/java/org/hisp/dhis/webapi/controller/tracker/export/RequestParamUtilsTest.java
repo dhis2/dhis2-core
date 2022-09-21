@@ -29,10 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,11 +67,11 @@ class RequestParamUtilsTest
     {
         String param = TEA_1_UID + ":lt:20:gt:10";
 
-        QueryItem item = parseQueryItem( param, attributes );
+        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
 
         assertNotNull( item );
         assertAll(
-            () -> assertEquals( TEA_1_UID, item.getItemId() ),
+            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
             // QueryItem equals() does not take the QueryFilter into account, so
             // we need to assert on filters separately
             () -> assertEquals( List.of(
@@ -80,15 +80,28 @@ class RequestParamUtilsTest
     }
 
     @Test
-    void testParseQueryItemWithoutOperatorAndValue()
+    void testParseQueryItemWithIdentifier()
     {
-        String param = TEA_1_UID + ":";
+        String param = TEA_1_UID;
 
-        QueryItem item = parseQueryItem( param, attributes );
+        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
 
         assertNotNull( item );
         assertAll(
-            () -> assertEquals( TEA_1_UID, item.getItemId() ),
+            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
+            () -> assertIsEmpty( item.getFilters() ) );
+    }
+
+    @Test
+    void testParseQueryItemWithIdentifierAndTrailingColon()
+    {
+        String param = TEA_1_UID + ":";
+
+        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
+
+        assertNotNull( item );
+        assertAll(
+            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
             () -> assertIsEmpty( item.getFilters() ) );
     }
 
@@ -98,27 +111,37 @@ class RequestParamUtilsTest
         String param = TEA_1_UID + ":lt";
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> parseQueryItem( param, attributes ) );
+            () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
         assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
     }
 
     @Test
-    void testParseQueryItemWhenNoTEAExist()
+    void testParseQueryItemMissingValueWithTrailingColon()
+    {
+        String param = TEA_1_UID + ":lt:";
+
+        Exception exception = assertThrows( IllegalQueryException.class,
+            () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
+        assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
+    }
+
+    @Test
+    void testParseAttributeQueryItemWhenNoTEAExist()
     {
         String param = TEA_1_UID + ":eq:2";
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> parseQueryItem( param, Collections.emptyMap() ) );
+            () -> RequestParamUtils.parseAttributeQueryItem( param, Collections.emptyMap() ) );
         assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
 
     @Test
-    void testParseQueryItemWhenTEAInFilterDoesNotExist()
+    void testParseAttributeQueryWhenTEAInFilterDoesNotExist()
     {
         String param = "JM5zWuf1mkb:eq:2";
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> parseQueryItem( param, attributes ) );
+            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 

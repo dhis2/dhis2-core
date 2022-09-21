@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -313,7 +313,7 @@ class TrackerEventCriteriaMapper
         List<QueryItem> result = new ArrayList<>();
         for ( String filter : filterAttributes )
         {
-            result.add( parseQueryItem( filter, attributes ) );
+            result.add( parseAttributeQueryItem( filter, attributes ) );
         }
         addAttributeQueryItemsFromOrder( result, attributes, attributeOrderParams );
 
