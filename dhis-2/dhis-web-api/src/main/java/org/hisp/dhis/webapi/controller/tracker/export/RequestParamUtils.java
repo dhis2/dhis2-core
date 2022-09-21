@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,8 +36,14 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 class RequestParamUtils
 {
@@ -94,4 +101,49 @@ class RequestParamUtils
         return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
             .stream();
     }
+
+    /**
+     * Creates a QueryItem from the given item string. Item is on format
+     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
+     * Only the attribute-id is mandatory.
+     */
+    public static QueryItem parseQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
+
+        if ( split.length % 2 != 1 )
+        {
+            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+        }
+
+        QueryItem queryItem = getItem( split[0], attributes );
+
+        if ( split.length > 1 ) // Filters specified
+        {
+            for ( int i = 1; i < split.length; i += 2 )
+            {
+                QueryOperator operator = QueryOperator.fromString( split[i] );
+                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
+            }
+        }
+
+        return queryItem;
+    }
+
+    private static QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        if ( attributes.isEmpty() )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + item );
+        }
+
+        TrackedEntityAttribute at = attributes.get( item );
+        if ( at == null )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + item );
+        }
+
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
+    }
+
 }

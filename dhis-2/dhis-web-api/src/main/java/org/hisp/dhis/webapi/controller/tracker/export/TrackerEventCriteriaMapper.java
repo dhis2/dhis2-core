@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -312,7 +313,7 @@ class TrackerEventCriteriaMapper
         List<QueryItem> result = new ArrayList<>();
         for ( String filter : filterAttributes )
         {
-            result.add( getQueryItem( filter, attributes ) );
+            result.add( parseQueryItem( filter, attributes ) );
         }
         addAttributeQueryItemsFromOrder( result, attributes, attributeOrderParams );
 
@@ -436,50 +437,6 @@ class TrackerEventCriteriaMapper
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
-    }
-
-    /**
-     * Creates a QueryItem from the given item string. Item is on format
-     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
-     * Only the attribute-id is mandatory.
-     */
-    private QueryItem getQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-        if ( split.length % 2 != 1 )
-        {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
-        }
-
-        QueryItem queryItem = getItem( split[0], attributes );
-
-        if ( split.length > 1 ) // Filters specified
-        {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
-        }
-
-        return queryItem;
-    }
-
-    private QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        TrackedEntityAttribute at = attributes.get( item );
-        if ( at == null )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
