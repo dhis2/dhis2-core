@@ -149,8 +149,8 @@ class JdbcOwnershipWriterTest
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-28')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-03-01','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-03-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-03-02','9999-12-31')",
             getUpdateSql() );
     }
 
@@ -168,9 +168,9 @@ class JdbcOwnershipWriterTest
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-31')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-01','2022-02-28')," +
-                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-01','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','2022-03-01')," +
+                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-02','9999-12-31')",
             getUpdateSql() );
     }
 
@@ -188,11 +188,11 @@ class JdbcOwnershipWriterTest
 
         assertEquals(
             "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values " +
-                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-31')," +
-                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-01','2022-02-28')," +
-                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-01','9999-12-31')," +
-                "('teiBbbbbbbb','ouAaaaaaaaa','1000-01-01','2022-02-28')," +
-                "('teiBbbbbbbb','ouBbbbbbbbb','2022-03-01','9999-12-31')",
+                "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
+                "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','2022-03-01')," +
+                "('teiAaaaaaaa','ouAaaaaaaaa','2022-03-02','9999-12-31')," +
+                "('teiBbbbbbbb','ouAaaaaaaaa','1000-01-01','2022-03-01')," +
+                "('teiBbbbbbbb','ouBbbbbbbbb','2022-03-02','9999-12-31')",
             getUpdateSql() );
     }
 

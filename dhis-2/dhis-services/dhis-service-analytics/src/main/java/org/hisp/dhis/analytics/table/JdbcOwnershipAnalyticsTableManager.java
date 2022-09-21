@@ -97,7 +97,7 @@ public class JdbcOwnershipAnalyticsTableManager
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.ownatstart" ),
+        new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
         new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
@@ -205,32 +205,26 @@ public class JdbcOwnershipAnalyticsTableManager
         // multiple enrollments and/or owner changes, gets the last change
         // before midnight that starts the ownership day.
 
-        return sb.append( " from ( " +
-            "select trackedentityinstanceid, owndate+1 as ownatstart, " +
-            "right(max(owns),-23)::bigint as organisationunitid " +
-            "from ( " +
-            "select pi.trackedentityinstanceid, pi.enrollmentdate::date as owndate, " +
-            "rpad(pi.enrollmentdate::text,23) || pi.organisationunitid::text as owns " +
+        return sb.append( " from (" +
+            "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
             "from programinstance pi " +
             "where pi.programid=" + program.getId() + " " +
             "and pi.trackedentityinstanceid is not null " +
             "and pi.organisationunitid is not null " +
             "and pi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "union " +
-            "select poh.trackedentityinstanceid, poh.startdate::date as owndate, " +
-            "rpad(poh.startdate::text,23) || poh.organisationunitid::text as owns " +
+            "select poh.trackedentityinstanceid, poh.startdate as owndate, poh.organisationunitid " +
             "from programownershiphistory poh " +
             "where poh.programid=" + program.getId() + " " +
             "and poh.trackedentityinstanceid is not null " +
             "and poh.organisationunitid is not null " +
-            ") o2 group by trackedentityinstanceid, owndate " +
             ") o " +
             "inner join trackedentityinstance tei on o.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart" ).toString();
+            "order by tei.uid, o.owndate" ).toString();
     }
 
     private Map<String, Object> getRowMap( List<String> columnNames, SqlRowSet rowSet )

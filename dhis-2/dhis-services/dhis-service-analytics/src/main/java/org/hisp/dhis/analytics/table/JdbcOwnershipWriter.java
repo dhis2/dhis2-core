@@ -29,9 +29,12 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;
+import static org.apache.commons.lang3.time.DateUtils.truncate;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.minusOneDay;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -87,12 +90,19 @@ public class JdbcOwnershipWriter
      * row so we do not change the original row. We cannot use immutable maps
      * because the orgUnit levels contain nulls when the orgUnit is not at the
      * lowest level, and immutable maps do not allow null values.
+     * <p>
+     * The start date from the query will contain the date and time, so the time
+     * needs to be truncated. Also, the start date will be the last day on which
+     * the previous ownership is valid, so increment the date by 1 for the start
+     * of the new ownership date range.
      *
      * @param row map of values to write
      */
     public void write( Map<String, Object> row )
     {
         this.newRow = new HashMap<>( row );
+
+        newRow.put( STARTDATE, addDays( truncate( newRow.get( STARTDATE ), Calendar.DATE ), 1 ) );
 
         if ( prevRow != null )
         {
@@ -121,8 +131,16 @@ public class JdbcOwnershipWriter
 
     /**
      * Process the previous, saved row now that we know what the new row
-     * contains. If the ownership hasn't changed, just continue the previous row
-     * to include the new date range. If the ownership orgUnit has changed, and
+     * contains.
+     * <p>
+     * For the same TEI, if the start date is the same as the previous row, this
+     * means that there was more than one enrollment and/or ownership change on
+     * the same day. In this case, the latest row during that day (the new row)
+     * will have the definitive ownership. Just copy the previous row's start
+     * date to the new row and it will be the previous row.
+     * <p>
+     * If the ownership hasn't changed, just continue the previous row to
+     * include the new date range. If the ownership orgUnit has changed, and
      * it's the same TEI, then end the previous row one day before the start of
      * this row. If the TEI has changed, then the previous row was the last row
      * for that TEI, so the previous row ends far in the future.
@@ -131,7 +149,7 @@ public class JdbcOwnershipWriter
     {
         if ( sameValue( TEIUID ) )
         {
-            if ( sameValue( OU ) )
+            if ( sameValue( STARTDATE ) || sameValue( OU ) )
             {
                 // Make this row a continuation of the previous row:
                 newRow.put( STARTDATE, prevRow.get( STARTDATE ) );
