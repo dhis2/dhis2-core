@@ -87,9 +87,7 @@ class RequestParamUtilsTest
     @Test
     void testParseQueryItemWithOnlyIdentifier()
     {
-        String param = TEA_1_UID;
-
-        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
+        QueryItem item = parseQueryItem( TEA_1_UID, id -> new QueryItem( attributes.get( id ) ) );
 
         assertNotNull( item );
         assertAll(
