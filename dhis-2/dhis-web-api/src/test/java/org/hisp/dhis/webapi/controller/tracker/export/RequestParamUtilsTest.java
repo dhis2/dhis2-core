@@ -46,6 +46,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests
+ * {@link org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils}.
+ */
 class RequestParamUtilsTest
 {
 
@@ -58,8 +62,9 @@ class RequestParamUtilsTest
     @BeforeEach
     void setUp()
     {
-        attributes = Map.of( TEA_1_UID, trackedEntityAttribute( TEA_1_UID ), TEA_2_UID,
-            trackedEntityAttribute( TEA_2_UID ) );
+        attributes = Map.of(
+            TEA_1_UID, trackedEntityAttribute( TEA_1_UID ),
+            TEA_2_UID, trackedEntityAttribute( TEA_2_UID ) );
     }
 
     @Test
@@ -129,9 +134,10 @@ class RequestParamUtilsTest
     void testParseAttributeQueryItemWhenNoTEAExist()
     {
         String param = TEA_1_UID + ":eq:2";
+        Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> RequestParamUtils.parseAttributeQueryItem( param, Collections.emptyMap() ) );
+            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
         assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
 
