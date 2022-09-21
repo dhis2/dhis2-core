@@ -260,26 +260,21 @@ class JdbcOwnershipAnalyticsTableManagerTest
         String sql = (String) jdbcInvocations.get( 0 ).getArgument( 0 );
         String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'" );
-        assertEquals( "select tei.uid,o.ownatstart,null,ou.uid from ( " +
-            "select trackedentityinstanceid, owndate+1 as ownatstart, right(max(owns),-23)::bigint " +
-            "as organisationunitid from ( " +
-            "select pi.trackedentityinstanceid, pi.enrollmentdate::date as owndate, " +
-            "rpad(pi.enrollmentdate::text,23) || pi.organisationunitid::text as owns " +
+        assertEquals( "select tei.uid,o.owndate,null,ou.uid from (" +
+            "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
             "from programinstance pi " +
             "where pi.programid=0 and pi.trackedentityinstanceid is not null " +
             "and pi.organisationunitid is not null " +
             "and pi.lastupdated <= 'yyyy-mm-ddThh:mm:ss' " +
-            "union select poh.trackedentityinstanceid, poh.startdate::date as owndate, " +
-            "rpad(poh.startdate::text,23) || poh.organisationunitid::text as owns " +
+            "union select poh.trackedentityinstanceid, poh.startdate as owndate, poh.organisationunitid " +
             "from programownershiphistory poh where poh.programid=0 and poh.trackedentityinstanceid is not null " +
-            "and poh.organisationunitid is not null ) o2 " +
-            "group by trackedentityinstanceid, owndate ) o " +
+            "and poh.organisationunitid is not null ) o " +
             "inner join trackedentityinstance tei on o.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart",
+            "order by tei.uid, o.owndate",
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
@@ -310,7 +305,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         List<AnalyticsTableColumn> expected = List.of(
             new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-            new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.ownatstart" ),
+            new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
             new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
             new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
