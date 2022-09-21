@@ -38,8 +38,13 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 
-public class RequestParamUtils
+class RequestParamUtils
 {
+    private RequestParamUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
      * null.

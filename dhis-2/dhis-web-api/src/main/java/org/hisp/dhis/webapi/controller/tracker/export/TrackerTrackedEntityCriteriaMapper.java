@@ -98,6 +98,7 @@ public class TrackerTrackedEntityCriteriaMapper
     {
         Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
         validateProgram( criteria.getProgram(), program );
+        ProgramStage programStage = validateProgramStage( criteria, program );
 
         TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
             criteria.getTrackedEntityType() );
@@ -135,7 +136,7 @@ public class TrackerTrackedEntityCriteriaMapper
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setQuery( queryFilter )
             .setProgram( program )
-            .setProgramStage( validateProgramStage( criteria, program ) )
+            .setProgramStage( programStage )
             .setProgramStatus( criteria.getProgramStatus() )
             .setFollowUp( criteria.getFollowUp() )
             .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
@@ -291,6 +292,17 @@ public class TrackerTrackedEntityCriteriaMapper
         return ps;
     }
 
+    private ProgramStage getProgramStageFromProgram( Program program, String programStage )
+    {
+        if ( program == null )
+        {
+            return null;
+        }
+
+        return program.getProgramStages().stream().filter( ps -> ps.getUid().equals( programStage ) ).findFirst()
+            .orElse( null );
+    }
+
     private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
     {
         if ( isNotEmpty( id ) && trackedEntityType == null )
@@ -311,17 +323,6 @@ public class TrackerTrackedEntityCriteriaMapper
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
-    }
-
-    private ProgramStage getProgramStageFromProgram( Program program, String programStage )
-    {
-        if ( program == null )
-        {
-            return null;
-        }
-
-        return program.getProgramStages().stream().filter( ps -> ps.getUid().equals( programStage ) ).findFirst()
-            .orElse( null );
     }
 
     private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
