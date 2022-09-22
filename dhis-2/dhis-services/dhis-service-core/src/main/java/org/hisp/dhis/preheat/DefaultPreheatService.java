@@ -1026,6 +1026,7 @@ public class DefaultPreheatService implements PreheatService
         return UserGroup.class.isAssignableFrom( klass ) || User.class.isAssignableFrom( klass );
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     /**
      * This is a temporary fix to maintain backwards compatibility with the old
      * UserCredentials class

@@ -171,6 +171,11 @@ public class ProgramInstanceQueryParams
         this.organisationUnits.add( unit );
     }
 
+    public void addOrganisationUnits( Set<OrganisationUnit> orgUnits )
+    {
+        this.organisationUnits.addAll( orgUnits );
+    }
+
     /**
      * Indicates whether this params specifies last updated.
      */

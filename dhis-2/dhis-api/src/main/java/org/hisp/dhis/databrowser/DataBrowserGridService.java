@@ -34,16 +34,9 @@ import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Dang Duy hieu
- * @version $Id$
  */
 public interface DataBrowserGridService
 {
-    String ID = DataBrowserGridService.class.getName();
-
-    // -------------------------------------------------------------------------
-    // DataBrowser
-    // -------------------------------------------------------------------------
-
     /**
      * Method that retrieves - all DataSets with DataElement quantity - in a
      * given period and type (DataSet | Count)

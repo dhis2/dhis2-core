@@ -37,7 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramInstanceStore
     extends IdentifiableObjectStore<ProgramInstance>
