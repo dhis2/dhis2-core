@@ -379,6 +379,12 @@ public class JpaQueryUtils
             getGroupsIds( user ) );
     }
 
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, String userId,
+        List<String> userGroupIds, String access )
+    {
+        return generateSQlQueryForSharingCheck( sharingColumn, access, userId, getGroupsIds( userGroupIds ) );
+    }
+
     private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId,
         String groupsIds )
     {

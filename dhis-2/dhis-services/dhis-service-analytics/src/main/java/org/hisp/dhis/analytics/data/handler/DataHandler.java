@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -882,9 +883,9 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between the the organisation unit dimension key and
-     * the count of organisation units inside the subtree of the given
-     * organisation units and members of the given organisation unit groups.
+     * Generates a mapping between the organisation unit dimension key and the
+     * count of organisation units inside the subtree of the given organisation
+     * units and members of the given organisation unit groups.
      *
      * @param params the {@link DataQueryParams}.
      * @return a mapping between the the data set dimension key and the count of
@@ -987,19 +988,27 @@ public class DataHandler
         // Process the grid rows. If yearToDate, build any yearToDate rows for
         // adding later. Otherwise, add the row to the result.
 
+        List<DimensionalItemObject> nonYearToDateItems = items.stream()
+            .filter( i -> !isYearToDate( i ) )
+            .collect( toList() );
+
+        Map<String, List<DimensionalItemObject>> yearToDateItemsById = items.stream()
+            .filter( PeriodOffsetUtils::isYearToDate )
+            .collect( groupingBy( DimensionalItemObject::getDimensionItemWithQueryModsId ) );
+
         for ( List<Object> row : grid.getRows() )
         {
             for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
-                (String) row.get( dataIndex ), items ) )
+                (String) row.get( dataIndex ), nonYearToDateItems ) )
             {
-                if ( isYearToDate( dimensionalItem ) )
-                {
-                    buildYearToDateRows( periodIndex, valueIndex, row, dimensionalItem, basePeriods, yearToDateRows );
-                }
-                else
-                {
-                    addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
-                }
+                addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
+            }
+
+            List<DimensionalItemObject> yearToDateItems = yearToDateItemsById.get( row.get( dataIndex ) );
+
+            if ( yearToDateItems != null )
+            {
+                buildYearToDateRows( periodIndex, valueIndex, row, yearToDateItems, basePeriods, yearToDateRows );
             }
         }
 
