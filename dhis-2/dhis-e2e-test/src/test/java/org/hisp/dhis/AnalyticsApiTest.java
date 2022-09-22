@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis;
 
-import static io.restassured.http.ContentType.JSON;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import org.hisp.dhis.actions.LoginActions;

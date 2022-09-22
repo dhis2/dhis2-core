@@ -49,7 +49,8 @@ import org.junit.jupiter.api.Test;
  */
 public class EnrollmentQueryTest extends AnalyticsApiTest
 {
-    // TODO: Make it test the enrollments endpoint. This is just for testing purposes.
+    // TODO: Make it test the enrollments endpoint. This is just for testing
+    // purposes.
     private AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
     @Test
