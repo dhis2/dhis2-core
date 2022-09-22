@@ -133,58 +133,58 @@ class TrackerEventCriteriaMapper
         }
     }
 
-    public EventSearchParams map( TrackerEventCriteria eventCriteria )
+    public EventSearchParams map( TrackerEventCriteria criteria )
     {
-        Program program = applyIfNonEmpty( programService::getProgram, eventCriteria.getProgram() );
-        validateProgram( eventCriteria.getProgram(), program );
+        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
+        validateProgram( criteria.getProgram(), program );
 
         ProgramStage programStage = applyIfNonEmpty( programStageService::getProgramStage,
-            eventCriteria.getProgramStage() );
-        validateProgramStage( eventCriteria.getProgramStage(), programStage );
+            criteria.getProgramStage() );
+        validateProgramStage( criteria.getProgramStage(), programStage );
 
         OrganisationUnit orgUnit = applyIfNonEmpty( organisationUnitService::getOrganisationUnit,
-            eventCriteria.getOrgUnit() );
-        validateOrgUnit( eventCriteria.getOrgUnit(), orgUnit );
+            criteria.getOrgUnit() );
+        validateOrgUnit( criteria.getOrgUnit(), orgUnit );
 
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
         TrackedEntityInstance trackedEntityInstance = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
-            eventCriteria.getTrackedEntity() );
-        validateTrackedEntity( eventCriteria.getTrackedEntity(), trackedEntityInstance );
+            criteria.getTrackedEntity() );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getAttributeCc(),
-            eventCriteria.getAttributeCos(),
+            criteria.getAttributeCc(),
+            criteria.getAttributeCos(),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        Set<String> eventIds = parseAndFilterUids( eventCriteria.getEvent() );
-        validateFilter( eventCriteria.getFilter(), eventIds, eventCriteria.getProgramStage(), programStage );
+        Set<String> eventIds = parseAndFilterUids( criteria.getEvent() );
+        validateFilter( criteria.getFilter(), eventIds, criteria.getProgramStage(), programStage );
 
-        Set<String> assignedUserIds = parseAndFilterUids( eventCriteria.getAssignedUser() );
-        validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
+        Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
+        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
-        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
+        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( criteria.getOrder() );
         List<QueryItem> dataElements = dataElementOrders.keySet()
             .stream()
             .map( this::getQueryItem )
             .collect( Collectors.toList() );
 
-        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
+        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( criteria.getOrder() );
         List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
         List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
 
-        List<QueryItem> filterAttributes = parseFilterAttributes( eventCriteria.getFilterAttributes(),
+        List<QueryItem> filterAttributes = parseFilterAttributes( criteria.getFilterAttributes(),
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
 
-        List<QueryItem> filters = eventCriteria.getFilter()
+        List<QueryItem> filters = criteria.getFilter()
             .stream()
             .map( this::getQueryItem )
             .collect( Collectors.toList() );
 
-        Set<String> programInstances = eventCriteria.getEnrollments().stream()
+        Set<String> programInstances = criteria.getEnrollments().stream()
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
@@ -192,32 +192,32 @@ class TrackerEventCriteriaMapper
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
-            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
-            .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
-            .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
+            .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
+            .setOrgUnitSelectionMode( criteria.getOuMode() )
+            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
             .setAssignedUsers( assignedUserIds )
-            .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
-            .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
-            .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
-            .setEnrollmentEnrolledBefore( eventCriteria.getEnrollmentEnrolledBefore() )
-            .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
-            .setEnrollmentOccurredBefore( eventCriteria.getEnrollmentOccurredBefore() )
-            .setEnrollmentOccurredAfter( eventCriteria.getEnrollmentOccurredAfter() )
-            .setEventStatus( eventCriteria.getStatus() )
-            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
-            .setPage( eventCriteria.getPage() )
-            .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
-            .setSkipPaging( eventCriteria.isSkipPaging() )
-            .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
+            .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
+            .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
+            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
+            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
+            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
+            .setEnrollmentEnrolledBefore( criteria.getEnrollmentEnrolledBefore() )
+            .setEnrollmentEnrolledAfter( criteria.getEnrollmentEnrolledAfter() )
+            .setEnrollmentOccurredBefore( criteria.getEnrollmentOccurredBefore() )
+            .setEnrollmentOccurredAfter( criteria.getEnrollmentOccurredAfter() )
+            .setEventStatus( criteria.getStatus() )
+            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( criteria.getIdSchemes() )
+            .setPage( criteria.getPage() )
+            .setPageSize( criteria.getPageSize() ).setTotalPages( criteria.isTotalPages() )
+            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipEventId( criteria.getSkipEventId() ).setIncludeAttributes( false )
             .setIncludeAllDataElements( false ).addDataElements( dataElements )
             .addFilters( filters ).addFilterAttributes( filterAttributes )
-            .addOrders( getOrderParams( eventCriteria.getOrder() ) )
+            .addOrders( getOrderParams( criteria.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
-            .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+            .setIncludeDeleted( criteria.isIncludeDeleted() );
     }
 
     private static void validateProgram( String program, Program pr )
