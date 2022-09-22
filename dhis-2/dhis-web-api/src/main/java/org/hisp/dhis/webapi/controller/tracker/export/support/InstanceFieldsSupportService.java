@@ -42,7 +42,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * {@link FieldPath } based on {@link FieldFilterParser }. It follows the
  * principles of {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-abstract class EntitiesFieldsSupportService<T extends InstanceParams>
+abstract class InstanceFieldsSupportService
 {
     protected static final String FIELD_RELATIONSHIPS = "relationships";
 
@@ -55,9 +55,9 @@ abstract class EntitiesFieldsSupportService<T extends InstanceParams>
      * should be fetched from the DB.
      *
      * @param fields fields query parameter values
-     * @return EntityParams
+     * @return InstanceParams
      */
-    abstract T getInstanceParams( List<String> fields );
+    abstract InstanceParams getInstanceParams( List<String> fields );
 
     protected Map<String, FieldPath> getRoots( List<String> fields )
     {

@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class EnrollmentsSupportService extends EntitiesFieldsSupportService<EnrollmentParams>
+public class EnrollmentsSupportService extends InstanceFieldsSupportService
 {
     public EnrollmentParams getInstanceParams( List<String> fields )
     {

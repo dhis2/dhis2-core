@@ -59,7 +59,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TrackedEntitiesSupportService extends EntitiesFieldsSupportService<TrackedEntityInstanceParams>
+public class TrackedEntitiesSupportService extends InstanceFieldsSupportService
 {
     protected static final String FIELD_PROGRAM_OWNERS = "programOwners";
 

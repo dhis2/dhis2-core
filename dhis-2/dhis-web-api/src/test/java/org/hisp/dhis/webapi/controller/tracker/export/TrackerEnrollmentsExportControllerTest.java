@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +66,7 @@ class TrackerEnrollmentsExportControllerTest
     FieldFilterService fieldFilterService;
 
     @Captor
-    ArgumentCaptor<TrackedEntityInstanceParams> entityInstanceParamsArgumentCaptor;
+    ArgumentCaptor<EnrollmentParams> entityInstanceParamsArgumentCaptor;
 
     @InjectMocks
     EnrollmentsSupportService enrollmentsSupportService;
