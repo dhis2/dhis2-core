@@ -12,7 +12,7 @@ services:
     image: postgis/postgis:10-2.5-alpine
     command: postgres -c max_locks_per_transaction=100
     volumes:
-    # Mounts the volume based on the variable DB_MOUNT, or else mounts on the default path.
+    # Mounts the volume based on the variable DB_MOUNT, or else mounts on the default path (.:/app).
     - "${DB_MOUNT:-.:/app}"
     environment:
       POSTGRES_USER: dhis
