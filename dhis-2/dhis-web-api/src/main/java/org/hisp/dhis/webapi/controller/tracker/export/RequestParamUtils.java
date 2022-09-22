@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,9 +37,20 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+/**
+ * RequestParamUtils are functions used to parse and transform tracker request
+ * parameters. This class is intended to only house functions without any
+ * dependencies on services or components.
+ */
 class RequestParamUtils
 {
     private RequestParamUtils()
@@ -52,7 +65,7 @@ class RequestParamUtils
      * @param func function to be called if arg is not empty
      * @param arg arg to be checked
      * @return result of func
-     * @param <T>
+     * @param <T> base identifiable object to be returned from func
      */
     static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
     {
@@ -94,4 +107,92 @@ class RequestParamUtils
         return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
             .stream();
     }
+
+    /**
+     * Parse request parameter to filter tracked entity attributes using
+     * identifier, operator and values. Refer to
+     * {@link #parseQueryItem(String, Function)} for details on the expected
+     * item format.
+     *
+     * @param items query item strings each composed of identifier, operator and
+     *        value
+     * @param attributes tracked entity attribute map from identifiers to
+     *        attributes
+     * @return query items each of a tracked entity attribute with attached
+     *         query filters
+     */
+    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
+        Map<String, TrackedEntityAttribute> attributes )
+    {
+        return items.stream()
+            .map( i -> parseAttributeQueryItem( i, attributes ) )
+            .collect( Collectors.toUnmodifiableList() );
+    }
+
+    /**
+     * Parse request parameter to filter tracked entity attributes using
+     * identifier, operator and values. Refer to
+     * {@link #parseQueryItem(String, Function)} for details on the expected
+     * item format.
+     *
+     * @param item query item string composed of identifier, operator and value
+     * @param attributes tracked entity attribute map from identifiers to
+     *        attributes
+     * @return query item of tracked entity attribute with attached query
+     *         filters
+     */
+    public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
+    {
+        return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
+    }
+
+    private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
+    {
+        if ( attributes.isEmpty() )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+        }
+
+        TrackedEntityAttribute at = attributes.get( identifier );
+        if ( at == null )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + identifier );
+        }
+
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
+    }
+
+    /**
+     * Creates a QueryItem with QueryFilters from the given item string.
+     * Expected item format is
+     * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
+     * is mandatory. Multiple operator:value pairs are allowed.
+     * <p>
+     * The identifier is passed to given map function which translates the
+     * identifier to a QueryItem. A QueryFilter for each operator:value pair is
+     * then added to this QueryItem.
+     */
+    public static QueryItem parseQueryItem( String item, Function<String, QueryItem> map )
+    {
+        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
+
+        if ( split.length % 2 != 1 )
+        {
+            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+        }
+
+        QueryItem queryItem = map.apply( split[0] );
+
+        if ( split.length > 1 ) // Filters specified
+        {
+            for ( int i = 1; i < split.length; i += 2 )
+            {
+                QueryOperator operator = QueryOperator.fromString( split[i] );
+                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
+            }
+        }
+
+        return queryItem;
+    }
+
 }
