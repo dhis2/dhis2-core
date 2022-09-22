@@ -53,11 +53,11 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -395,16 +395,16 @@ public class EnrollmentController
             .setLocation( "/system/tasks/" + ENROLLMENT_IMPORT );
     }
 
-    private Enrollment getEnrollment( String id, TrackedEntityInstanceParams trackedEntityInstanceParams )
+    private Enrollment getEnrollment( String id, EnrollmentParams trackedEntityInstanceParams )
         throws NotFoundException
     {
         return Optional.ofNullable( enrollmentService.getEnrollment( programInstanceService.getProgramInstance( id ),
             trackedEntityInstanceParams ) ).orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
     }
 
-    private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    private EnrollmentParams getTrackedEntityInstanceParams( List<String> fields )
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = TrackedEntityInstanceParams.FALSE;
+        EnrollmentParams trackedEntityInstanceParams = EnrollmentParams.FALSE;
 
         for ( String field : fields )
         {

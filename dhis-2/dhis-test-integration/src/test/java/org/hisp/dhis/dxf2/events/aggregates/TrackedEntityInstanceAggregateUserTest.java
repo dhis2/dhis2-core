@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.TrackerTest;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;

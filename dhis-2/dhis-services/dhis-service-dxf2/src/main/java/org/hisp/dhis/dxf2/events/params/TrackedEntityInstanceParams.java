@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.events.params;
 
 import lombok.Value;
 import lombok.With;
@@ -37,22 +37,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @With
 @Value
-public class TrackedEntityInstanceParams
+public class TrackedEntityInstanceParams implements InstanceParams
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true,
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, EnrollmentParams.TRUE,
+        true,
         true, false, false );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false,
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
+        EnrollmentParams.FALSE, false,
         false, false, false );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true,
-        true, true, true, true, true );
+    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
+        EnrollmentParams.TRUE, true, true, true, true );
 
     private final boolean includeRelationships;
 
-    private final boolean includeEnrollments;
-
-    private final boolean includeEvents;
+    private final EnrollmentParams enrollmentParams;
 
     private final boolean includeProgramOwners;
 
@@ -71,13 +71,13 @@ public class TrackedEntityInstanceParams
     @JsonProperty
     public boolean isIncludeEnrollments()
     {
-        return includeEnrollments;
+        return enrollmentParams.isIncludeRoot();
     }
 
     @JsonProperty
     public boolean isIncludeEvents()
     {
-        return includeEvents;
+        return enrollmentParams.isIncludeEvents();
     }
 
     @JsonProperty
@@ -98,13 +98,19 @@ public class TrackedEntityInstanceParams
         return dataSynchronizationQuery;
     }
 
+    @JsonProperty
+    public boolean isIncludeAttributes()
+    {
+        return includeAttributes;
+    }
+
     @Override
     public String toString()
     {
         return "TrackedEntityInstanceParams{" +
             "includeRelationships=" + includeRelationships +
-            ", includeEnrollments=" + includeEnrollments +
-            ", includeEvents=" + includeEvents +
+            ", includeEnrollments=" + enrollmentParams.isIncludeRoot() +
+            ", includeEvents=" + enrollmentParams.isIncludeEvents() +
             ", includeProgramOwners=" + includeProgramOwners +
             ", includeAttributes=" + includeAttributes +
             ", includeDeleted=" + includeDeleted +

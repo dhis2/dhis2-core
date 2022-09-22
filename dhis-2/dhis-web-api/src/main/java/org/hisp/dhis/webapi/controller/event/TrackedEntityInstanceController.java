@@ -61,7 +61,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -526,12 +526,12 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withIncludeEnrollments( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRoot( true ) );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withIncludeEvents( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( true ) );
         }
 
         if ( joined.contains( "programOwners" ) )

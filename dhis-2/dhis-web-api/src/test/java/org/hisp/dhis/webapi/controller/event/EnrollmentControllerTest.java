@@ -59,18 +59,17 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.AbstractEnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.trackedentity.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,7 +81,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentControllerTest
+class EnrollmentControllerTest
 {
 
     @Mock
@@ -128,9 +127,9 @@ public class EnrollmentControllerTest
         TrackedEntityInstanceParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
 
         assertAll(
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeEvents() ) );
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeAttributes() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeEvents() ) );
     }
 
     @Test
@@ -146,9 +145,9 @@ public class EnrollmentControllerTest
         TrackedEntityInstanceParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
 
         assertAll(
-            () -> assertTrue( trackedEntityInstanceParams.isIncludeRelationships() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeEvents() ) );
+            () -> assertTrue( trackedEntityInstanceParams.getEnrollmentParams().isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeAttributes() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeEvents() ) );
     }
 
     @Test
@@ -164,9 +163,9 @@ public class EnrollmentControllerTest
         TrackedEntityInstanceParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
 
         assertAll(
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
-            () -> assertTrue( trackedEntityInstanceParams.isIncludeEvents() ) );
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeAttributes() ),
+            () -> assertTrue( trackedEntityInstanceParams.getEnrollmentParams().isIncludeEvents() ) );
     }
 
     @Test
@@ -182,8 +181,8 @@ public class EnrollmentControllerTest
         TrackedEntityInstanceParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
 
         assertAll(
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
-            () -> assertTrue( trackedEntityInstanceParams.isIncludeAttributes() ),
-            () -> assertFalse( trackedEntityInstanceParams.isIncludeEvents() ) );
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeRelationships() ),
+            () -> assertTrue( trackedEntityInstanceParams.getEnrollmentParams().isIncludeAttributes() ),
+            () -> assertFalse( trackedEntityInstanceParams.getEnrollmentParams().isIncludeEvents() ) );
     }
 }

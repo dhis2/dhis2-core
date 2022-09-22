@@ -30,14 +30,14 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerEnrollmentsExportControllerTest
+class TrackerEnrollmentsExportControllerTest
 {
     MockMvc mockMvc;
 

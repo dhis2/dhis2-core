@@ -31,16 +31,20 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.AbstractEnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -49,19 +53,24 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentServiceTest
+class EnrollmentServiceTest
 {
     @Mock
     CurrentUserService currentUserService;
@@ -132,7 +141,8 @@ public class EnrollmentServiceTest
             .thenReturn( new org.hisp.dhis.dxf2.events.trackedentity.Relationship() );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE.withIncludeRelationships( true ) );
+            TrackedEntityInstanceParams.FALSE
+                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeRelationships( true ) ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),
@@ -149,7 +159,8 @@ public class EnrollmentServiceTest
         when( eventService.getEvent( any(), anyBoolean(), anyBoolean(), anyBoolean() ) ).thenReturn( new Event() );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE.withIncludeEvents( true ) );
+            TrackedEntityInstanceParams.FALSE
+                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeEvents( true ) ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),
@@ -175,7 +186,8 @@ public class EnrollmentServiceTest
             .thenReturn( Set.of( attribute ) );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true ) );
+            TrackedEntityInstanceParams.FALSE
+                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeAttributes( true ) ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),
@@ -201,7 +213,8 @@ public class EnrollmentServiceTest
             .thenReturn( Set.of( new TrackedEntityAttribute() ) );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true ) );
+            TrackedEntityInstanceParams.FALSE
+                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeAttributes( true ) ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),

@@ -32,23 +32,64 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class EnrollmentsSupportService extends EntitiesFieldsSupportService
+public class EnrollmentsSupportService extends EntitiesFieldsSupportService<EnrollmentParams>
 {
-    public TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    public EnrollmentParams getInstanceParams( List<String> fields )
     {
         Map<String, FieldPath> roots = getRoots( fields );
-        TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
+        EnrollmentParams params = initUsingAllOrNoFields( roots );
 
         params = withFieldRelationships( roots, params );
         params = withFieldEvents( roots, params );
-        params = withFieldEAttributes( roots, params );
+        params = withFieldAttributes( roots, params );
 
         return params;
     }
+
+    private EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+        EnrollmentParams params = EnrollmentParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = EnrollmentParams.TRUE;
+            }
+        }
+        return params;
+    }
+
+    private EnrollmentParams withFieldRelationships( Map<String, FieldPath> roots,
+        EnrollmentParams params )
+    {
+        return roots.containsKey( FIELD_RELATIONSHIPS )
+            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
+            : params;
+    }
+
+    private EnrollmentParams withFieldEvents(
+        Map<String, FieldPath> roots,
+        EnrollmentParams params )
+    {
+        return roots.containsKey( FIELD_EVENTS )
+            ? params.withIncludeEvents( !roots.get( FIELD_EVENTS ).isExclude() )
+            : params;
+    }
+
+    private EnrollmentParams withFieldAttributes( Map<String, FieldPath> roots,
+        EnrollmentParams params )
+    {
+        return roots.containsKey( FIELD_ATTRIBUTES )
+            ? params.withIncludeAttributes( !roots.get( FIELD_ATTRIBUTES ).isExclude() )
+            : params;
+    }
+
 }

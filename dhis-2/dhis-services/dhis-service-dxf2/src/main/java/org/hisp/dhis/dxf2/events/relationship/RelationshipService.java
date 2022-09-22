@@ -32,7 +32,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.RelationshipParams;
+import org.hisp.dhis.dxf2.events.params.RelationshipParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -110,7 +110,8 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-        params = TrackedEntityInstanceParams.FALSE.withDataSynchronizationQuery( true ).withIncludeDeleted( true );
+        params = TrackedEntityInstanceParams.FALSE.withDataSynchronizationQuery( true ).withIncludeDeleted( true )
+            .withIncludeAttributes( true );
     }
 
     @Test

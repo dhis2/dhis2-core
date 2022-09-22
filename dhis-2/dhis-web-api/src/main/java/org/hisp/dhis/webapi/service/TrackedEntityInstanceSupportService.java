@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -159,12 +159,12 @@ public class TrackedEntityInstanceSupportService
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withIncludeEnrollments( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRoot( true ) );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withIncludeEvents( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( true ) );
         }
 
         if ( joined.contains( "programOwners" ) )

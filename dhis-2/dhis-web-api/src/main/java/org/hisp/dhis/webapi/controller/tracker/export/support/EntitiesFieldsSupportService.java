@@ -33,22 +33,16 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.InstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 /**
  * Abstract class that provides basic methods to transform input fields into
  * {@link FieldPath } based on {@link FieldFilterParser }.
- *
- * It will init TrackedEntityInstanceParams based on inclusion or exclusion of
- * Fields Paths see {@link #initUsingAllOrNoFields}
- *
- * It also provides reusable criteria of inclusion or exclusion (e.g
- * relationships or attributes)
+ * It follows the principles of {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-abstract class EntitiesFieldsSupportService
+abstract class EntitiesFieldsSupportService<T extends InstanceParams>
 {
     protected static final String FIELD_RELATIONSHIPS = "relationships";
 
@@ -61,9 +55,9 @@ abstract class EntitiesFieldsSupportService
      * should be fetched from the DB.
      *
      * @param fields fields query parameter values
-     * @return tracked entity instance parameters
+     * @return EntityParams
      */
-    abstract TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields );
+    abstract T getInstanceParams( List<String> fields );
 
     protected Map<String, FieldPath> getRoots( List<String> fields )
     {
@@ -87,43 +81,5 @@ abstract class EntitiesFieldsSupportService
             }
         }
         return roots;
-    }
-
-    protected TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = TrackedEntityInstanceParams.TRUE;
-            }
-        }
-        return params;
-    }
-
-    protected TrackedEntityInstanceParams withFieldRelationships( Map<String, FieldPath> roots,
-        TrackedEntityInstanceParams params )
-    {
-        return roots.containsKey( FIELD_RELATIONSHIPS )
-            ? params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() )
-            : params;
-    }
-
-    protected TrackedEntityInstanceParams withFieldEvents(
-        Map<String, FieldPath> roots,
-        TrackedEntityInstanceParams params )
-    {
-        return roots.containsKey( FIELD_EVENTS ) ? params.withIncludeEvents( !roots.get( FIELD_EVENTS ).isExclude() )
-            : params;
-    }
-
-    protected TrackedEntityInstanceParams withFieldEAttributes( Map<String, FieldPath> roots,
-        TrackedEntityInstanceParams params )
-    {
-        return roots.containsKey( FIELD_ATTRIBUTES )
-            ? params.withIncludeAttributes( !roots.get( FIELD_ATTRIBUTES ).isExclude() )
-            : params;
     }
 }

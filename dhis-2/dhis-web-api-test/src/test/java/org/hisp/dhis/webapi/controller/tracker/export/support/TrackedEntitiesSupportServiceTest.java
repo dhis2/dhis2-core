@@ -31,37 +31,44 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
 class TrackedEntitiesSupportServiceTest
 {
-
-    @InjectMocks
-    TrackedEntitiesSupportService trackedEntitiesSupportService;
+    TrackedEntitiesSupportService trackedEntitiesSupportService = new TrackedEntitiesSupportService(
+        mock( TrackedEntityInstanceService.class ), mock( CurrentUserService.class ), mock( ProgramService.class ),
+        mock( TrackerAccessManager.class ), mock( org.hisp.dhis.trackedentity.TrackedEntityInstanceService.class ),
+        mock( TrackedEntityTypeService.class ) );
 
     @Test
     void getTrackedEntityInstanceParamsWithStar()
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "*" ) );
+            .getInstanceParams( List.of( "*" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
+        assertTrue( params.isIncludeAttributes() );
     }
 
     @Test
@@ -69,12 +76,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( ":all" ) );
+            .getInstanceParams( List.of( ":all" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
+        assertTrue( params.isIncludeAttributes() );
     }
 
     @Test
@@ -82,12 +90,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "!*" ) );
+            .getInstanceParams( List.of( "!*" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
@@ -95,12 +104,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "relationships" ) );
+            .getInstanceParams( List.of( "relationships" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
@@ -108,12 +118,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "programOwners" ) );
+            .getInstanceParams( List.of( "programOwners" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
@@ -121,12 +132,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "!relationships" ) );
+            .getInstanceParams( List.of( "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
@@ -134,12 +146,13 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "*", "!relationships" ) );
+            .getInstanceParams( List.of( "*", "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
+        assertTrue( params.isIncludeAttributes() );
     }
 
     @Test
@@ -147,51 +160,85 @@ class TrackedEntitiesSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = trackedEntitiesSupportService
-            .getTrackedEntityInstanceParams( List.of( "*", "!programOwners" ) );
+            .getInstanceParams( List.of( "*", "!programOwners" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertTrue( params.isIncludeAttributes() );
     }
 
     @Test
     void getTrackedEntityInstanceParamsWithSubFields()
     {
 
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "programOwners[orgUnit]", "relationships[from[trackedEntity],to[*]]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
+    }
+
+    @Test
+    void getTrackedEntityInstanceParamsWithAttributes()
+    {
+
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
+            List.of( "attributes" ) );
+
+        assertFalse( params.isIncludeRelationships() );
+        assertFalse( params.isIncludeEnrollments() );
+        assertFalse( params.isIncludeEvents() );
+        assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.getEnrollmentParams().isIncludeAttributes() );
+        assertTrue( params.isIncludeAttributes() );
+    }
+
+    @Test
+    void getTrackedEntityInstanceParamsWithAttributesAndEnrollment()
+    {
+
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
+            List.of( "attributes", "enrollments[attributes,!events]" ) );
+
+        assertFalse( params.isIncludeRelationships() );
+        assertTrue( params.isIncludeEnrollments() );
+        assertFalse( params.isIncludeEvents() );
+        assertFalse( params.isIncludeProgramOwners() );
+        assertTrue( params.getEnrollmentParams().isIncludeAttributes() );
+        assertTrue( params.isIncludeAttributes() );
     }
 
     @Test
     void getTrackedEntityInstanceParamsWithExcludedSubFields()
     {
 
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "!enrollments[uid,enrolledAt]", "relationships[relationship]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
     void getTrackedEntityInstanceParamsOnlyIncludeIfFieldIsRoot()
     {
 
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "enrollments[events,relationships]" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
@@ -199,34 +246,37 @@ class TrackedEntitiesSupportServiceTest
     {
 
         // is order independent
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "relationships", "!relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
 
-        params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "!relationships", "relationships" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     @Test
     void getTrackedEntityInstanceParamsRootInclusionPrecedesSubfieldExclusion()
     {
 
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams(
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams(
             List.of( "enrollments", "enrollments[!status]" ) );
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
         assertTrue( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
+        assertFalse( params.isIncludeAttributes() );
     }
 
     static Stream<Arguments> getTrackedEntityInstanceParamsEnrollmentsAndEvents()
@@ -259,7 +309,7 @@ class TrackedEntitiesSupportServiceTest
         boolean expectEvents )
     {
 
-        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getTrackedEntityInstanceParams( fields );
+        TrackedEntityInstanceParams params = trackedEntitiesSupportService.getInstanceParams( fields );
 
         assertEquals( expectEvents, params.isIncludeEvents() );
         assertEquals( expectEnrollments, params.isIncludeEnrollments() );

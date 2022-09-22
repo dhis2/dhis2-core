@@ -35,7 +35,16 @@ import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,11 +66,12 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.NoteHelper;
-import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.params.InstanceParams;
+import org.hisp.dhis.dxf2.events.params.RelationshipParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -280,20 +290,20 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( String id, InstanceParams params )
     {
         return Optional.ofNullable( programInstanceService.getProgramInstance( id ) )
             .map( pi -> getEnrollment( pi, params ) ).orElse( null );
     }
 
     @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( ProgramInstance programInstance, InstanceParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, InstanceParams params,
         boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();

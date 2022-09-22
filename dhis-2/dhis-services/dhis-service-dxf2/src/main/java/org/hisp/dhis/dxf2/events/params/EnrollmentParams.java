@@ -25,50 +25,86 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.events.params;
+
+import lombok.Value;
+import lombok.With;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class RelationshipParams
+/**
+ * @author Luca Cambi
+ */
+@With
+@Value
+public class EnrollmentParams implements InstanceParams
 {
-    public static final RelationshipParams TRUE = new RelationshipParams( true, true );
+    public static final EnrollmentParams TRUE = new EnrollmentParams( true, true, true, true, false, false );
 
-    public static final RelationshipParams FALSE = new RelationshipParams( false, false );
+    public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false, false );
 
-    private boolean includeFrom;
+    // Root is only relevant if it is a nested Param
+    private final boolean includeRoot;
 
-    private boolean includeTo;
+    private final boolean includeEvents;
 
-    @SuppressWarnings( "unused" )
-    private RelationshipParams()
+    private final boolean includeRelationships;
+
+    private final boolean includeAttributes;
+
+    private final boolean includeDeleted;
+
+    private final boolean dataSynchronizationQuery;
+
+    @JsonProperty
+    public boolean isIncludeRelationships()
     {
-    }
-
-    public RelationshipParams( boolean includeFrom, boolean includeTo )
-    {
-        this.includeFrom = includeFrom;
-        this.includeTo = includeTo;
+        return includeRelationships;
     }
 
     @JsonProperty
-    public boolean isIncludeFrom()
+    public boolean isIncludeEvents()
     {
-        return includeFrom;
-    }
-
-    public void setIncludeFrom( boolean includeFrom )
-    {
-        this.includeFrom = includeFrom;
+        return includeEvents;
     }
 
     @JsonProperty
-    public boolean isIncludeTo()
+    public boolean isIncludeAttributes()
     {
-        return includeTo;
+        return includeAttributes;
     }
 
-    public void setIncludeTo( boolean includeTo )
+    @Override
+    public boolean isIncludeDeleted()
     {
-        this.includeTo = includeTo;
+        return includeDeleted;
+    }
+
+    @Override
+    public boolean isDataSynchronizationQuery()
+    {
+        return dataSynchronizationQuery;
+    }
+
+    @Override
+    public boolean isIncludeEnrollments()
+    {
+        return includeRoot;
+    }
+
+    @Override
+    public boolean isIncludeProgramOwners()
+    {
+        return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "EnrollmentParams{" +
+            "includeRelationships=" + includeRelationships +
+            ", includeEvents=" + includeEvents +
+            ", includeAttributes=" + includeAttributes +
+            '}';
     }
 }

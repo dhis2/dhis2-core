@@ -85,7 +85,7 @@ public class TrackerTrackedEntitiesExportController
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntitiesSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+                trackedEntitiesSupportService.getInstanceParams( fields ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 

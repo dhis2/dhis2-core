@@ -114,7 +114,7 @@ public class TrackerEnrollmentsExportController
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream()
                     .map( uid -> enrollmentService.getEnrollment( uid,
-                        enrollmentsSupportService.getTrackedEntityInstanceParams( fields ) ) )
+                        enrollmentsSupportService.getInstanceParams( fields ) ) )
                     .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
@@ -131,7 +131,7 @@ public class TrackerEnrollmentsExportController
         throws NotFoundException
     {
         return Optional.ofNullable( enrollmentService.getEnrollment( id,
-            enrollmentsSupportService.getTrackedEntityInstanceParams( fields ) ) )
+            enrollmentsSupportService.getInstanceParams( fields ) ) )
             .map( e -> ResponseEntity.ok( fieldFilterService.toObjectNode( ENROLLMENT_MAPPER.from( e ), fields ) ) )
             .orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
     }

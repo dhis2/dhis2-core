@@ -45,7 +45,7 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -134,7 +134,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A", "B", "C", "E" );
@@ -164,7 +164,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A", "B", "C" );
@@ -178,7 +178,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programB );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         List<Attribute> attributes = trackedEntityInstances.get( 0 ).getAttributes();
@@ -193,7 +193,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programA );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE.withIncludeAttributes( true );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A", "B", "C" );
