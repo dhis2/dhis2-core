@@ -289,7 +289,7 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria
      * Whether to return events which ou coordinates when primary coordinates do
      * not exist.
      */
-    private boolean coordinateOuFallback;
+    private boolean defaultCoordinateFallback;
 
     /**
      * d scheme to be used for data, more specifically data elements and

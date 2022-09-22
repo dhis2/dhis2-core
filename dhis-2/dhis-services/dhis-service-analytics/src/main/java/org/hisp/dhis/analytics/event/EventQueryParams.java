@@ -121,6 +121,8 @@ public class EventQueryParams
 
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
+    public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
+
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
 
@@ -228,12 +230,6 @@ public class EventQueryParams
     private boolean geometryOnly;
 
     /**
-     * Indicates whether request is intended to fetch events with alternative
-     * coordinates.
-     */
-    private boolean coordinateOuFallback;
-
-    /**
      * Indicates whether the query originates from an aggregate data query.
      */
     private boolean aggregateData;
@@ -246,13 +242,7 @@ public class EventQueryParams
     /**
      * The coordinate field to use as basis for spatial event analytics.
      */
-    private String coordinateField;
-
-    /**
-     * The fallback coordinate field to use as basis for spatial event
-     * analytics, SQL COALESCE applied on coordinate fields.
-     */
-    private String fallbackCoordinateField;
+    private List<String> coordinateFields;
 
     /**
      * Bounding box for events to include in clustering.
@@ -350,12 +340,10 @@ public class EventQueryParams
         params.eventStatus = new LinkedHashSet<>( this.eventStatus );
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
-        params.coordinateOuFallback = this.coordinateOuFallback;
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
-        params.coordinateField = this.coordinateField;
-        params.fallbackCoordinateField = this.fallbackCoordinateField;
+        params.coordinateFields = this.coordinateFields;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = new LinkedHashSet<>( this.programStatus );
@@ -463,12 +451,10 @@ public class EventQueryParams
             .addIgnoreNull( "outputIdScheme", outputIdScheme )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
-            .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
             .addIgnoreNull( "geometryOnly", geometryOnly )
             .addIgnoreNull( "aggregateData", aggregateData )
             .addIgnoreNull( "clusterSize", clusterSize )
-            .addIgnoreNull( "coordinateField", coordinateField )
-            .addIgnoreNull( "fallbackCoordinateField", fallbackCoordinateField )
+            .addIgnoreNull( "coordinateFields", coordinateFields )
             .addIgnoreNull( "bbox", bbox )
             .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
             .addIgnoreNull( "programStatus", programStatus )
@@ -700,19 +686,6 @@ public class EventQueryParams
         return false;
     }
 
-    /**
-     * Indicates whether the given fallbackCoordinateField is valid, i.e.
-     * whether it matches to the query geometry.
-     */
-    public boolean fallbackCoordinateFieldIsValid()
-    {
-        List<String> fcFields = fallbackCoordinateField == null ? new ArrayList<>()
-            : List.of( fallbackCoordinateField.split( "," ) );
-
-        return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
-            .anyMatch( t -> fcFields.contains( t.getValue() ) );
-    }
-
     private boolean validateProgramHasOrgUnitField( Program program )
     {
         String orgUnitColumn = orgUnitField.getField();
@@ -774,7 +747,7 @@ public class EventQueryParams
 
     /**
      * Indicates whether this object is of the given aggregation type. Based on
-     * {@link getAggregationTypeFallback}.
+     * getAggregationTypeFallback
      */
     @Override
     public boolean isAggregationType( AggregationType type )
@@ -1111,11 +1084,6 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
-    public boolean isCoordinateOuFallback()
-    {
-        return coordinateOuFallback;
-    }
-
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -1131,14 +1099,9 @@ public class EventQueryParams
         return clusterSize;
     }
 
-    public String getCoordinateField()
+    public List<String> getCoordinateFields()
     {
-        return coordinateField;
-    }
-
-    public String getFallbackCoordinateField()
-    {
-        return fallbackCoordinateField;
+        return coordinateFields;
     }
 
     public String getBbox()
@@ -1346,12 +1309,6 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withCoordinateOuFallback( boolean coordinateOuFallback )
-        {
-            this.params.coordinateOuFallback = coordinateOuFallback;
-            return this;
-        }
-
         public Builder withGeometryOnly( boolean geometryOnly )
         {
             this.params.geometryOnly = geometryOnly;
@@ -1488,15 +1445,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withCoordinateField( String coordinateField )
+        public Builder withCoordinateFields( List<String> coordinateFields )
         {
-            this.params.coordinateField = coordinateField;
-            return this;
-        }
-
-        public Builder withFallbackCoordinateField( String fallbackCoordinateField )
-        {
-            this.params.fallbackCoordinateField = fallbackCoordinateField;
+            this.params.coordinateFields = coordinateFields;
             return this;
         }
 

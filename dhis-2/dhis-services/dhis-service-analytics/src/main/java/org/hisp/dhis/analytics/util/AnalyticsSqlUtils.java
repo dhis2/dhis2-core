@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
@@ -167,5 +170,11 @@ public class AnalyticsSqlUtils
         }
 
         return StringUtils.repeat( ")", open );
+    }
+
+    public static String getCoalesce( List<String> fields )
+    {
+        return "coalesce(" + fields.stream().filter( f -> f != null && !f.isBlank() )
+            .map( AnalyticsSqlUtils::quoteAlias ).collect( Collectors.joining( "," ) ) + ")";
     }
 }

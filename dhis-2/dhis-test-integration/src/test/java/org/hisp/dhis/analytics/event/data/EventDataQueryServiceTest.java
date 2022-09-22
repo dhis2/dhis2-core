@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -182,15 +181,14 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
         filterParams.add( "pe:201401;201402" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).coordinateField( coordinateField )
-            .fallbackCoordinateField( fallbackCoordinateField ).coordinateOuFallback( true ).build();
+            .fallbackCoordinateField( fallbackCoordinateField ).defaultCoordinateFallback( true ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( 2, params.getFilterPeriods().size() );
-        assertEquals( "psigeometry", params.getCoordinateField() );
-        assertEquals( fallbackCoordinateField, params.getFallbackCoordinateField() );
-        assertTrue( params.isCoordinateOuFallback() );
+        assertEquals( "psigeometry", params.getCoordinateFields() );
+
     }
 
     @Test
@@ -243,9 +241,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
-        assertFalse( params.isCoordinateOuFallback() );
-        assertEquals( "psigeometry", params.getCoordinateField() );
-        assertEquals( "psigeometry,pigeometry,teigeometry,ougeometry", params.getFallbackCoordinateField() );
+        assertEquals( "psigeometry", params.getCoordinateFields() );
     }
 
     @Test
@@ -464,22 +460,26 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetCoordinateField()
     {
-        assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
+        assertEquals( "psigeometry",
+            dataQueryService.getCoordinateFields( EventQueryParams.EVENT_COORDINATE_FIELD, null,
+                null, false ) );
         assertEquals( "pigeometry",
-            dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
-        assertEquals( "psigeometry", dataQueryService.getCoordinateField( null ) );
-        assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
+            dataQueryService.getCoordinateFields( EventQueryParams.ENROLLMENT_COORDINATE_FIELD, null, null, false ) );
+        assertEquals( "psigeometry", dataQueryService.getCoordinateFields( null, null, null, false ) );
+        assertEquals( deC.getUid(), dataQueryService.getCoordinateFields( deC.getUid(), null, null, false ) );
     }
 
     @Test
     void testGetInvalidCoordinateFieldException()
     {
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( "someField" ) );
+        assertThrows( IllegalQueryException.class,
+            () -> dataQueryService.getCoordinateFields( "someField", null, null, false ) );
     }
 
     @Test
     void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
-        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( deA.getUid() ) );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateFields( deA.getUid(), null,
+            null, false ) );
     }
 }

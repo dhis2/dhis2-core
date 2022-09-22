@@ -128,7 +128,7 @@ public class EventDataQueryRequest
 
     private boolean coordinatesOnly;
 
-    private boolean coordinateOuFallback;
+    private boolean defaultCoordinateFallback;
 
     private String coordinateField;
 
@@ -252,10 +252,10 @@ public class EventDataQueryRequest
                 .outputIdScheme( criteria.getOutputIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
-                .coordinateOuFallback( criteria.isCoordinateOuFallback() )
+                .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .totalPages( criteria.isTotalPages() )
                 .endpointItem( criteria.getEndpointItem() )
-                .coordinateOuFallback( criteria.isCoordinateOuFallback() )
+                .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .enhancedConditions( criteria.isEnhancedConditions() );
 
             if ( criteria.getDimension() == null )

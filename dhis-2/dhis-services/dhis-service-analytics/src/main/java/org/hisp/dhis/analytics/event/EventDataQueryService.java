@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import java.util.List;
+
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
@@ -71,23 +73,12 @@ public interface EventDataQueryService
      * field. Coordinate field must match EVENT, a data element identifier or an
      * attribute identifier.
      *
-     * @param coordinate the coordinate field.
+     * @param coordinateField the coordinate field.
      * @return the coordinate column field.
-     * @throws IllegalQueryException if the coordinate field is not valid.
+     * @throws IllegalQueryException if any coordinate field is not valid.
      */
-    String getCoordinateField( String coordinate );
-
-    /**
-     * Returns the coordinate column field to use for the given coordinate
-     * field. Coordinate field must match EVENT, a data element identifier or an
-     * attribute identifier.
-     *
-     * @param coordinate the coordinate field.
-     * @param program the program uid.
-     * @return the coordinate column field.
-     * @throws IllegalQueryException if the coordinate field is not valid.
-     */
-    String getFallbackCoordinateField( String coordinate, String program );
+    List<String> getCoordinateFields( String program, String coordinateField,
+        String fallbackCoordinateField, boolean defaultCoordinateFallback );
 
     /**
      * Returns a {@link QueryItem}.

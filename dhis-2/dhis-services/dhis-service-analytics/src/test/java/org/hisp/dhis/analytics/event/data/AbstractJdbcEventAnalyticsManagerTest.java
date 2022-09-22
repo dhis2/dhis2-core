@@ -398,7 +398,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA )
-            .withCoordinateField( deA.getUid() )
+            .withCoordinateFields( List.of( deA.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .build();
@@ -433,7 +433,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA )
-            .withCoordinateField( deA.getUid() )
+            .withCoordinateFields( List.of( deA.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .withStartDate( new Date() )
