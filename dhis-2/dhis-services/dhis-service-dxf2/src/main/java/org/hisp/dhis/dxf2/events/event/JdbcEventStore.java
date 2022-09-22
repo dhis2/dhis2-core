@@ -1017,15 +1017,17 @@ public class JdbcEventStore implements EventStore
 
             for ( QueryFilter filter : queryItem.getFilters() )
             {
-                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+                final String queryCol = queryItem.isNumeric() ? castToNumber( teaValueCol + ".value" )
+                    : lower( teaValueCol + ".value" );
+                final Object encodedFilter = queryItem.isNumeric() ? Double.valueOf( filter.getFilter() )
+                    : StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) );
                 attributes
                     .append( " AND " )
-                    .append( "lower(" + teaValueCol + ".value)" )
+                    .append( queryCol )
                     .append( SPACE )
                     .append( filter.getSqlOperator() )
                     .append( SPACE )
-                    .append( StringUtils
-                        .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
+                    .append( encodedFilter );
             }
         }
     }
@@ -1412,6 +1414,7 @@ public class JdbcEventStore implements EventStore
                         : lower( dataValueValueSql );
 
                     String bindParameter = "parameter_" + filterCount;
+                    int itemType = item.isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
                     if ( !item.hasOptionSet() )
                     {
@@ -1421,16 +1424,14 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ),
-                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), itemType );
 
                             eventDataValuesWhereSql.append( inCondition( filter, bindParameter, queryCol ) );
                         }
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ),
-                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ), itemType );
 
                             eventDataValuesWhereSql.append( " " )
                                 .append( queryCol )
@@ -1448,8 +1449,7 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ),
-                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), itemType );
 
                             optionValueConditionBuilder.append( " and " );
                             optionValueConditionBuilder.append( inCondition( filter, bindParameter, queryCol ) );
@@ -1457,8 +1457,7 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ),
-                                item.isNumeric() ? Types.NUMERIC : Types.VARCHAR );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ), itemType );
 
                             optionValueConditionBuilder.append( "and lower(" )
                                 .append( optValueTableAs )
@@ -1471,7 +1470,6 @@ public class JdbcEventStore implements EventStore
                                 .append( " " );
                         }
                     }
-                    ++filterCount;
                 }
             }
         }
