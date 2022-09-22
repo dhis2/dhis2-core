@@ -32,7 +32,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.params.InstanceParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 /**
@@ -75,7 +75,7 @@ public class AggregateContext
     /**
      * The tei params to specify depth of tei graph
      */
-    TrackedEntityInstanceParams params;
+    InstanceParams params;
 
     /**
      * The query parameters to filter teis

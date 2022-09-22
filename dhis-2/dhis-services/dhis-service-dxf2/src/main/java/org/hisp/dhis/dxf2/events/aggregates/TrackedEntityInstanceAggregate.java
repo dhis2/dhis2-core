@@ -51,8 +51,8 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -191,7 +191,8 @@ public class TrackedEntityInstanceAggregate
          * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
          * id
          */
-        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
+        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = conditionalAsyncFetch(
+            ctx.getParams().isIncludeAttributes(),
             () -> trackedEntityInstanceStore.getAttributes( ids ), getPool() );
 
         /*

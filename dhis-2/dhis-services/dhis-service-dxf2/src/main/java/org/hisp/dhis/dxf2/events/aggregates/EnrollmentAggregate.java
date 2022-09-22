@@ -42,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EnrollmentStore;
 import org.springframework.stereotype.Component;
@@ -94,11 +95,16 @@ public class EnrollmentAggregate
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ), getPool() );
 
-        return allOf( eventAsync, notesAsync, relationshipAsync ).thenApplyAsync( fn -> {
+        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = conditionalAsyncFetch(
+            ctx.getParams().isIncludeAttributes(),
+            () -> enrollmentStore.getAttributes( enrollmentIds, ctx ), getPool() );
+
+        return allOf( eventAsync, notesAsync, relationshipAsync, attributesAsync ).thenApplyAsync( fn -> {
 
             Multimap<String, Event> events = eventAsync.join();
             Multimap<String, Note> notes = notesAsync.join();
             Multimap<String, Relationship> relationships = relationshipAsync.join();
+            Multimap<String, Attribute> attributes = attributesAsync.join();
 
             for ( Enrollment enrollment : enrollments.values() )
             {
@@ -109,6 +115,10 @@ public class EnrollmentAggregate
                 if ( ctx.getParams().isIncludeRelationships() )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
+                }
+                if ( ctx.getParams().isIncludeAttributes() )
+                {
+                    enrollment.setAttributes( new ArrayList<>( attributes.get( enrollment.getEnrollment() ) ) );
                 }
 
                 enrollment.setNotes( new ArrayList<>( notes.get( enrollment.getEnrollment() ) ) );
