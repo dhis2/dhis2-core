@@ -12,8 +12,8 @@ services:
     image: postgis/postgis:10-2.5-alpine
     command: postgres -c max_locks_per_transaction=100
     volumes:
+    # Mounts the volume based on the variable DB_MOUNT, or else mounts on the default path.
     - "${DB_MOUNT:-.:/app}"
-    #- /tmp/db/sierra-leone/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       POSTGRES_USER: dhis
       POSTGRES_DB: dhis2
