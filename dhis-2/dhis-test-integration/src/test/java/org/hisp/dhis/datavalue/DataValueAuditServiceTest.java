@@ -324,28 +324,34 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testGetDataValueAuditWithFakeCreateDeleteAndUnDelete()
+    void testGetDataValueAuditWithFakeCreateDeleteAndUndelete()
     {
-        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "10",
-            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+        DataElement dataElement = createDataElement( 'F' );
+        DataValue dataValue = createDataValue( dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1" );
 
-        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "20",
-            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+        dataElementService.addDataElement( dataElement );
+        dataValueService.addDataValue( dataValue );
 
-        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "30",
-            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "10",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
 
-        dataValueService.deleteDataValue( dataValueA );
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "20",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "30",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueService.deleteDataValue( dataValue );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
-            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+            dataElement, periodA, orgUnitA, optionCombo, optionCombo );
 
         assertContainsOnly( List.of(), audits );
 
-        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValue );
 
         audits = dataValueAuditService.getDataValueAudits(
-            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+            dataElement, periodA, orgUnitA, optionCombo, optionCombo );
 
         assertEquals( 6, audits.size() );
         assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
