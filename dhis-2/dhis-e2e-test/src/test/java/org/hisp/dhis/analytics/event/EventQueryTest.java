@@ -74,7 +74,7 @@ public class EventQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "headers", hasSize( equalTo( 16 ) ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -90,8 +90,8 @@ public class EventQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 15 ) )
-            .body( "headerWidth", equalTo( 15 ) );
+            .body( "width", equalTo( 16 ) )
+            .body( "headerWidth", equalTo( 16 ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -103,14 +103,15 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
             "java.lang.String", false, true );
         validateHeader( response, 6, "lastupdated", "Last Updated", "DATE", "java.time.LocalDate", false, true );
-        validateHeader( response, 7, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 8, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
-        validateHeader( response, 9, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
-        validateHeader( response, 10, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
         // Cannot validate results for relative period.
     }
@@ -131,7 +132,7 @@ public class EventQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "headers", hasSize( equalTo( 16 ) ) )
             .body( "rows", hasSize( equalTo( 3 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 50 ) )
@@ -147,8 +148,8 @@ public class EventQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
             .body( "height", equalTo( 3 ) )
-            .body( "width", equalTo( 15 ) )
-            .body( "headerWidth", equalTo( 15 ) );
+            .body( "width", equalTo( 16 ) )
+            .body( "headerWidth", equalTo( 16 ) );
 
         // Validate headers
         validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
@@ -160,14 +161,15 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
             "java.lang.String", false, true );
         validateHeader( response, 6, "lastupdated", "Last Updated", "DATE", "java.time.LocalDate", false, true );
-        validateHeader( response, 7, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 8, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
-        validateHeader( response, 9, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
-        validateHeader( response, 10, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 11, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 12, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 13, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
         // Cannot validate results for relative period.
     }

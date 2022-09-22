@@ -48,9 +48,9 @@ jobs:
 #          docker push $DOCKER_CHANNEL:$PR_NUMBER
       - name: Download Sierra Leone DB
         run: |
-          mkdir -p /tmp/sierra-db
-          wget https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz -P /tmp/sierra-db
-          gzip -d /tmp/sierra-db/dhis2-db-sierra-leone.sql.gz
+          mkdir -p /db/sierra-leone
+          wget https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz -P /db/sierra-leone
+          gzip -d /db/sierra-leone/dhis2-db-sierra-leone.sql.gz
 
       - name: Build test image
         uses: docker/build-push-action@v3
