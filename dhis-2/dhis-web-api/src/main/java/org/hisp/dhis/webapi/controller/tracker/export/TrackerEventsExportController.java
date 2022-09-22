@@ -41,6 +41,7 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -106,7 +107,7 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
-        TrackerEventCriteria eventCriteria, HttpServletRequest request,
+        @Valid TrackerEventCriteria eventCriteria, HttpServletRequest request,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws WebMessageException
     {

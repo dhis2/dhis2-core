@@ -49,6 +49,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -59,12 +60,14 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -163,7 +166,9 @@ class TrackerEventCriteriaMapper
         validateFilter( eventCriteria.getFilter(), eventIds, eventCriteria.getProgramStage(), programStage );
 
         Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
-        validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
+        AssignedUserSelectionMode assignedUserMode = eventCriteria.getAssignedUserMode() == null ? null
+            : AssignedUserSelectionMode.valueOf( eventCriteria.getAssignedUserMode() );
+        validateAssignedUsers( assignedUserMode, assignedUserIds );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
         List<QueryItem> dataElements = dataElementOrders.keySet()
@@ -192,9 +197,12 @@ class TrackerEventCriteriaMapper
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
-            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
-            .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
-            .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
+            .setProgramStatus( eventCriteria.getProgramStatus() == null ? null
+                : ProgramStatus.valueOf( eventCriteria.getProgramStatus() ) )
+            .setFollowUp( eventCriteria.getFollowUp() )
+            .setOrgUnitSelectionMode( eventCriteria.getOuMode() == null ? null
+                : OrganisationUnitSelectionMode.valueOf( eventCriteria.getOuMode() ) )
+            .setAssignedUserSelectionMode( assignedUserMode )
             .setAssignedUsers( assignedUserIds )
             .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
             .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
@@ -205,7 +213,8 @@ class TrackerEventCriteriaMapper
             .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
             .setEnrollmentOccurredBefore( eventCriteria.getEnrollmentOccurredBefore() )
             .setEnrollmentOccurredAfter( eventCriteria.getEnrollmentOccurredAfter() )
-            .setEventStatus( eventCriteria.getStatus() )
+            .setEventStatus(
+                eventCriteria.getStatus() == null ? null : EventStatus.valueOf( eventCriteria.getStatus() ) )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
             .setPage( eventCriteria.getPage() )
             .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )

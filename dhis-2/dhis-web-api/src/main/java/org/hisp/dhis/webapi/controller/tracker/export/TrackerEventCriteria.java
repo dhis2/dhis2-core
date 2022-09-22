@@ -59,7 +59,8 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String programStage;
 
-    private ProgramStatus programStatus;
+    @ValueOfEnum( enumClass = ProgramStatus.class )
+    private String programStatus;
 
     private Boolean followUp;
 
@@ -67,9 +68,11 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+    @ValueOfEnum( enumClass = OrganisationUnitSelectionMode.class )
+    private String ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+    @ValueOfEnum( enumClass = AssignedUserSelectionMode.class )
+    private String assignedUserMode;
 
     private String assignedUser;
 
@@ -95,7 +98,8 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Date enrollmentOccurredAfter;
 
-    private EventStatus status;
+    @ValueOfEnum( enumClass = EventStatus.class )
+    private String status;
 
     private String attributeCc;
 

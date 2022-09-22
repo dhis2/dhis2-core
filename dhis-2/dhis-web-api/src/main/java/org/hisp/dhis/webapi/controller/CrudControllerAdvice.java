@@ -83,9 +83,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.server.resource.BearerTokenError;
+import org.springframework.validation.BindException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -373,6 +375,20 @@ public class CrudControllerAdvice
     public WebMessage handlePotentialDuplicateForbiddenRequest( Exception exception )
     {
         return forbidden( exception.getMessage() );
+    }
+
+    @ResponseBody
+    @ExceptionHandler( MethodArgumentNotValidException.class )
+    public WebMessage bindExceptionHandler( MethodArgumentNotValidException ex )
+    {
+        return badRequest( ex.getMessage() );
+    }
+
+    @ResponseBody
+    @ExceptionHandler( BindException.class )
+    public WebMessage bindExceptionHandler( BindException ex )
+    {
+        return badRequest( ex.getFieldError().getField() + " -> " + ex.getFieldError().getDefaultMessage() );
     }
 
     /**
