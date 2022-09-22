@@ -90,7 +90,7 @@ public class TrackerEnrollmentsExportController
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( trackerEnrollmentCriteria );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.map( trackerEnrollmentCriteria );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
