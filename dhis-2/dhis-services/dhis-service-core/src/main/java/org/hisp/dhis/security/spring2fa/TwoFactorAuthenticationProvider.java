@@ -86,7 +86,9 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         if ( user.isExternalAuth() )
         {
-            log.info( String.format( "User '%s' is using external authentication, exit password login attempt", username ) );
+            log.info(
+                String.format( "User '%s' is using external authentication, password login attempt aborted",
+                    username ) );
             throw new BadCredentialsException( "Invalid login method, user is using external authentication." );
         }
 
