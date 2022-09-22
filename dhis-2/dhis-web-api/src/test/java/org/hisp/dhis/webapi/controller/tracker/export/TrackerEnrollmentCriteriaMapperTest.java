@@ -103,8 +103,6 @@ class TrackerEnrollmentCriteriaMapperTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
-
     @BeforeEach
     void setUp()
     {
@@ -131,7 +129,7 @@ class TrackerEnrollmentCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        trackedEntityInstance = new TrackedEntityInstance();
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setUid( TRACKED_ENTITY_UID );
         when( trackedEntityInstanceService.getTrackedEntityInstance( TRACKED_ENTITY_UID ) )
             .thenReturn( trackedEntityInstance );
@@ -204,7 +202,7 @@ class TrackerEnrollmentCriteriaMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -226,7 +224,7 @@ class TrackerEnrollmentCriteriaMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity does not exist: unknown", exception.getMessage() );
+        assertEquals( "Tracked entity type is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -248,7 +246,7 @@ class TrackerEnrollmentCriteriaMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity instance does not exist: unknown", exception.getMessage() );
+        assertEquals( "Tracked entity instance is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
