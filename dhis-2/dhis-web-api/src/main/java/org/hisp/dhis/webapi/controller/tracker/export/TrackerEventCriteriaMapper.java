@@ -302,7 +302,8 @@ class TrackerEventCriteriaMapper
     private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUserIds )
     {
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
+        if ( assignedUserSelectionMode != null && !assignedUserIds.isEmpty()
+            && AssignedUserSelectionMode.PROVIDED != assignedUserSelectionMode )
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
