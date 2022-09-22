@@ -61,7 +61,7 @@ public class MinMaxValueController
 
     private final DataValidator dataValidator;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAELEMENT_MINMAX_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     @PostMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.OK )
     public void saveOrUpdateMinMaxValue( @RequestBody MinMaxValueDto valueDto )
@@ -69,7 +69,7 @@ public class MinMaxValueController
         saveOrUpdateMinMaxDataElement( valueDto );
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAELEMENT_MINMAX_DELETE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
     @DeleteMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void removeMinMaxValue( MinMaxValueQueryParams params )
