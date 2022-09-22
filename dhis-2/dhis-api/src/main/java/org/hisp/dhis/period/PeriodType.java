@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.period;
 
+import static java.lang.Math.abs;
+
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.time.DayOfWeek;
@@ -643,6 +645,23 @@ public abstract class PeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns a period shifted from the given period. If the offset is
+     * positive, the result will be from following periods. If the offset is
+     * negative, the result will be from previous periods. If the offset is
+     * zero, the same period will be returned.
+     *
+     * @param period the Period to base the offset on.
+     * @param periodOffset the offset from the given Period.
+     * @return a Period which is offset from the given Period.
+     */
+    public final Period getShiftedPeriod( Period period, int periodOffset )
+    {
+        return (periodOffset >= 0)
+            ? getNextPeriod( period, periodOffset )
+            : getPreviousPeriod( period, abs( periodOffset ) );
+    }
 
     /**
      * Returns a Period which is the next of the given Period. Only valid
