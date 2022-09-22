@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -62,18 +63,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackerEnrollmentCriteriaMapper
 {
 
+    @NonNull
     private final CurrentUserService currentUserService;
 
+    @NonNull
     private final OrganisationUnitService organisationUnitService;
 
+    @NonNull
     private final ProgramService programService;
 
+    @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
+    @NonNull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams getFromUrl( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
+    public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
     {
         Set<String> ou = TextUtils.splitToSet( trackerEnrollmentCriteria.getOrgUnit(), TextUtils.SEMICOLON );
         String program = trackerEnrollmentCriteria.getProgram();
