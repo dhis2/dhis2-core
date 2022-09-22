@@ -66,7 +66,8 @@ jobs:
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test
-          IMAGE_NAME=$CORE_IMAGE_NAME; DB_MOUNT=$SIERRA_LEONE_DB_MOUNT; docker-compose up --remove-orphans -d
+          export DB_MOUNT=$SIERRA_LEONE_DB_MOUNT
+          IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up --remove-orphans -d
           IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose-analytics.e2e.yml up --exit-code-from e2e-test
 
       - name: Upload logs
