@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -175,6 +176,8 @@ public class TrackedEntityInstanceAggregate
         AggregateContext ctx = securityCache.get( user.getUid() )
             .toBuilder()
             .userId( user.getId() )
+            .userUid( user.getUid() )
+            .userGroups( userGroupUIDCache.get( user.getUid() ) )
             .superUser( user.isSuper() )
             .params( params )
             .queryParams( queryParams )
