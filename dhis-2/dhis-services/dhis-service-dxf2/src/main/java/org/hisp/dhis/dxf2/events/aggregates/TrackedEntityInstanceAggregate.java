@@ -153,6 +153,9 @@ public class TrackedEntityInstanceAggregate
     {
         final Long userId = currentUserService.getCurrentUser().getId();
 
+        final List<Long> userGroups = currentUserService.getCurrentUser().getGroups().stream()
+            .map( BaseIdentifiableObject::getId ).collect( Collectors.toList() );
+
         /*
          * Create a context with information which will be used to fetch the
          * entities
@@ -160,6 +163,7 @@ public class TrackedEntityInstanceAggregate
         AggregateContext ctx = securityCache.get( userId )
             .toBuilder()
             .userId( userId )
+            .userGroups( userGroups )
             .superUser( currentUserService.getCurrentUser().isSuper() )
             .params( params )
             .queryParams( queryParams )

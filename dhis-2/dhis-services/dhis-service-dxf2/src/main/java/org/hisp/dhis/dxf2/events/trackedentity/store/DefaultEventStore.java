@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +42,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCal
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
+import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
@@ -104,6 +108,35 @@ public class DefaultEventStore
         return eventMultimap;
     }
 
+    private String getCategoryOptionSharingForUser( AggregateContext ctx )
+    {
+        StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
+
+        sqlBuilder.append(
+            "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
+                + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
+                + "inner join ("
+                + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
+                + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
+                + "ua.access as ua_access, ua.userid as usr_id "
+                + "from dataelementcategoryoption deco "
+                + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
+                + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
+                + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
+                + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
+                + "where ua.userid = " + ctx.getUserId() );
+
+        if ( ctx.getUserGroups() != null && !ctx.getUserGroups().isEmpty() )
+        {
+            sqlBuilder.append( " or uga.usergroupid in (" ).append( getCommaDelimitedString( ctx.getUserGroups() ) )
+                .append( ") " );
+        }
+
+        sqlBuilder.append( " ) as decoa on cocco.categoryoptionid = decoa.deco_id " );
+
+        return sqlBuilder.toString();
+    }
+
     private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
         AggregateContext ctx )
     {
@@ -111,18 +144,19 @@ public class DefaultEventStore
 
         List<Long> programStages = ctx.getProgramStages();
 
+        String aocSql = ctx.isSuperUser() ? "" : getCategoryOptionSharingForUser( ctx );
+
         if ( programStages.isEmpty() )
         {
-            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE, "psi" ),
+            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + " " + aocSql, "psi" ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
-                    .addValue( "programStageIds", programStages )
                     .addValue( "programIds", ctx.getPrograms() ),
                 handler );
         }
         else
         {
-            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL, "psi" ),
+            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + " " + aocSql, "psi" ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )

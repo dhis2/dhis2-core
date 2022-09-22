@@ -1068,8 +1068,7 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
-            && !isSuper( user ) )
+        if ( user != null && !isSuper( user ) )
         {
             sqlBuilder.append( getCategoryOptionSharingForUser( user ) );
         }
@@ -1449,7 +1448,7 @@ public class JdbcEventStore implements EventStore
         sqlBuilder.append(
             "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
                 + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
-                + "left join ("
+                + "inner join ("
                 + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid, deco.publicaccess AS deco_publicaccess, "
                 + "couga.usergroupaccessid as uga_id, coua.useraccessid as ua_id, uga.access as uga_access, uga.usergroupid AS usrgrp_id, "
                 + "ua.access as ua_access, ua.userid as usr_id "
