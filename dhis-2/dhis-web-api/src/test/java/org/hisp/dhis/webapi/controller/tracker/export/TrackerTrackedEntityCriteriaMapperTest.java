@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -58,6 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -98,6 +100,8 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     private static final String PROGRAM_UID = "XhBYIraw7sv";
 
+    private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
+
     private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
 
     @Mock
@@ -121,6 +125,8 @@ class TrackerTrackedEntityCriteriaMapperTest
     private User user;
 
     private Program program;
+
+    private ProgramStage programStage;
 
     private OrganisationUnit orgUnit1;
 
@@ -147,6 +153,11 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         program = new Program();
         program.setUid( PROGRAM_UID );
+        programStage = new ProgramStage();
+        programStage.setUid( PROGRAM_STAGE_UID );
+        programStage.setProgram( program );
+        program.setProgramStages( Set.of( programStage ) );
+
         when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
 
         TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
@@ -163,7 +174,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void verifyCriteriaMapping()
+    void testMapping()
     {
         TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setQuery( "query-test" );
@@ -173,8 +184,6 @@ class TrackerTrackedEntityCriteriaMapperTest
         criteria.setUpdatedAfter( getDate( 2019, 1, 1 ) );
         criteria.setUpdatedBefore( getDate( 2020, 1, 1 ) );
         criteria.setUpdatedWithin( "20" );
-        criteria.setEnrollmentEnrolledAfter( getDate( 2019, 8, 5 ) );
-        criteria.setEnrollmentEnrolledBefore( getDate( 2020, 8, 5 ) );
         criteria.setEnrollmentOccurredAfter( getDate( 2019, 5, 5 ) );
         criteria.setEnrollmentOccurredBefore( getDate( 2020, 5, 5 ) );
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
@@ -204,9 +213,6 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertThat( params.getFollowUp(), is( true ) );
         assertThat( params.getLastUpdatedStartDate(), is( criteria.getUpdatedAfter() ) );
         assertThat( params.getLastUpdatedEndDate(), is( criteria.getUpdatedBefore() ) );
-        assertThat( params.getProgramEnrollmentStartDate(), is( criteria.getEnrollmentEnrolledAfter() ) );
-        assertThat( params.getProgramEnrollmentEndDate(),
-            is( DateUtils.addDays( criteria.getEnrollmentEnrolledBefore(), 1 ) ) );
         assertThat( params.getProgramIncidentStartDate(), is( criteria.getEnrollmentOccurredAfter() ) );
         assertThat( params.getProgramIncidentEndDate(),
             is( DateUtils.addDays( criteria.getEnrollmentOccurredBefore(), 1 ) ) );
@@ -218,6 +224,17 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertThat( params.isIncludeAllAttributes(), is( true ) );
         assertTrue( params.getOrders().stream().anyMatch( orderParam -> orderParam
             .equals( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) ) );
+    }
+
+    @Test
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+
+        mapper.map( criteria );
+
+        verifyNoInteractions( programService );
+        verifyNoInteractions( trackedEntityTypeService );
     }
 
     @Test
@@ -393,7 +410,52 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program does not exist: unknown", e.getMessage() );
+        assertEquals( "Program is specified but does not exist: unknown", e.getMessage() );
+    }
+
+    @Test
+    void testMappingProgramStage()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgramStage( PROGRAM_STAGE_UID );
+
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        assertEquals( programStage, params.getProgramStage() );
+    }
+
+    @Test
+    void testMappingProgramStageGivenWithoutProgram()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgramStage( PROGRAM_STAGE_UID );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program does not contain the specified programStage: " + PROGRAM_STAGE_UID, e.getMessage() );
+    }
+
+    @Test
+    void testMappingProgramStageNotFound()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgramStage( "unknown" );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program does not contain the specified programStage: unknown", e.getMessage() );
+    }
+
+    @Test
+    void testMappingTrackedEntityType()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
 
     @Test
