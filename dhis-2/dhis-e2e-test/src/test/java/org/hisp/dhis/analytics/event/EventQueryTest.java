@@ -98,11 +98,11 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 2, "eventdate", "Visit date", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 4, "createdbydisplayname", "Created by (display name)", "TEXT", "java.lang.String",
+        validateHeader( response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
+        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by", "TEXT",
             "java.lang.String", false, true );
-        validateHeader( response, 6, "lastupdated", "Last Updated", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
@@ -156,11 +156,11 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 2, "eventdate", "Visit date", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 4, "createdbydisplayname", "Created by (display name)", "TEXT", "java.lang.String",
+        validateHeader( response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
+        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by", "TEXT",
             "java.lang.String", false, true );
-        validateHeader( response, 6, "lastupdated", "Last Updated", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
