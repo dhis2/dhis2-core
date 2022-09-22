@@ -27,31 +27,19 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.ATTR_CODE;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.ATTR_NAME;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.ATTR_UID;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.ATTR_VALUE_TYPE;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.CREATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.PI_UID;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.STOREDBY;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.UPDATED;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.VALUE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.getColumnName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luca Cambi
  */
 public class ProgramAttributeRowCallbackHandler
-    extends
-    AbstractMapper<Attribute>
+    extends AbstractMapper<Attribute> implements AttributeMapper
 {
 
     @Override
@@ -65,23 +53,5 @@ public class ProgramAttributeRowCallbackHandler
     String getKeyColumn()
     {
         return getColumnName( PI_UID );
-    }
-
-    private Attribute getAttribute( ResultSet rs )
-        throws SQLException
-    {
-        Attribute attribute = new Attribute();
-
-        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
-        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
-        attribute.setDisplayName( rs.getString( getColumnName( ATTR_NAME ) ) );
-        attribute.setAttribute( rs.getString( getColumnName( ATTR_UID ) ) );
-        attribute.setValueType( ValueType.fromString( rs.getString( getColumnName( ATTR_VALUE_TYPE ) ) ) );
-        attribute.setCode( rs.getString( getColumnName( ATTR_CODE ) ) );
-        attribute.setValue( rs.getString( getColumnName( VALUE ) ) );
-        attribute.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );
-        attribute.setSkipSynchronization( rs.getBoolean( getColumnName( ATTR_SKIP_SYNC ) ) );
-
-        return attribute;
     }
 }

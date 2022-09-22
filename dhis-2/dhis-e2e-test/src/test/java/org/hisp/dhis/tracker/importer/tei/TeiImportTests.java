@@ -171,8 +171,8 @@ public class TeiImportTests
             .getAsJsonObject().getAsJsonArray( "attributes" );
         JsonObject events = trackedEntityResponse.getBody().getAsJsonObject( "events" );
 
-        assertThat( relationshipJson.get( "from" ), matchesJSON( relationship.get( "from" ) ) );
-        assertThat( relationshipJson.get( "to" ), matchesJSON( relationship.get( "to" ) ) );
+        assertThat( relationship.get( "from" ), matchesJSON( relationshipJson.get( "from" ) ) );
+        assertThat( relationship.get( "to" ), matchesJSON( relationshipJson.get( "to" ) ) );
         assertThat( teiBody.getAsJsonObject( "events" ), equalTo( events ) );
 
         List<String> expectedAttributes = new ArrayList<>();

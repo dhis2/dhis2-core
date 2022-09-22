@@ -42,9 +42,7 @@ public class ProgramAttributeQuery
     {
         PI_UID,
         PI_ID,
-
         CREATED,
-
         UPDATED,
         VALUE,
         STOREDBY,
@@ -55,7 +53,7 @@ public class ProgramAttributeQuery
         ATTR_SKIP_SYNC
     }
 
-    public static Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
+    public static final Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
         .put( COLUMNS.PI_UID, new TableColumn( "pi", "uid", "pi_uid" ) )
         .put( COLUMNS.PI_ID, new TableColumn( "pi", "programinstanceid", "id" ) )
         .put( COLUMNS.CREATED, new TableColumn( "teav", "created" ) )

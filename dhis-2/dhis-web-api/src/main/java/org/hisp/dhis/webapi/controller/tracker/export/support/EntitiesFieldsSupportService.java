@@ -39,8 +39,8 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
  * Abstract class that provides basic methods to transform input fields into
- * {@link FieldPath } based on {@link FieldFilterParser }.
- * It follows the principles of {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ * {@link FieldPath } based on {@link FieldFilterParser }. It follows the
+ * principles of {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
 abstract class EntitiesFieldsSupportService<T extends InstanceParams>
 {

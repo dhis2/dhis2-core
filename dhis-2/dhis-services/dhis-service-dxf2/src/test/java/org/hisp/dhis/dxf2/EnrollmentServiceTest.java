@@ -141,8 +141,7 @@ class EnrollmentServiceTest
             .thenReturn( new org.hisp.dhis.dxf2.events.trackedentity.Relationship() );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE
-                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeRelationships( true ) ) );
+            EnrollmentParams.FALSE.withIncludeRelationships( true ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),
@@ -186,8 +185,7 @@ class EnrollmentServiceTest
             .thenReturn( Set.of( attribute ) );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE
-                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeAttributes( true ) ) );
+            EnrollmentParams.FALSE.withIncludeAttributes( true ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),
@@ -213,8 +211,7 @@ class EnrollmentServiceTest
             .thenReturn( Set.of( new TrackedEntityAttribute() ) );
 
         Enrollment enrollment = enrollmentService.getEnrollment( programInstance,
-            TrackedEntityInstanceParams.FALSE
-                .withEnrollmentParams( EnrollmentParams.FALSE.withIncludeAttributes( true ) ) );
+            EnrollmentParams.FALSE.withIncludeAttributes( true ) );
 
         assertAll(
             () -> assertEquals( enrollmentId, enrollment.getEnrollment() ),

@@ -63,18 +63,19 @@ public interface EnrollmentStore
      * the arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
+     * @param ctx {@see AggregateContext}
      * @return a MultiMap where key is a {@see Enrollment} uid and the key a
      *         List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
 
     /**
-     * Fetches all the attributes
+     * Fetches all the program attributes accessible for a user
      *
      * @param ids a list of enrollment ids
-     * @param programIds a list of user accessible program ids
+     * @param ctx {@see AggregateContext}
      * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Relationship} objects
+     *         List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids, AggregateContext ctx );
 
