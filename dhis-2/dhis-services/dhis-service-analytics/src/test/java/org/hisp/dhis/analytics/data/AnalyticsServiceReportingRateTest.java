@@ -58,9 +58,9 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
@@ -212,7 +212,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setPeriodType( PeriodType.getPeriodTypeByName( DailyPeriodType.NAME ) );
+        dataSetA.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
 
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
         reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
@@ -259,7 +259,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setPeriodType( PeriodType.getPeriodTypeByName( DailyPeriodType.NAME ) );
+        dataSetA.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
 
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
         reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );

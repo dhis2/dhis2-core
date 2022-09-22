@@ -52,19 +52,14 @@ public class SixMonthlyAprilPeriodType
 
     private static final int BASE_MONTH = DateTimeConstants.APRIL;
 
-    /**
-     * The name of the SixMonthlyPeriodType, which is "SixMonthly".
-     */
-    public static final String NAME = "SixMonthlyApril";
-
     // -------------------------------------------------------------------------
     // PeriodType functionality
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.SIX_MONTHLY_APRIL;
     }
 
     @Override

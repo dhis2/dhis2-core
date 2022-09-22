@@ -41,12 +41,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 class JdbcEventAnalyticsManagerTest
 {
-
     @Test
     void testHandlingDataIntegrityExceptionWhenDivisionByZero()
     {
         // Given
-        final DataIntegrityViolationException aDivisionByZeroException = mockDataIntegrityExceptionDivisionByZero();
+        DataIntegrityViolationException aDivisionByZeroException = mockDataIntegrityExceptionDivisionByZero();
         // When
         assertThrows( QueryRuntimeException.class, () -> handle( aDivisionByZeroException ), E7132.getMessage() );
     }
@@ -55,7 +54,7 @@ class JdbcEventAnalyticsManagerTest
     void testHandlingAnyOtherDataIntegrityException()
     {
         // Given
-        final DataIntegrityViolationException anyDataIntegrityException = mockAnyOtherDataIntegrityException();
+        DataIntegrityViolationException anyDataIntegrityException = mockAnyOtherDataIntegrityException();
         // When
         assertThrows( QueryRuntimeException.class, () -> handle( anyDataIntegrityException ), E7133.getMessage() );
     }
@@ -64,7 +63,7 @@ class JdbcEventAnalyticsManagerTest
     void testHandlingWhenExceptionIsNull()
     {
         // Given
-        final DataIntegrityViolationException aNullException = null;
+        DataIntegrityViolationException aNullException = null;
         // When
         assertThrows( QueryRuntimeException.class, () -> handle( aNullException ), E7133.getMessage() );
     }
@@ -73,7 +72,7 @@ class JdbcEventAnalyticsManagerTest
     void testHandlingWhenExceptionCauseNull()
     {
         // Given
-        final DataIntegrityViolationException aNullExceptionCause = new DataIntegrityViolationException( "null", null );
+        DataIntegrityViolationException aNullExceptionCause = new DataIntegrityViolationException( "null", null );
         assertThrows( QueryRuntimeException.class, () -> handle( aNullExceptionCause ), E7133.getMessage() );
     }
 
@@ -81,8 +80,8 @@ class JdbcEventAnalyticsManagerTest
     void testHandlingWhenExceptionCauseIsNotPSQLException()
     {
         // Given
-        final ArrayIndexOutOfBoundsException aRandomCause = new ArrayIndexOutOfBoundsException();
-        final DataIntegrityViolationException aNonPSQLExceptionCause = new DataIntegrityViolationException(
+        ArrayIndexOutOfBoundsException aRandomCause = new ArrayIndexOutOfBoundsException();
+        DataIntegrityViolationException aNonPSQLExceptionCause = new DataIntegrityViolationException(
             "not caused by PSQLException", aRandomCause );
         // When
         assertThrows( QueryRuntimeException.class, () -> handle( aNonPSQLExceptionCause ), E7133.getMessage() );
@@ -90,7 +89,7 @@ class JdbcEventAnalyticsManagerTest
 
     private DataIntegrityViolationException mockDataIntegrityExceptionDivisionByZero()
     {
-        final PSQLException psqlException = new PSQLException( "ERROR: division by zero", DIVISION_BY_ZERO );
+        PSQLException psqlException = new PSQLException( "ERROR: division by zero", DIVISION_BY_ZERO );
         return new DataIntegrityViolationException(
             "ERROR: division by zero; nested exception is org.postgresql.util.PSQLException: ERROR: division by zero",
             psqlException );
@@ -98,7 +97,7 @@ class JdbcEventAnalyticsManagerTest
 
     private DataIntegrityViolationException mockAnyOtherDataIntegrityException()
     {
-        final PSQLException psqlException = new PSQLException( "ERROR: bad time format", BAD_DATETIME_FORMAT );
+        PSQLException psqlException = new PSQLException( "ERROR: bad time format", BAD_DATETIME_FORMAT );
         return new DataIntegrityViolationException(
             "ERROR: bad time format; nested exception is org.postgresql.util.PSQLException: ERROR: bad time format",
             psqlException );

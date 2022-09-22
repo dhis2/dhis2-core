@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.csv;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
 import org.springframework.util.Assert;
 
@@ -68,7 +68,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "createAtDataValue",
     "updatedAtDataValue"
 } )
-public class CsvEventDataValue
+class CsvEventDataValue
 {
     private String event;
 

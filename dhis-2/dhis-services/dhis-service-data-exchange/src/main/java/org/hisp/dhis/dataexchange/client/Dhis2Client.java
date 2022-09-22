@@ -152,7 +152,7 @@ public class Dhis2Client
      */
     private void handleErrors( ResponseEntity<?> response )
     {
-        log.info( "Response status code: {}", response.getStatusCode() );
+        log.debug( "Response status code: {}", response.getStatusCode() );
 
         if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
         {

@@ -374,7 +374,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @throws NullPointerException if item is null
      */
     @Override
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item )
     {
         return getCoordinateColumn( item, null );
     }
@@ -391,12 +391,12 @@ public class JdbcEnrollmentAnalyticsManager
      * @throws NullPointerException if item is null
      */
     @Override
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item, String suffix )
     {
         if ( item.getProgram() != null )
         {
-            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-            final String colName = quote( item.getItemId() );
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+            String colName = quote( item.getItemId() );
 
             String psCondition = "";
 
@@ -443,7 +443,7 @@ public class JdbcEnrollmentAnalyticsManager
      *         ax."enrollmentdate"
      */
     @Override
-    protected String getColumn( final QueryItem item, final String suffix )
+    protected String getColumn( QueryItem item, String suffix )
     {
         String colName = item.getItemName();
         String alias = EMPTY;
@@ -454,7 +454,7 @@ public class JdbcEnrollmentAnalyticsManager
 
             colName = quote( colName + suffix );
 
-            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
             if ( item.getProgramStage().getRepeatable() &&
                 item.hasRepeatableStageParams() && !item.getRepeatableStageParams().simpleStageValueExpected() )
@@ -543,7 +543,7 @@ public class JdbcEnrollmentAnalyticsManager
         return " LIMIT " + count;
     }
 
-    private void assertProgram( final QueryItem item )
+    private void assertProgram( QueryItem item )
     {
         Assert.isTrue( item.hasProgram(),
             "Can not query item with program stage but no program:" + item.getItemName() );

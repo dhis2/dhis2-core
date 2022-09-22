@@ -105,7 +105,7 @@ public class RepeatableStageParamsHelper
             .findFirst()
             .orElse( Pattern.compile( "" ) );
 
-        final Matcher matcher = pattern.matcher( dimension );
+        Matcher matcher = pattern.matcher( dimension );
 
         List<String> tokens;
 
@@ -207,7 +207,7 @@ public class RepeatableStageParamsHelper
             return dimension;
         }
 
-        final Matcher matcher = pattern.get().matcher( dimension );
+        Matcher matcher = pattern.get().matcher( dimension );
 
         if ( matcher.find() )
         {
@@ -225,12 +225,9 @@ public class RepeatableStageParamsHelper
      */
     private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count )
     {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
         repeatableStageParams.setStartIndex( startIndex );
-
         repeatableStageParams.setCount( count );
-
         repeatableStageParams.setDefaultObject( false );
 
         return repeatableStageParams;
@@ -267,16 +264,11 @@ public class RepeatableStageParamsHelper
     private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count, Date startDate,
         Date endDate )
     {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
         repeatableStageParams.setStartIndex( startIndex );
-
         repeatableStageParams.setCount( count );
-
         repeatableStageParams.setStartDate( startDate );
-
         repeatableStageParams.setEndDate( endDate );
-
         repeatableStageParams.setDefaultObject( false );
 
         return repeatableStageParams;
@@ -308,16 +300,11 @@ public class RepeatableStageParamsHelper
      */
     private static RepeatableStageParams getRepeatableStageParams( Date startDate, Date endDate )
     {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
         repeatableStageParams.setStartIndex( 0 );
-
         repeatableStageParams.setCount( Integer.MAX_VALUE );
-
         repeatableStageParams.setStartDate( startDate );
-
         repeatableStageParams.setEndDate( endDate );
-
         repeatableStageParams.setDefaultObject( false );
 
         return repeatableStageParams;
@@ -351,5 +338,4 @@ public class RepeatableStageParamsHelper
 
         return Arrays.stream( tokens ).map( String::trim ).collect( Collectors.toList() );
     }
-
 }

@@ -103,6 +103,7 @@ class AggregateDataExchangeServiceTest
             .thenReturn( new ImportSummary( ImportStatus.SUCCESS ) );
 
         SourceRequest sourceRequest = new SourceRequest()
+            .setName( "SourceRequestA" )
             .setDx( List.of( "Vz0C3i4Wy3M", "ToaOToReol6" ) )
             .setPe( List.of( "202101", "202102" ) )
             .setOu( List.of( "lGgJFgRkZui", "pvINfKxtqyN" ) );
@@ -129,6 +130,42 @@ class AggregateDataExchangeServiceTest
 
         assertNotNull( summary );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+    }
+
+    @Test
+    @SuppressWarnings( "unchecked" )
+    void testToDataQueryParams()
+    {
+        when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
+        when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
+        when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
+            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+                .thenReturn( new BaseDimensionalObject(
+                    DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
+
+        SourceRequest sourceRequest = new SourceRequest()
+            .setName( "SourceRequestA" )
+            .setDx( List.of( "Vz0C3i4Wy3M", "ToaOToReol6" ) )
+            .setPe( List.of( "202101", "202102" ) )
+            .setOu( List.of( "lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY" ) )
+            .setOutputDataElementIdScheme( IdScheme.UID.name() )
+            .setOutputOrgUnitIdScheme( IdScheme.CODE.name() )
+            .setOutputIdScheme( IdScheme.CODE.name() );
+
+        DataQueryParams query = service.toDataQueryParams( sourceRequest );
+
+        assertTrue( query.hasDimension( DimensionalObject.DATA_X_DIM_ID ) );
+        assertTrue( query.hasDimension( DimensionalObject.PERIOD_DIM_ID ) );
+        assertTrue( query.hasDimension( DimensionalObject.ORGUNIT_DIM_ID ) );
+        assertEquals( IdScheme.UID, query.getOutputDataElementIdScheme() );
+        assertEquals( IdScheme.CODE, query.getOutputOrgUnitIdScheme() );
+        assertEquals( IdScheme.CODE, query.getOutputIdScheme() );
     }
 
     @Test

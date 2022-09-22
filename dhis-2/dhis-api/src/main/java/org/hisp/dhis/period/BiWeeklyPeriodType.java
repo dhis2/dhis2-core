@@ -39,4 +39,10 @@ public class BiWeeklyPeriodType
     {
         super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
     }
+
+    @Override
+    public PeriodTypeEnum getPeriodTypeEnum()
+    {
+        return PeriodTypeEnum.BI_WEEKLY;
+    }
 }

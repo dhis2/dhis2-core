@@ -78,7 +78,6 @@ import com.google.common.collect.Lists;
  */
 class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
-
     @BeforeEach
     public void setUp()
     {

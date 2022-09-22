@@ -47,7 +47,6 @@ import org.junit.jupiter.api.Test;
  */
 class QueryPlannerUtilsTest
 {
-
     private final AnalyticsAggregationType SUM_SUM = new AnalyticsAggregationType( AggregationType.SUM,
         AggregationType.SUM );
 

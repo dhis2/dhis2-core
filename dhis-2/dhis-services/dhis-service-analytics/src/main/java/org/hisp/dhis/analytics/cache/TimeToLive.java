@@ -53,7 +53,7 @@ public class TimeToLive
 
     private final int ttlFactor;
 
-    public TimeToLive( final Date dateBeforeToday, final int ttlFactor )
+    public TimeToLive( Date dateBeforeToday, int ttlFactor )
     {
         notNull( dateBeforeToday, "Param dateBeforeToday must not be null" );
         isTrue( ttlFactor > 0, "Param ttlFactor must be greater than zero" );
@@ -82,8 +82,8 @@ public class TimeToLive
          * means the current day, so set the days multiplier to 1 (one) avoiding
          * multiplying by 0 (zero).
          */
-        final long daysDiff = daysBetweenDateBeforeTodayAndNow( dateBeforeToday.toInstant() );
-        final long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
+        long daysDiff = daysBetweenDateBeforeTodayAndNow( dateBeforeToday.toInstant() );
+        long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
 
         return ttlFactor * daysMultiplier;
     }
@@ -96,9 +96,9 @@ public class TimeToLive
      * @param dateBeforeToday the date to subtract from now
      * @return the difference of days
      */
-    private long daysBetweenDateBeforeTodayAndNow( final Instant dateBeforeToday )
+    private long daysBetweenDateBeforeTodayAndNow( Instant dateBeforeToday )
     {
-        final long diff = DAYS.between( ofInstant( dateBeforeToday, systemDefault() ), now() );
+        long diff = DAYS.between( ofInstant( dateBeforeToday, systemDefault() ), now() );
         return diff >= 0 ? diff : 0;
     }
 }

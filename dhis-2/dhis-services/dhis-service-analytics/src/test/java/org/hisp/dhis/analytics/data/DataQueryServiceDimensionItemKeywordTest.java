@@ -87,7 +87,6 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class DataQueryServiceDimensionItemKeywordTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -232,7 +231,7 @@ class DataQueryServiceDimensionItemKeywordTest
     @Test
     void convertAnalyticsRequestWithIndicatorGroup()
     {
-        final String INDICATOR_GROUP_UID = "oehv9EO3vP7";
+        String INDICATOR_GROUP_UID = "oehv9EO3vP7";
 
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
 
@@ -269,7 +268,7 @@ class DataQueryServiceDimensionItemKeywordTest
     {
         mockDimensionService();
 
-        final String ouGroupUID = "gzcv65VyaGq";
+        String ouGroupUID = "gzcv65VyaGq";
 
         initOrgUnitGroup( ouGroupUID );
 
@@ -289,7 +288,7 @@ class DataQueryServiceDimensionItemKeywordTest
     {
         mockDimensionService();
 
-        final String ouGroupUID = "gzcv65VyaGq";
+        String ouGroupUID = "gzcv65VyaGq";
 
         initOrgUnitGroup( ouGroupUID );
 
@@ -403,7 +402,7 @@ class DataQueryServiceDimensionItemKeywordTest
     {
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
             .thenReturn( DATA_ELEMENT_2 );
-        final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+        String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
 
         DataElementGroup dataElementGroup = new DataElementGroup( "dummy" );
@@ -438,8 +437,8 @@ class DataQueryServiceDimensionItemKeywordTest
     @Test
     void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
     {
-        final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
-        final String INDICATOR_GROUP_UID = "iezv4GO4vD9";
+        String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
+        String INDICATOR_GROUP_UID = "iezv4GO4vD9";
 
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
 

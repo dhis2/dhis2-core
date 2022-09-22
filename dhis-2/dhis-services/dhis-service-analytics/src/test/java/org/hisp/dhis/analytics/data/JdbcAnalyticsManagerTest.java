@@ -69,7 +69,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 @ExtendWith( MockitoExtension.class )
 class JdbcAnalyticsManagerTest
 {
-
     @Mock
     private SystemSettingManager systemSettingManager;
 

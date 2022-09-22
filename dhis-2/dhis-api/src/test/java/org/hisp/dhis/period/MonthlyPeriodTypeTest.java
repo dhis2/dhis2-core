@@ -51,6 +51,13 @@ class MonthlyPeriodTypeTest
     private MonthlyPeriodType periodType = new MonthlyPeriodType();
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.MONTHLY, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.MONTHLY.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );

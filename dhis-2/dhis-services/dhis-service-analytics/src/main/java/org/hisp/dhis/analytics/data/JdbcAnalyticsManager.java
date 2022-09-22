@@ -783,7 +783,7 @@ public class JdbcAnalyticsManager
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {
-        final StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         if ( dimensions != null && !dimensions.isEmpty() )
         {

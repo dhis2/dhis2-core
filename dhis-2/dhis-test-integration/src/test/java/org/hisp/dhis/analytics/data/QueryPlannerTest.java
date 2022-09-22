@@ -83,7 +83,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -474,7 +474,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
                 createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withPeriodType( QuarterlyPeriodType.NAME ).withDataPeriodType( new YearlyPeriodType() ).build();
+            .withPeriodType( PeriodTypeEnum.QUARTERLY.getName() ).withDataPeriodType( new YearlyPeriodType() ).build();
         ListMap<DimensionalItemObject, DimensionalItemObject> map = params.getDataPeriodAggregationPeriodMap();
         assertEquals( 2, map.size() );
         assertTrue( map.containsKey( createPeriod( "2000" ) ) );
@@ -859,7 +859,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
         {
             assertEquals( 1, query.getPeriods().size() );
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
+            assertEquals( PeriodTypeEnum.MONTHLY.getName().toLowerCase(),
                 query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
     }

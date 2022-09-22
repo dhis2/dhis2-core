@@ -74,6 +74,8 @@ public class LoginAction
 
     private Boolean failed = false;
 
+    private Boolean oidcFailure = false;
+
     public void setFailed( Boolean failed )
     {
         this.failed = failed;
@@ -82,6 +84,16 @@ public class LoginAction
     public Boolean getFailed()
     {
         return failed;
+    }
+
+    public Boolean getOidcFailure()
+    {
+        return oidcFailure;
+    }
+
+    public void setOidcFailure( Boolean oidcFailure )
+    {
+        this.oidcFailure = oidcFailure;
     }
 
     private List<Locale> availableLocales;

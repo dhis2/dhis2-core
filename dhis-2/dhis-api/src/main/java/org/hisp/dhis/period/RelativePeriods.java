@@ -298,98 +298,45 @@ public class RelativePeriods
         if ( isThisDay() || isYesterday() || isLast3Days() || isLast7Days() || isLast14Days() ||
             isLast30Days() || isLast60Days() || isLast90Days() || isLast180Days() )
         {
-            return PeriodType.getPeriodTypeByName( DailyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.DAILY );
         }
 
         if ( isThisWeek() || isLastWeek() || isLast4Weeks() || isLast12Weeks() || isLast52Weeks() )
         {
-            return PeriodType.getPeriodTypeByName( WeeklyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.WEEKLY );
         }
 
         if ( isThisBiWeek() || isLastBiWeek() || isLast4BiWeeks() )
         {
-            return PeriodType.getPeriodTypeByName( BiWeeklyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.BI_WEEKLY );
         }
 
         if ( isThisMonth() || isLastMonth() || isLast12Months() || isLast6Months() || isLast3Months() )
         {
-            return PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
         }
 
         if ( isThisBimonth() || isLastBimonth() || isLast6BiMonths() )
         {
-            return PeriodType.getPeriodTypeByName( BiMonthlyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.BI_MONTHLY );
         }
 
         if ( isThisQuarter() || isLastQuarter() || isLast4Quarters() )
         {
-            return PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY );
         }
 
         if ( isThisSixMonth() || isLastSixMonth() || isLast2SixMonths() )
         {
-            return PeriodType.getPeriodTypeByName( SixMonthlyPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.SIX_MONTHLY );
         }
 
         if ( isThisFinancialYear() || isLastFinancialYear() || isLast5FinancialYears() || isLast10FinancialYears() )
         {
-            return PeriodType.getPeriodTypeByName( FinancialOctoberPeriodType.NAME );
+            return PeriodType.getPeriodType( PeriodTypeEnum.FINANCIAL_OCT );
         }
 
-        return PeriodType.getPeriodTypeByName( YearlyPeriodType.NAME );
-    }
-
-    /**
-     * Return the name of the reporting period.
-     *
-     * @param date the start date of the reporting period.
-     * @param format the i18n format.
-     * @return the name of the reporting period.
-     */
-    public String getReportingPeriodName( Date date, I18nFormat format )
-    {
-        if ( date == null )
-        {
-            return getReportingPeriodName( format );
-        }
-
-        Period period = getPeriodType().createPeriod( date );
-        return format.formatPeriod( period );
-    }
-
-    /**
-     * Return the name of the reporting period.
-     *
-     * @param format the i18n format.
-     * @return the name of the reporting period.
-     */
-    public String getReportingPeriodName( I18nFormat format )
-    {
-        Period period = getPeriodType().createPeriod( new Date() );
-        return format.formatPeriod( period );
-    }
-
-    /**
-     * Gets the PeriodType with the highest frequency from a list of Periods.
-     */
-    public PeriodType getHighestFrequencyPeriodType( List<Period> periods )
-    {
-        if ( periods != null && !periods.isEmpty() )
-        {
-            PeriodType lowestFrequencyOrder = periods.get( 0 ).getPeriodType();
-
-            for ( Period period : periods )
-            {
-                if ( period.getPeriodType().getFrequencyOrder() < lowestFrequencyOrder.getFrequencyOrder() )
-                {
-                    lowestFrequencyOrder = period.getPeriodType();
-                }
-            }
-
-            return lowestFrequencyOrder;
-        }
-
-        return null;
+        return PeriodType.getPeriodType( PeriodTypeEnum.YEARLY );
     }
 
     /**

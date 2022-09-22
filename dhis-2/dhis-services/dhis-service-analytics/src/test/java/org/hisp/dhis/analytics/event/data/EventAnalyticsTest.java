@@ -64,7 +64,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 abstract class EventAnalyticsTest
 {
-
     @Mock
     protected SqlRowSet rowSet;
 
@@ -163,7 +162,7 @@ abstract class EventAnalyticsTest
         return params.build();
     }
 
-    protected EventQueryParams createRequestParamsWithTimeField( final String timeField )
+    protected EventQueryParams createRequestParamsWithTimeField( String timeField )
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         ouA.setPath( "/" + ouA.getUid() );

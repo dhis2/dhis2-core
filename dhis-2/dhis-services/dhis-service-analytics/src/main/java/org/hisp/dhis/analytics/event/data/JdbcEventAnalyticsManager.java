@@ -314,7 +314,7 @@ public class JdbcEventAnalyticsManager
         return rectangle;
     }
 
-    private SqlRowSet queryForRows( final String sql )
+    private SqlRowSet queryForRows( String sql )
     {
         try
         {
@@ -739,7 +739,7 @@ public class JdbcEventAnalyticsManager
         {
         }
 
-        protected static SqlRowSet handle( final DataIntegrityViolationException ex )
+        protected static SqlRowSet handle( DataIntegrityViolationException ex )
         {
             if ( ex != null && ex.getCause() instanceof PSQLException
                 && DIVISION_BY_ZERO.getState().equals( ((PSQLException) ex.getCause()).getSQLState() ) )

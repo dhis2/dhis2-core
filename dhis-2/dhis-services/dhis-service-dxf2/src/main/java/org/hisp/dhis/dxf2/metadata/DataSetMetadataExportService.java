@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.util.Date;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -47,4 +49,11 @@ public interface DataSetMetadataExportService
      * @return an {@link ObjectNode}.
      */
     ObjectNode getDataSetMetadata();
+
+    /**
+     * Returns the time of last modification for the data set metadata.
+     *
+     * @return a {@link Date}, never null.
+     */
+    public Date getDataSetMetadataLastModified();
 }

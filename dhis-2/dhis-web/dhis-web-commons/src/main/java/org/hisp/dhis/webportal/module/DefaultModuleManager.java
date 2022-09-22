@@ -56,7 +56,6 @@ import com.opensymphony.xwork2.config.entities.PackageConfig;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DefaultModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
 @Slf4j
 public class DefaultModuleManager

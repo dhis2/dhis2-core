@@ -28,13 +28,13 @@
 package org.hisp.dhis.analytics.util;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.period.DailyPeriodType.NAME;
 
 import java.util.List;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 
 /**
  * Just a helper class responsible for providing methods that hides specific
@@ -66,11 +66,10 @@ public class ReportRatesHelper
      *
      * @return the calculate target
      */
-    public static Double getCalculatedTarget( final int periodIndex, final int timeUnits, final List<String> dataRow,
-        final Double target, final PeriodType queryPt, final PeriodType dataSetPt,
-        final List<DimensionalItemObject> filterPeriods )
+    public static Double getCalculatedTarget( int periodIndex, int timeUnits, List<String> dataRow,
+        Double target, PeriodType queryPt, PeriodType dataSetPt, List<DimensionalItemObject> filterPeriods )
     {
-        if ( dataSetPt.equalsName( NAME ) )
+        if ( PeriodTypeEnum.DAILY == dataSetPt.getPeriodTypeEnum() )
         {
             boolean hasPeriodInDimension = periodIndex != -1;
 
@@ -93,24 +92,22 @@ public class ReportRatesHelper
         }
     }
 
-    private static Double getTargetFromDimension( final int periodIndex, final int timeUnits,
-        final List<String> dataRow, final Double target )
+    private static Double getTargetFromDimension( int periodIndex, int timeUnits, List<String> dataRow, Double target )
     {
-        final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
 
         return consolidateTarget( timeUnits, target, period.getDaysInPeriod() );
     }
 
-    private static Double getTargetFromFilter( final int timeUnits, final Double target,
-        final List<DimensionalItemObject> filterPeriods )
+    private static Double getTargetFromFilter( int timeUnits, Double target, List<DimensionalItemObject> filterPeriods )
     {
         if ( isNotEmpty( filterPeriods ) )
         {
             int totalOfDaysInPeriod = 0;
 
-            for ( final DimensionalItemObject itemObject : filterPeriods )
+            for ( DimensionalItemObject itemObject : filterPeriods )
             {
-                final Period period = (Period) itemObject;
+                Period period = (Period) itemObject;
                 totalOfDaysInPeriod += period.getDaysInPeriod();
             }
 
@@ -120,7 +117,7 @@ public class ReportRatesHelper
         return target;
     }
 
-    private static Double consolidateTarget( final int timeUnits, final Double target, final int daysInPeriod )
+    private static Double consolidateTarget( int timeUnits, Double target, int daysInPeriod )
     {
         return target * daysInPeriod * timeUnits;
     }

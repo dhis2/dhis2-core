@@ -163,9 +163,11 @@ public class EventSearchParams
 
     private boolean includeRelationships;
 
-    private List<OrderParam> orders;
+    private final List<OrderParam> orders = new ArrayList<>();
 
-    private List<OrderParam> gridOrders;
+    private final List<OrderParam> gridOrders = new ArrayList<>();
+
+    private final List<OrderParam> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
 
@@ -178,9 +180,9 @@ public class EventSearchParams
     /**
      * Filters for the response.
      */
-    private List<QueryItem> filters = new ArrayList<>();
+    private final List<QueryItem> filters = new ArrayList<>();
 
-    private List<QueryItem> filterAttributes = new ArrayList<>();
+    private final List<QueryItem> filterAttributes = new ArrayList<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -285,7 +287,7 @@ public class EventSearchParams
      */
     public boolean hasFilters()
     {
-        return filters != null && !filters.isEmpty();
+        return !filters.isEmpty();
     }
 
     /**
@@ -646,23 +648,34 @@ public class EventSearchParams
 
     public List<OrderParam> getOrders()
     {
-        return this.orders;
+        return Collections.unmodifiableList( this.orders );
     }
 
-    public EventSearchParams setOrders( List<OrderParam> orders )
+    public EventSearchParams addOrders( List<OrderParam> orders )
     {
-        this.orders = orders;
+        this.orders.addAll( orders );
         return this;
     }
 
     public List<OrderParam> getGridOrders()
     {
-        return this.gridOrders;
+        return Collections.unmodifiableList( this.gridOrders );
     }
 
-    public EventSearchParams setGridOrders( List<OrderParam> gridOrders )
+    public EventSearchParams addGridOrders( List<OrderParam> gridOrders )
     {
-        this.gridOrders = gridOrders;
+        this.gridOrders.addAll( gridOrders );
+        return this;
+    }
+
+    public List<OrderParam> getAttributeOrders()
+    {
+        return Collections.unmodifiableList( this.attributeOrders );
+    }
+
+    public EventSearchParams addAttributeOrders( List<OrderParam> attributeOrders )
+    {
+        this.attributeOrders.addAll( attributeOrders );
         return this;
     }
 
@@ -701,23 +714,35 @@ public class EventSearchParams
 
     public List<QueryItem> getFilters()
     {
-        return filters;
+        return Collections.unmodifiableList( this.filters );
     }
 
-    public EventSearchParams setFilters( List<QueryItem> filters )
+    public EventSearchParams addFilter( QueryItem item )
     {
-        this.filters = filters;
+        this.filters.add( item );
+        return this;
+    }
+
+    public EventSearchParams addFilters( List<QueryItem> items )
+    {
+        this.filters.addAll( items );
         return this;
     }
 
     public List<QueryItem> getFilterAttributes()
     {
-        return filterAttributes;
+        return Collections.unmodifiableList( this.filterAttributes );
     }
 
-    public EventSearchParams setFilterAttributes( List<QueryItem> filters )
+    public EventSearchParams addFilterAttributes( List<QueryItem> item )
     {
-        this.filterAttributes = filters;
+        this.filterAttributes.addAll( item );
+        return this;
+    }
+
+    public EventSearchParams addFilterAttributes( QueryItem item )
+    {
+        this.filterAttributes.add( item );
         return this;
     }
 

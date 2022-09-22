@@ -78,9 +78,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -170,7 +170,7 @@ class DataQueryServiceTest extends SingleSetupIntegrationTestBase
 
     private DataElementGroupSet deGroupSetA;
 
-    private PeriodType monthly = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
+    private PeriodType monthly = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
 
     @Autowired
     private DataQueryService dataQueryService;

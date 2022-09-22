@@ -67,7 +67,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class EventQueryValidatorTest extends DhisConvenienceTest
 {
-
     private Program prA;
 
     private Program prB;
@@ -327,7 +326,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.
      */
-    private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
+    private void assertValidatonError( ErrorCode errorCode, EventQueryParams params )
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> eventQueryValidator.validate( params ) );
