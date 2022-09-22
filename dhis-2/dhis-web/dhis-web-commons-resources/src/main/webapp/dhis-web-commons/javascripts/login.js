@@ -1,15 +1,8 @@
+
 var login = {};
 login.localeKey = "dhis2.locale.ui";
 
-$.urlParam = function(name){
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-    if (results==null) {
-        return null;
-    }
-    return decodeURI(results[1]) || 0;
-}
-
-$( document ).ready( function()
+$( document ).ready( function() 
 {
     $( '#j_username' ).focus();
 
@@ -23,42 +16,37 @@ $( document ).ready( function()
         checked = !checked;
     });
 
-    $( '#loginForm').bind( 'submit', function()
+    $( '#loginForm').bind( 'submit', function() 
     {
-        if ( window.location.hash )
-        {
-            $(this).prop('action', $(this).prop('action') + window.location.hash );
-        }
-
+		if ( window.location.hash )
+		{	
+			$(this).prop('action', $(this).prop('action') + window.location.hash );
+		}
+		
         $( '#submit' ).attr( 'disabled', 'disabled' );
 
         sessionStorage.removeItem( 'ouSelected' );
         sessionStorage.removeItem( 'USER_PROFILE' );
         sessionStorage.removeItem( 'USER_SETTING' );
-        sessionStorage.removeItem( 'eventCaptureGridColumns');
-        sessionStorage.removeItem( 'trackerCaptureGridColumns');
-        sessionStorage.removeItem( 'trackerCaptureCategoryOptions');
-        sessionStorage.removeItem( 'eventCaptureCategoryOptions');
+		sessionStorage.removeItem( 'eventCaptureGridColumns');
+		sessionStorage.removeItem( 'trackerCaptureGridColumns');
+		sessionStorage.removeItem( 'trackerCaptureCategoryOptions');
+		sessionStorage.removeItem( 'eventCaptureCategoryOptions');
     } );
-
+    
     var locale = localStorage[login.localeKey];
-
+    
     if ( undefined !== locale && locale )
     {
-        login.changeLocale( locale );
-        $( '#localeSelect option[value="' + locale + '"]' ).attr( 'selected', 'selected' );
-    }
-
-    var oidcFailure = $.urlParam('oidcFailure');
-    if(oidcFailure!=null){
-        $( '#loginMessage' ).text("Failed to login with OIDC")
+    	login.changeLocale( locale );
+    	$( '#localeSelect option[value="' + locale + '"]' ).attr( 'selected', 'selected' );
     }
 } );
 
 login.localeChanged = function()
 {
 	var locale = $( '#localeSelect :selected' ).val();
-
+	
 	if ( locale )
 	{
 		login.changeLocale( locale );
@@ -67,7 +55,7 @@ login.localeChanged = function()
 }
 
 login.changeLocale = function( locale )
-{
+{	
 	$.get( 'loginStrings.action?keyApplication=Y&loc=' + locale, function( json ) {
 		$( '#createAccountButton' ).html( json.create_an_account );
 		$( '#signInLabel' ).html( json.sign_in );
@@ -93,11 +81,12 @@ login.changeLocale = function( locale )
 
 		$( '#poweredByLabel' ).html( json.powered_by );
 		$( '#submit' ).val( json.sign_in );
-
-		$( '#titleArea' ).html( json.applicationTitle );
+		
+		$( '#titleArea' ).html( json.applicationTitle );		
 		$( '#introArea' ).html( json.keyApplicationIntro );
 		$( '#notificationArea' ).html( json.keyApplicationNotification );
 		$( '#applicationFooter' ).html( json.keyApplicationFooter );
 		$( '#applicationRightFooter' ).html( json.keyApplicationRightFooter );
 	} );
 }
+

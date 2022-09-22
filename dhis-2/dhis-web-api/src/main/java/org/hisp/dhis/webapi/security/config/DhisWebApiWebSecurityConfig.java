@@ -308,7 +308,7 @@ public class DhisWebApiWebSecurityConfig
                 } )
 
                 .oauth2Login( oauth2 -> oauth2
-                    .failureUrl( "/dhis-web-commons/security/login.action?oidcFailure=true&failed=true" )
+                    .failureUrl( "/dhis-web-commons/security/login.action?oidcFailure=true" )
                     .clientRegistrationRepository( dhisOidcProviderRepository )
                     .loginProcessingUrl( "/oauth2/code/*" )
                     .authorizationEndpoint()
