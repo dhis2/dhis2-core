@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -126,7 +127,7 @@ public class TeiFields
             .map( AnalyticsSortingParams::getOrderBy )
             .map( RenderableDimensionIdentifier::of )
             .map( RenderableDimensionIdentifier::render )
-            .map( s -> Field.of( EMPTY, () -> "\"" + s + "\".VALUE", "VALUE" ) );
+            .map( s -> Field.of( EMPTY, () -> DoubleQuotingRenderable.of( s ).render() + ".VALUE", "VALUE" ) );
     }
 
     public static Stream<Field> getStaticFields()
