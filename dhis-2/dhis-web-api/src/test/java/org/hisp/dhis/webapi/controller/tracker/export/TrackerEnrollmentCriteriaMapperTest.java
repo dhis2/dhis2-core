@@ -31,6 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -102,8 +103,6 @@ class TrackerEnrollmentCriteriaMapperTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
-
     @BeforeEach
     void setUp()
     {
@@ -130,10 +129,23 @@ class TrackerEnrollmentCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        trackedEntityInstance = new TrackedEntityInstance();
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setUid( TRACKED_ENTITY_UID );
         when( trackedEntityInstanceService.getTrackedEntityInstance( TRACKED_ENTITY_UID ) )
             .thenReturn( trackedEntityInstance );
+    }
+
+    @Test
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    {
+        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+
+        mapper.map( criteria );
+
+        verifyNoInteractions( programService );
+        verifyNoInteractions( organisationUnitService );
+        verifyNoInteractions( trackedEntityTypeService );
+        verifyNoInteractions( trackedEntityInstanceService );
     }
 
     @Test
@@ -142,7 +154,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
     }
@@ -154,7 +166,7 @@ class TrackerEnrollmentCriteriaMapperTest
         criteria.setOrgUnit( "unknown;" + ORG_UNIT_2_UID );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( criteria ) );
+            () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit does not exist: unknown", exception.getMessage() );
     }
 
@@ -167,7 +179,7 @@ class TrackerEnrollmentCriteriaMapperTest
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( criteria ) );
+            () -> mapper.map( criteria ) );
         assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, exception.getMessage() );
     }
 
@@ -177,7 +189,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setProgram( PROGRAM_UID );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( program, params.getProgram() );
     }
@@ -189,8 +201,8 @@ class TrackerEnrollmentCriteriaMapperTest
         criteria.setProgram( "unknown" );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( criteria ) );
-        assertEquals( "Program does not exist: unknown", exception.getMessage() );
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -199,7 +211,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
@@ -211,8 +223,8 @@ class TrackerEnrollmentCriteriaMapperTest
         criteria.setTrackedEntityType( "unknown" );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( criteria ) );
-        assertEquals( "Tracked entity does not exist: unknown", exception.getMessage() );
+            () -> mapper.map( criteria ) );
+        assertEquals( "Tracked entity type is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -221,7 +233,7 @@ class TrackerEnrollmentCriteriaMapperTest
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
         criteria.setTrackedEntity( TRACKED_ENTITY_UID );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityInstanceUid() );
     }
@@ -233,8 +245,8 @@ class TrackerEnrollmentCriteriaMapperTest
         criteria.setTrackedEntity( "unknown" );
 
         Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( criteria ) );
-        assertEquals( "Tracked entity instance does not exist: unknown", exception.getMessage() );
+            () -> mapper.map( criteria ) );
+        assertEquals( "Tracked entity instance is specified but does not exist: unknown", exception.getMessage() );
     }
 
     @Test
@@ -245,7 +257,7 @@ class TrackerEnrollmentCriteriaMapperTest
         OrderCriteria order2 = OrderCriteria.of( "field2", OrderParam.SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
             new OrderParam( "field1", OrderParam.SortDirection.ASC ),
@@ -257,7 +269,7 @@ class TrackerEnrollmentCriteriaMapperTest
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( criteria );
+        ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertIsEmpty( params.getOrder() );
     }

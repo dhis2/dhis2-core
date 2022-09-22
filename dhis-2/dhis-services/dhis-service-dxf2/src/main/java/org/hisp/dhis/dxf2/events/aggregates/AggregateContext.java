@@ -53,6 +53,16 @@ public class AggregateContext
     Long userId;
 
     /**
+     * The current user uid
+     */
+    String userUid;
+
+    /**
+     * A list of group ID to which the user belongs
+     */
+    List<String> userGroups;
+
+    /**
      * A List of Tracked Entity Types ID to which the user has READ ONLY access
      */
     List<Long> trackedEntityTypes;
