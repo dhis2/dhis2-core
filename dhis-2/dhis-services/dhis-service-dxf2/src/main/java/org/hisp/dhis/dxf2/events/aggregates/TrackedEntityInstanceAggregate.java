@@ -175,6 +175,8 @@ public class TrackedEntityInstanceAggregate
         AggregateContext ctx = securityCache.get( user.getUid() )
             .toBuilder()
             .userId( user.getId() )
+            .userUid( user.getUid() )
+            .userGroups( userGroupUIDCache.get( user.getUid() ) )
             .superUser( user.isSuper() )
             .params( params )
             .queryParams( queryParams )
