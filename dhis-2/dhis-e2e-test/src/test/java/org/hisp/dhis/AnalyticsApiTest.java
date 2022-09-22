@@ -57,9 +57,6 @@ import io.restassured.http.ContentType;
  *
  * @author maikel arabori
  */
-//@ExtendWith( AnalyticsSetupExtension.class )
-//@Timeout( AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS )
-//@Tag( "analytics" )
 @TestInstance( PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
