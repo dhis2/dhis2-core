@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.commons.util.TextUtils.splitToSet;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
@@ -130,6 +131,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -1015,19 +1017,45 @@ public class JdbcEventStore implements EventStore
                 .append( EQUALS )
                 .append( statementBuilder.encode( queryItem.getItem().getUid(), true ) );
 
+            if ( queryItem.isNumeric() && !queryItem.getFilters().isEmpty() )
+            {
+                attributes
+                    .append( " AND CASE WHEN " )
+                    .append( lower( teaCol + ".valueType" ) )
+                    .append( " in (" )
+                    .append( NUMERIC_TYPES.stream()
+                        .map( Enum::name )
+                        .map( StringUtils::lowerCase )
+                        .map( SqlUtils::singleQuote )
+                        .collect( Collectors.joining( "," ) ) )
+                    .append( ")" )
+                    .append( " THEN " );
+            }
+            else if ( !queryItem.getFilters().isEmpty() )
+            {
+                attributes.append( " AND " );
+            }
+            List<String> filterStrings = new ArrayList<>();
             for ( QueryFilter filter : queryItem.getFilters() )
             {
+                StringBuilder filterString = new StringBuilder();
                 final String queryCol = queryItem.isNumeric() ? castToNumber( teaValueCol + ".value" )
                     : lower( teaValueCol + ".value" );
                 final Object encodedFilter = queryItem.isNumeric() ? Double.valueOf( filter.getFilter() )
                     : StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) );
-                attributes
-                    .append( " AND " )
+                filterString
                     .append( queryCol )
                     .append( SPACE )
                     .append( filter.getSqlOperator() )
                     .append( SPACE )
                     .append( encodedFilter );
+                filterStrings.add( filterString.toString() );
+            }
+            attributes.append( String.join( " AND ", filterStrings ) );
+
+            if ( queryItem.isNumeric() && !queryItem.getFilters().isEmpty() )
+            {
+                attributes.append( " END " );
             }
         }
     }
