@@ -57,6 +57,9 @@ import io.restassured.http.ContentType;
  *
  * @author maikel arabori
  */
+//@ExtendWith( AnalyticsSetupExtension.class )
+//@Timeout( AnalyticsApiTest.DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS )
+//@Tag( "analytics" )
 @TestInstance( PER_CLASS )
 @ExtendWith( ConfigurationExtension.class )
 @ExtendWith( AnalyticsSetupExtension.class )
@@ -64,7 +67,6 @@ import io.restassured.http.ContentType;
 @Tag( "analytics-api" )
 public abstract class AnalyticsApiTest
 {
-
     protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 2;
 
     protected final String JSON = ContentType.JSON.toString();

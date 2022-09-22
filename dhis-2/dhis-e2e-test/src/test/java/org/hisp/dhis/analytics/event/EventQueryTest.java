@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasKey;
@@ -34,15 +35,18 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-
-import java.util.List;
+import static org.hisp.dhis.helpers.PeriodHelper.getRelativePeriodDate;
 
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.PeriodHelper.Period;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * Groups e2e tests for Events "/query" endpoint.
@@ -51,7 +55,6 @@ import org.junit.jupiter.api.Test;
  */
 public class EventQueryTest extends AnalyticsApiTest
 {
-
     private AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
     @Test
@@ -167,5 +170,152 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
         // Cannot validate results for relative period.
+    }
+
+    @Disabled
+    @ParameterizedTest
+    @EnumSource( value = Period.class, names = { "THIS_YEAR", "LAST_YEAR", "TODAY", "WEEKS_THIS_YEAR" } )
+    @DisplayName( "api/analytics/events/query/iAI6kmFqoOc.json?dimension=pe:THIS_YEAR,ou:ImspTQPwCqd,eTaBehVASzG.VkoGQvbzHk2&stage=eTaBehVASzG&displayProperty=NAME&outputType=EVENT&desc=eventdate&relativePeriodDate=" )
+    public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefault( Period relativePeriod )
+    {
+        // Given
+        String relativePeriodDate = getRelativePeriodDate( relativePeriod );
+
+        QueryParamsBuilder params = new QueryParamsBuilder();
+        params.add( "dimension=pe:" + relativePeriod + ",ou:ImspTQPwCqd,eTaBehVASzG.VkoGQvbzHk2" )
+            .add( "stage=eTaBehVASzG" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=eventdate" );
+
+        // Add (or not) relative period date param.
+        if ( isNotEmpty( relativePeriodDate ) )
+        {
+            params.add( "relativePeriodDate=" + relativePeriodDate );
+        }
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "iAI6kmFqoOc", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 21 ) ) )
+            .body( "rows", hasSize( equalTo( 3 ) ) )
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.total", equalTo( 3 ) )
+            .body( "metaData.pager.pageCount", equalTo( 1 ) )
+            .body( "metaData.pager", not( hasKey( "isLastPage" ) ) )
+            .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
+            .body( "metaData.items.iAI6kmFqoOc.name", equalTo( "TA id schemes tracker program" ) )
+            .body( "metaData.items.eTaBehVASzG.name", equalTo( "TA id schemes program stage" ) )
+            .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
+            .body( "metaData.items." + relativePeriod + ".name", equalTo( relativePeriod.label() ) )
+            .body( "metaData.items.VkoGQvbzHk2.name", equalTo( "TA id schemes data element" ) )
+            .body( "metaData.items.'eTaBehVASzG.VkoGQvbzHk2'.name", equalTo( "TA id schemes data element" ) )
+            .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
+            .body( "height", equalTo( 3 ) )
+            .body( "width", equalTo( 21 ) )
+            .body( "headerWidth", equalTo( 21 ) )
+            .body( "metaData.dimensions.'eTaBehVASzG.VkoGQvbzHk2'", hasSize( equalTo( 0 ) ) );
+
+        // Validate headers
+        validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "eventdate", "Event date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by", "TEXT",
+            "java.lang.String", false, true );
+        validateHeader( response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 8, "enrollmentdate", "Enrollment date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 9, "incidentdate", "Incident date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 10, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "pi", "Program instance", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 14, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 15, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 17, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 18, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 19, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 20, "eTaBehVASzG.VkoGQvbzHk2", "TA id schemes data element", "TEXT",
+            "java.lang.String", false, true );
+    }
+
+    @Disabled
+    @ParameterizedTest
+    @EnumSource( value = Period.class, names = { "LAST_YEAR", "LAST_6_MONTHS", "LAST_12_MONTHS", "LAST_5_YEARS" } )
+    @DisplayName( "api/analytics/events/query/iAI6kmFqoOc.json?dimension=pe:THIS_YEAR,ou:ImspTQPwCqd,eTaBehVASzG.VkoGQvbzHk2&stage=eTaBehVASzG&displayProperty=NAME&outputType=EVENT&desc=eventdate&relativePeriodDate=" )
+    public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefaultAndNoResultsForPeriod(
+        Period relativePeriod )
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder();
+        params.add( "dimension=pe:" + relativePeriod + ",ou:ImspTQPwCqd,eTaBehVASzG.VkoGQvbzHk2" )
+            .add( "stage=eTaBehVASzG" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=eventdate" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "iAI6kmFqoOc", JSON, JSON, params );
+
+        // Then
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 21 ) ) )
+            .body( "rows", hasSize( equalTo( 0 ) ) )
+            .body( "metaData.pager.page", equalTo( 1 ) )
+            .body( "metaData.pager.pageSize", equalTo( 50 ) )
+            .body( "metaData.pager.total", equalTo( 0 ) )
+            .body( "metaData.pager.pageCount", equalTo( 0 ) )
+            .body( "metaData.pager", not( hasKey( "isLastPage" ) ) )
+            .body( "metaData.items.ImspTQPwCqd.name", equalTo( "Sierra Leone" ) )
+            .body( "metaData.items.iAI6kmFqoOc.name", equalTo( "TA id schemes tracker program" ) )
+            .body( "metaData.items.eTaBehVASzG.name", equalTo( "TA id schemes program stage" ) )
+            .body( "metaData.items.ou.name", equalTo( "Organisation unit" ) )
+            .body( "metaData.items." + relativePeriod + ".name", equalTo( relativePeriod.label() ) )
+            .body( "metaData.items.VkoGQvbzHk2.name", equalTo( "TA id schemes data element" ) )
+            .body( "metaData.items.'eTaBehVASzG.VkoGQvbzHk2'.name", equalTo( "TA id schemes data element" ) )
+            .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
+            .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
+            .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
+            .body( "height", equalTo( 0 ) )
+            .body( "width", equalTo( 0 ) )
+            .body( "headerWidth", equalTo( 21 ) )
+            .body( "metaData.dimensions.'eTaBehVASzG.VkoGQvbzHk2'", hasSize( equalTo( 0 ) ) );
+
+        // Validate headers
+        validateHeader( response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 2, "eventdate", "Event date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 5, "lastupdatedbydisplayname", "Last updated by", "TEXT",
+            "java.lang.String", false, true );
+        validateHeader( response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 8, "enrollmentdate", "Enrollment date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 9, "incidentdate", "Incident date", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 10, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 11, "pi", "Program instance", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 12, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 13, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 14, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
+        validateHeader( response, 15, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 16, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 17, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 18, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 19, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 20, "eTaBehVASzG.VkoGQvbzHk2", "TA id schemes data element", "TEXT",
+            "java.lang.String", false, true );
     }
 }

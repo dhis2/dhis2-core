@@ -34,14 +34,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
-import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-
-import java.util.List;
 
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -49,9 +47,9 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
+@Disabled
 public class EnrollmentQueryTest extends AnalyticsApiTest
 {
-
     private AnalyticsEnrollmentsActions enrollmentsActions = new AnalyticsEnrollmentsActions();
 
     @Test

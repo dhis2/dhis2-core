@@ -42,7 +42,6 @@ import org.hisp.dhis.dto.ApiResponse;
  */
 public class ValidationHelper
 {
-
     private ValidationHelper()
     {
     }
