@@ -182,6 +182,7 @@
         "F_OPTIONSET_PUBLIC_ADD",
         "F_EVENTCHART_EXTERNAL",
         "M_dhis-web-dataentry",
+        "M_dhis-web-aggregate-data-entry",
         "M_dhis-web-maintenance-dataset",
         "F_USERROLE_LIST",
         "F_USERROLE_PUBLIC_ADD",
