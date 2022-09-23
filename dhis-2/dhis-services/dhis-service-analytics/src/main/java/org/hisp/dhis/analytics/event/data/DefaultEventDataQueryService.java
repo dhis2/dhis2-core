@@ -416,22 +416,21 @@ public class DefaultEventDataQueryService
         {
             coordinateFields.add( StringUtils.EMPTY );
         }
-
-        if ( List.of( "pigeometry", "psigeometry", "teigeometry" ).contains( coordinateField ) )
+        else if ( List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ).contains( coordinateField ) )
         {
-            coordinateFields.add( coordinateField );
+            coordinateFields.add( getCoordinateFieldOrFail( program, coordinateField, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( "psigeometry" );
+            coordinateFields.add( getCoordinateFieldOrFail( program, "psigeometry", ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( "pigeometry" );
+            coordinateFields.add( getCoordinateFieldOrFail( program, "pigeometry", ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.TRACKER_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( "teigeometry" );
+            coordinateFields.add( getCoordinateFieldOrFail( program, "teigeometry", ErrorCode.E7221 ) );
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
@@ -595,6 +594,18 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( errorCode, field );
         }
         return field;
+    }
+
+    private String getCoordinateFieldOrFail( String program, String coordinateField, ErrorCode errorCode )
+    {
+        Program prg = programService.getProgram( program );
+
+        if ( "teigeometry".equals( coordinateField ) && !prg.isRegistration() )
+        {
+            throwIllegalQueryEx( errorCode, coordinateField );
+        }
+
+        return coordinateField;
     }
 
     @Getter
