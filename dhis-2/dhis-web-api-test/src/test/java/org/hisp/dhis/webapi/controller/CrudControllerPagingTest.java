@@ -40,7 +40,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-public class CrudControllerPagingTest extends DhisControllerConvenienceTest
+class CrudControllerPagingTest extends DhisControllerConvenienceTest
 {
     @Autowired
     private OrganisationUnitService ouService;
