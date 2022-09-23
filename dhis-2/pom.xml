@@ -787,6 +787,7 @@
                     https://github.com/testcontainers/testcontainers-java/issues/970</reason>
                   <bannedImports>
                     <bannedImport>org.junit.Test</bannedImport>
+                    <bannedImport>org.junit.Ignore</bannedImport>
                     <bannedImport>org.junit.Assert.**</bannedImport>
                   </bannedImports>
                 </RestrictImports>
