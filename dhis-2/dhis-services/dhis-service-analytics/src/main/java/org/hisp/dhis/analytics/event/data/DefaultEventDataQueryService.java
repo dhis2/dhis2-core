@@ -123,6 +123,20 @@ public class DefaultEventDataQueryService
 
     private static final String COL_NAME_DUEDATE = "duedate";
 
+    private static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+
+    private static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+
+    private static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+
+    private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
+
+    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PI_GEOMETRY, COL_NAME_PSI_GEOMETRY,
+        COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+
+    private static final List<String> COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PI_GEOMETRY,
+        COL_NAME_PSI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+
     private final ProgramService programService;
 
     private final ProgramStageService programStageService;
@@ -416,21 +430,21 @@ public class DefaultEventDataQueryService
         {
             coordinateFields.add( StringUtils.EMPTY );
         }
-        else if ( List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ).contains( coordinateField ) )
+        else if ( COL_NAME_GEOMETRY_LIST.contains( coordinateField ) )
         {
             coordinateFields.add( getCoordinateFieldOrFail( program, coordinateField, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, "psigeometry", ErrorCode.E7221 ) );
+            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, "pigeometry", ErrorCode.E7221 ) );
+            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.TRACKER_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, "teigeometry", ErrorCode.E7221 ) );
+            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221 ) );
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
@@ -466,12 +480,12 @@ public class DefaultEventDataQueryService
 
     private boolean verifyFallbackCoordinateField( boolean isRegistration, String coordinateField )
     {
-        if ( "teigeometry".equals( coordinateField ) )
+        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) )
         {
             return isRegistration;
         }
 
-        return List.of( "psigeometry", "pigeometry", "ougeometry" ).contains( coordinateField );
+        return COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST.contains( coordinateField );
     }
 
     private List<String> getFallbackCoordinateFields( String program, String fallbackCoordinateField,
@@ -495,8 +509,7 @@ public class DefaultEventDataQueryService
             if ( defaultCoordinateFallback )
             {
                 List<String> items = new ArrayList<>(
-                    prg.isRegistration() ? List.of( "psigeometry", "pigeometry", "teigeometry", "ougeometry" )
-                        : List.of( "psigeometry", "pigeometry", "ougeometry" ) );
+                    prg.isRegistration() ? COL_NAME_GEOMETRY_LIST : COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST );
 
                 fallbackCoordinateFields.addAll( items );
             }

@@ -64,6 +64,17 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 abstract class EventAnalyticsTest
 {
+    private static final String COL_NAME_PI_GEOMETRY = "pigeometry";
+
+    private static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
+
+    private static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
+
+    private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
+
+    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PI_GEOMETRY, COL_NAME_PSI_GEOMETRY,
+        COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+
     @Mock
     protected SqlRowSet rowSet;
 
@@ -145,6 +156,7 @@ abstract class EventAnalyticsTest
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( getTableName() + "_" + programA.getUid() );
         params.withProgram( programA );
+        params.withCoordinateFields( COL_NAME_GEOMETRY_LIST );
         return params.build();
     }
 
