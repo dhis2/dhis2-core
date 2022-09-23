@@ -446,7 +446,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         String whereClause = this.subject.getWhereClause( params );
 
         // Then
-        assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
+        assertThat( whereClause, containsString( "and coalesce(ax.\"" + deA.getUid() + "_geom" + "\") is not null" ) );
     }
 
     @Test

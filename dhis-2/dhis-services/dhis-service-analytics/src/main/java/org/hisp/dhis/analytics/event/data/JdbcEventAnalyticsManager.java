@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
@@ -48,6 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +73,9 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -527,7 +531,7 @@ public class JdbcEventAnalyticsManager
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
             sql += hlp.whereAnd() + " " +
-                getCoalesce( params.getCoordinateFields() ) +
+                getCoalesce( resolveCoordinateFieldsColumnNames( params.getCoordinateFields(), params ) ) +
                 " is not null ";
         }
 
@@ -582,28 +586,6 @@ public class JdbcEventAnalyticsManager
             .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
     }
-
-    // /**
-    // * The method produces a snippet like this: ax."psigeometry" is not null
-    // or
-    // * ax."pigeometry" is NOT NULL or ax."ougeometry" is NOT NULL
-    // *
-    // * @param params
-    // * @return
-    // */
-    // private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams
-    // params )
-    // {
-    // if ( params.getFallbackCoordinateField() == null )
-    // {
-    // return StringUtils.EMPTY;
-    // }
-    //
-    // return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
-    // .map( f -> quoteAlias( resolveCoordinateFieldColumnName( f, params ) ) +
-    // " is not null" )
-    // .collect( joining( " or " ) );
-    // }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
     {
@@ -698,19 +680,26 @@ public class JdbcEventAnalyticsManager
      * If the coordinateField points to an Item of type ORG UNIT, add the
      * "_geom" suffix to the field name.
      */
-    // private String resolveCoordinateFieldColumnName( String coordinateField,
-    // EventQueryParams params )
-    // {
-    // for ( QueryItem queryItem : params.getItems() )
-    // {
-    // if ( queryItem.getItem().getUid().equals( coordinateField )
-    // && queryItem.getValueType() == ValueType.ORGANISATION_UNIT )
-    // {
-    // return coordinateField + OU_GEOMETRY_COL_SUFFIX;
-    // }
-    // }
-    // return coordinateField;
-    // }
+    private List<String> resolveCoordinateFieldsColumnNames( List<String> coordinateFields, EventQueryParams params )
+    {
+        // possible immutable to mutable
+        List<String> coors = new ArrayList<>( coordinateFields );
+
+        for ( int i = 0; i < coors.size(); ++i )
+        {
+            for ( QueryItem queryItem : params.getItems() )
+            {
+                if ( queryItem.getItem().getUid().equals( coordinateFields.get( i ) )
+                    && queryItem.getValueType() == ValueType.ORGANISATION_UNIT )
+                {
+                    coors.set( i, coors.get( i )
+                        .replaceAll( coors.get( i ), coors.get( i ) + OU_GEOMETRY_COL_SUFFIX ) );
+                }
+            }
+        }
+
+        return coors;
+    }
 
     protected static class ExceptionHandler
     {
