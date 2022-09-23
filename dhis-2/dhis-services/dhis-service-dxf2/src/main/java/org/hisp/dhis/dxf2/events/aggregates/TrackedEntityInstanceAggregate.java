@@ -183,6 +183,8 @@ public class TrackedEntityInstanceAggregate
         AggregateContext ctx = user.map( u -> getCachedAggregateContext( u )
             .toBuilder()
             .userId( u.getId() )
+            .userUid( u.getUid() )
+            .userGroups( userGroupUIDCache.get( u.getUid() ) )
             .superUser( u.isSuper() ) )
             .orElse( new AggregateContext.AggregateContextBuilder()
                 .superUser( true )
