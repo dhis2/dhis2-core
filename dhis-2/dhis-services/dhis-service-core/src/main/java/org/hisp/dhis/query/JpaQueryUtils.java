@@ -363,7 +363,8 @@ public class JpaQueryUtils
         };
     }
 
-    public static String generateSQlQueryForSharingCheck( String sharingColumn, String userId, List<String> userGroupIds, String access )
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, String userId,
+        List<String> userGroupIds, String access )
     {
         return generateSQlQueryForSharingCheck( sharingColumn, access, userId, getGroupsIds( userGroupIds ) );
     }
@@ -426,7 +427,8 @@ public class JpaQueryUtils
             JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')" );
     }
 
-    private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId, String groupsIds )
+    private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId,
+        String groupsIds )
     {
         return String.format( generateSQlQueryForSharingCheck( groupsIds ), sharingColumn, userId, groupsIds, access );
     }
