@@ -117,7 +117,9 @@ public class DefaultEventStore
             "select co.categoryoptionid " +
             "from dataelementcategoryoption co  " +
             " where "
-            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", ctx.getUserUid(), ctx.getUserGroups(), AclService.LIKE_READ_DATA ) + ") )";
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", ctx.getUserUid(), ctx.getUserGroups(),
+                AclService.LIKE_READ_DATA )
+            + ") )";
     }
 
     private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
