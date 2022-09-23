@@ -70,6 +70,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
@@ -102,6 +103,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
@@ -352,9 +354,14 @@ public class DataQueryParams
     protected Date startDate;
 
     /**
-     * The end date fore the period dimension, can be null.
+     * The end date for the period dimension, can be null.
      */
     protected Date endDate;
+
+    /**
+     * The date range for the period dimension, can be empty.
+     */
+    protected List<DateRange> dateRangeList = new ArrayList<>();
 
     /**
      * The order in which the data values has to be sorted, can be null.
@@ -581,6 +588,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.dateRangeList = this.dateRangeList;
         params.order = this.order;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
@@ -660,6 +668,8 @@ public class DataQueryParams
             .add( "approvalLevel", approvalLevel )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
+            .add( "dateRangeList", dateRangeList.stream()
+                .map( DateRange::toString ).collect( Collectors.joining( ":" ) ) )
             .add( "order", order )
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
@@ -816,22 +826,6 @@ public class DataQueryParams
         if ( !filterPeriods.isEmpty() )
         {
             return ((Period) filterPeriods.get( 0 )).getPeriodType();
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the first period specified as filter, or null if there is no
-     * period filter.
-     */
-    public Period getFilterPeriod()
-    {
-        List<DimensionalItemObject> filterPeriods = getFilterPeriods();
-
-        if ( !filterPeriods.isEmpty() )
-        {
-            return (Period) filterPeriods.get( 0 );
         }
 
         return null;
@@ -1441,11 +1435,59 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether any start date is after the end date, which is invalid.
+     */
+    public boolean startDatesAfterEndDates()
+    {
+        return hasDateRangeList() && dateRangeList.stream()
+            .anyMatch( drl -> drl.getStartDate().after( drl.getEndDate() ) );
+    }
+
+    /**
      * Indicates whether this query has a start and end date restriction.
      */
     public boolean hasStartEndDateRestriction()
     {
         return startDateRestriction != null && endDateRestriction != null;
+    }
+
+    /**
+     * Indicates whether this query has a nonempty dateRangeList.
+     */
+    public boolean hasDateRangeList()
+    {
+        return dateRangeList != null && !dateRangeList.isEmpty();
+    }
+
+    /**
+     * Indicates whether this query has a continuous or EMPTY dateRangeList. It
+     * assumes that the dateRangeList is sorted. It should happen in the
+     * EventQueryParam::replacePeriodsWithDates method.
+     */
+    public boolean hasContinuousDateRangeList()
+    {
+        if ( !hasDateRangeList() )
+        {
+            return true;
+        }
+
+        if ( dateRangeList.size() == 1 )
+        {
+            return true;
+        }
+
+        for ( int i = dateRangeList.size() - 1; i > 0; i-- )
+        {
+            boolean diffAboveOneDay = DateUtils.daysBetween( dateRangeList.get( i - 1 ).getEndDate(),
+                dateRangeList.get( i ).getStartDate() ) > 1;
+
+            if ( diffAboveOneDay )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -2277,6 +2319,11 @@ public class DataQueryParams
     public Date getEndDate()
     {
         return endDate;
+    }
+
+    public List<DateRange> getDateRangeList()
+    {
+        return dateRangeList;
     }
 
     public SortOrder getOrder()
