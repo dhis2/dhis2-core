@@ -48,9 +48,19 @@ public class AggregateContext
     boolean superUser;
 
     /**
+     * The current user uid
+     */
+    String userUid;
+
+    /**
      * The current user id
      */
     Long userId;
+
+    /**
+     * A list of group UIDs which the user belongs
+     */
+    List<String> userGroups;
 
     /**
      * A List of Tracked Entity Types ID to which the user has READ ONLY access

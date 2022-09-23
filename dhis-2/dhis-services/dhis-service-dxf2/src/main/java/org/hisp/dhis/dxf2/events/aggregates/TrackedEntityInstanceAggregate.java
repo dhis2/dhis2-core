@@ -146,6 +146,8 @@ public class TrackedEntityInstanceAggregate extends AbstractAggregate implements
                 .orElse( Lists.newArrayList() ) ) )
             .toBuilder()
             .userId( u.getId() )
+            .userUid( u.getUid() )
+            .userGroups( userGroupUIDCache.get( u.getUid() ).orElse( Collections.emptyList() ) )
             .superUser( u.isSuper() ) )
             .orElse( new AggregateContext.AggregateContextBuilder()
                 .superUser( true )
