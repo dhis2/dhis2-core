@@ -92,7 +92,7 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
             // Remove the existed option from OptionSet, will add the updating
             // one
             // in postUpdate()
-            optionSet.getOptions().remove( persistedObject );
+            optionSet.removeOption( persistedObject );
         }
     }
 
