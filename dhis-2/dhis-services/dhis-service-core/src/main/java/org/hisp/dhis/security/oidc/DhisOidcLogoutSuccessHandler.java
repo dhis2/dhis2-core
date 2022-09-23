@@ -36,6 +36,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.h2.util.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -61,9 +62,12 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
     public void init()
     {
         String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        this.handler.setDefaultTargetUrl( logoutUri );
-        this.handler.setPostLogoutRedirectUri( logoutUri );
+        if ( !StringUtils.isNullOrEmpty( logoutUri ) )
+        {
+            this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
+            this.handler.setDefaultTargetUrl( logoutUri );
+            this.handler.setPostLogoutRedirectUri( logoutUri );
+        }
     }
 
     @Override
@@ -72,6 +76,9 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         throws IOException,
         ServletException
     {
-        handler.onLogoutSuccess( request, response, authentication );
+        if ( handler != null )
+        {
+            handler.onLogoutSuccess( request, response, authentication );
+        }
     }
 }
