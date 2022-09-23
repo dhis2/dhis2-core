@@ -235,6 +235,8 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-sms-configuration/**" )
                 .hasAnyAuthority( "ALL", "M_dhis-web-sms-configuration" )
                 .antMatchers( "/dhis-web-user/**" ).hasAnyAuthority( "ALL", "M_dhis-web-user" )
+                .antMatchers( "/dhis-web-aggregate-data-entry/**" )
+                .hasAnyAuthority( "ALL", "M_dhis-web-aggregate-data-entry" )
 
                 .antMatchers( "/**" ).authenticated()
                 .and()
