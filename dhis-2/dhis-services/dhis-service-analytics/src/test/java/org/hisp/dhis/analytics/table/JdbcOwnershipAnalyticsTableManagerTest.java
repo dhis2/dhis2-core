@@ -257,10 +257,10 @@ class JdbcOwnershipAnalyticsTableManagerTest
         assertEquals( 1, jdbcInvocations.size() );
         assertEquals( "queryForRowSet", jdbcInvocations.get( 0 ).getMethod().getName() );
 
-        String sql = (String) jdbcInvocations.get( 0 ).getArgument( 0 );
+        String sql = jdbcInvocations.get( 0 ).getArgument( 0 );
         String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'" );
-        assertEquals( "select tei.uid,o.owndate,null,ou.uid from (" +
+        assertEquals( "select tei.uid,o.owndate,o.owndate,ou.uid from (" +
             "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
             "from programinstance pi " +
             "where pi.programid=0 and pi.trackedentityinstanceid is not null " +
@@ -306,7 +306,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
         List<AnalyticsTableColumn> expected = List.of(
             new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
             new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
-            new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
+            new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
             new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
         assertEquals( expected, target.getFixedColumns() );

@@ -98,7 +98,9 @@ public class JdbcOwnershipAnalyticsTableManager
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
         new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
-        new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
+        // Repeating the same alias "o.owndate" is not a typo. It might avoid a
+        // bug that may appear in some environments. This column is not read.
+        new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
     @Override
