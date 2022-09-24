@@ -44,6 +44,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -239,23 +241,7 @@ public class TrackedEntityInstanceController
 
         FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
 
-        if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
-        {
-            throw new WebMessageException(
-                notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
-        }
-
-        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
-        {
-            // -----------------------------------------------------------------
-            // The FileResource exists and is tied to DataValue, however the
-            // underlying file content still not stored to external file store
-            // -----------------------------------------------------------------
-
-            throw new WebMessageException(
-                conflict( "The content is being processed and is not available yet. Try again later.",
-                    "The content requested is in transit to the file store and will be available at a later time." ) );
-        }
+        validateFileResource( fileResource, value );
 
         // ---------------------------------------------------------------------
         // Build response and return
@@ -284,6 +270,68 @@ public class TrackedEntityInstanceController
         {
             throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend." ) );
+        }
+    }
+
+    @GetMapping( value = "{teiId}/{attributeId}/files" )
+    public void getTrackedEntityAttributeFile(
+        @PathVariable( "teiId" ) String teiId,
+        @PathVariable( "attributeId" ) String attributeId, HttpServletResponse response )
+        throws WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        org.hisp.dhis.trackedentity.TrackedEntityInstance tei = Optional
+            .ofNullable( instanceService.getTrackedEntityInstance( teiId ) )
+            .orElseThrow(
+                () -> new WebMessageException( notFound( "TrackedEntityInstance not found for ID " + teiId ) ) );
+
+        List<String> trackerAccessErrors = trackerAccessManager.canRead( currentUser, tei );
+
+        if ( !trackerAccessErrors.isEmpty() )
+        {
+            throw new WebMessageException(
+                unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+        }
+
+        Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
+
+        Optional<TrackedEntityAttributeValue> optionalAttributeValue = attributeValues.stream()
+            .filter( att -> att.getAttribute().getUid().equals( attributeId ) )
+            .findFirst();
+
+        if ( optionalAttributeValue.isEmpty() )
+        {
+            throw new WebMessageException( notFound( "Value not found for ID " + attributeId ) );
+        }
+
+        if ( optionalAttributeValue.get().getAttribute().getValueType() != ValueType.FILE_RESOURCE )
+        {
+            throw new WebMessageException( conflict( "Attribute must be of type FILE_RESOURCE" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Get file resource
+        // ---------------------------------------------------------------------
+
+        TrackedEntityAttributeValue value = optionalAttributeValue.get();
+
+        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
+
+        validateFileResource( fileResource, value );
+
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLengthLong( fileResource.getContentLength() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        try
+        {
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
+        }
+        catch ( IOException e )
+        {
+            throw new WebMessageException( error( "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
     }
 
@@ -540,5 +588,22 @@ public class TrackedEntityInstanceController
         }
 
         return params;
+    }
+
+    private void validateFileResource( FileResource fileResource, TrackedEntityAttributeValue value )
+        throws WebMessageException
+    {
+        if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
+        {
+            throw new WebMessageException(
+                notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
+        }
+
+        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
+        {
+            throw new WebMessageException(
+                conflict( "The content is being processed and is not available yet. Try again later.",
+                    "The content requested is in transit to the file store and will be available at a later time." ) );
+        }
     }
 }

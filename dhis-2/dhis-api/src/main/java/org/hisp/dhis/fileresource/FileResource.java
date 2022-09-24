@@ -36,7 +36,6 @@ import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
