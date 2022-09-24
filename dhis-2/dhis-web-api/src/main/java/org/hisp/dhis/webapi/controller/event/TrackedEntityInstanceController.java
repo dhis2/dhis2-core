@@ -216,7 +216,7 @@ public class TrackedEntityInstanceController
                 unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
-        if ( attribute.size() == 0 )
+        if ( attribute.isEmpty() )
         {
             throw new WebMessageException( notFound( "Attribute not found for ID " + attributeId ) );
         }
