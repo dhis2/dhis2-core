@@ -58,11 +58,6 @@ public class JdbcOrgUnitAssociationsStore
     {
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
-        if ( userOrgUnitPaths.isEmpty() )
-        {
-            return new HashSetValuedHashMap<>();
-        }
-
         return jdbcTemplate.query(
             queryBuilder.buildSqlQuery( objectUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
