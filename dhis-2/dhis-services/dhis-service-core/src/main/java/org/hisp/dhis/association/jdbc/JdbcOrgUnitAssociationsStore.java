@@ -58,7 +58,7 @@ public class JdbcOrgUnitAssociationsStore
     {
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
-        if ( userOrgUnitPaths.isEmpty() || objectUids.isEmpty() )
+        if ( userOrgUnitPaths.isEmpty() )
         {
             return new HashSetValuedHashMap<>();
         }
