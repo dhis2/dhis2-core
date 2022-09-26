@@ -203,6 +203,8 @@ public class JdbcEventStore implements EventStore
 
     private static final String EQUALS = " = ";
 
+    private static final String AND = " AND ";
+
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
         .put( EVENT_ID, "psi_uid" )
         .put( EVENT_PROGRAM_ID, "p_uid" )
@@ -1012,50 +1014,56 @@ public class JdbcEventStore implements EventStore
                 .append( teaValueCol + ".trackedentityattributeid" )
                 .append( EQUALS )
                 .append( teaCol + ".trackedentityattributeid" )
-                .append( " AND " )
+                .append( AND )
                 .append( teaCol + ".UID" )
                 .append( EQUALS )
                 .append( statementBuilder.encode( queryItem.getItem().getUid(), true ) );
 
-            if ( queryItem.isNumeric() && !queryItem.getFilters().isEmpty() )
+            if ( !queryItem.getFilters().isEmpty() )
             {
-                attributes
-                    .append( " AND CASE WHEN " )
-                    .append( lower( teaCol + ".valueType" ) )
-                    .append( " in (" )
-                    .append( NUMERIC_TYPES.stream()
-                        .map( Enum::name )
-                        .map( StringUtils::lowerCase )
-                        .map( SqlUtils::singleQuote )
-                        .collect( Collectors.joining( "," ) ) )
-                    .append( ")" )
-                    .append( " THEN " );
-            }
-            else if ( !queryItem.getFilters().isEmpty() )
-            {
-                attributes.append( " AND " );
-            }
-            List<String> filterStrings = new ArrayList<>();
-            for ( QueryFilter filter : queryItem.getFilters() )
-            {
-                StringBuilder filterString = new StringBuilder();
-                final String queryCol = queryItem.isNumeric() ? castToNumber( teaValueCol + ".value" )
-                    : lower( teaValueCol + ".value" );
-                final Object encodedFilter = queryItem.isNumeric() ? Double.valueOf( filter.getFilter() )
-                    : StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) );
-                filterString
-                    .append( queryCol )
-                    .append( SPACE )
-                    .append( filter.getSqlOperator() )
-                    .append( SPACE )
-                    .append( encodedFilter );
-                filterStrings.add( filterString.toString() );
-            }
-            attributes.append( String.join( " AND ", filterStrings ) );
+                attributes.append( AND );
 
-            if ( queryItem.isNumeric() && !queryItem.getFilters().isEmpty() )
-            {
-                attributes.append( " END " );
+                // In SQL the order of expressions linked by AND is not
+                // guaranteed.
+                // So when casting to number we need to be sure that the value
+                // to cast is really a number.
+                if ( queryItem.isNumeric() )
+                {
+                    attributes
+                        .append( " CASE WHEN " )
+                        .append( lower( teaCol + ".valueType" ) )
+                        .append( " in (" )
+                        .append( NUMERIC_TYPES.stream()
+                            .map( Enum::name )
+                            .map( StringUtils::lowerCase )
+                            .map( SqlUtils::singleQuote )
+                            .collect( Collectors.joining( "," ) ) )
+                        .append( ")" )
+                        .append( " THEN " );
+                }
+
+                List<String> filterStrings = new ArrayList<>();
+                for ( QueryFilter filter : queryItem.getFilters() )
+                {
+                    StringBuilder filterString = new StringBuilder();
+                    final String queryCol = queryItem.isNumeric() ? castToNumber( teaValueCol + ".value" )
+                        : lower( teaValueCol + ".value" );
+                    final Object encodedFilter = queryItem.isNumeric() ? Double.valueOf( filter.getFilter() )
+                        : StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) );
+                    filterString
+                        .append( queryCol )
+                        .append( SPACE )
+                        .append( filter.getSqlOperator() )
+                        .append( SPACE )
+                        .append( encodedFilter );
+                    filterStrings.add( filterString.toString() );
+                }
+                attributes.append( String.join( AND, filterStrings ) );
+
+                if ( queryItem.isNumeric() )
+                {
+                    attributes.append( " END " );
+                }
             }
         }
     }
