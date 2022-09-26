@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -43,6 +44,8 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -64,6 +67,9 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
 
     private OrganisationUnit orgUnit;
 
@@ -278,6 +284,50 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
+    }
+
+    @Test
+    void getTrackedEntityByIdWithEnrollments()
+    {
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
+
+        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+            program, new Date(), new Date(), orgUnit );
+
+        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=enrollments", trackedEntityInstance.getUid() )
+            .content( HttpStatus.OK );
+
+        assertWithEnrollmentResponse( json, programInstance );
+    }
+
+    private void assertWithEnrollmentResponse( JsonObject json, ProgramInstance programInstance )
+    {
+        assertTrue( json.isObject() );
+        assertFalse( json.isEmpty() );
+        assertHasOnlyMembers( json, "enrollments" );
+
+        JsonObject enrollment = json.getArray( "enrollments" ).get( 0 ).asObject();
+
+        assertHasMember( enrollment, "enrollment" );
+
+        assertEquals( programInstance.getUid(), enrollment.getString( "enrollment" ).string() );
+        assertEquals( programInstance.getUid(), enrollment.getString( "enrollment" ).string() );
+        assertEquals( programInstance.getEntityInstance().getUid(), enrollment.getString( "trackedEntity" ).string() );
+        assertEquals( program.getUid(), enrollment.getString( "program" ).string() );
+        assertEquals( "ACTIVE", enrollment.getString( "status" ).string() );
+        assertEquals( orgUnit.getUid(), enrollment.getString( "orgUnit" ).string() );
+        assertEquals( orgUnit.getName(), enrollment.getString( "orgUnitName" ).string() );
+        assertFalse( enrollment.getBoolean( "deleted" ).booleanValue() );
+        assertHasMember( enrollment, "enrolledAt" );
+        assertHasMember( enrollment, "occurredAt" );
+        assertHasMember( enrollment, "createdAt" );
+        assertHasMember( enrollment, "createdAtClient" );
+        assertHasMember( enrollment, "updatedAt" );
+        assertHasMember( enrollment, "notes" );
+        assertHasMember( enrollment, "attributes" );
+        assertHasMember( enrollment, "relationships" );
+        assertHasMember( enrollment, "events" );
+        assertHasMember( enrollment, "followUp" );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

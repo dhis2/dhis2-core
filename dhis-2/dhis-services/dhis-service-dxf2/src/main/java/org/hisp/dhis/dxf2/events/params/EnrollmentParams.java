@@ -44,17 +44,17 @@ public class EnrollmentParams implements InstanceParams
     public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false, false );
 
     // Root is only relevant if it is a nested Param
-    private final boolean includeRoot;
+    boolean includeRoot;
 
-    private final boolean includeEvents;
+    boolean includeEvents;
 
-    private final boolean includeRelationships;
+    boolean includeRelationships;
 
-    private final boolean includeAttributes;
+    boolean includeAttributes;
 
-    private final boolean includeDeleted;
+    boolean includeDeleted;
 
-    private final boolean dataSynchronizationQuery;
+    boolean dataSynchronizationQuery;
 
     @JsonProperty
     public boolean isIncludeRelationships()
@@ -96,15 +96,5 @@ public class EnrollmentParams implements InstanceParams
     public boolean isIncludeProgramOwners()
     {
         return false;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "EnrollmentParams{" +
-            "includeRelationships=" + includeRelationships +
-            ", includeEvents=" + includeEvents +
-            ", includeAttributes=" + includeAttributes +
-            '}';
     }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.TrackerEnrollmentFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
@@ -47,7 +48,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -80,9 +80,6 @@ public class TrackerEnrollmentsExportController
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    @NonNull
-    private final EnrollmentsSupportService enrollmentsSupportService;
-
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
@@ -114,7 +111,7 @@ public class TrackerEnrollmentsExportController
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream()
                     .map( uid -> enrollmentService.getEnrollment( uid,
-                        enrollmentsSupportService.getInstanceParams( fields ) ) )
+                        map( fields ) ) )
                     .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
@@ -131,7 +128,7 @@ public class TrackerEnrollmentsExportController
         throws NotFoundException
     {
         return Optional.ofNullable( enrollmentService.getEnrollment( id,
-            enrollmentsSupportService.getInstanceParams( fields ) ) )
+            map( fields ) ) )
             .map( e -> ResponseEntity.ok( fieldFilterService.toObjectNode( ENROLLMENT_MAPPER.from( e ), fields ) ) )
             .orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
     }

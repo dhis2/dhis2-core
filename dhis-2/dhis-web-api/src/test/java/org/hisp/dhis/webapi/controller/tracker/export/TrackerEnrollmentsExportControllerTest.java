@@ -39,13 +39,11 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.webapi.controller.tracker.export.support.EnrollmentsSupportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -68,9 +66,6 @@ class TrackerEnrollmentsExportControllerTest
     @Captor
     ArgumentCaptor<EnrollmentParams> entityInstanceParamsArgumentCaptor;
 
-    @InjectMocks
-    EnrollmentsSupportService enrollmentsSupportService;
-
     String enrollment = CodeGenerator.generateUid();
 
     @BeforeEach
@@ -78,7 +73,7 @@ class TrackerEnrollmentsExportControllerTest
     {
         mockMvc = MockMvcBuilders
             .standaloneSetup( new TrackerEnrollmentsExportController( enrollmentCriteriaMapper, enrollmentService,
-                fieldFilterService, enrollmentsSupportService ) )
+                fieldFilterService ) )
             .build();
     }
 

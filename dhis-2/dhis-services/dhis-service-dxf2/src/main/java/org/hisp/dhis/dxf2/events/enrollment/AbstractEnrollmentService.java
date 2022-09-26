@@ -403,8 +403,6 @@ public abstract class AbstractEnrollmentService
                         .getCode() );
                     attribute.setValue( trackedEntityAttributeValue.getValue() );
                     attribute.setStoredBy( trackedEntityAttributeValue.getStoredBy() );
-                    attribute.setSkipSynchronization( trackedEntityAttributeValue.getAttribute()
-                        .getSkipSynchronization() );
 
                     enrollment.getAttributes().add( attribute );
                 }

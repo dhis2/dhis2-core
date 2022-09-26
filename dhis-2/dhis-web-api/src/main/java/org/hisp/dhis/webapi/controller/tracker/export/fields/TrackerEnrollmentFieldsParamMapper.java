@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.support;
+package org.hisp.dhis.webapi.controller.tracker.export.fields;
+
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.InstanceFieldsParamMapper.FIELD_ATTRIBUTES;
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.InstanceFieldsParamMapper.FIELD_EVENTS;
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.InstanceFieldsParamMapper.FIELD_RELATIONSHIPS;
 
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class EnrollmentsSupportService extends InstanceFieldsSupportService
+public class TrackerEnrollmentFieldsParamMapper
 {
-    public EnrollmentParams getInstanceParams( List<String> fields )
+
+    public static EnrollmentParams map( List<String> fields )
     {
-        Map<String, FieldPath> roots = getRoots( fields );
+        Map<String, FieldPath> roots = InstanceFieldsParamMapper.getRoots( fields );
         EnrollmentParams params = initUsingAllOrNoFields( roots );
 
         params = withFieldRelationships( roots, params );
@@ -53,7 +53,7 @@ public class EnrollmentsSupportService extends InstanceFieldsSupportService
         return params;
     }
 
-    private EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    private static EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
         EnrollmentParams params = EnrollmentParams.FALSE;
         if ( roots.containsKey( FieldPreset.ALL ) )
@@ -67,7 +67,7 @@ public class EnrollmentsSupportService extends InstanceFieldsSupportService
         return params;
     }
 
-    private EnrollmentParams withFieldRelationships( Map<String, FieldPath> roots,
+    private static EnrollmentParams withFieldRelationships( Map<String, FieldPath> roots,
         EnrollmentParams params )
     {
         return roots.containsKey( FIELD_RELATIONSHIPS )
@@ -75,7 +75,7 @@ public class EnrollmentsSupportService extends InstanceFieldsSupportService
             : params;
     }
 
-    private EnrollmentParams withFieldEvents(
+    private static EnrollmentParams withFieldEvents(
         Map<String, FieldPath> roots,
         EnrollmentParams params )
     {
@@ -84,12 +84,11 @@ public class EnrollmentsSupportService extends InstanceFieldsSupportService
             : params;
     }
 
-    private EnrollmentParams withFieldAttributes( Map<String, FieldPath> roots,
+    private static EnrollmentParams withFieldAttributes( Map<String, FieldPath> roots,
         EnrollmentParams params )
     {
         return roots.containsKey( FIELD_ATTRIBUTES )
             ? params.withIncludeAttributes( !roots.get( FIELD_ATTRIBUTES ).isExclude() )
             : params;
     }
-
 }

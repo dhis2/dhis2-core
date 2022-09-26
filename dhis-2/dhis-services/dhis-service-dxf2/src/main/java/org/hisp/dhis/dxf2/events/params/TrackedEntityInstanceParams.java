@@ -50,17 +50,17 @@ public class TrackedEntityInstanceParams implements InstanceParams
     public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
         EnrollmentParams.TRUE, true, true, true, true );
 
-    private final boolean includeRelationships;
+    boolean includeRelationships;
 
-    private final EnrollmentParams enrollmentParams;
+    EnrollmentParams enrollmentParams;
 
-    private final boolean includeProgramOwners;
+    boolean includeProgramOwners;
 
-    private final boolean includeAttributes;
+    boolean includeAttributes;
 
-    private final boolean includeDeleted;
+    boolean includeDeleted;
 
-    private final boolean dataSynchronizationQuery;
+    boolean dataSynchronizationQuery;
 
     @JsonProperty
     public boolean isIncludeRelationships()
@@ -102,19 +102,5 @@ public class TrackedEntityInstanceParams implements InstanceParams
     public boolean isIncludeAttributes()
     {
         return includeAttributes;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityInstanceParams{" +
-            "includeRelationships=" + includeRelationships +
-            ", includeEnrollments=" + enrollmentParams.isIncludeRoot() +
-            ", includeEvents=" + enrollmentParams.isIncludeEvents() +
-            ", includeProgramOwners=" + includeProgramOwners +
-            ", includeAttributes=" + includeAttributes +
-            ", includeDeleted=" + includeDeleted +
-            ", dataSynchronizationQuery=" + dataSynchronizationQuery +
-            '}';
     }
 }

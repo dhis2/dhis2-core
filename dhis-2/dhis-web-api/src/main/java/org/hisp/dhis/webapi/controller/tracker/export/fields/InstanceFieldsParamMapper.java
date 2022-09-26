@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.support;
+package org.hisp.dhis.webapi.controller.tracker.export.fields;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,17 +38,17 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * Abstract class that provides basic methods to transform input fields into
- * {@link FieldPath } based on {@link FieldFilterParser }. It follows the
- * principles of {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ * Provides basic methods to transform input fields into {@link FieldPath }
+ * based on {@link FieldFilterParser }. It follows the principles of
+ * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-abstract class InstanceFieldsSupportService
+public interface InstanceFieldsParamMapper
 {
-    protected static final String FIELD_RELATIONSHIPS = "relationships";
+    String FIELD_RELATIONSHIPS = "relationships";
 
-    protected static final String FIELD_EVENTS = "events";
+    String FIELD_EVENTS = "events";
 
-    protected static final String FIELD_ATTRIBUTES = "attributes";
+    String FIELD_ATTRIBUTES = "attributes";
 
     /**
      * Parse the fields query parameter values to determine which resources
@@ -57,20 +57,20 @@ abstract class InstanceFieldsSupportService
      * @param fields fields query parameter values
      * @return InstanceParams
      */
-    abstract InstanceParams getInstanceParams( List<String> fields );
+    InstanceParams map( List<String> fields );
 
-    protected Map<String, FieldPath> getRoots( List<String> fields )
+    static Map<String, FieldPath> getRoots( List<String> fields )
     {
         return rootFields( getFieldPaths( fields ) );
     }
 
-    protected List<FieldPath> getFieldPaths( List<String> fields )
+    static List<FieldPath> getFieldPaths( List<String> fields )
     {
         return FieldFilterParser
             .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
     }
 
-    protected Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();
         for ( FieldPath p : fieldPaths )

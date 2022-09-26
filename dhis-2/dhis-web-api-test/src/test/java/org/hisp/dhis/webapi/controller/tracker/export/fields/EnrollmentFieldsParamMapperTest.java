@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.support;
+package org.hisp.dhis.webapi.controller.tracker.export.fields;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.TrackerEnrollmentFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -41,10 +42,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class EnrollmentsSupportServiceTest
+class EnrollmentFieldsParamMapperTest
 {
-    EnrollmentsSupportService enrollmentSupportService = new EnrollmentsSupportService();
-
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
         return Stream.of(
@@ -77,7 +76,7 @@ class EnrollmentsSupportServiceTest
         boolean expectEvents, boolean expectRelationships )
     {
 
-        EnrollmentParams params = enrollmentSupportService.getInstanceParams( fields );
+        EnrollmentParams params = map( fields );
 
         assertEquals( expectAttributes, params.isIncludeAttributes() );
         assertEquals( expectEvents, params.isIncludeEvents() );

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.fields.TrackerTrackedEntityFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -85,7 +86,7 @@ public class TrackerTrackedEntitiesExportController
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntitiesSupportService.getInstanceParams( fields ), false, false ) );
+                map( fields ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
