@@ -16,7 +16,9 @@ jobs:
       TEST_IMAGE_NAME: "dhis2/tests:local"
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
+      SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
       SIERRA_LEONE_DB_MOUNT: "/tmp/db/sierra-leone/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql"
+      SIERRA_LEONE_DB_VERSION: "2.39.0"
     
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
@@ -42,17 +44,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-# We do not want to risk overriding other publications. TODO: Remove it, or find a fix.
-#      - name: Publish docker image
-#        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
-#        run: |
-#          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
-#          docker push $DOCKER_CHANNEL:$PR_NUMBER
       - name: Download Sierra Leone DB
-        run: |
-          mkdir -p /tmp/db/sierra-leone
-          wget https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz -P /tmp/db/sierra-leone
-          gzip -d /tmp/db/sierra-leone/dhis2-db-sierra-leone.sql.gz
+        uses: actions/cache@v3
+        id: cache-sierra-leone-db
+        with:
+          path: SIERRA_LEONE_DB_PATH
+          key: sierra-leone-$SIERRA_LEONE_DB_VERSION
+          restore-keys: |
+            sierra-leone-db-$SIERRA_LEONE_DB_VERSION
+            sierra-leone-db-
+      - run: |
+          mkdir -p $SIERRA_LEONE_DB_PATH
+          wget https://databases.dhis2.org/sierra-leone/$SIERRA_LEONE_DB_VERSION/dhis2-db-sierra-leone.sql.gz -P $SIERRA_LEONE_DB_PATH
+          gzip -d $SIERRA_LEONE_DB_PATH/dhis2-db-sierra-leone.sql.gz
+        if: steps.cache-sierra-leone-db.outputs.cache-hit != 'true'
 
       - name: Build test image
         uses: docker/build-push-action@v3
@@ -60,7 +65,7 @@ jobs:
           context: dhis-2/dhis-e2e-test
           push: false
           load: true # https://github.com/docker/build-push-action/blob/5e11b373bfed0d8024ef33d1586c675819690e95/docs/advanced/export-docker.md
-          tags: ${{ env.TEST_IMAGE_NAME }}
+          tags: $TEST_IMAGE_NAME
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Run tests
