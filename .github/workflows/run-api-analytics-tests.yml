@@ -17,7 +17,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
-      SIERRA_LEONE_DB_MOUNT: "$SIERRA_LEONE_DB_PATH/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql"
+      SIERRA_LEONE_DB_MOUNT: "/tmp/db/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql"
       SIERRA_LEONE_DB_VERSION: "2.39.0"
     
     runs-on: ubuntu-latest
