@@ -40,7 +40,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
