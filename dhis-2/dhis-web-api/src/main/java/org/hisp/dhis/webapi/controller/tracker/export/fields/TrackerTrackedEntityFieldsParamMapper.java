@@ -40,6 +40,10 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 public class TrackerTrackedEntityFieldsParamMapper
 {
+    private TrackerTrackedEntityFieldsParamMapper()
+    {
+    }
+
     private static final String FIELD_PROGRAM_OWNERS = "programOwners";
 
     private static final String FIELD_ENROLLMENTS = "enrollments";
