@@ -31,13 +31,13 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -64,8 +64,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Controller class responsible exclusively for querying operations on top of
- * tracker entity instances objects.
- * Methods in this controller should not change any state.
+ * tracker entity instances objects. Methods in this controller should not
+ * change any state.
  */
 @RestController
 @RequiredArgsConstructor
@@ -136,7 +136,7 @@ class TeiQueryController
     @GetMapping( "/query/dimensions" )
     public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String trackedEntityType,
-        @RequestParam( required = false ) List<String> program,
+        @RequestParam( required = false ) Set<String> program,
         @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
@@ -145,8 +145,7 @@ class TeiQueryController
         return dimensionFilteringAndPagingService
             .pageAndFilter(
                 dimensionMapperService.toDimensionResponse(
-                    teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType,
-                        CollectionUtils.emptyIfNull( program ) ),
+                    teiAnalyticsDimensionsService.getQueryDimensionsByTrackedEntityTypeId( trackedEntityType, program ),
                     TeiAnalyticsPrefixStrategy.INSTANCE ),
                 dimensionsCriteria,
                 fields );

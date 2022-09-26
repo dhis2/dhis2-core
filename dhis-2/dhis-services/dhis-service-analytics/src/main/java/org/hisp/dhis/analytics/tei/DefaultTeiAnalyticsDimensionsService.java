@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -67,14 +64,14 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
 
     @Override
     public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId,
-        Collection<String> programUids )
+        Set<String> programUids )
     {
         TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeId );
 
         if ( Objects.nonNull( trackedEntityType ) )
         {
             Stream<Program> programs;
-            if ( programUids.isEmpty() )
+            if ( CollectionUtils.isEmpty( programUids ) )
             {
                 programs = programService.getAllPrograms().stream();
             }
