@@ -45,7 +45,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Download Sierra Leone DB
-        if: steps.cache-sierra-leone-db.outputs.cache-hit != 'true'
+        if: ${{ steps.cache-sierra-leone-db.outputs.cache-hit != 'true' }}
         uses: actions/cache@v3
         id: cache-sierra-leone-db
         with:
