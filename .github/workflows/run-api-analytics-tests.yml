@@ -50,7 +50,7 @@ jobs:
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
-          key: sierra-leone-db${{ env.SIERRA_LEONE_DB_VERSION }}
+          key: sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
           restore-keys: |
             sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
             sierra-leone-db-
