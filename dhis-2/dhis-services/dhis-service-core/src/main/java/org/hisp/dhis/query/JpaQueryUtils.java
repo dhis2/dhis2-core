@@ -366,6 +366,11 @@ public class JpaQueryUtils
         };
     }
 
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, String userId, List<String> userGroupIds, String access )
+    {
+        return generateSQlQueryForSharingCheck( sharingColumn, access, userId, getGroupsIds( userGroupIds ) );
+    }
+
     /**
      * Return SQL query for checking sharing access for given user
      *
@@ -392,6 +397,29 @@ public class JpaQueryUtils
                     + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%4$s', '%3$s') = true )");
 
         return String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
+    }
+
+    private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId, String groupsIds )
+    {
+        return String.format( generateSQlQueryForSharingCheck( groupsIds ), sharingColumn, userId, groupsIds, access );
+    }
+
+    private static String generateSQlQueryForSharingCheck( String groupsIds )
+    {
+        return " ( %1$s->>'owner' is null or %1$s->>'owner' = '%2$s') "
+            + " or %1$s->>'public' like '%4$s' or %1$s->>'public' is null "
+            + " or (" + JsonbFunctions.HAS_USER_ID + "( %1$s, '%2$s') = true "
+            + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
+            + (StringUtils.isEmpty( groupsIds ) ? ""
+                : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '%3$s') = true "
+                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%4$s', '%3$s') = true )");
+    }
+
+    private static String getGroupsIds( List<String> userGroupIds )
+    {
+        return CollectionUtils.isEmpty( userGroupIds )
+            ? null
+            : "{" + String.join( ",", userGroupIds ) + "}";
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

@@ -1466,7 +1466,7 @@ public class JdbcEventStore implements EventStore
         sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size "
             + "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
             + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
-            + "left join ("
+            + "inner join ("
             + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
             + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
                 user, AclService.LIKE_READ_DATA )
