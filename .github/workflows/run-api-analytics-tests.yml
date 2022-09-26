@@ -48,15 +48,15 @@ jobs:
         uses: actions/cache@v3
         id: cache-sierra-leone-db
         with:
-          path: SIERRA_LEONE_DB_PATH
-          key: sierra-leone-$SIERRA_LEONE_DB_VERSION
+          path: ${{ env.SIERRA_LEONE_DB_PATH }}
+          key: sierra-leone-${{ env.SIERRA_LEONE_VERSION }}
           restore-keys: |
-            sierra-leone-db-$SIERRA_LEONE_DB_VERSION
+            sierra-leone-db-${{ env.SIERRA_LEONE_VERSION }}
             sierra-leone-db-
       - run: |
-          mkdir -p $SIERRA_LEONE_DB_PATH
-          wget https://databases.dhis2.org/sierra-leone/$SIERRA_LEONE_DB_VERSION/dhis2-db-sierra-leone.sql.gz -P $SIERRA_LEONE_DB_PATH
-          gzip -d $SIERRA_LEONE_DB_PATH/dhis2-db-sierra-leone.sql.gz
+          mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
+          wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz -P ${{ env.SIERRA_LEONE_DB_PATH }}
+          gzip -d ${{ env.SIERRA_LEONE_DB_PATH }}/dhis2-db-sierra-leone.sql.gz
         if: steps.cache-sierra-leone-db.outputs.cache-hit != 'true'
 
       - name: Build test image
@@ -65,7 +65,7 @@ jobs:
           context: dhis-2/dhis-e2e-test
           push: false
           load: true # https://github.com/docker/build-push-action/blob/5e11b373bfed0d8024ef33d1586c675819690e95/docs/advanced/export-docker.md
-          tags: $TEST_IMAGE_NAME
+          tags: ${{ env.TEST_IMAGE_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Run tests
