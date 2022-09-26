@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.params.InstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
@@ -42,35 +41,26 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-public interface InstanceFieldsParamMapper
+public class InstanceFieldsParamMapper
 {
-    String FIELD_RELATIONSHIPS = "relationships";
+    protected static final String FIELD_RELATIONSHIPS = "relationships";
 
-    String FIELD_EVENTS = "events";
+    protected static final String FIELD_EVENTS = "events";
 
-    String FIELD_ATTRIBUTES = "attributes";
+    protected static final String FIELD_ATTRIBUTES = "attributes";
 
-    /**
-     * Parse the fields query parameter values to determine which resources
-     * should be fetched from the DB.
-     *
-     * @param fields fields query parameter values
-     * @return InstanceParams
-     */
-    InstanceParams map( List<String> fields );
-
-    static Map<String, FieldPath> getRoots( List<String> fields )
+    protected static Map<String, FieldPath> getRoots( List<String> fields )
     {
         return rootFields( getFieldPaths( fields ) );
     }
 
-    static List<FieldPath> getFieldPaths( List<String> fields )
+    protected static List<FieldPath> getFieldPaths( List<String> fields )
     {
         return FieldFilterParser
             .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
     }
 
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    protected static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();
         for ( FieldPath p : fieldPaths )

@@ -191,8 +191,7 @@ public class TrackedEntityInstanceAggregate
          * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
          * id
          */
-        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeAttributes(),
+        final CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getAttributes( ids ), getPool() );
 
         /*
