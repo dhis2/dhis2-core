@@ -36,6 +36,7 @@ import org.springframework.util.MimeTypeUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -47,7 +48,7 @@ public class FileResource
 
     public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
-    public static final Set<String> IMAGE_CONTENT_TYPES = Set.of( "image/jpg", "image/png", "image/jpeg" );
+    public static final Set<String> IMAGE_CONTENT_TYPES = ImmutableSet.of( "image/jpg", "image/png", "image/jpeg" );
 
     /**
      * MIME type.
