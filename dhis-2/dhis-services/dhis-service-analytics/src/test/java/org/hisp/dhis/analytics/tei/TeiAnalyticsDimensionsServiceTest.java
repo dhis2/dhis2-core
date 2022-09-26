@@ -81,7 +81,7 @@ class TeiAnalyticsDimensionsServiceTest
     void testQueryDoesNotContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = teiAnalyticsDimensionsService
-            .getQueryDimensionsByTrackedEntityTypeId( "aTeiId" ).stream()
+            .getQueryDimensionsByTrackedEntityTypeId( "aTeiId", Collections.emptySet() ).stream()
             .map( PrefixedDimension::getItem )
             .collect( Collectors.toList() );
 

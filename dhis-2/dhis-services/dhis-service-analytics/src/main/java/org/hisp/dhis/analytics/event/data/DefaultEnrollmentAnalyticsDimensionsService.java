@@ -57,7 +57,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAn
     private final ProgramService programService;
 
     @Override
-    public List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programId )
+    public List<PrefixedDimension> getQueryDimensionsByProgramId( String programId )
     {
         return Optional.of( programId )
             .map( programService::getProgram )
