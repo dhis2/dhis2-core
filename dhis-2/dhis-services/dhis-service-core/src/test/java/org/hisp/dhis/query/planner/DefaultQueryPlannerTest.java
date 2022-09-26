@@ -187,7 +187,7 @@ public class DefaultQueryPlannerTest
     }
 
     @Test
-    void verifyPlanQueryWithPersistedAndNotPersistedCriteria()
+    public void verifyPlanQueryWithPersistedAndNotPersistedCriteria()
         throws Exception
     {
         final DataElement dataElement = new DataElement();
