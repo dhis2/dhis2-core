@@ -59,6 +59,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.util.ZipFileUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -338,10 +339,17 @@ public class JCloudsAppStorageService
         try ( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
-            // Parse ZIP file and it's manifest.webapp file.
+            // Determine top-level directory name, if the zip file contains one
             // -----------------------------------------------------------------
 
-            ZipEntry entry = zip.getEntry( MANIFEST_FILENAME );
+            String prefix = ZipFileUtils.getTopLevelDirectory( zip.entries().asIterator() );
+            log.debug( "Detected top-level directory '" + prefix + "' in zip" );
+
+            // -----------------------------------------------------------------
+            // Parse manifest.webapp file from ZIP archive.
+            // -----------------------------------------------------------------
+
+            ZipEntry entry = zip.getEntry( prefix + MANIFEST_FILENAME );
 
             if ( entry == null )
             {
@@ -374,12 +382,13 @@ public class JCloudsAppStorageService
             zip.stream().forEach( (Consumer<ZipEntry>) zipEntry -> {
 
                 log.debug( "Uploading zipEntry: " + zipEntry );
+                String name = zipEntry.getName().substring( prefix.length() );
 
                 try
                 {
                     InputStream input = zip.getInputStream( zipEntry );
 
-                    Blob blob = blobStore.blobBuilder( dest + File.separator + zipEntry.getName() )
+                    Blob blob = blobStore.blobBuilder( dest + File.separator + name )
                         .payload( input )
                         .contentLength( zipEntry.getSize() )
                         .build();
@@ -391,7 +400,7 @@ public class JCloudsAppStorageService
                 }
                 catch ( IOException e )
                 {
-                    log.error( "Unable to store app file '" + zipEntry.getName() + "'", e );
+                    log.error( "Unable to store app file '" + name + "'", e );
                 }
             } );
 
