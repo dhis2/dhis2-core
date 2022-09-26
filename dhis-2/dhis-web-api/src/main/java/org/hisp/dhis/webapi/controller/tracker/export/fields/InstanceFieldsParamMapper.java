@@ -43,6 +43,10 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  */
 public class InstanceFieldsParamMapper
 {
+    private InstanceFieldsParamMapper()
+    {
+    }
+
     protected static final String FIELD_RELATIONSHIPS = "relationships";
 
     protected static final String FIELD_EVENTS = "events";
