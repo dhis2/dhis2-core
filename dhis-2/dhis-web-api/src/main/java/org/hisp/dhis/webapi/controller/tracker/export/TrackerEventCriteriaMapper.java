@@ -27,16 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -46,13 +50,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -85,9 +85,9 @@ import org.springframework.stereotype.Component;
  * {@link TrackerEventCriteria} to {@link EventSearchParams} which is used to
  * fetch events from the DB.
  */
-@Component( "org.hisp.dhis.webapi.controller.tracker.export.EventRequestToSearchParamsMapper" )
+@Component( "org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapper" )
 @RequiredArgsConstructor
-class EventRequestToSearchParamsMapper
+class TrackerEventCriteriaMapper
 {
 
     /**
@@ -132,94 +132,91 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    public EventSearchParams map( TrackerEventCriteria eventCriteria )
+    public EventSearchParams map( TrackerEventCriteria criteria )
     {
-        Program program = programService.getProgram( eventCriteria.getProgram() );
-        validateProgram( eventCriteria.getProgram(), program );
+        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
+        validateProgram( criteria.getProgram(), program );
 
-        ProgramStage programStage = programStageService.getProgramStage( eventCriteria.getProgramStage() );
-        validateProgramStage( eventCriteria.getProgramStage(), programStage );
+        ProgramStage programStage = applyIfNonEmpty( programStageService::getProgramStage,
+            criteria.getProgramStage() );
+        validateProgramStage( criteria.getProgramStage(), programStage );
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( eventCriteria.getOrgUnit() );
-        validateOrgUnit( eventCriteria.getOrgUnit(), orgUnit );
+        OrganisationUnit orgUnit = applyIfNonEmpty( organisationUnitService::getOrganisationUnit,
+            criteria.getOrgUnit() );
+        validateOrgUnit( criteria.getOrgUnit(), orgUnit );
 
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntityInstance trackedEntityInstance = entityInstanceService
-            .getTrackedEntityInstance( eventCriteria.getTrackedEntity() );
-        validateTrackedEntity( eventCriteria.getTrackedEntity(), trackedEntityInstance );
+        TrackedEntityInstance trackedEntityInstance = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+            criteria.getTrackedEntity() );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getAttributeCc(),
-            eventCriteria.getAttributeCos(),
+            criteria.getAttributeCc(),
+            criteria.getAttributeCos(),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        Set<String> eventIds = parseUids( eventCriteria.getEvent() );
-        validateFilter( eventCriteria.getFilter(), eventIds, eventCriteria.getProgramStage(), programStage );
+        Set<String> eventIds = parseAndFilterUids( criteria.getEvent() );
+        validateFilter( criteria.getFilter(), eventIds, criteria.getProgramStage(), programStage );
 
-        Set<String> assignedUserIds = parseUids( eventCriteria.getAssignedUser() );
-        validateAssignedUsers( eventCriteria.getAssignedUserMode(), assignedUserIds );
+        Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
+        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
+
+        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( criteria.getOrder() );
+        List<QueryItem> dataElements = dataElementOrders.keySet()
+            .stream()
+            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
+            .collect( Collectors.toList() );
+
+        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( criteria.getOrder() );
+        List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
+        List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
+
+        List<QueryItem> filterAttributes = parseFilterAttributes( criteria.getFilterAttributes(),
+            attributeOrderParams );
+        validateFilterAttributes( filterAttributes );
+
+        List<QueryItem> filters = criteria.getFilter()
+            .stream()
+            .map( i -> parseQueryItem( i, this::dataElementToQueryItem ) )
+            .collect( Collectors.toList() );
+
+        Set<String> programInstances = criteria.getEnrollments().stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
 
         EventSearchParams params = new EventSearchParams();
 
-        for ( String filter : eventCriteria.getFilter() )
-        {
-            params.addFilter( getQueryItem( filter ) );
-        }
-
-        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
-        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( eventCriteria.getOrder() );
-        List<OrderParam> attributeOrderParams = getGridOrderParams( eventCriteria.getOrder(), attributeOrders );
-
-        List<QueryItem> filterAttributes = parseFilterAttributes( eventCriteria.getFilterAttributes(),
-            attributeOrderParams );
-        validateFilterAttributes( filterAttributes );
-        params.addFilterAttributes( filterAttributes );
-
-        Set<String> dataElements = dataElementOrders.keySet();
-        for ( String de : dataElements )
-        {
-            QueryItem dataElement = getQueryItem( de );
-
-            params.getDataElements().add( dataElement );
-        }
-
-        Set<String> programInstances = eventCriteria.getEnrollments();
-        if ( programInstances != null )
-        {
-            programInstances = programInstances.stream()
-                .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet() );
-        }
-
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
-            .setProgramStatus( eventCriteria.getProgramStatus() ).setFollowUp( eventCriteria.getFollowUp() )
-            .setOrgUnitSelectionMode( eventCriteria.getOuMode() )
-            .setAssignedUserSelectionMode( eventCriteria.getAssignedUserMode() )
+            .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
+            .setOrgUnitSelectionMode( criteria.getOuMode() )
+            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
             .setAssignedUsers( assignedUserIds )
-            .setStartDate( eventCriteria.getOccurredAfter() ).setEndDate( eventCriteria.getOccurredBefore() )
-            .setDueDateStart( eventCriteria.getScheduledAfter() ).setDueDateEnd( eventCriteria.getScheduledBefore() )
-            .setLastUpdatedStartDate( eventCriteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( eventCriteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( eventCriteria.getUpdatedWithin() )
-            .setEnrollmentEnrolledBefore( eventCriteria.getEnrollmentEnrolledBefore() )
-            .setEnrollmentEnrolledAfter( eventCriteria.getEnrollmentEnrolledAfter() )
-            .setEnrollmentOccurredBefore( eventCriteria.getEnrollmentOccurredBefore() )
-            .setEnrollmentOccurredAfter( eventCriteria.getEnrollmentOccurredAfter() )
-            .setEventStatus( eventCriteria.getStatus() )
-            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( eventCriteria.getIdSchemes() )
-            .setPage( eventCriteria.getPage() )
-            .setPageSize( eventCriteria.getPageSize() ).setTotalPages( eventCriteria.isTotalPages() )
-            .setSkipPaging( eventCriteria.isSkipPaging() )
-            .setSkipEventId( eventCriteria.getSkipEventId() ).setIncludeAttributes( false )
-            .setIncludeAllDataElements( false ).setOrders( getOrderParams( eventCriteria.getOrder() ) )
-            .setGridOrders( getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ) )
-            .setAttributeOrders( attributeOrderParams )
+            .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
+            .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
+            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
+            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
+            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
+            .setEnrollmentEnrolledBefore( criteria.getEnrollmentEnrolledBefore() )
+            .setEnrollmentEnrolledAfter( criteria.getEnrollmentEnrolledAfter() )
+            .setEnrollmentOccurredBefore( criteria.getEnrollmentOccurredBefore() )
+            .setEnrollmentOccurredAfter( criteria.getEnrollmentOccurredAfter() )
+            .setEventStatus( criteria.getStatus() )
+            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( criteria.getIdSchemes() )
+            .setPage( criteria.getPage() )
+            .setPageSize( criteria.getPageSize() ).setTotalPages( criteria.isTotalPages() )
+            .setSkipPaging( criteria.isSkipPaging() )
+            .setSkipEventId( criteria.getSkipEventId() ).setIncludeAttributes( false )
+            .setIncludeAllDataElements( false ).addDataElements( dataElements )
+            .addFilters( filters ).addFilterAttributes( filterAttributes )
+            .addOrders( getOrderParams( criteria.getOrder() ) )
+            .addGridOrders( dataElementOrderParams )
+            .addAttributeOrders( attributeOrderParams )
             .setEvents( eventIds ).setProgramInstances( programInstances )
-            .setIncludeDeleted( eventCriteria.isIncludeDeleted() );
+            .setIncludeDeleted( criteria.isIncludeDeleted() );
     }
 
     private static void validateProgram( String program, Program pr )
@@ -291,10 +288,14 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    private static void validateAssignedUsers( AssignedUserSelectionMode assignedUserSelectionMode,
-        Set<String> assignedUserIds )
+    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
     {
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED == assignedUserSelectionMode )
+        if ( mode == null )
+        {
+            return;
+        }
+
+        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
         {
             throw new IllegalQueryException(
                 "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
@@ -307,27 +308,21 @@ class EventRequestToSearchParamsMapper
             .stream()
             .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<QueryItem> result = new ArrayList<>();
-        for ( String filter : filterAttributes )
-        {
-            result.add( getQueryItem( filter, attributes ) );
-        }
-        addAttributeQueryItemsFromOrder( result, attributes, attributeOrderParams );
+        List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
+        List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
 
-        return result;
+        return Stream.concat( filterItems.stream(), orderItems.stream() ).collect( Collectors.toList() );
     }
 
-    private void addAttributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
+    private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
         Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
     {
-        List<QueryItem> orderQueryItems = attributeOrderParams.stream()
+        return attributeOrderParams.stream()
             .map( OrderParam::getField )
             .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
             .map( attributes::get )
             .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
             .collect( Collectors.toList() );
-
-        filterAttributes.addAll( orderQueryItems );
     }
 
     private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
@@ -357,7 +352,7 @@ class EventRequestToSearchParamsMapper
         if ( !duplicates.isEmpty() )
         {
             throw new IllegalQueryException( String.format(
-                "filterAttributes can only have one filter per tracked entity attribute (TEA). The following TEA have more than one: %s",
+                "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
                 String.join( ", ", duplicates ) ) );
         }
     }
@@ -401,30 +396,7 @@ class EventRequestToSearchParamsMapper
         return attributes;
     }
 
-    private QueryItem getQueryItem( String item )
-    {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-        if ( split == null || split.length % 2 != 1 )
-        {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
-        }
-
-        QueryItem queryItem = getItem( split[0] );
-
-        if ( split.length > 1 )
-        {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
-        }
-
-        return queryItem;
-    }
-
-    private QueryItem getItem( String item )
+    private QueryItem dataElementToQueryItem( String item )
     {
         DataElement de = dataElementService.getDataElement( item );
 
@@ -436,50 +408,6 @@ class EventRequestToSearchParamsMapper
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 
-    /**
-     * Creates a QueryItem from the given item string. Item is on format
-     * {attribute-id}:{operator}:{filter-value}[:{operator}:{filter-value}].
-     * Only the attribute-id is mandatory.
-     */
-    private QueryItem getQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-        if ( split.length % 2 != 1 )
-        {
-            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
-        }
-
-        QueryItem queryItem = getItem( split[0], attributes );
-
-        if ( split.length > 1 ) // Filters specified
-        {
-            for ( int i = 1; i < split.length; i += 2 )
-            {
-                QueryOperator operator = QueryOperator.fromString( split[i] );
-                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
-            }
-        }
-
-        return queryItem;
-    }
-
-    private QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        TrackedEntityAttribute at = attributes.get( item );
-        if ( at == null )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
-    }
-
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
     {
         if ( order == null || order.isEmpty() )
@@ -489,14 +417,6 @@ class EventRequestToSearchParamsMapper
         validateOrderParams( order );
 
         return OrderParamsHelper.toOrderParams( order );
-    }
-
-    private Set<String> parseUids( String input )
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toUnmodifiableSet() );
     }
 
     private void validateOrderParams( List<OrderCriteria> order )
@@ -519,17 +439,10 @@ class EventRequestToSearchParamsMapper
         }
     }
 
-    private List<OrderParam> getGridOrderParams( List<OrderCriteria> order,
-        Map<String, SortDirection> dataElementOrders )
+    private List<OrderParam> mapToOrderParams( Map<String, SortDirection> orders )
     {
-        return Optional.ofNullable( order )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( Objects::nonNull )
-            .filter( orderCriteria -> dataElementOrders.containsKey( orderCriteria.getField() ) )
-            .map( orderCriteria -> new OrderParam(
-                orderCriteria.getField(),
-                dataElementOrders.get( orderCriteria.getField() ) ) )
+        return orders.entrySet().stream()
+            .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
             .collect( Collectors.toList() );
     }
 }

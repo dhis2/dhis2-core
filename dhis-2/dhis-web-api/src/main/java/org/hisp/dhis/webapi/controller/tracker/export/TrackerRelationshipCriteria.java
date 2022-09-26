@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
@@ -47,7 +47,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
-public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
+class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
     private String trackedEntity;
@@ -165,7 +165,7 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
          * this enum names must be the same as
          * org.hisp.dhis.tracker.domain.Enrollment fields, just with different
          * case
-         *
+         * <p>
          * example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient -->
          * UPDATED_AT_CLIENT
          */
@@ -188,7 +188,7 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
          * this enum names must be the same as
          * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
          * different case
-         *
+         * <p>
          * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
          * --> LAST_UPDATED
          */

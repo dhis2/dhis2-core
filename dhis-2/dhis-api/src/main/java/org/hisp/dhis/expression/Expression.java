@@ -54,7 +54,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * data element.
  *
  * @author Margrethe Store
- * @version $Id: Expression.java 5011 2008-04-24 20:41:28Z larshelg $
  */
 @JacksonXmlRootElement( localName = "expression", namespace = DxfNamespaces.DXF_2_0 )
 public class Expression

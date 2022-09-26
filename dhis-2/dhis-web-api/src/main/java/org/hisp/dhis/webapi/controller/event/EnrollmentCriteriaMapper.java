@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -54,11 +53,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Service( "org.hisp.dhis.webapi.controller.event.EnrollmentCriteriaMapper" )
 @RequiredArgsConstructor
 public class EnrollmentCriteriaMapper
 {
@@ -178,28 +176,5 @@ public class EnrollmentCriteriaMapper
         params.setOrder( toOrderParams( orderCriteria ) );
 
         return params;
-    }
-
-    @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams getFromUrl( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
-    {
-        return getFromUrl(
-            TextUtils.splitToSet( trackerEnrollmentCriteria.getOrgUnit(), TextUtils.SEMICOLON ),
-            trackerEnrollmentCriteria.getOuMode(),
-            trackerEnrollmentCriteria.getUpdatedAfter(),
-            trackerEnrollmentCriteria.getUpdatedWithin(),
-            trackerEnrollmentCriteria.getProgram(),
-            trackerEnrollmentCriteria.getProgramStatus(),
-            trackerEnrollmentCriteria.getEnrolledAfter(),
-            trackerEnrollmentCriteria.getEnrolledBefore(),
-            trackerEnrollmentCriteria.getTrackedEntityType(),
-            trackerEnrollmentCriteria.getTrackedEntity(),
-            trackerEnrollmentCriteria.getFollowUp(),
-            trackerEnrollmentCriteria.getPage(),
-            trackerEnrollmentCriteria.getPageSize(),
-            trackerEnrollmentCriteria.isTotalPages(),
-            trackerEnrollmentCriteria.isSkipPaging(),
-            trackerEnrollmentCriteria.isIncludeDeleted(),
-            trackerEnrollmentCriteria.getOrder() );
     }
 }

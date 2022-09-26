@@ -34,7 +34,6 @@ import java.util.ResourceBundle;
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
- * @version $Id: ResourceBundleManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
 public interface ResourceBundleManager
 {

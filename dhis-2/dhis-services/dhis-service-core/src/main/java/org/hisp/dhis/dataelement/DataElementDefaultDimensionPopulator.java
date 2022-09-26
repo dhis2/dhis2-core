@@ -46,7 +46,6 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  *
  * @author Lars Helge Overland
  * @author Abyot Aselefew
- * @version $Id$
  */
 @Slf4j
 public class DataElementDefaultDimensionPopulator

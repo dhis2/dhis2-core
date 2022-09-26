@@ -31,8 +31,6 @@ import java.util.List;
 
 /**
  * @author Chau Thu Tran
- *
- * @version $ TrackedEntityService.java Feb 15, 2014 7:23:48 PM $
  */
 public interface TrackedEntityTypeService
 {

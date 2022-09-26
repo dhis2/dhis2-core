@@ -215,6 +215,33 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.404",
+      "id": "DATAEL00006",
+      "created": "2020-05-31T08:58:48.406",
+      "name": "test-dataelement6",
+      "shortName": "test-dataelement6",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "INTEGER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
     }
   ],
   "options": [
@@ -503,6 +530,39 @@
           },
           "dataElement": {
             "id": "DATAEL00005"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-01-28T11:23:20.855",
+          "id": "PSDE0000006",
+          "created": "2019-01-28T11:23:20.855",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "NpsdDv6kKSO"
+          },
+          "dataElement": {
+            "id": "DATAEL00006"
           },
           "favorites": [],
           "translations": [],
@@ -860,6 +920,37 @@
     }
   ],
   "trackedEntityAttributes": [
+    {
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "id": "numericAttr",
+      "created": "2020-05-31T09:00:51.347",
+      "name": "numeric-attribute",
+      "shortName": "numeric-attribute",
+      "aggregationType": "NONE",
+      "displayInListNoProgram": false,
+      "publicAccess": "rw------",
+      "pattern": "",
+      "skipSynchronization": false,
+      "generated": false,
+      "displayOnVisitSchedule": false,
+      "valueType": "INTEGER",
+      "formName": "numeric-attribute",
+      "orgunitScope": false,
+      "confidential": false,
+      "unique": false,
+      "inherit": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": []
+    },
     {
       "lastUpdated": "2020-05-31T11:41:22.414",
       "id": "toUpdate000",

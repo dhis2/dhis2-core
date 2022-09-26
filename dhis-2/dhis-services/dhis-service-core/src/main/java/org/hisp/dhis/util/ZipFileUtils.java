@@ -25,32 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.util;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.zip.ZipEntry;
 
 /**
- * TODO: It should be removed when we will implement new services.
- *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
+ * @author Austin McGee
  */
-@Mapper
-public interface TrackerTrackedEntityCriteriaMapper
+public class ZipFileUtils
 {
-    @Mapping( source = "orgUnit", target = "ou" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollmentEnrolledAfter", target = "programStartDate" )
-    @Mapping( source = "enrollmentEnrolledBefore", target = "programEndDate" )
-    @Mapping( source = "enrollmentOccurredAfter", target = "programIncidentStartDate" )
-    @Mapping( source = "enrollmentOccurredBefore", target = "programIncidentEndDate" )
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "eventOccurredAfter", target = "eventStartDate" )
-    @Mapping( source = "eventOccurredBefore", target = "eventEndDate" )
-    TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria( TrackerTrackedEntityCriteria from );
+    private static final Pattern TOP_LEVEL_DIRECTORY_PREFIX_PATTERN = Pattern.compile( "^([^/\\\\]+[/\\\\]).*" );
+
+    private ZipFileUtils()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
+
+    public static String getTopLevelDirectory( Iterator<? extends ZipEntry> zipEntries )
+    {
+        if ( !zipEntries.hasNext() )
+        {
+            return "";
+        }
+
+        ZipEntry firstEntry = zipEntries.next();
+
+        Matcher m = TOP_LEVEL_DIRECTORY_PREFIX_PATTERN.matcher( firstEntry.getName() );
+        if ( m.find() )
+        {
+            final String prefix = m.group( 1 );
+
+            Stream<ZipEntry> stream = StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize( zipEntries, Spliterator.ORDERED ),
+                false );
+
+            boolean allMatch = stream.allMatch( ( ZipEntry ze ) -> ze.getName().startsWith( prefix ) );
+
+            if ( allMatch )
+            {
+                return prefix;
+            }
+        }
+
+        return "";
+    }
 }

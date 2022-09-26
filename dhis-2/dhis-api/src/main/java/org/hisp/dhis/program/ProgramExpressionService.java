@@ -44,7 +44,6 @@ import org.hisp.dhis.dataelement.DataElement;
  * <p/>
  *
  * @author Chau Thu Tran
- * @version ProgramExpressionService.java 2:59:58 PM Nov 8, 2012 $
  */
 public interface ProgramExpressionService
 {

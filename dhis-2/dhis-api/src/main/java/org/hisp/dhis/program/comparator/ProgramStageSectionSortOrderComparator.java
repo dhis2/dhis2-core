@@ -33,7 +33,6 @@ import org.hisp.dhis.program.ProgramStageSection;
 
 /**
  * @author Chau Thu Tran
- * @version ProgramStageSectionSortOrderComparator.java 9:32:23 AM Feb 4, 2013 $
  */
 public class ProgramStageSectionSortOrderComparator
     implements Comparator<ProgramStageSection>

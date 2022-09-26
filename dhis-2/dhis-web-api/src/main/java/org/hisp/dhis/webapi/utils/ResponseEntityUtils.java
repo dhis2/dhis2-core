@@ -87,7 +87,7 @@ public class ResponseEntityUtils
 
     /**
      * Checks whether the given ETag matches the {@code If-None-Match} header
-     * value, indicating that the requested resource has not been not modified.
+     * value, indicating that the requested resource has not been modified.
      *
      * @param etag the ETag.
      * @param request the {@link HttpServletRequest}.

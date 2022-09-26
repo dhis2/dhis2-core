@@ -58,6 +58,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -107,6 +109,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -267,8 +270,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
      * is run through normal metadata importer and internally looks like a
      * normal PUT (after the JSON Patch has been applied).
-     *
-     * For now we only support the official mimetype
+     * <p>
+     * For now, we only support the official mimetype
      * "application/json-patch+json" but in future releases we might also want
      * to support "application/json" after the old patch behavior has been
      * removed.
@@ -299,10 +302,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
-
-        // prePatchEntity( patchedObject, patchedObject );
+        final T patchedObject = doPatch( request, persistedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
@@ -342,6 +342,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         return webMessage;
+    }
+
+    private T doPatch( HttpServletRequest request, T persistedObject )
+        throws IOException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+
+        // TODO: To remove when we remove old UserCredentials compatibility
+        if ( persistedObject instanceof User )
+        {
+            for ( JsonPatchOperation op : patch.getOperations() )
+            {
+                JsonPointer userCredentials = op.getPath().matchProperty( "userCredentials" );
+                if ( userCredentials != null )
+                {
+                    op.setPath( JsonPointer.empty().append( userCredentials ) );
+                }
+            }
+        }
+
+        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
+
+        // TODO: To remove when we remove old UserCredentials compatibility
+        if ( patchedObject instanceof User )
+        {
+            User patchingUser = (User) patchedObject;
+            patchingUser.removeLegacyUserCredentials();
+        }
+
+        return patchedObject;
     }
 
     @ResponseBody
