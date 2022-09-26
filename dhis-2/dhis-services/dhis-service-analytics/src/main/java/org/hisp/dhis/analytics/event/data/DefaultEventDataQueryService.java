@@ -131,11 +131,11 @@ public class DefaultEventDataQueryService
 
     private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
 
-    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PI_GEOMETRY, COL_NAME_PSI_GEOMETRY,
+    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
         COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
 
-    private static final List<String> COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PI_GEOMETRY,
-        COL_NAME_PSI_GEOMETRY, COL_NAME_OU_GEOMETRY );
+    private static final List<String> COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY,
+        COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY );
 
     private final ProgramService programService;
 
@@ -221,6 +221,8 @@ public class DefaultEventDataQueryService
             .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withCoordinateFields( getCoordinateFields( request.getProgram(), request.getCoordinateField(),
                 request.getFallbackCoordinateField(), request.isDefaultCoordinateFallback() ) )
+            .withIsCoordinateFieldExplicit( isCoordinateFieldExplicit( request.getCoordinateField(),
+                request.getFallbackCoordinateField() ) )
             .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
@@ -472,6 +474,12 @@ public class DefaultEventDataQueryService
             .addAll( getFallbackCoordinateFields( program, fallbackCoordinateField, defaultCoordinateFallback ) );
 
         return coordinateFields;
+    }
+
+    @Override
+    public boolean isCoordinateFieldExplicit( String coordinateField, String fallbackCoordinateField )
+    {
+        return StringUtils.isBlank( coordinateField ) & StringUtils.isBlank( fallbackCoordinateField );
     }
 
     // -------------------------------------------------------------------------

@@ -34,10 +34,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.PI_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,7 +69,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -95,7 +90,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Class representing query parameters for retrieving event data from the event
@@ -123,8 +117,9 @@ public class EventQueryParams
 
     public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
 
-    public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
-        OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
+    // public static final ImmutableSet<FallbackCoordinateFieldType>
+    // FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
+    // OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
 
     /**
      * The query items.
@@ -243,6 +238,11 @@ public class EventQueryParams
      * The coordinate field to use as basis for spatial event analytics.
      */
     private List<String> coordinateFields;
+
+    /**
+     * The coordinate field to use as basis for spatial event analytics.
+     */
+    private boolean isCoordinateFieldExplicit;
 
     /**
      * Bounding box for events to include in clustering.
@@ -1084,6 +1084,11 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
+    public boolean isCoordinateFieldExplicit()
+    {
+        return isCoordinateFieldExplicit;
+    }
+
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -1448,6 +1453,12 @@ public class EventQueryParams
         public Builder withCoordinateFields( List<String> coordinateFields )
         {
             this.params.coordinateFields = coordinateFields;
+            return this;
+        }
+
+        public Builder withIsCoordinateFieldExplicit( boolean isCoordinateFieldExplicit )
+        {
+            this.params.isCoordinateFieldExplicit = isCoordinateFieldExplicit;
             return this;
         }
 

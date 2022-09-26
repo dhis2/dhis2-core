@@ -222,6 +222,7 @@ public class EventDataQueryRequest
                 .completedOnly( criteria.isCompletedOnly() )
                 .coordinateField( criteria.getCoordinateField() )
                 .fallbackCoordinateField( criteria.getFallbackCoordinateField() )
+                .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .desc( criteria.getDesc() )
                 .displayProperty( criteria.getDisplayProperty() )
                 .endDate( criteria.getEndDate() )
@@ -255,7 +256,6 @@ public class EventDataQueryRequest
                 .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .totalPages( criteria.isTotalPages() )
                 .endpointItem( criteria.getEndpointItem() )
-                .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .enhancedConditions( criteria.isEnhancedConditions() );
 
             if ( criteria.getDimension() == null )

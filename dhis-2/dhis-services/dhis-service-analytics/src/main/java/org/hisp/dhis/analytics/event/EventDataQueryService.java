@@ -73,12 +73,25 @@ public interface EventDataQueryService
      * field. Coordinate field must match EVENT, a data element identifier or an
      * attribute identifier.
      *
+     * @param program the coordinate field.
      * @param coordinateField the coordinate field.
+     * @param fallbackCoordinateField the coordinate field.
+     * @param defaultCoordinateFallback the coordinate field.
      * @return the coordinate column field.
      * @throws IllegalQueryException if any coordinate field is not valid.
      */
     List<String> getCoordinateFields( String program, String coordinateField,
         String fallbackCoordinateField, boolean defaultCoordinateFallback );
+
+    /**
+     * Returns the flag point on origin of coordinate request (default,
+     * explicit)
+     *
+     * @param coordinateField the coordinate field.
+     * @param fallbackCoordinateField the coordinate field.
+     * @return flag.
+     */
+    public boolean isCoordinateFieldExplicit( String coordinateField, String fallbackCoordinateField );
 
     /**
      * Returns a {@link QueryItem}.
