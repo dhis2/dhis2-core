@@ -17,7 +17,7 @@ jobs:
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
-      SIERRA_LEONE_DB_MOUNT: "/tmp/db/sierra-leone/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql"
+      SIERRA_LEONE_DB_MOUNT: "$SIERRA_LEONE_DB_PATH/dhis2-db-sierra-leone.sql:/docker-entrypoint-initdb.d/init.sql"
       SIERRA_LEONE_DB_VERSION: "2.39.0"
     
     runs-on: ubuntu-latest
@@ -45,6 +45,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Download Sierra Leone DB
+        if: steps.cache-sierra-leone-db.outputs.cache-hit != 'true'
         uses: actions/cache@v3
         id: cache-sierra-leone-db
         with:
@@ -57,7 +58,6 @@ jobs:
           mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
           wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz -P ${{ env.SIERRA_LEONE_DB_PATH }}
           gzip -d ${{ env.SIERRA_LEONE_DB_PATH }}/dhis2-db-sierra-leone.sql.gz
-        if: steps.cache-sierra-leone-db.outputs.cache-hit != 'true'
 
       - name: Build test image
         uses: docker/build-push-action@v3
