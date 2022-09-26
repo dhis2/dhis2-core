@@ -73,7 +73,7 @@ class EnrollmentAnalyticsDimensionsServiceTest
     void testQueryDoesntContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = enrollmentAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( "anUid" ).stream()
+            .getQueryDimensionsByProgramId( "anUid" ).stream()
             .map( PrefixedDimension::getItem )
             .collect( Collectors.toList() );
 

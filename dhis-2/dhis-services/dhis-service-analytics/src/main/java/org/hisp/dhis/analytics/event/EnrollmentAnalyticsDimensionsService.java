@@ -33,7 +33,7 @@ import org.hisp.dhis.common.PrefixedDimension;
 
 public interface EnrollmentAnalyticsDimensionsService
 {
-    List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programId );
+    List<PrefixedDimension> getQueryDimensionsByProgramId( String programId );
 
     List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programId );
 }

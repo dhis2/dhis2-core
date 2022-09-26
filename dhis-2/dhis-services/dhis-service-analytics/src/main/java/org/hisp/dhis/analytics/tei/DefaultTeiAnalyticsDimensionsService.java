@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
-import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
-import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -48,7 +44,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
@@ -61,8 +56,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
-    static final String TRACKED_ENTITY_ATTRIBUTE = "TRACKED_ENTITY_ATTRIBUTE";
-
     @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
@@ -73,37 +66,29 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     private final ProgramService programService;
 
     @Override
-    public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId )
+    public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId( String trackedEntityTypeId,
+        Collection<String> programUids )
     {
         TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeId );
 
         if ( Objects.nonNull( trackedEntityType ) )
         {
-            List<PrefixedDimension> trackedEntityAttributes = filterByValueType( QUERY,
-                /* Tracked Entity Attribute by type */
-                ofItemsWithProgram( null, trackedEntityType.getTrackedEntityAttributes() )
-                    .stream()
-                    .filter( this::isNotConfidential )
-                    .collect( Collectors.toList() ) ).stream()
-                        .map( prefixedDimension -> prefixedDimension
-                            .withDimensionType( TRACKED_ENTITY_ATTRIBUTE ) )
-                        .collect( Collectors.toList() );
-
-            List<String> teaUids = trackedEntityAttributes.stream()
-                .map( PrefixedDimension::getItem )
-                .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
+            Stream<Program> programs;
+            if ( programUids.isEmpty() )
+            {
+                programs = programService.getAllPrograms().stream();
+            }
+            else
+            {
+                programs = programService.getPrograms( programUids ).stream();
+            }
 
             // dimensions by programs defined on given TET
-            List<PrefixedDimension> dimensions = programService.getAllPrograms().stream()
+            return programs
                 .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
                 .map( program -> enrollmentAnalyticsDimensionsService
-                    .getQueryDimensionsByProgramStageId( program.getUid() ) )
+                    .getQueryDimensionsByProgramId( program.getUid() ) )
                 .flatMap( Collection::stream )
-                .filter( prefixedDimension -> !teaUids.contains( prefixedDimension.getItem().getUid() ) )
-                .collect( Collectors.toList() );
-
-            return Stream.concat( dimensions.stream(), trackedEntityAttributes.stream() )
                 .collect( Collectors.toList() );
         }
         return Collections.emptyList();
@@ -118,8 +103,4 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
             .isPresent();
     }
 
-    private boolean isNotConfidential( PrefixedDimension prefixedDimension )
-    {
-        return !((TrackedEntityAttribute) prefixedDimension.getItem()).isConfidentialBool();
-    }
 }
