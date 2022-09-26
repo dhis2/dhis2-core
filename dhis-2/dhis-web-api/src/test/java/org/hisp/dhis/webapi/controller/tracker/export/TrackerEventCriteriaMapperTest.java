@@ -341,7 +341,7 @@ class TrackerEventCriteriaMapperTest
 
         OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
         OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
-        eventCriteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
+        criteria.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
 
         EventSearchParams params = mapper.map( criteria );
 

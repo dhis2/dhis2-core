@@ -70,6 +70,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -198,7 +199,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         criteria.setSkipPaging( false );
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
-        criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", OrderParam.SortDirection.ASC ) ) );
+        criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", SortDirection.ASC ) ) );
 
         final TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -223,7 +224,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertThat( params.isIncludeDeleted(), is( true ) );
         assertThat( params.isIncludeAllAttributes(), is( true ) );
         assertTrue( params.getOrders().stream().anyMatch( orderParam -> orderParam
-            .equals( new OrderParam( "created", OrderParam.SortDirection.ASC ) ) ) );
+            .equals( new OrderParam( "created", SortDirection.ASC ) ) ) );
     }
 
     @Test
@@ -495,15 +496,15 @@ class TrackerTrackedEntityCriteriaMapperTest
     void testMappingOrderParams()
     {
         TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
-        OrderCriteria order1 = OrderCriteria.of( "trackedEntity", OrderParam.SortDirection.ASC );
-        OrderCriteria order2 = OrderCriteria.of( "createdAt", OrderParam.SortDirection.DESC );
+        OrderCriteria order1 = OrderCriteria.of( "trackedEntity", SortDirection.ASC );
+        OrderCriteria order2 = OrderCriteria.of( "createdAt", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
-            new OrderParam( "trackedEntity", OrderParam.SortDirection.ASC ),
-            new OrderParam( "createdAt", OrderParam.SortDirection.DESC ) ), params.getOrders() );
+            new OrderParam( "trackedEntity", SortDirection.ASC ),
+            new OrderParam( "createdAt", SortDirection.DESC ) ), params.getOrders() );
     }
 
     @Test
@@ -520,7 +521,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     void testMappingOrderParamsGivenInvalidField()
     {
         TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
-        OrderCriteria order1 = OrderCriteria.of( "invalid", OrderParam.SortDirection.DESC );
+        OrderCriteria order1 = OrderCriteria.of( "invalid", SortDirection.DESC );
         criteria.setOrder( List.of( order1 ) );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,

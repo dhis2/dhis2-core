@@ -684,7 +684,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
 
         params.addFilterAttributes( queryItem( "toUpdate000" ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -700,7 +700,7 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
 
         params.addFilterAttributes( queryItem( "toUpdate000" ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -716,8 +716,8 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
 
         params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
-            new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
+            new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -733,8 +733,8 @@ class EventExporterTest extends TrackerTest
         params.setOrgUnit( orgUnit );
 
         params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
-            new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
+            new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -761,7 +761,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -774,7 +774,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -787,7 +787,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -800,7 +800,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );

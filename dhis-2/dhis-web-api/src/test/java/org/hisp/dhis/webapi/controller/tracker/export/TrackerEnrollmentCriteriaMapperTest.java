@@ -50,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -253,15 +254,15 @@ class TrackerEnrollmentCriteriaMapperTest
     void testMappingOrderParams()
     {
         TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
-        OrderCriteria order1 = OrderCriteria.of( "field1", OrderParam.SortDirection.ASC );
-        OrderCriteria order2 = OrderCriteria.of( "field2", OrderParam.SortDirection.DESC );
+        OrderCriteria order1 = OrderCriteria.of( "field1", SortDirection.ASC );
+        OrderCriteria order2 = OrderCriteria.of( "field2", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
-            new OrderParam( "field1", OrderParam.SortDirection.ASC ),
-            new OrderParam( "field2", OrderParam.SortDirection.DESC ) ), params.getOrder() );
+            new OrderParam( "field1", SortDirection.ASC ),
+            new OrderParam( "field2", SortDirection.DESC ) ), params.getOrder() );
     }
 
     @Test
