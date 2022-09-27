@@ -485,6 +485,8 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7221, coordinateField ) );
         }
 
+        coordinateFields.remove( StringUtils.EMPTY );
+
         coordinateFields
             .addAll( getFallbackCoordinateFields( program, fallbackCoordinateField, defaultCoordinateFallback ) );
 
@@ -630,7 +632,7 @@ public class DefaultEventDataQueryService
     {
         Program prg = programService.getProgram( program );
 
-        if ( "teigeometry".equals( coordinateField ) && !prg.isRegistration() )
+        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) && !prg.isRegistration() )
         {
             throwIllegalQueryEx( errorCode, coordinateField );
         }

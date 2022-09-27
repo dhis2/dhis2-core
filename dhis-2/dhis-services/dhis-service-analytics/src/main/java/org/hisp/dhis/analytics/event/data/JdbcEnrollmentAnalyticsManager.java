@@ -98,6 +98,8 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
+    private static final String IS_NOT_NULL = " is not null ";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
@@ -339,7 +341,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + getCoalesce( params.getCoordinateFields() ) + " is not null ";
+            sql += "and " + getCoalesce( params.getCoordinateFields() ) + IS_NOT_NULL;
         }
 
         if ( params.isCompletedOnly() )
@@ -423,7 +425,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
+                "and " + colName + IS_NOT_NULL + psCondition + ORDER_BY_EXECUTION_DATE +
                 createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )",
                 alias );
         }
@@ -491,7 +493,7 @@ public class JdbcEnrollmentAnalyticsManager
             return "(select " + colName + alias
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
-                + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                + "and " + colName + IS_NOT_NULL + "and ps = '" + item.getProgramStage().getUid() + "' "
                 + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
         }
