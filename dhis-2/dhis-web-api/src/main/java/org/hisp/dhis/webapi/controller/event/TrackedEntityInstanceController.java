@@ -250,9 +250,7 @@ public class TrackedEntityInstanceController
         FileResourceUtils.setImageFileDimensions( fileResource,
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
-        response.setContentType( fileResource.getContentType() );
-        response.setContentLengthLong( fileResource.getContentLength() );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setHttpResponse( response, fileResource );
 
         try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
         {
@@ -320,9 +318,7 @@ public class TrackedEntityInstanceController
 
         validateFileResource( fileResource, value );
 
-        response.setContentType( fileResource.getContentType() );
-        response.setContentLengthLong( fileResource.getContentLength() );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        setHttpResponse( response, fileResource );
 
         try
         {
@@ -605,5 +601,12 @@ public class TrackedEntityInstanceController
                 conflict( "The content is being processed and is not available yet. Try again later.",
                     "The content requested is in transit to the file store and will be available at a later time." ) );
         }
+    }
+
+    private void setHttpResponse( HttpServletResponse response, FileResource fileResource )
+    {
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLengthLong( fileResource.getContentLength() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
     }
 }
