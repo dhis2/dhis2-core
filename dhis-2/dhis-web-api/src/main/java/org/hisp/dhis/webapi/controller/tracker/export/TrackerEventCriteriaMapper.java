@@ -192,10 +192,10 @@ class TrackerEventCriteriaMapper
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntityInstance( trackedEntityInstance )
-                .setProgramStatus( criteria.getProgramStatus() == null ? null
-                        : ProgramStatus.valueOf( criteria.getProgramStatus() ) )
-                .setOrgUnitSelectionMode( criteria.getOuMode() == null ? null
-                        : OrganisationUnitSelectionMode.valueOf( criteria.getOuMode() ) )
+            .setProgramStatus( criteria.getProgramStatus() == null ? null
+                : ProgramStatus.valueOf( criteria.getProgramStatus() ) )
+            .setOrgUnitSelectionMode( criteria.getOuMode() == null ? null
+                : OrganisationUnitSelectionMode.valueOf( criteria.getOuMode() ) )
             .setAssignedUserSelectionMode( assignedUserMode )
             .setAssignedUsers( assignedUserIds )
             .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
@@ -207,8 +207,8 @@ class TrackerEventCriteriaMapper
             .setEnrollmentEnrolledAfter( criteria.getEnrollmentEnrolledAfter() )
             .setEnrollmentOccurredBefore( criteria.getEnrollmentOccurredBefore() )
             .setEnrollmentOccurredAfter( criteria.getEnrollmentOccurredAfter() )
-                .setEventStatus(
-                        criteria.getStatus() == null ? null : EventStatus.valueOf( criteria.getStatus() ) )
+            .setEventStatus(
+                criteria.getStatus() == null ? null : EventStatus.valueOf( criteria.getStatus() ) )
             .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( criteria.getIdSchemes() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() ).setTotalPages( criteria.isTotalPages() )
