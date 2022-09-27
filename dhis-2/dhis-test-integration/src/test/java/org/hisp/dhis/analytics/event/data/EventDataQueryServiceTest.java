@@ -478,15 +478,25 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetInvalidCoordinateFieldException()
     {
+        // Given
+        String programUid = prA.getUid();
+
+        // When
+        // Then
         assertThrows( IllegalQueryException.class,
-            () -> dataQueryService.getCoordinateFields( prA.getUid(), "badfield", null, false ) );
+            () -> dataQueryService.getCoordinateFields( programUid, "badfield", null, false ) );
     }
 
     @Test
     void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
+        // Given
+        String programUid = prA.getUid();
+
+        // When
+        // Then
         assertThrows( IllegalQueryException.class,
-            () -> dataQueryService.getCoordinateFields( prA.getUid(), "teigeometry",
+            () -> dataQueryService.getCoordinateFields( programUid, "teigeometry",
                 "badfallback", false ) );
     }
 }
