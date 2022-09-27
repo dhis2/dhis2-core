@@ -43,6 +43,8 @@ import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInit
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -61,8 +63,12 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
     public void init()
     {
         String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        this.handler.setPostLogoutRedirectUri( logoutUri );
+        if ( !Strings.isNullOrEmpty( logoutUri ) )
+        {
+            this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
+            this.handler.setDefaultTargetUrl( logoutUri );
+            this.handler.setPostLogoutRedirectUri( logoutUri );
+        }
     }
 
     @Override
@@ -71,6 +77,9 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         throws IOException,
         ServletException
     {
-        handler.onLogoutSuccess( request, response, authentication );
+        if ( handler != null )
+        {
+            handler.onLogoutSuccess( request, response, authentication );
+        }
     }
 }
