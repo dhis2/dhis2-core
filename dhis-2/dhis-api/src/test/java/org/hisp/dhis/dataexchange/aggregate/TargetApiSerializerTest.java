@@ -27,43 +27,37 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Domain entity representing a data exchange between a source instance and
- * target instance of DHIS 2.
- *
- * @author Lars Helge Overland
- */
-@Getter
-@Setter
-@Accessors( chain = true )
-@JacksonXmlRootElement( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
-public class AggregateDataExchange
-    extends BaseIdentifiableObject
-    implements MetadataObject
+class TargetApiSerializerTest
 {
     /**
-     * Data exchange source.
+     * Asserts that the sensitive {@code accessToken} and {@code password}
+     * properties are not serialized for {@link Api}.
      */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Source source;
+    @Test
+    void testSerializeTargetApi()
+        throws Exception
+    {
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( new Api()
+                .setUrl( "https://myserver.org" )
+                .setAccessToken( "d2pat_abc123" )
+                .setUsername( "admin" )
+                .setPassword( "district" ) );
 
-    /**
-     * Data exchange target.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Target target;
+        String json = new ObjectMapper().writeValueAsString( target );
+
+        assertTrue( json.contains( "https://myserver.org" ) );
+        assertTrue( json.contains( "admin" ) );
+
+        assertFalse( json.contains( "d2pat_abc123" ) );
+        assertFalse( json.contains( "district" ) );
+    }
 }
