@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import static com.fasterxml.jackson.annotation.JsonProperty.Access;
-
 import java.io.Serializable;
 
 import lombok.Getter;
@@ -37,6 +35,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -56,7 +56,6 @@ public class Api
      * token is encrypted and must be decrypted before used to authenticate with
      * external systems.
      */
-    @JsonProperty( access = Access.WRITE_ONLY )
     private String accessToken;
 
     /**
@@ -69,7 +68,6 @@ public class Api
      * Password. For basic authentication. The password is encrypted and must be
      * decrypted before used to authenticate with external systems.
      */
-    @JsonProperty( access = Access.WRITE_ONLY )
     private String password;
 
     /**
@@ -92,5 +90,31 @@ public class Api
     public boolean isBasicAuth()
     {
         return StringUtils.isNoneBlank( username, password );
+    }
+
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
+    @Property( value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY )
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public Api setPassword( String password )
+    {
+        this.password = password;
+        return this;
+    }
+
+    @JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
+    @Property( value = PropertyType.PASSWORD, access = Property.Access.WRITE_ONLY )
+    public String getAccessToken()
+    {
+        return accessToken;
+    }
+
+    public Api setAccessToken( String accessToken )
+    {
+        this.accessToken = accessToken;
+        return this;
     }
 }
