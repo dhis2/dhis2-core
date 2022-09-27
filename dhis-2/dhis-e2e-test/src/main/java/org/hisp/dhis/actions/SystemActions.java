@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.actions;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
@@ -82,7 +82,7 @@ public class SystemActions
             .extractList( "completed" ).contains( true );
 
         with()
-            .atMost( timeout, TimeUnit.SECONDS )
+            .atMost( timeout, SECONDS )
             .await().until( () -> taskIsCompleted.call() );
 
         return getTask( taskType, taskId );

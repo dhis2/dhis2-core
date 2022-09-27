@@ -34,6 +34,9 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+
+import java.util.List;
 
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
@@ -60,11 +63,12 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
             .add( "stage=A03MvHHogjR" )
             .add( "displayProperty=NAME" )
-            .add( "totalPages=false" )
             .add( "outputType=ENROLLMENT" )
             .add( "desc=enrollmentdate" )
+            .add( "totalPages=false" )
             .add( "pageSize=100" )
-            .add( "page=1" );
+            .add( "page=1" )
+            .add( "relativePeriodDate=2022-09-27" );
 
         // When
         final ApiResponse response = enrollmentsActions.query().get( "IpHINAT79UW", JSON, JSON, params );
@@ -99,11 +103,11 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             true );
         validateHeader( response, 3, "incidentdate", "Date of birth", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 4, "storedby", "Stored by", "TEXT", "java.lang.String", false, true );
-        validateHeader( response, 5, "createdbydisplayname", "Created by (display name)", "TEXT", "java.lang.String",
+        validateHeader( response, 5, "createdbydisplayname", "Created by", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 6, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
+        validateHeader( response, 6, "lastupdatedbydisplayname", "Last updated by", "TEXT",
             "java.lang.String", false, true );
-        validateHeader( response, 7, "lastupdated", "Last Updated", "DATE", "java.time.LocalDate", false, true );
+        validateHeader( response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true );
         validateHeader( response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true );
         validateHeader( response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true );
@@ -112,6 +116,56 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
 
-        // Cannot validate results for relative period.
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "jVAAsPyd7Tg",
+                "p2F8GoHl2HS",
+                "2022-08-31 12:05:00.0",
+                "2022-08-31 12:05:00.0",
+                "",
+                "",
+                "",
+                "2018-08-06 21:20:52.567",
+                "",
+                "",
+                "",
+                "Manjeihun MCHP",
+                "OU_246998",
+                "ACTIVE",
+                "J3wTSn87RP2" ) );
+
+        validateRow( response, 1,
+            List.of( "HWzlTCWuKYD",
+                "Ts15VUy8wfw",
+                "2022-08-31 12:05:00.0",
+                "2022-08-31 12:05:00.0",
+                "",
+                "",
+                "",
+                "2018-08-06 21:20:52.551",
+                "",
+                "",
+                "",
+                "Semabu MCHP",
+                "OU_197391",
+                "ACTIVE",
+                "Dluer5aKZmd" ) );
+
+        validateRow( response, 2,
+            List.of( "c4Kydu1fncr",
+                "UU6BFLPU4nj",
+                "2022-08-31 12:05:00.0",
+                "2022-08-31 12:05:00.0",
+                "",
+                "",
+                "",
+                "2018-08-06 21:20:52.388",
+                "",
+                "",
+                "",
+                "Niahun Buima MCHP",
+                "OU_222710",
+                "ACTIVE",
+                "cC03EwJLBiO" ) );
     }
 }

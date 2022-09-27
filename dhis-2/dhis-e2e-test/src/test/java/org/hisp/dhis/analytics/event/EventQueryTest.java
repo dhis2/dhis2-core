@@ -34,12 +34,14 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+
+import java.util.List;
 
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,7 +54,6 @@ public class EventQueryTest extends AnalyticsApiTest
     private AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
     @Test
-    @DisplayName( "api/analytics/events/query/iAI6kmFqoOc.json?dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd&stage=dBwrot7S420&displayProperty=NAME&outputType=EVENT&totalPages=false&relativePeriodDate=2022-09-22" )
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
     {
         // Given
@@ -62,7 +63,7 @@ public class EventQueryTest extends AnalyticsApiTest
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
             .add( "totalPages=false" )
-            .add( "relativePeriodDate=2022-09-22" );
+            .add( "relativePeriodDate=2022-09-27" );
 
         // When
         ApiResponse response = analyticsEventActions.query().get( "lxAQ7Zs9VYR", JSON, JSON, params );
@@ -108,10 +109,64 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "A7vnB73x5Xw",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:16.957",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
+
+        validateRow( response, 0,
+            List.of( "onXW2DQHRGS",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:28.015",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
+
+        validateRow( response, 0,
+            List.of( "ohAH6BXIMad",
+                "dBwrot7S420",
+                "2022-04-07 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:41.933",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
     }
 
     @Test
-    @DisplayName( "api/analytics/events/query/iAI6kmFqoOc.json?dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd&stage=dBwrot7S420&displayProperty=NAME&outputType=EVENT&relativePeriodDate=2022-09-22" )
     public void queryWithProgramAndProgramStageWhenTotalPagesIsTrueByDefault()
     {
         // Given
@@ -166,5 +221,60 @@ public class EventQueryTest extends AnalyticsApiTest
         validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 14, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+
+        // Validate the first three rows, as samples.
+        validateRow( response, 0,
+            List.of( "A7vnB73x5Xw",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:16.957",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
+
+        validateRow( response, 0,
+            List.of( "onXW2DQHRGS",
+                "dBwrot7S420",
+                "2022-04-01 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:28.015",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
+
+        validateRow( response, 0,
+            List.of( "ohAH6BXIMad",
+                "dBwrot7S420",
+                "2022-04-07 00:00:00.0",
+                "",
+                "",
+                "",
+                "2018-04-12 16:05:41.933",
+                "",
+                "",
+                "0.0",
+                "0.0",
+                "Ngelehun CHC",
+                "OU_559",
+                "ACTIVE",
+                "ACTIVE",
+                "DiszpKrYNg8" ) );
     }
 }
