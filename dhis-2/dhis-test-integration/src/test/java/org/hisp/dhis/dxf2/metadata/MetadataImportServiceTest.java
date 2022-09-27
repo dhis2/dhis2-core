@@ -1030,6 +1030,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( TargetType.EXTERNAL, aeB.getTarget().getType() );
         assertEquals( "https://play.dhis2.org/2.38.1", aeB.getTarget().getApi().getUrl() );
         assertEquals( "admin", aeB.getTarget().getApi().getUsername() );
+        assertEquals( "district", aeB.getTarget().getApi().getPassword() );
         assertNotNull( aeB.getTarget().getApi().getPassword() );
 
         AggregateDataExchange aeC = manager.get( AggregateDataExchange.class, "VpQ4qVEseyM" );
@@ -1046,6 +1047,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "VpQ4qVEseyM", aeC.getUid() );
         assertEquals( TargetType.EXTERNAL, aeC.getTarget().getType() );
         assertEquals( "https://play.dhis2.org/2.38.1", aeC.getTarget().getApi().getUrl() );
+        assertEquals( "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn11624", aeC.getTarget().getApi().getAccessToken() );
         assertNotNull( aeC.getTarget().getApi().getAccessToken() );
     }
 

@@ -145,7 +145,7 @@
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.1",
-          "accessToken": "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422598"
+          "accessToken": "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn11624"
         },
         "request": {
           "dataElementIdScheme": "UID",
