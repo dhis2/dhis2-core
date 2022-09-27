@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 import java.io.Serializable;
 
 import lombok.Getter;
@@ -54,7 +56,7 @@ public class Api
      * token is encrypted and must be decrypted before used to authenticate with
      * external systems.
      */
-    @JsonProperty
+    @JsonProperty( access = Access.WRITE_ONLY )
     private String accessToken;
 
     /**
@@ -67,7 +69,7 @@ public class Api
      * Password. For basic authentication. The password is encrypted and must be
      * decrypted before used to authenticate with external systems.
      */
-    @JsonProperty
+    @JsonProperty( access = Access.WRITE_ONLY )
     private String password;
 
     /**
@@ -90,23 +92,5 @@ public class Api
     public boolean isBasicAuth()
     {
         return StringUtils.isNoneBlank( username, password );
-    }
-
-    /**
-     * Do not expose access token.
-     */
-    @JsonIgnore
-    public String getAccessToken()
-    {
-        return accessToken;
-    }
-
-    /**
-     * Do not expose password.
-     */
-    @JsonIgnore
-    public String getPassword()
-    {
-        return password;
     }
 }
