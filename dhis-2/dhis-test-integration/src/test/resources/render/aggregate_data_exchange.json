@@ -1,0 +1,67 @@
+{
+  "dataElements": [
+    {
+      "id": "fbfJHSPpUQD",
+      "code": "DEA",
+      "name": "DEA",
+      "shortName": "DEA",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "INTEGER"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "id": "ImspTQPwCqd",
+      "code": "OUA",
+      "name": "OUA",
+      "shortName": "OUA",
+      "openingDate": "2010-01-01"
+    }
+  ],
+  "aggregateDataExchanges": [
+    {
+      "id": "PnWccbwCJLQ",
+      "name": "External basic auth data exchange",
+      "source":{
+        "params": {
+          "periodTypes": ["MONTHLY", "QUARTERLY"]
+        },
+        "requests": [
+          {
+            "name": "TB",
+            "visualization": "BjQYD1mOQLb",
+            "dx": [
+              "fbfJHSPpUQD"
+            ],
+            "pe": [
+              "LAST_3_MONTHS",
+              "202202"
+            ],
+            "ou": [
+              "ImspTQPwCqd"
+            ],
+            "inputIdScheme": "UID",
+            "outputDataElementIdScheme": "UID",
+            "outputOrgUnitIdScheme": "UID",
+            "outputIdscheme": "UID"
+          }
+        ]
+      },
+      "target":{
+        "type": "EXTERNAL",
+        "api": {
+          "url": "https://play.dhis2.org/2.38.1",
+          "username": "admin",
+          "password": "district"
+        },
+        "request": {
+          "dataElementIdScheme": "UID",
+          "orgUnitIdScheme": "UID",
+          "categoryOptionComboIdScheme": "UID",
+          "idScheme": "UID"
+        }
+      }
+    }
+  ]
+}

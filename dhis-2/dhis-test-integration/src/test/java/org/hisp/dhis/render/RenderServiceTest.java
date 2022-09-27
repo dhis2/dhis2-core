@@ -41,6 +41,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -54,7 +55,6 @@ import org.springframework.core.io.ClassPathResource;
  */
 class RenderServiceTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private RenderService renderService;
 
@@ -72,6 +72,27 @@ class RenderServiceTest extends SingleSetupIntegrationTestBase
         assertEquals( "deabcdefghA", map.get( DataElement.class ).get( 0 ).getUid() );
         assertEquals( "deabcdefghB", map.get( DataElement.class ).get( 1 ).getUid() );
         assertEquals( "deabcdefghC", map.get( DataElement.class ).get( 2 ).getUid() );
+    }
+
+    /**
+     * Assert that {@code Access.WRITE_ONLY} properties are deserialized.
+     */
+    @Test
+    void testParseJsonAggregateDataExchange()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = renderService
+            .fromMetadata( new ClassPathResource( "render/aggregate_data_exchange.json" ).getInputStream(),
+                RenderFormat.JSON );
+        assertTrue( map.containsKey( AggregateDataExchange.class ) );
+        assertEquals( 1, map.get( AggregateDataExchange.class ).size() );
+        AggregateDataExchange de = (AggregateDataExchange) map.get( AggregateDataExchange.class ).get( 0 );
+        assertNotNull( de );
+        assertNotNull( de.getTarget() );
+        assertNotNull( de.getTarget().getApi() );
+        assertEquals( "https://play.dhis2.org/2.38.1", de.getTarget().getApi().getUrl() );
+        assertEquals( "admin", de.getTarget().getApi().getUsername() );
+        assertEquals( "district", de.getTarget().getApi().getPassword() );
     }
 
     @Test
