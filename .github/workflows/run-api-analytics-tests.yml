@@ -55,6 +55,7 @@ jobs:
             sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
             sierra-leone-db-
       - run: |
+          rm -rf ${{ env.SIERRA_LEONE_DB_PATH }}
           mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
           wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz -P ${{ env.SIERRA_LEONE_DB_PATH }}
           gzip -d ${{ env.SIERRA_LEONE_DB_PATH }}/dhis2-db-sierra-leone.sql.gz
