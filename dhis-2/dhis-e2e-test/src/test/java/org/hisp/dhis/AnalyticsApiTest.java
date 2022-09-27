@@ -55,6 +55,14 @@ import io.restassured.http.ContentType;
  *
  * ie.: mvn -Djunit.jupiter.execution.timeout.mode=disabled test
  *
+ * All tests are written on top of the database Sierra Leone 2.39.0. It can be
+ * downloaded at
+ * https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz
+ * 
+ * If some test is failing and some investigation is needed, we can simply
+ * download the database version above and run the respective WAR of the DHIS2
+ * failing branch on top of that DB. It's a good approach to debug it locally.
+ * 
  * @author maikel arabori
  */
 @TestInstance( PER_CLASS )

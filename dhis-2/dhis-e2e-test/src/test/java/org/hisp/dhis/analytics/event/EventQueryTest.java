@@ -129,7 +129,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
-        validateRow( response, 0,
+        validateRow( response, 1,
             List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
@@ -147,7 +147,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
-        validateRow( response, 0,
+        validateRow( response, 2,
             List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
                 "2022-04-07 00:00:00.0",
@@ -241,7 +241,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
-        validateRow( response, 0,
+        validateRow( response, 1,
             List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
@@ -259,7 +259,7 @@ public class EventQueryTest extends AnalyticsApiTest
                 "ACTIVE",
                 "DiszpKrYNg8" ) );
 
-        validateRow( response, 0,
+        validateRow( response, 2,
             List.of( "ohAH6BXIMad",
                 "dBwrot7S420",
                 "2022-04-07 00:00:00.0",
