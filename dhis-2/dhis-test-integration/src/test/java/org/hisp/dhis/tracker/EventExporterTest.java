@@ -774,7 +774,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.addAttributeOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -787,7 +787,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.addAttributeOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -800,7 +800,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.addAttributeOrders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
