@@ -95,6 +95,7 @@ public class AnalyticsDimensionsTest
         programActions = new ProgramActions();
         analyticsEnrollmentsActions = new AnalyticsEnrollmentsActions();
         analyticsEventActions = new AnalyticsEventActions();
+        analyticsTeiActions = new AnalyticsTeiActions();
     }
 
     Stream<Arguments> shouldOrder()
@@ -236,28 +237,15 @@ public class AnalyticsDimensionsTest
     }
 
     @Test
-    public void shouldReturnAllTrackedEntityTypeAttributes()
-    {
-        List<String> trackedEntityAttributeIds = new TrackedEntityTypeActions()
-            .get( Constants.TRACKED_ENTITY_TYPE, new QueryParamsBuilder().add( "fields=trackedEntityTypeAttributes" ) )
-            .extractList( "trackedEntityTypeAttributes.trackedEntityAttribute.id" );
-
-        analyticsTeiActions.query().getDimensions( Constants.TRACKED_ENTITY_TYPE,
-            new QueryParamsBuilder().add( "filter", "dimensionType:endsWith:TRACKED_ENTITY_ATTRIBUTE" ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "dimensions", hasSize( equalTo( trackedEntityAttributeIds.size() ) ) )
-            .body( "dimensions.id", everyItem( in( trackedEntityAttributeIds ) ) );
-    }
-
-    @Test
     public void shouldReturnAllProgramAttributes()
     {
         List<String> programAttributes = programActions
             .get( new QueryParamsBuilder().add( "fields", "*" )
                 .add( "filter", "trackedEntityType.id:eq:" + Constants.TRACKED_ENTITY_TYPE ) )
             .extractList( "programs.programTrackedEntityAttributes.flatten().trackedEntityAttribute.id", String.class )
-            .stream().distinct().collect(
+            .stream()
+            //.distinct() attributes can be duplicated in different programs
+            .collect(
                 Collectors.toList() );
 
         analyticsTeiActions.query().getDimensions( Constants.TRACKED_ENTITY_TYPE,
