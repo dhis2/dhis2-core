@@ -25,70 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.aggregates;
+package org.hisp.dhis.util;
 
-import java.util.List;
-
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.zip.ZipEntry;
 
 /**
- * @author Luciano Fiandesio
+ * @author Austin McGee
  */
-@Value
-@Builder( toBuilder = true )
-public class AggregateContext
+public class ZipFileUtils
 {
-    /**
-     * returns true if user is Super User
-     */
-    boolean superUser;
+    private static final Pattern TOP_LEVEL_DIRECTORY_PREFIX_PATTERN = Pattern.compile( "^([^/\\\\]+[/\\\\]).*" );
 
-    /**
-     * The current user id
-     */
-    Long userId;
+    private ZipFileUtils()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
 
-    /**
-     * The current user uid
-     */
-    String userUid;
+    public static String getTopLevelDirectory( Iterator<? extends ZipEntry> zipEntries )
+    {
+        if ( !zipEntries.hasNext() )
+        {
+            return "";
+        }
 
-    /**
-     * A list of group ID to which the user belongs
-     */
-    List<String> userGroups;
+        ZipEntry firstEntry = zipEntries.next();
 
-    /**
-     * A List of Tracked Entity Types ID to which the user has READ ONLY access
-     */
-    List<Long> trackedEntityTypes;
+        Matcher m = TOP_LEVEL_DIRECTORY_PREFIX_PATTERN.matcher( firstEntry.getName() );
+        if ( m.find() )
+        {
+            final String prefix = m.group( 1 );
 
-    /**
-     * A List of Programs ID to which the user has READ ONLY access
-     */
-    List<Long> programs;
+            Stream<ZipEntry> stream = StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize( zipEntries, Spliterator.ORDERED ),
+                false );
 
-    /**
-     * A List of Program Stages ID to which the user has READ ONLY access
-     */
-    List<Long> programStages;
+            boolean allMatch = stream.allMatch( ( ZipEntry ze ) -> ze.getName().startsWith( prefix ) );
 
-    /**
-     * A List of Relationship ID to which the user has READ ONLY access
-     */
-    List<Long> relationshipTypes;
+            if ( allMatch )
+            {
+                return prefix;
+            }
+        }
 
-    /**
-     * The tei params to specify depth of tei graph
-     */
-    TrackedEntityInstanceParams params;
-
-    /**
-     * The query parameters to filter teis
-     */
-    TrackedEntityInstanceQueryParams queryParams;
+        return "";
+    }
 }

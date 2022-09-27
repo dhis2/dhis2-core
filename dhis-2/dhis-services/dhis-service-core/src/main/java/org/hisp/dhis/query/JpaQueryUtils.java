@@ -50,7 +50,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.User;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -379,31 +378,16 @@ public class JpaQueryUtils
             getGroupsIds( user ) );
     }
 
+    public static String generateSQlQueryForSharingCheck( String sharingColumn, String userId,
+        List<String> userGroupIds, String access )
+    {
+        return generateSQlQueryForSharingCheck( sharingColumn, access, userId, getGroupsIds( userGroupIds ) );
+    }
+
     private static String generateSQlQueryForSharingCheck( String sharingColumn, String access, String userId,
         String groupsIds )
     {
         return String.format( generateSQlQueryForSharingCheck( groupsIds ), sharingColumn, userId, groupsIds, access );
-    }
-
-    public static String generateSQlQueryForSharingCheck( String sharingColumn, User user, String access,
-        MapSqlParameterSource mapSqlParameterSource )
-    {
-        String groupsIds = getGroupsIds( user );
-
-        mapSqlParameterSource
-            .addValue( "user_sharing", user.getUid() )
-            .addValue( "user_access", access )
-            .addValue( "user_groups", groupsIds );
-
-        return String
-            .format( generateSQlQueryForSharingCheck( groupsIds )
-                .replace( "'%2$s'", "%2$s" )
-                .replace( "'%4$s'", "%4$s" )
-                .replace( "'%3$s'", "%3$s" ),
-                sharingColumn,
-                ":user_sharing",
-                ":user_groups",
-                ":user_access" );
     }
 
     private static String generateSQlQueryForSharingCheck( String groupsIds )
