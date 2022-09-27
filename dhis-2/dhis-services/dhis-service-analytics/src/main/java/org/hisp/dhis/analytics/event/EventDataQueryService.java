@@ -84,16 +84,6 @@ public interface EventDataQueryService
         String fallbackCoordinateField, boolean defaultCoordinateFallback );
 
     /**
-     * Returns the flag point on origin of coordinate request (default,
-     * explicit)
-     *
-     * @param coordinateField the coordinate field.
-     * @param fallbackCoordinateField the coordinate field.
-     * @return flag.
-     */
-    public boolean isCoordinateFieldExplicit( String coordinateField, String fallbackCoordinateField );
-
-    /**
      * Returns a {@link QueryItem}.
      *
      * @param dimensionString the dimension string.

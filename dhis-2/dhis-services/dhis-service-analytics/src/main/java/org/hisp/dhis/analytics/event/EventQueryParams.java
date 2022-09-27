@@ -117,10 +117,6 @@ public class EventQueryParams
 
     public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
 
-    // public static final ImmutableSet<FallbackCoordinateFieldType>
-    // FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
-    // OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
-
     /**
      * The query items.
      */
@@ -235,14 +231,11 @@ public class EventQueryParams
     private Long clusterSize;
 
     /**
-     * The coordinate field to use as basis for spatial event analytics.
+     * The coordinate fields to use as basis for spatial event analytics. The
+     * list is built as collection of coordinate field and fallback fields. The
+     * order defines priority of geometry fields.
      */
     private List<String> coordinateFields;
-
-    /**
-     * The coordinate field to use as basis for spatial event analytics.
-     */
-    private boolean isCoordinateFieldExplicit;
 
     /**
      * Bounding box for events to include in clustering.
@@ -1084,11 +1077,6 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
-    public boolean isCoordinateFieldExplicit()
-    {
-        return isCoordinateFieldExplicit;
-    }
-
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -1453,12 +1441,6 @@ public class EventQueryParams
         public Builder withCoordinateFields( List<String> coordinateFields )
         {
             this.params.coordinateFields = coordinateFields;
-            return this;
-        }
-
-        public Builder withIsCoordinateFieldExplicit( boolean isCoordinateFieldExplicit )
-        {
-            this.params.isCoordinateFieldExplicit = isCoordinateFieldExplicit;
             return this;
         }
 

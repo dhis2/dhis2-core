@@ -814,7 +814,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withCoordinatesOnly( true )
             .withGeometryOnly( true )
             .withCoordinateFields( coordinateFields )
-            .withIsCoordinateFieldExplicit( explicit )
             .build();
     }
 }

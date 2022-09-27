@@ -174,8 +174,9 @@ public class AnalyticsSqlUtils
 
     public static String getCoalesce( List<String> fields )
     {
-        String coalesce = fields.stream().filter( f -> f != null && !f.isBlank() )
-            .map( AnalyticsSqlUtils::quoteAlias ).collect( Collectors.joining( "," ) );
+        String coalesce = fields == null ? StringUtils.EMPTY
+            : fields.stream().filter( f -> f != null && !f.isBlank() )
+                .map( AnalyticsSqlUtils::quoteAlias ).collect( Collectors.joining( "," ) );
 
         return coalesce.isEmpty() ? "null"
             : "coalesce(" + fields.stream().filter( f -> f != null && !f.isBlank() )

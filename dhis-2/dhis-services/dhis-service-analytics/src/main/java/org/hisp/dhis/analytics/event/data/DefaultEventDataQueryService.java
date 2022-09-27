@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -221,8 +222,6 @@ public class DefaultEventDataQueryService
             .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
             .withCoordinateFields( getCoordinateFields( request.getProgram(), request.getCoordinateField(),
                 request.getFallbackCoordinateField(), request.isDefaultCoordinateFallback() ) )
-            .withIsCoordinateFieldExplicit( isCoordinateFieldExplicit( request.getCoordinateField(),
-                request.getFallbackCoordinateField() ) )
             .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
@@ -422,10 +421,26 @@ public class DefaultEventDataQueryService
             .build();
     }
 
+    /**
+     * Returns list of coordinateFields.
+     *
+     * All possible coordinate fields are collected. The order defines the
+     * priority of geometries and is used as a paramaters in sql coalesce
+     * function
+     *
+     * @param program the coordinate field.
+     * @param coordinateField the coordinate field.
+     * @param fallbackCoordinateField the coordinate field.
+     * @param defaultCoordinateFallback the coordinate field.
+     * @return List<String>
+     */
     @Override
     public List<String> getCoordinateFields( String program, String coordinateField,
         String fallbackCoordinateField, boolean defaultCoordinateFallback )
     {
+        // despite the fact it is nice to have no duplications, it can't be Set
+        // cause the order inside the collection (set add existing value and
+        // remove the old one)
         List<String> coordinateFields = new ArrayList<>();
 
         if ( coordinateField == null )
@@ -473,13 +488,7 @@ public class DefaultEventDataQueryService
         coordinateFields
             .addAll( getFallbackCoordinateFields( program, fallbackCoordinateField, defaultCoordinateFallback ) );
 
-        return coordinateFields;
-    }
-
-    @Override
-    public boolean isCoordinateFieldExplicit( String coordinateField, String fallbackCoordinateField )
-    {
-        return StringUtils.isBlank( coordinateField ) & StringUtils.isBlank( fallbackCoordinateField );
+        return coordinateFields.stream().distinct().collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
