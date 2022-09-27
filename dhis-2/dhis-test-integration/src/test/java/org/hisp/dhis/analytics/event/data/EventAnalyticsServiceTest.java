@@ -937,7 +937,7 @@ class EventAnalyticsServiceTest
             .withEndpointItem( RequestTypeAware.EndpointItem.EVENT )
             .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
             .withOrganisationUnits( level3Ous )
-            .withCoordinateFields( List.of( "pisgeometry" ) );
+            .withCoordinateFields( List.of( "psigeometry" ) );
     }
 
     /**
@@ -970,7 +970,7 @@ class EventAnalyticsServiceTest
             .addDimension( orgUnitDimension )
             .addDimension( periodDimension )
             .withPeriods( List.of( peJan, peFeb, peMar ), "Monthly" )
-            .withCoordinateFields( List.of( "pisgeometry" ) );
+            .withCoordinateFields( List.of( "psigeometry" ) );
     }
 
     /**
