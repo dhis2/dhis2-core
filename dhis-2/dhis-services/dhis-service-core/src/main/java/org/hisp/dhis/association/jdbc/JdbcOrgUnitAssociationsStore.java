@@ -54,17 +54,17 @@ public class JdbcOrgUnitAssociationsStore
 
     private final Cache<Set<String>> orgUnitAssociationCache;
 
-    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> objectUids )
+    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> uids )
     {
-        Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
-
-        if ( objectUids.isEmpty() )
+        if ( uids.isEmpty() )
         {
             return new HashSetValuedHashMap<>();
         }
 
+        Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
+
         return jdbcTemplate.query(
-            queryBuilder.buildSqlQuery( objectUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
+            queryBuilder.buildSqlQuery( uids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
                 SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
                 while ( resultSet.next() )
@@ -80,6 +80,11 @@ public class JdbcOrgUnitAssociationsStore
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
     {
+        if ( uids.isEmpty() )
+        {
+            return new HashSetValuedHashMap<>();
+        }
+
         SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
 
         boolean cached = true;
