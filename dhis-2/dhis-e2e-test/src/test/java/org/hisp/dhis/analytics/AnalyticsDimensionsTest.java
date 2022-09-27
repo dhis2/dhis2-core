@@ -55,7 +55,6 @@ import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
-import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -244,7 +243,7 @@ public class AnalyticsDimensionsTest
                 .add( "filter", "trackedEntityType.id:eq:" + Constants.TRACKED_ENTITY_TYPE ) )
             .extractList( "programs.programTrackedEntityAttributes.flatten().trackedEntityAttribute.id", String.class )
             .stream()
-            //.distinct() attributes can be duplicated in different programs
+            // .distinct() attributes can be duplicated in different programs
             .collect(
                 Collectors.toList() );
 
