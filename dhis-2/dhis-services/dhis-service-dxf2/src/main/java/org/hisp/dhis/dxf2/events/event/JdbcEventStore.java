@@ -966,8 +966,11 @@ public class JdbcEventStore implements EventStore
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
         {
-            sqlBuilder.append(
-                "decoa.can_access AS decoa_can_access, cocount.option_size AS option_size, " );
+            sqlBuilder.append( "CASE WHEN " )
+                .append( JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing", user,
+                    AclService.LIKE_READ_DATA ) )
+                .append( " THEN true ELSE false END as decoa_can_access" )
+                .append( ", cocount.option_size AS option_size, " );
         }
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
@@ -987,10 +990,7 @@ public class JdbcEventStore implements EventStore
             + "from programstageinstance psi "
             + "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid "
             + "inner join program p on p.programid=pi.programid "
-            + "inner join programstage ps on ps.programstageid=psi.programstageid "
-            + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
-            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " );
+            + "inner join programstage ps on ps.programstageid=psi.programstageid " );
 
         if ( Optional.ofNullable( params.getProgram() )
             .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
@@ -1087,11 +1087,7 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
-            && !isSuper( user ) )
-        {
-            sqlBuilder.append( getCategoryOptionSharingForUser( user ) );
-        }
+        sqlBuilder.append( getCategoryOptionSharingForUser( user, params ) );
 
         if ( !eventDataValuesWhereSql.isEmpty() )
         {
@@ -1459,23 +1455,22 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
-    private String getCategoryOptionSharingForUser( User user )
+    private String getCategoryOptionSharingForUser( User user, EventSearchParams params )
     {
-        StringBuilder sqlBuilder = new StringBuilder().append( " left join ( " );
+        String joinCondition = "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
+            + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid=cocco.categoryoptioncomboid "
+            + " inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid ";
 
-        sqlBuilder.append( "select categoryoptioncomboid, count(categoryoptioncomboid) as option_size "
-            + "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) "
-            + "as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid "
-            + "inner join ("
-            + "select deco.categoryoptionid as deco_id, deco.uid as deco_uid , "
-            + "( select ( " + JpaQueryUtils.generateSQlQueryForSharingCheck( "deco.sharing",
-                user, AclService.LIKE_READ_DATA )
-            + " ) ) as can_access "
-            + "from dataelementcategoryoption deco " );
+        if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
+            && !isSuper( user ) )
+        {
+            return joinCondition +
+                " inner join ( " +
+                "select categoryoptioncomboid, COUNT(categoryoptioncomboid) as option_size " +
+                "from categoryoptioncombos_categoryoptions group by categoryoptioncomboid) as cocount on coc.categoryoptioncomboid = cocount.categoryoptioncomboid ";
+        }
 
-        sqlBuilder.append( " ) as decoa on cocco.categoryoptionid = decoa.deco_id " );
-
-        return sqlBuilder.toString();
+        return joinCondition;
     }
 
     private String getEventPagingQuery( EventSearchParams params )
