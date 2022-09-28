@@ -38,6 +38,10 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_SCHEDULED_DATE;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PI_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_PSI_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TEI_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
 import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -124,25 +128,13 @@ public class DefaultEventDataQueryService
 
     private static final String COL_NAME_DUEDATE = "duedate";
 
-    private static final String COL_NAME_PI_GEOMETRY = "pigeometry";
-
-    private static final String COL_NAME_PSI_GEOMETRY = "psigeometry";
-
-    private static final String COL_NAME_TEI_GEOMETRY = "teigeometry";
-
-    private static final String COL_NAME_OU_GEOMETRY = "ougeometry";
-
-    private static final List<String> COL_NAME_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY, COL_NAME_PI_GEOMETRY,
-        COL_NAME_TEI_GEOMETRY, COL_NAME_OU_GEOMETRY );
-
-    private static final List<String> COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY,
-        COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY );
-
     private final ProgramService programService;
 
     private final ProgramStageService programStageService;
 
     private final DataElementService dataElementService;
+
+    private final EventCoordinateService eventCoordinateService;
 
     private final QueryItemLocator queryItemLocator;
 
@@ -428,11 +420,13 @@ public class DefaultEventDataQueryService
      * priority of geometries and is used as a paramaters in sql coalesce
      * function
      *
-     * @param program the coordinate field.
+     * @param program dhis program instance.
      * @param coordinateField the coordinate field.
-     * @param fallbackCoordinateField the coordinate field.
-     * @param defaultCoordinateFallback the coordinate field.
-     * @return List<String>
+     * @param fallbackCoordinateField the fallback coordinate field applied if
+     *        coordinate field in result set is null.
+     * @param defaultCoordinateFallback flag for cascade fallback, first not
+     *        null geometry (coalesce) will be applied.
+     * @return the coordinate column list.
      */
     @Override
     public List<String> getCoordinateFields( String program, String coordinateField,
@@ -449,19 +443,23 @@ public class DefaultEventDataQueryService
         }
         else if ( COL_NAME_GEOMETRY_LIST.contains( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, coordinateField, ErrorCode.E7221 ) );
+            coordinateFields
+                .add( eventCoordinateService.getCoordinateFieldOrFail( program, coordinateField, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add(
+                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_PSI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add(
+                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_PI_GEOMETRY, ErrorCode.E7221 ) );
         }
         else if ( EventQueryParams.TRACKER_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            coordinateFields.add( getCoordinateFieldOrFail( program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221 ) );
+            coordinateFields.add(
+                eventCoordinateService.getCoordinateFieldOrFail( program, COL_NAME_TEI_GEOMETRY, ErrorCode.E7221 ) );
         }
 
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
@@ -469,7 +467,8 @@ public class DefaultEventDataQueryService
         if ( dataElement != null )
         {
             coordinateFields
-                .add( getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField, ErrorCode.E7219 ) );
+                .add( eventCoordinateService.getCoordinateFieldOrFail( dataElement.getValueType(), coordinateField,
+                    ErrorCode.E7219 ) );
         }
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
@@ -477,7 +476,8 @@ public class DefaultEventDataQueryService
         if ( attribute != null )
         {
             coordinateFields
-                .add( getCoordinateFieldOrFail( attribute.getValueType(), coordinateField, ErrorCode.E7220 ) );
+                .add( eventCoordinateService.getCoordinateFieldOrFail( attribute.getValueType(), coordinateField,
+                    ErrorCode.E7220 ) );
         }
 
         if ( coordinateFields.isEmpty() )
@@ -488,7 +488,8 @@ public class DefaultEventDataQueryService
         coordinateFields.remove( StringUtils.EMPTY );
 
         coordinateFields
-            .addAll( getFallbackCoordinateFields( program, fallbackCoordinateField, defaultCoordinateFallback ) );
+            .addAll( eventCoordinateService.getFallbackCoordinateFields( program, fallbackCoordinateField,
+                defaultCoordinateFallback ) );
 
         return coordinateFields.stream().distinct().collect( Collectors.toList() );
     }
@@ -496,46 +497,6 @@ public class DefaultEventDataQueryService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private boolean verifyFallbackCoordinateField( boolean isRegistration, String coordinateField )
-    {
-        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) )
-        {
-            return isRegistration;
-        }
-
-        return COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST.contains( coordinateField );
-    }
-
-    private List<String> getFallbackCoordinateFields( String program, String fallbackCoordinateField,
-        boolean defaultCoordinateFallback )
-    {
-        Program prg = programService.getProgram( program );
-
-        List<String> fallbackCoordinateFields = new ArrayList<>();
-
-        if ( fallbackCoordinateField != null )
-        {
-            if ( !verifyFallbackCoordinateField( prg.isRegistration(), fallbackCoordinateField ) )
-            {
-                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7232, fallbackCoordinateField ) );
-            }
-
-            fallbackCoordinateFields.add( fallbackCoordinateField );
-        }
-        else
-        {
-            if ( defaultCoordinateFallback )
-            {
-                List<String> items = new ArrayList<>(
-                    prg.isRegistration() ? COL_NAME_GEOMETRY_LIST : COL_NAME_PROGRAM_REGISTRATION_GEOMETRY_LIST );
-
-                fallbackCoordinateFields.addAll( items );
-            }
-        }
-
-        return fallbackCoordinateFields;
-    }
 
     private QueryItem getQueryItem( String dimension, String filter, Program program, EventOutputType type )
     {
@@ -619,27 +580,6 @@ public class DefaultEventDataQueryService
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
     }
 
-    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
-    {
-        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
-        {
-            throwIllegalQueryEx( errorCode, field );
-        }
-        return field;
-    }
-
-    private String getCoordinateFieldOrFail( String program, String coordinateField, ErrorCode errorCode )
-    {
-        Program prg = programService.getProgram( program );
-
-        if ( COL_NAME_TEI_GEOMETRY.equals( coordinateField ) && !prg.isRegistration() )
-        {
-            throwIllegalQueryEx( errorCode, coordinateField );
-        }
-
-        return coordinateField;
-    }
-
     @Getter
     @RequiredArgsConstructor
     enum SortableItems
@@ -696,6 +636,5 @@ public class DefaultEventDataQueryService
         {
             return type == RequestTypeAware.EndpointItem.EVENT ? eventColumnName : enrollmentColumnName;
         }
-
     }
 }

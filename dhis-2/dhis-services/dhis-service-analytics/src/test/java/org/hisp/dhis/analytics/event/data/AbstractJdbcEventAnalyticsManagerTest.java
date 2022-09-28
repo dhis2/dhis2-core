@@ -487,7 +487,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         // Given
         EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
-            List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ), false );
+            List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ) );
 
         // When
         String whereClause = this.eventSubject.getWhereClause( params );
@@ -504,7 +504,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         // Given
         EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
-            List.of( "pigeometry", "teigeometry", "ougeometry" ), false );
+            List.of( "pigeometry", "teigeometry", "ougeometry" ) );
 
         // When
         String whereClause = this.eventSubject.getSelectClause( params );
@@ -517,8 +517,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void testValidExplicitCoordinatesFieldInSqlSelectClause()
     {
         // Given
-        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest( List.of( "ougeometry", "psigeometry" ),
-            true );
+        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest( List.of( "ougeometry", "psigeometry" ) );
 
         // When
         String whereClause = this.eventSubject.getSelectClause( params );
@@ -789,8 +788,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         return queryItem;
     }
 
-    private EventQueryParams getEventQueryParamsForCoordinateFieldsTest( List<String> coordinateFields,
-        boolean explicit )
+    private EventQueryParams getEventQueryParamsForCoordinateFieldsTest( List<String> coordinateFields )
     {
         DataElement deA = createDataElement( 'A', TEXT, AggregationType.NONE );
 
