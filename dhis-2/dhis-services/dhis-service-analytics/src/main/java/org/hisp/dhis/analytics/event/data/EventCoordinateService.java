@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 public interface EventCoordinateService
 {
     /**
-     * verified the validity of fallback coordinate field
+     * verifies the validity of fallback coordinate field
      *
      * @param isRegistration true when underlying program is registration
      * @param coordinateField the name of coordinate field (uid or name)
