@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -278,6 +279,19 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
+    }
+
+    @Test
+    void getTrackedEntityCsvFormat()
+    {
+        WebClient.HttpResponse response = GET( "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertTrue( response.header( "content-type" ).contains( "application/csv" ) );
+        assertTrue( response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ) );
+        assertTrue( response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()
