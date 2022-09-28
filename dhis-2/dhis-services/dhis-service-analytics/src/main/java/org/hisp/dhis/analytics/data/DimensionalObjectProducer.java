@@ -107,7 +107,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DimensionalObjectCreator
+public class DimensionalObjectProducer
 {
     private final IdentifiableObjectManager idObjectManager;
 

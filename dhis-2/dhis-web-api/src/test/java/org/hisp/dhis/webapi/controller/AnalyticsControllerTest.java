@@ -48,7 +48,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
-import org.hisp.dhis.analytics.data.DimensionalObjectCreator;
+import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -93,14 +93,14 @@ class AnalyticsControllerTest
     @BeforeEach
     public void setUp()
     {
-        final DataQueryService dataQueryService = new DefaultDataQueryService(
-            mock( DimensionalObjectCreator.class ),
+        DataQueryService dataQueryService = new DefaultDataQueryService(
+            mock( DimensionalObjectProducer.class ),
             mock( IdentifiableObjectManager.class ),
             mock( AnalyticsSecurityManager.class ),
             mock( I18nManager.class ) );
 
         // Controller under test
-        final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
+        AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
             contextUtils );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
@@ -194,7 +194,7 @@ class AnalyticsControllerTest
         throws Exception
     {
         // Then
-        final ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
+        ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
             // .andExpect( content().contentType( "application/xls" ) )
@@ -202,7 +202,7 @@ class AnalyticsControllerTest
             .andExpect( status().isOk() );
 
         // Convert content to Excel sheet
-        final byte[] excel = resultActions.andReturn().getResponse().getContentAsByteArray();
+        byte[] excel = resultActions.andReturn().getResponse().getContentAsByteArray();
         InputStream is = new ByteArrayInputStream( excel );
         Workbook book = WorkbookFactory.create( is );
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 0 ).getStringCellValue(), is( "de1" ) );

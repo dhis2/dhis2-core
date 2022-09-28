@@ -95,7 +95,7 @@ import org.springframework.stereotype.Service;
 public class DefaultDataQueryService
     implements DataQueryService
 {
-    private final DimensionalObjectCreator dimensionalObjectCreator;
+    private final DimensionalObjectProducer dimensionalObjectProducer;
 
     private final IdentifiableObjectManager idObjectManager;
 
@@ -267,7 +267,7 @@ public class DefaultDataQueryService
     {
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectCreator.fromDx( dimension, items, inputIdScheme );
+            return dimensionalObjectProducer.fromDx( dimension, items, inputIdScheme );
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
@@ -281,16 +281,16 @@ public class DefaultDataQueryService
         }
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectCreator.fromPeriod( dimension, items, relativePeriodDate, format );
+            return dimensionalObjectProducer.fromPeriod( dimension, items, relativePeriodDate, format );
         }
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectCreator.fromOrgUnit( dimension, items, displayProperty, userOrgUnits,
+            return dimensionalObjectProducer.fromOrgUnit( dimension, items, displayProperty, userOrgUnits,
                 inputIdScheme );
         }
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectCreator.fromOrgUnitGroup( dimension, items, inputIdScheme );
+            return dimensionalObjectProducer.fromOrgUnitGroup( dimension, items, inputIdScheme );
         }
         else if ( LONGITUDE_DIM_ID.contains( dimension ) )
         {
@@ -304,7 +304,7 @@ public class DefaultDataQueryService
         }
         else
         {
-            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectCreator.fromDynamic( dimension,
+            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.fromDynamic( dimension,
                 items, displayProperty, inputIdScheme );
 
             if ( baseDimensionalObject.isPresent() )

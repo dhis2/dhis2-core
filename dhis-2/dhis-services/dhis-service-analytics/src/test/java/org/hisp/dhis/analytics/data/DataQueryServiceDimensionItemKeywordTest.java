@@ -99,7 +99,7 @@ class DataQueryServiceDimensionItemKeywordTest
         .create( Map.of( OrganisationUnitGroup.class, Set.of( "geometry" ),
             OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
 
-    private DimensionalObjectCreator dimensionalObjectCreator;
+    private DimensionalObjectProducer dimensionalObjectProducer;
 
     private RequestBuilder rb;
 
@@ -137,9 +137,10 @@ class DataQueryServiceDimensionItemKeywordTest
     @BeforeEach
     public void setUp()
     {
-        dimensionalObjectCreator = new DimensionalObjectCreator( idObjectManager, organisationUnitService,
+        dimensionalObjectProducer = new DimensionalObjectProducer( idObjectManager, organisationUnitService,
             systemSettingManager, i18nManager, dimensionService, aclService, currentUserService );
-        target = new DefaultDataQueryService( dimensionalObjectCreator, idObjectManager, securityManager, i18nManager );
+        target = new DefaultDataQueryService( dimensionalObjectProducer, idObjectManager, securityManager,
+            i18nManager );
 
         rb = new RequestBuilder();
 
