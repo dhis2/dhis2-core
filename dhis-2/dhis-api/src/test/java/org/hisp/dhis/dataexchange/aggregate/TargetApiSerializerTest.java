@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 class TargetApiSerializerTest
 {
@@ -44,6 +45,10 @@ class TargetApiSerializerTest
     void testSerializeTargetApi()
         throws Exception
     {
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        mapper.registerModule( module );
+
         Target target = new Target()
             .setType( TargetType.EXTERNAL )
             .setApi( new Api()
@@ -52,7 +57,7 @@ class TargetApiSerializerTest
                 .setUsername( "admin" )
                 .setPassword( "district" ) );
 
-        String json = new ObjectMapper().writeValueAsString( target );
+        String json = mapper.writeValueAsString( target );
 
         assertTrue( json.contains( "https://myserver.org" ) );
         assertTrue( json.contains( "admin" ) );
