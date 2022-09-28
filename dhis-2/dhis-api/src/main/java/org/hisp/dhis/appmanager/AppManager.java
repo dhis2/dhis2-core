@@ -48,6 +48,7 @@ public interface AppManager
 
     ImmutableSet<String> BUNDLED_APPS = ImmutableSet.of(
         // Javascript apps
+        "aggregate-data-entry",
         "app-management",
         "cache-cleaner",
         "capture",
