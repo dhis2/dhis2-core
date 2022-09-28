@@ -419,7 +419,8 @@ public final class GenericOidcProviderConfigParser
                 return false;
             }
 
-            if ( value != null && key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
+            UrlValidator urlValidator = new UrlValidator( UrlValidator.ALLOW_LOCAL_URLS );
+            if ( value != null && key.endsWith( "uri" ) && !urlValidator.isValid( value ) )
             {
                 log.error( String.format(
                     "OpenId Connect (OIDC) configuration for provider: '%s' has a URI property: '%s', " +
