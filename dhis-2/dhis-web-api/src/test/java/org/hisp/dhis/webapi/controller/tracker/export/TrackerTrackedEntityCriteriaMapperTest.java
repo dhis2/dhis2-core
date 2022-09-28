@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -58,6 +59,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -69,7 +71,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,13 +82,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests {@link TrackedEntityCriteriaMapper}.
+ * Tests {@link TrackerTrackedEntityCriteriaMapper}.
  *
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityCriteriaMapperTest
+class TrackerTrackedEntityCriteriaMapperTest
 {
     public static final String TEA_1_UID = "TvjwTPToKHO";
 
@@ -98,6 +99,8 @@ class TrackedEntityCriteriaMapperTest
     private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
 
     private static final String PROGRAM_UID = "XhBYIraw7sv";
+
+    private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
 
     private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
 
@@ -117,11 +120,13 @@ class TrackedEntityCriteriaMapperTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @InjectMocks
-    private TrackedEntityCriteriaMapper mapper;
+    private TrackerTrackedEntityCriteriaMapper mapper;
 
     private User user;
 
     private Program program;
+
+    private ProgramStage programStage;
 
     private OrganisationUnit orgUnit1;
 
@@ -148,6 +153,11 @@ class TrackedEntityCriteriaMapperTest
 
         program = new Program();
         program.setUid( PROGRAM_UID );
+        programStage = new ProgramStage();
+        programStage.setUid( PROGRAM_STAGE_UID );
+        programStage.setProgram( program );
+        program.setProgramStages( Set.of( programStage ) );
+
         when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
 
         TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
@@ -164,24 +174,22 @@ class TrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void verifyCriteriaMapping()
+    void testMapping()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setQuery( "query-test" );
         criteria.setOuMode( OrganisationUnitSelectionMode.DESCENDANTS );
         criteria.setProgramStatus( ProgramStatus.ACTIVE );
         criteria.setFollowUp( true );
-        criteria.setLastUpdatedStartDate( getDate( 2019, 1, 1 ) );
-        criteria.setLastUpdatedEndDate( getDate( 2020, 1, 1 ) );
-        criteria.setLastUpdatedDuration( "20" );
-        criteria.setProgramEnrollmentStartDate( getDate( 2019, 8, 5 ) );
-        criteria.setProgramEnrollmentEndDate( getDate( 2020, 8, 5 ) );
-        criteria.setProgramIncidentStartDate( getDate( 2019, 5, 5 ) );
-        criteria.setProgramIncidentEndDate( getDate( 2020, 5, 5 ) );
+        criteria.setUpdatedAfter( getDate( 2019, 1, 1 ) );
+        criteria.setUpdatedBefore( getDate( 2020, 1, 1 ) );
+        criteria.setUpdatedWithin( "20" );
+        criteria.setEnrollmentOccurredAfter( getDate( 2019, 5, 5 ) );
+        criteria.setEnrollmentOccurredBefore( getDate( 2020, 5, 5 ) );
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
         criteria.setEventStatus( EventStatus.COMPLETED );
-        criteria.setEventStartDate( getDate( 2019, 7, 7 ) );
-        criteria.setEventEndDate( getDate( 2020, 7, 7 ) );
+        criteria.setEventOccurredAfter( getDate( 2019, 7, 7 ) );
+        criteria.setEventOccurredBefore( getDate( 2020, 7, 7 ) );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
         criteria.setSkipMeta( true );
         criteria.setPage( 1 );
@@ -203,17 +211,14 @@ class TrackedEntityCriteriaMapperTest
         assertThat( params.isTotalPages(), is( false ) );
         assertThat( params.getProgramStatus(), is( ProgramStatus.ACTIVE ) );
         assertThat( params.getFollowUp(), is( true ) );
-        assertThat( params.getLastUpdatedStartDate(), is( criteria.getLastUpdatedStartDate() ) );
-        assertThat( params.getLastUpdatedEndDate(), is( criteria.getLastUpdatedEndDate() ) );
-        assertThat( params.getProgramEnrollmentStartDate(), is( criteria.getProgramEnrollmentStartDate() ) );
-        assertThat( params.getProgramEnrollmentEndDate(),
-            is( DateUtils.addDays( criteria.getProgramEnrollmentEndDate(), 1 ) ) );
-        assertThat( params.getProgramIncidentStartDate(), is( criteria.getProgramIncidentStartDate() ) );
+        assertThat( params.getLastUpdatedStartDate(), is( criteria.getUpdatedAfter() ) );
+        assertThat( params.getLastUpdatedEndDate(), is( criteria.getUpdatedBefore() ) );
+        assertThat( params.getProgramIncidentStartDate(), is( criteria.getEnrollmentOccurredAfter() ) );
         assertThat( params.getProgramIncidentEndDate(),
-            is( DateUtils.addDays( criteria.getProgramIncidentEndDate(), 1 ) ) );
+            is( DateUtils.addDays( criteria.getEnrollmentOccurredBefore(), 1 ) ) );
         assertThat( params.getEventStatus(), is( EventStatus.COMPLETED ) );
-        assertThat( params.getEventStartDate(), is( criteria.getEventStartDate() ) );
-        assertThat( params.getEventEndDate(), is( criteria.getEventEndDate() ) );
+        assertThat( params.getEventStartDate(), is( criteria.getEventOccurredAfter() ) );
+        assertThat( params.getEventEndDate(), is( criteria.getEventOccurredBefore() ) );
         assertThat( params.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
         assertThat( params.isIncludeDeleted(), is( true ) );
         assertThat( params.isIncludeAllAttributes(), is( true ) );
@@ -222,61 +227,44 @@ class TrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void testMappingProgramEnrollmentStartDate()
+    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        Date programEnrollmentStartDate = parseDate( "2022-01-01" );
-        criteria.setProgramEnrollmentStartDate( programEnrollmentStartDate );
-        Date programStartDate = parseDate( "2022-12-13" );
-        criteria.setProgramStartDate( programStartDate );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        mapper.map( criteria );
 
-        assertEquals( programEnrollmentStartDate, params.getProgramEnrollmentStartDate() );
+        verifyNoInteractions( programService );
+        verifyNoInteractions( trackedEntityTypeService );
     }
 
     @Test
-    void testMappingProgramEnrollmentStartDateIfOnlyProgramStartDateIsSet()
+    void testMappingProgramEnrollmentStartDate()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        Date programStartDate = parseDate( "2022-12-13" );
-        criteria.setProgramStartDate( programStartDate );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        Date date = parseDate( "2022-12-13" );
+        criteria.setEnrollmentEnrolledAfter( date );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
-        assertEquals( programStartDate, params.getProgramEnrollmentStartDate() );
+        assertEquals( date, params.getProgramEnrollmentStartDate() );
     }
 
     @Test
     void testMappingProgramEnrollmentEndDate()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        Date programEnrollmentEndDate = parseDate( "2022-01-01" );
-        criteria.setProgramEnrollmentEndDate( programEnrollmentEndDate );
-        Date programEndDate = parseDate( "2022-12-13" );
-        criteria.setProgramEndDate( programEndDate );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        Date date = parseDate( "2022-12-13" );
+        criteria.setEnrollmentEnrolledBefore( date );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
-        assertEquals( DateUtils.addDays( programEnrollmentEndDate, 1 ), params.getProgramEnrollmentEndDate() );
-    }
-
-    @Test
-    void testMappingProgramEnrollmentStartDateIfOnlyProgramEndDateIsSet()
-    {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        Date programEndDate = parseDate( "2022-12-13" );
-        criteria.setProgramEndDate( programEndDate );
-
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
-
-        assertEquals( DateUtils.addDays( programEndDate, 1 ), params.getProgramEnrollmentEndDate() );
+        assertEquals( DateUtils.addDays( date, 1 ), params.getProgramEnrollmentEndDate() );
     }
 
     @Test
     void testFilter()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setFilter( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
@@ -308,7 +296,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testFilterWhenTEAHasMultipleFilters()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
@@ -329,46 +317,9 @@ class TrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void testFilterWhenNumberOfFilterSegmentsIsEven()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setFilter( Set.of( "eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Query item or filter is invalid: eq:2", exception.getMessage() );
-    }
-
-    @Test
-    void testFilterWhenNoTEAExist()
-    {
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( Collections.emptyList() );
-
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setFilter( Set.of( TEA_1_UID + ":eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
-    }
-
-    @Test
-    void testFilterWhenTEAInFilterDoesNotExist()
-    {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setFilter( Set.of( "JM5zWuf1mkb:eq:2" ) );
-
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
-    }
-
-    @Test
     void testAttributes()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setAttribute( Set.of( TEA_1_UID, TEA_2_UID ) );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
@@ -384,7 +335,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingAttributeWhenAttributeDoesNotExist()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setAttribute( Set.of( TEA_1_UID, "unknown" ) );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
@@ -395,7 +346,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingFailsOnMissingAttribute()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setAttribute( Set.of( TEA_1_UID, "unknown" ) );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
@@ -406,7 +357,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingProgram()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setProgram( PROGRAM_UID );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
@@ -417,18 +368,63 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingProgramNotFound()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setProgram( "unknown" );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program does not exist: unknown", e.getMessage() );
+        assertEquals( "Program is specified but does not exist: unknown", e.getMessage() );
+    }
+
+    @Test
+    void testMappingProgramStage()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgramStage( PROGRAM_STAGE_UID );
+
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        assertEquals( programStage, params.getProgramStage() );
+    }
+
+    @Test
+    void testMappingProgramStageGivenWithoutProgram()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgramStage( PROGRAM_STAGE_UID );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program does not contain the specified programStage: " + PROGRAM_STAGE_UID, e.getMessage() );
+    }
+
+    @Test
+    void testMappingProgramStageNotFound()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setProgramStage( "unknown" );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Program does not contain the specified programStage: unknown", e.getMessage() );
+    }
+
+    @Test
+    void testMappingTrackedEntityType()
+    {
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
 
     @Test
     void testMappingTrackedEntityTypeNotFound()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setTrackedEntityType( "unknown" );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
@@ -439,8 +435,8 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrgUnit()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setOu( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -450,8 +446,8 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrgUnitNotFound()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setOu( "unknown" );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setOrgUnit( "unknown" );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
@@ -464,8 +460,8 @@ class TrackedEntityCriteriaMapperTest
         when( organisationUnitService.isInUserHierarchy( orgUnit1.getUid(),
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
 
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setOu( ORG_UNIT_1_UID );
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
+        criteria.setOrgUnit( ORG_UNIT_1_UID );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> mapper.map( criteria ) );
@@ -475,7 +471,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingAssignedUsers()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setAssignedUser( "IsdLBTOBzMi;invalid;l5ab8q5skbB" );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
@@ -486,7 +482,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingFailsOnNonProvidedAndAssignedUsers()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         criteria.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
 
@@ -498,7 +494,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrderParams()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         OrderCriteria order1 = OrderCriteria.of( "trackedEntity", OrderParam.SortDirection.ASC );
         OrderCriteria order2 = OrderCriteria.of( "createdAt", OrderParam.SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
@@ -513,7 +509,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrderParamsNoOrder()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -523,7 +519,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrderParamsGivenInvalidField()
     {
-        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        TrackerTrackedEntityCriteria criteria = new TrackerTrackedEntityCriteria();
         OrderCriteria order1 = OrderCriteria.of( "invalid", OrderParam.SortDirection.DESC );
         criteria.setOrder( List.of( order1 ) );
 

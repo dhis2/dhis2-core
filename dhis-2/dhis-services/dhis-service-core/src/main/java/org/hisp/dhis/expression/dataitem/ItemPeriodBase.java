@@ -25,55 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webportal.module;
+package org.hisp.dhis.expression.dataitem;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
 import java.util.List;
 
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+
 /**
- * Comparator for sorting modules according to a specified order. Modules not
- * listed in the given order are sorted alphabetically after the specified ones.
+ * Abstract class for expression items that need only the period type and period
+ * such as {@link ItemPeriodInYear} and {@link ItemYearlyPeriodCount}.
  *
- * @author Torgeir Lorange Ostby
+ * @author Jim Grace
  */
-public class ConfigurableModuleComparator
-    implements Comparator<Module>
+public abstract class ItemPeriodBase
+    implements ExpressionItem
 {
-    private List<String> order = new ArrayList<>();
-
-    public void setOrder( List<String> order )
+    @Override
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        this.order = order;
+        return DOUBLE_VALUE_IF_NULL;
     }
-
-    // -------------------------------------------------------------------------
-    // Comparator
-    // -------------------------------------------------------------------------
 
     @Override
-    public int compare( Module moduleA, Module moduleB )
+    public Double evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int indexA = order.indexOf( moduleA.getName() );
-        int indexB = order.indexOf( moduleB.getName() );
+        List<Period> periods = visitor.getParams().getPeriods();
 
-        // ---------------------------------------------------------------------
-        // If indexA and indexB have different signs, make the positive one come
-        // first {if A is 0/+ and B is - return - (A before B), if A is - and B
-        // is 0/+ return + (B before A)}. If both are -, compare the names. If
-        // both are 0/+, compare the indices.
-        // ---------------------------------------------------------------------
-
-        if ( (indexA < 0) ^ (indexB < 0) )
+        if ( periods.size() != 1 )
         {
-            return indexB * 2 + 1;
+            return 0.0; // Not applicable
         }
 
-        if ( indexA < 0 )
-        {
-            return moduleA.getName().compareTo( moduleB.getName() );
-        }
+        PeriodType periodType = periods.get( 0 ).getPeriodType();
 
-        return indexA - indexB;
+        int periodOffset = (visitor.getState().getQueryMods() == null)
+            ? 0
+            : visitor.getState().getQueryMods().getPeriodOffset();
+
+        Period period = periodType.getShiftedPeriod( periods.get( 0 ), periodOffset );
+
+        return evaluate( periodType, period );
     }
+
+    // -------------------------------------------------------------------------
+    // Abstract methods
+    // -------------------------------------------------------------------------
+
+    protected abstract Double evaluate( PeriodType periodType, Period period );
 }

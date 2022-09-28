@@ -25,31 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webportal.module;
+package org.hisp.dhis.util;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.zip.ZipEntry;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Austin McGee
  */
-public interface ModuleManager
+public class ZipFileUtils
 {
-    Module getModuleByName( String name );
+    private static final Pattern TOP_LEVEL_DIRECTORY_PREFIX_PATTERN = Pattern.compile( "^([^/\\\\]+[/\\\\]).*" );
 
-    Module getModuleByNamespace( String namespace );
+    private ZipFileUtils()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
 
-    boolean moduleExists( String name );
+    public static String getTopLevelDirectory( Iterator<? extends ZipEntry> zipEntries )
+    {
+        if ( !zipEntries.hasNext() )
+        {
+            return "";
+        }
 
-    List<Module> getMenuModules();
+        ZipEntry firstEntry = zipEntries.next();
 
-    List<Module> getAccessibleMenuModules();
+        Matcher m = TOP_LEVEL_DIRECTORY_PREFIX_PATTERN.matcher( firstEntry.getName() );
+        if ( m.find() )
+        {
+            final String prefix = m.group( 1 );
 
-    List<Module> getAccessibleMenuModulesAndApps( String contextPath );
+            Stream<ZipEntry> stream = StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize( zipEntries, Spliterator.ORDERED ),
+                false );
 
-    Collection<Module> getAllModules();
+            boolean allMatch = stream.allMatch( ( ZipEntry ze ) -> ze.getName().startsWith( prefix ) );
 
-    Module getCurrentModule();
+            if ( allMatch )
+            {
+                return prefix;
+            }
+        }
 
-    void setCurrentModule( Module module );
+        return "";
+    }
 }

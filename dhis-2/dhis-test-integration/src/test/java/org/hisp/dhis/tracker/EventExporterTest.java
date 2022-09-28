@@ -444,6 +444,26 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByNumericDataElements(
+        Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        DataElement dataElement = dataElement( "DATAEL00006" );
+
+        params.setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LT, "77", dataElement.getValueType(),
+            null, dataElement.getOptionSet() ) ) );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+    }
+
     @Test
     void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
     {
@@ -585,6 +605,26 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
+    }
+
+    @Test
+    void testEnrollmentFilterNumericAttributes()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        QueryItem queryItem = numericQueryItem( "numericAttr" );
+        QueryFilter lessThan = new QueryFilter( QueryOperator.LT, "77" );
+        QueryFilter greaterThan = new QueryFilter( QueryOperator.GT, "8" );
+        queryItem.setFilters( List.of( lessThan, greaterThan ) );
+
+        params.addFilterAttributes( queryItem );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
     @Test
@@ -781,9 +821,19 @@ class EventExporterTest extends TrackerTest
 
     private static QueryItem queryItem( String teaUid )
     {
+        return queryItem( teaUid, ValueType.TEXT );
+    }
+
+    private static QueryItem numericQueryItem( String teaUid )
+    {
+        return queryItem( teaUid, ValueType.INTEGER );
+    }
+
+    private static QueryItem queryItem( String teaUid, ValueType valueType )
+    {
         TrackedEntityAttribute at = new TrackedEntityAttribute();
         at.setUid( teaUid );
-        at.setValueType( ValueType.TEXT );
+        at.setValueType( valueType );
         at.setAggregationType( AggregationType.NONE );
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(),
             at.isUnique() );

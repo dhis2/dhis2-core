@@ -6,7 +6,7 @@
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="shortcut icon" href="../../favicon.ico"/>
-    <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery-3.6.1.min.js"></script>
     <script>
         $.ajaxSetup( {
           beforeSend: function(xhr) {
@@ -96,6 +96,11 @@
             </div>
             <div id="lockedMessage" style="display: none">
                 $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}
+            </div>
+        #end
+        #if( $oidcFailure == true )
+            <div id="loginMessage">
+                $i18n.getString('oidc_login_failed')
             </div>
         #end
         #if ( $keyApplicationNotification )

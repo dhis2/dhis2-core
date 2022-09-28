@@ -65,7 +65,7 @@ public class TrackerTrackedEntitiesExportController
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
     @NonNull
-    private final TrackedEntityCriteriaMapper criteriaMapper;
+    private final TrackerTrackedEntityCriteriaMapper criteriaMapper;
 
     @NonNull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
