@@ -33,7 +33,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.VersionedObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -111,6 +117,14 @@ public class OptionSet
     public void removeAllOptions()
     {
         options.clear();
+    }
+
+    public void removeOption( Option option )
+    {
+        if ( !CollectionUtils.isEmpty( options ) )
+        {
+            options.remove( option );
+        }
     }
 
     @Override
