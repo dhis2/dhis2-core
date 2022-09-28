@@ -513,9 +513,7 @@ public interface JobProgress
         {
             // this might not be obvious but running a parallel stream
             // as task in a FJP makes the stream use the pool
-            boolean allSuccessful = pool == null
-                ? task.call()
-                : pool.submit( task ).get();
+            boolean allSuccessful = pool.submit( task ).get();
             if ( allSuccessful )
             {
                 completedStage( null );
