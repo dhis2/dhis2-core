@@ -31,12 +31,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.locationtech.jts.io.ParseException;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -64,7 +64,6 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
 
         for ( TrackedEntity trackedEntity : trackedEntities )
         {
-
             CsvTrackedEntityDataValue dataValue = new CsvTrackedEntityDataValue();
             dataValue.setTrackedEntity( trackedEntity.getTrackedEntity() );
             dataValue.setTrackedEntityType( trackedEntity.getTrackedEntityType() );
@@ -81,34 +80,40 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
             dataValue.setDeleted( trackedEntity.isDeleted() );
             dataValue.setPotentialDuplicate( trackedEntity.isPotentialDuplicate() );
 
-            for ( Attribute attribute : trackedEntity.getAttributes() )
-            {
-                CsvTrackedEntityDataValue csvTrackedEntityDataValue = new CsvTrackedEntityDataValue( dataValue );
-                csvTrackedEntityDataValue.setAttribute( attribute.getAttribute() );
-                csvTrackedEntityDataValue.setDisplayName( attribute.getDisplayName() );
-                csvTrackedEntityDataValue
-                    .setAttrCreatedAt( attribute.getCreatedAt() == null ? null : attribute.getCreatedAt().toString() );
-                csvTrackedEntityDataValue
-                    .setAttrUpdatedAt( attribute.getUpdatedAt() == null ? null : attribute.getUpdatedAt().toString() );
-                csvTrackedEntityDataValue.setValueType( attribute.getValueType().toString() );
-                csvTrackedEntityDataValue.setValue( attribute.getValue() );
-                dataValues.add( csvTrackedEntityDataValue );
-            }
-
             if ( trackedEntity.getAttributes().isEmpty() )
             {
                 dataValues.add( dataValue );
+            }
+            else
+            {
+                addAttributes( trackedEntity, dataValue, dataValues );
             }
         }
 
         writer.writeValue( outputStream, dataValues );
     }
 
+    private void addAttributes( TrackedEntity trackedEntity, CsvTrackedEntityDataValue currentDataValue,
+        List<CsvTrackedEntityDataValue> dataValues )
+    {
+        for ( Attribute attribute : trackedEntity.getAttributes() )
+        {
+            CsvTrackedEntityDataValue csvTrackedEntityDataValue = new CsvTrackedEntityDataValue( currentDataValue );
+            csvTrackedEntityDataValue.setAttribute( attribute.getAttribute() );
+            csvTrackedEntityDataValue.setDisplayName( attribute.getDisplayName() );
+            csvTrackedEntityDataValue
+                .setAttrCreatedAt( attribute.getCreatedAt() == null ? null : attribute.getCreatedAt().toString() );
+            csvTrackedEntityDataValue
+                .setAttrUpdatedAt( attribute.getUpdatedAt() == null ? null : attribute.getUpdatedAt().toString() );
+            csvTrackedEntityDataValue.setValueType( attribute.getValueType().toString() );
+            csvTrackedEntityDataValue.setValue( attribute.getValue() );
+            dataValues.add( csvTrackedEntityDataValue );
+        }
+    }
+
     @Override
     public List<TrackedEntity> readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        ParseException
     {
-        return null;
+        return Collections.emptyList();
     }
 }
