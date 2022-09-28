@@ -71,6 +71,7 @@ public interface EventCoordinateService
     String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode );
 
     /**
+     * provide verified geometry
      *
      * @param program underlying program
      * @param coordinateField geometry
