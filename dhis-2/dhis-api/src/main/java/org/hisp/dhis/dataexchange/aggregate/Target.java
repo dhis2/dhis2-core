@@ -35,7 +35,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @Getter
 @Setter
@@ -54,7 +53,6 @@ public class Target
      * Only relevant for {@link TargetType#EXTERNAL}.
      */
     @JsonProperty
-    @JsonSerialize( using = ApiSerializer.class )
     private Api api;
 
     /**
