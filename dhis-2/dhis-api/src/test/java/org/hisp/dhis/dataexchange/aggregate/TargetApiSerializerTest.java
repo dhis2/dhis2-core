@@ -47,6 +47,7 @@ class TargetApiSerializerTest
     {
         ObjectMapper mapper = new ObjectMapper();
         SimpleModule module = new SimpleModule();
+        module.addSerializer( Api.class, new ApiSerializer() );
         mapper.registerModule( module );
 
         Target target = new Target()
