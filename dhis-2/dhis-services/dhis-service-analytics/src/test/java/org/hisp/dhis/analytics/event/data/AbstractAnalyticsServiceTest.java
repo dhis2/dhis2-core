@@ -127,7 +127,7 @@ class AbstractAnalyticsServiceTest
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA ).addItem( qiB ).addItem( qiC )
-            .withCoordinateField( deB.getUid() )
+            .withCoordinateFields( List.of( deB.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .withApiVersion( DhisApiVersion.V33 )
