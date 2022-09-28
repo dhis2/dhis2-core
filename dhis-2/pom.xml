@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.42</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.0.43</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -77,13 +77,13 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.25</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.25.4</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.0</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.0</com.google.zxing.javase.version>
 
     <!-- Spring -->
     <spring.version>5.3.23</spring.version>
-    <spring-data-redis.version>2.7.2</spring-data-redis.version>
+    <spring-data-redis.version>2.7.3</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.3</spring-retry.version>
@@ -93,8 +93,8 @@
     <lettuce.version>6.2.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.3.0</flyway-core.version>
-    <hibernate.version>5.6.11.Final</hibernate.version>
+    <flyway-core.version>9.3.1</flyway-core.version>
+    <hibernate.version>5.6.12.Final</hibernate.version>
     <hibernate-types.version>2.19.2</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
@@ -136,14 +136,14 @@
     <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.14</batik-transcoder.version>
+    <batik-transcoder.version>1.15</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
     <geotools.version>27.1</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.25.0</artemis.version>
+    <artemis.version>2.26.0</artemis.version>
     <netty-all.version>4.1.82.Final</netty-all.version>
     <classgraph.version>4.8.149</classgraph.version>
 
@@ -157,14 +157,14 @@
     <jetty.version>10.0.12</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>1.9.5.Final</version.debezium>
+    <version.debezium>1.9.6.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.0.0</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.11.1</joda-time.version>
+    <joda-time.version>2.11.2</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
@@ -191,7 +191,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.9.0</junit.version>
+    <junit.version>5.9.1</junit.version>
     <mockito.version>4.8.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
@@ -215,7 +215,7 @@
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.12.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>7.2.0</dependency-check-maven.version>
+    <dependency-check-maven.version>7.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.2.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
@@ -787,6 +787,7 @@
                     https://github.com/testcontainers/testcontainers-java/issues/970</reason>
                   <bannedImports>
                     <bannedImport>org.junit.Test</bannedImport>
+                    <bannedImport>org.junit.Ignore</bannedImport>
                     <bannedImport>org.junit.Assert.**</bannedImport>
                   </bannedImports>
                 </RestrictImports>

@@ -87,7 +87,7 @@ class RequestParamUtils
     {
         return parseUidString( input )
             .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toUnmodifiableSet() );
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -99,7 +99,7 @@ class RequestParamUtils
     static Set<String> parseUids( String input )
     {
         return parseUidString( input )
-            .collect( Collectors.toUnmodifiableSet() );
+            .collect( Collectors.toSet() );
     }
 
     private static Stream<String> parseUidString( String input )
@@ -126,7 +126,7 @@ class RequestParamUtils
     {
         return items.stream()
             .map( i -> parseAttributeQueryItem( i, attributes ) )
-            .collect( Collectors.toUnmodifiableList() );
+            .collect( Collectors.toList() );
     }
 
     /**
