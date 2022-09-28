@@ -1466,6 +1466,8 @@ public class JdbcEventStore implements EventStore
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
+                    ++filterCount;
+
                     final String queryCol = item.isNumeric() ? castToNumber( dataValueValueSql )
                         : lower( dataValueValueSql );
 
