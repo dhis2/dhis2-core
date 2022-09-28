@@ -42,7 +42,7 @@ class TargetApiSerializerTest
      * properties are not serialized for {@link Api}.
      */
     @Test
-    void testSerializeTargetApi()
+    void testSerializeTargetApiWithCustomSerializer()
         throws Exception
     {
         ObjectMapper mapper = new ObjectMapper();
@@ -62,8 +62,33 @@ class TargetApiSerializerTest
 
         assertTrue( json.contains( "https://myserver.org" ) );
         assertTrue( json.contains( "admin" ) );
-
         assertFalse( json.contains( "d2pat_abc123" ) );
         assertFalse( json.contains( "district" ) );
+    }
+
+    /**
+     * Asserts that the sensitive {@code accessToken} and {@code password}
+     * properties are serialized for {@link Api}.
+     */
+    @Test
+    void testSerializeTargetApiWithoutCustomSerializer()
+        throws Exception
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( new Api()
+                .setUrl( "https://myserver.org" )
+                .setAccessToken( "d2pat_abc123" )
+                .setUsername( "admin" )
+                .setPassword( "district" ) );
+
+        String json = mapper.writeValueAsString( target );
+
+        assertTrue( json.contains( "https://myserver.org" ) );
+        assertTrue( json.contains( "admin" ) );
+        assertTrue( json.contains( "d2pat_abc123" ) );
+        assertTrue( json.contains( "district" ) );
     }
 }
