@@ -46,11 +46,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Saptarshi
- * @version $Id$
  */
 class AppTest
 {
-
     private App app;
 
     @BeforeEach

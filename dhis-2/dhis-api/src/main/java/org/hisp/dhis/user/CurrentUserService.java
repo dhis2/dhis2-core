@@ -32,8 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,10 +45,8 @@ import org.springframework.transaction.annotation.Transactional;
  * access admin is active, all user access methods will return null.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
 @Service( "org.hisp.dhis.user.CurrentUserService" )
-@Slf4j
 public class CurrentUserService
 {
     private final UserStore userStore;

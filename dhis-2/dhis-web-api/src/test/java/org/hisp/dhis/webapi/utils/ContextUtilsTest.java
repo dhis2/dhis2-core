@@ -44,7 +44,7 @@ class ContextUtilsTest
         User user = new User();
         user.setUid( "kYt56BgfED2" );
 
-        assertEquals( "2022-03-10T00:00:00-kYt56BgfED2", ContextUtils.getEtag( date, user ) );
+        assertEquals( "7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag( date, user ) );
     }
 
     @Test

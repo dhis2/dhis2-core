@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Nguyen Kim Lai
- *
- * @version SMSSpecialCharacter.java 1:57:35 PM Nov 18, 2013 $
  */
 @JacksonXmlRootElement( localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSSpecialCharacter

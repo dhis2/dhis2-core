@@ -93,7 +93,7 @@ public class TrackerEventsExportController
     private final ContextService contextService;
 
     @NonNull
-    private final EventRequestToSearchParamsMapper requestToSearchParams;
+    private final TrackerEventCriteriaMapper requestToSearchParams;
 
     @NonNull
     private final ProgramStageInstanceService programStageInstanceService;

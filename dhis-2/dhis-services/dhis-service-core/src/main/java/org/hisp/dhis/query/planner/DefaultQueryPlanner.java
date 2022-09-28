@@ -85,7 +85,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         // if there are any non persisted criterions left, we leave the paging
         // to the in-memory engine
-        if ( !npQuery.getCriterions().isEmpty() )
+        if ( !npQuery.isEmpty() )
         {
             pQuery.setSkipPaging( true );
         }

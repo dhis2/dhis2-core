@@ -45,7 +45,6 @@ import com.google.common.collect.Sets;
 
 /**
  * @author Dang Duy Hieu
- * @version $Id$
  */
 class UserGroupServiceTest extends SingleSetupIntegrationTestBase
 {

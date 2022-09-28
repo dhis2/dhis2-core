@@ -29,16 +29,11 @@ package org.hisp.dhis.expression.dataitem;
 
 import static java.lang.Integer.parseInt;
 import static java.util.Calendar.DAY_OF_YEAR;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.Calendar;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -52,29 +47,13 @@ import org.hisp.dhis.period.YearlyPeriodType;
  * @author Jim Grace
  */
 public class ItemPeriodInYear
-    implements ExpressionItem
+    extends ItemPeriodBase
 {
     private static final Pattern TRAILING_DIGITS = Pattern.compile( "\\d+$" );
 
     @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Double evaluate( PeriodType periodType, Period period )
     {
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    @Override
-    public Double evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        List<Period> periods = visitor.getParams().getPeriods();
-
-        if ( periods.size() != 1 )
-        {
-            return 0.0; // Not applicable
-        }
-
-        Period period = periods.get( 0 );
-        PeriodType periodType = period.getPeriodType();
-
         if ( periodType instanceof DailyPeriodType )
         {
             return dayOfYear( period );

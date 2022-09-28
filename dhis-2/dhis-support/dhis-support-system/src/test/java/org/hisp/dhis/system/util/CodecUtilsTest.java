@@ -25,32 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.system.util;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-/**
- * TODO: It should be removed when we will implement new services.
- *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
- */
-@Mapper
-public interface TrackerTrackedEntityCriteriaMapper
+import org.junit.jupiter.api.Test;
+
+class CodecUtilsTest
 {
-    @Mapping( source = "orgUnit", target = "ou" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollmentEnrolledAfter", target = "programStartDate" )
-    @Mapping( source = "enrollmentEnrolledBefore", target = "programEndDate" )
-    @Mapping( source = "enrollmentOccurredAfter", target = "programIncidentStartDate" )
-    @Mapping( source = "enrollmentOccurredBefore", target = "programIncidentEndDate" )
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "eventOccurredAfter", target = "eventStartDate" )
-    @Mapping( source = "eventOccurredBefore", target = "eventEndDate" )
-    TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria( TrackerTrackedEntityCriteria from );
+    @Test
+    void testMd5Hex()
+    {
+        String value = "10-05-2022T12:55:45";
+
+        assertNull( CodecUtils.md5Hex( null ) );
+        assertEquals( 32, CodecUtils.md5Hex( value ).length() );
+        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
+    }
 }
