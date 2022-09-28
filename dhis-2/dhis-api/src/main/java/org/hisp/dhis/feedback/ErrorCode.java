@@ -398,6 +398,7 @@ public enum ErrorCode
     E7229( "Operator `{0}` does not allow missing value" ),
     E7230( "Header param `{0}` does not exist" ),
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
+    E7232( "Fallback coordinate field is invalid: `{0}`" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
