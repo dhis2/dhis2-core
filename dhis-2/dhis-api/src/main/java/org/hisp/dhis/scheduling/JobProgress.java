@@ -484,8 +484,6 @@ public interface JobProgress
             runStage( items, description, work );
             return;
         }
-        int cores = Runtime.getRuntime().availableProcessors();
-        boolean useCustomPool = parallelism >= cores;
         AtomicInteger success = new AtomicInteger();
         AtomicInteger failed = new AtomicInteger();
 
@@ -510,7 +508,7 @@ public interface JobProgress
             }
         } ).reduce( Boolean::logicalAnd ).orElse( false );
 
-        ForkJoinPool pool = useCustomPool ? new ForkJoinPool( parallelism ) : null;
+        ForkJoinPool pool = new ForkJoinPool( parallelism );
         try
         {
             // this might not be obvious but running a parallel stream
