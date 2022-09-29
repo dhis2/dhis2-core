@@ -150,7 +150,7 @@ public class Dhis2Client
      * @param response the {@link ResponseEntity}.
      * @throws Dhis2ClientException
      */
-    private void handleErrors( ResponseEntity<?> response )
+    void handleErrors( ResponseEntity<?> response )
     {
         log.debug( "Response status code: {}", response.getStatusCode() );
 
@@ -250,7 +250,7 @@ public class Dhis2Client
      * @param queryParam the query parameter name.
      * @param idScheme the {@link IdScheme}.
      */
-    private void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
+    void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
     {
         if ( idScheme != null && idScheme != IdSchemes.DEFAULT_ID_SCHEME )
         {
