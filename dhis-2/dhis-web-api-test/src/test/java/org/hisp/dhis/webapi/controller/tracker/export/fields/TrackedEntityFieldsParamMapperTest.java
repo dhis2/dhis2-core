@@ -38,13 +38,10 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
 class TrackedEntityFieldsParamMapperTest
 {
     @Test

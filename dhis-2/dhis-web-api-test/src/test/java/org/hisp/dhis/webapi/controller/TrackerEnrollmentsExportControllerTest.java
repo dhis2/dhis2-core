@@ -64,8 +64,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 {
 
@@ -178,7 +176,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     @Test
     void getEnrollmentByIdWithEventsFields()
     {
-        programInstance.setProgramStageInstances( Sets.newHashSet( programStageInstance ) );
+        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
         manager.update( programInstance );
 
         assertWithEventResponse( (GET( "/tracker/enrollments/{id}?fields=events", programInstance.getUid() )
@@ -192,7 +190,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
 
         manager.save( relationship( programInstance, tei ) );
 
-        programInstance.setProgramStageInstances( Sets.newHashSet( programStageInstance ) );
+        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
         manager.update( programInstance );
 
         assertTrue(
