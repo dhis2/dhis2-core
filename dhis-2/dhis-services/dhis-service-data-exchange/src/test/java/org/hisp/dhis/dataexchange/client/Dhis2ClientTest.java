@@ -30,10 +30,14 @@ package org.hisp.dhis.dataexchange.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.net.URI;
+
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.UriComponentsBuilder;
 
 class Dhis2ClientTest
 {
@@ -96,5 +100,21 @@ class Dhis2ClientTest
 
         assertThrows( Dhis2ClientException.class,
             () -> client.handleErrors( new ResponseEntity<>( HttpStatus.NOT_FOUND ) ) );
+    }
+
+    @Test
+    void testAddIfNotDefault()
+        throws Exception
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUri( new URI( "https://myserver.org" ) );
+
+        client.addIfNotDefault( builder, "dataElementIdScheme", IdScheme.CODE );
+        client.addIfNotDefault( builder, "orgUnitIdScheme", null );
+        client.addIfNotDefault( builder, "idScheme", IdScheme.UID );
+
+        assertEquals( "https://myserver.org?dataElementIdScheme=code", builder.build().toString() );
     }
 }
