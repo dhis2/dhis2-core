@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +53,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -116,12 +118,13 @@ public class UserSettingController
     }
 
     @GetMapping( value = "/{key}" )
-    public String getUserSettingByKey(
+    public void getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
         @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
-        throws WebMessageException
+        throws WebMessageException,
+        IOException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
@@ -131,8 +134,8 @@ public class UserSettingController
             .get( key );
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        response.setHeader( "Content-Type", ContextUtils.CONTENT_TYPE_TEXT );
-        return String.valueOf( value );
+        response.setHeader( HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT );
+        response.getWriter().print( value );
     }
 
     @PostMapping( value = "/{key}" )
