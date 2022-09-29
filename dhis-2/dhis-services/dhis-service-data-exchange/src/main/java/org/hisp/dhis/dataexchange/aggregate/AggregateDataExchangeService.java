@@ -38,6 +38,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -64,6 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class AggregateDataExchangeService
 {
@@ -174,6 +177,7 @@ public class AggregateDataExchangeService
         }
         catch ( Exception ex )
         {
+            log.error( "Aggregate data exchange failed", ex );
             return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
         }
     }

@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 class Dhis2ClientTest
 {
@@ -79,5 +81,20 @@ class Dhis2ClientTest
             client.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
             client.getResolvedUriBuilder( "system/info" ).build().toUriString() );
+    }
+
+    @Test
+    void testHandleErrors()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        client.handleErrors( new ResponseEntity<>( HttpStatus.OK ) );
+
+        assertThrows( Dhis2ClientException.class,
+            () -> client.handleErrors( new ResponseEntity<>( HttpStatus.UNAUTHORIZED ) ) );
+
+        assertThrows( Dhis2ClientException.class,
+            () -> client.handleErrors( new ResponseEntity<>( HttpStatus.NOT_FOUND ) ) );
     }
 }

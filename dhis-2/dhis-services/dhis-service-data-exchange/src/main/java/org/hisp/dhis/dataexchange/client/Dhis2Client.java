@@ -150,7 +150,7 @@ public class Dhis2Client
      * @param response the {@link ResponseEntity}.
      * @throws Dhis2ClientException
      */
-    private void handleErrors( ResponseEntity<?> response )
+    void handleErrors( ResponseEntity<?> response )
     {
         log.debug( "Response status code: {}", response.getStatusCode() );
 
