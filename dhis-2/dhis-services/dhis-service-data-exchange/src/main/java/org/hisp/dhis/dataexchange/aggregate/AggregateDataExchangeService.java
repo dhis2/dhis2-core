@@ -38,6 +38,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -58,12 +60,14 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Main service class for aggregate data exchange.
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 @Service
 public class AggregateDataExchangeService
 {
@@ -171,6 +175,12 @@ public class AggregateDataExchangeService
 
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            String message = String.format( "Failed to import data for target instance: '%s'", ex.getStatusCode() );
+
+            return new ImportSummary( ImportStatus.ERROR, message );
         }
         catch ( Exception ex )
         {
