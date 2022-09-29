@@ -102,13 +102,15 @@ class Dhis2ClientTest
         Dhis2Client client = Dhis2Client.withBasicAuth(
             "https://play.dhis2.org/2.38.0", "admin", "district" );
 
+        ResponseEntity<?> unauthorized = new ResponseEntity<>( HttpStatus.UNAUTHORIZED );
+        ResponseEntity<?> forbidden = new ResponseEntity<>( HttpStatus.FORBIDDEN );
+        ResponseEntity<?> notFound = new ResponseEntity<>( HttpStatus.NOT_FOUND );
+
         client.handleErrors( new ResponseEntity<>( HttpStatus.OK ) );
 
-        assertThrows( Dhis2ClientException.class,
-            () -> client.handleErrors( new ResponseEntity<>( HttpStatus.UNAUTHORIZED ) ) );
-
-        assertThrows( Dhis2ClientException.class,
-            () -> client.handleErrors( new ResponseEntity<>( HttpStatus.NOT_FOUND ) ) );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( unauthorized ) );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( forbidden ) );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( notFound ) );
     }
 
     @Test
