@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
@@ -35,7 +36,9 @@ import java.net.URI;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -94,6 +97,18 @@ class Dhis2ClientTest
             client.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
             client.getResolvedUriBuilder( "system/info" ).build().toUriString() );
+    }
+
+    @Test
+    void testGetJsonAuthHeaders()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        HttpHeaders headers = client.getJsonAuthHeaders();
+
+        assertNotNull( headers );
+        assertEquals( MediaType.APPLICATION_JSON, headers.getContentType() );
     }
 
     @Test
