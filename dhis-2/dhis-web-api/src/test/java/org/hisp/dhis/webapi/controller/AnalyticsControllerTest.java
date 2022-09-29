@@ -55,7 +55,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,8 +95,7 @@ class AnalyticsControllerTest
         DataQueryService dataQueryService = new DefaultDataQueryService(
             mock( DimensionalObjectProducer.class ),
             mock( IdentifiableObjectManager.class ),
-            mock( AnalyticsSecurityManager.class ),
-            mock( I18nManager.class ) );
+            mock( AnalyticsSecurityManager.class ) );
 
         // Controller under test
         AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,

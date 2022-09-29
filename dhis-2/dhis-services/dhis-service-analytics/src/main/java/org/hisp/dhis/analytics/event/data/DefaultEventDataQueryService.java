@@ -86,8 +86,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -135,8 +133,6 @@ public class DefaultEventDataQueryService
 
     private final DataQueryService dataQueryService;
 
-    private final I18nManager i18nManager;
-
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
@@ -146,8 +142,6 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request, boolean analyzeOnly )
     {
-        I18nFormat format = i18nManager.getI18nFormat();
-
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
         IdScheme idScheme = IdScheme.UID;
@@ -168,9 +162,9 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( ErrorCode.E7130, request.getStage() );
         }
 
-        addDimensionsIntoParams( params, request, userOrgUnits, format, pr, idScheme );
+        addDimensionsIntoParams( params, request, userOrgUnits, pr, idScheme );
 
-        addFiltersIntoParams( params, request, userOrgUnits, format, pr, idScheme );
+        addFiltersIntoParams( params, request, userOrgUnits, pr, idScheme );
 
         addSortIntoParams( params, request, pr );
 
@@ -283,8 +277,7 @@ public class DefaultEventDataQueryService
     }
 
     private void addFiltersIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
-        List<OrganisationUnit> userOrgUnits,
-        I18nFormat format, Program pr, IdScheme idScheme )
+        List<OrganisationUnit> userOrgUnits, Program pr, IdScheme idScheme )
     {
         if ( request.getFilter() != null )
         {
@@ -298,7 +291,7 @@ public class DefaultEventDataQueryService
                     List<String> items = getDimensionItemsFromParam( dim );
 
                     GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
-                        items, request.getRelativePeriodDate(), userOrgUnits, format, true, idScheme );
+                        items, request.getRelativePeriodDate(), userOrgUnits, true, idScheme );
 
                     if ( groupableItem != null )
                     {
@@ -318,8 +311,7 @@ public class DefaultEventDataQueryService
     }
 
     private void addDimensionsIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
-        List<OrganisationUnit> userOrgUnits,
-        I18nFormat format, Program pr, IdScheme idScheme )
+        List<OrganisationUnit> userOrgUnits, Program pr, IdScheme idScheme )
     {
         if ( request.getDimension() != null )
         {
@@ -334,7 +326,7 @@ public class DefaultEventDataQueryService
                     List<String> items = getDimensionItemsFromParam( dim );
 
                     GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
-                        items, request, userOrgUnits, format, true, idScheme );
+                        items, request, userOrgUnits, true, idScheme );
 
                     if ( groupableItem != null )
                     {
@@ -360,7 +352,6 @@ public class DefaultEventDataQueryService
 
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
-        I18nFormat format = i18nManager.getI18nFormat();
         IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
 
@@ -369,7 +360,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, idScheme );
+                getDimensionalItemIds( dimension.getItems() ), date, null, true, idScheme );
 
             if ( dimObj != null )
             {
@@ -385,7 +376,7 @@ public class DefaultEventDataQueryService
         for ( DimensionalObject filter : object.getFilters() )
         {
             DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                getDimensionalItemIds( filter.getItems() ), date, null, format, true, idScheme );
+                getDimensionalItemIds( filter.getItems() ), date, null, true, idScheme );
 
             if ( dimObj != null )
             {
