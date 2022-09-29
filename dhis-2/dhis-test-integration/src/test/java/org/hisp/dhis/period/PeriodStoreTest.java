@@ -42,11 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: PeriodStoreTest.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 class PeriodStoreTest extends SingleSetupIntegrationTestBase
 {
-
     @Autowired
     private PeriodStore periodStore;
 

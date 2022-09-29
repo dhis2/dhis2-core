@@ -71,7 +71,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 {
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT_TYPE_REFERENCE = new TypeReference<Map<String, Object>>()
+    public static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT_TYPE_REFERENCE = new TypeReference<>()
     {
     };
 

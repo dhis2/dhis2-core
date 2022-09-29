@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker.mapper;
+package org.hisp.dhis.dataexchange.aggregate;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.io.IOException;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * TODO: It should be removed when we will implement new services.
+ * Jackson JSON serializer for {@link Api}. Does not write sensitive properties
+ * including {@code accessToken} and {@link password}.
+ * <p>
+ * This serializer exists because {@link Api} is persisted as a JSONB data type
+ * which relies on creating a deep copy by writing and reading the class to
+ * JSON, in which case the use of {@link JsonProperty.Access.WRITE_ONLY} at the
+ * property level leads to the property value being lost in the copy process.
  *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
+ * @author Lars Helge Overland
  */
-@Mapper
-public interface TrackerTrackedEntityCriteriaMapper
+public class ApiSerializer
+    extends JsonSerializer<Api>
 {
-    @Mapping( source = "orgUnit", target = "ou" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollmentEnrolledAfter", target = "programStartDate" )
-    @Mapping( source = "enrollmentEnrolledBefore", target = "programEndDate" )
-    @Mapping( source = "enrollmentOccurredAfter", target = "programIncidentStartDate" )
-    @Mapping( source = "enrollmentOccurredBefore", target = "programIncidentEndDate" )
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "eventOccurredAfter", target = "eventStartDate" )
-    @Mapping( source = "eventOccurredBefore", target = "eventEndDate" )
-    TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria( TrackerTrackedEntityCriteria from );
+    @Override
+    public void serialize( Api api, JsonGenerator json, SerializerProvider serializers )
+        throws IOException
+    {
+        json.writeStartObject();
+        json.writeStringField( "url", api.getUrl() );
+
+        if ( StringUtils.isNotBlank( api.getUsername() ) )
+        {
+            json.writeStringField( "username", api.getUsername() );
+        }
+
+        json.writeEndObject();
+    }
 }

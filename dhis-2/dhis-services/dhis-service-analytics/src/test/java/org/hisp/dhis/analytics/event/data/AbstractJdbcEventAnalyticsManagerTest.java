@@ -69,6 +69,7 @@ import javax.sql.rowset.RowSetMetaDataImpl;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -118,7 +119,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Mock
     private ExecutionPlanStore executionPlanStore;
 
-    private JdbcEventAnalyticsManager subject;
+    private JdbcEventAnalyticsManager eventSubject;
 
     private Program programA;
 
@@ -132,9 +133,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
+
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+
+        eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
             programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
 
         // data init
@@ -150,7 +153,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
-        subject.getSelectSql( new QueryFilter(), item, from, to );
+        eventSubject.getSelectSql( new QueryFilter(), item, from, to );
 
         verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             from, to );
@@ -166,7 +169,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         QueryFilter queryFilter = new QueryFilter( QueryOperator.IEQ, "IEQ" );
 
-        String column = subject.getSelectSql( queryFilter, item, from, to );
+        String column = eventSubject.getSelectSql( queryFilter, item, from, to );
 
         assertThat( column, is( "lower(ax.\"" + dataElementA.getUid() + "\")" ) );
     }
@@ -181,7 +184,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         QueryFilter queryFilter = new QueryFilter( EQ, "EQ" );
 
-        String column = subject.getSelectSql( queryFilter, item, from, to );
+        String column = eventSubject.getSelectSql( queryFilter, item, from, to );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
@@ -194,7 +197,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
         item.setValueType( NUMBER );
 
-        String column = subject.getSelectSql( new QueryFilter(), item, from, to );
+        String column = eventSubject.getSelectSql( new QueryFilter(), item, from, to );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
@@ -207,7 +210,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
 
         // When
-        String column = subject.getCoordinateColumn( item ).asSql();
+        String column = eventSubject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -225,7 +228,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         QueryItem item = new QueryItem( dio );
 
-        String column = subject.getColumn( item );
+        String column = eventSubject.getColumn( item );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
@@ -239,28 +242,90 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetAggregateClauseWithValue()
     {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        // Given
+        DataElement de = new DataElement();
+
+        de.setUid( dataElementA.getUid() );
+
+        de.setAggregationType( AggregationType.SUM );
+
+        de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( dio )
+            .withValue( de )
             .withAggregationType( AnalyticsAggregationType.SUM )
             .build();
 
-        String clause = subject.getAggregateClause( params );
+        // When
+        String clause = eventSubject.getAggregateClause( params );
 
+        // Then
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
     @Test
     void verifyGetAggregateClauseWithValueFails()
     {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.CUSTOM );
+
+        de.setValueType( NUMBER );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( dio )
+            .withValue( de )
             .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
             .build();
-        assertThrows( IllegalArgumentException.class, () -> subject.getAggregateClause( params ) );
+
+        // When
+        // Then
+        assertThrows( IllegalArgumentException.class, () -> eventSubject.getAggregateClause( params ) );
+    }
+
+    @Test
+    void verifyGetAggregateClauseWithEventFallback()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.NONE );
+
+        de.setValueType( TEXT );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+            .withOutputType( EventOutputType.EVENT )
+            .build();
+        // When
+        String aggregateClause = eventSubject.getAggregateClause( params );
+
+        // Then
+        assertEquals( "count(ax.\"psi\")", aggregateClause );
+    }
+
+    @Test
+    void verifyGetAggregateClauseWithEnrollmentFallback()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.SUM );
+
+        de.setValueType( TEXT );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+            .withOutputType( EventOutputType.ENROLLMENT )
+            .build();
+
+        // When
+        String aggregateClause = eventSubject.getAggregateClause( params );
+
+        // Then
+        assertEquals( "count(distinct ax.\"pi\")", aggregateClause );
     }
 
     @Test
@@ -275,7 +340,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
-        String clause = subject.getAggregateClause( params );
+        String clause = eventSubject.getAggregateClause( params );
 
         assertThat( clause, is( "avg(select * from table)" ) );
     }
@@ -293,7 +358,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
-        String clause = subject.getAggregateClause( params );
+        String clause = eventSubject.getAggregateClause( params );
 
         assertThat( clause, is( "(select * from table)" ) );
     }
@@ -311,7 +376,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
-        String clause = subject.getAggregateClause( params );
+        String clause = eventSubject.getAggregateClause( params );
 
         assertThat( clause, is( "avg(select * from table)" ) );
     }
@@ -335,12 +400,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA )
-            .withCoordinateField( deA.getUid() )
+            .withCoordinateFields( List.of( deA.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .build();
 
-        List<String> columns = this.subject.getSelectColumns( params, false );
+        List<String> columns = this.eventSubject.getSelectColumns( params, false );
 
         // Then
 
@@ -370,7 +435,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA )
-            .withCoordinateField( deA.getUid() )
+            .withCoordinateFields( List.of( deA.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .withStartDate( new Date() )
@@ -380,10 +445,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withCoordinatesOnly( true )
             .build();
 
-        String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.eventSubject.getWhereClause( params );
 
         // Then
-        assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
+        assertThat( whereClause, containsString( "and coalesce(ax.\"" + deA.getUid() + "_geom" + "\") is not null" ) );
     }
 
     @Test
@@ -409,7 +474,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .build();
 
         // When
-        String whereClause = this.subject.getWhereClause( params );
+        String whereClause = this.eventSubject.getWhereClause( params );
 
         // Then
         assertThat( whereClause,
@@ -418,12 +483,56 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
+    void testValidCoordinatesFieldInSqlWhereClauseForEvent()
+    {
+        // Given
+        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
+            List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ) );
+
+        // When
+        String whereClause = this.eventSubject.getWhereClause( params );
+
+        // Then
+        // the order of geometry fields does not matter in where clause (is not
+        // null test)
+        assertThat( whereClause, containsString(
+            "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null" ) );
+    }
+
+    @Test
+    void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause()
+    {
+        // Given
+        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
+            List.of( "pigeometry", "teigeometry", "ougeometry" ) );
+
+        // When
+        String whereClause = this.eventSubject.getSelectClause( params );
+
+        // Then
+        assertThat( whereClause, containsString( "coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")" ) );
+    }
+
+    @Test
+    void testValidExplicitCoordinatesFieldInSqlSelectClause()
+    {
+        // Given
+        EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest( List.of( "ougeometry", "psigeometry" ) );
+
+        // When
+        String whereClause = this.eventSubject.getSelectClause( params );
+
+        // Then
+        assertThat( whereClause, containsString( "coalesce(ax.\"ougeometry\",ax.\"psigeometry\")" ) );
+    }
+
+    @Test
     void testGeItemNoFiltersSql()
     {
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters( "item", UUID.randomUUID(), Collections.emptyList() ) )
             .build();
-        assertEquals( "", subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() ) );
+        assertEquals( "", eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() ) );
     }
 
     @Test
@@ -435,7 +544,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( EQ, "A" ) ) ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A' ", result );
     }
 
@@ -448,7 +557,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( NEQ, "12" ) ), NUMBER ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item\" is null or ax.\"item\" != '12') ", result );
     }
 
@@ -461,7 +570,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( NILIKE, "A" ) ) ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item\" is null or ax.\"item\" not ilike '%A%') ", result );
     }
 
@@ -474,7 +583,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( NEQ, "A" ) ), TEXT ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
 
         queryParams = new EventQueryParams.Builder()
@@ -483,7 +592,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( NE, "A" ) ), TEXT ) )
             .build();
-        result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(ax.\"item\", '') = '' or ax.\"item\" != 'A') ", result );
     }
 
@@ -496,7 +605,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildQueryFilter( NIEQ, "A" ) ), TEXT ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (coalesce(lower(ax.\"item\"), '') = '' or lower(ax.\"item\") != 'a') ", result );
     }
 
@@ -511,7 +620,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                     buildQueryFilter( EQ, "A" ),
                     buildQueryFilter( EQ, "B" ) ) ) )
             .build();
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result );
     }
 
@@ -528,7 +637,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item\" = 'A'  and ax.\"item\" = 'B' )", result );
     }
 
@@ -550,7 +659,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )", result );
     }
 
@@ -579,7 +688,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
+        String result = eventSubject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertTrue( result.contains( "(ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )" ) );
         assertTrue( result.contains( "(ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )" ) );
     }
@@ -612,7 +721,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
 
         // When
-        subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
+        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
         assertTrue( grid.getColumn( 0 ).contains( doubleObject ), "Should contain value " + doubleObject );
@@ -646,7 +755,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
 
         // When
-        subject.addGridValue( grid, header, index, sqlRowSet, queryParams );
+        eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
         assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
@@ -677,5 +786,32 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         queryItem.setGroupUUID( groupUUID );
         queryItem.setFilters( new ArrayList<>( filters ) );
         return queryItem;
+    }
+
+    private EventQueryParams getEventQueryParamsForCoordinateFieldsTest( List<String> coordinateFields )
+    {
+        DataElement deA = createDataElement( 'A', TEXT, AggregationType.NONE );
+
+        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "202201" ) ) );
+
+        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
+
+        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
+
+        Program program = createProgram( 'A' );
+
+        return new EventQueryParams.Builder()
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( qiA )
+            .withProgram( program )
+            .withStartDate( new Date() )
+            .withEndDate( new Date() )
+            .withCoordinatesOnly( true )
+            .withGeometryOnly( true )
+            .withCoordinateFields( coordinateFields )
+            .build();
     }
 }

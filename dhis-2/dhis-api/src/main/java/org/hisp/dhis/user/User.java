@@ -1475,6 +1475,7 @@ public class User
         return user != null ? user.getUsername() : defaultValue;
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     // This is a temporary fix to maintain backwards compatibility with the old
     // UserCredentials class. This method should not be used in new code!
     @JsonProperty
@@ -1483,6 +1484,9 @@ public class User
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
         copyProperties( this, userCredentialsDto, "uid", "userCredentials", "password", "userRoles", "secret",
             "previousPasswords" );
+
+        userCredentialsDto.setId( this.getUid() );
+
         Set<UserRole> roles = this.getUserRoles();
         if ( roles != null && !roles.isEmpty() )
         {
@@ -1491,11 +1495,13 @@ public class User
         return userCredentialsDto;
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     public UserCredentialsDto getUserCredentialsRaw()
     {
         return this.userCredentialsRaw;
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     // This is a temporary fix to maintain backwards compatibility with the old
     // UserCredentials class. This method should not be used in new code!
     protected void setUserCredentials( UserCredentialsDto user )
@@ -1503,6 +1509,17 @@ public class User
         this.userCredentialsRaw = user;
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
+    /**
+     * This should be called when legacy UserCredentials model is merged into
+     * the new model
+     */
+    public void removeLegacyUserCredentials()
+    {
+        this.setUserCredentials( null );
+    }
+
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     /**
      * Copies the "transient" properties from the old UserCredentials model
      * (temp. saved in the userCredentialsRaw property). The userCredentialsRaw
@@ -1532,10 +1549,11 @@ public class User
                 user.setUserRoles( userRoles );
             }
 
-            user.setUserCredentials( null );
+            user.removeLegacyUserCredentials();
         }
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     /**
      * Copy only changed properties from the old user to the new user, and then
      * set the new user's userCredentials to null.
@@ -1562,16 +1580,18 @@ public class User
                 newUser.setPassword( newUserCredentialsRaw.getPassword() );
             }
 
+            Set<UserRole> oldRoles = oldUser.getUserRoles();
             Set<UserRole> userRoles = newUserCredentialsRaw.getUserRoles();
-            if ( userRoles != null )
+            if ( userRoles != null && !userRoles.equals( oldRoles ) )
             {
                 newUser.setUserRoles( userRoles );
             }
 
-            newUser.setUserCredentials( null );
+            newUser.removeLegacyUserCredentials();
         }
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     private static void copyOnlyChangedProperties( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
         @Nullable String... ignoreProperties )
     {
@@ -1611,6 +1631,7 @@ public class User
         }
     }
 
+    // TODO: To remove when we remove old UserCredentials compatibility layer
     private static void compareAndWriteProperty( UserCredentialsDto oldObject, UserCredentialsDto source, User target,
         Method writeMethod, Method readMethod )
     {

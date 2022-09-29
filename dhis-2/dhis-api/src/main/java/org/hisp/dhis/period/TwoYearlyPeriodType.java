@@ -40,7 +40,6 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  * to the last day of the next year.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: TwoYearlyPeriodType.java 2975 2007-03-03 22:24:36Z torgeilo $
  */
 public class TwoYearlyPeriodType
     extends CalendarPeriodType

@@ -39,6 +39,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+/**
+ * Domain entity representing a data exchange between a source instance and
+ * target instance of DHIS 2.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @Accessors( chain = true )

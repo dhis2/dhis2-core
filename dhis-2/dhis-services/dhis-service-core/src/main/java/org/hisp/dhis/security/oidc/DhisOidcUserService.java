@@ -91,13 +91,20 @@ public class DhisOidcUserService
             User user = userService.getUserByOpenId( (String) claimValue );
             if ( user != null )
             {
+                if ( user.isDisabled() || !user.isAccountNonExpired() )
+                {
+                    throw new OAuth2AuthenticationException( new OAuth2Error( "user_disabled" ),
+                        "User is disabled" );
+                }
+
                 CurrentUserDetails userDetails = userService.validateAndCreateUserDetails( user, user.getPassword() );
                 return new DhisOidcUser( userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
 
         String errorMessage = String
-            .format( "Failed to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+            .format(
+                "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
                 mappingClaimKey, claimValue );
 
         if ( log.isDebugEnabled() )
