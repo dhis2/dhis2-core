@@ -40,7 +40,7 @@ jobs:
           BRANCH: ${{ github.ref }}
           PR: ${{ github.event.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name == 'pull_request'
         run: |
@@ -50,7 +50,7 @@ jobs:
       - name: Analyse long-living branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.DHIS2_BOT_SONARCLOUD_TOKEN }}
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name != 'pull_request'
         run: |
