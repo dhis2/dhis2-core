@@ -149,13 +149,9 @@ public class DefaultEventQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7213, params.getBbox() );
         }
-        else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateField() == null )
+        else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateFields() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );
-        }
-        else if ( params.getFallbackCoordinateField() != null && !params.fallbackCoordinateFieldIsValid() )
-        {
-            error = new ErrorMessage( ErrorCode.E7228, params.getFallbackCoordinateField() );
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )
