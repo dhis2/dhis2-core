@@ -48,7 +48,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 @Service
 public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEntity>
 {
-
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
     @Override
@@ -68,14 +67,10 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
             CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity();
             trackedEntityValue.setTrackedEntity( trackedEntity.getTrackedEntity() );
             trackedEntityValue.setTrackedEntityType( trackedEntity.getTrackedEntityType() );
-            trackedEntityValue
-                .setCreatedAt( checkForNull( trackedEntity.getCreatedAt() ) );
-            trackedEntityValue.setCreatedAtClient(
-                checkForNull( trackedEntity.getCreatedAtClient() ) );
-            trackedEntityValue
-                .setUpdatedAt( checkForNull( trackedEntity.getUpdatedAt() ) );
-            trackedEntityValue.setUpdatedAtClient(
-                checkForNull( trackedEntity.getUpdatedAtClient() ) );
+            trackedEntityValue.setCreatedAt( checkForNull( trackedEntity.getCreatedAt() ) );
+            trackedEntityValue.setCreatedAtClient( checkForNull( trackedEntity.getCreatedAtClient() ) );
+            trackedEntityValue.setUpdatedAt( checkForNull( trackedEntity.getUpdatedAt() ) );
+            trackedEntityValue.setUpdatedAtClient( checkForNull( trackedEntity.getUpdatedAtClient() ) );
             trackedEntityValue.setOrgUnit( trackedEntity.getOrgUnit() );
             trackedEntityValue.setInactive( trackedEntity.isInactive() );
             trackedEntityValue.setDeleted( trackedEntity.isDeleted() );
@@ -128,10 +123,8 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
             CsvTrackedEntity trackedEntityValue = new CsvTrackedEntity( currentDataValue );
             trackedEntityValue.setAttribute( attribute.getAttribute() );
             trackedEntityValue.setDisplayName( attribute.getDisplayName() );
-            trackedEntityValue
-                .setAttrCreatedAt( attribute.getCreatedAt() == null ? null : attribute.getCreatedAt().toString() );
-            trackedEntityValue
-                .setAttrUpdatedAt( attribute.getUpdatedAt() == null ? null : attribute.getUpdatedAt().toString() );
+            trackedEntityValue.setAttrCreatedAt( checkForNull( attribute.getCreatedAt() ) );
+            trackedEntityValue.setAttrUpdatedAt( checkForNull( attribute.getUpdatedAt() ) );
             trackedEntityValue.setValueType( attribute.getValueType().toString() );
             trackedEntityValue.setValue( attribute.getValue() );
             dataValues.add( trackedEntityValue );
