@@ -37,10 +37,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,11 +71,17 @@ public class DefaultEventCoordinateService implements EventCoordinateService
     @NonNull
     private final ProgramService programService;
 
+    @NonNull
+    private final DataElementService dataElementService;
+
+    @NonNull
+    private final TrackedEntityAttributeService attributeService;
+
     /**
      * @inheritDoc
      */
     @Override
-    public boolean verifyFallbackCoordinateField( boolean isRegistration, String coordinateField )
+    public boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
     {
         if ( coordinateField == null )
         {
@@ -83,7 +93,24 @@ public class DefaultEventCoordinateService implements EventCoordinateService
             return isRegistration;
         }
 
-        return COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains( coordinateField );
+        if ( COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains( coordinateField ) )
+        {
+            return true;
+        }
+
+        DataElement dataElement = dataElementService.getDataElement( coordinateField );
+
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
+
+        // when the coordinate field is real uid
+        if ( dataElement != null || attribute != null )
+        {
+            return true;
+        }
+
+        throwIllegalQueryEx( ErrorCode.E7232, coordinateField );
+
+        return false;
     }
 
     /**
@@ -99,7 +126,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService
 
         if ( fallbackCoordinateField != null )
         {
-            if ( !verifyFallbackCoordinateField( prg.isRegistration(), fallbackCoordinateField ) )
+            if ( !isFallbackCoordinateFieldValid( prg.isRegistration(), fallbackCoordinateField ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7232, fallbackCoordinateField ) );
             }
