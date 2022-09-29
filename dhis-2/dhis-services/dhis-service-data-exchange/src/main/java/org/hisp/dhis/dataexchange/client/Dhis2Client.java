@@ -137,7 +137,7 @@ public class Dhis2Client
      *
      * @return a resolved {@link UriComponentsBuilder}.
      */
-    protected UriComponentsBuilder getResolvedUriBuilder( String path )
+    UriComponentsBuilder getResolvedUriBuilder( String path )
     {
         return UriComponentsBuilder.fromHttpUrl( url )
             .pathSegment( "api" )
