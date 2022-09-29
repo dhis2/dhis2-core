@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -121,12 +122,13 @@ public class UserSettingController
     }
 
     @GetMapping( value = "/{key}" )
-    public String getUserSettingByKey(
+    public void getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
         @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
-        throws WebMessageException
+        throws WebMessageException,
+        IOException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
@@ -137,7 +139,7 @@ public class UserSettingController
 
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         response.setHeader( HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT );
-        return String.valueOf( value );
+        response.getWriter().print( value );
     }
 
     @PostMapping( value = "/{key}" )
