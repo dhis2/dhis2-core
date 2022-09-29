@@ -82,8 +82,6 @@ public class AppOverrideFilter
         HttpServletResponse response )
         throws IOException
     {
-        // Get page requested
-
         log.debug( String.format( "Serving app resource: '%s'", resourcePath ) );
 
         // Handling of 'manifest.webapp'
@@ -146,6 +144,7 @@ public class AppOverrideFilter
         ServletException
     {
         String requestPath = req.getServletPath();
+        String contextPath = ContextUtils.getContextPath( req );
 
         Pattern p = Pattern.compile( APP_PATH_PATTERN );
         Matcher m = p.matcher( requestPath );
@@ -158,7 +157,7 @@ public class AppOverrideFilter
 
             log.debug( "AppOverrideFilter :: Matched for path " + requestPath );
 
-            App app = appManager.getApp( appName );
+            App app = appManager.getApp( appName, contextPath );
 
             if ( app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS )
             {
