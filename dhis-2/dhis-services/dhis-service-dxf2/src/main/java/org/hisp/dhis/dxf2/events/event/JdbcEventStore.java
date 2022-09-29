@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.commons.util.TextUtils.splitToSet;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
@@ -130,6 +131,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -200,6 +202,8 @@ public class JdbcEventStore implements EventStore
     private static final String SPACE = " ";
 
     private static final String EQUALS = " = ";
+
+    private static final String AND = " AND ";
 
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
         .put( EVENT_ID, "psi_uid" )
@@ -1010,24 +1014,67 @@ public class JdbcEventStore implements EventStore
                 .append( teaValueCol + ".trackedentityattributeid" )
                 .append( EQUALS )
                 .append( teaCol + ".trackedentityattributeid" )
-                .append( " AND " )
+                .append( AND )
                 .append( teaCol + ".UID" )
                 .append( EQUALS )
                 .append( statementBuilder.encode( queryItem.getItem().getUid(), true ) );
 
+            attributes.append( getAttributeFilterQuery( queryItem, teaCol, teaValueCol ) );
+        }
+    }
+
+    private String getAttributeFilterQuery( QueryItem queryItem, String teaCol, String teaValueCol )
+    {
+        StringBuilder query = new StringBuilder();
+
+        if ( !queryItem.getFilters().isEmpty() )
+        {
+            query.append( AND );
+
+            // In SQL the order of expressions linked by AND is not
+            // guaranteed.
+            // So when casting to number we need to be sure that the value
+            // to cast is really a number.
+            if ( queryItem.isNumeric() )
+            {
+                query
+                    .append( " CASE WHEN " )
+                    .append( lower( teaCol + ".valueType" ) )
+                    .append( " in (" )
+                    .append( NUMERIC_TYPES.stream()
+                        .map( Enum::name )
+                        .map( StringUtils::lowerCase )
+                        .map( SqlUtils::singleQuote )
+                        .collect( Collectors.joining( "," ) ) )
+                    .append( ")" )
+                    .append( " THEN " );
+            }
+
+            List<String> filterStrings = new ArrayList<>();
             for ( QueryFilter filter : queryItem.getFilters() )
             {
-                String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-                attributes
-                    .append( " AND " )
-                    .append( "lower(" + teaValueCol + ".value)" )
+                StringBuilder filterString = new StringBuilder();
+                final String queryCol = queryItem.isNumeric() ? castToNumber( teaValueCol + ".value" )
+                    : lower( teaValueCol + ".value" );
+                final Object encodedFilter = queryItem.isNumeric() ? Double.valueOf( filter.getFilter() )
+                    : StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) );
+                filterString
+                    .append( queryCol )
                     .append( SPACE )
                     .append( filter.getSqlOperator() )
                     .append( SPACE )
-                    .append( StringUtils
-                        .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
+                    .append( encodedFilter );
+                filterStrings.add( filterString.toString() );
+            }
+            query.append( String.join( AND, filterStrings ) );
+
+            if ( queryItem.isNumeric() )
+            {
+                query.append( " END " );
             }
         }
+
+        return query.toString();
     }
 
     private String getEventSelectQuery( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
@@ -1408,9 +1455,13 @@ public class JdbcEventStore implements EventStore
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    final String queryCol = " lower( " + dataValueValueSql + " )";
+                    ++filterCount;
+
+                    final String queryCol = item.isNumeric() ? castToNumber( dataValueValueSql )
+                        : lower( dataValueValueSql );
 
                     String bindParameter = "parameter_" + filterCount;
+                    int itemType = item.isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
                     if ( !item.hasOptionSet() )
                     {
@@ -1420,14 +1471,14 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ) );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), itemType );
 
                             eventDataValuesWhereSql.append( inCondition( filter, bindParameter, queryCol ) );
                         }
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ), itemType );
 
                             eventDataValuesWhereSql.append( " " )
                                 .append( queryCol )
@@ -1445,7 +1496,7 @@ public class JdbcEventStore implements EventStore
                             .equalsIgnoreCase( filter.getSqlOperator() ) )
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ) );
+                                QueryFilter.getFilterItems( StringUtils.lowerCase( filter.getFilter() ) ), itemType );
 
                             optionValueConditionBuilder.append( " and " );
                             optionValueConditionBuilder.append( inCondition( filter, bindParameter, queryCol ) );
@@ -1453,7 +1504,7 @@ public class JdbcEventStore implements EventStore
                         else
                         {
                             mapSqlParameterSource.addValue( bindParameter,
-                                StringUtils.lowerCase( filter.getSqlBindFilter() ) );
+                                StringUtils.lowerCase( filter.getSqlBindFilter() ), itemType );
 
                             optionValueConditionBuilder.append( "and lower(" )
                                 .append( optValueTableAs )
@@ -1477,7 +1528,8 @@ public class JdbcEventStore implements EventStore
 
     private String inCondition( QueryFilter filter, String boundParameter, String queryCol )
     {
-        return new StringBuilder().append( queryCol )
+        return new StringBuilder().append( " " )
+            .append( queryCol )
             .append( " " )
             .append( filter.getSqlOperator() )
             .append( " " )
