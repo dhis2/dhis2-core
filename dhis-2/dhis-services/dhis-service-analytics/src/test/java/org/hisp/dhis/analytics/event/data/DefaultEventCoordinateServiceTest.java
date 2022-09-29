@@ -120,7 +120,7 @@ class DefaultEventCoordinateServiceTest
 
         // when
         // then
-        assertTrue( service.verifyFallbackCoordinateField( true, geometry ) );
+        assertTrue( service.isFallbackCoordinateFieldValid( true, geometry ) );
     }
 
     @ParameterizedTest
@@ -133,7 +133,7 @@ class DefaultEventCoordinateServiceTest
 
         // when
         // then
-        assertTrue( service.verifyFallbackCoordinateField( false, geometry ) );
+        assertTrue( service.isFallbackCoordinateFieldValid( false, geometry ) );
     }
 
     @ParameterizedTest
@@ -149,6 +149,6 @@ class DefaultEventCoordinateServiceTest
             attributeService );
 
         // then
-        assertThrows( IllegalQueryException.class, () -> service.verifyFallbackCoordinateField( false, geometry ) );
+        assertThrows( IllegalQueryException.class, () -> service.isFallbackCoordinateFieldValid( false, geometry ) );
     }
 }

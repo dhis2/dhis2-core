@@ -81,7 +81,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService
      * @inheritDoc
      */
     @Override
-    public boolean verifyFallbackCoordinateField( boolean isRegistration, String coordinateField )
+    public boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
     {
         if ( coordinateField == null )
         {
@@ -102,6 +102,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService
 
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
 
+        // when the coordinate field is real uid
         if ( dataElement != null || attribute != null )
         {
             return true;
@@ -125,7 +126,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService
 
         if ( fallbackCoordinateField != null )
         {
-            if ( !verifyFallbackCoordinateField( prg.isRegistration(), fallbackCoordinateField ) )
+            if ( !isFallbackCoordinateFieldValid( prg.isRegistration(), fallbackCoordinateField ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7232, fallbackCoordinateField ) );
             }

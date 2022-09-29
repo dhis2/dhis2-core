@@ -45,7 +45,7 @@ public interface EventCoordinateService
      * @param coordinateField the name of coordinate field (uid or name)
      * @return if valid returns true
      */
-    boolean verifyFallbackCoordinateField( boolean isRegistration, String coordinateField );
+    boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField );
 
     /**
      * provide list of coordinate fields
