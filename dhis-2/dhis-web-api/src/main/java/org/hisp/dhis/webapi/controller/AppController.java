@@ -172,7 +172,8 @@ public class AppController
         throws IOException,
         WebMessageException
     {
-        App application = appManager.getApp( app );
+        String contextPath = ContextUtils.getContextPath( request );
+        App application = appManager.getApp( app, contextPath );
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
@@ -213,8 +214,6 @@ public class AppController
             if ( application.getActivities() != null && application.getActivities().getDhis() != null
                 && "*".equals( application.getActivities().getDhis().getHref() ) )
             {
-                String contextPath = ContextUtils.getContextPath( request );
-
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
 
                 application.getActivities().getDhis().setHref( contextPath );
