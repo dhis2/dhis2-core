@@ -76,6 +76,15 @@ class Dhis2ClientTest
     }
 
     @Test
+    void testGetUrl()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        assertEquals( "https://play.dhis2.org/2.38.0", client.getUrl() );
+    }
+
+    @Test
     void testGetResolvedUriBuilder()
     {
         Dhis2Client client = Dhis2Client.withBasicAuth(
