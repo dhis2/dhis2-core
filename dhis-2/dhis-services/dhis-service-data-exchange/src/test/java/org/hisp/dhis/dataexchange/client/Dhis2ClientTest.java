@@ -28,10 +28,19 @@
 package org.hisp.dhis.dataexchange.client;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.net.URI;
+
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.util.UriComponentsBuilder;
 
 class Dhis2ClientTest
 {
@@ -70,6 +79,15 @@ class Dhis2ClientTest
     }
 
     @Test
+    void testGetUrl()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        assertEquals( "https://play.dhis2.org/2.38.0", client.getUrl() );
+    }
+
+    @Test
     void testGetResolvedUriBuilder()
     {
         Dhis2Client client = Dhis2Client.withBasicAuth(
@@ -79,5 +97,50 @@ class Dhis2ClientTest
             client.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
         assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
             client.getResolvedUriBuilder( "system/info" ).build().toUriString() );
+    }
+
+    @Test
+    void testGetJsonAuthHeaders()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        HttpHeaders headers = client.getJsonAuthHeaders();
+
+        assertNotNull( headers );
+        assertEquals( MediaType.APPLICATION_JSON, headers.getContentType() );
+    }
+
+    @Test
+    void testHandleErrors()
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        ResponseEntity<?> ok = new ResponseEntity<>( HttpStatus.OK );
+        ResponseEntity<?> unauthorized = new ResponseEntity<>( HttpStatus.UNAUTHORIZED );
+        ResponseEntity<?> forbidden = new ResponseEntity<>( HttpStatus.FORBIDDEN );
+        ResponseEntity<?> notFound = new ResponseEntity<>( HttpStatus.NOT_FOUND );
+
+        client.handleErrors( ok );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( unauthorized ) );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( forbidden ) );
+        assertThrows( Dhis2ClientException.class, () -> client.handleErrors( notFound ) );
+    }
+
+    @Test
+    void testAddIfNotDefault()
+        throws Exception
+    {
+        Dhis2Client client = Dhis2Client.withBasicAuth(
+            "https://play.dhis2.org/2.38.0", "admin", "district" );
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUri( new URI( "https://myserver.org" ) );
+
+        client.addIfNotDefault( builder, "dataElementIdScheme", IdScheme.CODE );
+        client.addIfNotDefault( builder, "orgUnitIdScheme", null );
+        client.addIfNotDefault( builder, "idScheme", IdScheme.UID );
+
+        assertEquals( "https://myserver.org?dataElementIdScheme=code", builder.build().toString() );
     }
 }
