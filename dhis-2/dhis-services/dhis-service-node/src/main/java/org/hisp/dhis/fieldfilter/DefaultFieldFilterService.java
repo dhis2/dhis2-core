@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -84,6 +85,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -416,6 +419,14 @@ public class DefaultFieldFilterService implements FieldFilterService
             attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
         }
 
+        if ( Sharing.class.isAssignableFrom( object.getClass() ) )
+        {
+            Sharing sharing = (Sharing) object;
+            sharing.getUsers().values().forEach( u -> u.setDisplayName( userService.getDisplayName( u.getId() ) ) );
+            sharing.getUserGroups().values()
+                .forEach( ug -> ug.setDisplayName( userGroupService.getDisplayName( ug.getId() ) ) );
+        }
+
         if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
         {
             UserGroupAccess userGroupAccess = (UserGroupAccess) object;
@@ -552,7 +563,12 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    if ( propertySchema.getProperties().isEmpty() )
+                    if ( property.getKlass().isAssignableFrom( Map.class )
+                        && SharingUtils.isSharingProperty( property ) )
+                    {
+                        child = handleMapProperty( returnValue, property );
+                    }
+                    else if ( propertySchema.getProperties().isEmpty() )
                     {
                         SimpleNode simpleNode = new SimpleNode( fieldKey, returnValue );
                         simpleNode.setAttribute( property.isAttribute() );
@@ -623,6 +639,81 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         return complexNode;
+    }
+
+    /**
+     * Generate ComplexNode from Map structure based on given inputMapObject.
+     * Only accept {@link Sharing#getUserGroups()} or
+     * {@link Sharing#getUsers()}. Example in xml:
+     *
+     * <pre>
+     * {@code
+     * <userGroups>
+     *  <B6JNeAQ6akX>
+     *      <access>r-rw----</access>
+     *      <id>B6JNeAQ6akX</id>
+     *  </B6JNeAQ6akX>
+     *  <GogLpGmkL0g>
+     *      <access>r-rw----</access>
+     *      <id>GogLpGmkL0g</id>
+     *  </GogLpGmkL0g>
+     * </userGroups>
+     * }
+     * </pre>
+     *
+     * @param inputMapObject Map to be used for generating ComplexNode
+     * @param property {@link Property} type of the given map object.
+     * @return Return {@code null} if given property is not {@link Sharing}'s
+     *         property. Otherwise, return the {@link ComplexNode} of given
+     *         inputMapObject.
+     */
+    private ComplexNode handleMapProperty( Object inputMapObject, Property property )
+    {
+        if ( inputMapObject == null || !SharingUtils.isSharingProperty( property ) )
+        {
+            return null;
+        }
+
+        Map<Object, Object> mapObject = (Map<Object, Object>) inputMapObject;
+
+        ComplexNode mapNode = new ComplexNode( property.getName() );
+
+        if ( mapObject.isEmpty() )
+        {
+            return null;
+        }
+
+        FieldMap fieldMap = null;
+
+        for ( Map.Entry<Object, Object> item : mapObject.entrySet() )
+        {
+            if ( fieldMap == null )
+            {
+                fieldMap = getFullFieldMap(
+                    schemaService.getDynamicSchema( item.getValue().getClass() ) );
+            }
+
+            ComplexNode mapItemNode = new ComplexNode( item.getKey().toString() );
+
+            for ( final String fieldName : fieldMap.keySet() )
+            {
+                final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( fieldName, "~" );
+                final String rename = org.apache.commons.lang3.StringUtils.substringBetween( fieldName, "(", ")" );
+                final Object value = ReflectionUtils.invokeGetterMethod( originalName, item.getValue() );
+
+                if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
+                {
+                    mapItemNode.addChild( new SimpleNode( rename, value ) );
+                }
+                else
+                {
+                    mapItemNode.addChild( new SimpleNode( originalName, value ) );
+                }
+            }
+
+            mapNode.addChild( mapItemNode );
+        }
+        return mapNode;
     }
 
     private void updateFields( FieldMap fieldMap, Class<?> klass )

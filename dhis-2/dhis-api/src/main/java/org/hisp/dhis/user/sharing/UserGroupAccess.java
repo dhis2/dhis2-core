@@ -29,8 +29,6 @@ package org.hisp.dhis.user.sharing;
 
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -43,20 +41,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroupAccess
     implements Serializable
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String access;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String id;
+
+    private transient String displayName;
+
+    public UserGroupAccess( String access, String id )
+    {
+        this.access = access;
+        this.id = id;
+    }
 
     public UserGroupAccess( UserGroup userGroup, String access )
     {
@@ -68,6 +68,42 @@ public class UserGroupAccess
     {
         this.id = userGroupAccess.getUid();
         this.access = userGroupAccess.getAccess();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAccess()
+    {
+        return access;
+    }
+
+    public void setAccess( String access )
+    {
+        this.access = access;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     public void setUserGroup( UserGroup userGroup )
