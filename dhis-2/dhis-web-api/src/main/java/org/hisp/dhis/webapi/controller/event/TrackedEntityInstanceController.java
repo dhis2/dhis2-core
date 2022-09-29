@@ -294,16 +294,12 @@ public class TrackedEntityInstanceController
 
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
 
-        Optional<TrackedEntityAttributeValue> optionalAttributeValue = attributeValues.stream()
+        TrackedEntityAttributeValue value = attributeValues.stream()
             .filter( att -> att.getAttribute().getUid().equals( attributeId ) )
-            .findFirst();
+            .findFirst()
+            .orElseThrow( () -> new WebMessageException( notFound( "Value not found for ID " + attributeId ) ) );
 
-        if ( optionalAttributeValue.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "Value not found for ID " + attributeId ) );
-        }
-
-        if ( optionalAttributeValue.get().getAttribute().getValueType() != ValueType.FILE_RESOURCE )
+        if ( value.getAttribute().getValueType() != ValueType.FILE_RESOURCE )
         {
             throw new WebMessageException( conflict( "Attribute must be of type FILE_RESOURCE" ) );
         }
@@ -311,8 +307,6 @@ public class TrackedEntityInstanceController
         // ---------------------------------------------------------------------
         // Get file resource
         // ---------------------------------------------------------------------
-
-        TrackedEntityAttributeValue value = optionalAttributeValue.get();
 
         FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
 
