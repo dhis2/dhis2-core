@@ -165,10 +165,17 @@ public class AggregateDataExchangeService
      */
     private ImportSummary exchangeData( AggregateDataExchange exchange, SourceRequest request )
     {
-        DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+        try
+        {
+            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
 
-        return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
-            : pushToExternal( exchange, dataValueSet );
+            return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+                : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( Exception ex )
+        {
+            return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
+        }
     }
 
     /**
