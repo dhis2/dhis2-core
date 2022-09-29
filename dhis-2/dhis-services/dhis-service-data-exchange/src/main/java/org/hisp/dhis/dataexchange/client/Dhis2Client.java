@@ -55,7 +55,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -157,7 +156,7 @@ public class Dhis2Client
 
         if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
         {
-            log.error( "Errror status code: {}, reason phrase: {}",
+            log.warn( "Errror status code: {}, reason phrase: {}",
                 response.getStatusCode().value(), response.getStatusCode().getReasonPhrase() );
 
             throw new Dhis2ClientException( response.getStatusCode() );
@@ -190,17 +189,10 @@ public class Dhis2Client
      */
     private <T, U extends Dhis2Response> ResponseEntity<U> executeJsonPostRequest( URI uri, T body, Class<U> type )
     {
-        try
-        {
-            HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
-            ResponseEntity<U> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
-            handleErrors( response );
-            return response;
-        }
-        catch ( HttpClientErrorException ex )
-        {
-            throw new Dhis2ClientException( ex.getStatusCode() );
-        }
+        HttpEntity<T> requestEntity = new HttpEntity<>( body, getJsonAuthHeaders() );
+        ResponseEntity<U> response = restTemplate.exchange( uri, HttpMethod.POST, requestEntity, type );
+        handleErrors( response );
+        return response;
     }
 
     /**
