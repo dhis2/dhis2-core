@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.csv;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,13 +69,13 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
             trackedEntityValue.setTrackedEntity( trackedEntity.getTrackedEntity() );
             trackedEntityValue.setTrackedEntityType( trackedEntity.getTrackedEntityType() );
             trackedEntityValue
-                .setCreatedAt( trackedEntity.getCreatedAt() == null ? null : trackedEntity.getCreatedAt().toString() );
+                .setCreatedAt( checkForNull( trackedEntity.getCreatedAt() ) );
             trackedEntityValue.setCreatedAtClient(
-                trackedEntity.getCreatedAtClient() == null ? null : trackedEntity.getCreatedAtClient().toString() );
+                checkForNull( trackedEntity.getCreatedAtClient() ) );
             trackedEntityValue
-                .setUpdatedAt( trackedEntity.getUpdatedAt() == null ? null : trackedEntity.getUpdatedAt().toString() );
+                .setUpdatedAt( checkForNull( trackedEntity.getUpdatedAt() ) );
             trackedEntityValue.setUpdatedAtClient(
-                trackedEntity.getUpdatedAtClient() == null ? null : trackedEntity.getUpdatedAtClient().toString() );
+                checkForNull( trackedEntity.getUpdatedAtClient() ) );
             trackedEntityValue.setOrgUnit( trackedEntity.getOrgUnit() );
             trackedEntityValue.setInactive( trackedEntity.isInactive() );
             trackedEntityValue.setDeleted( trackedEntity.isDeleted() );
@@ -107,6 +108,16 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
         }
 
         writer.writeValue( outputStream, dataValues );
+    }
+
+    private String checkForNull( Instant instant )
+    {
+        if ( instant == null )
+        {
+            return null;
+        }
+
+        return instant.toString();
     }
 
     private void addAttributes( TrackedEntity trackedEntity, CsvTrackedEntity currentDataValue,
