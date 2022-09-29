@@ -208,7 +208,7 @@ public class TrackedEntityInstanceController
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
 
-        List<TrackedEntityAttributeValue> attribute = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+        List<TrackedEntityAttributeValue> attributes = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
             .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
             .collect( Collectors.toList() );
 
@@ -218,12 +218,12 @@ public class TrackedEntityInstanceController
                 unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
-        if ( attribute.isEmpty() )
+        if ( attributes.isEmpty() )
         {
             throw new WebMessageException( notFound( "Attribute not found for ID " + attributeId ) );
         }
 
-        TrackedEntityAttributeValue value = attribute.get( 0 );
+        TrackedEntityAttributeValue value = attributes.get( 0 );
 
         if ( value == null )
         {
@@ -271,7 +271,7 @@ public class TrackedEntityInstanceController
         }
     }
 
-    @GetMapping( value = "{teiId}/{attributeId}/files" )
+    @GetMapping( value = "{teiId}/{attributeId}/file" )
     public void getTrackedEntityAttributeFile(
         @PathVariable( "teiId" ) String teiId,
         @PathVariable( "attributeId" ) String attributeId, HttpServletResponse response )
