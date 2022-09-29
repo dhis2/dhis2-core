@@ -175,7 +175,7 @@ public class AggregateDataExchangeService
         }
         catch ( HttpClientErrorException ex )
         {
-            String message = String.format( "Failed to import data for target instance: '%s'", ex.getStatusCode() );
+            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
 
             return new ImportSummary( ImportStatus.ERROR, message );
         }

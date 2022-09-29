@@ -169,7 +169,7 @@ public class Dhis2Client
      *
      * @return a {@link HttpHeaders}.
      */
-    private HttpHeaders getJsonAuthHeaders()
+    HttpHeaders getJsonAuthHeaders()
     {
         HttpHeaders headers = authentication.withAuthentication( new HttpHeaders() );
         headers.setAccept( List.of( MediaType.APPLICATION_JSON ) );
