@@ -37,10 +37,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -67,6 +71,12 @@ public class DefaultEventCoordinateService implements EventCoordinateService
     @NonNull
     private final ProgramService programService;
 
+    @NonNull
+    private final DataElementService dataElementService;
+
+    @NonNull
+    private final TrackedEntityAttributeService attributeService;
+
     /**
      * @inheritDoc
      */
@@ -83,7 +93,23 @@ public class DefaultEventCoordinateService implements EventCoordinateService
             return isRegistration;
         }
 
-        return COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains( coordinateField );
+        if ( COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST.contains( coordinateField ) )
+        {
+            return true;
+        }
+
+        DataElement dataElement = dataElementService.getDataElement( coordinateField );
+
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
+
+        if ( dataElement != null || attribute != null )
+        {
+            return true;
+        }
+
+        throwIllegalQueryEx( ErrorCode.E7232, coordinateField );
+
+        return false;
     }
 
     /**

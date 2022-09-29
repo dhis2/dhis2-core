@@ -30,15 +30,18 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -57,6 +60,12 @@ class DefaultEventCoordinateServiceTest
     @Mock
     private ProgramService programService;
 
+    @Mock
+    private DataElementService dataElementService;
+
+    @Mock
+    private TrackedEntityAttributeService attributeService;
+
     @ParameterizedTest
     @ValueSource( strings = { "psigeometry", "pigeometry", "ougeometry" } )
     void testGetCoordinateFieldOrFail( String geometry )
@@ -64,7 +73,8 @@ class DefaultEventCoordinateServiceTest
         // given
         when( programService.getProgram( any( String.class ) ) ).thenReturn( createProgram( 'A' ) );
 
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // when
         // then
@@ -77,7 +87,8 @@ class DefaultEventCoordinateServiceTest
         // given
         when( programService.getProgram( any( String.class ) ) ).thenReturn( createProgram( 'A' ) );
 
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // when
         // then
@@ -91,7 +102,8 @@ class DefaultEventCoordinateServiceTest
         // given
         when( programService.getProgram( any( String.class ) ) ).thenReturn( createProgram( 'A' ) );
 
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // when
         // then
@@ -103,7 +115,8 @@ class DefaultEventCoordinateServiceTest
     void testVerifyFallbackCoordinateFieldWithRegistrationProgram( String geometry )
     {
         // given
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // when
         // then
@@ -115,7 +128,8 @@ class DefaultEventCoordinateServiceTest
     void testVerifyFallbackCoordinateFieldWithoutRegistrationProgram( String geometry )
     {
         // given
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // when
         // then
@@ -123,13 +137,18 @@ class DefaultEventCoordinateServiceTest
     }
 
     @ParameterizedTest
-    @ValueSource( strings = { "badpsigeometry", "badpigeometry", "teigeometry", "badougeometry" } )
+    @ValueSource( strings = { "badpsigeometry", "badpigeometry", "badteigeometry", "badougeometry" } )
     void testVerifyBadFallbackCoordinateField( String geometry )
     {
         // given
-        EventCoordinateService service = new DefaultEventCoordinateService( programService );
+        when( dataElementService.getDataElement( any( String.class ) ) ).thenReturn( null );
+
+        when( attributeService.getTrackedEntityAttribute( any( String.class ) ) ).thenReturn( null );
+
+        EventCoordinateService service = new DefaultEventCoordinateService( programService, dataElementService,
+            attributeService );
 
         // then
-        assertFalse( service.verifyFallbackCoordinateField( false, geometry ) );
+        assertThrows( IllegalQueryException.class, () -> service.verifyFallbackCoordinateField( false, geometry ) );
     }
 }
