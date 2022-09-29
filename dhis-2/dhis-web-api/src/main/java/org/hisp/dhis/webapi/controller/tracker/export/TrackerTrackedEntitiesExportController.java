@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.*;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -52,11 +51,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -119,7 +114,7 @@ public class TrackerTrackedEntitiesExportController
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvEvents( TrackerTrackedEntityCriteria criteria,
+    public void getCsvTrackedEntities( TrackerTrackedEntityCriteria criteria,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
@@ -146,5 +141,23 @@ public class TrackerTrackedEntitiesExportController
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
+    }
+
+    @GetMapping( value = "{id}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
+    public void getCsvTrackedEntityInstanceById( @PathVariable String id,
+        HttpServletResponse response,
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
+        @RequestParam( required = false ) String program,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        throws IOException
+    {
+
+        TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
+            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
+
+        OutputStream outputStream = response.getOutputStream();
+        response.setContentType( CONTENT_TYPE_CSV );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"" );
+        csvEventService.writeEvents( outputStream, List.of( trackedEntity ), !skipHeader );
     }
 }

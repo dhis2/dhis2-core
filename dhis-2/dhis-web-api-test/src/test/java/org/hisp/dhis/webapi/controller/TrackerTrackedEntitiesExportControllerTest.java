@@ -282,7 +282,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    void getTrackedEntityCsvFormat()
+    void getTrackedEntityReturnsCsvFormat()
     {
         WebClient.HttpResponse response = GET( "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
             program.getUid(), orgUnit.getUid() );

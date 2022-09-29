@@ -42,12 +42,18 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "orgUnit",
     "inactive",
     "deleted",
-    "potentialDuplicate"
+    "potentialDuplicate",
+    "geometry",
+    "latitude",
+    "longitude",
+    "storedBy",
+    "createdBy",
+    "updatedBy"
 } )
 
 @Data
 @NoArgsConstructor
-class CsvTrackedEntityDataValue
+class CsvTrackedEntity
 {
 
     private String trackedEntity;
@@ -82,17 +88,35 @@ class CsvTrackedEntityDataValue
 
     private String value;
 
-    public CsvTrackedEntityDataValue( CsvTrackedEntityDataValue dataValue )
+    private String geometry;
+
+    private Double longitude;
+
+    private Double latitude;
+
+    private String storedBy;
+
+    private String createdBy;
+
+    private String updatedBy;
+
+    public CsvTrackedEntity( CsvTrackedEntity entity )
     {
-        this.trackedEntity = dataValue.getTrackedEntity();
-        this.trackedEntityType = dataValue.getTrackedEntityType();
-        this.createdAt = dataValue.getCreatedAt();
-        this.createdAtClient = dataValue.getCreatedAtClient();
-        this.updatedAt = dataValue.getUpdatedAt();
-        this.updatedAtClient = dataValue.getUpdatedAtClient();
-        this.orgUnit = dataValue.getOrgUnit();
-        this.inactive = dataValue.isInactive();
-        this.deleted = dataValue.isDeleted();
-        this.potentialDuplicate = dataValue.isPotentialDuplicate();
+        this.trackedEntity = entity.getTrackedEntity();
+        this.trackedEntityType = entity.getTrackedEntityType();
+        this.createdAt = entity.getCreatedAt();
+        this.createdAtClient = entity.getCreatedAtClient();
+        this.updatedAt = entity.getUpdatedAt();
+        this.updatedAtClient = entity.getUpdatedAtClient();
+        this.orgUnit = entity.getOrgUnit();
+        this.inactive = entity.isInactive();
+        this.deleted = entity.isDeleted();
+        this.potentialDuplicate = entity.isPotentialDuplicate();
+        this.geometry = entity.getGeometry();
+        this.longitude = entity.getLongitude();
+        this.latitude = entity.getLatitude();
+        this.storedBy = entity.getStoredBy();
+        this.createdBy = entity.getCreatedBy();
+        this.updatedBy = entity.getUpdatedBy();
     }
 }
