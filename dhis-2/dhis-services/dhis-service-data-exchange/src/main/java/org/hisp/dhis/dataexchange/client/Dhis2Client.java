@@ -137,7 +137,7 @@ public class Dhis2Client
      *
      * @return a resolved {@link UriComponentsBuilder}.
      */
-    protected UriComponentsBuilder getResolvedUriBuilder( String path )
+    UriComponentsBuilder getResolvedUriBuilder( String path )
     {
         return UriComponentsBuilder.fromHttpUrl( url )
             .pathSegment( "api" )
@@ -150,9 +150,9 @@ public class Dhis2Client
      * @param response the {@link ResponseEntity}.
      * @throws Dhis2ClientException
      */
-    private void handleErrors( ResponseEntity<?> response )
+    void handleErrors( ResponseEntity<?> response )
     {
-        log.info( "Response status code: {}", response.getStatusCode() );
+        log.debug( "Response status code: {}", response.getStatusCode() );
 
         if ( ERROR_STATUS_CODES.contains( response.getStatusCode() ) || response.getStatusCode().is5xxServerError() )
         {
@@ -169,7 +169,7 @@ public class Dhis2Client
      *
      * @return a {@link HttpHeaders}.
      */
-    private HttpHeaders getJsonAuthHeaders()
+    HttpHeaders getJsonAuthHeaders()
     {
         HttpHeaders headers = authentication.withAuthentication( new HttpHeaders() );
         headers.setAccept( List.of( MediaType.APPLICATION_JSON ) );
@@ -250,7 +250,7 @@ public class Dhis2Client
      * @param queryParam the query parameter name.
      * @param idScheme the {@link IdScheme}.
      */
-    private void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
+    void addIfNotDefault( UriComponentsBuilder builder, String queryParam, IdScheme idScheme )
     {
         if ( idScheme != null && idScheme != IdSchemes.DEFAULT_ID_SCHEME )
         {

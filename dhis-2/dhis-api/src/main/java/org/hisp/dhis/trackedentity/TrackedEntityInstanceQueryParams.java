@@ -913,6 +913,12 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnits;
     }
 
+    public TrackedEntityInstanceQueryParams addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        this.organisationUnits.addAll( organisationUnits );
+        return this;
+    }
+
     public TrackedEntityInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;

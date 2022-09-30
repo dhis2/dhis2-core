@@ -53,11 +53,6 @@ public class DailyPeriodType
 
     private static final String ISO8601_DURATION = "P1D";
 
-    /**
-     * The name of the DailyPeriodType, which is "Daily".
-     */
-    public static final String NAME = "Daily";
-
     public static final int FREQUENCY_ORDER = 1;
 
     public static final String SQL_INTERVAL = "1 day";
@@ -67,9 +62,9 @@ public class DailyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.DAILY;
     }
 
     @Override

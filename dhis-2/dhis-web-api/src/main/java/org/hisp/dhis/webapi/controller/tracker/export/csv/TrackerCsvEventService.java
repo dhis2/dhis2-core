@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.csv;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +58,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Enrico Colasante
  */
-@Service( "org.hisp.dhis.webapi.controller.tracker.CsvEventService" )
+@Service( "org.hisp.dhis.webapi.controller.tracker.export.csv.CsvEventService" )
 public class TrackerCsvEventService
     implements CsvEventService<Event>
 {

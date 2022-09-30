@@ -60,7 +60,6 @@ import org.springframework.stereotype.Repository;
  * Implements the PeriodStore interface.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: HibernatePeriodStore.java 5983 2008-10-17 17:42:44Z larshelg $
  */
 @Repository( "org.hisp.dhis.period.PeriodStore" )
 @Slf4j

@@ -70,7 +70,7 @@ class PeriodOffsetUtilsTest
             .withDataElements( Lists.newArrayList( dataElement ) )
             .withPeriods( Lists.newArrayList( month1, month2, month3, q1 ) ).build();
         // When
-        final DataQueryParams params = PeriodOffsetUtils.addShiftedPeriods( queryParams );
+        DataQueryParams params = PeriodOffsetUtils.addShiftedPeriods( queryParams );
         // Then
         assertIsoPeriodsInOrder( params.getPeriods(), "202001", "202002", "202003", "2020Q1", "201912", "2019Q4" );
     }
@@ -86,7 +86,7 @@ class PeriodOffsetUtilsTest
             .withDataElements( Lists.newArrayList( dataElement ) )
             .withPeriods( Lists.newArrayList( month1, q1 ) ).build();
         // When
-        final DataQueryParams params = PeriodOffsetUtils.addShiftedPeriods( queryParams );
+        DataQueryParams params = PeriodOffsetUtils.addShiftedPeriods( queryParams );
         // Then
         assertThat( params.getPeriods(), is( queryParams.getPeriods() ) );
     }
@@ -131,14 +131,14 @@ class PeriodOffsetUtilsTest
         dataElement.setUid( "de1" );
 
         // When
-        final List<Object> row1 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 0 ), periodIndex, 1 );
+        List<Object> row1 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 0 ), periodIndex, 1 );
         // Then
         assertThat( row1, is( notNullValue() ) );
         assertThat( row1, hasSize( 4 ) );
         assertThat( row1.get( periodIndex ), is( "201912" ) );
 
         // When
-        final List<Object> row2 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 1 ), periodIndex, -1 );
+        List<Object> row2 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 1 ), periodIndex, -1 );
         // Then
         assertThat( row2, is( notNullValue() ) );
         assertThat( row2, hasSize( 4 ) );

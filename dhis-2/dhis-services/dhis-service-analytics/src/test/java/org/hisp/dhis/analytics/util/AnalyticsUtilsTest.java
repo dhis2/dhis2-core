@@ -90,7 +90,6 @@ import com.google.common.collect.Lists;
  */
 class AnalyticsUtilsTest extends DhisConvenienceTest
 {
-
     @Test
     void testGetByDataDimensionType()
     {

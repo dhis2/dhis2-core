@@ -50,10 +50,10 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -126,7 +126,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         createAndInjectAdminUser();
 
         // Metadata
-        PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
+        PeriodType ptA = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY );
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         idObjectManager.save( Lists.newArrayList( deA, deB ) );

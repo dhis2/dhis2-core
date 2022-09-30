@@ -42,7 +42,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * associated objects, in order to reduce heap space usage during export.
  *
  * @author Lars Helge Overland
- * @version $Id$
  */
 @JacksonXmlRootElement
 public class DeflatedDataValue

@@ -43,7 +43,6 @@ import org.springframework.security.core.GrantedAuthority;
  * @see org.springframework.security.access.vote.RoleVoter
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: AllRequiredRoleVoter.java 6070 2008-10-28 17:49:23Z larshelg $
  */
 public class AllRequiredRoleVoter
     extends RoleVoter

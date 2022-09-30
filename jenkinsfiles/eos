@@ -15,7 +15,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
     }
 
     stages {

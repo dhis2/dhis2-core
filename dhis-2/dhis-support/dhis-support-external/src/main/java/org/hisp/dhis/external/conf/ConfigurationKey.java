@@ -105,7 +105,7 @@ public enum ConfigurationKey
     /**
      * JDBC driver class.
      */
-    CONNECTION_DRIVER_CLASS( "connection.driver_class", "", false ),
+    CONNECTION_DRIVER_CLASS( "connection.driver_class", "org.postgresql.Driver", false ),
 
     /**
      * Database connection URL.

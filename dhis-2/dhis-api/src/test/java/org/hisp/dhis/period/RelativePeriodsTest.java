@@ -44,14 +44,26 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class RelativePeriodTest
+class RelativePeriodsTest
 {
-
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
     private static Date getDate( int year, int month, int day )
     {
         return new DateTimeUnit( year, month, day, true ).toJdkDate();
+    }
+
+    @Test
+    void testGetPeriodType()
+    {
+        RelativePeriods periods = new RelativePeriods().setYesterday( true );
+        assertEquals( new DailyPeriodType(), periods.getPeriodType() );
+
+        periods = new RelativePeriods().setLastWeek( true );
+        assertEquals( new WeeklyPeriodType(), periods.getPeriodType() );
+
+        periods = new RelativePeriods().setThisMonth( true );
+        assertEquals( new MonthlyPeriodType(), periods.getPeriodType() );
     }
 
     @Test
@@ -200,22 +212,6 @@ class RelativePeriodTest
             relatives.get( 19 ) );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ),
             relatives.get( 20 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ),
-            relatives.get( 21 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ),
-            relatives.get( 22 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ),
-            relatives.get( 23 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ),
-            relatives.get( 24 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ),
-            relatives.get( 25 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ),
-            relatives.get( 26 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ),
-            relatives.get( 27 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ),
-            relatives.get( 28 ) );
         assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ),
             relatives.get( 29 ) );
     }

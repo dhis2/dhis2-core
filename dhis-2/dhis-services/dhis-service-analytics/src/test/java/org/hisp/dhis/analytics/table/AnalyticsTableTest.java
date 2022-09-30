@@ -49,7 +49,6 @@ import com.google.common.collect.Lists;
  */
 class AnalyticsTableTest
 {
-
     @Test
     void testGetTableName()
     {

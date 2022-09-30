@@ -33,7 +33,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class OrganisationUnitLevelComparator
     implements Comparator<OrganisationUnitLevel>

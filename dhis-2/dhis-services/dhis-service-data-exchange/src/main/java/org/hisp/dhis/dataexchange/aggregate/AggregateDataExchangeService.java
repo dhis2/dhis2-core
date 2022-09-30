@@ -58,6 +58,7 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Main service class for aggregate data exchange.
@@ -172,6 +173,12 @@ public class AggregateDataExchangeService
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
         }
+        catch ( HttpClientErrorException ex )
+        {
+            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+
+            return new ImportSummary( ImportStatus.ERROR, message );
+        }
         catch ( Exception ex )
         {
             return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
@@ -233,6 +240,9 @@ public class AggregateDataExchangeService
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
+        IdScheme outputDataElementIdScheme = toIdSchemeOrDefault( request.getOutputDataElementIdScheme() );
+        IdScheme outputOrgUnitIdScheme = toIdSchemeOrDefault( request.getOutputOrgUnitIdScheme() );
+        IdScheme outputIdScheme = toIdSchemeOrDefault( request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
@@ -242,6 +252,9 @@ public class AggregateDataExchangeService
             .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), inputIdScheme ) )
             .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), inputIdScheme ) )
             .addFilters( filters )
+            .withOutputDataElementIdScheme( outputDataElementIdScheme )
+            .withOutputOrgUnitIdScheme( outputOrgUnitIdScheme )
+            .withOutputIdScheme( outputIdScheme )
             .build();
     }
 

@@ -57,7 +57,7 @@ public class AnalyticsCache
      * Default constructor. Note that a default expiration time is set, as as
      * the TTL will always be overwritten during cache put operations.
      */
-    public AnalyticsCache( final CacheProvider cacheProvider, final AnalyticsCacheSettings analyticsCacheSettings )
+    public AnalyticsCache( CacheProvider cacheProvider, AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( cacheProvider );
         checkNotNull( analyticsCacheSettings );
@@ -66,7 +66,7 @@ public class AnalyticsCache
         this.queryCache = cacheProvider.createAnalyticsCache();
     }
 
-    public Optional<Grid> get( final String key )
+    public Optional<Grid> get( String key )
     {
         return getGridClone( queryCache.get( key ) );
     }
@@ -86,9 +86,9 @@ public class AnalyticsCache
      *
      * @return the cached or fetched Grid.
      */
-    public Grid getOrFetch( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
+    public Grid getOrFetch( DataQueryParams params, Function<DataQueryParams, Grid> function )
     {
-        final Optional<Grid> cachedGrid = get( params.getKey() );
+        Optional<Grid> cachedGrid = get( params.getKey() );
 
         if ( cachedGrid.isPresent() )
         {
@@ -96,7 +96,7 @@ public class AnalyticsCache
         }
         else
         {
-            final Grid grid = function.apply( params );
+            Grid grid = function.apply( params );
 
             put( params, grid );
 
@@ -114,7 +114,7 @@ public class AnalyticsCache
      * @param params the DataQueryParams.
      * @param grid the associated Grid.
      */
-    public void put( final DataQueryParams params, final Grid grid )
+    public void put( DataQueryParams params, Grid grid )
     {
         if ( analyticsCacheSettings.isProgressiveCachingEnabled() )
         {
@@ -137,7 +137,7 @@ public class AnalyticsCache
      * @param grid the Grid object to be cached.
      * @param ttlInSeconds the time to live (expiration time) in seconds.
      */
-    public void put( final String key, final Grid grid, final long ttlInSeconds )
+    public void put( String key, Grid grid, long ttlInSeconds )
     {
         queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }

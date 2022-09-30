@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Data;
 import lombok.Getter;
@@ -41,17 +40,14 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Class to hold EventController request parameters into a handy place
+ * Represents query parameters sent to {@link TrackerEventsExportController}.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
@@ -115,34 +111,13 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Boolean skipEventId;
 
-    private Set<String> filter;
+    private Set<String> filter = new HashSet<>();
 
-    private Set<String> filterAttributes;
+    private Set<String> filterAttributes = new HashSet<>();
 
-    private Set<String> enrollments;
+    private Set<String> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
-
-    public Set<String> getAssignedUsers()
-    {
-        Set<String> assignedUsers = new HashSet<>();
-
-        if ( assignedUser != null && !assignedUser.isEmpty() )
-        {
-            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
-                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
-        }
-
-        return assignedUsers;
-    }
-
-    public Set<String> getEvents()
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( event, TextUtils.SEMICOLON ) )
-            .stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
-    }
 
     @Override
     public boolean isLegacy()

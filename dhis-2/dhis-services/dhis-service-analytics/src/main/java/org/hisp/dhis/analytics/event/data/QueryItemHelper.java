@@ -159,11 +159,11 @@ public class QueryItemHelper
      */
     public static Map<String, List<Option>> getItemOptions( Grid grid, EventQueryParams params )
     {
-        final Map<String, List<Option>> options = new HashMap<>();
+        Map<String, List<Option>> options = new HashMap<>();
 
         for ( int i = 0; i < grid.getHeaders().size(); ++i )
         {
-            final GridHeader gridHeader = grid.getHeaders().get( i );
+            GridHeader gridHeader = grid.getHeaders().get( i );
 
             if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
             {
@@ -250,11 +250,11 @@ public class QueryItemHelper
 
         if ( isNotEmpty( params.getItems() ) )
         {
-            final List<QueryItem> items = params.getItems();
+            List<QueryItem> items = params.getItems();
 
-            for ( final QueryItem item : items )
+            for ( QueryItem item : items )
             {
-                final boolean hasOptions = item.getOptionSet() != null
+                boolean hasOptions = item.getOptionSet() != null
                     && isNotEmpty( item.getOptionSet().getOptions() );
 
                 if ( hasOptions && isNotEmpty( item.getFilters() ) )
@@ -313,11 +313,11 @@ public class QueryItemHelper
     {
         List<Option> options = new ArrayList<>();
 
-        for ( final Option option : item.getOptionSet().getOptions() )
+        for ( Option option : item.getOptionSet().getOptions() )
         {
-            for ( final QueryFilter filter : item.getFilters() )
+            for ( QueryFilter filter : item.getFilters() )
             {
-                final List<String> filterSplit = Arrays
+                List<String> filterSplit = Arrays
                     .stream( trimToEmpty( filter.getFilter() ).split( ";" ) )
                     .collect( toList() );
                 if ( filterSplit.contains( trimToEmpty( option.getCode() ) ) )

@@ -138,7 +138,9 @@ public class DefaultGeoJsonService implements GeoJsonService
 
         String idProperty = isBlank( params.getOrgUnitIdProperty() ) ? "id" : params.getOrgUnitIdProperty();
         Function<JsonObject, String> readIdentifiers = feature -> feature.getString( idProperty ).string();
-        JsonList<JsonObject> features = featureCollection.getList( "features", JsonObject.class );
+        JsonList<JsonObject> features = "Feature".equalsIgnoreCase( featureCollection.getString( "type" ).string() )
+            ? JsonValue.of( "[" + featureCollection.node().getDeclaration() + "]" ).asList( JsonObject.class )
+            : featureCollection.getList( "features", JsonObject.class );
         if ( features.isUndefined() || !features.isArray() )
         {
             report
