@@ -199,7 +199,7 @@ public class AssignValueImplementer
      * @param valueType the value type.
      * @return true if the values are equal, false if not.
      */
-    boolean isEqual( String value1, String value2, ValueType valueType )
+    protected boolean isEqual( String value1, String value2, ValueType valueType )
     {
         if ( valueType.isNumeric() )
         {
