@@ -191,7 +191,8 @@ public class AssignValueImplementer
 
     /**
      * Tests whether the given values are equal. If the given value type is
-     * numeric, the values are converted to doubles before checked for equality.
+     * numeric, the values are converted to doubles before being checked for
+     * equality.
      *
      * @param value1 the first value.
      * @param value2 the second value.
@@ -207,7 +208,7 @@ public class AssignValueImplementer
         }
         else
         {
-            return value2.equals( value1 );
+            return value1 != null && value1.equals( value2 );
         }
     }
 

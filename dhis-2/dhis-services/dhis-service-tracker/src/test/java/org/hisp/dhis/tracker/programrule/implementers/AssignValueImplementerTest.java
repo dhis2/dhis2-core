@@ -505,6 +505,17 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertFalse( implementerToTest.isEqual( "32", "33", ValueType.INTEGER ) );
     }
 
+    @Test
+    void testIsEqualDataTypeIntegrity()
+    {
+        assertFalse( implementerToTest.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "24", "second_dose", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( null, "46.2", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "26.4", null, ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "first_dose", null, ValueType.TEXT ) );
+        assertFalse( implementerToTest.isEqual( null, "second_dose", ValueType.TEXT ) );
+    }
+
     private Event getEventWithDataValueSet()
     {
         Event event = new Event();
