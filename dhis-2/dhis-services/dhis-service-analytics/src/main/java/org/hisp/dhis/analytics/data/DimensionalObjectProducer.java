@@ -152,7 +152,8 @@ public class DimensionalObjectProducer
             {
                 String groupUid = getUidFromGroupParam( uid );
 
-                DataElementGroup group = idObjectManager.getObject( DataElementGroup.class, inputIdScheme, groupUid );
+                DataElementGroup group = idObjectManager.getObject( DataElementGroup.class, inputIdScheme,
+                    groupUid );
 
                 if ( group != null )
                 {
