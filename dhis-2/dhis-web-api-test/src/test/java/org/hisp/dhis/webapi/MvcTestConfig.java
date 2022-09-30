@@ -75,6 +75,7 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -124,7 +125,14 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Autowired
     private FieldFilterService fieldFilterService;
 
+    @Autowired
+    private FormattingConversionService mvcConversionService;
+
+    @Autowired
+    private ResourceUrlProvider mvcResourceUrlProvider;
+
     @Bean
+    @Primary
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
         FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider )
     {
@@ -134,7 +142,20 @@ public class MvcTestConfig implements WebMvcConfigurer
         addInterceptors( registry );
         registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
         registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
+        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
         mapping.setInterceptors( registry.getInterceptors().toArray() );
+
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
+
+        mapping.setContentNegotiationManager( new ContentNegotiationManager(
+            Arrays.asList(
+                pathExtensionNegotiationStrategy,
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) ) );
+
         return mapping;
     }
 
@@ -170,7 +191,6 @@ public class MvcTestConfig implements WebMvcConfigurer
                 pathExtensionNegotiationStrategy,
                 new HeaderContentNegotiationStrategy(),
                 new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
-
     }
 
     @Override
@@ -204,6 +224,9 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Override
     public void addInterceptors( InterceptorRegistry registry )
     {
+        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
+        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
+
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
         registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
