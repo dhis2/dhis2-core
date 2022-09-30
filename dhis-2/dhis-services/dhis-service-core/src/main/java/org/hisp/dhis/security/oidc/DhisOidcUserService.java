@@ -91,8 +91,14 @@ public class DhisOidcUserService
         {
             User user = userService.getUserByOpenId( (String) claimValue );
 
-            if ( user != null )
+            if ( user != null && user.isExternalAuth() )
             {
+                if ( user.isDisabled() || !user.isAccountNonExpired() )
+                {
+                    throw new OAuth2AuthenticationException( new OAuth2Error( "user_disabled" ),
+                        "User is disabled" );
+                }
+
                 return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
