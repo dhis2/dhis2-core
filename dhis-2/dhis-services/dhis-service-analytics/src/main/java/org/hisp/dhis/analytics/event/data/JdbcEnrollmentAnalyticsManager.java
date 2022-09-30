@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -96,6 +97,8 @@ public class JdbcEnrollmentAnalyticsManager
     private static final String ORDER_BY_EXECUTION_DATE = "order by executiondate ";
 
     private static final String LIMIT_1 = "limit 1";
+
+    private static final String IS_NOT_NULL = " is not null ";
 
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
@@ -338,7 +341,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + quoteAlias( params.getCoordinateField() ) + " is not null ";
+            sql += "and " + getCoalesce( params.getCoordinateFields() ) + IS_NOT_NULL;
         }
 
         if ( params.isCompletedOnly() )
@@ -348,7 +351,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += "and " + quoteAlias( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox()
+            sql += "and " + getCoalesce( params.getCoordinateFields() ) + " && ST_MakeEnvelope(" + params.getBbox()
                 + ",4326) ";
         }
 
@@ -422,7 +425,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
+                "and " + colName + IS_NOT_NULL + psCondition + ORDER_BY_EXECUTION_DATE +
                 createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )",
                 alias );
         }
@@ -490,7 +493,7 @@ public class JdbcEnrollmentAnalyticsManager
             return "(select " + colName + alias
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
-                + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                + "and " + colName + IS_NOT_NULL + "and ps = '" + item.getProgramStage().getUid() + "' "
                 + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
         }

@@ -33,6 +33,8 @@ import java.util.Date;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
+import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dataexchange.aggregate.ApiSerializer;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -149,7 +151,7 @@ public class JacksonObjectMapperConfig
     }
 
     /**
-     * Shared configuration for all Jackson mappers
+     * Provides shared configuration for all Jackson mappers.
      *
      * @param objectMapper an {@see ObjectMapper}
      * @param autoDetectGetters if true, enable `autoDetectGetters`
@@ -163,9 +165,9 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
         module.addSerializer( JsonPointer.class, new JsonPointerStdSerializer() );
+        module.addSerializer( Api.class, new ApiSerializer() );
 
-        // Registering a custom Instant serializer/deserializer for DTOs using
-        // Instant
+        // Registering a custom Instant serializer/deserializer for DTOs
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer( Instant.class, new WriteInstantStdSerializer() );
         javaTimeModule.addDeserializer( Instant.class, new ParseInstantStdDeserializer() );

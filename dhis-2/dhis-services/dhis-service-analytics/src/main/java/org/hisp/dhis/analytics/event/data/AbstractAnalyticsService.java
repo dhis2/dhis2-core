@@ -138,7 +138,7 @@ public abstract class AbstractAnalyticsService
              * create header of value type COORDINATE and type Point.
              */
             if ( item.getValueType() == ValueType.ORGANISATION_UNIT
-                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+                && params.getCoordinateFields().stream().anyMatch( f -> f.equals( item.getItem().getUid() ) ) )
             {
                 grid.addHeader( new GridHeader( item.getItem().getUid(),
                     item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,

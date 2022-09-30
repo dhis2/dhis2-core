@@ -27,74 +27,40 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import java.io.Serializable;
-
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * See {@link ApiSerializer} for JSON serialization.
+ * Jackson JSON serializer for {@link Api}. Does not write sensitive properties
+ * including {@code accessToken} and {@link password}.
+ * <p>
+ * This serializer exists because {@link Api} is persisted as a JSONB data type
+ * which relies on creating a deep copy by writing and reading the class to
+ * JSON, in which case the use of {@link JsonProperty.Access.WRITE_ONLY} at the
+ * property level leads to the property value being lost in the copy process.
  *
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@Accessors( chain = true )
-public class Api
-    implements Serializable
+public class ApiSerializer
+    extends JsonSerializer<Api>
 {
-    @JsonProperty
-    private String url;
-
-    /**
-     * Access token. For Personal Access Token (PAT) authentication. The access
-     * token is encrypted and must be decrypted before used to authenticate with
-     * external systems. Sensitive, do not expose in API output.
-     */
-    @JsonProperty
-    private String accessToken;
-
-    /**
-     * Username. For basic authentication.
-     */
-    @JsonProperty
-    private String username;
-
-    /**
-     * Password. For basic authentication. The password is encrypted and must be
-     * decrypted before used to authenticate with external systems. Sensitive,
-     * do not expose in API output.
-     */
-    @JsonProperty
-    private String password;
-
-    /**
-     * Indicates if API is configured for access token based authentication.
-     *
-     * @return true if API is configured for access token based authentication.
-     */
-    @JsonIgnore
-    public boolean isAccessTokenAuth()
+    @Override
+    public void serialize( Api api, JsonGenerator json, SerializerProvider serializers )
+        throws IOException
     {
-        return StringUtils.isNotBlank( accessToken );
-    }
+        json.writeStartObject();
+        json.writeStringField( "url", api.getUrl() );
 
-    /**
-     * Indicates if API is configured for basic authentication.
-     *
-     * @return true if API is configured for basic authentication.
-     */
-    @JsonIgnore
-    public boolean isBasicAuth()
-    {
-        return StringUtils.isNoneBlank( username, password );
+        if ( StringUtils.isNotBlank( api.getUsername() ) )
+        {
+            json.writeStringField( "username", api.getUsername() );
+        }
+
+        json.writeEndObject();
     }
 }

@@ -419,7 +419,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
         {
-            if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+            if ( params.getCoordinateFields().stream().anyMatch( f -> queryItem.getItem().getUid().equals( f ) ) )
             {
                 return getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX );
             }
