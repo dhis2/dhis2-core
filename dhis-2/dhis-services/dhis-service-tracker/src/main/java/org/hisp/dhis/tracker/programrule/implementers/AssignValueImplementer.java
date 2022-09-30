@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -167,7 +168,7 @@ public class AssignValueImplementer
             .findAny();
         if ( optionalDataValue.isPresent() )
         {
-            return areEquals( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
+            return isEqual( dataValue, optionalDataValue.get().getValue(), dataElement.getValueType() );
         }
 
         return false;
@@ -182,22 +183,31 @@ public class AssignValueImplementer
             .findAny();
         if ( optionalAttribute.isPresent() )
         {
-            return areEquals( value, optionalAttribute.get().getValue(), attribute.getValueType() );
+            return isEqual( value, optionalAttribute.get().getValue(), attribute.getValueType() );
         }
 
         return false;
     }
 
-    private boolean areEquals( String dataValue, String value, ValueType valueType )
+    /**
+     * Tests whether the given values are equal. If the given value type is
+     * numeric, the values are converted to doubles before checked for equality.
+     *
+     * @param value1 the first value.
+     * @param value2 the second value.
+     * @param valueType the value type.
+     * @return true if the values are equal, false if not.
+     */
+    boolean isEqual( String value1, String value2, ValueType valueType )
     {
         if ( valueType.isNumeric() )
         {
-            return NumberUtils.isParsable( dataValue ) &&
-                Double.parseDouble( value ) == Double.parseDouble( dataValue );
+            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
+                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
         }
         else
         {
-            return value.equals( dataValue );
+            return value2.equals( value1 );
         }
     }
 
