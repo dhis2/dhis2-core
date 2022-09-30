@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.shared.processing;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 
 import java.util.List;
 import java.util.Optional;
@@ -102,12 +103,12 @@ public class DimensionIdentifierConverter
 
             return DimensionIdentifier.of(
                 ElementWithOffset.of( program, programWithOffset.getOffset() ),
-                null,
+                emptyElementWithOffset(),
                 dimensionId );
         }
         else
         {
-            return DimensionIdentifier.of( null, null, dimensionId );
+            return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
         }
     }
 
@@ -125,14 +126,16 @@ public class DimensionIdentifierConverter
         if ( uidWithOffsets.size() == 2 ) // ie.: abcde[1].hfjg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 1 ) );
-            return DimensionIdentifier.of( uidWithOffsets.get( 0 ), null, uidWithOffsets.get( 1 ).getElement() );
+            return DimensionIdentifier.of( uidWithOffsets.get( 0 ), emptyElementWithOffset(),
+                uidWithOffsets.get( 1 ).getElement() );
 
         }
 
         if ( uidWithOffsets.size() == 1 ) // ie.: fgrg
         {
             assertDimensionIdHasNoOffset( uidWithOffsets.get( 0 ) );
-            return DimensionIdentifier.of( null, null, uidWithOffsets.get( 0 ).getElement() );
+            return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(),
+                uidWithOffsets.get( 0 ).getElement() );
         }
 
         throw new IllegalArgumentException( "Malformed parameter: " + fullDimensionId );

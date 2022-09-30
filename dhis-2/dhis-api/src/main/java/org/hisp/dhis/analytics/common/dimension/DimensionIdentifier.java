@@ -80,6 +80,9 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
     @RequiredArgsConstructor( staticName = "of" )
     public static class ElementWithOffset<T extends UidObject>
     {
+        @SuppressWarnings( "rawtypes" )
+        private static final ElementWithOffset EMPTY_ELEMENT_WITH_OFFSET = ElementWithOffset.of( null, null );
+
         private final T element;
 
         private final String offset;
@@ -87,6 +90,12 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
         public boolean hasOffset()
         {
             return Objects.nonNull( offset );
+        }
+
+        @SuppressWarnings( "unchecked" )
+        public static <R extends UidObject> ElementWithOffset<R> emptyElementWithOffset()
+        {
+            return EMPTY_ELEMENT_WITH_OFFSET;
         }
 
         public boolean isPresent()
