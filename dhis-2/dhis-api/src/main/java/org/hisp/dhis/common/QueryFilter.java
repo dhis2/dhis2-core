@@ -135,8 +135,14 @@ public class QueryFilter
 
     private String safelyGetOperator( boolean isOperatorSubstitutionAllowed )
     {
-        return OPERATOR_MAP.get( operator )
-            .apply( StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
+        Function<Boolean, String> operatorFunction = OPERATOR_MAP.get( operator );
+        if ( operatorFunction != null )
+        {
+            return operatorFunction
+                .apply( StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
+        }
+
+        return null;
     }
 
     public String getSqlFilter( final String encodedFilter )
