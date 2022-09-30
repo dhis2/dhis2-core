@@ -78,7 +78,7 @@ public class DhisCustomAuthorizationRequestResolver implements OAuth2Authorizati
     public OAuth2AuthorizationRequest resolve( HttpServletRequest servletRequest )
     {
         String requestURI = servletRequest.getRequestURI();
-        if ( requestURI.startsWith( DEFAULT_AUTHORIZATION_REQUEST_BASE_URI ) )
+        if ( requestURI.contains( DEFAULT_AUTHORIZATION_REQUEST_BASE_URI ) )
         {
             String[] split = requestURI.split( "/" );
             String clientRegistrationId = split[split.length - 1];
