@@ -58,6 +58,7 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Main service class for aggregate data exchange.
@@ -171,6 +172,12 @@ public class AggregateDataExchangeService
 
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+
+            return new ImportSummary( ImportStatus.ERROR, message );
         }
         catch ( Exception ex )
         {
