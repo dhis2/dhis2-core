@@ -65,6 +65,8 @@ import com.google.common.collect.Sets;
  */
 public class ValidationUtils
 {
+    private static final Pattern USERNAME_PATTERN = Pattern.compile(
+        "^(?=.{4,255}$)(?![-_.@])(?!.*[-_.@]{2})[-_.@a-zA-Z0-9]+(?<![-_.@])$" );
 
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
