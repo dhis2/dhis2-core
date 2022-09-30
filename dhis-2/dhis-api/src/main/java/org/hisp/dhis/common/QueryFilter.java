@@ -63,11 +63,11 @@ public class QueryFilter
 
     public static final ImmutableMap<QueryOperator, Function<Boolean, String>> OPERATOR_MAP = ImmutableMap
         .<QueryOperator, Function<Boolean, String>> builder()
-        .put( EQ, isValueNull -> isValueNull ? "is" : "=" )
-        .put( NE, isValueNull -> isValueNull ? "is not" : "!=" )
-        .put( NEQ, isValueNull -> isValueNull ? "is not" : "!=" )
-        .put( IEQ, isValueNull -> isValueNull ? "is" : "=" )
-        .put( NIEQ, isValueNull -> isValueNull ? "is not" : "!=" )
+        .put( EQ, unused -> "=" )
+        .put( NE, unused -> "!=" )
+        .put( NEQ, unused -> "!=" )
+        .put( IEQ, unused -> "=" )
+        .put( NIEQ, unused -> "!=" )
         .put( GT, unused -> ">" )
         .put( GE, unused -> ">=" )
         .put( LT, unused -> "<" )
@@ -141,13 +141,6 @@ public class QueryFilter
                     .replace( "_", "\\_" )
                     .replace( "%", "\\%" )
                 + "%'";
-        }
-        else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
-        {
-            if ( encodedFilter.equals( NV ) )
-            {
-                return "null";
-            }
         }
         else if ( IN == operator )
         {
