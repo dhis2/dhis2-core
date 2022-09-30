@@ -234,11 +234,6 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        if ( !map.containsKey( klass ) )
-        {
-            map.put( klass, new HashSet<>() );
-        }
-
-        map.get( klass ).add( str );
+        map.computeIfAbsent( klass, k -> new HashSet<>() ).add( str );
     }
 }
