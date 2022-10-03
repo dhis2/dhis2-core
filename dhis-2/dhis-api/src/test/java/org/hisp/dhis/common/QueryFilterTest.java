@@ -35,23 +35,6 @@ import org.junit.jupiter.api.Test;
 
 class QueryFilterTest
 {
-
-    @Test
-    void testUnderscoreIsEscaped()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.LIKE );
-        assertThat( queryFilter.getSqlFilter( "_" ), is( "'%\\_%'" ) );
-    }
-
-    @Test
-    void testPercentageSignIsEscaped()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.LIKE );
-        assertThat( queryFilter.getSqlFilter( "%" ), is( "'%\\%%'" ) );
-    }
-
     @Test
     @DisplayName( "When value substitution allowed and NV provided, equals operator returns null" )
     void testEqualsAndNullValueReturnNullStringWhenAllowed()
