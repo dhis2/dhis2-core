@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.programrule;
+package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
@@ -64,7 +64,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -485,6 +485,35 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertEquals( 1, enrollmentIssues.size() );
         assertEquals( 1, enrollmentIssues.size() );
         assertEquals( WARNING, enrollmentIssues.get( 0 ).getIssueType() );
+    }
+
+    @Test
+    void testIsEqual()
+    {
+        assertTrue( implementerToTest.isEqual( "first_dose", "first_dose", ValueType.TEXT ) );
+        assertTrue( implementerToTest.isEqual( "2020-01-01", "2020-01-01", ValueType.DATE ) );
+        assertTrue( implementerToTest.isEqual( "true", "true", ValueType.BOOLEAN ) );
+        assertTrue( implementerToTest.isEqual( "26.4", "26.4", ValueType.TEXT ) );
+        assertTrue( implementerToTest.isEqual( "24.8", "24.8", ValueType.NUMBER ) );
+        assertTrue( implementerToTest.isEqual( "32", "32", ValueType.INTEGER ) );
+
+        assertFalse( implementerToTest.isEqual( "first_dose", "second_dose", ValueType.TEXT ) );
+        assertFalse( implementerToTest.isEqual( "2020-01-01", "2020-01-02", ValueType.DATE ) );
+        assertFalse( implementerToTest.isEqual( "true", "false", ValueType.BOOLEAN ) );
+        assertFalse( implementerToTest.isEqual( "26.4", "26.5", ValueType.TEXT ) );
+        assertFalse( implementerToTest.isEqual( "24.8", "24.9", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "32", "33", ValueType.INTEGER ) );
+    }
+
+    @Test
+    void testIsEqualDataTypeIntegrity()
+    {
+        assertFalse( implementerToTest.isEqual( "first_dose", "46.2", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "24", "second_dose", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( null, "46.2", ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "26.4", null, ValueType.NUMBER ) );
+        assertFalse( implementerToTest.isEqual( "first_dose", null, ValueType.TEXT ) );
+        assertFalse( implementerToTest.isEqual( null, "second_dose", ValueType.TEXT ) );
     }
 
     private Event getEventWithDataValueSet()
