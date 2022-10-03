@@ -77,9 +77,6 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
         throws IOException,
         ServletException
     {
-        if ( handler != null )
-        {
-            handler.onLogoutSuccess( request, response, authentication );
-        }
+        handler.onLogoutSuccess( request, response, authentication );
     }
 }
