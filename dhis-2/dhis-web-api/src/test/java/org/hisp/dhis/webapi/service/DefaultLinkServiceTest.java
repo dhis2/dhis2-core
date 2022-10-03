@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import static org.hisp.dhis.utils.Assertions.assertEquivalentRelativeUrls;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,15 +39,11 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
@@ -53,7 +51,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * @author Volker Schmidt
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class DefaultLinkServiceTest
 {
@@ -66,31 +63,28 @@ class DefaultLinkServiceTest
     @InjectMocks
     private DefaultLinkService service;
 
-    private MockHttpServletRequest request = new MockHttpServletRequest();
+    private final MockHttpServletRequest request = new MockHttpServletRequest();
 
     @Test
     void noLinks()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setApiEndpoint( "/organizationUnits" );
                 return schema;
             } );
 
-        request.setRequestURI( "/organizationUnits" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
-
         final Pager pager = new Pager();
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertNull( pager.getPrevPage() );
-        Assertions.assertNull( pager.getNextPage() );
+        assertNull( pager.getPrevPage() );
+        assertNull( pager.getNextPage() );
     }
 
     @Test
     void nextLinkDefaultParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
@@ -98,27 +92,24 @@ class DefaultLinkServiceTest
             } );
 
         request.setRequestURI( "/organizationUnits" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ) ) );
 
         final Pager pager = new Pager( 1, 1000 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertNull( pager.getPrevPage() );
-        Assertions.assertEquals( "/demo/api/456/organizationUnits?page=2", pager.getNextPage() );
+        assertNull( pager.getPrevPage() );
+        assertEquals( "/demo/api/456/organizationUnits?page=2", pager.getNextPage() );
     }
 
     @Test
     void nextLinkParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
@@ -126,23 +117,20 @@ class DefaultLinkServiceTest
             } );
 
         request.setRequestURI( "/organizationUnits.json" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            map.put( "fields", Collections.singletonList( "id,name,value[id,text]" ) );
-            map.put( "value[x]", Arrays.asList( "test1", "test2\u00D8" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ),
+            "fields", List.of( "id,name,value[id,text]" ),
+            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
 
         final Pager pager = new Pager( 1, 1000 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertNull( pager.getPrevPage() );
-        Assertions.assertEquals(
+        assertNull( pager.getPrevPage() );
+        assertEquivalentRelativeUrls(
             "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getNextPage() );
     }
@@ -150,7 +138,7 @@ class DefaultLinkServiceTest
     @Test
     void prevLinkDefaultParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
@@ -158,27 +146,24 @@ class DefaultLinkServiceTest
             } );
 
         request.setRequestURI( "/organizationUnits.xml" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ) ) );
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertEquals( "/demo/api/456/organizationUnits.xml", pager.getPrevPage() );
-        Assertions.assertNull( pager.getNextPage() );
+        assertEquals( "/demo/api/456/organizationUnits.xml", pager.getPrevPage() );
+        assertNull( pager.getNextPage() );
     }
 
     @Test
     void nextLink()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
@@ -186,27 +171,24 @@ class DefaultLinkServiceTest
             } );
 
         request.setRequestURI( "/organizationUnits.xml.gz" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ) ) );
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertEquals( "/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage() );
-        Assertions.assertNull( pager.getNextPage() );
+        assertEquals( "/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage() );
+        assertNull( pager.getNextPage() );
     }
 
     @Test
     void nextLinkWithDotsInPath()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
@@ -214,50 +196,44 @@ class DefaultLinkServiceTest
             } );
 
         request.setRequestURI( "https://play.dhis2.org/2.30/api/30/organizationUnits.xml.gz" );
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/2.30/api/30" );
+        when( contextService.getApiPath() ).thenReturn( "/2.30/api/30" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ) ) );
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertEquals( "/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage() );
-        Assertions.assertNull( pager.getNextPage() );
+        assertEquals( "/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage() );
+        assertNull( pager.getNextPage() );
     }
 
     @Test
     void prevLinkParameters()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
                 return schema;
             } );
 
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            map.put( "fields", Collections.singletonList( "id,name,value[id,text]" ) );
-            map.put( "value[x]", Arrays.asList( "test1", "test2\u00D8" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ),
+            "fields", List.of( "id,name,value[id,text]" ),
+            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
 
         final Pager pager = new Pager( 3, 110 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertNull( pager.getNextPage() );
-        Assertions.assertEquals(
+        assertNull( pager.getNextPage() );
+        assertEquivalentRelativeUrls(
             "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getPrevPage() );
     }
@@ -265,30 +241,27 @@ class DefaultLinkServiceTest
     @Test
     void prevLinkParametersPage1()
     {
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
+        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
             .thenAnswer( invocation -> {
                 Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
                 schema.setRelativeApiEndpoint( "/organizationUnits" );
                 return schema;
             } );
 
-        Mockito.when( contextService.getRequest() ).thenReturn( request );
+        when( contextService.getRequest() ).thenReturn( request );
 
-        Mockito.when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> {
-            final Map<String, List<String>> map = new HashMap<>();
-            map.put( "page", Collections.singletonList( "1" ) );
-            map.put( "pageSize", Collections.singletonList( "55" ) );
-            map.put( "fields", Collections.singletonList( "id,name,value[id,text]" ) );
-            map.put( "value[x]", Arrays.asList( "test1", "test2\u00D8" ) );
-            return map;
-        } );
+        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
+            "page", List.of( "1" ),
+            "pageSize", List.of( "55" ),
+            "fields", List.of( "id,name,value[id,text]" ),
+            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
 
         final Pager pager = new Pager( 2, 90 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assertions.assertNull( pager.getNextPage() );
-        Assertions.assertEquals(
+        assertNull( pager.getNextPage() );
+        assertEquivalentRelativeUrls(
             "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getPrevPage() );
     }
