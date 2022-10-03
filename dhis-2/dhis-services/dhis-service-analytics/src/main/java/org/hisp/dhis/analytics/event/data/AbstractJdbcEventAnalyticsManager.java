@@ -859,7 +859,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String filter = getFilter( queryFilter.getFilter(), item );
         String encodedFilter = statementBuilder.encode( filter, false );
 
-        return item.getSqlFilter( queryFilter, encodedFilter );
+        return item.getSqlFilter( queryFilter, encodedFilter, true );
     }
 
     /**
@@ -1143,7 +1143,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
             }
 
-            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+            return field + SPACE + filter.getSqlOperator( true ) + SPACE + getSqlFilter( filter, item ) + SPACE;
         }
     }
 
@@ -1159,12 +1159,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( item.getValueType() != null && item.getValueType().isText() )
         {
-            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
+            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
         else
         {
-            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
     }
