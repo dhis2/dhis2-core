@@ -66,7 +66,7 @@ import com.google.common.collect.Sets;
 public class ValidationUtils
 {
     private static final Pattern USERNAME_PATTERN = Pattern.compile(
-        "^(?=.{4,255}$)(?![_.@])(?!.*[_.@]{2})[a-zA-Z0-9._@]+(?<![_.@])$" );
+        "^(?=.{4,255}$)(?![-_.@])(?!.*[-_.@]{2})[-_.@a-zA-Z0-9]+(?<![-_.@])$" );
 
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
@@ -232,7 +232,7 @@ public class ValidationUtils
      * Validates whether a username is valid.
      *
      * @param username the username.
-     * @param isInvite
+     * @param isInvite if it's an invitation, allow null or empty username
      *
      * @return true if the username is valid, false otherwise.
      */

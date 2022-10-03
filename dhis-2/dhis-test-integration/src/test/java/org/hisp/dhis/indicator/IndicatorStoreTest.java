@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Lars Helge Overland
- * @version $Id: IndicatorStoreTest.java 3286 2007-05-07 18:05:21Z larshelg $
  */
 class IndicatorStoreTest extends SingleSetupIntegrationTestBase
 {

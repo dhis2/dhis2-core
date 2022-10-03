@@ -39,6 +39,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -120,11 +121,14 @@ public class DefaultDataValueAuditService
         List<DataValueAudit> dataValueAudits = new ArrayList<>();
         List<DataValueAudit> audits = new ArrayList<>();
 
-        CategoryOptionCombo defaultCoc = categoryOptionComboStore
-            .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        CategoryOptionCombo coc = ObjectUtils.firstNonNull( categoryOptionCombo, categoryOptionComboStore
+            .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME ) );
+
+        CategoryOptionCombo aoc = ObjectUtils.firstNonNull( attributeOptionCombo, categoryOptionComboStore
+            .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME ) );
 
         DataValue dataValue = dataValueStore.getDataValue( dataElement, period, organisationUnit,
-            categoryOptionCombo, defaultCoc );
+            coc, aoc );
 
         // if for whatever reason the DV is null, we just return a empty list
         if ( dataValue == null )
@@ -142,8 +146,8 @@ public class DefaultDataValueAuditService
             .setDataElements( List.of( dataElement ) )
             .setPeriods( List.of( period ) )
             .setOrgUnits( List.of( organisationUnit ) )
-            .setCategoryOptionCombo( categoryOptionCombo )
-            .setAttributeOptionCombo( attributeOptionCombo );
+            .setCategoryOptionCombo( coc )
+            .setAttributeOptionCombo( aoc );
 
         dataValueAudits.addAll( dataValueAuditStore.getDataValueAudits( params ) );
 

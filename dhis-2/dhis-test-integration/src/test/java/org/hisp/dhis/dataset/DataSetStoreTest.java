@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Nordal
- * @version $Id: DataSetStoreTest.java 3451 2007-07-09 12:28:19Z torgeilo $
  */
 class DataSetStoreTest extends SingleSetupIntegrationTestBase
 {

@@ -46,12 +46,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Slf4j
 class LocationManagerTest extends SingleSetupIntegrationTestBase
 {
-
     private InputStream in;
 
     private OutputStream out;
