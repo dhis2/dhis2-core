@@ -114,20 +114,43 @@ public class QueryFilter
 
     public String getSqlOperator()
     {
+        return getSqlOperator( false );
+    }
+
+    /**
+     *
+     * @param isOperatorSubstitutionAllowed whether the operator should be
+     *        replaced to support null values or not
+     * @return the sql operator found in the operator map
+     */
+    public String getSqlOperator( boolean isOperatorSubstitutionAllowed )
+    {
         if ( operator == null )
         {
             return null;
         }
 
-        return safelyGetOperator();
+        return safelyGetOperator( isOperatorSubstitutionAllowed );
     }
 
-    private String safelyGetOperator()
+    private String safelyGetOperator( boolean isOperatorSubstitutionAllowed )
     {
-        return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
+        Function<Boolean, String> operatorFunction = OPERATOR_MAP.get( operator );
+        if ( operatorFunction != null )
+        {
+            return operatorFunction
+                .apply( StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
+        }
+
+        return null;
     }
 
     public String getSqlFilter( final String encodedFilter )
+    {
+        return getSqlFilter( encodedFilter, false );
+    }
+
+    public String getSqlFilter( final String encodedFilter, boolean isNullValueSubstitutionAllowed )
     {
         if ( operator == null || encodedFilter == null )
         {
@@ -144,7 +167,7 @@ public class QueryFilter
         }
         else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
         {
-            if ( encodedFilter.equals( NV ) )
+            if ( encodedFilter.equals( NV ) && isNullValueSubstitutionAllowed )
             {
                 return "null";
             }
@@ -192,9 +215,10 @@ public class QueryFilter
         return this.filter;
     }
 
-    public String getSqlFilter( final String encodedFilter, final ValueType valueType )
+    public String getSqlFilter( final String encodedFilter, final ValueType valueType,
+        boolean isNullValueSubstitutionAllowed )
     {
-        final String sqlFilter = getSqlFilter( encodedFilter );
+        final String sqlFilter = getSqlFilter( encodedFilter, isNullValueSubstitutionAllowed );
 
         // Force lowercase so we can compare ignoring case.
         if ( IEQ == operator || NIEQ == operator )
