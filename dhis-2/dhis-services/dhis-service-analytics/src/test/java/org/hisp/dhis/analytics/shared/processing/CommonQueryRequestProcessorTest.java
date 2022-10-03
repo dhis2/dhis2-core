@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 
 class CommonQueryRequestProcessorTest
 {
-    CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
+    private final CommonQueryRequestProcessor commonQueryRequestProcessor = new CommonQueryRequestProcessor(
         mock( SystemSettingManager.class ) );
 
     @Test
