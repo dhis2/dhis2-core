@@ -35,11 +35,11 @@ import java.util.Objects;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -47,8 +47,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +63,7 @@ public class CategoryComboController
     private DataValueService dataValueService;
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+    public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
@@ -76,8 +74,11 @@ public class CategoryComboController
             throw new WebMessageException( notFound( "CategoryCombo not found for uid: " + pvUid ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,
-            download );
+        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        exportService.validate( exportParams );
+        exportParams.setObjectExportWithDependencies( categoryCombo );
+
+        return ResponseEntity.ok( exportParams );
     }
 
     @Override
