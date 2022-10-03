@@ -121,7 +121,7 @@ public class QueryFilter
      *
      * @param isOperatorSubstitutionAllowed whether the operator should be
      *        replaced to support null values or not
-     * @return
+     * @return the sql operator found in the operator map
      */
     public String getSqlOperator( boolean isOperatorSubstitutionAllowed )
     {
