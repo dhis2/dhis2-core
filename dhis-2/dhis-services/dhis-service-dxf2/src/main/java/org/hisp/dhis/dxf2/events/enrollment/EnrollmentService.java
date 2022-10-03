@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.params.InstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -65,9 +66,9 @@ public interface EnrollmentService
     <T extends InstanceParams> Enrollment getEnrollment( User user, ProgramInstance programInstance, T params,
         boolean skipOwnershipCheck );
 
-    List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
+    List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances, EnrollmentParams params );
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( ProgramInstanceQueryParams queryParams, EnrollmentParams params );
 
     // -------------------------------------------------------------------------
     // CREATE

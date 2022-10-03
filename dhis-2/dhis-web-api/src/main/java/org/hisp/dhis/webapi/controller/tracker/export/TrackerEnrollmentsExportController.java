@@ -93,7 +93,7 @@ public class TrackerEnrollmentsExportController
         {
             ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( trackerEnrollmentCriteria );
 
-            Enrollments enrollments = enrollmentService.getEnrollments( params );
+            Enrollments enrollments = enrollmentService.getEnrollments( params, map( fields ) );
 
             if ( trackerEnrollmentCriteria.isPagingRequest() )
             {

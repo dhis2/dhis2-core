@@ -41,30 +41,30 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * based on {@link FieldFilterParser }. It follows the principles of
  * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-public class FieldsPathParamsHelper
+class FieldsPathParamsHelper
 {
     private FieldsPathParamsHelper()
     {
     }
 
-    protected static final String FIELD_RELATIONSHIPS = "relationships";
+    static final String FIELD_RELATIONSHIPS = "relationships";
 
-    protected static final String FIELD_EVENTS = "events";
+    static final String FIELD_EVENTS = "events";
 
-    protected static final String FIELD_ATTRIBUTES = "attributes";
+    static final String FIELD_ATTRIBUTES = "attributes";
 
-    protected static Map<String, FieldPath> getRoots( List<String> fields )
+    static Map<String, FieldPath> getRoots( List<String> fields )
     {
         return rootFields( getFieldPaths( fields ) );
     }
 
-    protected static List<FieldPath> getFieldPaths( List<String> fields )
+    static List<FieldPath> getFieldPaths( List<String> fields )
     {
         return FieldFilterParser
             .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
     }
 
-    protected static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
         Map<String, FieldPath> roots = new HashMap<>();
         for ( FieldPath p : fieldPaths )

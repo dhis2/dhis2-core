@@ -48,6 +48,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -319,7 +320,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         params.setProgram( programA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setUser( user );
-        Enrollments enrollments = enrollmentService.getEnrollments( params );
+        Enrollments enrollments = enrollmentService.getEnrollments( params, EnrollmentParams.FALSE );
         assertNotNull( enrollments );
         assertNotNull( enrollments.getEnrollments() );
         assertEquals( 1, enrollments.getEnrollments().size() );

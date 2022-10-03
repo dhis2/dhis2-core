@@ -149,7 +149,7 @@ public class EnrollmentController
                 enrollmentCriteria.isIncludeDeleted(),
                 enrollmentCriteria.getOrder() );
 
-            Enrollments enrollments = enrollmentService.getEnrollments( params );
+            Enrollments enrollments = enrollmentService.getEnrollments( params, getEnrollmentParams( fields ) );
 
             if ( enrollments.getPager() != null )
             {
@@ -171,7 +171,7 @@ public class EnrollmentController
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId,
-                    getTrackedEntityInstanceParams( fields ) ) )
+                    getEnrollmentParams( fields ) ) )
                 .collect( Collectors.toList() )
                 : null;
         }
@@ -187,7 +187,7 @@ public class EnrollmentController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-        return getEnrollment( id, getTrackedEntityInstanceParams( fields ) );
+        return getEnrollment( id, getEnrollmentParams( fields ) );
     }
 
     // -------------------------------------------------------------------------
@@ -402,26 +402,26 @@ public class EnrollmentController
             trackedEntityInstanceParams ) ).orElseThrow( () -> new NotFoundException( "Enrollment", id ) );
     }
 
-    private EnrollmentParams getTrackedEntityInstanceParams( List<String> fields )
+    private EnrollmentParams getEnrollmentParams( List<String> fields )
     {
-        EnrollmentParams trackedEntityInstanceParams = EnrollmentParams.FALSE;
+        EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
         for ( String field : fields )
         {
             switch ( field )
             {
             case "relationships":
-                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeRelationships( true );
+                enrollmentParams = enrollmentParams.withIncludeRelationships( true );
                 break;
             case "events":
-                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeEvents( true );
+                enrollmentParams = enrollmentParams.withIncludeEvents( true );
                 break;
             case "attributes":
-                trackedEntityInstanceParams = trackedEntityInstanceParams.withIncludeAttributes( true );
+                enrollmentParams = enrollmentParams.withIncludeAttributes( true );
                 break;
             }
         }
 
-        return trackedEntityInstanceParams;
+        return enrollmentParams;
     }
 }

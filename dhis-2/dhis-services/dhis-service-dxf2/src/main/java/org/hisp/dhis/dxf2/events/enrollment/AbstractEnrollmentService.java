@@ -69,9 +69,9 @@ import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.params.InstanceParams;
 import org.hisp.dhis.dxf2.events.params.RelationshipParams;
-import org.hisp.dhis.dxf2.events.params.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -199,7 +199,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    public Enrollments getEnrollments( ProgramInstanceQueryParams params, EnrollmentParams enrollmentParams )
     {
         final Enrollments enrollments = new Enrollments();
         final List<ProgramInstance> programInstances = new ArrayList<>();
@@ -228,7 +228,7 @@ public abstract class AbstractEnrollmentService
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        enrollments.setEnrollments( getEnrollments( programInstances, enrollmentParams ) );
 
         return enrollments;
     }
@@ -272,7 +272,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
+    public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances, EnrollmentParams params )
     {
         List<Enrollment> enrollments = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
@@ -282,7 +282,7 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, programInstance, params, true ) );
             }
         }
 
@@ -752,7 +752,8 @@ public abstract class AbstractEnrollmentService
         // endpoint is used for bulk import and sync purposes as well
         if ( enrollment.getStatus() != EnrollmentStatus.CANCELLED )
         {
-            List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
+            List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ),
+                EnrollmentParams.FALSE );
 
             Set<Enrollment> activeEnrollments = enrollments.stream()
                 .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE )

@@ -58,7 +58,9 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,10 +68,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.enrollment.AbstractEnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.events.params.EnrollmentParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -108,16 +117,19 @@ class EnrollmentControllerTest
     {
         mockMvc = MockMvcBuilders
             .standaloneSetup( new EnrollmentController( null, enrollmentService, null, programInstanceService,
-                fieldFilterService, null, null ) )
+                fieldFilterService, null,
+                new EnrollmentCriteriaMapper( mock( CurrentUserService.class ), mock( OrganisationUnitService.class ),
+                    mock( ProgramService.class ),
+                    mock( TrackedEntityTypeService.class ), mock( TrackedEntityInstanceService.class ) ) ) )
             .build();
-
-        when( programInstanceService.getProgramInstance( enrollmentId ) ).thenReturn( programInstance );
     }
 
     @Test
     void givenNoInputFields_shouldUseDefaultParameters()
         throws Exception
     {
+        when( programInstanceService.getProgramInstance( enrollmentId ) ).thenReturn( programInstance );
+
         when( enrollmentService.getEnrollment( eq( programInstance ),
             entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollment() );
 
@@ -136,6 +148,8 @@ class EnrollmentControllerTest
     void givenRelationshipField_shouldSearchWithIncludeRelationships()
         throws Exception
     {
+        when( programInstanceService.getProgramInstance( enrollmentId ) ).thenReturn( programInstance );
+
         when( enrollmentService.getEnrollment( eq( programInstance ),
             entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollment() );
 
@@ -154,6 +168,8 @@ class EnrollmentControllerTest
     void givenEventsField_shouldSearchWithIncludeEvents()
         throws Exception
     {
+        when( programInstanceService.getProgramInstance( enrollmentId ) ).thenReturn( programInstance );
+
         when( enrollmentService.getEnrollment( eq( programInstance ),
             entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollment() );
 
@@ -172,6 +188,8 @@ class EnrollmentControllerTest
     void givenAttributesField_shouldSearchWithIncludeAttributes()
         throws Exception
     {
+        when( programInstanceService.getProgramInstance( enrollmentId ) ).thenReturn( programInstance );
+
         when( enrollmentService.getEnrollment( eq( programInstance ),
             entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollment() );
 
@@ -184,5 +202,59 @@ class EnrollmentControllerTest
             () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
             () -> assertTrue( trackedEntityInstanceParams.isIncludeAttributes() ),
             () -> assertFalse( trackedEntityInstanceParams.isIncludeEvents() ) );
+    }
+
+    @Test
+    void givenRelationshipField_shouldSearchEnrollmentsWithIncludeRelationships()
+        throws Exception
+    {
+        when( enrollmentService.getEnrollments( any( ProgramInstanceQueryParams.class ),
+            entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollments() );
+
+        mockMvc.perform( get( "/enrollments/" ).param( "fields", "relationships" ) )
+            .andExpect( status().isOk() );
+
+        EnrollmentParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
+
+        assertAll(
+            () -> assertTrue( trackedEntityInstanceParams.isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeEvents() ) );
+    }
+
+    @Test
+    void givenRelationshipField_shouldSearchEnrollmentsWithIncludeEvents()
+        throws Exception
+    {
+        when( enrollmentService.getEnrollments( any( ProgramInstanceQueryParams.class ),
+            entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollments() );
+
+        mockMvc.perform( get( "/enrollments/" ).param( "fields", "events" ) )
+            .andExpect( status().isOk() );
+
+        EnrollmentParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
+
+        assertAll(
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
+            () -> assertTrue( trackedEntityInstanceParams.isIncludeEvents() ) );
+    }
+
+    @Test
+    void givenRelationshipField_shouldSearchEnrollmentsWithIncludeAttributes()
+        throws Exception
+    {
+        when( enrollmentService.getEnrollments( any( ProgramInstanceQueryParams.class ),
+            entityInstanceParamsArgumentCaptor.capture() ) ).thenReturn( new Enrollments() );
+
+        mockMvc.perform( get( "/enrollments/" ).param( "fields", "events" ) )
+            .andExpect( status().isOk() );
+
+        EnrollmentParams trackedEntityInstanceParams = entityInstanceParamsArgumentCaptor.getValue();
+
+        assertAll(
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeRelationships() ),
+            () -> assertFalse( trackedEntityInstanceParams.isIncludeAttributes() ),
+            () -> assertTrue( trackedEntityInstanceParams.isIncludeEvents() ) );
     }
 }
