@@ -15,7 +15,7 @@ concurrency:
 jobs:    
   api-test:
     env:
-      CORE_IMAGE_NAME: "dhis2/core-dev:jib-2.39-SNAPSHOT"
+      CORE_IMAGE_NAME: "dhis2/core-dev:jib-2.40-SNAPSHOT"
       TEST_IMAGE_NAME: "dhis2/tests:local"
       PR_NUMBER: ${{ github.event.number }}
       DOCKER_CHANNEL: "dhis2/core-pr"
