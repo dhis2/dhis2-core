@@ -41,6 +41,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
@@ -118,8 +119,7 @@ public class DhisCustomAuthorizationRequestResolver implements OAuth2Authorizati
 
         Map<String, Object> configurationMetadata = clientRegistration.getProviderDetails().getConfigurationMetadata();
 
-        boolean enablePkce = Boolean.parseBoolean( (String) configurationMetadata.get( ENABLE_PKCE ) );
-
+        boolean enablePkce = DhisConfigurationProvider.isOn( (String) configurationMetadata.get( ENABLE_PKCE ) );
         if ( enablePkce )
         {
             addPkceParameters( attributes, additionalParameters );
