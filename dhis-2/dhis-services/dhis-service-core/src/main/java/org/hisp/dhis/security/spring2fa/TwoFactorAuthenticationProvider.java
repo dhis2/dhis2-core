@@ -84,6 +84,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
+        if ( user.isExternalAuth() )
+        {
+            log.info(
+                String.format( "User '%s' is using external authentication, password login attempt aborted",
+                    username ) );
+            throw new BadCredentialsException( "Invalid login method, user is using external authentication." );
+        }
+
         // -------------------------------------------------------------------------
         // Check two-factor authentication
         // -------------------------------------------------------------------------
