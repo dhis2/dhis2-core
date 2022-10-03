@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -287,23 +289,6 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void validateErrorFallbackCoordinateField()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
-            .withCoordinateOuFallback( true )
-            .withFallbackCoordinateField( "ougeometryx" )
-            .build();
-
-        ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
-
-        assertEquals( ErrorCode.E7228, error.getErrorCode() );
-    }
-
-    @Test
     void validateErrorClusterSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()
@@ -311,7 +296,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .withCoordinateField( deE.getUid() )
+            .withCoordinateFields( List.of( deE.getUid() ) )
             .withClusterSize( -3L ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );

@@ -484,8 +484,6 @@ public interface JobProgress
             runStage( items, description, work );
             return;
         }
-        int cores = Runtime.getRuntime().availableProcessors();
-        boolean useCustomPool = parallelism >= cores;
         AtomicInteger success = new AtomicInteger();
         AtomicInteger failed = new AtomicInteger();
 
@@ -510,14 +508,12 @@ public interface JobProgress
             }
         } ).reduce( Boolean::logicalAnd ).orElse( false );
 
-        ForkJoinPool pool = useCustomPool ? new ForkJoinPool( parallelism ) : null;
+        ForkJoinPool pool = new ForkJoinPool( parallelism );
         try
         {
             // this might not be obvious but running a parallel stream
             // as task in a FJP makes the stream use the pool
-            boolean allSuccessful = pool == null
-                ? task.call()
-                : pool.submit( task ).get();
+            boolean allSuccessful = pool.submit( task ).get();
             if ( allSuccessful )
             {
                 completedStage( null );
@@ -540,10 +536,7 @@ public interface JobProgress
         }
         finally
         {
-            if ( pool != null )
-            {
-                pool.shutdown();
-            }
+            pool.shutdown();
         }
     }
 

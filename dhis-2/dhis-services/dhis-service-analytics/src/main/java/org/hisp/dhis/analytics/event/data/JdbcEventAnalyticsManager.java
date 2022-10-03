@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GE
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -48,7 +49,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,6 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -192,15 +192,15 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String clusterField = params.getCoordinateField();
-        String quotedClusterField = quoteAlias( clusterField );
+        List<String> clusterFields = params.getCoordinateFields();
+        String sqlClusterFields = getCoalesce( clusterFields );
 
         List<String> columns = Lists.newArrayList( "count(psi) as count",
-            "ST_Extent(" + quotedClusterField + ") as extent" );
+            "ST_Extent(" + sqlClusterFields + ") as extent" );
 
         columns.add( "case when count(psi) = 1 then ST_AsGeoJSON(array_to_string(array_agg(" +
-            quotedClusterField + "), ','), 6) " +
-            "else ST_AsGeoJSON(ST_Centroid(ST_Collect(" + quotedClusterField + ")), 6) end as center" );
+            sqlClusterFields + "), ','), 6) " +
+            "else ST_AsGeoJSON(ST_Centroid(ST_Collect(" + sqlClusterFields + ")), 6) end as center" );
 
         columns.add( params.isIncludeClusterPoints() ? "array_to_string(array_agg(psi), ',') as points"
             : "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
@@ -212,7 +212,7 @@ public class JdbcEventAnalyticsManager
         sql += getWhereClause( params );
 
         sql += "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid(" +
-            quotedClusterField + "), 4326), 3785), " +
+            sqlClusterFields + "), 4326), 3785), " +
             params.getClusterSize() + ") ";
 
         log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
@@ -276,22 +276,9 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String fallback = params.getFallbackCoordinateField();
-        String quotedClusterFieldFraction;
-        if ( fallback == null || !params.isCoordinateOuFallback() )
-        {
-            quotedClusterFieldFraction = quoteAlias( params.getCoordinateField() );
-        }
-        else
-        {
-            quotedClusterFieldFraction = "coalesce(" + quoteAlias( params.getCoordinateField() ) + ","
-                + Arrays.stream( fallback.split( "," ) ).map( AnalyticsSqlUtils::quoteAlias )
-                    .collect( joining( "," ) )
-                + ")";
-        }
 
         String sql = "select count(psi) as " + COL_COUNT +
-            ", ST_Extent(" + quotedClusterFieldFraction + ") as " + COL_EXTENT + " ";
+            ", ST_Extent(" + getCoalesce( params.getCoordinateFields() ) + ") as " + COL_EXTENT + " ";
 
         sql += getFromClause( params );
 
@@ -352,7 +339,10 @@ public class JdbcEventAnalyticsManager
             cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
         }
 
-        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode", "pistatus",
+        String coordinatesFieldsSnippet = getCoalesce( params.getCoordinateFields() );
+
+        cols.add( "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry", "longitude", "latitude", "ouname",
+            "oucode", "pistatus",
             "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
@@ -543,16 +533,9 @@ public class JdbcEventAnalyticsManager
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
         {
-            if ( params.isCoordinateOuFallback() )
-            {
-                sql += hlp.whereAnd() + " (" + getSqlSnippetForFallbackCoordinateFields( params ) + ")";
-            }
-            else
-            {
-                sql += hlp.whereAnd() + " " +
-                    quoteAlias( resolveCoordinateFieldColumnName( params.getCoordinateField(), params ) ) +
-                    " is not null ";
-            }
+            sql += hlp.whereAnd() + " " +
+                getCoalesce( resolveCoordinateFieldsColumnNames( params.getCoordinateFields(), params ) ) +
+                " is not null ";
         }
 
         if ( params.isCompletedOnly() )
@@ -562,7 +545,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasBbox() )
         {
-            sql += hlp.whereAnd() + " " + quoteAlias( params.getCoordinateField() ) +
+            sql += hlp.whereAnd() + " " + getCoalesce( params.getCoordinateFields() ) +
                 " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
 
@@ -605,26 +588,6 @@ public class JdbcEventAnalyticsManager
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
             .collect( joining( " and " ) );
-    }
-
-    /**
-     * The method produces a snippet like this: ax."psigeometry" is not null or
-     * ax."pigeometry" is NOT NULL or ax."ougeometry" is NOT NULL
-     *
-     * @param params
-     * @return
-     */
-    private String getSqlSnippetForFallbackCoordinateFields( EventQueryParams params )
-    {
-        if ( params.getFallbackCoordinateField() == null )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        return Arrays.stream( params.getFallbackCoordinateField().split( "," ) )
-            .map( f -> quoteAlias( resolveCoordinateFieldColumnName( f, params ) ) +
-                " is not null" )
-            .collect( joining( " or " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
@@ -720,17 +683,25 @@ public class JdbcEventAnalyticsManager
      * If the coordinateField points to an Item of type ORG UNIT, add the
      * "_geom" suffix to the field name.
      */
-    private String resolveCoordinateFieldColumnName( String coordinateField, EventQueryParams params )
+    private List<String> resolveCoordinateFieldsColumnNames( List<String> coordinateFields, EventQueryParams params )
     {
-        for ( QueryItem queryItem : params.getItems() )
+        // possible immutable to mutable
+        List<String> coors = new ArrayList<>( coordinateFields );
+
+        for ( int i = 0; i < coors.size(); ++i )
         {
-            if ( queryItem.getItem().getUid().equals( coordinateField )
-                && queryItem.getValueType() == ValueType.ORGANISATION_UNIT )
+            for ( QueryItem queryItem : params.getItems() )
             {
-                return coordinateField + OU_GEOMETRY_COL_SUFFIX;
+                if ( queryItem.getItem().getUid().equals( coordinateFields.get( i ) )
+                    && queryItem.getValueType() == ValueType.ORGANISATION_UNIT )
+                {
+                    coors.set( i, coors.get( i )
+                        .replaceAll( coors.get( i ), coors.get( i ) + OU_GEOMETRY_COL_SUFFIX ) );
+                }
             }
         }
-        return coordinateField;
+
+        return coors;
     }
 
     protected static class ExceptionHandler

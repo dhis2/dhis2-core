@@ -456,8 +456,11 @@ class EventExporterTest extends TrackerTest
 
         DataElement dataElement = dataElement( "DATAEL00006" );
 
-        params.setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LT, "77", dataElement.getValueType(),
-            null, dataElement.getOptionSet() ) ) );
+        QueryItem queryItem = new QueryItem( dataElement, null, dataElement.getValueType(), null,
+            dataElement.getOptionSet() );
+        queryItem.addFilter( new QueryFilter( QueryOperator.LT, "77" ) );
+        queryItem.addFilter( new QueryFilter( QueryOperator.GT, "8" ) );
+        params.setDataElements( Set.of( queryItem ) );
 
         List<String> events = eventFunction.apply( params );
 

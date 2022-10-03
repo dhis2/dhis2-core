@@ -32,28 +32,15 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.hisp.dhis.setting.DefaultSystemSettingManager;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
 class TimeToLiveTest
 {
-    @Mock
-    private DefaultSystemSettingManager systemSettingManager;
-
     @Test
     void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
@@ -71,7 +58,6 @@ class TimeToLiveTest
         int aPositiveCachingFactor = 3;
         Date endingDate = new Date();
         long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
-        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
@@ -105,7 +91,6 @@ class TimeToLiveTest
         Date beginningDate = new Date();
         Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
         long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
-        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
@@ -123,7 +108,6 @@ class TimeToLiveTest
         Date now = new Date();
         Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
         long expectedTtl = aPositiveCachingFactor * tenDays;
-        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
         long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
@@ -142,9 +126,4 @@ class TimeToLiveTest
         return value;
     }
 
-    private void givenProgressiveTTLFactorOf( Integer aPositiveCachingFactor )
-    {
-        when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aPositiveCachingFactor );
-    }
 }
