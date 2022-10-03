@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -48,14 +49,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.slf4j.MDC;
 
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class RequestIdentifierFilterTest
 {
@@ -77,7 +75,8 @@ class RequestIdentifierFilterTest
         IOException
     {
         init( false );
-        doFilter();
+        doFilter( request -> {
+        } );
 
         assertNull( MDC.get( "sessionId" ) );
     }
@@ -88,12 +87,16 @@ class RequestIdentifierFilterTest
         IOException
     {
         init( true );
-        doFilter();
+        doFilter( request -> {
+            HttpSession session = mock( HttpSession.class );
+            when( request.getSession() ).thenReturn( session );
+            when( session.getId() ).thenReturn( "ABCDEFGHILMNO" );
+        } );
 
         assertNotNull( MDC.get( "sessionId" ) );
     }
 
-    private void doFilter()
+    private void doFilter( Consumer<HttpServletRequest> withRequest )
         throws ServletException,
         IOException
     {
@@ -101,10 +104,7 @@ class RequestIdentifierFilterTest
         HttpServletResponse res = mock( HttpServletResponse.class );
         FilterChain filterChain = mock( FilterChain.class );
 
-        HttpSession session = mock( HttpSession.class );
-
-        when( req.getSession() ).thenReturn( session );
-        when( session.getId() ).thenReturn( "ABCDEFGHILMNO" );
+        withRequest.accept( req );
 
         subject.doFilter( req, res, filterChain );
     }
