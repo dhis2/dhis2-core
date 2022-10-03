@@ -324,10 +324,12 @@ public class QueryItem implements GroupableItem
      *
      * @param filter the query filter.
      * @param encodedFilter the SQL encoded filter.
+     * @param isNullValueSubstitutionAllowed whether the text "NV" should be
+     *        replaced by null in the query or not.
      */
-    public String getSqlFilter( QueryFilter filter, String encodedFilter )
+    public String getSqlFilter( QueryFilter filter, String encodedFilter, boolean isNullValueSubstitutionAllowed )
     {
-        return filter.getSqlFilter( encodedFilter, valueType );
+        return filter.getSqlFilter( encodedFilter, valueType, isNullValueSubstitutionAllowed );
     }
 
     // -------------------------------------------------------------------------
