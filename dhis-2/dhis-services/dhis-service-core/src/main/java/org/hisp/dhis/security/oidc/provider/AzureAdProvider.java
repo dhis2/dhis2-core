@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -132,7 +133,7 @@ public class AzureAdProvider extends AbstractOidcProvider
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-        boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull(
+        boolean supportLogout = DhisConfigurationProvider.isOn( MoreObjects.firstNonNull(
             properties.getProperty( propertyPrefix + ENABLE_LOGOUT ), "TRUE" ) );
         if ( supportLogout )
         {
