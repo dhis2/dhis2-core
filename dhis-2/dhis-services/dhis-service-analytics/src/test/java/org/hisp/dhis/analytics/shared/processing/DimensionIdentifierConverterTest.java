@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared.processing;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -129,8 +130,8 @@ class DimensionIdentifierConverterTest
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
         assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
             "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
-            "Program offset should be null" );
+        assertEquals( EMPTY, dimensionIdentifier.getProgram().getOffset(),
+            "Program offset should be empty" );
         assertEquals( null, dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }
 
@@ -153,7 +154,7 @@ class DimensionIdentifierConverterTest
 
         // Then
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
-        assertEquals( null, dimensionIdentifier.getProgram(), "Program should be null" );
+        assertEquals( EMPTY, dimensionIdentifier.getProgram(), "Program should be empty" );
         assertEquals( null, dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }
 
