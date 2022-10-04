@@ -227,15 +227,6 @@ class MeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testEnable2FAOnMeControllerNotAllowed()
-    {
-        assertFalse( userA.isTwoFA() );
-
-        assertStatus( HttpStatus.BAD_REQUEST,
-            PUT( "/me", "{'userCredentials':{'twoFA':true}}" ) );
-    }
-
-    @Test
     void testLegacyUserCredentialsIdPresent()
     {
         JsonResponse response = GET( "/me?fields=id,userCredentials" ).content();
