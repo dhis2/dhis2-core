@@ -95,7 +95,7 @@ public class RequestIdentifierFilter
         chain.doFilter( req, res );
     }
 
-    private String hashToBase64( String sessionId )
+    static String hashToBase64( String sessionId )
         throws NoSuchAlgorithmException
     {
         byte[] data = sessionId.getBytes();
