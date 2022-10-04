@@ -111,6 +111,8 @@ public class ContextUtils
 
     public static final String HEADER_ETAG = "ETag";
 
+    public static final String HEADER_ENTITY_TYPE = "X-Entity-Type";
+
     private static final String QUOTE = "\"";
 
     private static final String QUERY_STRING_SEP = "?";

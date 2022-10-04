@@ -134,8 +134,11 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
+            final String entityType = outputMessage.getHeaders()
+                .getFirst( ContextUtils.HEADER_ENTITY_TYPE );
+
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "events." + fileExtension ) );
+            outputStream.putNextEntry( new ZipEntry( entityType != null ? entityType : "metadata." + fileExtension ) );
             nodeService.serialize( rootNode, contentType, outputStream );
             outputStream.close();
         }
