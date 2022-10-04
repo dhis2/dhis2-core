@@ -42,7 +42,6 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
@@ -98,7 +97,7 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
     {
         List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList, dataElementId );
 
-        if ( Optional.ofNullable( cocUidIntersection ).filter( CollectionUtils::isEmpty ).isPresent() )
+        if ( Optional.ofNullable( cocUidIntersection ).filter( i -> !i.isEmpty() ).isPresent() )
         {
 
             List<String> resolved = cocUidIntersection.stream()
