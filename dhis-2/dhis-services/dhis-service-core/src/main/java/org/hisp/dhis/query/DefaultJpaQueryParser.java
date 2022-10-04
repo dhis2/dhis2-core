@@ -103,7 +103,7 @@ public class DefaultJpaQueryParser
         disjunction.add( getRestriction( schema, "code", operator, arg ) );
         disjunction.add( getRestriction( schema, "name", operator, arg ) );
 
-        if ( schema.haveProperty( "shortName" ) )
+        if ( schema.havePersistedProperty( "shortName" ) )
         {
             disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
         }
