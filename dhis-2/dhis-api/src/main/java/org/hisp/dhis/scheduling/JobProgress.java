@@ -536,10 +536,7 @@ public interface JobProgress
         }
         finally
         {
-            if ( pool != null )
-            {
-                pool.shutdown();
-            }
+            pool.shutdown();
         }
     }
 

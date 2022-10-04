@@ -58,6 +58,7 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Main service class for aggregate data exchange.
@@ -172,6 +173,12 @@ public class AggregateDataExchangeService
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
         }
+        catch ( HttpClientErrorException ex )
+        {
+            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+
+            return new ImportSummary( ImportStatus.ERROR, message );
+        }
         catch ( Exception ex )
         {
             return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
@@ -262,8 +269,7 @@ public class AggregateDataExchangeService
      */
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
-        return dataQueryService.getDimension(
-            dimension, items, new Date(), null, null, false, inputIdScheme );
+        return dataQueryService.getDimension( dimension, items, new Date(), null, false, inputIdScheme );
     }
 
     /**
@@ -276,7 +282,7 @@ public class AggregateDataExchangeService
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, false, inputIdScheme );
     }
 
     /**
@@ -386,7 +392,7 @@ public class AggregateDataExchangeService
     /**
      * Returns an item summary.
      *
-     * @param summary the {@link ItemSummary}.
+     * @param summary the {@link ImportSummary}.
      * @return an item summary.
      */
     private static String toItemSummary( ImportSummary summary )
