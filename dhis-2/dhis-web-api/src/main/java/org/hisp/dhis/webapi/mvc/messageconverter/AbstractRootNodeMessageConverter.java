@@ -135,7 +135,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata." + fileExtension ) );
+            outputStream.putNextEntry( new ZipEntry( "events." + fileExtension ) );
             nodeService.serialize( rootNode, contentType, outputStream );
             outputStream.close();
         }
