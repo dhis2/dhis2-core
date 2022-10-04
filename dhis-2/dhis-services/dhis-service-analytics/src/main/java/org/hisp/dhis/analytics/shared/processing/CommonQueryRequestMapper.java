@@ -62,7 +62,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -82,8 +81,6 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class CommonQueryRequestMapper
 {
-    private final I18nManager i18nManager;
-
     private final DataQueryService dataQueryService;
 
     private final EventDataQueryService eventDataQueryService;
@@ -224,8 +221,8 @@ public class CommonQueryRequestMapper
 
         // then we check if it's a DimensionalObject
         DimensionalObject dimensionalObject = dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(),
-            items, request.getRelativePeriodDate(), userOrgUnits, i18nManager.getI18nFormat(), true, UID );
+            dimensionIdentifier.getDimension().getUid(), items, request.getRelativePeriodDate(), userOrgUnits, true,
+            UID );
 
         if ( Objects.nonNull( dimensionalObject ) )
         {
