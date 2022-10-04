@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -118,13 +117,13 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
 
         metadata.put( EXTRA_REQUEST_PARAMETERS, getExtraRequestParameters( config ) );
 
-        if ( DhisConfigurationProvider.isOn( config.get( ENABLE_LOGOUT ) ) )
+        if ( Boolean.parseBoolean( config.get( ENABLE_LOGOUT ) ) )
         {
             metadata.put( END_SESSION_ENDPOINT,
                 StringUtils.defaultIfEmpty( config.get( END_SESSION_ENDPOINT ), "" ) );
         }
 
-        if ( DhisConfigurationProvider.isOn( config.get( ENABLE_PKCE ) ) )
+        if ( Boolean.parseBoolean( config.get( ENABLE_PKCE ) ) )
         {
             metadata.put( ENABLE_PKCE, Boolean.TRUE.toString() );
         }
