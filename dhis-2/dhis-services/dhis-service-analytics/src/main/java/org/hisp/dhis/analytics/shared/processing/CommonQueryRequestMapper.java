@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -234,13 +235,16 @@ public class CommonQueryRequestMapper
         }
 
         // then it should be a queryItem: queryItems needs to be prefixed by
-        // {programUid}.{programStageUid}
-        if ( dimensionIdentifier.hasProgram() && dimensionIdentifier.hasProgramStage() )
+        // programUid (program attributes, program indicators)
+        // and optionally by a programStageUid (Data Element)
+        if ( dimensionIdentifier.hasProgram() )
         {
+            QueryItem queryItem = eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension().getUid(),
+                dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE );
+
             // The fully qualified dimension identification is required here
             DimensionParam dimensionParam = DimensionParam.ofObject(
-                eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension().getUid(),
-                    dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ),
+                queryItem,
                 dimensionParamType, items );
 
             return DimensionIdentifier.of(

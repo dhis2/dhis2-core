@@ -33,18 +33,30 @@ import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.ValueType;
 
 public enum ValueTypeMapping
 {
     // TODO: adds mappings here
-    NUMERIC( INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
-    STRING();
+    NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
+    DECIMAL( BigDecimal::new, ValueType.NUMBER ),
+    STRING( s -> s );
+
+    private final Function<String, Object> converter;
 
     private final ValueType[] valueTypes;
 
-    ValueTypeMapping( ValueType... valueTypes )
+    ValueTypeMapping(
+        Function<String, Object> converter,
+        ValueType... valueTypes )
     {
+        this.converter = converter;
         this.valueTypes = valueTypes;
     }
 
@@ -60,5 +72,17 @@ public enum ValueTypeMapping
     {
         return stream( valueTypes )
             .anyMatch( vt -> vt == valueType );
+    }
+
+    public Object convertSingle( String s )
+    {
+        return converter.apply( s );
+    }
+
+    public Object convertMany( List<String> values )
+    {
+        return values.stream()
+            .map( converter )
+            .collect( Collectors.toList() );
     }
 }

@@ -27,33 +27,23 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import lombok.experimental.UtilityClass;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class OrCondition extends BaseRenderable
+@UtilityClass
+public class QuotingUtils
 {
-    private final List<? extends Renderable> conditions;
+    private static final Character DOUBLE_QUOTE = '\"';
 
-    @Override
-    public String render()
+    private static final Character SINGLE_QUOTE = '\'';
+
+    public static String quote( String value )
     {
-        if ( conditions.isEmpty() )
-        {
-            return EMPTY;
-        }
-
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
-
-        return conditions.stream()
-            .map( Renderable::render )
-            .collect( joining( " or ", "(", ")" ) );
+        return SINGLE_QUOTE + value + SINGLE_QUOTE;
     }
+
+    public static String doubleQuote( String value )
+    {
+        return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
+    }
+
 }

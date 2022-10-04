@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,31 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Collections;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class OrCondition extends BaseRenderable
+class OrConditionTest
 {
-    private final List<? extends Renderable> conditions;
-
-    @Override
-    public String render()
+    @Test
+    void testRenderEmpty()
     {
-        if ( conditions.isEmpty() )
-        {
-            return EMPTY;
-        }
+        OrCondition orCondition = OrCondition.of( Collections.emptyList() );
+        assertEquals( "", orCondition.render() );
+    }
 
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
+    void testRenderSingle()
+    {
+        OrCondition orCondition = OrCondition.of( List.of( () -> "c1" ) );
+        assertEquals( "c1", orCondition.render() );
+    }
 
-        return conditions.stream()
-            .map( Renderable::render )
-            .collect( joining( " or ", "(", ")" ) );
+    void testRenderMany()
+    {
+        OrCondition orCondition = OrCondition.of( List.of( () -> "c1", () -> "c2", () -> "c3" ) );
+        assertEquals( "(c1 or c2 or c3)", orCondition.render() );
     }
 }
