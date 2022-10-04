@@ -98,6 +98,11 @@
                 $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}
             </div>
         #end
+        #if( $oidcFailure == true )
+            <div id="loginMessage">
+                $i18n.getString('oidc_login_failed')
+            </div>
+        #end
         #if ( $keyApplicationNotification )
             <div id="notificationArea">
                 $!{keyApplicationNotification}
