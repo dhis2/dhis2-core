@@ -514,7 +514,7 @@ public class JdbcEventAnalyticsManager
                     }
                     else
                     {
-                        sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator() + " "
+                        sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator( true ) + " "
                             + getSqlFilter( filter, item ) + " ";
                     }
                 }
@@ -529,7 +529,7 @@ public class JdbcEventAnalyticsManager
                 {
                     sql += hlp.whereAnd() + " "
                         + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                        " " + filter.getSqlOperator( true ) + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
