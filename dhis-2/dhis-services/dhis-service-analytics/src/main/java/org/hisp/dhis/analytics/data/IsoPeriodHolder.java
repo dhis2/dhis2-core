@@ -51,12 +51,25 @@ public class IsoPeriodHolder
 
     private final String dateField;
 
+    /**
+     * If there is a
+     * {@link org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP}, it
+     * splits the given argument and return a {@link IsoPeriodHolder} instance
+     * with the resulting "isoPeriod" and "dateField". Otherwise, it simply
+     * returns a {@link IsoPeriodHolder} with the "isoPeriod" set to the same
+     * value of the given argument.
+     *
+     * @param isoPeriodWithDateField in the format "isoPeriod:theDateField" ie:
+     *        <code>LAST_YEAR:LAST_UPDATED</code>,
+     *        <code>LAST_5_YEARS:SCHEDULED_DATE</code>
+     * @return a populated instance of IsoPeriodHolder
+     */
     static IsoPeriodHolder of( String isoPeriodWithDateField )
     {
         if ( isoPeriodWithDateField.contains( DIMENSION_NAME_SEP ) )
         {
-            String[] splitted = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
-            return new IsoPeriodHolder( splitted[0], splitted[1] );
+            String[] split = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
+            return new IsoPeriodHolder( split[0], split[1] );
         }
         return new IsoPeriodHolder( isoPeriodWithDateField, null );
     }
