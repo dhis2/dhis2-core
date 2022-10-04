@@ -113,12 +113,6 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     }
 
     @Override
-    public boolean getBoolean( ConfigurationKey key )
-    {
-        return Boolean.parseBoolean( getProperty( key ) );
-    }
-
-    @Override
     public Optional<GoogleCredential> getGoogleCredential()
     {
         return Optional.empty();

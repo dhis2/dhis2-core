@@ -139,7 +139,7 @@ public class DataSourceConfig
 
     public static DataSource createDataSource( DhisConfigurationProvider dhisConfig, DataSource actualDataSource )
     {
-        boolean enableQueryLogging = dhisConfig.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        boolean enableQueryLogging = dhisConfig.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
         if ( !enableQueryLogging )
         {
@@ -167,8 +167,8 @@ public class DataSourceConfig
             .listener( listener )
             .proxyResultSet();
 
-        boolean elapsedTimeLogging = dhisConfig.getBoolean( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-        boolean methodLoggingEnabled = dhisConfig.getBoolean( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
 
         if ( methodLoggingEnabled )
         {
