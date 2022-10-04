@@ -31,9 +31,7 @@ import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assert
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
@@ -289,9 +287,9 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertEquals( HttpStatus.OK, response.status() );
 
-        assertTrue( response.header( "content-type" ).contains( "application/csv" ) );
-        assertTrue( response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ) );
-        assertTrue( response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
+        assertAll( () -> response.header( "content-type" ).contains( "application/csv" ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ),
+            () -> response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

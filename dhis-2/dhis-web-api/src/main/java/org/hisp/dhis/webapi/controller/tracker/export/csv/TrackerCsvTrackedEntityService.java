@@ -45,7 +45,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
-@Service
+@Service( "org.hisp.dhis.dxf2.events.enrollment.TrackedEntityService" )
 public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEntity>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );

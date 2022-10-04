@@ -41,33 +41,15 @@ import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Geometry;
 
 class TrackerCsvTrackedEntityServiceTest
 {
 
-    private TrackerCsvTrackedEntityService service;
+    private TrackerCsvTrackedEntityService service = new TrackerCsvTrackedEntityService();
 
     private Instant instant;
-
-    @BeforeEach
-    void setUp()
-    {
-        service = new TrackerCsvTrackedEntityService();
-    }
-
-    private TrackedEntity createTrackedEntity()
-    {
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setTrackedEntity( "Test tracked entity" );
-        instant = Instant.parse( "2022-09-29T15:15:30.00Z" );
-        trackedEntity.setCreatedAt( instant );
-        trackedEntity.setOrgUnit( "Test org unit" );
-
-        return trackedEntity;
-    }
 
     @Test
     void singlePointCoordinatesEntityIsWritten()
@@ -111,8 +93,6 @@ class TrackerCsvTrackedEntityServiceTest
         List<TrackedEntity> trackedEntities = new ArrayList<>();
         IntStream.range( 0, 3 ).forEach( i -> trackedEntities.add( createTrackedEntity() ) );
 
-        assertEquals( 3, trackedEntities.size() );
-
         GeometryJSON geometryJSON = new GeometryJSON();
         String pointCoordinates = "[40,5]";
         Geometry geometry = geometryJSON.read( "{\"type\":\"Point\", \"coordinates\": " + pointCoordinates + " }" );
@@ -134,8 +114,6 @@ class TrackerCsvTrackedEntityServiceTest
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         List<TrackedEntity> trackedEntities = new ArrayList<>();
         IntStream.range( 0, 3 ).forEach( i -> trackedEntities.add( createTrackedEntity() ) );
-
-        assertEquals( 3, trackedEntities.size() );
 
         GeometryJSON geometryJSON = new GeometryJSON();
         String pointCoordinates = "[40,5]";
@@ -167,4 +145,16 @@ class TrackerCsvTrackedEntityServiceTest
 
         return attribute;
     }
+
+    private TrackedEntity createTrackedEntity()
+    {
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setTrackedEntity( "Test tracked entity" );
+        instant = Instant.parse( "2022-09-29T15:15:30.00Z" );
+        trackedEntity.setCreatedAt( instant );
+        trackedEntity.setOrgUnit( "Test org unit" );
+
+        return trackedEntity;
+    }
+
 }
