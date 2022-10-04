@@ -91,7 +91,7 @@ public class DhisOidcUserService
         {
             User user = userService.getUserByOpenId( (String) claimValue );
 
-            if ( user != null )
+            if ( user != null && user.isExternalAuth() )
             {
                 if ( user.isDisabled() || !user.isAccountNonExpired() )
                 {
