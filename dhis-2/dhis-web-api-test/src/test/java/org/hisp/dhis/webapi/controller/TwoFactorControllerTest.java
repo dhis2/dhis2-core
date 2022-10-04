@@ -76,25 +76,6 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testQr2FAConflictMustDisableFirst()
-    {
-        assertFalse( getCurrentUser().getTwoFA() );
-        assertNull( getCurrentUser().getSecret() );
-        GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
-        User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        assertNotNull( user.getSecret() );
-
-        String code = new Totp( user.getSecret() ).now();
-        assertStatus( HttpStatus.OK, POST( "/2fa/enable", "{'code':'" + code + "'}" ) );
-
-        user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        assertNotNull( user.getSecret() );
-        assertTrue( user.getTwoFA() );
-
-        GET( "/2fa/qr" ).content( HttpStatus.CONFLICT );
-    }
-
-    @Test
     void testEnable2FA()
     {
         User newUser = makeUser( "X", List.of( "TEST" ) );
