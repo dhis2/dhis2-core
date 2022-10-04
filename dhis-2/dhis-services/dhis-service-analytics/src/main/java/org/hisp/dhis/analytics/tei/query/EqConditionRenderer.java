@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.query;
+package org.hisp.dhis.analytics.tei.query;
 
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.common.QueryOperator;
+
 @RequiredArgsConstructor( staticName = "of" )
-public class OrCondition extends BaseRenderable
+public class EqConditionRenderer extends BaseRenderable
 {
-    private final List<? extends Renderable> conditions;
+    private final String field;
+
+    private final List<String> values;
+
+    private final ValueTypeMapping valueTypeMapping;
+
+    private final QueryContext queryContext;
 
     @Override
     public String render()
     {
-        if ( conditions.isEmpty() )
+        if ( values.size() > 1 )
         {
-            return EMPTY;
+            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
         }
-
-        if ( conditions.size() == 1 )
-        {
-            return conditions.get( 0 ).render();
-        }
-
-        return conditions.stream()
-            .map( Renderable::render )
-            .collect( joining( " or ", "(", ")" ) );
+        return doubleQuote( field ) + SPACE + QueryOperator.EQ.getValue() + SPACE
+            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( values.get( 0 ) ) );
     }
 }

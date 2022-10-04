@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.shared.ValueTypeMapping.fromValueType;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
@@ -40,7 +41,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BinaryCondition;
-import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.shared.query.Renderable;
 
 @NoArgsConstructor( access = PRIVATE )
@@ -58,7 +58,7 @@ public class LeftJoinQueryBuilder
         return BinaryCondition.fieldsEqual(
             TEI_ALIAS,
             TEI_UID,
-            DoubleQuotingRenderable.of( sortingParams.getOrderBy().toString() ).render(),
+            doubleQuote( sortingParams.getOrderBy().toString() ),
             TEI_UID );
     }
 
@@ -70,6 +70,7 @@ public class LeftJoinQueryBuilder
         String programStageUid = sortingParams.getOrderBy().getProgramStage().getElement().getUid();
         String dataValueUid = sortingParams.getOrderBy().getDimension().getUid();
 
+        // TODO: do it declarately
         return new StringBuilder( "select evt.trackedentityinstanceuid, evt.value" )
             .append( " from (select programinstanceuid" )
             .append( " from " + ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix() )
