@@ -60,7 +60,6 @@ import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -76,9 +75,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class CommonQueryRequestMapperTest
 {
-    @Mock
-    private I18nManager i18nManager;
-
     @Mock
     private DataQueryService dataQueryService;
 
