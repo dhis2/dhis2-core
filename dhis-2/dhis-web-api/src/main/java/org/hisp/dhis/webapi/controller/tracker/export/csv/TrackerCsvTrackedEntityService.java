@@ -60,7 +60,7 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
 
         ObjectWriter writer = CSV_MAPPER.writer( csvSchema.withUseHeader( withHeader ) );
 
-        List<CsvTrackedEntity> dataValues = new ArrayList<>();
+        List<CsvTrackedEntity> attributes = new ArrayList<>();
 
         for ( TrackedEntity trackedEntity : trackedEntities )
         {
@@ -94,15 +94,15 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
 
             if ( trackedEntity.getAttributes().isEmpty() )
             {
-                dataValues.add( trackedEntityValue );
+                attributes.add( trackedEntityValue );
             }
             else
             {
-                addAttributes( trackedEntity, trackedEntityValue, dataValues );
+                addAttributes( trackedEntity, trackedEntityValue, attributes );
             }
         }
 
-        writer.writeValue( outputStream, dataValues );
+        writer.writeValue( outputStream, attributes );
     }
 
     private String checkForNull( Instant instant )
@@ -116,7 +116,7 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
     }
 
     private void addAttributes( TrackedEntity trackedEntity, CsvTrackedEntity currentDataValue,
-        List<CsvTrackedEntity> dataValues )
+        List<CsvTrackedEntity> attributes )
     {
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
@@ -127,7 +127,7 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
             trackedEntityValue.setAttrUpdatedAt( checkForNull( attribute.getUpdatedAt() ) );
             trackedEntityValue.setValueType( attribute.getValueType().toString() );
             trackedEntityValue.setValue( attribute.getValue() );
-            dataValues.add( trackedEntityValue );
+            attributes.add( trackedEntityValue );
         }
     }
 
