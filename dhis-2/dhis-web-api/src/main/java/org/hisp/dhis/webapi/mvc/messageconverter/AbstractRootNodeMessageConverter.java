@@ -138,7 +138,9 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
                 .getFirst( ContextUtils.HEADER_ENTITY_TYPE );
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( entityType != null ? entityType : "metadata." + fileExtension ) );
+            String fileName = entityType != null ? entityType + "." : "metadata.";
+            outputStream.putNextEntry( new ZipEntry( fileName + fileExtension ) );
+
             nodeService.serialize( rootNode, contentType, outputStream );
             outputStream.close();
         }
