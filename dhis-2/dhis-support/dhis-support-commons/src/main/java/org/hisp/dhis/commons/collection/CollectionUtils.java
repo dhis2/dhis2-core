@@ -40,6 +40,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Utility methods for operations on various collections.
@@ -290,5 +292,17 @@ public class CollectionUtils
             Map.entry( k9, v9 ),
             Map.entry( k10, v10 ),
             Map.entry( k11, v11 ) );
+    }
+
+    /**
+     * Convert an Iterator to a Stream.
+     *
+     * @param iterator The Iterator to convert to a stream.
+     * @return A stream of the iterable.
+     */
+    public static <E> Stream<E> iterableToStream( Iterator<E> iterator )
+    {
+        Iterable<E> iterable = () -> iterator;
+        return StreamSupport.stream( iterable.spliterator(), false );
     }
 }
