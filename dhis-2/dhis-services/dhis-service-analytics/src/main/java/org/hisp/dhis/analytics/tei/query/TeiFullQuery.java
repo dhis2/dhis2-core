@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.query.AndCondition;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.From;
 import org.hisp.dhis.analytics.shared.query.JoinsWithConditions;
@@ -117,12 +118,28 @@ public class TeiFullQuery extends BaseRenderable
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> "\"" + p.getOrderBy().toString() + "\" " + p.getSortDirection().name() )
+            .map( p -> (Renderable) () -> isDynamicElement( p )
+                ? DoubleQuotingRenderable.of( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
+                : p.getOrderBy().toString() + SPACE + p.getSortDirection().name() )
             .collect( toList() );
 
         return Order.builder()
             .orders( collect )
             .build();
+    }
+
+    /**
+     * Static element is term for the parameter used directly as a database
+     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
+     * example columns with uid strings
+     *
+     * @param p AnalyticsSortingParas
+     * @return boolean
+     */
+    private boolean isDynamicElement( AnalyticsSortingParams p )
+    {
+        return (p.getOrderBy().hasProgram() || p.getOrderBy().hasProgramStage()) &&
+            p.getOrderBy().getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
     }
 
     private Select getSelect()
