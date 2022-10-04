@@ -50,11 +50,11 @@ class GridHeadersTest
     void testRetainHeadersOnGrid()
     {
         // Given
-        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
-        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
-        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+        GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        GridHeader headerC = new GridHeader( "headerC", "Header C" );
 
-        final Grid grid = new ListGrid();
+        Grid grid = new ListGrid();
         grid.addHeader( headerA );
         grid.addHeader( headerB );
         grid.addHeader( headerC );
@@ -62,7 +62,7 @@ class GridHeadersTest
         grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
         grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
 
-        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+        Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
 
         // When
         GridHeaders.retainHeadersOnGrid( grid, headers );
@@ -77,10 +77,10 @@ class GridHeadersTest
     void testRetainHeadersOnGridWhenGridIsNull()
     {
         // Given
-        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+        Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
 
         // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> GridHeaders.retainHeadersOnGrid( null, headers ) );
 
         // Then

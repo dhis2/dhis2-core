@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared.processing;
 
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -131,7 +132,7 @@ class DimensionIdentifierConverterTest
             "Program uid should be lxAQ7Zs9VYR" );
         assertEquals( null, dimensionIdentifier.getProgram().getOffset(),
             "Program offset should be null" );
-        assertEquals( null, dimensionIdentifier.getProgramStage(), "Stage should be null" );
+        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }
 
     @Test
@@ -153,8 +154,8 @@ class DimensionIdentifierConverterTest
 
         // Then
         assertEquals( "jklm", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be jklm" );
-        assertEquals( null, dimensionIdentifier.getProgram(), "Program should be null" );
-        assertEquals( null, dimensionIdentifier.getProgramStage(), "Stage should be null" );
+        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgram(), "Program should be empty" );
+        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be null" );
     }
 
     @Test

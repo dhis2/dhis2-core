@@ -100,8 +100,7 @@ public class GridAdaptor
         final Grid grid = new ListGrid();
 
         // Adding headers.
-        getGridHeaders( teiQueryParams ).forEach(
-            gridHeader -> grid.addHeader( gridHeader ) );
+        getGridHeaders( teiQueryParams ).forEach( grid::addHeader );
 
         // Adding rows.
         grid.addRows( sqlQueryResult.result() );

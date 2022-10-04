@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.Objects;
@@ -114,7 +115,7 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
                 }
                 return element.getUid();
             }
-            return "";
+            return EMPTY;
         }
     }
 }

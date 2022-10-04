@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
@@ -48,7 +47,6 @@ import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeAll;
@@ -82,9 +80,9 @@ class GridAdaptorTest extends DhisConvenienceTest
         throws SQLException
     {
         // Given
-        final ResultSet resultSet = mock( ResultSet.class );
-        final RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        final TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
+        ResultSet resultSet = mock( ResultSet.class );
+        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
             .commonParams( stubCommonParams() ).build();
         metaData.setColumnCount( 2 );
         metaData.setColumnName( 1, "col-1" );
@@ -93,11 +91,11 @@ class GridAdaptorTest extends DhisConvenienceTest
         when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
         when( resultSet.getMetaData() ).thenReturn( metaData );
 
-        final SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-        final SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
+        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
+        SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
 
         // When
-        final Grid grid = gridAdaptor.createGrid( mockSqlResult, teiQueryParams, new CommonQueryRequest() );
+        Grid grid = gridAdaptor.createGrid( mockSqlResult, teiQueryParams, new CommonQueryRequest() );
 
         // Then
         assertNotNull( grid, "Should not be null: grid" );
@@ -111,10 +109,10 @@ class GridAdaptorTest extends DhisConvenienceTest
     void testCreateGridWithNullSqlQueryResult()
     {
         // Given
-        final SqlQueryResult nullSqlResult = null;
+        SqlQueryResult nullSqlResult = null;
 
         // When
-        final IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException ex = assertThrows(
             IllegalArgumentException.class,
             () -> gridAdaptor.createGrid( nullSqlResult, TeiQueryParams.builder().build(),
                 new CommonQueryRequest() ),
@@ -126,9 +124,6 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private TrackedEntityType stubTrackedEntityType()
     {
-        List<TrackedEntityAttribute> entityAttributes = new ArrayList<>();
-        entityAttributes.add( createTrackedEntityAttribute( 'A', TEXT ) );
-
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setTrackedEntityTypeAttributes( List.of(
             createTrackedEntityTypeAttribute( 'A', TEXT ),
