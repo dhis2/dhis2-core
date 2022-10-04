@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.dxf2.Constants.SYSTEM;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_DATE;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_ID;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_REVISION;
+import static org.hisp.dhis.dxf2.Constants.SYSTEM_VERSION;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -204,19 +210,20 @@ public class DefaultMetadataExportService implements MetadataExportService
         ObjectNode rootNode = fieldFilterService.createObjectNode();
         SystemInfo systemInfo = systemService.getSystemInfo();
 
-        rootNode.putObject( "system" )
-            .put( "id", systemInfo.getSystemId() )
-            .put( "rev", systemInfo.getRevision() )
-            .put( "version", systemInfo.getVersion() )
-            .put( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+        rootNode.putObject( SYSTEM )
+            .put( SYSTEM_ID, systemInfo.getSystemId() )
+            .put( SYSTEM_REVISION, systemInfo.getRevision() )
+            .put( SYSTEM_VERSION, systemInfo.getVersion() )
+            .put( SYSTEM_DATE, DateUtils.getIso8601( systemInfo.getServerDate() ) );
 
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
 
-        for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> entry : metadata
+            .entrySet() )
         {
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
-                .objects( new ArrayList<>( metadata.get( klass ) ) )
-                .filters( new HashSet<>( params.getFields( klass ) ) )
+                .objects( new ArrayList<>( entry.getValue() ) )
+                .filters( new HashSet<>( params.getFields( entry.getKey() ) ) )
                 .skipSharing( params.getSkipSharing() )
                 .build();
 
@@ -224,7 +231,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
             if ( !objectNodes.isEmpty() )
             {
-                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                String plural = schemaService.getDynamicSchema( entry.getKey() ).getPlural();
                 rootNode.putArray( plural ).addAll( objectNodes );
             }
         }
@@ -237,6 +244,13 @@ public class DefaultMetadataExportService implements MetadataExportService
         throws IOException
     {
         SystemInfo systemInfo = systemService.getSystemInfo();
+
+        if ( params.isExportWithDependencies() )
+        {
+            getMetadataWithDependenciesAsNodeStream( params.getObjectExportWithDependencies(), params, outputStream );
+            return;
+        }
+
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
         User currentUser = currentUserService.getCurrentUser();
 
@@ -244,11 +258,11 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             generator.writeStartObject();
 
-            generator.writeObjectFieldStart( "system" );
-            generator.writeStringField( "id", systemInfo.getSystemId() );
-            generator.writeStringField( "rev", systemInfo.getRevision() );
-            generator.writeStringField( "version", systemInfo.getVersion() );
-            generator.writeStringField( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeObjectFieldStart( SYSTEM );
+            generator.writeStringField( SYSTEM_ID, systemInfo.getSystemId() );
+            generator.writeStringField( SYSTEM_REVISION, systemInfo.getRevision() );
+            generator.writeStringField( SYSTEM_VERSION, systemInfo.getVersion() );
+            generator.writeStringField( SYSTEM_DATE, DateUtils.getIso8601( systemInfo.getServerDate() ) );
             generator.writeEndObject();
 
             for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
@@ -278,12 +292,58 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
+    public void getMetadataWithDependenciesAsNodeStream( IdentifiableObject object,
+        @Nonnull MetadataExportParams params, OutputStream outputStream )
+        throws IOException
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
+            object );
+        try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
+        {
+            generator.writeStartObject();
+
+            generator.writeObjectFieldStart( SYSTEM );
+            generator.writeStringField( SYSTEM_ID, systemInfo.getSystemId() );
+            generator.writeStringField( SYSTEM_REVISION, systemInfo.getRevision() );
+            generator.writeStringField( SYSTEM_VERSION, systemInfo.getVersion() );
+            generator.writeStringField( SYSTEM_DATE, DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeEndObject();
+
+            for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+            {
+                FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                    .objects( new ArrayList<>( metadata.get( klass ) ) )
+                    .filters( Set.of( ":owner" ) )
+                    .skipSharing( params.getSkipSharing() )
+                    .build();
+
+                List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
+
+                if ( !objectNodes.isEmpty() )
+                {
+                    String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                    generator.writeArrayFieldStart( plural );
+
+                    for ( ObjectNode objectNode : objectNodes )
+                    {
+                        generator.writeObject( objectNode );
+                    }
+
+                    generator.writeEndArray();
+                }
+            }
+        }
+
+    }
+
+    @Override
     public ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object,
         @Nonnull MetadataExportParams params )
     {
         ObjectNode rootNode = fieldFilterService.createObjectNode()
-            .putObject( "system" )
-            .put( "date", DateUtils.getIso8601( new Date() ) );
+            .putObject( SYSTEM )
+            .put( SYSTEM_DATE, DateUtils.getIso8601( new Date() ) );
 
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
             object );
@@ -417,25 +477,26 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         map.keySet().forEach( params::addClass );
 
-        for ( Class<? extends IdentifiableObject> klass : map.keySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Map<String, List<String>>> entry : map.entrySet() )
         {
-            Map<String, List<String>> classMap = map.get( klass );
-            Schema schema = schemaService.getDynamicSchema( klass );
+            Map<String, List<String>> classMap = entry.getValue();
+            Schema schema = schemaService.getDynamicSchema( entry.getKey() );
 
             if ( classMap.containsKey( "fields" ) )
-                params.addFields( klass, classMap.get( "fields" ) );
+                params.addFields( entry.getKey(), classMap.get( "fields" ) );
 
             if ( classMap.containsKey( "filter" ) && classMap.containsKey( "order" ) )
             {
                 OrderParams orderParams = new OrderParams( Sets.newHashSet( classMap.get( "order" ) ) );
-                Query query = queryService.getQueryFromUrl( klass, classMap.get( "filter" ),
+                Query query = queryService.getQueryFromUrl( entry.getKey(), classMap.get( "filter" ),
                     orderParams.getOrders( schema ) );
                 query.setDefaultOrder();
                 params.addQuery( query );
             }
             else if ( classMap.containsKey( "filter" ) )
             {
-                Query query = queryService.getQueryFromUrl( klass, classMap.get( "filter" ), new ArrayList<>() );
+                Query query = queryService.getQueryFromUrl( entry.getKey(), classMap.get( "filter" ),
+                    new ArrayList<>() );
                 query.setDefaultOrder();
                 params.addQuery( query );
             }
@@ -444,7 +505,8 @@ public class DefaultMetadataExportService implements MetadataExportService
                 OrderParams orderParams = new OrderParams();
                 orderParams.setOrder( Sets.newHashSet( classMap.get( "order" ) ) );
 
-                Query query = queryService.getQueryFromUrl( klass, new ArrayList<>(), orderParams.getOrders( schema ) );
+                Query query = queryService.getQueryFromUrl( entry.getKey(), new ArrayList<>(),
+                    orderParams.getOrders( schema ) );
                 query.setDefaultOrder();
                 params.addQuery( query );
             }
