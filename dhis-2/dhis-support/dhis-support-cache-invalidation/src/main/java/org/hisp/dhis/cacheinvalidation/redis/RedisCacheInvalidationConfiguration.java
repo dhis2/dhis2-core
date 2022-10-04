@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -133,7 +134,7 @@ public class RedisCacheInvalidationConfiguration
 
         if ( sslEnabledProperty != null )
         {
-            builder.withSsl( Boolean.parseBoolean( (String) sslEnabledProperty ) );
+            builder.withSsl( DhisConfigurationProvider.isOn( (String) sslEnabledProperty ) );
         }
 
         return RedisClient.create( clientResources, builder.build() );
