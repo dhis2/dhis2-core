@@ -87,7 +87,7 @@ import org.mockito.quality.Strictness;
  *
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
+@MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
 class TrackerTrackedEntityCriteriaMapperTest
 {
