@@ -181,7 +181,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             TestUtils.executeIntegrationTestDataScript( this.getClass(), jdbcTemplate );
         }
 
-        boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
         // Enable to query logger to log only what's happening inside the test
         // method

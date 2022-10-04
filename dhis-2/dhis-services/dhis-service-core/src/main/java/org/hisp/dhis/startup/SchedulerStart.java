@@ -105,7 +105,7 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final SystemSettingManager systemSettingManager;
 
-    private final String redisEnabled;
+    private final boolean redisEnabled;
 
     private final String leaderElectionTime;
 
@@ -115,7 +115,7 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private final MessageService messageService;
 
-    public SchedulerStart( SystemSettingManager systemSettingManager, String redisEnabled, String leaderElectionTime,
+    public SchedulerStart( SystemSettingManager systemSettingManager, boolean redisEnabled, String leaderElectionTime,
         JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager,
         MessageService messageService )
     {
@@ -191,8 +191,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         addDefaultJob( SystemJob.DATA_SET_NOTIFICATION, jobConfigurations );
         addDefaultJob( SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations );
 
-        if ( verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations )
-            && "true".equalsIgnoreCase( redisEnabled ) )
+        if ( redisEnabled && verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations ) )
         {
             JobConfiguration leaderElectionJobConfiguration = new JobConfiguration(
                 SystemJob.LEADER_ELECTION.name,
@@ -237,7 +236,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration leaderElection = maybeLeaderElection.get();
             leaderElection.setCronExpression( format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ) );
-            leaderElection.setEnabled( "true".equalsIgnoreCase( redisEnabled ) );
+            leaderElection.setEnabled( redisEnabled );
             jobConfigurationService.updateJobConfiguration( leaderElection );
         }
     }
