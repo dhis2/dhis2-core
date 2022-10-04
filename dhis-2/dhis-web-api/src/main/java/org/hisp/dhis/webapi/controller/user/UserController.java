@@ -589,10 +589,11 @@ public class UserController
      * @return A WebMessage object.
      */
     @PostMapping( "/{uid}/twoFA/disabled" )
+    @ResponseBody
     public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
-        userService.disableTwoFA( currentUser, uid, error -> errors.add( error ) );
+        userService.disableTwoFA( currentUser, uid, errors::add );
 
         if ( errors.isEmpty() )
         {
