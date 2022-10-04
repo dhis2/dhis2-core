@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.analytics.shared.ValueTypeMapping.NUMERIC;
 import static org.hisp.dhis.analytics.shared.query.From.ofSingleTableAndAlias;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
@@ -40,7 +41,10 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -156,8 +160,8 @@ public class EventDataValueCondition extends BaseRenderable
         String doUid = dimensionIdentifier.getDimension().getDimensionObjectUid();
 
         Renderable value = item.getOperator().equals( IN )
-            ? () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( item.getValues() ) )
-            : () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( item.getValues().get( 0 ) ) );
+            ? () -> queryContext.bindParamAndGetIndex( convertToType( valueTypeMapping, item.getValues() ) )
+            : () -> queryContext.bindParamAndGetIndex( convertToType( valueTypeMapping, item.getValues().get( 0 ) ) );
 
         return BinaryCondition.of(
             RenderableDataValue.of( EVT_1_ALIAS, doUid, valueTypeMapping ),
@@ -165,4 +169,23 @@ public class EventDataValueCondition extends BaseRenderable
             value );
     }
 
+    private Object convertToType( ValueTypeMapping valueTypeMapping, String s )
+    {
+        if ( valueTypeMapping.equals( NUMERIC ) )
+        {
+            return new BigDecimal( s );
+        }
+        return s;
+    }
+
+    private Object convertToType( ValueTypeMapping valueTypeMapping, List<String> values )
+    {
+        if ( valueTypeMapping.equals( NUMERIC ) )
+        {
+            return values.stream()
+                .map( BigDecimal::new )
+                .collect( Collectors.toList() );
+        }
+        return values;
+    }
 }

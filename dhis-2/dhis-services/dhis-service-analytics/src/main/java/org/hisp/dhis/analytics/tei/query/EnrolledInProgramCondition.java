@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.DOT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class EnrolledInProgramCondition extends BaseRenderable
@@ -43,6 +42,6 @@ public class EnrolledInProgramCondition extends BaseRenderable
     @Override
     public String render()
     {
-        return TEI_ALIAS + DOT + doubleQuote( program );
+        return TEI_ALIAS + "." + DoubleQuotingRenderable.of( program ).render();
     }
 }

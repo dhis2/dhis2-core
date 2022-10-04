@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class OrCondition extends BaseRenderable
 {
-    private final List<? extends Renderable> conditions;
+    private final List<Renderable> conditions;
 
     @Override
     public String render()

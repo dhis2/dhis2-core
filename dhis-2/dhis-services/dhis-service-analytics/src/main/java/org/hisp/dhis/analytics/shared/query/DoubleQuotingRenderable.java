@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.analytics.shared.query;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-
 @RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+public class DoubleQuotingRenderable extends BaseRenderable
 {
-
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
-
-    private final QueryContext queryContext;
+    private final String value;
 
     @Override
     public String render()
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
-
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                dimensionIdentifier.getDimension().getUid(),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+        return "\"" + value + "\"";
     }
-
 }

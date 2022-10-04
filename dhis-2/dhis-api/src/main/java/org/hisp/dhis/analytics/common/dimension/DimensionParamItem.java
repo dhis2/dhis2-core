@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,9 +81,13 @@ public class DimensionParamItem
     private static QueryOperator getOperator( String operator )
     {
         return Arrays.stream( QueryOperator.values() )
-            .filter( queryOperator -> equalsIgnoreCase( queryOperator.name(), operator ) )
+            .filter( queryOperator -> queryOperator.name().equals( operator ) )
             .findFirst()
-            .orElseThrow( () -> new IllegalArgumentException( "Invalid operator: " + operator ) );
+            .orElseThrow( IllegalAccessError::new );
     }
 
+    private static List<String> getParamValues( String values )
+    {
+        return Arrays.asList( values.split( OPTION_SEP ) );
+    }
 }
