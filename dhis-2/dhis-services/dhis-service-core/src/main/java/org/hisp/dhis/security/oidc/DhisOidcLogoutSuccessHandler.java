@@ -43,6 +43,8 @@ import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInit
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.Strings;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -62,7 +64,11 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
     {
         String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
         this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        this.handler.setPostLogoutRedirectUri( logoutUri );
+        if ( !Strings.isNullOrEmpty( logoutUri ) )
+        {
+            this.handler.setPostLogoutRedirectUri( logoutUri );
+            this.handler.setDefaultTargetUrl( logoutUri );
+        }
     }
 
     @Override

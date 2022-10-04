@@ -104,7 +104,8 @@ public class DhisOidcUserService
         }
 
         String errorMessage = String
-            .format( "Failed to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
+            .format(
+                "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
                 mappingClaimKey, claimValue );
 
         if ( log.isDebugEnabled() )
