@@ -78,10 +78,6 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
 
-    private static final String ENABLED_VALUE = "on";
-
-    private static final String DISABLED_VALUE = "off";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -187,24 +183,6 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     public boolean hasProperty( ConfigurationKey key )
     {
         return StringUtils.isNotEmpty( properties.getProperty( key.getKey() ) );
-    }
-
-    @Override
-    public boolean isEnabled( ConfigurationKey key )
-    {
-        return ENABLED_VALUE.equals( getProperty( key ) );
-    }
-
-    @Override
-    public boolean getBoolean( ConfigurationKey key )
-    {
-        return Boolean.parseBoolean( getProperty( key ) );
-    }
-
-    @Override
-    public boolean isDisabled( ConfigurationKey key )
-    {
-        return DISABLED_VALUE.equals( getProperty( key ) );
     }
 
     @Override
