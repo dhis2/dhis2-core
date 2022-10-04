@@ -82,4 +82,14 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
         assertTrue( groups.isArray() );
         assertEquals( 1, groups.size() );
     }
+
+    @Test
+    void testGetWithDependenciesAsZipFile()
+    {
+        HttpResponse res = GET( "/dataSets/{id}/metadata.json.zip?skipSharing=false&download=true", dsId );
+        assertEquals( HttpStatus.OK, res.status() );
+        assertEquals( "attachment; filename=metadata.json.zip", res.header( "Content-Disposition" ) );
+        assertEquals( "application/json+zip", res.header( "Content-Type" ) );
+        assertEquals( "binary", res.header( "Content-Transfer-Encoding" ) );
+    }
 }

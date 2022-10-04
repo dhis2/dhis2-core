@@ -35,12 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
@@ -51,8 +49,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
@@ -60,7 +56,6 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  * @author Dusan Bernat
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class CategoryOptionGroupResolverTest
 {
@@ -95,34 +90,15 @@ class CategoryOptionGroupResolverTest
     public void setUp()
     {
         uid1 = CodeGenerator.generateUid();
-
         uid2 = CodeGenerator.generateUid();
-
         uid3 = CodeGenerator.generateUid();
 
-        CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup( 'A' );
-
         coc1 = createCategoryOptionCombo( 'X' );
-
         coc2 = createCategoryOptionCombo( 'Y' );
-
         coc3 = createCategoryOptionCombo( 'Z' );
 
         resolver = new CategoryOptionGroupResolver( expressionService, categoryOptionGroupStore,
             categoryOptionComboStore );
-
-        when( categoryOptionGroupStore.getByUid( anyString() ) ).thenReturn( categoryOptionGroup );
-
-        List<CategoryOptionCombo> cocList = new ArrayList<>();
-
-        cocList.add( coc1 );
-
-        cocList.add( coc2 );
-
-        cocList.add( coc3 );
-
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString(), anyString() ) )
-            .thenReturn( cocList );
     }
 
     @Test
@@ -137,6 +113,10 @@ class CategoryOptionGroupResolverTest
 
         when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+        when( categoryOptionGroupStore.getByUid( anyString() ) )
+            .thenReturn( createCategoryOptionGroup( 'A' ) );
+        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString(), anyString() ) )
+            .thenReturn( List.of( coc1, coc2, coc3 ) );
 
         // act
 
