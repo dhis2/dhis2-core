@@ -32,6 +32,7 @@ import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -387,21 +387,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private RuleAction toRuleAction( ProgramRuleAction programRuleAction )
     {
-        return ACTION_MAPPER
-            .getOrDefault( programRuleAction.getProgramRuleActionType(),
-                pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+        return Optional.ofNullable( ACTION_MAPPER.get( programRuleAction.getProgramRuleActionType() ) )
+            .orElse( pra -> RuleActionAssign.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
             .apply( programRuleAction );
     }
 
     private RuleVariable toRuleVariable( ProgramRuleVariable programRuleVariable )
     {
-        RuleVariable ruleVariable = null;
-
         try
         {
-            if ( VARIABLE_MAPPER.containsKey( programRuleVariable.getSourceType() ) )
+            Optional<Function<ProgramRuleVariable, RuleVariable>> ruleVariableFunction = Optional
+                .ofNullable( VARIABLE_MAPPER.get( programRuleVariable.getSourceType() ) );
+
+            if ( ruleVariableFunction.isPresent() )
             {
-                ruleVariable = VARIABLE_MAPPER.get( programRuleVariable.getSourceType() ).apply( programRuleVariable );
+                return ruleVariableFunction.get().apply( programRuleVariable );
             }
         }
         catch ( Exception e )
@@ -409,13 +409,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             log.debug( "Invalid ProgramRuleVariable: " + programRuleVariable.getUid() );
         }
 
-        return ruleVariable;
+        return null;
     }
 
     private RuleValueType toMappedValueType( ProgramRuleVariable programRuleVariable )
     {
-        ValueType valueType = VALUE_TYPE_MAPPER
-            .getOrDefault( programRuleVariable.getSourceType(), prv -> ValueType.TEXT ).apply( programRuleVariable );
+        ValueType valueType = Optional.ofNullable( VALUE_TYPE_MAPPER.get( programRuleVariable.getSourceType() ) )
+            .orElse( prv -> ValueType.TEXT ).apply( programRuleVariable );
 
         if ( valueType.isBoolean() )
         {

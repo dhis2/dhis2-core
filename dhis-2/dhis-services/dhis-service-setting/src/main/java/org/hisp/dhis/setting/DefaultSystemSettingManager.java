@@ -336,12 +336,12 @@ public class DefaultSystemSettingManager
     @Override
     public boolean isConfidential( String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+        return Optional.ofNullable( NAME_KEY_MAP.get( name ) ).map( SettingKey::isConfidential ).orElse( false );
     }
 
     @Override
     public boolean isTranslatable( final String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
+        return Optional.ofNullable( NAME_KEY_MAP.get( name ) ).map( SettingKey::isTranslatable ).orElse( false );
     }
 }

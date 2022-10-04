@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +76,7 @@ public abstract class BaseSMSListener
 
     protected void sendFeedback( String message, String sender, int logType )
     {
-        LOGGER.getOrDefault( logType, log::info ).accept( message );
+        getLoggerConsumer( logType, log::info ).accept( message );
 
         if ( smsSender.isConfigured() )
         {
@@ -83,7 +84,7 @@ public abstract class BaseSMSListener
             return;
         }
 
-        LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
+        getLoggerConsumer( WARNING, log::info ).accept( NO_SMS_CONFIG );
     }
 
     protected void sendSMSResponse( SmsResponse resp, IncomingSms sms, int messageID )
@@ -99,7 +100,7 @@ public abstract class BaseSMSListener
             return;
         }
 
-        LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
+        getLoggerConsumer( WARNING, log::info ).accept( NO_SMS_CONFIG );
     }
 
     protected void update( IncomingSms sms, SmsMessageStatus status, boolean parsed )
@@ -110,4 +111,8 @@ public abstract class BaseSMSListener
         incomingSmsService.update( sms );
     }
 
+    private Consumer<String> getLoggerConsumer( int logType, Consumer<String> log )
+    {
+        return Optional.ofNullable( LOGGER.get( logType ) ).orElse( log );
+    }
 }

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
@@ -36,7 +38,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
@@ -46,7 +47,7 @@ import com.google.common.collect.Sets;
 @Component
 public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectBundleHook<ProgramNotificationTemplate>
 {
-    private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
+    private final ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
             template -> template.getRecipientProgramAttribute().getValueType() )
         .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
@@ -117,16 +118,9 @@ public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectB
 
     private void postProcess( ProgramNotificationTemplate template )
     {
-        ProgramNotificationRecipient pnr = template.getNotificationRecipient();
-
-        ValueType valueType = null;
-
-        if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
-        {
-            Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
-            valueType = resolver.apply( template );
-        }
-
-        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
+        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault(
+            Optional.ofNullable( RECIPIENT_TO_VALUETYPE_RESOLVER.get( template.getNotificationRecipient() ) )
+                .map( f -> f.apply( template ) ).orElse( null ),
+            Sets.newHashSet() ) );
     }
 }

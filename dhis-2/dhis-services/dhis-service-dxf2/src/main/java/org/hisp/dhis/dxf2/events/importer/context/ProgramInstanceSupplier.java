@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,26 +81,25 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
         // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
-            .filter( e -> StringUtils.isNotEmpty( e.getEnrollment() ) )
-            .map( Event::getEnrollment ).collect( Collectors.toSet() );
+            .map( Event::getEnrollment )
+            .filter( StringUtils::isNotEmpty ).collect( Collectors.toSet() );
 
-        Map<String, ProgramInstance> programInstances = new HashMap<>();
+        Map<String, ProgramInstance> programInstances = Optional.of( programInstanceUids )
+            .filter( uids -> !uids.isEmpty() ).map( uids -> {
+                // Create a bi-directional map enrollment uid -> event uid
+                Multimap<String, String> programInstanceToEvent = HashMultimap.create();
+                for ( Event event : events )
+                {
+                    programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
+                }
 
-        if ( !programInstanceUids.isEmpty() )
-        {
-            // Create a bi-directional map enrollment uid -> event uid
-            Multimap<String, String> programInstanceToEvent = HashMultimap.create();
-            for ( Event event : events )
-            {
-                programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
-            }
-
-            // Collect all the Program Stage Instances specified in the Events
-            // (enrollment
-            // property)
-            programInstances = getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
-                programInstanceUids );
-        }
+                // Collect all the Program Stage Instances specified in the
+                // Events
+                // (enrollment
+                // property)
+                return getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
+                    programInstanceUids );
+            } ).orElse( new HashMap<>() );
 
         mapExistingEventsToProgramInstances( importOptions, events, programInstances );
 
@@ -151,7 +151,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         // Collect all the Program Instances by event uid
         final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
 
-        if ( !programInstancesByEvent.isEmpty() )
+        if ( Optional.ofNullable( programInstancesByEvent ).filter( psi -> !psi.isEmpty() ).isPresent() )
         {
             for ( Event event : events )
             {

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.mvc;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -72,10 +73,12 @@ public class CustomRequestMappingHandlerMapping
             methodsCondition = new RequestMethodsRequestCondition( RequestMethod.GET );
         }
 
-        Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
         Set<String> patterns = new HashSet<>();
 
         Set<DhisApiVersion> versions = getVersions( typeApiVersion, methodApiVersion );
+
+        Set<String> rqmPatterns = Optional.ofNullable( info.getPatternsCondition() )
+            .map( PatternsRequestCondition::getPatterns ).orElse( new HashSet<>() );
 
         for ( String pattern : rqmPatterns )
         {

@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityG
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -223,7 +224,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         {
             User overrideUser = null;
 
-            if ( parameters.containsKey( "overrideUser" ) )
+            if ( Optional.ofNullable( parameters ).filter( p -> p.containsKey( "overrideUser" ) ).isPresent() )
             {
                 List<String> overrideUsers = parameters.get( "overrideUser" );
                 overrideUser = manager.get( User.class, overrideUsers.get( 0 ) );

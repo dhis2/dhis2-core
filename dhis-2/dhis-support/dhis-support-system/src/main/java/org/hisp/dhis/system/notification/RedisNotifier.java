@@ -31,9 +31,12 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -109,9 +112,12 @@ public class RedisNotifier implements Notifier
 
             try
             {
-                if ( redisTemplate.boundZSetOps( notificationOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
+                Long zCard = redisTemplate.boundZSetOps( notificationOrderKey ).zCard();
+                if ( null != zCard && zCard >= MAX_POOL_TYPE_SIZE )
                 {
-                    Set<String> deleteKeys = redisTemplate.boundZSetOps( notificationOrderKey ).range( 0, 0 );
+                    Set<String> deleteKeys = Optional
+                        .ofNullable( redisTemplate.boundZSetOps( notificationOrderKey ).range( 0, 0 ) )
+                        .orElse( new HashSet<>() );
                     redisTemplate.delete( deleteKeys );
                     redisTemplate.boundZSetOps( notificationOrderKey ).removeRange( 0, 0 );
                 }
@@ -145,24 +151,27 @@ public class RedisNotifier implements Notifier
     public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
         Deque<Notification> notifications = new LinkedList<>();
-        redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0, -1 ).forEach( x -> {
-            try
-            {
-                notifications.add( jsonMapper.readValue( x, Notification.class ) );
-            }
-            catch ( IOException ex )
-            {
-                log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
-            }
-        } );
+        Optional.ofNullable( redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0, -1 ) )
+            .orElse( new HashSet<>() ).forEach( x -> {
+                try
+                {
+                    notifications.add( jsonMapper.readValue( x, Notification.class ) );
+                }
+                catch ( IOException ex )
+                {
+                    log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
+                }
+            } );
         return notifications;
     }
 
     @Override
     public Map<String, Deque<Notification>> getNotificationsByJobType( JobType jobType )
     {
-        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0,
-            -1 );
+        Set<String> notificationKeys = Optional
+            .ofNullable( redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0,
+                -1 ) )
+            .orElse( new HashSet<>() );
         LinkedHashMap<String, Deque<Notification>> uidNotificationMap = new LinkedHashMap<>();
         notificationKeys
             .forEach( j -> uidNotificationMap.put( j, getNotificationsByJobId( jobType, j ) ) );
@@ -210,9 +219,13 @@ public class RedisNotifier implements Notifier
                 }
 
                 String summaryOrderKey = generateSummaryOrderKey( id.getJobType() );
-                if ( redisTemplate.boundZSetOps( summaryOrderKey ).zCard() >= MAX_POOL_TYPE_SIZE )
+                Long zCard = redisTemplate.boundZSetOps( summaryOrderKey ).zCard();
+
+                if ( null != zCard && zCard >= MAX_POOL_TYPE_SIZE )
                 {
-                    Set<String> summaryKeyToBeDeleted = redisTemplate.boundZSetOps( summaryOrderKey ).range( 0, 0 );
+                    Set<String> summaryKeyToBeDeleted = Optional
+                        .ofNullable( redisTemplate.boundZSetOps( summaryOrderKey ).range( 0, 0 ) )
+                        .orElse( new HashSet<>() );
                     redisTemplate.boundZSetOps( summaryOrderKey ).removeRange( 0, 0 );
                     summaryKeyToBeDeleted.forEach( d -> redisTemplate.boundHashOps( summaryKey ).delete( d ) );
                 }
@@ -244,8 +257,9 @@ public class RedisNotifier implements Notifier
             }
 
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
-            Map<Object, Object> serializedSummaryMap = redisTemplate.boundHashOps( generateSummaryKey( jobType ) )
-                .entries();
+            Map<Object, Object> serializedSummaryMap = Optional
+                .ofNullable( redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).entries() )
+                .orElse( new HashMap<>() );
 
             serializedSummaryMap.forEach( ( k, v ) -> {
                 try

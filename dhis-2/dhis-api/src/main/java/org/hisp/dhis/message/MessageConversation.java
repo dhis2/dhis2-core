@@ -148,13 +148,15 @@ public class MessageConversation
         if ( message != null )
         {
             message.setAutoFields();
+
+            this.messages.add( message );
+
+            if ( !message.isInternal() )
+            {
+                setMessageCount( getMessageCount() + 1 );
+            }
         }
 
-        this.messages.add( message );
-        if ( !message.isInternal() )
-        {
-            setMessageCount( getMessageCount() + 1 );
-        }
     }
 
     public boolean toggleFollowUp( User user )

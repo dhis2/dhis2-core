@@ -137,15 +137,9 @@ public class DefaultAppManager
     public App getApp( String appName )
     {
         // Checks for app.getUrlFriendlyName which is the key of AppMap
-
-        Optional<App> appOptional = appCache.getIfPresent( appName );
-        if ( appOptional.isPresent() )
-        {
-            return appOptional.get();
-        }
-
         // If no apps are found, check for original name
-        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
+        return appCache.getIfPresent( appName ).orElseGet(
+            () -> appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null ) );
     }
 
     @Override
@@ -306,7 +300,7 @@ public class DefaultAppManager
     {
         boolean markedAppToDelete = false;
 
-        Optional<App> appOpt = appCache.get( app.getKey() );
+        Optional<App> appOpt = Optional.ofNullable( app ).flatMap( a -> appCache.get( a.getKey() ) );
 
         if ( appOpt.isPresent() )
         {

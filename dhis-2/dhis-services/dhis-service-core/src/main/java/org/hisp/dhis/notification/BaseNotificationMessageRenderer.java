@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -50,7 +51,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 /**
  * Template formats supported: A{uid-of-attribute} V{name-of-variable}
@@ -215,8 +215,9 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
     {
-        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, ( e, s ) -> Maps.newHashMap() ).apply( entity,
-            expressions );
+        return Optional.ofNullable( EXPRESSION_TO_VALUE_RESOLVERS.get( type ) ).orElse( ( e, s ) -> new HashMap<>() )
+            .apply( entity,
+                expressions );
     }
 
     private Map<String, String> resolveVariableValues( Set<String> variables, T entity )

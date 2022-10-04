@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -60,7 +61,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
     private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
         .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
@@ -88,7 +89,8 @@ public class TrackerNotificationThread extends SecurityContextRunnable
             BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(),
                 sideEffectDataBundle.getObject() );
 
-            serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
+            Optional.ofNullable( serviceMapper.get( sideEffectDataBundle.getKlass() ) )
+                .ifPresent( notification -> notification.accept( object.getId() ) );
         }
 
         notifier.notify( sideEffectDataBundle.getJobConfiguration(), NotificationLevel.DEBUG,

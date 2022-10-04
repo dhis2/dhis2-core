@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -123,7 +124,7 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", teiUids );
 
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+        return Optional.ofNullable( jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
             Map<String, TrackedEntityInstance> results = new HashMap<>();
 
             while ( rs.next() )
@@ -139,6 +140,6 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
 
             }
             return results;
-        } );
+        } ) ).orElse( new HashMap<>() );
     }
 }

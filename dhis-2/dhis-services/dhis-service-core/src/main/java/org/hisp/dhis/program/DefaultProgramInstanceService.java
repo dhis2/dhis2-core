@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -387,23 +388,9 @@ public class DefaultProgramInstanceService
         programInstance.setOrganisationUnit( organisationUnit );
         programInstance.enrollTrackedEntityInstance( trackedEntityInstance, program );
 
-        if ( enrollmentDate != null )
-        {
-            programInstance.setEnrollmentDate( enrollmentDate );
-        }
-        else
-        {
-            programInstance.setEnrollmentDate( new Date() );
-        }
+        programInstance.setEnrollmentDate( Optional.ofNullable( enrollmentDate ).orElse( new Date() ) );
 
-        if ( incidentDate != null )
-        {
-            programInstance.setIncidentDate( incidentDate );
-        }
-        else
-        {
-            programInstance.setIncidentDate( new Date() );
-        }
+        programInstance.setIncidentDate( Optional.ofNullable( incidentDate ).orElse( new Date() ) );
 
         programInstance.setStatus( programStatus );
 

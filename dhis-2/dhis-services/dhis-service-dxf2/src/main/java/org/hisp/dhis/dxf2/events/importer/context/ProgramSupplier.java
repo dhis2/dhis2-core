@@ -150,7 +150,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
-            if ( !MapUtils.isEmpty( programMap ) )
+            if ( Optional.ofNullable( programMap ).filter( pm -> !MapUtils.isEmpty( pm ) ).isPresent() )
             {
                 aggregateProgramAndAclData( programMap,
                     loadProgramStageDataElementSets() );
@@ -213,7 +213,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "join dataelement de on psde.dataelementid = de.dataelementid "
             + "order by psde.programstageid";
 
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+        return Optional.ofNullable( jdbcTemplate.query( sql, ( ResultSet rs ) -> {
 
             Map<Long, DataElementSets> results = new HashMap<>();
             long programStageId = 0;
@@ -252,7 +252,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 }
             }
             return results;
-        } );
+        } ) ).orElse( new HashMap<>() );
     }
 
     @Data

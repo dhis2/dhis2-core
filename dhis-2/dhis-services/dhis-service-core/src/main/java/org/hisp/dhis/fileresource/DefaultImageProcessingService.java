@@ -32,6 +32,7 @@ import java.io.*;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
@@ -77,7 +78,8 @@ public class DefaultImageProcessingService implements ImageProcessingService
                     continue;
                 }
 
-                ImageSize size = IMAGE_FILE_SIZES.get( dimension );
+                ImageSize size = Optional.ofNullable( IMAGE_FILE_SIZES.get( dimension ) )
+                    .orElse( new ImageSize( 0, 0 ) );
 
                 BufferedImage resizedImage = resize( image, size );
 

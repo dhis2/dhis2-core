@@ -459,32 +459,32 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
-        if ( OptionSet.class.isInstance( object ) )
+        if ( object instanceof OptionSet )
         {
             return handleOptionSet( metadata, (OptionSet) object );
         }
 
-        if ( DataSet.class.isInstance( object ) )
+        if ( object instanceof DataSet )
         {
             return handleDataSet( metadata, (DataSet) object );
         }
 
-        if ( Program.class.isInstance( object ) )
+        if ( object instanceof Program )
         {
             return handleProgram( metadata, (Program) object );
         }
 
-        if ( CategoryCombo.class.isInstance( object ) )
+        if ( object instanceof CategoryCombo )
         {
             return handleCategoryCombo( metadata, (CategoryCombo) object );
         }
 
-        if ( Dashboard.class.isInstance( object ) )
+        if ( object instanceof Dashboard )
         {
             return handleDashboard( metadata, (Dashboard) object );
         }
 
-        if ( DataElementGroup.class.isInstance( object ) )
+        if ( object instanceof DataElementGroup )
         {
             return handleDataElementGroup( metadata, (DataElementGroup) object );
         }
@@ -509,6 +509,11 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSet(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSet dataSet )
     {
+        if ( null == dataSet )
+        {
+            return metadata;
+        }
+
         metadata.putValue( DataSet.class, dataSet );
         handleAttributes( metadata, dataSet );
 
@@ -602,9 +607,12 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( LegendSet legendSet : legendSets )
         {
-            metadata.putValue( LegendSet.class, legendSet );
-            handleAttributes( metadata, legendSet );
-            legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
+            if ( legendSet != null )
+            {
+                metadata.putValue( LegendSet.class, legendSet );
+                handleAttributes( metadata, legendSet );
+                legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
+            }
         }
 
         return metadata;
@@ -1057,6 +1065,10 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDashboard(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Dashboard dashboard )
     {
+        if ( null == dashboard )
+        {
+            return metadata;
+        }
         metadata.putValue( Dashboard.class, dashboard );
         handleAttributes( metadata, dashboard );
         dashboard.getItems().forEach( dashboardItem -> handleDashboardItem( metadata, dashboardItem ) );

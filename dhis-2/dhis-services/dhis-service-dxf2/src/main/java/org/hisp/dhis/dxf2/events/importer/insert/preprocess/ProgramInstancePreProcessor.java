@@ -106,19 +106,20 @@ public class ProgramInstancePreProcessor implements Processor
             + "from programinstance pi "
             + "where pi.programid = ? and pi.status = ?";
 
-        return jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
-            List<ProgramInstance> results = new ArrayList<>();
+        return Optional
+            .ofNullable( jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
+                List<ProgramInstance> results = new ArrayList<>();
 
-            while ( rs.next() )
-            {
-                ProgramInstance pi = new ProgramInstance();
-                pi.setId( rs.getLong( "programinstanceid" ) );
-                pi.setUid( rs.getString( "uid" ) );
-                pi.setProgram( program );
-                results.add( pi );
+                while ( rs.next() )
+                {
+                    ProgramInstance pi = new ProgramInstance();
+                    pi.setId( rs.getLong( "programinstanceid" ) );
+                    pi.setUid( rs.getString( "uid" ) );
+                    pi.setProgram( program );
+                    results.add( pi );
 
-            }
-            return results;
-        } );
+                }
+                return results;
+            } ) ).orElse( new ArrayList<>() );
     }
 }

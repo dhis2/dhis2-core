@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.resolver;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
@@ -97,17 +98,16 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
     {
         List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList, dataElementId );
 
-        if ( isEmpty( cocUidIntersection ) )
+        if ( Optional.ofNullable( cocUidIntersection ).filter( CollectionUtils::isEmpty ).isPresent() )
         {
-            return expression;
+
+            List<String> resolved = cocUidIntersection.stream()
+                .map( cocUid -> id.getItem().replace( id.getId1(), cocUid ) )
+                .collect( Collectors.toList() );
+
+            expression = expression.replace( id.getItem(),
+                LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
         }
-
-        List<String> resolved = cocUidIntersection.stream()
-            .map( cocUid -> id.getItem().replace( id.getId1(), cocUid ) )
-            .collect( Collectors.toList() );
-
-        expression = expression.replace( id.getItem(),
-            LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
 
         return expression;
     }

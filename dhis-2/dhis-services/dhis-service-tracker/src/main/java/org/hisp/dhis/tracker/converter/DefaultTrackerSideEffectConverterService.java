@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.hisp.dhis.rules.models.*;
@@ -109,11 +110,9 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
             {
                 RuleAction action = ruleEffect.ruleAction();
 
-                if ( TO_SIDE_EFFECT.containsKey( action.getClass().getSuperclass() ) )
-                {
-                    trackerSideEffects
-                        .add( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
-                }
+                Optional.ofNullable( TO_SIDE_EFFECT.get( action.getClass().getSuperclass() ) )
+                    .ifPresent( function -> trackerSideEffects
+                        .add( function.apply( ruleEffect ) ) );
             }
         }
 
@@ -128,7 +127,9 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
         {
             if ( trackerSideEffect != null )
             {
-                ruleEffects.add( TO_RULE_EFFECT.get( trackerSideEffect.getClass() ).apply( trackerSideEffect ) );
+                Optional.ofNullable( TO_RULE_EFFECT.get( trackerSideEffect.getClass() ) )
+                    .ifPresent( function -> ruleEffects
+                        .add( function.apply( trackerSideEffect ) ) );
             }
         }
 

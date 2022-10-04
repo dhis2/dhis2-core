@@ -138,27 +138,20 @@ public abstract class SmsGateway
 
     public OutboundMessageResponse wrapHttpStatus( HttpStatus httpStatus )
     {
-        GatewayResponse gatewayResponse;
+        GatewayResponse gatewayResponse = getGatewayResponse( httpStatus );
 
         OutboundMessageResponse status = new OutboundMessageResponse();
-
-        if ( OK_CODES.contains( httpStatus ) )
-        {
-            gatewayResponse = GATEWAY_RESPONSE_MAP.get( httpStatus );
-
-            status.setOk( true );
-        }
-        else
-        {
-            gatewayResponse = GATEWAY_RESPONSE_MAP.getOrDefault( httpStatus, GatewayResponse.FAILED );
-
-            status.setOk( false );
-        }
-
         status.setResponseObject( gatewayResponse );
         status.setDescription( gatewayResponse.getResponseMessage() );
+        status.setOk( OK_CODES.contains( httpStatus ) );
 
         return status;
+    }
+
+    private GatewayResponse getGatewayResponse( HttpStatus httpStatus )
+    {
+        return OK_CODES.contains( httpStatus ) ? GATEWAY_RESPONSE_MAP.get( httpStatus )
+            : GATEWAY_RESPONSE_MAP.getOrDefault( httpStatus, GatewayResponse.FAILED );
     }
 
     protected HttpHeaders getAuthenticationHeaderParameters( SmsGatewayConfig config )

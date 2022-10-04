@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.common.QueryOperator.SW;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -114,17 +115,8 @@ public class QueryFilter
 
     public String getSqlOperator()
     {
-        if ( operator == null )
-        {
-            return null;
-        }
-
-        return safelyGetOperator();
-    }
-
-    private String safelyGetOperator()
-    {
-        return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
+        return Optional.ofNullable( OPERATOR_MAP.get( operator ) )
+            .map( o -> o.apply( StringUtils.trimToEmpty( filter ).contains( NV ) ) ).orElse( null );
     }
 
     public String getSqlFilter( final String encodedFilter )
