@@ -309,10 +309,12 @@ public class QueryItem
      *
      * @param filter the query filter.
      * @param encodedFilter the SQL encoded filter.
+     * @param isNullValueSubstitutionAllowed whether the text "NV" should be
+     *        replaced by null in the query or not.
      */
-    public String getSqlFilter( QueryFilter filter, String encodedFilter )
+    public String getSqlFilter( QueryFilter filter, String encodedFilter, boolean isNullValueSubstitutionAllowed )
     {
-        String sqlFilter = filter.getSqlFilter( encodedFilter );
+        String sqlFilter = filter.getSqlFilter( encodedFilter, isNullValueSubstitutionAllowed );
 
         return isText() ? sqlFilter.toLowerCase() : sqlFilter;
     }
