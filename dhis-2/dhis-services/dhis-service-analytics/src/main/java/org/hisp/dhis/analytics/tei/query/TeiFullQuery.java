@@ -118,9 +118,9 @@ public class TeiFullQuery extends BaseRenderable
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> isDynamicElement( p )
-                ? doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
-                : p.getOrderBy().toString() + SPACE + p.getSortDirection().name() )
+            .map( p -> (Renderable) () -> isStaticDimension( p )
+                ? p.getOrderBy().toString().toLowerCase() + SPACE + p.getSortDirection().name().toLowerCase()
+                : doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name().toLowerCase() )
             .collect( toList() );
 
         return Order.builder()
@@ -136,10 +136,9 @@ public class TeiFullQuery extends BaseRenderable
      * @param p AnalyticsSortingParas
      * @return boolean
      */
-    private boolean isDynamicElement( AnalyticsSortingParams p )
+    private boolean isStaticDimension( AnalyticsSortingParams p )
     {
-        return (p.getOrderBy().hasProgram() || p.getOrderBy().hasProgramStage()) &&
-            p.getOrderBy().getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
+        return p.getOrderBy().getDimension().getDimensionParamObjectType() == STATIC_DIMENSION;
     }
 
     private Select getSelect()
