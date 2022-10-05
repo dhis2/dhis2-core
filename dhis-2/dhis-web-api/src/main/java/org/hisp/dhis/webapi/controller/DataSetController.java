@@ -84,7 +84,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
@@ -105,7 +104,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -454,7 +452,7 @@ public class DataSetController
     }
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+    public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
@@ -465,7 +463,11 @@ public class DataSetController
             throw new WebMessageException( notFound( "DataSet not found for uid: " + pvUid ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataSet, download );
+        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        exportService.validate( exportParams );
+        exportParams.setObjectExportWithDependencies( dataSet );
+
+        return ResponseEntity.ok( exportParams );
     }
 
     /**
