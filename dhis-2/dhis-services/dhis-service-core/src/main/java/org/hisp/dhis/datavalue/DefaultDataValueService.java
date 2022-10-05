@@ -131,33 +131,33 @@ public class DefaultDataValueService
             dataValue.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
         }
 
-        dataValue.setCreated( new Date() );
-        dataValue.setLastUpdated( new Date() );
-
         // ---------------------------------------------------------------------
         // Check and restore soft deleted value
         // ---------------------------------------------------------------------
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
 
-        if ( softDelete != null )
+        if ( softDelete == null )
+        {
+            dataValue.setCreated( new Date() );
+            dataValue.setLastUpdated( new Date() );
+            dataValueStore.addDataValue( dataValue );
+        }
+        else
         {
             softDelete.mergeWith( dataValue );
             softDelete.setDeleted( false );
+            softDelete.setLastUpdated( new Date() );
 
             dataValueStore.updateDataValue( softDelete );
 
             if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
             {
-                DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+                DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
                     dataValue.getStoredBy(), AuditType.CREATE );
 
                 dataValueAuditService.addDataValueAudit( dataValueAudit );
             }
-        }
-        else
-        {
-            dataValueStore.addDataValue( dataValue );
         }
 
         return true;
