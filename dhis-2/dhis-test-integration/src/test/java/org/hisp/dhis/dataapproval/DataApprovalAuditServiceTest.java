@@ -244,8 +244,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         userZ = createAndAddUser( "Z" );
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userC ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userD ) );
-        userC.getGroups().add( userGroupC );
-        userD.getGroups().add( userGroupD );
+        userC.getUserGroups().add( userGroupC );
+        userD.getUserGroups().add( userGroupD );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );

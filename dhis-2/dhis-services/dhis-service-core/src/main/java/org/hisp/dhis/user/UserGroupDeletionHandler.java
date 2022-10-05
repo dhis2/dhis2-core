@@ -55,7 +55,7 @@ public class UserGroupDeletionHandler extends DeletionHandler
 
     private void deleteUser( User user )
     {
-        Set<UserGroup> userGroups = user.getGroups();
+        Set<UserGroup> userGroups = user.getUserGroups();
 
         for ( UserGroup group : userGroups )
         {

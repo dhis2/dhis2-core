@@ -96,7 +96,7 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
         userGroupA = createUserGroup( 'A', new HashSet<>() );
         objectManager.save( userGroupA );
         userA = makeUser( "A" );
-        userA.getGroups().add( userGroupA );
+        userA.getUserGroups().add( userGroupA );
         userService.addUser( userA );
         userB = makeUser( "B" );
         userService.addUser( userB );

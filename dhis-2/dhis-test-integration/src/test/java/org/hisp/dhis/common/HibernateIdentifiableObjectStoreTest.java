@@ -155,9 +155,9 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         manager.save( userGroup1 );
         UserGroup userGroup2 = createUserGroup( 'B', Sets.newHashSet( user1, user4 ) );
         manager.save( userGroup2 );
-        user1.getGroups().add( userGroup1 );
-        user1.getGroups().add( userGroup2 );
-        user4.getGroups().add( userGroup2 );
+        user1.getUserGroups().add( userGroup1 );
+        user1.getUserGroups().add( userGroup2 );
+        user4.getUserGroups().add( userGroup2 );
         Map<String, UserAccess> userSharing = new HashMap<>();
         userSharing.put( user1.getUid(), new UserAccess( user1, AccessStringHelper.DEFAULT ) );
         userSharing.put( user2.getUid(), new UserAccess( user2, AccessStringHelper.DATA_READ ) );

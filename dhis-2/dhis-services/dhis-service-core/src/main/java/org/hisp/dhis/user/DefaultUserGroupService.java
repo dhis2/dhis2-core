@@ -201,7 +201,7 @@ public class DefaultUserGroupService
     {
         Collection<UserGroup> updates = getUserGroupsByUid( uids );
 
-        for ( UserGroup userGroup : new HashSet<>( user.getGroups() ) )
+        for ( UserGroup userGroup : new HashSet<>( user.getUserGroups() ) )
         {
             if ( !updates.contains( userGroup ) && canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {

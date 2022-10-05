@@ -299,10 +299,10 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         User userD = addUser( "D" );
         UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
         UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD ) );
-        userA.getGroups().add( userGroup1 );
-        userB.getGroups().add( userGroup1 );
-        userC.getGroups().add( userGroup2 );
-        userD.getGroups().add( userGroup2 );
+        userA.getUserGroups().add( userGroup1 );
+        userB.getUserGroups().add( userGroup1 );
+        userC.getUserGroups().add( userGroup2 );
+        userD.getUserGroups().add( userGroup2 );
         userGroup1.setManagedGroups( newHashSet( userGroup2 ) );
         userGroup2.setManagedByGroups( newHashSet( userGroup1 ) );
         long group1 = userGroupService.addUserGroup( userGroup1 );
@@ -411,12 +411,12 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         User userF = addUser( "F", roleC );
         UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
         UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD, userE, userF ) );
-        userA.getGroups().add( userGroup1 );
-        userB.getGroups().add( userGroup1 );
-        userC.getGroups().add( userGroup2 );
-        userD.getGroups().add( userGroup2 );
-        userE.getGroups().add( userGroup2 );
-        userF.getGroups().add( userGroup2 );
+        userA.getUserGroups().add( userGroup1 );
+        userB.getUserGroups().add( userGroup1 );
+        userC.getUserGroups().add( userGroup2 );
+        userD.getUserGroups().add( userGroup2 );
+        userE.getUserGroups().add( userGroup2 );
+        userF.getUserGroups().add( userGroup2 );
         userGroup1.setManagedGroups( newHashSet( userGroup2 ) );
         userGroup2.setManagedByGroups( newHashSet( userGroup1 ) );
         userGroupService.addUserGroup( userGroup1 );
@@ -596,7 +596,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userToModify ) );
         userGroupService.addUserGroup( userGroupA );
 
-        userToModify.getGroups().add( userGroupA );
+        userToModify.getUserGroups().add( userGroupA );
         userService.updateUser( userToModify );
 
         User currentUser = createAndAddUser( "B", unitA, "F_USER_ADD_WITHIN_MANAGED_GROUP" );
@@ -605,7 +605,7 @@ class UserServiceTest extends SingleSetupIntegrationTestBase
         userGroupService.addUserGroup( userGroupB );
         userGroupService.updateUserGroup( userGroupA );
 
-        currentUser.getGroups().add( userGroupB );
+        currentUser.getUserGroups().add( userGroupB );
         userService.updateUser( currentUser );
 
         List<ErrorReport> errors = new ArrayList<>();

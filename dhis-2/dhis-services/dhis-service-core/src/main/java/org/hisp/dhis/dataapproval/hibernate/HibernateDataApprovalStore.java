@@ -268,8 +268,8 @@ public class HibernateDataApprovalStore
         // ---------------------------------------------------------------------
 
         final User user = currentUserService.getCurrentUser();
-        final String strArrayUserGroups = CollectionUtils.isEmpty( user.getGroups() ) ? null
-            : "{" + String.join( ",", user.getGroups().stream().map( group -> group.getUid() ).collect(
+        final String strArrayUserGroups = CollectionUtils.isEmpty( user.getUserGroups() ) ? null
+            : "{" + String.join( ",", user.getUserGroups().stream().map( group -> group.getUid() ).collect(
                 Collectors.toList() ) ) + "}";
         final String co_group_sharing_check_query = strArrayUserGroups != null
             ? " and (not " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '" + strArrayUserGroups + "') or not " +

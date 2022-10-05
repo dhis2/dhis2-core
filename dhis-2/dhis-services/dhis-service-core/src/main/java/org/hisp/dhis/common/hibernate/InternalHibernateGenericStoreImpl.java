@@ -243,7 +243,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
             return predicates;
         }
 
-        Set<String> groupIds = user.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
+        Set<String> groupIds = user.getUserGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() );
 
         return getDataSharingPredicates( builder, user.getUid(), groupIds, access );
     }

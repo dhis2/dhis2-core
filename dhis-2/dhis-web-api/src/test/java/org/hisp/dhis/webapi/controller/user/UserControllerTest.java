@@ -119,7 +119,7 @@ class UserControllerTest
 
         parsedUser = new User();
         parsedUser.setUid( "def2" );
-        parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
+        parsedUser.setUserGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
     }
 
     @Test

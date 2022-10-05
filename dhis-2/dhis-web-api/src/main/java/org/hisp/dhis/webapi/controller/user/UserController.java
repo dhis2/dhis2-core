@@ -463,7 +463,7 @@ public class UserController
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
-        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( getUids( user.getUserGroups() ), currentUser ) )
         {
             throw new UpdateAccessDeniedException(
                 "You must have permissions manage at least one user group for the user." );
@@ -534,7 +534,7 @@ public class UserController
 
         userService.addUser( userReplica );
 
-        userGroupService.addUserToGroups( userReplica, getUids( existingUser.getGroups() ),
+        userGroupService.addUserToGroups( userReplica, getUids( existingUser.getUserGroups() ),
             currentUser );
 
         // ---------------------------------------------------------------------
@@ -763,7 +763,7 @@ public class UserController
 
         boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
 
-        List<String> groupsUids = getUids( inputUser.getGroups() );
+        List<String> groupsUids = getUids( inputUser.getUserGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.canModifyUser( users.get( 0 ) ) )
@@ -806,7 +806,7 @@ public class UserController
             currentUser = currentUserService.getCurrentUser();
         }
 
-        List<String> uids = getUids( parsed.getGroups() );
+        List<String> uids = getUids( parsed.getUserGroups() );
 
         userGroupService.updateUserGroups( user, uids, currentUser );
     }
@@ -861,7 +861,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( entity.getUserGroups() ), currentUser )
             || !currentUser.canModifyUser( entity ) )
         {
             throw new WebMessageException( conflict(
@@ -891,13 +891,13 @@ public class UserController
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( getUids( user.getUserGroups() ), currentUser ) )
         {
             throw new WebMessageException( conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
-        List<String> uids = getUids( user.getGroups() );
+        List<String> uids = getUids( user.getUserGroups() );
 
         for ( String uid : uids )
         {
@@ -925,7 +925,7 @@ public class UserController
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
-            userGroupService.addUserToGroups( user, getUids( user.getGroups() ), currentUser );
+            userGroupService.addUserToGroups( user, getUids( user.getUserGroups() ), currentUser );
         }
 
         return importReport;
@@ -1074,7 +1074,7 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getUserGroups() ), currentUser )
             || !currentUser.canModifyUser( userToModify ) )
         {
             throw new WebMessageException( conflict(

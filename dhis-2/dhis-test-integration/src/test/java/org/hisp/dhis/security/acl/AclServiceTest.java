@@ -432,8 +432,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         userGroup.getMembers().add( user1 );
         userGroup.getMembers().add( user2 );
         manager.save( userGroup );
-        user1.getGroups().add( userGroup );
-        user2.getGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
         dataElement.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( dataElement );
         assertTrue( aclService.canUpdate( user2, dataElement ) );
@@ -454,8 +454,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         userGroup.getMembers().add( user1 );
         userGroup.getMembers().add( user2 );
         manager.save( userGroup );
-        user2.getGroups().add( userGroup );
-        user1.getGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
         categoryOption.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         manager.update( categoryOption );
         assertTrue( aclService.canUpdate( user2, categoryOption ) );
@@ -566,8 +566,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
-        user1.getGroups().add( userGroup );
-        user2.getGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setCreatedBy( user1 );
         dashboard.getSharing().setOwner( user1 );
@@ -599,8 +599,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
-        user1.getGroups().add( userGroup );
-        user2.getGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setCreatedBy( user1 );
@@ -635,8 +635,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         manager.save( user2 );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
-        user1.getGroups().add( userGroup );
-        user2.getGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setCreatedBy( user1 );
@@ -757,8 +757,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         User user3 = createUserWithAuth( "user33A", "ALL" );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
         manager.save( userGroup );
-        user1.getGroups().add( userGroup );
-        user2.getGroups().add( userGroup );
+        user1.getUserGroups().add( userGroup );
+        user2.getUserGroups().add( userGroup );
         DataElement dataElement = createDataElement( 'A' );
         dataElement.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         dataElement.setCreatedBy( user1 );

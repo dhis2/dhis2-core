@@ -83,7 +83,7 @@ public class UserDeletionHandler extends JdbcDeletionHandler
     {
         for ( User user : group.getMembers() )
         {
-            user.getGroups().remove( group );
+            user.getUserGroups().remove( group );
             idObjectManager.updateNoAcl( user );
         }
     }

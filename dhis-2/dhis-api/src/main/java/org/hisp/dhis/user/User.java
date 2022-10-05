@@ -225,7 +225,7 @@ public class User
 
     private Date lastCheckedInterpretations;
 
-    private Set<UserGroup> groups = new HashSet<>();
+    private Set<UserGroup> userGroups = new HashSet<>();
 
     private String whatsApp;
 
@@ -1020,7 +1020,7 @@ public class User
     {
         Set<UserGroup> managedGroups = new HashSet<>();
 
-        for ( UserGroup group : groups )
+        for ( UserGroup group : userGroups )
         {
             managedGroups.addAll( group.getManagedGroups() );
         }
@@ -1030,7 +1030,7 @@ public class User
 
     public boolean hasManagedGroups()
     {
-        for ( UserGroup group : groups )
+        for ( UserGroup group : userGroups )
         {
             if ( group != null && group.getManagedGroups() != null && !group.getManagedGroups().isEmpty() )
             {
@@ -1051,7 +1051,7 @@ public class User
      */
     public boolean canManage( UserGroup userGroup )
     {
-        return userGroup != null && CollectionUtils.containsAny( groups, userGroup.getManagedByGroups() );
+        return userGroup != null && CollectionUtils.containsAny( userGroups, userGroup.getManagedByGroups() );
     }
 
     /**
@@ -1063,12 +1063,12 @@ public class User
      */
     public boolean canManage( User user )
     {
-        if ( user == null || user.getGroups() == null )
+        if ( user == null || user.getUserGroups() == null )
         {
             return false;
         }
 
-        for ( UserGroup group : user.getGroups() )
+        for ( UserGroup group : user.getUserGroups() )
         {
             if ( canManage( group ) )
             {
@@ -1089,7 +1089,7 @@ public class User
      */
     public boolean isManagedBy( UserGroup userGroup )
     {
-        return userGroup != null && CollectionUtils.containsAny( groups, userGroup.getManagedGroups() );
+        return userGroup != null && CollectionUtils.containsAny( userGroups, userGroup.getManagedGroups() );
     }
 
     /**
@@ -1101,12 +1101,12 @@ public class User
      */
     public boolean isManagedBy( User user )
     {
-        if ( user == null || user.getGroups() == null )
+        if ( user == null || user.getUserGroups() == null )
         {
             return false;
         }
 
-        for ( UserGroup group : user.getGroups() )
+        for ( UserGroup group : user.getUserGroups() )
         {
             if ( isManagedBy( group ) )
             {
@@ -1318,14 +1318,14 @@ public class User
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "userGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getGroups()
+    public Set<UserGroup> getUserGroups()
     {
-        return groups;
+        return userGroups;
     }
 
-    public void setGroups( Set<UserGroup> groups )
+    public void setUserGroups( Set<UserGroup> userGroups )
     {
-        this.groups = groups;
+        this.userGroups = userGroups;
     }
 
     @JsonProperty

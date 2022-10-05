@@ -233,8 +233,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
         userGroupService.addUserGroup( userGroupA );
         userGroupService.addUserGroup( userGroupB );
 
-        userA.getGroups().add( userGroupA );
-        userB.getGroups().add( userGroupB );
+        userA.getUserGroups().add( userGroupA );
+        userB.getUserGroups().add( userGroupB );
 
         userService.updateUser( userA );
         userService.updateUser( userB );

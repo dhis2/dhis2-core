@@ -694,7 +694,7 @@ public class DefaultSecurityService
                 String.format( "User `%s` is not allowed to update object `%s`.", currentUser.getUsername(),
                     userToModify ) );
         }
-        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getUserGroups() ), currentUser )
             || !currentUser.canModifyUser( userToModify ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );

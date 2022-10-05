@@ -120,7 +120,7 @@ class ValidationResultStoreHqlTest
     {
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
-        user.setGroups( emptySet() );
+        user.setUserGroups( emptySet() );
         OrganisationUnit unit = new OrganisationUnit();
         unit.setUid( orgUnitUid );
         user.setDataViewOrganisationUnits( singleton( unit ) );

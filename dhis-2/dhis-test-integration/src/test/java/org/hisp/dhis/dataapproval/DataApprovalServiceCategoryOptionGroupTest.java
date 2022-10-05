@@ -265,7 +265,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         userGroupService.addUserGroup( userGroup );
         for ( User user : users )
         {
-            user.getGroups().add( userGroup );
+            user.getUserGroups().add( userGroup );
             userService.updateUser( user );
         }
         return userGroup;

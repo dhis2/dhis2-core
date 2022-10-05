@@ -69,7 +69,7 @@
 
     <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
 
-    <set name="groups" table="usergroupmembers" inverse="true">
+    <set name="userGroups" table="usergroupmembers" inverse="true">
       <cache usage="read-write" />
       <key column="userid" />
       <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />

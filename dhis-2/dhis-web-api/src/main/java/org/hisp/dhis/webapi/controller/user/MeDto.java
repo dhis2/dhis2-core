@@ -71,7 +71,7 @@ public class MeDto
         this.sharing = user.getSharing();
         this.userGroupAccesses = user.getUserGroupAccesses();
         this.userAccesses = user.getUserAccesses();
-        this.userGroups = user.getGroups();
+        this.userGroups = user.getUserGroups();
         this.translations = user.getTranslations();
         this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
         this.organisationUnits = user.getOrganisationUnits();

@@ -122,13 +122,13 @@ public class UserGroup
     public void addUser( User user )
     {
         members.add( user );
-        user.getGroups().add( this );
+        user.getUserGroups().add( this );
     }
 
     public void removeUser( User user )
     {
         members.remove( user );
-        user.getGroups().remove( this );
+        user.getUserGroups().remove( this );
     }
 
     public void updateUsers( Set<User> updates )

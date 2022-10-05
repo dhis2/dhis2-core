@@ -167,8 +167,8 @@ class UserStoreTest extends SingleSetupIntegrationTestBase
         userGroupService.addUserGroup( userGroupA );
         UserGroup userGroupB = createUserGroup( 'B', Sets.newHashSet( userA ) );
         userGroupService.addUserGroup( userGroupB );
-        userA.getGroups().add( userGroupA );
-        userA.getGroups().add( userGroupB );
+        userA.getUserGroups().add( userGroupA );
+        userA.getUserGroups().add( userGroupB );
         CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getUid() );
         assertNotNull( currentUserGroupInfo );
         assertEquals( 2, currentUserGroupInfo.getUserGroupUIDs().size() );

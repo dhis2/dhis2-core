@@ -740,7 +740,7 @@ public class DefaultUserService
             return errors;
         }
 
-        user.getGroups().forEach( ug -> {
+        user.getUserGroups().forEach( ug -> {
             if ( !(currentUser.canManage( ug ) || userGroupService.canAddOrRemoveMember( ug.getUid() )) )
             {
                 errors.add( new ErrorReport( UserGroup.class, ErrorCode.E3005, currentUser, ug ) );
@@ -905,7 +905,7 @@ public class DefaultUserService
             return false;
         }
 
-        if ( !canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
+        if ( !canAddOrUpdateUser( getUids( userToModify.getUserGroups() ), currentUser )
             || !currentUser.canModifyUser( userToModify ) )
         {
             errors.accept( new ErrorReport( UserRole.class, ErrorCode.E3020, userToModify.getName() ) );

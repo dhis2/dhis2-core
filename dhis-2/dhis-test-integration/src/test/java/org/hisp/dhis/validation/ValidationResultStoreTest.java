@@ -223,9 +223,9 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         UserGroup userGroupD = createUserGroup( 'B', Sets.newHashSet( userD ) );
         userGroupService.addUserGroup( userGroupC );
         userGroupService.addUserGroup( userGroupD );
-        userC.getGroups().add( userGroupC );
+        userC.getUserGroups().add( userGroupC );
         userService.updateUser( userC );
-        userD.getGroups().add( userGroupD );
+        userD.getUserGroups().add( userGroupD );
         userService.updateUser( userD );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );

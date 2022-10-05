@@ -387,9 +387,9 @@ public class HibernateValidationResultStore
     {
         String groupUids = null;
 
-        if ( !u.getGroups().isEmpty() )
+        if ( !u.getUserGroups().isEmpty() )
         {
-            Set<String> groups = u.getGroups().stream().map( BaseIdentifiableObject::getUid )
+            Set<String> groups = u.getUserGroups().stream().map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toSet() );
             groupUids = "{" + String.join( ",", groups ) + "}";
         }

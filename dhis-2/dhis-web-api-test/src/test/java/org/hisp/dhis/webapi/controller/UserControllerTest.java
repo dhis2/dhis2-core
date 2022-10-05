@@ -193,7 +193,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 + "'}]}]" ) ) );
 
         User peterAfter = userService.getUser( this.peter.getUid() );
-        Set<UserGroup> userGroups = peterAfter.getGroups();
+        Set<UserGroup> userGroups = peterAfter.getUserGroups();
 
         assertEquals( 2, userGroups.size() );
     }
@@ -213,14 +213,14 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 + "'}]}]" ) ) );
 
         User peterAfter = userService.getUser( this.peter.getUid() );
-        Set<UserGroup> userGroups = peterAfter.getGroups();
+        Set<UserGroup> userGroups = peterAfter.getUserGroups();
         assertEquals( 2, userGroups.size() );
 
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op':'add','path':'/userGroups','value':[]}]" ) ) );
 
         peterAfter = userService.getUser( this.peter.getUid() );
-        userGroups = peterAfter.getGroups();
+        userGroups = peterAfter.getUserGroups();
         assertEquals( 0, userGroups.size() );
     }
 

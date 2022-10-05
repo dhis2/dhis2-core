@@ -209,7 +209,7 @@ class JpaQueryUtilsTest
         groupB.setUid( "aUserGroupB" );
         User userA = new User();
         userA.setUid( "randomUserA" );
-        userA.setGroups( Sets.newLinkedHashSet( Lists.newArrayList( groupA, groupB ) ) );
+        userA.setUserGroups( Sets.newLinkedHashSet( Lists.newArrayList( groupA, groupB ) ) );
         String expected = " ( x.sharing->>'owner' is null or x.sharing->>'owner' = 'randomUserA')  "
             + "or x.sharing->>'public' like '__r_____' or x.sharing->>'public' is null  "
             + "or (jsonb_has_user_id( x.sharing, 'randomUserA') = true  "

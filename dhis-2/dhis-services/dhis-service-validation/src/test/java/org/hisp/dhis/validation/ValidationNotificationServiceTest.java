@@ -301,7 +301,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitA.addUser( userA );
         userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
-        userA.setGroups( Sets.newHashSet( userGroupA ) );
+        userA.setUserGroups( Sets.newHashSet( userGroupA ) );
         valRuleA = createValidationRule( 'A', Operator.equal_to, createExpression2( 'A', "X" ),
             createExpression2( 'B', "Y" ), PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         ValidationNotificationTemplate templateA = createValidationNotificationTemplate( "Template A" );

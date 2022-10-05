@@ -371,9 +371,9 @@ public class FilteringHelper
         }
 
         // Add user group filtering, when present.
-        if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getGroups() ) )
+        if ( currentUser != null && CollectionUtils.isNotEmpty( currentUser.getUserGroups() ) )
         {
-            final Set<String> userGroupUids = currentUser.getGroups().stream()
+            final Set<String> userGroupUids = currentUser.getUserGroups().stream()
                 .filter( group -> group != null )
                 .map( group -> trimToEmpty( group.getUid() ) )
                 .collect( toSet() );

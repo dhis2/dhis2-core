@@ -422,7 +422,7 @@ public class JpaQueryUtils
 
     private static String getGroupsIds( User user )
     {
-        return getGroupsIds( user.getGroups().stream().map( BaseIdentifiableObject::getUid ).collect( toList() ) );
+        return getGroupsIds( user.getUserGroups().stream().map( BaseIdentifiableObject::getUid ).collect( toList() ) );
     }
 
     private static String getGroupsIds( List<String> userGroupIds )

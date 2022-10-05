@@ -130,10 +130,10 @@ public class TrackedEntityInstanceAggregate
 
         user.ifPresent( u -> {
             if ( userGroupUIDCache.get( user.get().getUid() ).isEmpty()
-                && !CollectionUtils.isEmpty( user.get().getGroups() ) )
+                && !CollectionUtils.isEmpty( user.get().getUserGroups() ) )
             {
                 userGroupUIDCache.put( user.get().getUid(),
-                    user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
+                    user.get().getUserGroups().stream().map( BaseIdentifiableObject::getUid )
                         .collect( Collectors.toList() ) );
             }
         } );

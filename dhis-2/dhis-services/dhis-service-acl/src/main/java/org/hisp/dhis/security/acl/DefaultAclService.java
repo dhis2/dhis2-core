@@ -762,14 +762,14 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        if ( sharing.getUserGroups() != null && !CollectionUtils.isEmpty( user.getGroups() ) )
+        if ( sharing.getUserGroups() != null && !CollectionUtils.isEmpty( user.getUserGroups() ) )
         {
             for ( UserGroupAccess userGroupAccess : sharing.getUserGroups().values() )
             {
                 // Check if user is allowed to read this object through group
                 // access
                 if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && hasUserGroupAccess( user.getGroups(), userGroupAccess.getId() ) )
+                    && hasUserGroupAccess( user.getUserGroups(), userGroupAccess.getId() ) )
                 {
                     return true;
                 }

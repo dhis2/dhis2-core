@@ -133,7 +133,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         final Program program = createProgram( 'A' );
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
-        user.getGroups().add( userGroup );
+        user.getUserGroups().add( userGroup );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
         program.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( program, false );
@@ -211,7 +211,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         programStage.setPublicAccess( AccessStringHelper.DEFAULT );
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
         manager.save( userGroup, true );
-        user.getGroups().add( userGroup );
+        user.getUserGroups().add( userGroup );
         programStage.getSharing().addUserGroupAccess(
             new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
@@ -302,7 +302,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         manager.save( tet );
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
         manager.save( userGroup, true );
-        user.getGroups().add( userGroup );
+        user.getUserGroups().add( userGroup );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
         tet.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( tet, false );
