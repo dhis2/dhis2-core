@@ -648,7 +648,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
-        return item.getSqlFilter( filter, encodedFilter );
+        return item.getSqlFilter( filter, encodedFilter, true );
     }
 
     /**

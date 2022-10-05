@@ -90,36 +90,43 @@ public class QueryFilter
 
     public String getSqlOperator()
     {
+        return getSqlOperator( false );
+    }
+
+    /**
+     *
+     * @param isOperatorSubstitutionAllowed whether the operator should be
+     *        replaced to support null values or not
+     * @return the sql operator found in the operator map
+     */
+    public String getSqlOperator( boolean isOperatorSubstitutionAllowed )
+    {
         if ( operator == null )
         {
             return null;
         }
 
-        return safelyGetOperator();
+        return safelyGetOperator( isOperatorSubstitutionAllowed );
     }
 
-    private String safelyGetOperator()
+    private String safelyGetOperator( boolean isOperatorSubstitutionAllowed )
     {
-        return OPERATOR_MAP.get( operator ).apply( StringUtils.trimToEmpty( filter ).contains( NV ) );
-    }
-
-    // TODO: unused. Remove ?
-    public String getJavaOperator()
-    {
-        if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
+        Function<Boolean, String> operatorFunction = OPERATOR_MAP.get( operator );
+        if ( operatorFunction != null )
         {
-            return null;
+            return operatorFunction
+                .apply( StringUtils.trimToEmpty( filter ).equalsIgnoreCase( NV ) && isOperatorSubstitutionAllowed );
         }
 
-        if ( operator == QueryOperator.EQ ) // TODO why special case?
-        {
-            return "==";
-        }
-
-        return safelyGetOperator();
+        return null;
     }
 
-    public String getSqlFilter( String encodedFilter )
+    public String getSqlFilter( final String encodedFilter )
+    {
+        return getSqlFilter( encodedFilter, false );
+    }
+
+    public String getSqlFilter( String encodedFilter, boolean isNullValueSubstitutionAllowed )
     {
         if ( operator == null || encodedFilter == null )
         {
@@ -132,7 +139,7 @@ public class QueryFilter
         }
         else if ( QueryOperator.EQ.equals( operator ) || QueryOperator.NE.equals( operator ) )
         {
-            if ( encodedFilter.equals( NV ) )
+            if ( encodedFilter.equals( NV ) && isNullValueSubstitutionAllowed )
             {
                 return "null";
             }

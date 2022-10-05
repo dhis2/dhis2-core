@@ -312,7 +312,7 @@ public class JdbcEnrollmentAnalyticsManager
                     }
                     else
                     {
-                        sql += "and " + field + " " + filter.getSqlOperator() + " "
+                        sql += "and " + field + " " + filter.getSqlOperator( true ) + " "
                             + getSqlFilter( filter, item ) + " ";
                     }
 
@@ -327,7 +327,7 @@ public class JdbcEnrollmentAnalyticsManager
                 for ( QueryFilter filter : item.getFilters() )
                 {
                     sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
-                        + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                        + filter.getSqlOperator( true ) + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
