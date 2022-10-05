@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,12 +57,14 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
+    private static final String METADATA_ATTACHMENT = "metadata";
+
     /**
      * File name that will get a media type related suffix when included as an
      * attachment file name.
      */
     private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
-        .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
+        .unmodifiableSet( new HashSet<>( Arrays.asList( METADATA_ATTACHMENT, "events" ) ) );
 
     private final NodeService nodeService;
 
@@ -127,7 +130,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         }
         else if ( Compression.ZIP == compression )
         {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
+            if ( !attachment || (extensibleAttachmentFilename != null
+                && extensibleAttachmentFilename.equalsIgnoreCase( METADATA_ATTACHMENT )) )
             {
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
@@ -135,7 +139,8 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
             }
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata." + fileExtension ) );
+            outputStream.putNextEntry( new ZipEntry( extensibleAttachmentFilename + "." + fileExtension ) );
+
             nodeService.serialize( rootNode, contentType, outputStream );
             outputStream.close();
         }
@@ -157,7 +162,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         @Nullable String compressionExtension )
     {
         final String suffix = (compressionExtension == null) ? "" : "." + compressionExtension;
-        return "attachment; filename=" + StringUtils.defaultString( extensibleFilename, "metadata" ) + "."
+        return "attachment; filename=" + StringUtils.defaultString( extensibleFilename, METADATA_ATTACHMENT ) + "."
             + fileExtension + suffix;
     }
 
@@ -169,7 +174,9 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
     @Nullable
     protected String getExtensibleAttachmentFilename( @Nullable String contentDispositionHeaderValue )
     {
-        final String filename = ContextUtils.getAttachmentFileName( contentDispositionHeaderValue );
+        final String filename = StringUtils
+            .substringBefore( ContextUtils.getAttachmentFileName( contentDispositionHeaderValue ), "." );
+
         return (filename != null) && EXTENSIBLE_ATTACHMENT_FILENAMES.contains( filename ) ? filename : null;
     }
 }
