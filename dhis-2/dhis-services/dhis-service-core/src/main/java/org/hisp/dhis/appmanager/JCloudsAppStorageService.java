@@ -289,11 +289,13 @@ public class JCloudsAppStorageService
 
         // -----------------------------------------------------------------
         // Check for namespace and if it's already taken by another app
+        // Allow install if namespace was taken by another version of this app
         // -----------------------------------------------------------------
 
         String namespace = app.getActivities().getDhis().getNamespace();
 
-        if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
+        if ( namespace != null && !namespace.isEmpty() && reservedNamespaces.containsKey( namespace )
+            && !app.equals( reservedNamespaces.get( namespace ) ) )
         {
             log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
                 app.getName(), namespace ) );
