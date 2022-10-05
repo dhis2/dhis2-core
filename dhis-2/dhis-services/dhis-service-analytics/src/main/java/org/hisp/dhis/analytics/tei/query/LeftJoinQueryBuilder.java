@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BinaryCondition;
+import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.shared.query.Renderable;
 
 @NoArgsConstructor( access = PRIVATE )
@@ -55,7 +55,7 @@ public class LeftJoinQueryBuilder
 
     private static Renderable getCondition( AnalyticsSortingParams sortingParams )
     {
-        return BinaryCondition.fieldsEqual(
+        return BinaryConditionRenderer.fieldsEqual(
             TEI_ALIAS,
             TEI_UID,
             doubleQuote( sortingParams.getOrderBy().toString() ),

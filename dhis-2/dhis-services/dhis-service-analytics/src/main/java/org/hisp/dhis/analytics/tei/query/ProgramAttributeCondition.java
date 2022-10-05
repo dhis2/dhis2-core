@@ -37,6 +37,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.shared.query.OrCondition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;

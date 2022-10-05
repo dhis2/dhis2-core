@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
 import org.hisp.dhis.common.QueryOperator;
 import org.junit.jupiter.api.Test;
 

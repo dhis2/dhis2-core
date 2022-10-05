@@ -27,23 +27,19 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
-// TODO: Improve as describer in JIRA DHIS2-13860
-public class BinaryConditionRenderer extends BaseRenderable
+public class ConstantValuesRenderer extends BaseRenderable
 {
-    private final String field;
-
-    private final QueryOperator operator;
-
-    private final List<String> values;
+    private final Object values;
 
     private final ValueTypeMapping valueTypeMapping;
 
@@ -52,11 +48,37 @@ public class BinaryConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        if ( QueryOperator.EQ == operator || QueryOperator.IN == operator )
+        if ( values instanceof Collection )
         {
-            return InOrEqConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
+            return renderCollection( (Collection<?>) values );
         }
-        // TODO: implement more operators
-        throw new IllegalArgumentException( "Unimplemented operator: " + operator );
+        else
+        {
+            return renderSingleValue( values );
+        }
+    }
+
+    private String renderSingleValue( Object value )
+    {
+        return queryContext.bindParamAndGetIndex(
+            valueTypeMapping.convertSingle( value.toString() ) );
+    }
+
+    private String renderCollection( Collection<?> values )
+    {
+        List<String> valuesAsStringList = values.stream()
+            .map( Object::toString )
+            .collect( Collectors.toList() );
+        if ( valuesAsStringList.size() > 1 )
+        {
+            return queryContext.bindParamAndGetIndex(
+                valueTypeMapping.convertMany( valuesAsStringList ) );
+        }
+        return renderSingleValue( valuesAsStringList.get( 0 ) );
+    }
+
+    public boolean hasMultipleValues()
+    {
+        return values instanceof Collection && ((Collection<?>) values).size() > 1;
     }
 }

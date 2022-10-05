@@ -30,29 +30,23 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.Renderable;
 import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class InConditionRenderer extends BaseRenderable
 {
-    private final String field;
+    private final Renderable field;
 
-    private final List<String> values;
-
-    private final ValueTypeMapping valueTypeMapping;
-
-    private final QueryContext queryContext;
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        return doubleQuote( field ) + SPACE + QueryOperator.IN.getValue() + " ("
-            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( values ) ) + ")";
+        return doubleQuote( field.render() ) + SPACE + QueryOperator.IN.getValue() + " ("
+            + values.render() + ")";
     }
 }

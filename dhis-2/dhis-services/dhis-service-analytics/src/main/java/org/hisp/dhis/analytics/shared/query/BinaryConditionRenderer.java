@@ -27,16 +27,20 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.common.QueryOperator.EQ;
-import static org.hisp.dhis.common.QueryOperator.IN;
+
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.tei.query.ConstantValuesRenderer;
+import org.hisp.dhis.analytics.tei.query.InOrEqConditionRenderer;
+import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class BinaryCondition extends BaseRenderable
+public class BinaryConditionRenderer extends BaseRenderable
 {
     private final Renderable left;
 
@@ -44,19 +48,27 @@ public class BinaryCondition extends BaseRenderable
 
     private final Renderable right;
 
-    public static BinaryCondition fieldsEqual( String leftAlias, String left, String rightAlias, String right )
+    public static BinaryConditionRenderer fieldsEqual(String leftAlias, String left, String rightAlias, String right )
     {
-        return BinaryCondition.of(
+        return BinaryConditionRenderer.of(
             Field.of( leftAlias, () -> left, null ), EQ, Field.of( rightAlias, () -> right, null ) );
+    }
+
+    public static BinaryConditionRenderer of(String field, QueryOperator queryOperator, List<String> values,
+                                             ValueTypeMapping valueTypeMapping, QueryContext queryContext )
+    {
+        return BinaryConditionRenderer.of( () -> field, queryOperator,
+            ConstantValuesRenderer.of( values, valueTypeMapping, queryContext ) );
     }
 
     @Override
     public String render()
     {
-        if ( queryOperator.equals( IN ) )
+        if ( QueryOperator.EQ == queryOperator || QueryOperator.IN == queryOperator )
         {
-            return left.render() + " in (" + right.render() + ")";
+            return InOrEqConditionRenderer.of( left, right ).render();
         }
-        return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
+        // TODO: implement more operators
+        throw new IllegalArgumentException( "Unimplemented operator: " + queryOperator );
     }
 }

@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.Renderable;
 
 /**
  * A condition renderer which renders a condition with an IN or EQ operator,
@@ -41,22 +39,22 @@ import org.hisp.dhis.analytics.shared.query.BaseRenderable;
 @RequiredArgsConstructor( staticName = "of" )
 public class InOrEqConditionRenderer extends BaseRenderable
 {
-    private final String field;
+    private final Renderable field;
 
-    private final List<String> values;
-
-    private final ValueTypeMapping valueTypeMapping;
-
-    private final QueryContext queryContext;
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        boolean hasMultipleValues = values.size() > 1;
-        if ( hasMultipleValues )
+        if ( hasMultipleValues( values ) )
         {
-            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
+            return InConditionRenderer.of( field, values ).render();
         }
-        return EqConditionRenderer.of( field, List.of( values.get( 0 ) ), valueTypeMapping, queryContext ).render();
+        return EqConditionRenderer.of( field, values ).render();
+    }
+
+    private boolean hasMultipleValues( Renderable values )
+    {
+        return values instanceof ConstantValuesRenderer && ((ConstantValuesRenderer) values).hasMultipleValues();
     }
 }
