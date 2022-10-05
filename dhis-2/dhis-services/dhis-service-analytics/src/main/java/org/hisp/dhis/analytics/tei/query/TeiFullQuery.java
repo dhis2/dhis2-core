@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.query.AndCondition;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.From;
 import org.hisp.dhis.analytics.shared.query.JoinsWithConditions;

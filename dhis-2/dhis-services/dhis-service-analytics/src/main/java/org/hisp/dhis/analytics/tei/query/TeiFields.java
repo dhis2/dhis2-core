@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
-import org.hisp.dhis.analytics.shared.query.DoubleQuotingRenderable;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
