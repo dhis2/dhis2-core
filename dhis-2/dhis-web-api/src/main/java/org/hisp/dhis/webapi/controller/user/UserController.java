@@ -838,7 +838,7 @@ public class UserController
             {
                 JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
                 String opName = op.getOp();
-                if ( userGroups != null && opName.equals( "add" ) )
+                if ( userGroups != null && (opName.equals( "add" ) || opName.equals( "replace" )) )
                 {
                     AddOperation addOp = (AddOperation) op;
                     Stream<JsonNode> targetStream = CollectionUtils.iterableToStream( addOp.getValue().elements() );

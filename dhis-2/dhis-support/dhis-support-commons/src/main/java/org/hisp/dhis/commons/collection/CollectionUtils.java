@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -302,7 +304,7 @@ public class CollectionUtils
      */
     public static <E> Stream<E> iterableToStream( Iterator<E> iterator )
     {
-        Iterable<E> iterable = () -> iterator;
-        return StreamSupport.stream( iterable.spliterator(), false );
+        return StreamSupport.stream( Spliterators.spliteratorUnknownSize( iterator,
+            Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.IMMUTABLE ), false );
     }
 }
