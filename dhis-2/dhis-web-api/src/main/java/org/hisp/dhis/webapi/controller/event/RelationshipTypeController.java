@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -41,4 +44,53 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class RelationshipTypeController
     extends AbstractCrudController<RelationshipType>
 {
+    private final ProgramService programService;
+
+    public RelationshipTypeController( ProgramService programService )
+    {
+        this.programService = programService;
+    }
+
+    @Override
+    protected void preCreateEntity( RelationshipType entity )
+        throws Exception
+    {
+        super.preCreateEntity( entity );
+
+        handleEventProgramRelationshipConstraint( entity.getFromConstraint() );
+        handleEventProgramRelationshipConstraint( entity.getToConstraint() );
+    }
+
+    @Override
+    protected void preUpdateEntity( RelationshipType entity, RelationshipType newEntity )
+        throws Exception
+    {
+        super.preUpdateEntity( entity, newEntity );
+
+        handleEventProgramRelationshipConstraint( entity.getFromConstraint() );
+        handleEventProgramRelationshipConstraint( entity.getToConstraint() );
+    }
+
+    /**
+     * Update the constraint with a programStage if it meets the following
+     * criteria: Program is set and is without registration ProgramStage is not
+     * set
+     *
+     * We do this because programs without registration only have a single
+     * program stage
+     *
+     * @param constraint
+     */
+    private void handleEventProgramRelationshipConstraint( RelationshipConstraint constraint )
+    {
+        if ( constraint.getProgram() != null && constraint.getProgramStage() == null )
+        {
+            Program program = programService.getProgram( constraint.getProgram().getUid() );
+
+            if ( program.isWithoutRegistration() )
+            {
+                constraint.setProgramStage( program.getProgramStageByStage( 1 ) );
+            }
+        }
+    }
 }
