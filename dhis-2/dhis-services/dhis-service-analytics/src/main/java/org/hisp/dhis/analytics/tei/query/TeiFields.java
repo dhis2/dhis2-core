@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +44,9 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -50,6 +54,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 public class TeiFields
@@ -122,12 +127,27 @@ public class TeiFields
 
     public static Stream<Field> getOrderingFields( final TeiQueryParams teiQueryParams )
     {
-        return teiQueryParams.getCommonParams().getOrderParams()
+        List<Field> fields = new ArrayList<>();
+
+        teiQueryParams.getCommonParams().getOrderParams()
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
-            .map( RenderableDimensionIdentifier::of )
-            .map( RenderableDimensionIdentifier::render )
-            .map( s -> Field.of( EMPTY, () -> doubleQuote( s ) + ".VALUE", "VALUE" ) );
+            .forEach( p -> {
+                if ( isDynamicElement( p ) )
+                {
+                    fields.add( Field.of( EMPTY,
+                        () -> doubleQuote( RenderableDimensionIdentifier.of( p ).render() )
+                            + ".VALUE",
+                        "VALUE" ) );
+                }
+                else
+                {
+                    fields.add( Field.of( EMPTY,
+                        () -> RenderableDimensionIdentifier.of( p ).render(), EMPTY ) );
+                }
+            } );
+
+        return fields.stream();
     }
 
     public static Stream<Field> getStaticFields()
@@ -148,5 +168,19 @@ public class TeiFields
             f -> headers.add( new GridHeader( f.getFieldAlias(), "", TEXT, false, true ) ) );
 
         return headers;
+    }
+
+    /**
+     * Static element is term for the parameter used directly as a database
+     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
+     * example columns with uid strings
+     *
+     * @param p AnalyticsSortingParas
+     * @return boolean
+     */
+    private static boolean isDynamicElement( DimensionIdentifier<Program, ProgramStage, DimensionParam> p )
+    {
+        return (p.hasProgram() || p.hasProgramStage()) &&
+            p.getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
     }
 }

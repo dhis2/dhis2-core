@@ -54,7 +54,18 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.shared.SqlQuery;
-import org.hisp.dhis.analytics.shared.query.*;
+import org.hisp.dhis.analytics.shared.query.AndCondition;
+import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.shared.query.Field;
+import org.hisp.dhis.analytics.shared.query.From;
+import org.hisp.dhis.analytics.shared.query.JoinsWithConditions;
+import org.hisp.dhis.analytics.shared.query.LimitOffset;
+import org.hisp.dhis.analytics.shared.query.OrCondition;
+import org.hisp.dhis.analytics.shared.query.Order;
+import org.hisp.dhis.analytics.shared.query.Renderable;
+import org.hisp.dhis.analytics.shared.query.RenderableUtils;
+import org.hisp.dhis.analytics.shared.query.Select;
+import org.hisp.dhis.analytics.shared.query.Where;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
@@ -107,12 +118,28 @@ public class TeiFullQuery extends BaseRenderable
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> doubleQuote( p.getOrderBy().toString() ) + p.getSortDirection().name() )
+            .map( p -> (Renderable) () -> isDynamicElement( p )
+                ? doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
+                : p.getOrderBy().toString() + SPACE + p.getSortDirection().name() )
             .collect( toList() );
 
         return Order.builder()
             .orders( collect )
             .build();
+    }
+
+    /**
+     * Static element is term for the parameter used directly as a database
+     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
+     * example columns with uid strings
+     *
+     * @param p AnalyticsSortingParas
+     * @return boolean
+     */
+    private boolean isDynamicElement( AnalyticsSortingParams p )
+    {
+        return (p.getOrderBy().hasProgram() || p.getOrderBy().hasProgramStage()) &&
+            p.getOrderBy().getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
     }
 
     private Select getSelect()
