@@ -27,10 +27,20 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -257,12 +267,15 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Retrieves the uid from an org unit group parameter string, which is on
-     * the format OU_GROUP-<uid> .
+     * Retrieves the uid from the given org. unit group parameter.
+     *
+     * @param ouGroupParam the org. unit group param in the format
+     *        OU_GROUP-<uid>
+     * @return the uid of the param
      */
-    public static String getUidFromGroupParam( String param )
+    public static String getUidFromGroupParam( String ouGroupParam )
     {
-        return getValueFromKeywordParam( param );
+        return getValueFromKeywordParam( ouGroupParam );
     }
 
     /**
