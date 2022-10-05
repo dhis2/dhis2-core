@@ -52,15 +52,9 @@ public class BinaryConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        // TODO: depending on the operator we should invoke a dedicated
-        // operation renderer
-        if ( operator.equals( QueryOperator.IN ) )
+        if ( QueryOperator.EQ == operator || QueryOperator.IN == operator )
         {
-            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
-        }
-        if ( operator.equals( QueryOperator.EQ ) )
-        {
-            return EqConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
+            return InOrEqConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
         }
         // TODO: implement more operators
         throw new IllegalArgumentException( "Unimplemented operator: " + operator );

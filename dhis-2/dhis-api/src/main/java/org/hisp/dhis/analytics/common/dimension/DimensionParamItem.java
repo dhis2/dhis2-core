@@ -40,7 +40,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.feedback.ErrorCode;
 
 @Getter
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
@@ -83,7 +85,7 @@ public class DimensionParamItem
         return Arrays.stream( QueryOperator.values() )
             .filter( queryOperator -> equalsIgnoreCase( queryOperator.name(), operator ) )
             .findFirst()
-            .orElseThrow( () -> new IllegalArgumentException( "Invalid operator: " + operator ) );
+            .orElseThrow( () -> new IllegalQueryException( ErrorCode.E2035 ) );
     }
 
 }

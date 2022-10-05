@@ -27,59 +27,36 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.AndCondition;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
+/**
+ * A condition renderer which renders a condition with an IN or EQ operator,
+ * depending on the size of values
+ */
 @RequiredArgsConstructor( staticName = "of" )
-public class OrganisationUnitCondition extends BaseRenderable
+public class InOrEqConditionRenderer extends BaseRenderable
 {
-    private static final String OU_FIELD = "ou";
+    private final String field;
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+    private final List<String> values;
+
+    private final ValueTypeMapping valueTypeMapping;
 
     private final QueryContext queryContext;
 
     @Override
     public String render()
     {
-        if ( dimensionIdentifier.hasProgram() && dimensionIdentifier.hasProgramStage() )
+        boolean hasMultipleValues = values.size() > 1;
+        if ( hasMultipleValues )
         {
-            // TODO: Event OU filter DHIS2-13781
-            return "1 = 1 /* EVENT OU FILTER PENDING IMPLEMENTATION */";
+            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
         }
-        if ( dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage() )
-        {
-            // TODO: Enrollment OU filter DHIS2-13863
-            return "1 = 1 /* ENROLLMENT OU FILTER PENDING IMPLEMENTATION */";
-        }
-        if ( !dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage() )
-        {
-            List<Renderable> orgUnitConditions = new ArrayList<>();
-            for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-            {
-                BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                    OU_FIELD,
-                    QueryOperator.IN,
-                    item.getValues(),
-                    ValueTypeMapping.STRING,
-                    queryContext );
-                orgUnitConditions.add( condition );
-            }
-            return AndCondition.of( orgUnitConditions ).render();
-        }
-        return "";
+        return EqConditionRenderer.of( field, List.of( values.get( 0 ) ), valueTypeMapping, queryContext ).render();
     }
 }

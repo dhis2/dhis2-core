@@ -52,14 +52,7 @@ public class InConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        if ( values.size() > 1 )
-        {
-            return doubleQuote( field ) + SPACE + QueryOperator.IN.getValue() + " ("
-                + queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( values ) ) + ")";
-        }
-        else
-        {
-            return EqConditionRenderer.of( field, List.of( values.get( 0 ) ), valueTypeMapping, queryContext ).render();
-        }
+        return doubleQuote( field ) + SPACE + QueryOperator.IN.getValue() + " ("
+            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( values ) ) + ")";
     }
 }

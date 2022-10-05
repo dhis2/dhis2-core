@@ -54,8 +54,8 @@ public class SqlQuery implements Query
         this.statement = statement;
         this.params = params;
 
-        log.info( "STATEMENT: " + statement );
-        log.info( "PARAMS: " + params );
+        log.debug( "STATEMENT: " + statement );
+        log.debug( "PARAMS: " + params );
     }
 
     /**

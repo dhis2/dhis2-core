@@ -43,12 +43,14 @@ class OrConditionTest
         assertEquals( "", orCondition.render() );
     }
 
+    @Test
     void testRenderSingle()
     {
         OrCondition orCondition = OrCondition.of( List.of( () -> "c1" ) );
         assertEquals( "c1", orCondition.render() );
     }
 
+    @Test
     void testRenderMany()
     {
         OrCondition orCondition = OrCondition.of( List.of( () -> "c1", () -> "c2", () -> "c3" ) );

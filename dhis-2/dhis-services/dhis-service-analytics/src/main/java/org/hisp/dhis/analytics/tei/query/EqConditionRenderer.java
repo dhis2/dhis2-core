@@ -52,10 +52,6 @@ public class EqConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        if ( values.size() > 1 )
-        {
-            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
-        }
         return doubleQuote( field ) + SPACE + QueryOperator.EQ.getValue() + SPACE
             + queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( values.get( 0 ) ) );
     }
