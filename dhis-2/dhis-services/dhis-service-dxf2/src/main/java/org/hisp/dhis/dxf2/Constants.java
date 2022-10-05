@@ -35,4 +35,14 @@ public final class Constants
     public static final String UNKNOWN = "[Unknown]";
 
     public static final List<String> PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS = Arrays.asList( "and", "or", "not" );
+
+    public static final String SYSTEM = "system";
+
+    public static final String SYSTEM_ID = "id";
+
+    public static final String SYSTEM_REVISION = "rev";
+
+    public static final String SYSTEM_VERSION = "version";
+
+    public static final String SYSTEM_DATE = "date";
 }
