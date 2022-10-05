@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -76,14 +75,13 @@ public interface DataQueryService
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit the user organisation unit parameter, overrides
      *        current user, can be null.
-     * @param format the i18n format.
      * @param inputIdScheme the identifier scheme to interpret dimension and
      *        filters.
      * @return a list of DimensionalObject.
      * @throws IllegalQueryException if the query is illegal.
      */
     List<DimensionalObject> getDimensionalObjects( Set<String> dimensionParams, Date relativePeriodDate,
-        String userOrgUnit, I18nFormat format, IdScheme inputIdScheme );
+        String userOrgUnit, IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension
@@ -101,7 +99,6 @@ public interface DataQueryService
      *        periods, can be null.
      * @param userOrgUnits the list of user organisation units, overrides
      *        current user, can be null.
-     * @param format the I18nFormat, can be null.
      * @param allowNull return null if no dimension was found.
      * @param inputIdScheme the identifier scheme to interpret dimension and
      *        filters.
@@ -109,7 +106,7 @@ public interface DataQueryService
      * @throws IllegalQueryException if the query is illegal.
      */
     DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme );
 
     /**
      * Returns a persisted DimensionalObject generated from the given dimension
@@ -126,7 +123,6 @@ public interface DataQueryService
      * @param request query request periods, can be null.
      * @param userOrgUnits the list of user organisation units, overrides
      *        current user, can be null.
-     * @param format the I18nFormat, can be null.
      * @param allowNull return null if no dimension was found.
      * @param inputIdScheme the identifier scheme to interpret dimension and
      *        filters.
@@ -134,7 +130,7 @@ public interface DataQueryService
      * @throws IllegalQueryException if the query is illegal.
      */
     DimensionalObject getDimension( String dimension, List<String> items, EventDataQueryRequest request,
-        List<OrganisationUnit> userOrgUnits, I18nFormat format, boolean allowNull, IdScheme inputIdScheme );
+        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme );
 
     /**
      * Returns a list of user organisation units, looking first at the given

@@ -793,8 +793,8 @@ public class RelativePeriods
      *
      * @param relativePeriod a list of RelativePeriodsEnum.
      * @param date the relative date to use for generating the relative periods.
-     * @param I18nFormat format the {@link I18nFormat}, can be null.
-     * @param boolean dynamicNames indicates whether to set dynamic names on the
+     * @param format the {@link I18nFormat}, can be null.
+     * @param dynamicNames indicates whether to set dynamic names on the
      *        periods.
      * @param financialYearStart the start of a financial year per
      *        {@link AnalyticsFinancialYearStartKey}.

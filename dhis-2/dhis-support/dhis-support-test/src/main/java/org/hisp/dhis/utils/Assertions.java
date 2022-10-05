@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.utils;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -199,5 +202,37 @@ public final class Assertions
     {
         assertTrue( actual <= upper,
             () -> String.format( "Expected actual %d to be <= than upper bound %d", actual, upper ) );
+    }
+
+    /**
+     * Compares 2 relative URLs for equality. That means they are functionally
+     * equivalent but their parameters might occur in a different order.
+     *
+     * Example of equivalent URLs:
+     *
+     * <pre>
+     * /context/endpoint?a=b&c=d
+     * /context/endpoint?c=d&a=b
+     * </pre>
+     *
+     * @param expected the expected URL with path and optional parameters
+     * @param actual the actual URL with path and optional parameters
+     */
+    public static void assertEquivalentRelativeUrls( String expected, String actual )
+    {
+        int paramsStart = expected.indexOf( '?' );
+        if ( paramsStart < 0 )
+        {
+            assertEquals( expected, actual );
+        }
+        else
+        {
+            Function<String, List<String>> toParameterList = url -> {
+                String params = url.substring( url.indexOf( '?' ) + 1 );
+                return stream( params.split( "&" ) ).collect( toUnmodifiableList() );
+            };
+            assertStartsWith( expected.substring( 0, paramsStart + 1 ), actual );
+            assertContainsOnly( toParameterList.apply( expected ), toParameterList.apply( actual ) );
+        }
     }
 }
