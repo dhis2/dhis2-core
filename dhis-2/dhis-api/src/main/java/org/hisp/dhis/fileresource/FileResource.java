@@ -85,7 +85,7 @@ public class FileResource
     /**
      * To keep track of those files which are not pre-generated and need to be
      * processed later. Flag will be set to true for FileResource having more
-     * than one file associated with it (e.g images)
+     * than one file associated with it (e.g. images)
      */
     private boolean hasMultipleStorageFiles;
 
