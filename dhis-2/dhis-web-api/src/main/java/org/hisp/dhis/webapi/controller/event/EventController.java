@@ -35,7 +35,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_ENTITY_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -551,7 +550,6 @@ public class EventController
             response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + eventCriteria.getAttachment() );
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            response.setHeader( HEADER_ENTITY_TYPE, "events" );
         }
 
         rootNode.addChild(
@@ -631,7 +629,6 @@ public class EventController
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
             response.setContentType( "application/csv+gzip" );
-            response.setHeader( HEADER_ENTITY_TYPE, "events" );
         }
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )

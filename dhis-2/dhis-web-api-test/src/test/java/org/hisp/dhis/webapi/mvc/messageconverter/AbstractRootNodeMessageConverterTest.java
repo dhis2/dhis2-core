@@ -124,7 +124,21 @@ public class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void getExtensibleAttachmentFilenameOther()
+    void getExtensibleAttachmentFilenameEvents()
+    {
+        Assertions.assertEquals( "events",
+            converter.getExtensibleAttachmentFilename( "attachment; filename=events" ) );
+    }
+
+    @Test
+    void getExtensibleAttachmentFilenameEventsZipped()
+    {
+        Assertions.assertEquals( "events",
+            converter.getExtensibleAttachmentFilename( "attachment; filename=events.csv.zip" ) );
+    }
+
+    @Test
+    void getExtensibleAttachmentFilenameOther()
     {
         Assert.assertNull( converter.getExtensibleAttachmentFilename( "attachment; filename=other" ) );
     }
