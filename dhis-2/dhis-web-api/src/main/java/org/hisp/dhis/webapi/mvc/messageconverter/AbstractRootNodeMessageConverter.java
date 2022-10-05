@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -61,7 +62,7 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
      * attachment file name.
      */
     private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
-        .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
+        .unmodifiableSet( new HashSet<>( Arrays.asList( "metadata", "events" ) ) );
 
     private final NodeService nodeService;
 
@@ -127,19 +128,16 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
         }
         else if ( Compression.ZIP == compression )
         {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
+            if ( !attachment || (extensibleAttachmentFilename != null
+                && extensibleAttachmentFilename.equalsIgnoreCase( "metadata" )) )
             {
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
-            final String entityType = outputMessage.getHeaders()
-                .getFirst( ContextUtils.HEADER_ENTITY_TYPE );
-
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            String fileName = entityType != null ? entityType + "." : "metadata.";
-            outputStream.putNextEntry( new ZipEntry( fileName + fileExtension ) );
+            outputStream.putNextEntry( new ZipEntry( extensibleAttachmentFilename + "." + fileExtension ) );
 
             nodeService.serialize( rootNode, contentType, outputStream );
             outputStream.close();
@@ -174,7 +172,9 @@ public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessa
     @Nullable
     protected String getExtensibleAttachmentFilename( @Nullable String contentDispositionHeaderValue )
     {
-        final String filename = ContextUtils.getAttachmentFileName( contentDispositionHeaderValue );
+        final String filename = StringUtils
+            .substringBefore( ContextUtils.getAttachmentFileName( contentDispositionHeaderValue ), "." );
+
         return (filename != null) && EXTENSIBLE_ATTACHMENT_FILENAMES.contains( filename ) ? filename : null;
     }
 }
