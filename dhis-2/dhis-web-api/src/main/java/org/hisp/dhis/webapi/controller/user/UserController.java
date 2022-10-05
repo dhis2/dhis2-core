@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -65,6 +66,9 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -123,6 +127,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
@@ -654,7 +660,8 @@ public class UserController
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
 
         manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+
+        postPatchEntity( null, persistedObject );
     }
 
     /*
@@ -712,7 +719,7 @@ public class UserController
         HttpServletRequest request )
         throws Exception
     {
-        User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        User inputUser = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
         List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
         if ( users.isEmpty() )
@@ -722,13 +729,13 @@ public class UserController
         }
 
         // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
+        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), inputUser );
 
-        return importReport( updateUser( pvUid, parsed ) )
+        return importReport( updateUser( pvUid, inputUser ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    protected ImportReport updateUser( String userUid, User parsedUserObject )
+    protected ImportReport updateUser( String userUid, User inputUser )
         throws WebMessageException
     {
         List<User> users = getEntity( userUid, NO_WEB_OPTIONS );
@@ -751,13 +758,13 @@ public class UserController
         // (in case it gets detached)
         currentUser.getAllAuthorities();
 
-        parsedUserObject.setId( users.get( 0 ).getId() );
-        parsedUserObject.setUid( userUid );
-        mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
+        inputUser.setId( users.get( 0 ).getId() );
+        inputUser.setUid( userUid );
+        mergeLastLoginAttribute( users.get( 0 ), inputUser );
 
-        boolean isPasswordChangeAttempt = parsedUserObject.getPassword() != null;
+        boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
 
-        List<String> groupsUids = getUids( parsedUserObject.getGroups() );
+        List<String> groupsUids = getUids( inputUser.getGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.canModifyUser( users.get( 0 ) ) )
@@ -770,13 +777,13 @@ public class UserController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsedUserObject );
+        params.addObject( inputUser );
 
         ImportReport importReport = importService.importMetadata( params );
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
-            updateUserGroups( userUid, parsedUserObject, currentUser );
+            updateUserGroups( userUid, inputUser, currentUser );
 
             // If it was a pw change attempt (input.pw != null) and update was
             // success we assume password has changed...
@@ -784,16 +791,16 @@ public class UserController
             // same. i.e. no before & after equals pw check
             if ( isPasswordChangeAttempt )
             {
-                userService.expireActiveSessions( parsedUserObject );
+                userService.expireActiveSessions( inputUser );
             }
         }
 
         return importReport;
     }
 
-    protected void updateUserGroups( String pvUid, User parsed, User currentUser )
+    protected void updateUserGroups( String userUid, User parsed, User currentUser )
     {
-        User user = userService.getUser( pvUid );
+        User user = userService.getUser( userUid );
 
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
@@ -817,13 +824,31 @@ public class UserController
     }
 
     @Override
-    protected void postPatchEntity( User user )
+    protected void postPatchEntity( JsonPatch patch, User entityAfter )
     {
         // Make sure we always expire all the user's active sessions if we
         // have disabled the user.
-        if ( user != null && user.isDisabled() )
+        if ( entityAfter != null && entityAfter.isDisabled() )
         {
-            userService.expireActiveSessions( user );
+            userService.expireActiveSessions( entityAfter );
+        }
+
+        if ( entityAfter != null && patch != null )
+        {
+            for ( JsonPatchOperation op : patch.getOperations() )
+            {
+                JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
+                String opName = op.getOp();
+                if ( userGroups != null && opName.equals( "add" ) )
+                {
+                    AddOperation addOp = (AddOperation) op;
+                    Stream<JsonNode> targetStream = CollectionUtils.iterableToStream( addOp.getValue().elements() );
+                    List<String> uids = targetStream.map( node -> node.get( "id" ).asText() )
+                        .collect( Collectors.toList() );
+
+                    userGroupService.updateUserGroups( entityAfter, uids, currentUserService.getCurrentUser() );
+                }
+            }
         }
     }
 
