@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.Static.values;
 import static org.hisp.dhis.common.ValueType.DATETIME;
@@ -136,7 +137,7 @@ public class TeiFields
                 if ( isDynamicElement( p ) )
                 {
                     fields.add( Field.of( EMPTY,
-                        () -> DoubleQuotingRenderable.of( RenderableDimensionIdentifier.of( p ).render() ).render()
+                        () -> doubleQuote( RenderableDimensionIdentifier.of( p ).render() )
                             + ".VALUE",
                         "VALUE" ) );
                 }

@@ -45,6 +45,8 @@ public class QueryContextConstants
 
     public static final String TEI_ALIAS = "t_1";
 
+    public static final String DOT = ".";
+
     public static final String EVT_ALIAS = "evt";
 
     public static final String EVT_1_ALIAS = "evt_1";

@@ -62,7 +62,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.common.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -82,8 +82,6 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class CommonQueryRequestMapper
 {
-    private final I18nManager i18nManager;
-
     private final DataQueryService dataQueryService;
 
     private final EventDataQueryService eventDataQueryService;
@@ -224,8 +222,8 @@ public class CommonQueryRequestMapper
 
         // then we check if it's a DimensionalObject
         DimensionalObject dimensionalObject = dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(),
-            items, request.getRelativePeriodDate(), userOrgUnits, i18nManager.getI18nFormat(), true, UID );
+            dimensionIdentifier.getDimension().getUid(), items, request.getRelativePeriodDate(), userOrgUnits, true,
+            UID );
 
         if ( Objects.nonNull( dimensionalObject ) )
         {
@@ -237,13 +235,16 @@ public class CommonQueryRequestMapper
         }
 
         // then it should be a queryItem: queryItems needs to be prefixed by
-        // {programUid}.{programStageUid}
-        if ( dimensionIdentifier.hasProgram() && dimensionIdentifier.hasProgramStage() )
+        // programUid (program attributes, program indicators)
+        // and optionally by a programStageUid (Data Element)
+        if ( dimensionIdentifier.hasProgram() )
         {
+            QueryItem queryItem = eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension().getUid(),
+                dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE );
+
             // The fully qualified dimension identification is required here
             DimensionParam dimensionParam = DimensionParam.ofObject(
-                eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension().getUid(),
-                    dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ),
+                queryItem,
                 dimensionParamType, items );
 
             return DimensionIdentifier.of(

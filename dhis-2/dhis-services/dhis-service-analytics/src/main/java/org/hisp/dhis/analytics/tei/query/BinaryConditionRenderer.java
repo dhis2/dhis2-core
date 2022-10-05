@@ -25,50 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notNull;
+import java.util.List;
 
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.common.QueryOperator;
 
-/**
- * @author maikel arabori
- */
-@EqualsAndHashCode
-@Slf4j
-public class SqlQuery implements Query
+@RequiredArgsConstructor( staticName = "of" )
+// TODO: Improve as describer in JIRA DHIS2-13860
+public class BinaryConditionRenderer extends BaseRenderable
 {
-    private final String statement;
+    private final String field;
 
-    private final Map<String, Object> params;
+    private final QueryOperator operator;
 
-    public SqlQuery( final String statement, final Map<String, Object> params )
-    {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null/empty" );
+    private final List<String> values;
 
-        this.statement = statement;
-        this.params = params;
+    private final ValueTypeMapping valueTypeMapping;
 
-        log.debug( "STATEMENT: " + statement );
-        log.debug( "PARAMS: " + params );
-    }
+    private final QueryContext queryContext;
 
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
     @Override
-    public String statement()
+    public String render()
     {
-        return statement;
-    }
-
-    public Map<String, Object> params()
-    {
-        return params;
+        if ( QueryOperator.EQ == operator || QueryOperator.IN == operator )
+        {
+            return InOrEqConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
+        }
+        // TODO: implement more operators
+        throw new IllegalArgumentException( "Unimplemented operator: " + operator );
     }
 }

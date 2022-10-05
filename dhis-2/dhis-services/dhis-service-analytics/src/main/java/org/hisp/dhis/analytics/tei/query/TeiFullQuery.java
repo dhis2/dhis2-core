@@ -33,7 +33,8 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Map;
@@ -112,14 +113,14 @@ public class TeiFullQuery extends BaseRenderable
 
         return LimitOffset.of(
             pagingAndSortingParams.getPageSize(),
-            pagingAndSortingParams.getPageSize() * pagingAndSortingParams.getPage() );
+            pagingAndSortingParams.getPageSize() * (pagingAndSortingParams.getPage() - 1) );
     }
 
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
             .map( p -> (Renderable) () -> isDynamicElement( p )
-                ? DoubleQuotingRenderable.of( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
+                ? doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
                 : p.getOrderBy().toString() + SPACE + p.getSortDirection().name() )
             .collect( toList() );
 
@@ -242,6 +243,22 @@ public class TeiFullQuery extends BaseRenderable
             return AndCondition.of(
                 dimensionIdentifiers.stream()
                     .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == PROGRAM_ATTRIBUTE )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> ProgramAttributeCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == ORGANISATION_UNIT )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
                     .collect( toList() ) );
         }
 

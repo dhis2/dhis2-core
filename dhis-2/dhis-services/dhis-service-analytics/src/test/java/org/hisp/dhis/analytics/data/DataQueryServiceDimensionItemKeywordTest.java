@@ -87,6 +87,26 @@ import com.google.common.collect.Sets;
 @ExtendWith( MockitoExtension.class )
 class DataQueryServiceDimensionItemKeywordTest
 {
+    private static final DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
+
+    private static final DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
+
+    private static final DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
+
+    private static final String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
+
+    private static final BeanRandomizer rnd = BeanRandomizer
+        .create( Map.of( OrganisationUnitGroup.class, Set.of( "geometry" ),
+            OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
+
+    private DimensionalObjectProducer dimensionalObjectProducer;
+
+    private RequestBuilder rb;
+
+    private OrganisationUnit rootOu;
+
+    private DefaultDataQueryService target;
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -114,29 +134,12 @@ class DataQueryServiceDimensionItemKeywordTest
     @Mock
     private I18n i18n;
 
-    private DefaultDataQueryService target;
-
-    private final static DataElement DATA_ELEMENT_1 = getDataElement( "fbfJHSPpUQD", "D1" );
-
-    private final static DataElement DATA_ELEMENT_2 = getDataElement( "cYeuwXTCPkU", "D2" );
-
-    private final static DataElement DATA_ELEMENT_3 = getDataElement( "Jtf34kNZhzP", "D3" );
-
-    private final static String PERIOD_DIMENSION = "LAST_12_MONTHS;LAST_YEAR";
-
-    private RequestBuilder rb;
-
-    private OrganisationUnit rootOu;
-
-    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
-        OrganisationUnitGroup.class, Set.of( "geometry" ),
-        OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
-
     @BeforeEach
     public void setUp()
     {
-        target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,
-            securityManager, systemSettingManager, aclService, currentUserService, i18nManager );
+        dimensionalObjectProducer = new DimensionalObjectProducer( idObjectManager, organisationUnitService,
+            systemSettingManager, i18nManager, dimensionService, aclService, currentUserService );
+        target = new DefaultDataQueryService( dimensionalObjectProducer, idObjectManager, securityManager );
 
         rb = new RequestBuilder();
 

@@ -25,50 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author maikel arabori
- */
-@EqualsAndHashCode
-@Slf4j
-public class SqlQuery implements Query
+class OrConditionTest
 {
-    private final String statement;
-
-    private final Map<String, Object> params;
-
-    public SqlQuery( final String statement, final Map<String, Object> params )
+    @Test
+    void testRenderEmpty()
     {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null/empty" );
-
-        this.statement = statement;
-        this.params = params;
-
-        log.debug( "STATEMENT: " + statement );
-        log.debug( "PARAMS: " + params );
+        OrCondition orCondition = OrCondition.of( Collections.emptyList() );
+        assertEquals( "", orCondition.render() );
     }
 
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
-    @Override
-    public String statement()
+    @Test
+    void testRenderSingle()
     {
-        return statement;
+        OrCondition orCondition = OrCondition.of( List.of( () -> "c1" ) );
+        assertEquals( "c1", orCondition.render() );
     }
 
-    public Map<String, Object> params()
+    @Test
+    void testRenderMany()
     {
-        return params;
+        OrCondition orCondition = OrCondition.of( List.of( () -> "c1", () -> "c2", () -> "c3" ) );
+        assertEquals( "(c1 or c2 or c3)", orCondition.render() );
     }
 }
