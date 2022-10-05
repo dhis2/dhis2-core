@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared.query;
+package org.hisp.dhis.analytics.tei.query;
+
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+
+/**
+ * A condition renderer which renders a condition with an IN or EQ operator,
+ * depending on the size of values
+ */
 @RequiredArgsConstructor( staticName = "of" )
-public class DoubleQuotingRenderable extends BaseRenderable
+public class InOrEqConditionRenderer extends BaseRenderable
 {
-    private final String value;
+    private final String field;
+
+    private final List<String> values;
+
+    private final ValueTypeMapping valueTypeMapping;
+
+    private final QueryContext queryContext;
 
     @Override
     public String render()
     {
-        return "\"" + value + "\"";
+        boolean hasMultipleValues = values.size() > 1;
+        if ( hasMultipleValues )
+        {
+            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
+        }
+        return EqConditionRenderer.of( field, List.of( values.get( 0 ) ), valueTypeMapping, queryContext ).render();
     }
 }

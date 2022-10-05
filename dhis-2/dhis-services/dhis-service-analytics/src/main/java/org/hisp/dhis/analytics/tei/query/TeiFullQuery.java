@@ -33,7 +33,8 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Map;
@@ -111,18 +112,34 @@ public class TeiFullQuery extends BaseRenderable
 
         return LimitOffset.of(
             pagingAndSortingParams.getPageSize(),
-            pagingAndSortingParams.getPageSize() * pagingAndSortingParams.getPage() );
+            pagingAndSortingParams.getPageSize() * (pagingAndSortingParams.getPage() - 1) );
     }
 
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> "\"" + p.getOrderBy().toString() + "\" " + p.getSortDirection().name() )
+            .map( p -> (Renderable) () -> isDynamicElement( p )
+                ? doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name()
+                : p.getOrderBy().toString() + SPACE + p.getSortDirection().name() )
             .collect( toList() );
 
         return Order.builder()
             .orders( collect )
             .build();
+    }
+
+    /**
+     * Static element is term for the parameter used directly as a database
+     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
+     * example columns with uid strings
+     *
+     * @param p AnalyticsSortingParas
+     * @return boolean
+     */
+    private boolean isDynamicElement( AnalyticsSortingParams p )
+    {
+        return (p.getOrderBy().hasProgram() || p.getOrderBy().hasProgramStage()) &&
+            p.getOrderBy().getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
     }
 
     private Select getSelect()
@@ -225,6 +242,22 @@ public class TeiFullQuery extends BaseRenderable
             return AndCondition.of(
                 dimensionIdentifiers.stream()
                     .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == PROGRAM_ATTRIBUTE )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> ProgramAttributeCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == ORGANISATION_UNIT )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
                     .collect( toList() ) );
         }
 

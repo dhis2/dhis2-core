@@ -31,9 +31,7 @@ import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assert
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
@@ -54,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -278,6 +277,19 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvFormat()
+    {
+        WebClient.HttpResponse response = GET( "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( "application/csv" ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ),
+            () -> response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

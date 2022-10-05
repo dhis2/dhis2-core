@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notNull;
+import lombok.experimental.UtilityClass;
 
-import java.util.Map;
-
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * @author maikel arabori
- */
-@EqualsAndHashCode
-@Slf4j
-public class SqlQuery implements Query
+@UtilityClass
+public class QuotingUtils
 {
-    private final String statement;
+    private static final Character DOUBLE_QUOTE = '\"';
 
-    private final Map<String, Object> params;
+    private static final Character SINGLE_QUOTE = '\'';
 
-    public SqlQuery( final String statement, final Map<String, Object> params )
+    public static String quote( String value )
     {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null/empty" );
-
-        this.statement = statement;
-        this.params = params;
-
-        log.debug( "STATEMENT: " + statement );
-        log.debug( "PARAMS: " + params );
+        return SINGLE_QUOTE + value + SINGLE_QUOTE;
     }
 
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
-    @Override
-    public String statement()
+    public static String doubleQuote( String value )
     {
-        return statement;
+        return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
     }
 
-    public Map<String, Object> params()
-    {
-        return params;
-    }
 }

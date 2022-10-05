@@ -25,50 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.shared;
+package org.hisp.dhis.analytics.tei.query;
 
-import static org.springframework.util.Assert.hasText;
-import static org.springframework.util.Assert.notNull;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.Map;
+import java.util.List;
 
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 
-/**
- * @author maikel arabori
- */
-@EqualsAndHashCode
-@Slf4j
-public class SqlQuery implements Query
+import org.hisp.dhis.analytics.shared.ValueTypeMapping;
+import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.common.QueryOperator;
+
+@RequiredArgsConstructor( staticName = "of" )
+public class EqConditionRenderer extends BaseRenderable
 {
-    private final String statement;
+    private final String field;
 
-    private final Map<String, Object> params;
+    private final List<String> values;
 
-    public SqlQuery( final String statement, final Map<String, Object> params )
-    {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null/empty" );
+    private final ValueTypeMapping valueTypeMapping;
 
-        this.statement = statement;
-        this.params = params;
+    private final QueryContext queryContext;
 
-        log.debug( "STATEMENT: " + statement );
-        log.debug( "PARAMS: " + params );
-    }
-
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
     @Override
-    public String statement()
+    public String render()
     {
-        return statement;
-    }
-
-    public Map<String, Object> params()
-    {
-        return params;
+        return doubleQuote( field ) + SPACE + QueryOperator.EQ.getValue() + SPACE
+            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( values.get( 0 ) ) );
     }
 }
