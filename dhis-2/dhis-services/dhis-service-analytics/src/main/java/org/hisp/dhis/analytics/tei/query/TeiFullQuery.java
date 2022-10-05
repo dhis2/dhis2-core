@@ -33,7 +33,8 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Map;
@@ -53,18 +54,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.shared.SqlQuery;
-import org.hisp.dhis.analytics.shared.query.AndCondition;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.From;
-import org.hisp.dhis.analytics.shared.query.JoinsWithConditions;
-import org.hisp.dhis.analytics.shared.query.LimitOffset;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.analytics.shared.query.Order;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.RenderableUtils;
-import org.hisp.dhis.analytics.shared.query.Select;
-import org.hisp.dhis.analytics.shared.query.Where;
+import org.hisp.dhis.analytics.shared.query.*;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
@@ -111,13 +101,13 @@ public class TeiFullQuery extends BaseRenderable
 
         return LimitOffset.of(
             pagingAndSortingParams.getPageSize(),
-            pagingAndSortingParams.getPageSize() * pagingAndSortingParams.getPage() );
+            pagingAndSortingParams.getPageSize() * (pagingAndSortingParams.getPage() - 1) );
     }
 
     private Order getOrder()
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> "\"" + p.getOrderBy().toString() + "\" " + p.getSortDirection().name() )
+            .map( p -> (Renderable) () -> doubleQuote( p.getOrderBy().toString() ) + p.getSortDirection().name() )
             .collect( toList() );
 
         return Order.builder()
@@ -225,6 +215,22 @@ public class TeiFullQuery extends BaseRenderable
             return AndCondition.of(
                 dimensionIdentifiers.stream()
                     .map( dimensionIdentifier -> EventDataValueCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == PROGRAM_ATTRIBUTE )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> ProgramAttributeCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+
+        if ( type == ORGANISATION_UNIT )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
                     .collect( toList() ) );
         }
 
