@@ -36,8 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -212,7 +212,7 @@ class UserControllerTest
         setUpUserAuthority( currentUser, UserRole.AUTHORITY_ALL );
         // allow any change
         when( aclService.canUpdate( any(), any() ) ).thenReturn( true );
-        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
+        lenient().when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
         // link user and current user to service methods
         when( userService.getUser( user.getUid() ) ).thenReturn( user );
         when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
@@ -290,8 +290,6 @@ class UserControllerTest
     {
         setUpUserExpireScenarios();
         when( aclService.canUpdate( currentUser, user ) ).thenReturn( false );
-        reset( userService );
-        when( userService.getUser( user.getUid() ) ).thenReturn( user );
 
         Exception ex = assertThrows( UpdateAccessDeniedException.class,
             () -> userController.expireUser( user.getUid(), new Date() ) );
