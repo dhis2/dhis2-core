@@ -73,7 +73,7 @@ public interface EventDataQueryService
      * field. Coordinate field must match EVENT, a data element identifier or an
      * attribute identifier.
      *
-     * @param program dhis program instance.
+     * @param program the program instance.
      * @param coordinateField the coordinate field.
      * @param fallbackCoordinateField the fallback coordinate field applied if
      *        coordinate field in result set is null.
