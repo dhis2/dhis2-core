@@ -184,7 +184,6 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
             + ")";
     }
 
-
     private String getUserOrgUnitPathsFilter( Set<String> userOrgUnitPaths )
     {
         return Stream.concat(

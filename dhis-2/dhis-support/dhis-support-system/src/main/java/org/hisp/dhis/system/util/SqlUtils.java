@@ -45,7 +45,7 @@ import com.google.common.collect.Sets;
 public class SqlUtils
 {
     public static final String QUOTE = "\"";
-    
+
     public static final String SINGLE_QUOTE = "'";
 
     public static final String SEPARATOR = ".";
@@ -81,7 +81,7 @@ public class SqlUtils
 
         return alias + SEPARATOR + quote( relation );
     }
-    
+
     /**
      * Single-quotes the given relation (typically a value). Single-quotes part
      * of the given relation are encoded (replaced by double single-quotes that

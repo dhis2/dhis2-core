@@ -38,6 +38,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCal
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -94,9 +96,11 @@ public class DefaultEventStore
 
         List<Long> programStages = ctx.getProgramStages();
 
+        String aocSql = ctx.isSuperUser() ? "" : getAttributeOptionComboClause( ctx );
+
         if ( programStages.isEmpty() )
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE ),
+            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )
@@ -105,7 +109,7 @@ public class DefaultEventStore
         }
         else
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ),
+            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + aocSql ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )
@@ -130,5 +134,20 @@ public class DefaultEventStore
     public Multimap<String, Note> getNotes( List<Long> eventIds )
     {
         return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds );
+    }
+
+    private String getAttributeOptionComboClause( AggregateContext ctx )
+    {
+        return "   and psi.attributeoptioncomboid not in (" +
+            "select distinct(cocco.categoryoptioncomboid) " +
+            "from categoryoptioncombos_categoryoptions as cocco " +
+            // Get inaccessible category options
+            "where cocco.categoryoptionid not in ( " +
+            "select co.categoryoptionid " +
+            "from dataelementcategoryoption co  " +
+            " where "
+            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", ctx.getUserUid(), ctx.getUserGroups(),
+                AclService.LIKE_READ_DATA )
+            + ") )";
     }
 }
