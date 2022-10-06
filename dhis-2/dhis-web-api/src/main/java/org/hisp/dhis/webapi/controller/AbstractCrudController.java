@@ -195,7 +195,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         validateAndThrowErrors( () -> schemaValidator.validate( patchedObject ) );
         manager.update( patchedObject );
-        postPatchEntity( patchedObject );
+
+        postPatchEntity( null, patchedObject );
     }
 
     @PatchMapping( "/{uid}/{property}" )
@@ -259,7 +260,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( objectReport( importReport ) );
         }
 
-        postPatchEntity( patchedObject );
+        postPatchEntity( null, patchedObject );
     }
 
     // --------------------------------------------------------------------------
@@ -302,7 +303,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        final T patchedObject = doPatch( request, persistedObject );
+        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+
+        final T patchedObject = doPatch( patch, persistedObject );
 
         // Do not allow changing IDs
         ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
@@ -334,7 +337,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( getEntityClass(), pvUid );
-            postPatchEntity( entity );
+
+            postPatchEntity( patch, entity );
         }
         else
         {
@@ -344,12 +348,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    private T doPatch( HttpServletRequest request, T persistedObject )
-        throws IOException,
-        JsonPatchException
+    private T doPatch( JsonPatch patch, T persistedObject )
+        throws JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-
         // TODO: To remove when we remove old UserCredentials compatibility
         if ( persistedObject instanceof User )
         {
@@ -370,6 +371,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             User patchingUser = (User) patchedObject;
             patchingUser.removeLegacyUserCredentials();
+        }
+
+        if ( patchedObject instanceof User )
+        {
+            // Reset to avoid non owning properties (here UserGroups) to be
+            // operated on in the import.
+            manager.resetNonOwnerProperties( patchedObject );
         }
 
         return patchedObject;
@@ -999,7 +1007,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
     }
 
-    protected void postPatchEntity( T entity )
+    protected void postPatchEntity( JsonPatch patch, T entityAfter )
     {
     }
 

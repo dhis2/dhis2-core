@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -48,6 +49,8 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -75,6 +78,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private UserGroupService userGroupService;
 
     private User peter;
 
@@ -168,6 +174,54 @@ class UserControllerTest extends DhisControllerConvenienceTest
         Set<UserRole> userRoles = peterAfter.getUserRoles();
 
         assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
+    void testAddGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', emptySet() );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', emptySet() );
+        manager.save( userGroupB );
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[{'id':'" + userGroupA.getUid() + "'},{'id':'"
+                + userGroupB.getUid()
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserGroup> userGroups = peterAfter.getGroups();
+
+        assertEquals( 2, userGroups.size() );
+    }
+
+    @Test
+    void testAddThenRemoveGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', emptySet() );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', emptySet() );
+        manager.save( userGroupB );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[{'id':'" + userGroupA.getUid() + "'},{'id':'"
+                + userGroupB.getUid()
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserGroup> userGroups = peterAfter.getGroups();
+        assertEquals( 2, userGroups.size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[]}]" ) ) );
+
+        peterAfter = userService.getUser( this.peter.getUid() );
+        userGroups = peterAfter.getGroups();
+        assertEquals( 0, userGroups.size() );
     }
 
     @Test
