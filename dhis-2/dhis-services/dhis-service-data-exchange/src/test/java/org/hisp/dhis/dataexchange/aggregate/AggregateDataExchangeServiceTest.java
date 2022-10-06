@@ -55,7 +55,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,15 +87,15 @@ class AggregateDataExchangeServiceTest
         when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
             .thenReturn( new DataValueSet() );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
         when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
@@ -137,15 +136,15 @@ class AggregateDataExchangeServiceTest
     void testToDataQueryParams()
     {
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
 

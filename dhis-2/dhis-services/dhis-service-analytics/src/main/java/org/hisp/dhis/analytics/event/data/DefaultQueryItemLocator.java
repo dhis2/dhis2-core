@@ -121,7 +121,7 @@ public class DefaultQueryItemLocator
     {
         return Optional.ofNullable(
             dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null,
-                Collections.emptyList(), null, true, IdScheme.UID ) )
+                Collections.emptyList(), true, IdScheme.UID ) )
             .map( PrimaryKeyObject::getUid )
             .map( BaseDimensionalItemObject::new )
             .map( QueryItem::new );

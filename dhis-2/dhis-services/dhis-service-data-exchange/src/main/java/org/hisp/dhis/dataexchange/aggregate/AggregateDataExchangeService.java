@@ -269,8 +269,7 @@ public class AggregateDataExchangeService
      */
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
-        return dataQueryService.getDimension(
-            dimension, items, new Date(), null, null, false, inputIdScheme );
+        return dataQueryService.getDimension( dimension, items, new Date(), null, false, inputIdScheme );
     }
 
     /**
@@ -283,7 +282,7 @@ public class AggregateDataExchangeService
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, false, inputIdScheme );
     }
 
     /**
@@ -393,7 +392,7 @@ public class AggregateDataExchangeService
     /**
      * Returns an item summary.
      *
-     * @param summary the {@link ItemSummary}.
+     * @param summary the {@link ImportSummary}.
      * @return an item summary.
      */
     private static String toItemSummary( ImportSummary summary )

@@ -696,7 +696,7 @@ public class EventController
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
-            null, true, null, skipEventId, null, null, null,
+            getGridOrderParams( order ), true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
         return eventRowService.getEventRows( params );
