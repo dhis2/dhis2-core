@@ -326,7 +326,7 @@ class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( ErrorCode.E7619, "Value must match data element's `<object1>` type constraints: value_not_bool",
+        assertConflict( ErrorCode.E7619, "Value must match value type of data element `wDBr2TCLIHH`: `value_not_bool`",
             context, dataValue.getDataElement(), "value_not_bool" );
     }
 
