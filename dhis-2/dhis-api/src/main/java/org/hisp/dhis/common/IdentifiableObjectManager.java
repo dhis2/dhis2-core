@@ -120,11 +120,10 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean exists( @NotNull Class<T> type, @NotNull String uid );
 
-    IdentifiableObject get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
+    <T extends IdentifiableObject> T get( @NotNull Collection<Class<? extends T>> types,
         @NotNull String uid );
 
-    IdentifiableObject get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
-        @NotNull IdScheme idScheme,
+    <T extends IdentifiableObject> T get( @NotNull Collection<Class<? extends T>> types, @NotNull IdScheme idScheme,
         String value );
 
     /**

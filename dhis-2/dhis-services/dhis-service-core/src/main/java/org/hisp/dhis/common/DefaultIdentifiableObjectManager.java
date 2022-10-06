@@ -317,7 +317,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public IdentifiableObject get( Collection<Class<? extends IdentifiableObject>> types, String uid )
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends T>> types, String uid )
     {
         return types.stream().map( type -> get( type, uid ) )
             .filter( Objects::nonNull )
@@ -326,7 +326,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public IdentifiableObject get( Collection<Class<? extends IdentifiableObject>> types,
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends T>> types,
         IdScheme idScheme, String identifier )
     {
         return types.stream().map( type -> getObject( type, idScheme, identifier ) )
