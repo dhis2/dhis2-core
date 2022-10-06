@@ -1062,6 +1062,7 @@ public class DefaultIdentifiableObjectManager
     @Transactional
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
+        @SuppressWarnings( "unchecked" )
         IdentifiableObjectStore<? super T> store = getIdentifiableObjectStore(
             HibernateProxyUtils.getRealClass( object ) );
 

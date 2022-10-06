@@ -546,6 +546,6 @@ public class Preheat
     @SuppressWarnings( "unchecked" )
     private <T extends IdentifiableObject> Class<? extends IdentifiableObject> getObjectType( T object )
     {
-        return (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object );
+        return HibernateProxyUtils.getRealClass( object );
     }
 }

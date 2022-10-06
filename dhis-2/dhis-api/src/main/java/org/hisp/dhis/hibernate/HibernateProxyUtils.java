@@ -47,8 +47,8 @@ public class HibernateProxyUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    @SuppressWarnings( "unchecked" )
-    public static <T> Class<? super T> getRealClass( T object )
+    @SuppressWarnings( "rawtypes" )
+    public static Class getRealClass( Object object )
     {
         Objects.requireNonNull( object );
 
@@ -57,7 +57,7 @@ public class HibernateProxyUtils
             throw new IllegalArgumentException( "Input can't be a Class instance!" );
         }
 
-        return (Class<? super T>) HibernateProxyHelper.getClassWithoutInitializingProxy( object );
+        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
     }
 
     @SuppressWarnings( { "unchecked" } )
