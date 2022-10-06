@@ -400,6 +400,12 @@ public class DefaultMetadataExportService implements MetadataExportService
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
 
+        if ( parameters.containsKey( "download" ) )
+        {
+            params.setDownload( Boolean.parseBoolean( parameters.get( "download" ).get( 0 ) ) );
+            parameters.remove( "download" );
+        }
+
         if ( parameters.containsKey( "fields" ) )
         {
             params.setDefaultFields( parameters.get( "fields" ) );

@@ -99,8 +99,8 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
         throws IOException,
         HttpMessageNotWritableException
     {
-        final String contentDisposition = outputMessage.getHeaders()
-            .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
+        final String contentDisposition = MessageConverterUtils.getContentDisposition( outputMessage,
+            params.isDownload() );
         final boolean attachment = isAttachment( contentDisposition );
         final String extensibleAttachmentFilename = getExtensibleAttachmentFilename(
             contentDisposition, List.of( "metadata" ) );
@@ -138,6 +138,10 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
             {
                 outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
+            }
+            else
+            {
+                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, contentDisposition );
             }
 
             metadataExportService.getMetadataAsObjectNodeStream( params, outputMessage.getBody() );
