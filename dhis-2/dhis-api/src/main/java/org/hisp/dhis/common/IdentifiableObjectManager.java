@@ -78,7 +78,7 @@ public interface IdentifiableObjectManager
      * @return The {@link IdentifiableObject} with the given UID
      */
     @NotNull
-    Optional<IdentifiableObject> find( @NotNull String uid );
+    Optional<? extends IdentifiableObject> find( @NotNull String uid );
 
     <T extends IdentifiableObject> @NotNull T get( @NotNull Class<T> type, long id );
 
@@ -120,10 +120,10 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean exists( @NotNull Class<T> type, @NotNull String uid );
 
-    <T extends IdentifiableObject> T get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
+    IdentifiableObject get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
         @NotNull String uid );
 
-    <T extends IdentifiableObject> T get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
+    IdentifiableObject get( @NotNull Collection<Class<? extends IdentifiableObject>> types,
         @NotNull IdScheme idScheme,
         String value );
 
@@ -198,7 +198,8 @@ public interface IdentifiableObjectManager
         @NotNull Collection<String> uids )
         throws IllegalQueryException;
 
-    <T extends IdentifiableObject> @NotNull List<T> getByUid(
+    @NotNull
+    List<IdentifiableObject> getByUid(
         @NotNull Collection<Class<? extends IdentifiableObject>> types,
         @NotNull Collection<String> uids );
 
@@ -279,16 +280,15 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getByAttributeAndValue( @NotNull Class<T> type, @NotNull Attribute attribute,
         @NotNull String value );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull Class<? extends IdentifiableObject> type,
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull Class<T> type,
         @NotNull T object,
         @NotNull AttributeValue attributeValue );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull Class<? extends IdentifiableObject> type,
-        @NotNull T object,
-        @NotNull Attribute attribute, @NotNull String value );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull Class<T> type,
+        @NotNull T object, @NotNull Attribute attribute, @NotNull String value );
 
     @NotNull
-    List<? extends IdentifiableObject> getAllByAttributeAndValues( @NotNull Class<? extends IdentifiableObject> type,
+    <T extends IdentifiableObject> List<T> getAllByAttributeAndValues( @NotNull Class<T> type,
         @NotNull Attribute attribute, @NotNull List<String> values );
 
     @NotNull
