@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 
@@ -40,6 +42,7 @@ public interface GenericStore<T>
     /**
      * Class of the object for this store.
      */
+    @NotNull
     Class<T> getClazz();
 
     /**
@@ -47,21 +50,21 @@ public interface GenericStore<T>
      *
      * @param object the object instance.
      */
-    void save( T object );
+    void save( @NotNull T object );
 
     /**
      * Updates the given object instance.
      *
      * @param object the object instance.
      */
-    void update( T object );
+    void update( @NotNull T object );
 
     /**
      * Removes the given object instance.
      *
      * @param object the object instance to delete.
      */
-    void delete( T object );
+    void delete( @NotNull T object );
 
     /**
      * Retrieves the object with the given identifier. This method will first
@@ -70,11 +73,13 @@ public interface GenericStore<T>
      * @param id the object identifier.
      * @return the object identified by the given identifier.
      */
+    @NotNull
     T get( long id );
 
-    long countAllValuesByAttributes( List<Attribute> attributes );
+    long countAllValuesByAttributes( @NotNull List<Attribute> attributes );
 
-    List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
+    @NotNull
+    List<AttributeValue> getAttributeValueByAttribute( @NotNull Attribute attribute );
 
     /**
      * Gets the count of objects.
@@ -88,25 +93,35 @@ public interface GenericStore<T>
      *
      * @return a List of all objects.
      */
+    @NotNull
     List<T> getAll();
 
-    List<T> getByAttribute( Attribute attribute );
+    @NotNull
+    List<T> getByAttribute( @NotNull Attribute attribute );
 
-    List<T> getByAttributeAndValue( Attribute attribute, String value );
+    @NotNull
+    List<T> getByAttributeAndValue( @NotNull Attribute attribute, String value );
 
-    List<T> getAllByAttributes( List<Attribute> attributes );
+    @NotNull
+    List<T> getAllByAttributes( @NotNull List<Attribute> attributes );
 
-    List<AttributeValue> getAllValuesByAttributes( List<Attribute> attributes );
+    @NotNull
+    List<AttributeValue> getAllValuesByAttributes( @NotNull List<Attribute> attributes );
 
-    List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
+    @NotNull
+    List<AttributeValue> getAttributeValueByAttributeAndValue( @NotNull Attribute attribute, String value );
 
-    List<T> getByAttributeValue( AttributeValue attributeValue );
+    @NotNull
+    List<T> getByAttributeValue( @NotNull AttributeValue attributeValue );
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
+    <P extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull P object,
+        @NotNull AttributeValue attributeValue );
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
+    <P extends IdentifiableObject> boolean isAttributeValueUnique( @NotNull P object, @NotNull Attribute attribute,
+        String value );
 
-    List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values );
+    @NotNull
+    List<T> getAllByAttributeAndValues( @NotNull Attribute attribute, @NotNull List<String> values );
 
     /**
      * Update a specific attribute of all objects.
@@ -122,5 +137,5 @@ public interface GenericStore<T>
      *         between attribute values that changed by this update and those
      *         that stay the same)
      */
-    int updateAllAttributeValues( Attribute attribute, String newValue, boolean createMissing );
+    int updateAllAttributeValues( @NotNull Attribute attribute, @NotNull String newValue, boolean createMissing );
 }

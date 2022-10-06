@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -245,7 +246,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public IdentifiableObject find( String uid )
+    public Optional<IdentifiableObject> find( String uid )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
         {
@@ -253,10 +254,10 @@ public class DefaultIdentifiableObjectManager
 
             if ( object != null )
             {
-                return object;
+                return Optional.of( object );
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

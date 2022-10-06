@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -212,16 +213,18 @@ public class OrganisationUnitController
         // Collection member count in hierarchy handling
         // ---------------------------------------------------------------------
 
-        IdentifiableObject member;
-
-        if ( memberObject != null && memberCollection != null && (member = manager.find( memberObject )) != null )
+        if ( memberObject != null && memberCollection != null )
         {
-            for ( OrganisationUnit unit : list )
+            Optional<IdentifiableObject> member = manager.find( memberObject );
+            if ( member.isPresent() )
             {
-                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member,
-                    memberCollection );
+                for ( OrganisationUnit unit : list )
+                {
+                    Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member.get(),
+                        memberCollection );
 
-                unit.setMemberCount( (count != null ? count.intValue() : 0) );
+                    unit.setMemberCount( (count != null ? count.intValue() : 0) );
+                }
             }
         }
 
