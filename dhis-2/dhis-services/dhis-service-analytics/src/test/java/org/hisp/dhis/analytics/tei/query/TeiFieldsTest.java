@@ -58,13 +58,11 @@ import org.junit.jupiter.api.Test;
 class TeiFieldsTest extends DhisConvenienceTest
 {
     @Test
-    void testGetOrderingFieldsWithOrgUnit()
+    void testGetOrderingFieldsWithOrgUnitName()
     {
         // given
-        DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID );
-
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
-            .commonParams( stubSortingCommonParams( null, "0", dimensionalObject ) )
+            .commonParams( stubSortingCommonParams( null, "0", "ouname" ) )
             .build();
 
         // when
@@ -73,7 +71,7 @@ class TeiFieldsTest extends DhisConvenienceTest
         // then
         assertTrue( orderingField.isPresent() );
 
-        assertEquals( "ou", orderingField.get().render() );
+        assertEquals( "ouname", orderingField.get().render() );
     }
 
     @Test
@@ -97,7 +95,7 @@ class TeiFieldsTest extends DhisConvenienceTest
         assertEquals( "\"" + program.getUid() + "[4].a\".VALUE as VALUE", orderingField.get().render() );
     }
 
-    private CommonParams stubSortingCommonParams( Program program, String offset, DimensionalObject dimensionalObject )
+    private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
     {
         ElementWithOffset<Program> prg = program == null ? ElementWithOffset.emptyElementWithOffset()
             : ElementWithOffset.of( program, offset );

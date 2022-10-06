@@ -133,17 +133,17 @@ public class TeiFields
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
             .forEach( p -> {
-                if ( isDynamicElement( p ) )
+                if ( isStaticDimension( p ) )
+                {
+                    fields.add( Field.of( EMPTY,
+                        () -> RenderableDimensionIdentifier.of( p ).render().toLowerCase(), EMPTY ) );
+                }
+                else
                 {
                     fields.add( Field.of( EMPTY,
                         () -> doubleQuote( RenderableDimensionIdentifier.of( p ).render() )
                             + ".VALUE",
                         "VALUE" ) );
-                }
-                else
-                {
-                    fields.add( Field.of( EMPTY,
-                        () -> RenderableDimensionIdentifier.of( p ).render(), EMPTY ) );
                 }
             } );
 
@@ -178,9 +178,8 @@ public class TeiFields
      * @param p AnalyticsSortingParas
      * @return boolean
      */
-    private static boolean isDynamicElement( DimensionIdentifier<Program, ProgramStage, DimensionParam> p )
+    private static boolean isStaticDimension( DimensionIdentifier<Program, ProgramStage, DimensionParam> p )
     {
-        return (p.hasProgram() || p.hasProgramStage()) &&
-            p.getDimension().getDimensionParamObjectType() != DimensionParamObjectType.ORGANISATION_UNIT;
+        return p.getDimension().getDimensionParamObjectType() == DimensionParamObjectType.STATIC_DIMENSION;
     }
 }

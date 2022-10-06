@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +41,6 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamType;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -57,15 +55,13 @@ import org.junit.jupiter.api.Test;
 class TeiFullQueryTest extends DhisConvenienceTest
 {
     @Test
-    void testSqlQueryRenderingWithOrgUnitDimObject()
+    void testSqlQueryRenderingWithOrgUnitNameObject()
     {
         // given
-        DimensionalObject dimensionalObject = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, new ArrayList<>() );
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( createTrackedEntityType( 'A' ) )
-            .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, dimensionalObject ) )
+            .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, "ouname" ) )
             .build();
 
         TeiFullQuery query = TeiFullQuery.builder()
@@ -77,9 +73,9 @@ class TeiFullQueryTest extends DhisConvenienceTest
         String sql = query.render();
 
         // then
-        assertTrue( sql.contains( "ou from" ) );
+        assertTrue( sql.contains( "ouname from" ) );
 
-        assertTrue( sql.contains( "order by ou ASC" ) );
+        assertTrue( sql.contains( "order by ouname asc" ) );
     }
 
     @Test
@@ -109,10 +105,10 @@ class TeiFullQueryTest extends DhisConvenienceTest
             "\"" + ps.getProgram().getUid() + "[0]." + ps.getUid() + "[0]." + "abc\".VALUE as VALUE from" ) );
 
         assertTrue(
-            sql.contains( "order by \"" + ps.getProgram().getUid() + "[0]." + ps.getUid() + "[0]." + "abc\" ASC" ) );
+            sql.contains( "order by \"" + ps.getProgram().getUid() + "[0]." + ps.getUid() + "[0]." + "abc\" asc" ) );
     }
 
-    private CommonParams stubSortingCommonParams( Program program, String offset, DimensionalObject dimensionalObject )
+    private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
     {
         DimensionIdentifier.ElementWithOffset<Program> prg = program == null
             ? DimensionIdentifier.ElementWithOffset.emptyElementWithOffset()

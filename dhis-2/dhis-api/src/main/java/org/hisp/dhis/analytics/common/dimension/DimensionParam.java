@@ -210,6 +210,7 @@ public class DimensionParam implements UidObject
     @RequiredArgsConstructor
     enum StaticDimension
     {
+        OUNAME( ValueType.TEXT ),
         ENROLLMENTDATE( ValueType.DATETIME ),
         EXECUTIONDATE( ValueType.DATETIME );
         // TODO: do we need more here ?
