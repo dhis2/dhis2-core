@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,24 +55,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author viet@dhis2.org
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class GeoFeatureServiceMockTest
+class GeoFeatureServiceMockTest
 {
     @InjectMocks
     private GeoFeatureService geoFeatureService;
 
     @Mock
     private DefaultDataQueryService dataQueryService;
-
-    @Mock
-    private DefaultOrganisationUnitGroupService organisationUnitGroupService;
 
     @Mock
     private CurrentUserService currentUserService;
@@ -126,11 +119,9 @@ public class GeoFeatureServiceMockTest
      * Attribute.
      * <p>
      * Expected: only return GeoFeature which has the coordinateField value.
-     *
-     * @throws IOException
      */
     @Test
-    public void testGeoJsonAttributeWithNoValue()
+    void testGeoJsonAttributeWithNoValue()
         throws IOException
     {
         OrganisationUnit ouA = createOrgUnitWithCoordinates();

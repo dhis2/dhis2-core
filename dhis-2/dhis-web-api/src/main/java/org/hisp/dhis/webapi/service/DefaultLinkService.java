@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.service;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import java.io.UnsupportedEncodingException;
@@ -41,6 +40,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +58,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class DefaultLinkService implements LinkService
 {
     /**
@@ -69,18 +70,9 @@ public class DefaultLinkService implements LinkService
 
     private final ContextService contextService;
 
-    public DefaultLinkService( SchemaService schemaService, ContextService contextService )
-    {
-        checkNotNull( schemaService );
-        checkNotNull( contextService );
-
-        this.schemaService = schemaService;
-        this.contextService = contextService;
-    }
-
     // since classes won't change during runtime, use a map to cache setHref
     // lookups
-    private Map<Class<?>, Method> setterCache = new HashMap<>();
+    private final Map<Class<?>, Method> setterCache = new HashMap<>();
 
     @Override
     public void generatePagerLinks( Pager pager, Class<?> klass )
