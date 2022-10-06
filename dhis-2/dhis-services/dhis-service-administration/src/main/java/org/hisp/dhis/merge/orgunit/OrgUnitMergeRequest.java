@@ -32,13 +32,13 @@ import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-
-import lombok.Getter;
 
 /**
  * Encapsulation of an org unit merge request.
@@ -57,7 +57,7 @@ public class OrgUnitMergeRequest
     private DataMergeStrategy dataApprovalMergeStrategy;
 
     private boolean deleteSources;
-    
+
     public Set<OrganisationUnit> getSources()
     {
         return ImmutableSet.copyOf( sources );
