@@ -25,34 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
 
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.common.QueryOperator;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class InConditionRenderer extends BaseRenderable
+public class ILikeConditionRenderer extends AbstractLikeConditionRenderer
 {
-    private final String field;
-
-    private final List<String> values;
-
-    private final ValueTypeMapping valueTypeMapping;
-
-    private final QueryContext queryContext;
-
-    @Override
-    public String render()
+    private ILikeConditionRenderer( Renderable field, Renderable value )
     {
-        return doubleQuote( field ) + SPACE + QueryOperator.IN.getValue() + " ("
-            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( values ) ) + ")";
+        super( field, LIKE.getValue(), value, s -> "lower(" + s + ")", String::toLowerCase );
+    }
+
+    public static ILikeConditionRenderer of( Renderable field, Renderable value )
+    {
+        return new ILikeConditionRenderer( field, value );
     }
 }

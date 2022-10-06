@@ -85,7 +85,7 @@ public class DimensionParamItem
         return Arrays.stream( QueryOperator.values() )
             .filter( queryOperator -> equalsIgnoreCase( queryOperator.name(), operator ) )
             .findFirst()
-            .orElseThrow( () -> new IllegalQueryException( ErrorCode.E2035 ) );
+            .orElseThrow( () -> new IllegalQueryException( ErrorCode.E2035, operator ) );
     }
 
 }

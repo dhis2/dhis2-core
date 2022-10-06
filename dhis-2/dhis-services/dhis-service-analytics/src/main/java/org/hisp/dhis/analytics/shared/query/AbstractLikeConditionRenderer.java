@@ -25,38 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import java.util.List;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+
+import java.util.function.Function;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.common.QueryOperator;
-
-@RequiredArgsConstructor( staticName = "of" )
-// TODO: Improve as describer in JIRA DHIS2-13860
-public class BinaryConditionRenderer extends BaseRenderable
+@RequiredArgsConstructor
+public abstract class AbstractLikeConditionRenderer extends BaseRenderable
 {
-    private final String field;
 
-    private final QueryOperator operator;
+    private final Renderable field;
 
-    private final List<String> values;
+    private final String sqlOperator;
 
-    private final ValueTypeMapping valueTypeMapping;
+    private final Renderable value;
 
-    private final QueryContext queryContext;
+    private final Function<String, String> fieldTransformer;
+
+    private final Function<String, String> valueTransformer;
+
+    protected AbstractLikeConditionRenderer( Renderable field, String sqlOperator, Renderable value )
+    {
+        this.field = field;
+        this.sqlOperator = sqlOperator;
+        this.value = value;
+        this.fieldTransformer = Function.identity();
+        this.valueTransformer = Function.identity();
+    }
 
     @Override
     public String render()
     {
-        if ( QueryOperator.EQ == operator || QueryOperator.IN == operator )
-        {
-            return InOrEqConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
-        }
-        // TODO: implement more operators
-        throw new IllegalArgumentException( "Unimplemented operator: " + operator );
+        ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
+        ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
+            argument -> "%" + valueTransformer.apply( argument ) + "%" );
+        return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
     }
+
 }

@@ -49,7 +49,7 @@ import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryCondition;
+import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.shared.query.ExistsCondition;
 import org.hisp.dhis.analytics.shared.query.Field;
 import org.hisp.dhis.analytics.shared.query.From;
@@ -84,7 +84,7 @@ public class EventDataValueCondition extends BaseRenderable
             .select( SELECT_1 )
             .from( ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_1_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( EVT_ALIAS, PSI_UID, EVT_1_ALIAS, PSI_UID ),
+                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PSI_UID, EVT_1_ALIAS, PSI_UID ),
                 getItemCondition() ) )
             .build();
 
@@ -92,8 +92,8 @@ public class EventDataValueCondition extends BaseRenderable
             .select( SELECT_1 )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
-                BinaryCondition.of(
+                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
+                BinaryConditionRenderer.of(
                     Field.of( EVT_ALIAS, () -> PS_UID, null ),
                     QueryOperator.EQ,
                     () -> queryContext.bindParamAndGetIndex( getProgramStageUid() ) ),
@@ -107,8 +107,8 @@ public class EventDataValueCondition extends BaseRenderable
             .select( SELECT_1 )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryCondition.of(
+                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
+                BinaryConditionRenderer.of(
                     Field.of( ENR_ALIAS, () -> QueryContextConstants.P_UID, null ),
                     QueryOperator.EQ,
                     () -> queryContext.bindParamAndGetIndex( getProgramUid() ) ),
@@ -147,7 +147,7 @@ public class EventDataValueCondition extends BaseRenderable
             .orElse( "0" ) );
     }
 
-    private BinaryCondition getItemCondition()
+    private BinaryConditionRenderer getItemCondition()
     {
         ValueTypeMapping valueTypeMapping = ValueTypeMapping
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
@@ -159,7 +159,7 @@ public class EventDataValueCondition extends BaseRenderable
             ? () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( item.getValues() ) )
             : () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( item.getValues().get( 0 ) ) );
 
-        return BinaryCondition.of(
+        return BinaryConditionRenderer.of(
             RenderableDataValue.of( EVT_1_ALIAS, doUid, valueTypeMapping ),
             item.getOperator(),
             value );
