@@ -111,6 +111,8 @@ public class MetadataExportParams
      */
     private IdentifiableObject objectExportWithDependencies;
 
+    private boolean download = false;
+
     public MetadataExportParams()
     {
     }
@@ -267,5 +269,15 @@ public class MetadataExportParams
     public void setObjectExportWithDependencies( IdentifiableObject object )
     {
         this.objectExportWithDependencies = object;
+    }
+
+    public boolean isDownload()
+    {
+        return download;
+    }
+
+    public void setDownload( boolean download )
+    {
+        this.download = download;
     }
 }
