@@ -87,6 +87,8 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     @SuppressWarnings( "unchecked" )
     public void add( @Nonnull IdentifiableObject identifiableObject )
     {
-        getTypedContainer( HibernateProxyUtils.getRealClass( identifiableObject ) ).add( identifiableObject );
+        getTypedContainer(
+            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( identifiableObject ) )
+                .add( identifiableObject );
     }
 }
