@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,17 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-/**
- * This class is a Renderable for a field in the select list, with its prefix
- * and alias.
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class Field extends BaseRenderable
+public class ILikeConditionRenderer extends AbstractLikeAlikeConditionRenderer
 {
-    private final String tableAlias;
-
-    private final Renderable name;
-
-    @Getter
-    private final String fieldAlias;
-
-    public static Renderable ofQuotedField( String field )
+    private ILikeConditionRenderer( Renderable field, Renderable value )
     {
-        return of( EMPTY, () -> doubleQuote( field ), EMPTY );
+        super( field, LIKE.getValue(), value, s -> "lower(" + s + ")", String::toLowerCase );
     }
 
-    @Override
-    public String render()
+    public static ILikeConditionRenderer of( Renderable field, Renderable value )
     {
-        String rendered = EMPTY;
-
-        if ( isNotBlank( tableAlias ) )
-        {
-            rendered = tableAlias + ".";
-        }
-
-        rendered = rendered + name.render();
-
-        if ( isNotBlank( fieldAlias ) )
-        {
-            rendered = rendered + " as " + fieldAlias;
-        }
-
-        return rendered;
+        return new ILikeConditionRenderer( field, value );
     }
 }

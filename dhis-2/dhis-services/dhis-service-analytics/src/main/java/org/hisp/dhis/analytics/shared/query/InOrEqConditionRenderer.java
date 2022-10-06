@@ -25,12 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
+
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
 
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Renderable;
 
 /**
  * A condition renderer which renders a condition with an IN or EQ operator,
@@ -48,13 +47,9 @@ public class InOrEqConditionRenderer extends BaseRenderable
     {
         if ( hasMultipleValues( values ) )
         {
-            return InConditionRenderer.of( field, values ).render();
+            return NullValueAwareConditionRenderer.of( InConditionRenderer::of, field, values ).render();
         }
-        return EqConditionRenderer.of( field, values ).render();
+        return NullValueAwareConditionRenderer.of( EqConditionRenderer::of, field, values ).render();
     }
 
-    private boolean hasMultipleValues( Renderable values )
-    {
-        return values instanceof ConstantValuesRenderer && ((ConstantValuesRenderer) values).hasMultipleValues();
-    }
 }

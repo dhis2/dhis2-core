@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,42 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import lombok.Getter;
+import java.util.function.Function;
+
 import lombok.RequiredArgsConstructor;
 
-/**
- * This class is a Renderable for a field in the select list, with its prefix
- * and alias.
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class Field extends BaseRenderable
+@RequiredArgsConstructor
+public abstract class AbstractLikeAlikeConditionRenderer extends BaseRenderable
 {
-    private final String tableAlias;
 
-    private final Renderable name;
+    private final Renderable field;
 
-    @Getter
-    private final String fieldAlias;
+    private final String sqlOperator;
 
-    public static Renderable ofQuotedField( String field )
+    private final Renderable value;
+
+    private final Function<String, String> fieldTransformer;
+
+    private final Function<String, String> valueTransformer;
+
+    protected AbstractLikeAlikeConditionRenderer( Renderable field, String sqlOperator, Renderable value )
     {
-        return of( EMPTY, () -> doubleQuote( field ), EMPTY );
+        this.field = field;
+        this.sqlOperator = sqlOperator;
+        this.value = value;
+        this.fieldTransformer = Function.identity();
+        this.valueTransformer = Function.identity();
     }
 
     @Override
     public String render()
     {
-        String rendered = EMPTY;
-
-        if ( isNotBlank( tableAlias ) )
-        {
-            rendered = tableAlias + ".";
-        }
-
-        rendered = rendered + name.render();
-
-        if ( isNotBlank( fieldAlias ) )
-        {
-            rendered = rendered + " as " + fieldAlias;
-        }
-
-        return rendered;
+        ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
+        ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
+            argument -> "%" + valueTransformer.apply( argument ) + "%" );
+        return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
     }
+
 }

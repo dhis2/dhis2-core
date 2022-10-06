@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasNullValue;
+
 import java.util.List;
+import java.util.function.BiFunction;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-
 @RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+public class NullValueAwareConditionRenderer extends BaseRenderable
 {
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
-    private final QueryContext queryContext;
+    private final Renderable field;
+
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
+        Renderable fieldIsNullCondition = () -> field.render() + " is null";
+        Renderable realCondition = realConditionBuilder.apply( field, values );
 
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
+        if ( !hasNullValue( values ) )
         {
-
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
+            return realCondition.render();
         }
-
-        return OrCondition.of( renderers ).render();
+        if ( !hasMultipleValues( values ) )
+        {
+            return fieldIsNullCondition.render();
+        }
+        return OrCondition.of(
+            List.of(
+                fieldIsNullCondition,
+                realCondition ) )
+            .render();
     }
-
 }

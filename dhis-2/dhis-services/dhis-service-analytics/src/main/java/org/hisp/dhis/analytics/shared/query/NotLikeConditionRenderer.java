@@ -25,60 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.common.QueryOperator.*;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class ConstantValuesRenderer extends BaseRenderable
+public class NotLikeConditionRenderer extends AbstractLikeAlikeConditionRenderer
 {
-    private final Object values;
-
-    private final ValueTypeMapping valueTypeMapping;
-
-    private final QueryContext queryContext;
-
-    @Override
-    public String render()
+    private NotLikeConditionRenderer( Renderable field, Renderable value )
     {
-        if ( values instanceof Collection )
-        {
-            return renderCollection( (Collection<?>) values );
-        }
-        else
-        {
-            return renderSingleValue( values );
-        }
+        super( field, NLIKE.getValue(), value );
     }
 
-    private String renderSingleValue( Object value )
+    public static NotLikeConditionRenderer of( Renderable field, Renderable value )
     {
-        return queryContext.bindParamAndGetIndex(
-            valueTypeMapping.convertSingle( value.toString() ) );
-    }
-
-    private String renderCollection( Collection<?> values )
-    {
-        List<String> valuesAsStringList = values.stream()
-            .map( Object::toString )
-            .collect( Collectors.toList() );
-        if ( valuesAsStringList.size() > 1 )
-        {
-            return queryContext.bindParamAndGetIndex(
-                valueTypeMapping.convertMany( valuesAsStringList ) );
-        }
-        return renderSingleValue( valuesAsStringList.get( 0 ) );
-    }
-
-    public boolean hasMultipleValues()
-    {
-        return values instanceof Collection && ((Collection<?>) values).size() > 1;
+        return new NotLikeConditionRenderer( field, value );
     }
 }

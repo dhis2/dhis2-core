@@ -25,28 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.common.QueryOperator;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class InConditionRenderer extends BaseRenderable
+public class NotILikeConditionRenderer extends AbstractLikeAlikeConditionRenderer
 {
-    private final Renderable field;
-
-    private final Renderable values;
-
-    @Override
-    public String render()
+    private NotILikeConditionRenderer( Renderable field, Renderable value )
     {
-        return doubleQuote( field.render() ) + SPACE + QueryOperator.IN.getValue() + " ("
-            + values.render() + ")";
+        super( field, NLIKE.getValue(), value, s -> "lower(" + s + ")", String::toLowerCase );
+    }
+
+    public static NotILikeConditionRenderer of( Renderable field, Renderable value )
+    {
+        return new NotILikeConditionRenderer( field, value );
     }
 }

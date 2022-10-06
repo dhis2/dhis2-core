@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.*;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.ConstantValuesRenderer;
-import org.hisp.dhis.analytics.tei.query.InOrEqConditionRenderer;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 
@@ -48,27 +51,76 @@ public class BinaryConditionRenderer extends BaseRenderable
 
     private final Renderable right;
 
-    public static BinaryConditionRenderer fieldsEqual(String leftAlias, String left, String rightAlias, String right )
+    public static BinaryConditionRenderer fieldsEqual( String leftAlias, String left, String rightAlias, String right )
     {
         return BinaryConditionRenderer.of(
             Field.of( leftAlias, () -> left, null ), EQ, Field.of( rightAlias, () -> right, null ) );
     }
 
-    public static BinaryConditionRenderer of(String field, QueryOperator queryOperator, List<String> values,
-                                             ValueTypeMapping valueTypeMapping, QueryContext queryContext )
+    public static BinaryConditionRenderer of( String field, QueryOperator queryOperator, List<String> values,
+        ValueTypeMapping valueTypeMapping, QueryContext queryContext )
     {
-        return BinaryConditionRenderer.of( () -> field, queryOperator,
+        return BinaryConditionRenderer.of( () -> field, queryOperator, values, valueTypeMapping, queryContext );
+    }
+
+    public static BinaryConditionRenderer of( Renderable field, QueryOperator queryOperator, List<String> values,
+        ValueTypeMapping valueTypeMapping, QueryContext queryContext )
+    {
+        return BinaryConditionRenderer.of( field, queryOperator,
             ConstantValuesRenderer.of( values, valueTypeMapping, queryContext ) );
     }
+
+    private static final Collection<QueryOperator> comparisonOperators = Arrays.asList( GT, GE, LT, LE, NEQ );
 
     @Override
     public String render()
     {
+        // EQ / IN
         if ( QueryOperator.EQ == queryOperator || QueryOperator.IN == queryOperator )
         {
             return InOrEqConditionRenderer.of( left, right ).render();
         }
+        // LIKE / NOT LIKE / ILIKE / NOT ILIKE
+        if ( LikeOperatorMapper.likeOperators().contains( queryOperator ) )
+        {
+            return NullValueAwareConditionRenderer.of(
+                LikeOperatorMapper.of( queryOperator ), left, right ).render();
+        }
+        if ( comparisonOperators.contains( queryOperator ) )
+        {
+            return NullValueAwareConditionRenderer.of(
+                ( l, r ) -> () -> l + SPACE + queryOperator.getValue() + SPACE + r, left, right ).render();
+        }
         // TODO: implement more operators
         throw new IllegalArgumentException( "Unimplemented operator: " + queryOperator );
+    }
+
+    @RequiredArgsConstructor
+    private enum LikeOperatorMapper
+    {
+        LIKE( QueryOperator.LIKE, LikeConditionRenderer::of ),
+        NLIKE( QueryOperator.NLIKE, NotLikeConditionRenderer::of ),
+        ILIKE( QueryOperator.ILIKE, ILikeConditionRenderer::of ),
+        NILIKE( QueryOperator.NILIKE, NotILikeConditionRenderer::of );
+
+        private final QueryOperator queryOperator;
+
+        private final BiFunction<Renderable, Renderable, Renderable> mapper;
+
+        static BiFunction<Renderable, Renderable, Renderable> of( QueryOperator queryOperator )
+        {
+            return Arrays.stream( values() )
+                .filter( likeOperatorMapper -> likeOperatorMapper.queryOperator == queryOperator )
+                .map( likeOperatorMapper -> likeOperatorMapper.mapper )
+                .findFirst()
+                .orElseThrow( () -> new IllegalArgumentException( "Unsupported operator: " + queryOperator ) );
+        }
+
+        static Collection<QueryOperator> likeOperators()
+        {
+            return Arrays.stream( values() )
+                .map( likeOperatorMapper -> likeOperatorMapper.queryOperator )
+                .collect( Collectors.toList() );
+        }
     }
 }

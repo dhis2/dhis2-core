@@ -25,19 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Renderable;
 import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class EqConditionRenderer extends BaseRenderable
+public class InConditionRenderer extends BaseRenderable
 {
     private final Renderable field;
 
@@ -46,6 +43,7 @@ public class EqConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        return doubleQuote( field.render() ) + SPACE + QueryOperator.EQ.getValue() + SPACE + values.render();
+        return field.render() + SPACE + QueryOperator.IN.getValue() + " ("
+            + values.render() + ")";
     }
 }
