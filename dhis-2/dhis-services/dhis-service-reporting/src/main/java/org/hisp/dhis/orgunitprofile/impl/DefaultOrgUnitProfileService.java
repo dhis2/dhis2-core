@@ -44,6 +44,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -80,7 +81,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 
 @Slf4j
 @Service
@@ -93,25 +93,23 @@ public class DefaultOrgUnitProfileService
 
     private static final String ORG_UNIT_PROFILE_AUTHORITY = "F_ORG_UNIT_PROFILE_ADD";
 
-    private static final List<Class<? extends IdentifiableObject>> DATA_ITEM_CLASSES = ImmutableList
-        .<Class<? extends IdentifiableObject>> builder()
-        .add( DataElement.class )
-        .add( Indicator.class )
-        .add( DataSet.class )
-        .add( ProgramIndicator.class )
-        .build();
+    private static final List<Class<? extends BaseDimensionalItemObject>> DATA_ITEM_CLASSES = List.of(
+        DataElement.class,
+        Indicator.class,
+        DataSet.class,
+        ProgramIndicator.class );
 
-    private DatastoreService dataStore;
+    private final DatastoreService dataStore;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
-    private OrganisationUnitGroupService groupService;
+    private final OrganisationUnitGroupService groupService;
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private ObjectMapper jsonMapper;
+    private final ObjectMapper jsonMapper;
 
     public DefaultOrgUnitProfileService(
         DatastoreService dataStore,
@@ -262,14 +260,14 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( profile.getAttributes() ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<Attribute> attributes = idObjectManager.getByUid( Attribute.class, profile.getAttributes() );
 
         if ( CollectionUtils.isEmpty( attributes ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -300,7 +298,7 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( profile.getGroupSets() ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<OrganisationUnitGroupSet> groupSets = idObjectManager
@@ -308,7 +306,7 @@ public class DefaultOrgUnitProfileService
 
         if ( CollectionUtils.isEmpty( groupSets ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -317,7 +315,7 @@ public class DefaultOrgUnitProfileService
 
         if ( CollectionUtils.isEmpty( groups ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         for ( OrganisationUnitGroupSet groupSet : groupSets )
@@ -348,15 +346,15 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( profile.getDataItems() ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
-        List<DimensionalItemObject> dataItems = idObjectManager
+        List<BaseDimensionalItemObject> dataItems = idObjectManager
             .getByUid( DATA_ITEM_CLASSES, profile.getDataItems() );
 
         if ( CollectionUtils.isEmpty( dataItems ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -369,7 +367,7 @@ public class DefaultOrgUnitProfileService
 
         if ( MapUtils.isEmpty( values ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ProfileItem> items = new ArrayList<>();
@@ -454,7 +452,7 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( groupSets ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -481,7 +479,7 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( dataItems ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();
@@ -515,7 +513,7 @@ public class DefaultOrgUnitProfileService
     {
         if ( CollectionUtils.isEmpty( attributes ) )
         {
-            return ImmutableList.of();
+            return List.of();
         }
 
         List<ErrorReport> errorReports = new ArrayList<>();

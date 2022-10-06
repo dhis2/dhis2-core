@@ -198,8 +198,8 @@ public interface IdentifiableObjectManager
         throws IllegalQueryException;
 
     @NotNull
-    List<IdentifiableObject> getByUid(
-        @NotNull Collection<Class<? extends IdentifiableObject>> types,
+    <T extends IdentifiableObject> List<T> getByUid(
+        @NotNull Collection<Class<? extends T>> types,
         @NotNull Collection<String> uids );
 
     <T extends IdentifiableObject> @NotNull List<T> getById( @NotNull Class<T> type, @NotNull Collection<Long> ids );

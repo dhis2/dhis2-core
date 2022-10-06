@@ -597,12 +597,12 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public List<IdentifiableObject> getByUid( Collection<Class<? extends IdentifiableObject>> types,
+    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends T>> types,
         Collection<String> uids )
     {
-        List<IdentifiableObject> list = new ArrayList<>();
+        List<T> list = new ArrayList<>();
 
-        for ( Class<? extends IdentifiableObject> type : types )
+        for ( Class<? extends T> type : types )
         {
             list.addAll( getByUid( type, uids ) );
         }
