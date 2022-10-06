@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.shared.query;
 
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
 
-public class NotILikeConditionRenderer extends AbstractLikeAlikeConditionRenderer
+public class NotILikeConditionRenderer extends AbstractLikeConditionRenderer
 {
     private NotILikeConditionRenderer( Renderable field, Renderable value )
     {

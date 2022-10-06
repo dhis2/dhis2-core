@@ -27,42 +27,18 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
-
-import java.util.function.Function;
-
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public abstract class AbstractLikeAlikeConditionRenderer extends BaseRenderable
+@RequiredArgsConstructor( staticName = "of" )
+public class IsNullConditionRenderer extends BaseRenderable
 {
+    private final Renderable left;
 
-    private final Renderable field;
-
-    private final String sqlOperator;
-
-    private final Renderable value;
-
-    private final Function<String, String> fieldTransformer;
-
-    private final Function<String, String> valueTransformer;
-
-    protected AbstractLikeAlikeConditionRenderer( Renderable field, String sqlOperator, Renderable value )
-    {
-        this.field = field;
-        this.sqlOperator = sqlOperator;
-        this.value = value;
-        this.fieldTransformer = Function.identity();
-        this.valueTransformer = Function.identity();
-    }
+    private final boolean isNull;
 
     @Override
     public String render()
     {
-        ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
-        ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
-            argument -> "%" + valueTransformer.apply( argument ) + "%" );
-        return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
+        return left.render() + (isNull ? " is null" : " is not null");
     }
-
 }

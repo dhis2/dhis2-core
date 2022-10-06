@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2022, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,21 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasNullValue;
-
-import java.util.List;
-import java.util.function.BiFunction;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+public class NotEqConditionRenderer extends BaseRenderable
 {
+    private final Renderable left;
 
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
-
-    private final Renderable field;
-
-    private final Renderable values;
+    private final Renderable right;
 
     @Override
     public String render()
     {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
-
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
+        return left.render() + SPACE + NEQ.getValue() + SPACE + right.render();
     }
 }

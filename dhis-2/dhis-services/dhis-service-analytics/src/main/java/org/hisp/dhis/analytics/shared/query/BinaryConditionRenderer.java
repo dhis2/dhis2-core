@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasNullValue;
 import static org.hisp.dhis.common.QueryOperator.*;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
@@ -40,7 +41,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.QueryContext;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.feedback.ErrorCode;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class BinaryConditionRenderer extends BaseRenderable
@@ -70,7 +73,7 @@ public class BinaryConditionRenderer extends BaseRenderable
             ConstantValuesRenderer.of( values, valueTypeMapping, queryContext ) );
     }
 
-    private static final Collection<QueryOperator> comparisonOperators = Arrays.asList( GT, GE, LT, LE, NEQ );
+    private static final Collection<QueryOperator> comparisonOperators = Arrays.asList( GT, GE, LT, LE );
 
     @Override
     public String render()
@@ -80,28 +83,53 @@ public class BinaryConditionRenderer extends BaseRenderable
         {
             return InOrEqConditionRenderer.of( left, right ).render();
         }
-        // LIKE / NOT LIKE / ILIKE / NOT ILIKE
+        // NE / NEQ
+        if ( NEQ == queryOperator || NE == queryOperator )
+        {
+            if ( hasNullValue( right ) )
+            {
+                return IsNullConditionRenderer.of( left, false ).render();
+            }
+            return OrCondition.of(
+                List.of(
+                    IsNullConditionRenderer.of( left, true ),
+                    NotEqConditionRenderer.of( left, right ) ) )
+                .render();
+        }
+        // LIKE / ILIKE
         if ( LikeOperatorMapper.likeOperators().contains( queryOperator ) )
         {
             return NullValueAwareConditionRenderer.of(
                 LikeOperatorMapper.of( queryOperator ), left, right ).render();
         }
+        // NLIKE / NILIKE
+        if ( NLIKE == queryOperator || NILIKE == queryOperator )
+        {
+            if ( hasNullValue( right ) )
+            {
+                return IsNullConditionRenderer.of( left, false ).render();
+            }
+
+            return OrCondition.of(
+                List.of(
+                    IsNullConditionRenderer.of( left, true ),
+                    NLIKE == queryOperator ? NotLikeConditionRenderer.of( left, right )
+                        : NotILikeConditionRenderer.of( left, right ) ) )
+                .render();
+        }
+
         if ( comparisonOperators.contains( queryOperator ) )
         {
-            return NullValueAwareConditionRenderer.of(
-                ( l, r ) -> () -> l + SPACE + queryOperator.getValue() + SPACE + r, left, right ).render();
+            return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
         }
-        // TODO: implement more operators
-        throw new IllegalArgumentException( "Unimplemented operator: " + queryOperator );
+        throw new IllegalQueryException( ErrorCode.E2035, queryOperator );
     }
 
     @RequiredArgsConstructor
     private enum LikeOperatorMapper
     {
         LIKE( QueryOperator.LIKE, LikeConditionRenderer::of ),
-        NLIKE( QueryOperator.NLIKE, NotLikeConditionRenderer::of ),
-        ILIKE( QueryOperator.ILIKE, ILikeConditionRenderer::of ),
-        NILIKE( QueryOperator.NILIKE, NotILikeConditionRenderer::of );
+        ILIKE( QueryOperator.ILIKE, ILikeConditionRenderer::of );
 
         private final QueryOperator queryOperator;
 

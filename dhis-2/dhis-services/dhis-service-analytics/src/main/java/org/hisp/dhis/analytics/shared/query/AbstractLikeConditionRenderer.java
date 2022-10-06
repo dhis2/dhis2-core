@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2022, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,42 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasNullValue;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+@RequiredArgsConstructor
+public abstract class AbstractLikeConditionRenderer extends BaseRenderable
 {
-
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
     private final Renderable field;
 
-    private final Renderable values;
+    private final String sqlOperator;
+
+    private final Renderable value;
+
+    private final Function<String, String> fieldTransformer;
+
+    private final Function<String, String> valueTransformer;
+
+    protected AbstractLikeConditionRenderer( Renderable field, String sqlOperator, Renderable value )
+    {
+        this.field = field;
+        this.sqlOperator = sqlOperator;
+        this.value = value;
+        this.fieldTransformer = Function.identity();
+        this.valueTransformer = Function.identity();
+    }
 
     @Override
     public String render()
     {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
-
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
+        ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
+        ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
+            argument -> "%" + valueTransformer.apply( argument ) + "%" );
+        return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
     }
+
 }
