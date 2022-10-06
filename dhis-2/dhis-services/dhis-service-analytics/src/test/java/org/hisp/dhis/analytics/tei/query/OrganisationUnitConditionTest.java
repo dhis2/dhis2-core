@@ -121,14 +121,14 @@ class OrganisationUnitConditionTest
                 "where enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid and enr.programuid = :1 " +
                 "and exists (select 1 from analytics_tei_events_t2d3uj69rab evt  " +
                 "where evt.programinstanceuid = enr.programinstanceuid and evt.programstageuid = :2 " +
-                "and \"enr.ou\" in (:3) order by executiondate desc limit 1 offset 0) " +
+                "and enr.ou = :3 order by executiondate desc limit 1 offset 0) " +
                 "order by enr.enrollmentdate desc limit 1 offset 0)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
         assertEquals( dimensionIdentifier.getProgramStage().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "2" ) );
-        assertEquals( ous, queryContext.getParametersByPlaceHolder().get( "3" ) );
+        assertEquals( ous.get( 0 ), queryContext.getParametersByPlaceHolder().get( "3" ) );
     }
 
     @Test
@@ -157,7 +157,7 @@ class OrganisationUnitConditionTest
                 "where enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid and enr.programuid = :1 " +
                 "and exists (select 1 from analytics_tei_events_t2d3uj69rab evt  " +
                 "where evt.programinstanceuid = enr.programinstanceuid and evt.programstageuid = :2 " +
-                "and \"enr.ou\" in (:3) order by executiondate desc limit 1 offset 0) " +
+                "and enr.ou in (:3) order by executiondate desc limit 1 offset 0) " +
                 "order by enr.enrollmentdate desc limit 1 offset 0)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
@@ -191,12 +191,12 @@ class OrganisationUnitConditionTest
         assertEquals(
             "exists (select 1 from analytics_tei_enrollments_t2d3uj69rab enr  " +
                 "where enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid " +
-                "and enr.programuid = :1 and \"enr.ou\" in (:2) " +
+                "and enr.programuid = :1 and enr.ou = :2 " +
                 "order by enr.enrollmentdate desc limit 1 offset 0)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
-        assertEquals( ous, queryContext.getParametersByPlaceHolder().get( "2" ) );
+        assertEquals( ous.get( 0 ), queryContext.getParametersByPlaceHolder().get( "2" ) );
     }
 
     @Test
@@ -223,7 +223,7 @@ class OrganisationUnitConditionTest
         assertEquals(
             "exists (select 1 from analytics_tei_enrollments_t2d3uj69rab enr  " +
                 "where enr.trackedentityinstanceuid = t_1.trackedentityinstanceuid " +
-                "and enr.programuid = :1 and \"enr.ou\" in (:2) " +
+                "and enr.programuid = :1 and enr.ou in (:2) " +
                 "order by enr.enrollmentdate desc limit 1 offset 0)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),

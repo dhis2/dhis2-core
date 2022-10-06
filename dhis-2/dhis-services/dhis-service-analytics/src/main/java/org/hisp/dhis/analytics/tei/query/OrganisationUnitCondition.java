@@ -48,18 +48,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.query.AndCondition;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryCondition;
-import org.hisp.dhis.analytics.shared.query.ExistsCondition;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.From;
-import org.hisp.dhis.analytics.shared.query.LimitOffset;
-import org.hisp.dhis.analytics.shared.query.Order;
-import org.hisp.dhis.analytics.shared.query.Query;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Select;
-import org.hisp.dhis.analytics.shared.query.Where;
+import org.hisp.dhis.analytics.shared.query.*;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -145,8 +134,9 @@ public class OrganisationUnitCondition extends BaseRenderable
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
-            InConditionRenderer condition = InConditionRenderer.of(
-                Field.of( ENR_ALIAS, () -> OU_FIELD, null ).render(),
+            BinaryConditionRenderer condition = BinaryConditionRenderer.of(
+                Field.of( ENR_ALIAS, () -> OU_FIELD, null ),
+                IN,
                 item.getValues(),
                 STRING,
                 queryContext );
@@ -157,8 +147,8 @@ public class OrganisationUnitCondition extends BaseRenderable
             .select( Select.of( "1" ) )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryCondition.of(
+                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
+                BinaryConditionRenderer.of(
                     Field.of( ENR_ALIAS, () -> P_UID, null ),
                     QueryOperator.EQ,
                     () -> queryContext.bindParamAndGetIndex( programUid ) ),
@@ -190,8 +180,9 @@ public class OrganisationUnitCondition extends BaseRenderable
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
-            InConditionRenderer condition = InConditionRenderer.of(
+            BinaryConditionRenderer condition = BinaryConditionRenderer.of(
                 Field.of( ENR_ALIAS, () -> OU_FIELD, null ).render(),
+                IN,
                 item.getValues(),
                 STRING,
                 queryContext );
@@ -202,8 +193,8 @@ public class OrganisationUnitCondition extends BaseRenderable
             .select( Select.of( "1" ) )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
-                BinaryCondition.of(
+                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
+                BinaryConditionRenderer.of(
                     Field.of( EVT_ALIAS, () -> PS_UID, null ),
                     QueryOperator.EQ,
                     () -> queryContext.bindParamAndGetIndex( programStageUid ) ),
@@ -216,8 +207,8 @@ public class OrganisationUnitCondition extends BaseRenderable
             .select( Select.of( "1" ) )
             .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
             .where( Where.ofConditions(
-                BinaryCondition.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryCondition.of(
+                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
+                BinaryConditionRenderer.of(
                     Field.of( ENR_ALIAS, () -> P_UID, null ),
                     QueryOperator.EQ,
                     () -> queryContext.bindParamAndGetIndex( programUid ) ),
