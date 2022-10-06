@@ -300,7 +300,7 @@ public class CollectionUtils
      * Convert an Iterator to a Stream.
      *
      * @param iterator The Iterator to convert to a stream.
-     * @return A stream of the iterable.
+     * @return A stream of the Iterator.
      */
     public static <E> Stream<E> iterableToStream( Iterator<E> iterator )
     {
