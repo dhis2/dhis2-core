@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -70,7 +69,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -281,9 +279,7 @@ public class OrganisationUnitController
 
     @GetMapping( "/{uid}/parents" )
     public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        @RequestParam Map<String, String> parameters, TranslateParams translateParams )
     {
         setTranslationParams( translateParams );
         OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );

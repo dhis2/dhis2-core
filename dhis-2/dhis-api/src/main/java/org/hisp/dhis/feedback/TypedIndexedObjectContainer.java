@@ -62,8 +62,7 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     @SuppressWarnings( "unchecked" )
     public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
-        return getTypedContainer( (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object ) )
-            .mergeObjectIndex( object );
+        return getTypedContainer( HibernateProxyUtils.getRealClass( object ) ).mergeObjectIndex( object );
     }
 
     /**
@@ -87,8 +86,6 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     @SuppressWarnings( "unchecked" )
     public void add( @Nonnull IdentifiableObject identifiableObject )
     {
-        getTypedContainer(
-            (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( identifiableObject ) )
-                .add( identifiableObject );
+        getTypedContainer( HibernateProxyUtils.getRealClass( identifiableObject ) ).add( identifiableObject );
     }
 }

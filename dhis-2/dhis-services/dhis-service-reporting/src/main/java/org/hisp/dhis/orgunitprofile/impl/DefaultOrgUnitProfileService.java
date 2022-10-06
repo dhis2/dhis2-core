@@ -231,13 +231,11 @@ public class DefaultOrgUnitProfileService
         info.setPhoneNumber( orgUnit.getPhoneNumber() );
         info.setFeatureType( orgUnit.getFeatureType() );
 
-        if ( orgUnit.getGeometry() != null )
+        if ( orgUnit.getGeometry() != null
+            && orgUnit.getGeometry().getGeometryType().equals( FeatureType.POINT.value() ) )
         {
-            if ( orgUnit.getGeometry().getGeometryType().equals( FeatureType.POINT.value() ) )
-            {
-                info.setLongitude( orgUnit.getGeometry().getCoordinate().x );
-                info.setLatitude( orgUnit.getGeometry().getCoordinate().y );
-            }
+            info.setLongitude( orgUnit.getGeometry().getCoordinate().x );
+            info.setLatitude( orgUnit.getGeometry().getCoordinate().y );
         }
 
         if ( orgUnit.getImage() != null )

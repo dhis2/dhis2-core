@@ -2507,7 +2507,7 @@ public class DataQueryParams
     public Set<DimensionalItemObject> getAllDataSets()
     {
         return getAllReportingRates().stream()
-            .map( r -> (ReportingRate) r )
+            .map( ReportingRate.class::cast )
             .map( ReportingRate::getDataSet )
             .collect( Collectors.toSet() );
     }
@@ -2566,7 +2566,7 @@ public class DataQueryParams
     public List<OrganisationUnit> getAllTypedOrganisationUnits()
     {
         return ImmutableList.copyOf( getAllOrganisationUnits().stream()
-            .map( ou -> (OrganisationUnit) ou )
+            .map( OrganisationUnit.class::cast )
             .collect( Collectors.toList() ) );
     }
 
