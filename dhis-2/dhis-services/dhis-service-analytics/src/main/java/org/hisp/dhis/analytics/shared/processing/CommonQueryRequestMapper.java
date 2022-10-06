@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.shared.processing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParam.isStaticDimensionIdentifier;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.HEADERS;
@@ -212,12 +213,12 @@ public class CommonQueryRequestMapper
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 
         // first we check if it's a static dimension
-        if ( DimensionParam.isStaticDimensionIdentifier( dimensionId ) )
+        if ( isStaticDimensionIdentifier( dimensionIdentifier.getDimension().getUid() ) )
         {
             return DimensionIdentifier.of(
                 dimensionIdentifier.getProgram(),
                 dimensionIdentifier.getProgramStage(),
-                DimensionParam.ofObject( dimensionId, dimensionParamType, items ) );
+                DimensionParam.ofObject( dimensionIdentifier.getDimension().getUid(), dimensionParamType, items ) );
         }
 
         // then we check if it's a DimensionalObject
