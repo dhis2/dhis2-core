@@ -62,7 +62,8 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     @SuppressWarnings( "unchecked" )
     public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
-        return getTypedContainer( HibernateProxyUtils.getRealClass( object ) ).mergeObjectIndex( object );
+        return getTypedContainer( (Class<? extends IdentifiableObject>) HibernateProxyUtils.getRealClass( object ) )
+            .mergeObjectIndex( object );
     }
 
     /**

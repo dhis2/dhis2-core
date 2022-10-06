@@ -127,7 +127,6 @@ public class PreheatParams
         this.objects = objects;
     }
 
-    @SuppressWarnings( "unchecked" )
     public PreheatParams addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -135,8 +134,11 @@ public class PreheatParams
             return this;
         }
 
-        objects.computeIfAbsent( HibernateProxyUtils.getRealClass( object ),
-            k -> new ArrayList<>() ).add( object );
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> objType = (Class<? extends IdentifiableObject>) HibernateProxyUtils
+            .getRealClass(
+                object );
+        objects.computeIfAbsent( objType, k -> new ArrayList<>() ).add( object );
 
         return this;
     }
