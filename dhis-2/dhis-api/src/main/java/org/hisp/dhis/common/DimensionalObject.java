@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -111,7 +110,7 @@ public interface DimensionalObject
             OrganisationUnitGroupSet.class, OrganisationUnitGroup.class,
             CategoryOptionGroupSet.class, CategoryOptionGroup.class );
 
-    Set<ValueType> ARITHMETIC_VALUE_TYPES = EnumSet.of(
+    Set<ValueType> ARITHMETIC_VALUE_TYPES = Set.of(
         ValueType.BOOLEAN, ValueType.TRUE_ONLY, ValueType.NUMBER, ValueType.INTEGER,
         ValueType.INTEGER_POSITIVE, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_ZERO_OR_POSITIVE,
         ValueType.UNIT_INTERVAL, ValueType.PERCENTAGE );
