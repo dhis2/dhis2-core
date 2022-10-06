@@ -55,7 +55,7 @@ public interface FullUserMapper extends PreheatMapper<User>
     @Mapping( target = "surname" )
     @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
     @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
-    @Mapping( target = "groups", qualifiedByName = "groups" )
+    @Mapping( target = "userGroups", qualifiedByName = "groups" )
     User map( User user );
 
     @Named( "teiSearchOrganisationUnits" )

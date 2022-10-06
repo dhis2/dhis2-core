@@ -260,7 +260,8 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
     @Override
     public List<String> getUserGroupIdsByUserId( String userId )
     {
-        return userService.getUser( userId ).getUserGroups().stream().map( IdentifiableObject::getUid ).collect( toList() );
+        return userService.getUser( userId ).getUserGroups().stream().map( IdentifiableObject::getUid )
+            .collect( toList() );
     }
 
     @Override

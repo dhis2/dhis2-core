@@ -239,7 +239,8 @@ public class UserSettingController
         }
         else
         {
-            Set<String> userGroups = user.getUserGroups().stream().map( UserGroup::getUid ).collect( Collectors.toSet() );
+            Set<String> userGroups = user.getUserGroups().stream().map( UserGroup::getUid )
+                .collect( Collectors.toSet() );
 
             if ( !userService.canAddOrUpdateUser( userGroups ) &&
                 !currentUser.canModifyUser( user ) )
