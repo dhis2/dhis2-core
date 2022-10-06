@@ -25,38 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import java.util.List;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.common.QueryOperator;
 
-/**
- * A condition renderer which renders a condition with an IN or EQ operator,
- * depending on the size of values
- */
 @RequiredArgsConstructor( staticName = "of" )
-public class InOrEqConditionRenderer extends BaseRenderable
+public class InConditionRenderer extends BaseRenderable
 {
-    private final String field;
+    private final Renderable field;
 
-    private final List<String> values;
-
-    private final ValueTypeMapping valueTypeMapping;
-
-    private final QueryContext queryContext;
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        boolean hasMultipleValues = values.size() > 1;
-        if ( hasMultipleValues )
-        {
-            return InConditionRenderer.of( field, values, valueTypeMapping, queryContext ).render();
-        }
-        return EqConditionRenderer.of( field, List.of( values.get( 0 ) ), valueTypeMapping, queryContext ).render();
+        return field.render() + SPACE + QueryOperator.IN.getValue() + " ("
+            + values.render() + ")";
     }
 }

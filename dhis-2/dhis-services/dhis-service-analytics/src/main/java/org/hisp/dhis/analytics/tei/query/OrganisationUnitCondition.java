@@ -117,7 +117,7 @@ public class OrganisationUnitCondition extends BaseRenderable
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                OU_FIELD,
+                Field.ofQuotedField( OU_FIELD ),
                 IN,
                 item.getValues(),
                 STRING,

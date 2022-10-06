@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasNullValue;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.common.QueryOperator;
-
 @RequiredArgsConstructor( staticName = "of" )
-public class EqConditionRenderer extends BaseRenderable
+public class NullValueAwareConditionRenderer extends BaseRenderable
 {
-    private final String field;
 
-    private final List<String> values;
+    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
-    private final ValueTypeMapping valueTypeMapping;
+    private final Renderable field;
 
-    private final QueryContext queryContext;
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        return doubleQuote( field ) + SPACE + QueryOperator.EQ.getValue() + SPACE
-            + queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( values.get( 0 ) ) );
+        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
+        Renderable realCondition = realConditionBuilder.apply( field, values );
+
+        if ( !hasNullValue( values ) )
+        {
+            return realCondition.render();
+        }
+        if ( !hasMultipleValues( values ) )
+        {
+            return fieldIsNullCondition.render();
+        }
+        return OrCondition.of(
+            List.of(
+                fieldIsNullCondition,
+                realCondition ) )
+            .render();
     }
 }

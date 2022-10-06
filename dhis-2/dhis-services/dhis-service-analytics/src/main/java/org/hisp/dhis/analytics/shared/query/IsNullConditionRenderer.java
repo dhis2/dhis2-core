@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,18 @@
  */
 package org.hisp.dhis.analytics.shared.query;
 
-import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.common.QueryOperator.EQ;
-import static org.hisp.dhis.common.QueryOperator.IN;
-
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.QueryOperator;
-
 @RequiredArgsConstructor( staticName = "of" )
-public class BinaryCondition extends BaseRenderable
+public class IsNullConditionRenderer extends BaseRenderable
 {
     private final Renderable left;
 
-    private final QueryOperator queryOperator;
-
-    private final Renderable right;
-
-    public static BinaryCondition fieldsEqual( String leftAlias, String left, String rightAlias, String right )
-    {
-        return BinaryCondition.of(
-            Field.of( leftAlias, () -> left, null ), EQ, Field.of( rightAlias, () -> right, null ) );
-    }
+    private final boolean isNull;
 
     @Override
     public String render()
     {
-        if ( queryOperator.equals( IN ) )
-        {
-            return left.render() + " in (" + right.render() + ")";
-        }
-        return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
+        return left.render() + (isNull ? " is null" : " is not null");
     }
 }

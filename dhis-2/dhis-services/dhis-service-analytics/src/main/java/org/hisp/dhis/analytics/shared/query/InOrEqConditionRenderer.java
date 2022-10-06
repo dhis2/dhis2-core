@@ -25,54 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.shared.query;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.analytics.shared.query.ConstantValuesRenderer.hasMultipleValues;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-
+/**
+ * A condition renderer which renders a condition with an IN or EQ operator,
+ * depending on the size of values
+ */
 @RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+public class InOrEqConditionRenderer extends BaseRenderable
 {
+    private final Renderable field;
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
-
-    private final QueryContext queryContext;
+    private final Renderable values;
 
     @Override
     public String render()
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
-
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
+        if ( hasMultipleValues( values ) )
         {
-
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
+            return NullValueAwareConditionRenderer.of( InConditionRenderer::of, field, values ).render();
         }
-
-        return OrCondition.of( renderers ).render();
+        return NullValueAwareConditionRenderer.of( EqConditionRenderer::of, field, values ).render();
     }
 
 }
