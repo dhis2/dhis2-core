@@ -215,7 +215,7 @@ public class OrganisationUnitController
 
         if ( memberObject != null && memberCollection != null )
         {
-            Optional<IdentifiableObject> member = manager.find( memberObject );
+            Optional<? extends IdentifiableObject> member = manager.find( memberObject );
             if ( member.isPresent() )
             {
                 for ( OrganisationUnit unit : list )
