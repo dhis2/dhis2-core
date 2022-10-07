@@ -296,7 +296,8 @@ public class DefaultDataQueryService
         }
         else
         {
-            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.getDynamicDimension( dimension,
+            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.getDynamicDimension(
+                dimension,
                 items, displayProperty, inputIdScheme );
 
             if ( baseDimensionalObject.isPresent() )

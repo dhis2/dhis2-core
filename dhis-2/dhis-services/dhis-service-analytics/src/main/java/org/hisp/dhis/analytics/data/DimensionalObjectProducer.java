@@ -77,6 +77,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -104,8 +106,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component that focus on the production of dimensional objects of different
@@ -201,7 +201,8 @@ public class DimensionalObjectProducer
      *
      * @param items the list of items that might be included as periods and
      *        keywords.
-     * @param relativePeriodDate date that relative periods will be generated based on.
+     * @param relativePeriodDate date that relative periods will be generated
+     *        based on.
      * @return a period based instance of {@link BaseDimensionalObject}.
      */
     public BaseDimensionalObject getPeriodDimension( List<String> items, Date relativePeriodDate )
@@ -347,7 +348,7 @@ public class DimensionalObjectProducer
             true, financialYearStart );
 
         // If a custom time filter is specified, set it in periods
-        
+
         if ( isoPeriodHolder.hasDateField() )
         {
             relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
@@ -387,26 +388,29 @@ public class DimensionalObjectProducer
     }
 
     /**
-     * Based on the given parameters, this method will return an organisation unit based
-     * object of type {@link BaseDimensionalObject}. The list of items will be
-     * loaded and added into the resulting object. The internal organisation unit levels
-     * are added to the returned object based on a few internal rules present on
-     * this method.
+     * Based on the given parameters, this method will return an organisation
+     * unit based object of type {@link BaseDimensionalObject}. The list of
+     * items will be loaded and added into the resulting object. The internal
+     * organisation unit levels are added to the returned object based on a few
+     * internal rules present on this method.
      *
      * @param items the list of items that might be included into the resulting
      *        organisation unit and its keywords.
-     * @param displayProperty the label to be displayed for the organisation unit groups.
-     * @param userOrgUnits the list of organisation units associated with the logged
-     *        user.
+     * @param displayProperty the label to be displayed for the organisation
+     *        unit groups.
+     * @param userOrgUnits the list of organisation units associated with the
+     *        logged user.
      * @param inputIdScheme the identifier scheme to use.
-     * @return an organisation unit based instance of {@link BaseDimensionalObject}.
+     * @return an organisation unit based instance of
+     *         {@link BaseDimensionalObject}.
      */
     public BaseDimensionalObject getOrgUnitDimension( List<String> items, DisplayProperty displayProperty,
         List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme )
     {
         List<Integer> levels = new ArrayList<>();
         List<OrganisationUnitGroup> groups = new ArrayList<>();
-        List<DimensionalItemObject> ous = getOrgUnitDimensionItems( items, userOrgUnits, inputIdScheme, levels, groups );
+        List<DimensionalItemObject> ous = getOrgUnitDimensionItems( items, userOrgUnits, inputIdScheme, levels,
+            groups );
         List<DimensionalItemObject> orgUnitAtLevels = new ArrayList<>();
         List<OrganisationUnit> ousList = asTypedList( ous );
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
@@ -449,7 +453,7 @@ public class DimensionalObjectProducer
         }
 
         // Remove duplicates
-        
+
         orgUnitAtLevels = orgUnitAtLevels.stream().distinct().collect( toList() );
 
         return new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
@@ -463,13 +467,14 @@ public class DimensionalObjectProducer
      *
      * @param items the list of items that might be included into the resulting
      *        organisation unit and its keywords.
-     * @param userOrgUnits the list of organisation units associated with the current
-     *        user.
+     * @param userOrgUnits the list of organisation units associated with the
+     *        current user.
      * @param inputIdScheme the identifier scheme to use.
-     * @return an organisation unit based instance of {@link BaseDimensionalObject}.
+     * @return an organisation unit based instance of
+     *         {@link BaseDimensionalObject}.
      */
-    private List<DimensionalItemObject> getOrgUnitDimensionItems( List<String> items, 
-        List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme, List<Integer> levels, 
+    private List<DimensionalItemObject> getOrgUnitDimensionItems( List<String> items,
+        List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme, List<Integer> levels,
         List<OrganisationUnitGroup> groups )
     {
         List<DimensionalItemObject> ous = new ArrayList<>();
@@ -497,7 +502,7 @@ public class DimensionalObjectProducer
             else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
             {
                 String uid = getUidFromGroupParam( ou );
-                OrganisationUnitGroup group = idObjectManager.getObject( 
+                OrganisationUnitGroup group = idObjectManager.getObject(
                     OrganisationUnitGroup.class, inputIdScheme, uid );
                 addIgnoreNull( groups, group );
             }
@@ -509,14 +514,14 @@ public class DimensionalObjectProducer
         }
 
         // Remove duplicates
-        
+
         return ous.stream().distinct().collect( toList() );
     }
 
     /**
-     * Based on the given parameters, this method will return an organisation unit group
-     * based object of type {@link BaseDimensionalObject}. The list of items
-     * will be loaded and added into the resulting object.
+     * Based on the given parameters, this method will return an organisation
+     * unit group based object of type {@link BaseDimensionalObject}. The list
+     * of items will be loaded and added into the resulting object.
      *
      * @param items the list of items that might be included into the resulting
      *        organisation unit and its keywords.
@@ -553,7 +558,8 @@ public class DimensionalObjectProducer
      * @param dimension the dynamic dimension.
      * @param items the list of items that might be included into the resulting
      *        object.
-     * @param displayProperty the label to be displayed for the organisation unit groups.
+     * @param displayProperty the label to be displayed for the organisation
+     *        unit groups.
      * @param inputIdScheme the identifier scheme to use.
      * @return an {@link Optional} of a dynamic dimension based instance of
      *         {@link BaseDimensionalObject}.
