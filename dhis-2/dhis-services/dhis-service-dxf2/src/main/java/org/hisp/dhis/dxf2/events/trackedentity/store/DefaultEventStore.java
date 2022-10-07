@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.util.HashMap;
@@ -42,7 +41,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventDataValueRowCal
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.EventRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandler;
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
-import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
