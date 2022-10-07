@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
@@ -143,9 +144,6 @@ class JdbcOwnershipAnalyticsTableManagerTest
     private Statement statement;
 
     @Mock
-    private ResultSet resultSet;
-
-    @Mock
     private JdbcOwnershipWriter writer;
 
     private static final Program programA = createProgram( 'A' );
@@ -229,26 +227,38 @@ class JdbcOwnershipAnalyticsTableManagerTest
 
         // Mock the jdbcTemplate callback handler to return the mocked ResultSet
         // object:
+
+        ResultSet resultSet1 = mock( ResultSet.class );
+        ResultSet resultSet2 = mock( ResultSet.class );
+        ResultSet resultSet3 = mock( ResultSet.class );
+
         doAnswer( invocation -> {
             RowCallbackHandler callbackHandler = invocation.getArgument( 1 );
-            callbackHandler.processRow( resultSet );
+            callbackHandler.processRow( resultSet1 );
+            callbackHandler.processRow( resultSet2 );
+            callbackHandler.processRow( resultSet3 );
             return null;
         } ).when( jdbcTemplate ).query( anyString(), any( RowCallbackHandler.class ) );
 
-        // Mock RowSet will return 5 successive rows:
-        when( resultSet.next() ).thenReturn( true, true, true, true, true, false );
-
         // TEI uid:
-        when( resultSet.getObject( 1 ) ).thenReturn( tei1, tei1, tei1, tei2, tei2 );
+        when( resultSet1.getObject( 1 ) ).thenReturn( tei1 );
+        when( resultSet2.getObject( 1 ) ).thenReturn( tei2 );
+        when( resultSet3.getObject( 1 ) ).thenReturn( tei2 );
 
         // Start date:
-        when( resultSet.getObject( 2 ) ).thenReturn( start1, start2, start3, start1, start2 );
+        when( resultSet1.getObject( 2 ) ).thenReturn( start1 );
+        when( resultSet2.getObject( 2 ) ).thenReturn( start2 );
+        when( resultSet3.getObject( 2 ) ).thenReturn( start3 );
 
         // End date (always null):
-        when( resultSet.getObject( 3 ) ).thenReturn( end1, end2, end3, end1, end2 );
+        when( resultSet1.getObject( 3 ) ).thenReturn( end1 );
+        when( resultSet2.getObject( 3 ) ).thenReturn( end2 );
+        when( resultSet3.getObject( 3 ) ).thenReturn( end3 );
 
         // OrgUnit:
-        when( resultSet.getObject( 4 ) ).thenReturn( ou1, ou2, ou1, ou1, ou2 );
+        when( resultSet1.getObject( 4 ) ).thenReturn( ou1 );
+        when( resultSet2.getObject( 4 ) ).thenReturn( ou2 );
+        when( resultSet3.getObject( 4 ) ).thenReturn( ou2 );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .build();
@@ -286,26 +296,20 @@ class JdbcOwnershipAnalyticsTableManagerTest
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 6, writerInvocations.size() );
+        assertEquals( 4, writerInvocations.size() );
 
         assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 3 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 4 ).getMethod().getName() );
-        assertEquals( "flush", writerInvocations.get( 5 ).getMethod().getName() );
+        assertEquals( "flush", writerInvocations.get( 3 ).getMethod().getName() );
 
         Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
         Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
         Map<String, Object> map2 = writerInvocations.get( 2 ).getArgument( 0 );
-        Map<String, Object> map3 = writerInvocations.get( 3 ).getArgument( 0 );
-        Map<String, Object> map4 = writerInvocations.get( 4 ).getArgument( 0 );
 
         assertEquals( Map.of( TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map0 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start3, ENDDATE, end3, OU, ou1 ), map2 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map3 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map4 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start3, ENDDATE, end3, OU, ou2 ), map2 );
     }
 
     @Test

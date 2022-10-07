@@ -102,11 +102,6 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
 
-        if ( skipEvents && skipEnrollment )
-        {
-            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
-        }
-
         if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
