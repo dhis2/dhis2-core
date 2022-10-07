@@ -240,7 +240,8 @@ class DimensionalObjectProducerTest
             "LEVEL-" + ou1.getUid(), "OU_GROUP-" + ou2.getUid() );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, SHORTNAME, organisationUnits, UID );
+        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, SHORTNAME, organisationUnits,
+            UID );
 
         // Then
         assertEquals( "ou", dimensionalObject.getDimension() );
@@ -277,7 +278,8 @@ class DimensionalObjectProducerTest
             "LEVEL-" + level2Ou1.getName(), "OU_GROUP-" + level2Ou2.getUid() );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, DisplayProperty.NAME, organisationUnits,
+        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, DisplayProperty.NAME,
+            organisationUnits,
             UID );
 
         // Then
