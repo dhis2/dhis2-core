@@ -171,19 +171,15 @@ public class JdbcOwnershipAnalyticsTableManager
         batchHandler.init();
 
         JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
-
         AtomicInteger queryRowCount = new AtomicInteger();
 
         jdbcTemplate.query( sql, resultSet -> {
-            while ( resultSet.next() )
-            {
-                writer.write( getRowMap( columnNames, resultSet ) );
-                queryRowCount.getAndIncrement();
-            }
-
-            log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
-            writer.flush();
+            writer.write( getRowMap( columnNames, resultSet ) );
+            queryRowCount.getAndIncrement();
         } );
+
+        log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
+        writer.flush();
     }
 
     private String getInputSql( AnalyticsTableUpdateParams params, Program program )
