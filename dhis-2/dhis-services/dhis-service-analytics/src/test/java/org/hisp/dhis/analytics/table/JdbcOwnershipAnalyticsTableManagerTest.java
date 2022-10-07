@@ -42,11 +42,13 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -84,7 +86,7 @@ import org.mockito.MockedStatic;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * {@see JdbcOwnershipAnalyticsTableManager} Tester.
@@ -141,7 +143,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
     private Statement statement;
 
     @Mock
-    private SqlRowSet rowSet;
+    private ResultSet resultSet;
 
     @Mock
     private JdbcOwnershipWriter writer;
@@ -225,22 +227,28 @@ class JdbcOwnershipAnalyticsTableManagerTest
         when( dataSource.getConnection() ).thenReturn( connection );
         when( connection.createStatement() ).thenReturn( statement );
 
-        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( rowSet );
+        // Mock the jdbcTemplate callback handler to return the mocked ResultSet
+        // object:
+        doAnswer( invocation -> {
+            RowCallbackHandler callbackHandler = invocation.getArgument( 1 );
+            callbackHandler.processRow( resultSet );
+            return null;
+        } ).when( jdbcTemplate ).query( anyString(), any( RowCallbackHandler.class ) );
 
         // Mock RowSet will return 5 successive rows:
-        when( rowSet.next() ).thenReturn( true, true, true, true, true, false );
+        when( resultSet.next() ).thenReturn( true, true, true, true, true, false );
 
         // TEI uid:
-        when( rowSet.getObject( 1 ) ).thenReturn( tei1, tei1, tei1, tei2, tei2 );
+        when( resultSet.getObject( 1 ) ).thenReturn( tei1, tei1, tei1, tei2, tei2 );
 
         // Start date:
-        when( rowSet.getObject( 2 ) ).thenReturn( start1, start2, start3, start1, start2 );
+        when( resultSet.getObject( 2 ) ).thenReturn( start1, start2, start3, start1, start2 );
 
         // End date (always null):
-        when( rowSet.getObject( 3 ) ).thenReturn( end1, end2, end3, end1, end2 );
+        when( resultSet.getObject( 3 ) ).thenReturn( end1, end2, end3, end1, end2 );
 
         // OrgUnit:
-        when( rowSet.getObject( 4 ) ).thenReturn( ou1, ou2, ou1, ou1, ou2 );
+        when( resultSet.getObject( 4 ) ).thenReturn( ou1, ou2, ou1, ou1, ou2 );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .build();
@@ -255,7 +263,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
 
         List<Invocation> jdbcInvocations = getInvocations( jdbcTemplate );
         assertEquals( 1, jdbcInvocations.size() );
-        assertEquals( "queryForRowSet", jdbcInvocations.get( 0 ).getMethod().getName() );
+        assertEquals( "query", jdbcInvocations.get( 0 ).getMethod().getName() );
 
         String sql = jdbcInvocations.get( 0 ).getArgument( 0 );
         String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",

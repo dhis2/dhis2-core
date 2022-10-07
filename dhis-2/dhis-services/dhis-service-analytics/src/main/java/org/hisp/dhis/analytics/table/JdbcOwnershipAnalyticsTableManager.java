@@ -36,10 +36,13 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +67,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,8 +100,8 @@ public class JdbcOwnershipAnalyticsTableManager
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
         new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
-        // Repeating the same alias "o.owndate" is not a typo. It might avoid a
-        // bug that may appear in some environments. This column is not read.
+        // Repeating the same alias "o.owndate" is not a typo. This column is
+        // not read.
         new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
@@ -170,22 +172,18 @@ public class JdbcOwnershipAnalyticsTableManager
 
         JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+        AtomicInteger queryRowCount = new AtomicInteger();
 
-        int queryRowCount = 0;
+        jdbcTemplate.query( sql, resultSet -> {
+            while ( resultSet.next() )
+            {
+                writer.write( getRowMap( columnNames, resultSet ) );
+                queryRowCount.getAndIncrement();
+            }
 
-        while ( rowSet.next() )
-        {
-            Map<String, Object> row = getRowMap( columnNames, rowSet );
-
-            writer.write( row );
-
-            queryRowCount++;
-        }
-
-        log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
-
-        writer.flush();
+            log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
+            writer.flush();
+        } );
     }
 
     private String getInputSql( AnalyticsTableUpdateParams params, Program program )
@@ -201,7 +199,7 @@ public class JdbcOwnershipAnalyticsTableManager
 
         sb.deleteCharAt( sb.length() - 1 ); // Remove the final ','.
 
-        // FROM clausetestImportEventInProgramStageSuccessWithWarningRaised
+        // FROM clause
 
         // Gets no more than one row per ownership start day. If there are
         // multiple enrollments and/or owner changes, gets the last change
@@ -229,13 +227,14 @@ public class JdbcOwnershipAnalyticsTableManager
             "order by tei.uid, o.owndate" ).toString();
     }
 
-    private Map<String, Object> getRowMap( List<String> columnNames, SqlRowSet rowSet )
+    private Map<String, Object> getRowMap( List<String> columnNames, ResultSet resultSet )
+        throws SQLException
     {
         Map<String, Object> rowMap = new HashMap<>();
 
         for ( int i = 0; i < columnNames.size(); i++ )
         {
-            rowMap.put( columnNames.get( i ), rowSet.getObject( i + 1 ) );
+            rowMap.put( columnNames.get( i ), resultSet.getObject( i + 1 ) );
         }
 
         return rowMap;
