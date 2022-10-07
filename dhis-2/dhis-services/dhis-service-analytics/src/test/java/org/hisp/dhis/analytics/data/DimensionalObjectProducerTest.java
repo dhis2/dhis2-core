@@ -143,7 +143,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testDimensionFromForIndicator()
+    void testGetDimensionForIndicator()
     {
         // Given
         Indicator indicator = createIndicator( 'A', createIndicatorType( 'A' ) );
@@ -157,7 +157,7 @@ class DimensionalObjectProducerTest
         List<String> itemsUid = List.of( "IN_GROUP-" + indicatorGroupUid, "IN_GROUP-Behv9EO3hR1" );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.dimensionFrom( itemsUid, UID );
+        BaseDimensionalObject dimensionalObject = target.getDimension( itemsUid, UID );
 
         // Then
         assertEquals( "dx", dimensionalObject.getDimension() );
@@ -177,7 +177,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testDimensionFromForDataElement()
+    void testGetDimensionForDataElement()
     {
         // Given
         DataElement dataElement = createDataElement( 'A' );
@@ -193,7 +193,7 @@ class DimensionalObjectProducerTest
         List<String> itemsUid = List.of( "DE_GROUP-" + deGroupUid, "DE_GROUP-Behv9EO3hR1" );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.dimensionFrom( itemsUid, NAME );
+        BaseDimensionalObject dimensionalObject = target.getDimension( itemsUid, NAME );
 
         // Then
         assertEquals( "dx", dimensionalObject.getDimension() );
@@ -212,19 +212,19 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testDimensionFromWhenDataDimensionsAreNotFound()
+    void testGetDimensionWhenDataDimensionsAreNotFound()
     {
         // Given
         List<String> nonExistingItemsUid = List.of( "DE_GROUP-Achv9EO3hR1", "IN_GROUP-Behv9EO3hR1" );
 
         // Then
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> target.dimensionFrom( nonExistingItemsUid, UID ) );
+            () -> target.getDimension( nonExistingItemsUid, UID ) );
         assertEquals( E7124, ex.getErrorCode() );
     }
 
     @Test
-    void testOrgUnitFromWithNoLevelsNoGroup()
+    void testGetOrgUnitDimensionWithNoLevelsNoGroup()
     {
         // Given
         OrganisationUnit level2Ou1 = createOrganisationUnit( "Bo" );
@@ -240,7 +240,7 @@ class DimensionalObjectProducerTest
             "LEVEL-" + ou1.getUid(), "OU_GROUP-" + ou2.getUid() );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.orgUnitFrom( itemsUid, SHORTNAME, organisationUnits, UID );
+        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, SHORTNAME, organisationUnits, UID );
 
         // Then
         assertEquals( "ou", dimensionalObject.getDimension() );
@@ -257,7 +257,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testOrgUnitFromWithWithLevelAndGroup()
+    void testGetOrgUnitDimensionWithWithLevelAndGroup()
     {
         // Given
         OrganisationUnitGroup organisationUnitGroup = createOrganisationUnitGroup( 'A' );
@@ -277,7 +277,7 @@ class DimensionalObjectProducerTest
             "LEVEL-" + level2Ou1.getName(), "OU_GROUP-" + level2Ou2.getUid() );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.orgUnitFrom( itemsUid, DisplayProperty.NAME, organisationUnits,
+        BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, DisplayProperty.NAME, organisationUnits,
             UID );
 
         // Then
@@ -301,19 +301,19 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testDimensionFromWhenOrgUnitsAreNotFound()
+    void testGetDimensionWhenOrgUnitsAreNotFound()
     {
         // Given
         List<String> nonExistingItemsUid = List.of( "LEVEL-Achv9EO3hR1", "OU_GROUP-Blhv9EO3hR1" );
 
         // Then
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> target.dimensionFrom( nonExistingItemsUid, UID ) );
+            () -> target.getDimension( nonExistingItemsUid, UID ) );
         assertEquals( E7124, ex.getErrorCode() );
     }
 
     @Test
-    void testOrgUnitGroupFrom()
+    void testGetOrgUnitGroupDimension()
     {
         // Given
         OrganisationUnitGroup organisationUnitGroup1 = createOrganisationUnitGroup( 'A' );
@@ -327,7 +327,7 @@ class DimensionalObjectProducerTest
         List<String> itemsUid = List.of( "Achv9EO3hR1", "Blhv9EO3hR1" );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.orgUnitGroupFrom( itemsUid, UID );
+        BaseDimensionalObject dimensionalObject = target.getOrgUnitGroupDimension( itemsUid, UID );
 
         // Then
         assertEquals( "oug", dimensionalObject.getDimension() );
@@ -343,7 +343,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testPeriodFrom()
+    void testGetPeriodDimensions()
     {
         // Given
         List<String> itemsUid = List.of( "LAST_YEAR:LAST_UPDATED", "LAST_5_YEARS:SCHEDULED_DATE" );
@@ -354,7 +354,7 @@ class DimensionalObjectProducerTest
         when( i18nManager.getI18n() ).thenReturn( i18n );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.periodFrom( itemsUid, new Date() );
+        BaseDimensionalObject dimensionalObject = target.getPeriodDimension( itemsUid, new Date() );
 
         // Then
         assertEquals( "pe", dimensionalObject.getDimension() );
@@ -385,7 +385,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    void testPeriodFromNonIsoPeriod()
+    void testGetPeriodDimensionForNonIsoPeriod()
     {
         // Given
         List<String> itemsUid = List.of( "2021-05-01_2021-06-01:LAST_UPDATED" );
@@ -395,7 +395,7 @@ class DimensionalObjectProducerTest
         when( i18nManager.getI18nFormat() ).thenReturn( i18nFormat );
 
         // When
-        BaseDimensionalObject dimensionalObject = target.periodFrom( itemsUid, new Date() );
+        BaseDimensionalObject dimensionalObject = target.getPeriodDimension( itemsUid, new Date() );
 
         // Then
         assertEquals( "pe", dimensionalObject.getDimension() );
@@ -426,9 +426,8 @@ class DimensionalObjectProducerTest
         when( idObjectManager.get( DYNAMIC_DIM_CLASSES, UID, categoryUid ) ).thenReturn( category );
 
         // When
-        Optional<BaseDimensionalObject> dimensionalObject = target.dynamicFrom( categoryUid, itemsUid,
-            DisplayProperty.NAME,
-            UID );
+        Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, itemsUid,
+            DisplayProperty.NAME, UID );
 
         // Then
         assertEquals( categoryUid, dimensionalObject.get().getDimension() );
