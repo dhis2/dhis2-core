@@ -616,6 +616,6 @@ public class CriteriaQueryEngineTest
         query.add( identifiableJunction );
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
-        assertEquals( 6, objects.size() );
+        assertEquals( 0, objects.size() );
     }
 }
