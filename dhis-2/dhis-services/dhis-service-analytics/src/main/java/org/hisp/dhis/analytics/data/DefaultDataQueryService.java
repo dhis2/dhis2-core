@@ -259,7 +259,7 @@ public class DefaultDataQueryService
     {
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectProducer.dimensionFrom( items, inputIdScheme );
+            return dimensionalObjectProducer.getDimension( items, inputIdScheme );
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
@@ -273,16 +273,16 @@ public class DefaultDataQueryService
         }
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectProducer.periodFrom( items, relativePeriodDate );
+            return dimensionalObjectProducer.getPeriodDimension( items, relativePeriodDate );
         }
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectProducer.orgUnitFrom( items, displayProperty, userOrgUnits,
+            return dimensionalObjectProducer.getOrgUnitDimension( items, displayProperty, userOrgUnits,
                 inputIdScheme );
         }
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
         {
-            return dimensionalObjectProducer.orgUnitGroupFrom( items, inputIdScheme );
+            return dimensionalObjectProducer.getOrgUnitGroupDimension( items, inputIdScheme );
         }
         else if ( LONGITUDE_DIM_ID.contains( dimension ) )
         {
@@ -296,7 +296,7 @@ public class DefaultDataQueryService
         }
         else
         {
-            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.dynamicFrom( dimension,
+            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.getDynamicDimension( dimension,
                 items, displayProperty, inputIdScheme );
 
             if ( baseDimensionalObject.isPresent() )

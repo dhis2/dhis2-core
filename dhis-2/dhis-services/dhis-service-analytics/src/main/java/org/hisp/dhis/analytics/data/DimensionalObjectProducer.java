@@ -77,8 +77,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -106,6 +104,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Component that focus on the production of dimensional objects of different
@@ -137,11 +137,11 @@ public class DimensionalObjectProducer
      * and added into the resulting object.
      *
      * @param items the list of items that might be included as data items and
-     *        keywords
-     * @param inputIdScheme the schema used to load objects from the database
-     * @return a dimension based instance of {@link BaseDimensionalObject}
+     *        keywords.
+     * @param inputIdScheme the identifier scheme to use.
+     * @return a dimension based instance of {@link BaseDimensionalObject}.
      */
-    public BaseDimensionalObject dimensionFrom( List<String> items, IdScheme inputIdScheme )
+    public BaseDimensionalObject getDimension( List<String> items, IdScheme inputIdScheme )
     {
         List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
@@ -200,12 +200,11 @@ public class DimensionalObjectProducer
      * loaded and added into the resulting object.
      *
      * @param items the list of items that might be included as periods and
-     *        keywords
-     * @param relativePeriodDate date that relative periods will be generated
-     *        from
-     * @return a period based instance of {@link BaseDimensionalObject}
+     *        keywords.
+     * @param relativePeriodDate date that relative periods will be generated based on.
+     * @return a period based instance of {@link BaseDimensionalObject}.
      */
-    public BaseDimensionalObject periodFrom( List<String> items, Date relativePeriodDate )
+    public BaseDimensionalObject getPeriodDimension( List<String> items, Date relativePeriodDate )
     {
         List<Period> periods = new ArrayList<>();
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
@@ -249,24 +248,24 @@ public class DimensionalObjectProducer
             periods.sort( new AscendingPeriodComparator() );
         }
 
-        overridePeriodsAttributes( periods, getCalendar() );
+        overridePeriodAttributes( periods, getCalendar() );
 
         return new BaseDimensionalObject( PERIOD_DIM_ID, PERIOD, null, DISPLAY_NAME_PERIOD,
             asList( periods ), dimensionalKeywords );
     }
 
     /**
-     * This method takes a list of {@link Period}s and
+     * This method takes a list of {@link Period} and
      * {@link DimensionItemKeywords} and adds the daily ISO period and keyword
      * held by the given {@link IsoPeriodHolder} into the {@link List} of
      * {@link Period}s.
      *
      * @param periods the {@link List} of {@link Period}s where the ISO period
-     *        will be added to
+     *        will be added to.
      * @param dimensionalKeywords the {@link DimensionItemKeywords} where the
-     *        ISO period will be added to
+     *        ISO period will be added to.
      * @param isoPeriodHolder the object where the ISO period and dates will be
-     *        extracted from
+     *        extracted from.
      */
     private void addDailyPeriods( List<Period> periods, DimensionItemKeywords dimensionalKeywords,
         IsoPeriodHolder isoPeriodHolder )
@@ -275,9 +274,10 @@ public class DimensionalObjectProducer
 
         if ( optionalPeriod.isPresent() )
         {
+            I18nFormat format = i18nManager.getI18nFormat();
             Period periodToAdd = optionalPeriod.get();
-            String startDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getStartDate() );
-            String endDate = i18nManager.getI18nFormat().formatDate( periodToAdd.getEndDate() );
+            String startDate = format.formatDate( periodToAdd.getStartDate() );
+            String endDate = format.formatDate( periodToAdd.getEndDate() );
 
             dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(), join( " - ", startDate, endDate ) );
             periods.add( periodToAdd );
@@ -285,7 +285,7 @@ public class DimensionalObjectProducer
     }
 
     /**
-     * This method takes a list of {@link Period}s and
+     * This method takes a list of {@link Period} and
      * {@link DimensionItemKeywords} and adds the ISO period and keyword held by
      * the given {@link IsoPeriodHolder} into the {@link List} of
      * {@link Period}s.
@@ -322,15 +322,15 @@ public class DimensionalObjectProducer
     /**
      * Populates the given list of {@link Period}s with relative periods derived
      * from the given relativePeriodDate, financialYearStart and isoPeriodHolder
-     * params.
+     * parameters.
      *
-     * @param relativePeriodDate the relative {@link Date}
-     * @param periods the {@link List} of {@link Period}s to be populated
+     * @param relativePeriodDate the relative {@link Date}.
+     * @param periods the {@link List} of {@link Period} to be populated.
      * @param dimensionalKeywords the {@link DimensionItemKeywords} to be
-     *        populated (based on the isoPeriodHolder param)
-     * @param financialYearStart the initial financial year
+     *        populated.
+     * @param financialYearStart the initial financial year.
      * @param isoPeriodHolder the object where the ISO period and date will be
-     *        extracted from
+     *        extracted from.
      */
     private void addRelativePeriods( Date relativePeriodDate, List<Period> periods,
         DimensionItemKeywords dimensionalKeywords, AnalyticsFinancialYearStartKey financialYearStart,
@@ -347,6 +347,7 @@ public class DimensionalObjectProducer
             true, financialYearStart );
 
         // If a custom time filter is specified, set it in periods
+        
         if ( isoPeriodHolder.hasDateField() )
         {
             relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
@@ -357,13 +358,13 @@ public class DimensionalObjectProducer
 
     /**
      * Overrides each {@link Period} on the given list by a local period
-     * identifier derived from the given calendar param.
+     * identifier derived from the given calendar.
      *
-     * @param periods the {@link List} of {@link Period}s to be overridden
+     * @param periods the {@link List} of {@link Period}s to be overridden.
      * @param calendar the base calendar where the period identifier will be
-     *        extracted from
+     *        extracted from.
      */
-    private void overridePeriodsAttributes( List<Period> periods, Calendar calendar )
+    private void overridePeriodAttributes( List<Period> periods, Calendar calendar )
     {
         I18nFormat format = i18nManager.getI18nFormat();
 
@@ -386,26 +387,26 @@ public class DimensionalObjectProducer
     }
 
     /**
-     * Based on the given parameters, this method will return an org. unit based
+     * Based on the given parameters, this method will return an organisation unit based
      * object of type {@link BaseDimensionalObject}. The list of items will be
-     * loaded and added into the resulting object. The internal org. unit levels
+     * loaded and added into the resulting object. The internal organisation unit levels
      * are added to the returned object based on a few internal rules present on
      * this method.
      *
      * @param items the list of items that might be included into the resulting
-     *        org. unit and its keywords
-     * @param displayProperty the label to be displayed for the org. unit groups
-     * @param userOrgUnits the list of org. units associated with the logged
-     *        user
-     * @param inputIdScheme the schema used to load objects from the database
-     * @return an org. unit based instance of {@link BaseDimensionalObject}
+     *        organisation unit and its keywords.
+     * @param displayProperty the label to be displayed for the organisation unit groups.
+     * @param userOrgUnits the list of organisation units associated with the logged
+     *        user.
+     * @param inputIdScheme the identifier scheme to use.
+     * @return an organisation unit based instance of {@link BaseDimensionalObject}.
      */
-    public BaseDimensionalObject orgUnitFrom( List<String> items, DisplayProperty displayProperty,
+    public BaseDimensionalObject getOrgUnitDimension( List<String> items, DisplayProperty displayProperty,
         List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme )
     {
         List<Integer> levels = new ArrayList<>();
         List<OrganisationUnitGroup> groups = new ArrayList<>();
-        List<DimensionalItemObject> ous = getOrgUnitsDimension( items, userOrgUnits, inputIdScheme, levels, groups );
+        List<DimensionalItemObject> ous = getOrgUnitDimensionItems( items, userOrgUnits, inputIdScheme, levels, groups );
         List<DimensionalItemObject> orgUnitAtLevels = new ArrayList<>();
         List<OrganisationUnit> ousList = asTypedList( ous );
         DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
@@ -430,9 +431,7 @@ public class DimensionalObjectProducer
                 .collect( toList() ) );
         }
 
-        // -----------------------------------------------------------------
         // When levels / groups are present, OUs are considered boundaries
-        // -----------------------------------------------------------------
 
         if ( levels.isEmpty() && groups.isEmpty() )
         {
@@ -450,6 +449,7 @@ public class DimensionalObjectProducer
         }
 
         // Remove duplicates
+        
         orgUnitAtLevels = orgUnitAtLevels.stream().distinct().collect( toList() );
 
         return new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
@@ -462,14 +462,15 @@ public class DimensionalObjectProducer
      * adds to the given levels and groups if certain internal rules match.
      *
      * @param items the list of items that might be included into the resulting
-     *        org. unit and its keywords
-     * @param userOrgUnits the list of org. units associated with the logged
-     *        user
-     * @param inputIdScheme the schema used to load objects from the database
-     * @return an org. unit based instance of {@link BaseDimensionalObject}
+     *        organisation unit and its keywords.
+     * @param userOrgUnits the list of organisation units associated with the current
+     *        user.
+     * @param inputIdScheme the identifier scheme to use.
+     * @return an organisation unit based instance of {@link BaseDimensionalObject}.
      */
-    private List<DimensionalItemObject> getOrgUnitsDimension( List<String> items, List<OrganisationUnit> userOrgUnits,
-        IdScheme inputIdScheme, List<Integer> levels, List<OrganisationUnitGroup> groups )
+    private List<DimensionalItemObject> getOrgUnitDimensionItems( List<String> items, 
+        List<OrganisationUnit> userOrgUnits, IdScheme inputIdScheme, List<Integer> levels, 
+        List<OrganisationUnitGroup> groups )
     {
         List<DimensionalItemObject> ous = new ArrayList<>();
 
@@ -508,21 +509,22 @@ public class DimensionalObjectProducer
         }
 
         // Remove duplicates
+        
         return ous.stream().distinct().collect( toList() );
     }
 
     /**
-     * Based on the given parameters, this method will return an org. unit group
+     * Based on the given parameters, this method will return an organisation unit group
      * based object of type {@link BaseDimensionalObject}. The list of items
      * will be loaded and added into the resulting object.
      *
      * @param items the list of items that might be included into the resulting
-     *        org. unit and its keywords
-     * @param inputIdScheme the schema used to load objects from the database
-     * @return an org. unit group based instance of
-     *         {@link BaseDimensionalObject}
+     *        organisation unit and its keywords.
+     * @param inputIdScheme the identifier scheme to use.
+     * @return an organisation unit group based instance of
+     *         {@link BaseDimensionalObject}.
      */
-    public BaseDimensionalObject orgUnitGroupFrom( List<String> items, IdScheme inputIdScheme )
+    public BaseDimensionalObject getOrgUnitGroupDimension( List<String> items, IdScheme inputIdScheme )
     {
         List<DimensionalItemObject> ougs = new ArrayList<>();
 
@@ -548,15 +550,15 @@ public class DimensionalObjectProducer
      * dynamic dimensions, see
      * {@link org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES}
      *
-     * @param dimension the dynamic dimension
+     * @param dimension the dynamic dimension.
      * @param items the list of items that might be included into the resulting
-     *        object
-     * @param displayProperty the label to be displayed for the org. unit groups
-     * @param inputIdScheme the schema used to load objects from the database
+     *        object.
+     * @param displayProperty the label to be displayed for the organisation unit groups.
+     * @param inputIdScheme the identifier scheme to use.
      * @return an {@link Optional} of a dynamic dimension based instance of
-     *         {@link BaseDimensionalObject}
+     *         {@link BaseDimensionalObject}.
      */
-    public Optional<BaseDimensionalObject> dynamicFrom( String dimension, List<String> items,
+    public Optional<BaseDimensionalObject> getDynamicDimension( String dimension, List<String> items,
         DisplayProperty displayProperty, IdScheme inputIdScheme )
     {
         boolean allItems = items.isEmpty();
