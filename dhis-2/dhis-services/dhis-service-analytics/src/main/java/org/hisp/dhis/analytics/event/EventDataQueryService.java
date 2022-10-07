@@ -65,7 +65,7 @@ public interface EventDataQueryService
      * @return an {@link EventQueryParams}.
      */
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
-
+    
     /**
      * Returns the coordinate column field to use for the given coordinate
      * field. Coordinate field must match EVENT, a data element identifier or an

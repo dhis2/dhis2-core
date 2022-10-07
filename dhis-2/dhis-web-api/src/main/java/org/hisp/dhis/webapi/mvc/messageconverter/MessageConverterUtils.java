@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableList;
@@ -94,5 +95,28 @@ public final class MessageConverterUtils
     {
         final String filename = ContextUtils.getAttachmentFileName( contentDispositionHeaderValue );
         return (filename != null) && extensibleAttachmentFilenames.contains( filename ) ? filename : null;
+    }
+
+    /**
+     * Get Content-Disposition value from header. If not exist then generate a
+     * default value for metadata export.
+     *
+     * @param outputMessage {@link HttpOutputMessage} for retrieving header
+     *        value.
+     * @param isDownload Indicate whether the current request expects a file to
+     *        be return.
+     * @return Content-Disposition value or default value "attachment;
+     *         filename=metadata.json".
+     */
+    public static String getContentDisposition( HttpOutputMessage outputMessage, boolean isDownload )
+    {
+        String contentDisposition = outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
+
+        if ( contentDisposition == null && isDownload )
+        {
+            contentDisposition = getContentDispositionHeaderValue( null, null );
+        }
+
+        return contentDisposition;
     }
 }
