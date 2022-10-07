@@ -497,8 +497,8 @@ public class DimensionalObjectProducer
             else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
             {
                 String uid = getUidFromGroupParam( ou );
-                OrganisationUnitGroup group = idObjectManager.getObject( OrganisationUnitGroup.class, inputIdScheme,
-                    uid );
+                OrganisationUnitGroup group = idObjectManager.getObject( 
+                    OrganisationUnitGroup.class, inputIdScheme, uid );
                 addIgnoreNull( groups, group );
             }
             else if ( !inputIdScheme.is( UID ) || isValidUid( ou ) )
