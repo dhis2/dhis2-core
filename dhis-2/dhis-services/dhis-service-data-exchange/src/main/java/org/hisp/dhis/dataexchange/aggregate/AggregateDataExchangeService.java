@@ -77,7 +77,7 @@ public class AggregateDataExchangeService
     private final DataQueryService dataQueryService;
 
     private final DataValueSetService dataValueSetService;
-    
+
     private final I18nManager i18nManager;
 
     private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -93,7 +93,7 @@ public class AggregateDataExchangeService
         this.aggregateDataExchangeStore = aggregateDataExchangeStore;
         this.dataQueryService = dataQueryService;
         this.dataValueSetService = dataValueSetService;
-        this.i18nManager = i18nManager; 
+        this.i18nManager = i18nManager;
         this.encryptor = encryptor;
     }
 
@@ -275,7 +275,7 @@ public class AggregateDataExchangeService
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    private DimensionalObject toDimensionalObject( String dimension, 
+    private DimensionalObject toDimensionalObject( String dimension,
         List<String> items, I18nFormat format, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(

@@ -81,7 +81,7 @@ class AggregateDataExchangeServiceTest
 
     @Mock
     private I18nManager i18nManager;
-    
+
     @InjectMocks
     private AggregateDataExchangeService service;
 
