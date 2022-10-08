@@ -15,15 +15,20 @@ services:
       POSTGRES_USER: dhis
       POSTGRES_DB: dhis2
       POSTGRES_PASSWORD: dhis
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready --username ${POSTGRES_USER} --dbname ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   web:
     image: "${IMAGE_NAME}"
     volumes:
     - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
-    environment:
-      - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
     depends_on:
-    - db
-    - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
     - "8080"
