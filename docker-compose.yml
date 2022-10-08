@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    image: teleivo/dhis2:master
     ports:
       - 127.0.0.1:8080:8080 # DHIS2
       - 127.0.0.1:8081:8081 # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
@@ -21,7 +21,7 @@ services:
         condition: service_healthy
 
   db:
-    image: postgis/postgis:10-2.5-alpine
+    image: ghcr.io/baosystems/postgis:12-3.3
     ports:
       - 127.0.0.1:5432:5432
     volumes:
