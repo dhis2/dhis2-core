@@ -24,7 +24,7 @@ services:
   web:
     image: "${IMAGE_NAME}"
     volumes:
-    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf
     depends_on:
       db:
         condition: service_healthy
