@@ -133,18 +133,16 @@ public class TeiFields
         teiQueryParams.getCommonParams().getOrderParams()
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
+            .filter( TeiFields::isNotInSetOfFields )
             .forEach( p -> {
                 if ( isStaticDimension( p ) )
                 {
-                    if ( isNotInSetOfFields( p ) )
-                    {
-                        DimensionIdentifier<Program, ProgramStage, DimensionParam> di = DimensionIdentifier.of(
-                            DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(),
-                            DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(), p.getDimension() );
+                    DimensionIdentifier<Program, ProgramStage, DimensionParam> di = DimensionIdentifier.of(
+                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(),
+                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(), p.getDimension() );
 
-                        fields.add( Field.of( ENR_ALIAS,
-                            () -> RenderableDimensionIdentifier.of( di ).render().toLowerCase(), EMPTY ) );
-                    }
+                    fields.add( Field.of( ENR_ALIAS,
+                        () -> RenderableDimensionIdentifier.of( di ).render().toLowerCase(), EMPTY ) );
                 }
                 else
                 {
