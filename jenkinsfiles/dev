@@ -14,7 +14,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
-        timeout(time: 30)
+        timeout(time: 60)
     }
 
     environment {
