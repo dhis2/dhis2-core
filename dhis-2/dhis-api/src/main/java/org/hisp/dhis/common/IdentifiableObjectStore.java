@@ -32,6 +32,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
 
@@ -48,7 +51,7 @@ public interface IdentifiableObjectStore<T>
      * @param clearSharing indicates whether to clear all sharing related
      *        properties.
      */
-    void save( T object, boolean clearSharing );
+    void save( @Nonnull T object, boolean clearSharing );
 
     /**
      * Saves the given object instance.
@@ -56,7 +59,7 @@ public interface IdentifiableObjectStore<T>
      * @param object the object instance.
      * @param user the user currently in the security context.
      */
-    void save( T object, User user );
+    void save( @Nonnull T object, @CheckForNull User user );
 
     /**
      * Updates the given object instance.
@@ -64,14 +67,14 @@ public interface IdentifiableObjectStore<T>
      * @param object the object instance.
      * @param user User
      */
-    void update( T object, User user );
+    void update( @Nonnull T object, @CheckForNull User user );
 
     /**
      * Update object. Bypasses the ACL system.
      *
      * @param object Object update
      */
-    void updateNoAcl( T object );
+    void updateNoAcl( @Nonnull T object );
 
     /**
      * Removes the given object instance.
@@ -79,7 +82,7 @@ public interface IdentifiableObjectStore<T>
      * @param object the object instance to delete.
      * @param user User
      */
-    void delete( T object, User user );
+    void delete( @Nonnull T object, @CheckForNull User user );
 
     /**
      * Retrieves the object with the given UID, or null if no object exists.
@@ -87,7 +90,8 @@ public interface IdentifiableObjectStore<T>
      * @param uid the UID.
      * @return the object with the given UID.
      */
-    T getByUid( String uid );
+    @CheckForNull
+    T getByUid( @Nonnull String uid );
 
     /**
      * Retrieves the object with the given UID, throws exception if no object
@@ -97,7 +101,8 @@ public interface IdentifiableObjectStore<T>
      * @return the object with the given UID.
      * @throws IllegalQueryException if no object exists.
      */
-    T loadByUid( String uid );
+    @Nonnull
+    T loadByUid( @Nonnull String uid );
 
     /**
      * Retrieves the object with the given uid. Bypasses the ACL system.
@@ -105,7 +110,8 @@ public interface IdentifiableObjectStore<T>
      * @param uid the uid.
      * @return the object with the given uid.
      */
-    T getByUidNoAcl( String uid );
+    @CheckForNull
+    T getByUidNoAcl( @Nonnull String uid );
 
     /**
      * Retrieves the object with the given name.
@@ -113,7 +119,8 @@ public interface IdentifiableObjectStore<T>
      * @param name the name.
      * @return the object with the given name.
      */
-    T getByName( String name );
+    @CheckForNull
+    T getByName( @Nonnull String name );
 
     /**
      * Retrieves the object with the given code, or null if no object exists.
@@ -121,7 +128,8 @@ public interface IdentifiableObjectStore<T>
      * @param code the code.
      * @return the object with the given code.
      */
-    T getByCode( String code );
+    @CheckForNull
+    T getByCode( @Nonnull String code );
 
     /**
      * Retrieves the object with the given code, throws exception if no object
@@ -131,7 +139,8 @@ public interface IdentifiableObjectStore<T>
      * @return the object with the given code.
      * @throws IllegalQueryException if no object exists.
      */
-    T loadByCode( String code );
+    @Nonnull
+    T loadByCode( @Nonnull String code );
 
     /**
      * Retrieves the attribute value associated with the unique attribute and
@@ -139,9 +148,10 @@ public interface IdentifiableObjectStore<T>
      *
      * @param attribute the attribute.
      * @param value the value.
-     * @return the attribute value.
+     * @return the attribute value or null if not found
      */
-    T getByUniqueAttributeValue( Attribute attribute, String value );
+    @CheckForNull
+    T getByUniqueAttributeValue( @Nonnull Attribute attribute, @Nonnull String value );
 
     /**
      * Retrieves the attribute value associated with the unique attribute, the
@@ -150,15 +160,17 @@ public interface IdentifiableObjectStore<T>
      * @param attribute the attribute.
      * @param value the value.
      * @param user the user.
-     * @return the attribute value.
+     * @return the attribute value or null if not found
      */
-    T getByUniqueAttributeValue( Attribute attribute, String value, User user );
+    @CheckForNull
+    T getByUniqueAttributeValue( @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull User user );
 
     /**
      * Retrieves a List of all objects (sorted on name).
      *
      * @return a List of all objects.
      */
+    @Nonnull
     List<T> getAllOrderedName();
 
     /**
@@ -169,6 +181,7 @@ public interface IdentifiableObjectStore<T>
      * @param max the max number of result objects to return.
      * @return list of objects.
      */
+    @Nonnull
     List<T> getAllOrderedName( int first, int max );
 
     /**
@@ -177,7 +190,8 @@ public interface IdentifiableObjectStore<T>
      * @param name the name.
      * @return a List of objects.
      */
-    List<T> getAllEqName( String name );
+    @Nonnull
+    List<T> getAllEqName( @Nonnull String name );
 
     /**
      * Retrieves a List of objects where the name is like the given name.
@@ -185,7 +199,8 @@ public interface IdentifiableObjectStore<T>
      * @param name the name.
      * @return a List of objects.
      */
-    List<T> getAllLikeName( String name );
+    @Nonnull
+    List<T> getAllLikeName( @Nonnull String name );
 
     /**
      * Retrieves a List of objects where the name is like the given name.
@@ -193,7 +208,8 @@ public interface IdentifiableObjectStore<T>
      * @param name the name.
      * @return a List of objects.
      */
-    List<T> getAllLikeName( String name, boolean caseSensitive );
+    @Nonnull
+    List<T> getAllLikeName( @Nonnull String name, boolean caseSensitive );
 
     /**
      * Retrieves a List of objects where the name is like the given name.
@@ -203,7 +219,8 @@ public interface IdentifiableObjectStore<T>
      * @param max the max number of result objects to return.
      * @return a List of objects.
      */
-    List<T> getAllLikeName( String name, int first, int max );
+    @Nonnull
+    List<T> getAllLikeName( @Nonnull String name, int first, int max );
 
     /**
      * Retrieves a List of objects where the name is like the given name.
@@ -214,7 +231,8 @@ public interface IdentifiableObjectStore<T>
      * @param caseSensitive Case sensitive matches or not
      * @return a List of objects.
      */
-    List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive );
+    @Nonnull
+    List<T> getAllLikeName( @Nonnull String name, int first, int max, boolean caseSensitive );
 
     /**
      * Retrieves a List of objects where the name matches the conjunction of the
@@ -225,7 +243,8 @@ public interface IdentifiableObjectStore<T>
      * @param max the max number of result objects to return.
      * @return a List of objects.
      */
-    List<T> getAllLikeName( Set<String> words, int first, int max );
+    @Nonnull
+    List<T> getAllLikeName( @Nonnull Set<String> words, int first, int max );
 
     /**
      * Retrieves the objects determined by the given first result and max
@@ -236,6 +255,7 @@ public interface IdentifiableObjectStore<T>
      * @param max the max number of result objects to return.
      * @return List of objects.
      */
+    @Nonnull
     List<T> getAllOrderedLastUpdated( int first, int max );
 
     /**
@@ -244,7 +264,7 @@ public interface IdentifiableObjectStore<T>
      * @param name the name which result object names must be like.
      * @return the count of objects.
      */
-    int getCountLikeName( String name );
+    int getCountLikeName( @Nonnull String name );
 
     /**
      * Retrieves a list of objects referenced by the given collection of ids.
@@ -252,7 +272,8 @@ public interface IdentifiableObjectStore<T>
      * @param ids a collection of ids.
      * @return a list of objects.
      */
-    List<T> getById( Collection<Long> ids );
+    @Nonnull
+    List<T> getById( @Nonnull Collection<Long> ids );
 
     /**
      * Retrieves a list of objects referenced by the given collection of ids.
@@ -261,7 +282,8 @@ public interface IdentifiableObjectStore<T>
      * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
-    List<T> getById( Collection<Long> ids, User user );
+    @Nonnull
+    List<T> getById( @Nonnull Collection<Long> ids, @CheckForNull User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of uids.
@@ -269,7 +291,8 @@ public interface IdentifiableObjectStore<T>
      * @param uids a collection of uids.
      * @return a list of objects.
      */
-    List<T> getByUid( Collection<String> uids );
+    @Nonnull
+    List<T> getByUid( @Nonnull Collection<String> uids );
 
     /**
      * Retrieves a list of objects referenced by the given collection of uids.
@@ -280,7 +303,8 @@ public interface IdentifiableObjectStore<T>
      * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
-    List<T> getByUid( Collection<String> uids, User user );
+    @Nonnull
+    List<T> getByUid( @Nonnull Collection<String> uids, @CheckForNull User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of codes.
@@ -288,7 +312,8 @@ public interface IdentifiableObjectStore<T>
      * @param codes a collection of codes.
      * @return a list of objects.
      */
-    List<T> getByCode( Collection<String> codes );
+    @Nonnull
+    List<T> getByCode( @Nonnull Collection<String> codes );
 
     /**
      * Retrieves a list of objects referenced by the given collection of codes.
@@ -297,7 +322,8 @@ public interface IdentifiableObjectStore<T>
      * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
-    List<T> getByCode( Collection<String> codes, User user );
+    @Nonnull
+    List<T> getByCode( @Nonnull Collection<String> codes, @CheckForNull User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of names.
@@ -305,7 +331,8 @@ public interface IdentifiableObjectStore<T>
      * @param names a collection of names.
      * @return a list of objects.
      */
-    List<T> getByName( Collection<String> names );
+    @Nonnull
+    List<T> getByName( @Nonnull Collection<String> names );
 
     /**
      * Retrieves a list of objects referenced by the given collection of names.
@@ -314,7 +341,8 @@ public interface IdentifiableObjectStore<T>
      * @param user the {@link User} for sharing restrictions
      * @return a list of objects.
      */
-    List<T> getByName( Collection<String> names, User user );
+    @Nonnull
+    List<T> getByName( @Nonnull Collection<String> names, @CheckForNull User user );
 
     /**
      * Retrieves a list of objects referenced by the given List of uids.
@@ -323,7 +351,8 @@ public interface IdentifiableObjectStore<T>
      * @param uids a List of uids.
      * @return a list of objects.
      */
-    List<T> getByUidNoAcl( Collection<String> uids );
+    @Nonnull
+    List<T> getByUidNoAcl( @Nonnull Collection<String> uids );
 
     /**
      * Returns all objects which are equal to or older than the given date.
@@ -331,7 +360,8 @@ public interface IdentifiableObjectStore<T>
      * @param created Date to compare with.
      * @return All objects equals to or older than the given date.
      */
-    List<T> getAllLeCreated( Date created );
+    @Nonnull
+    List<T> getAllLeCreated( @Nonnull Date created );
 
     /**
      * Returns all objects that are equal to or newer than given date.
@@ -339,20 +369,23 @@ public interface IdentifiableObjectStore<T>
      * @param lastUpdated Date to compare with.
      * @return All objects equal or newer than given date.
      */
-    List<T> getAllGeLastUpdated( Date lastUpdated );
+    @Nonnull
+    List<T> getAllGeLastUpdated( @Nonnull Date lastUpdated );
 
     /**
      * Returns all objects without considering sharing.
      *
      * @return a list of all objects.
      */
+    @Nonnull
     List<T> getAllNoAcl();
 
     /**
      * Returns the date of the last updated object.
      *
-     * @return a Date / time stamp.
+     * @return a Date / time stamp or null if no objects exist
      */
+    @CheckForNull
     Date getLastUpdated();
 
     /**
@@ -362,7 +395,7 @@ public interface IdentifiableObjectStore<T>
      * @param lastUpdated Date to compare to.
      * @return the number of objects equal or newer than given date.
      */
-    int getCountGeLastUpdated( Date lastUpdated );
+    int getCountGeLastUpdated( @Nonnull Date lastUpdated );
 
     /**
      * Returns the number of objects that are equal to or newer than given
@@ -371,7 +404,7 @@ public interface IdentifiableObjectStore<T>
      * @param created Date to compare to.
      * @return the number of objects equal or newer than given date.
      */
-    int getCountGeCreated( Date created );
+    int getCountGeCreated( @Nonnull Date created );
 
     /**
      * Returns the UID of all objects created before a given date.
@@ -379,18 +412,23 @@ public interface IdentifiableObjectStore<T>
      * @param date the date.
      * @return the UID of all objects created before a given date.
      */
-    List<String> getUidsCreatedBefore( Date date );
+    @Nonnull
+    List<String> getUidsCreatedBefore( @Nonnull Date date );
 
+    @Nonnull
     List<T> getDataReadAll();
 
-    List<T> getDataReadAll( User user );
+    @Nonnull
+    List<T> getDataReadAll( @CheckForNull User user );
 
+    @Nonnull
     List<T> getDataWriteAll();
 
-    List<T> getDataWriteAll( User user );
+    @Nonnull
+    List<T> getDataWriteAll( @CheckForNull User user );
 
     /**
      * Remove given UserGroup UID from all sharing records in database
      */
-    void removeUserGroupFromSharing( String userGroupUID, String tableName );
+    void removeUserGroupFromSharing( @Nonnull String userGroupUID, @Nonnull String tableName );
 }
