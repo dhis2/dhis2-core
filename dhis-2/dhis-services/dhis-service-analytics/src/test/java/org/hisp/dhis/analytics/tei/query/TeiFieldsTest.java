@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -49,6 +50,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * TeiFields unit tests.
@@ -69,9 +72,29 @@ class TeiFieldsTest extends DhisConvenienceTest
         Optional<Field> orderingField = TeiFields.getOrderingFields( teiQueryParams ).findFirst();
 
         // then
+        // ouname is static field present in the select part of statement and
+        // will not add into the ordering part of select (duplicates)
+        // is still present in order by section
+        assertFalse( orderingField.isPresent() );
+    }
+
+    @ParameterizedTest
+    @ValueSource( strings = { "enddate", "enrollmentdate", "incidentdate" } ) // six
+                                                                              // numbers
+    void testGetDateOrderingFields( String dateDimensionName )
+    {
+        // given
+        TeiQueryParams teiQueryParams = TeiQueryParams.builder()
+            .commonParams( stubSortingCommonParams( null, "0", dateDimensionName ) )
+            .build();
+
+        // when
+        Optional<Field> orderingField = TeiFields.getOrderingFields( teiQueryParams ).findFirst();
+
+        // then
         assertTrue( orderingField.isPresent() );
 
-        assertEquals( "ouname", orderingField.get().render() );
+        assertEquals( "enr." + dateDimensionName, orderingField.get().render() );
     }
 
     @Test
@@ -92,7 +115,7 @@ class TeiFieldsTest extends DhisConvenienceTest
         // then
         assertTrue( orderingField.isPresent() );
 
-        assertEquals( "\"" + program.getUid() + "[4].a\".VALUE as VALUE", orderingField.get().render() );
+        assertEquals( "t_1.\"" + program.getUid() + "[4].a\".VALUE as VALUE", orderingField.get().render() );
     }
 
     private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )

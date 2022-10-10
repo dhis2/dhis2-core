@@ -364,6 +364,7 @@ public enum ErrorCode
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
     E7135( "Date time is not parsable: `{0}`" ),
+    E7136( "Program is not specified" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
