@@ -137,17 +137,22 @@ public class DefaultDataValueService
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
 
+        Date currentDate = new Date();
+
         if ( softDelete == null )
         {
-            dataValue.setCreated( new Date() );
-            dataValue.setLastUpdated( new Date() );
+            dataValue.setCreated( currentDate );
+            dataValue.setLastUpdated( currentDate );
             dataValueStore.addDataValue( dataValue );
         }
         else
         {
+            // don't let original created date be overwritten
+            Date created = softDelete.getCreated();
             softDelete.mergeWith( dataValue );
             softDelete.setDeleted( false );
-            softDelete.setLastUpdated( new Date() );
+            softDelete.setCreated( created );
+            softDelete.setLastUpdated( currentDate );
 
             dataValueStore.updateDataValue( softDelete );
 
