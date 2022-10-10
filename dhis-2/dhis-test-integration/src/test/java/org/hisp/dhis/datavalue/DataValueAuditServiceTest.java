@@ -321,7 +321,12 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
             dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
 
-        assertContainsOnly( List.of(), audits );
+        // assertContainsOnly( List.of(), audits );
+        assertEquals( 4, audits.size() );
+        assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.DELETE, audits.get( 0 ).getAuditType() );
     }
 
     @Test
