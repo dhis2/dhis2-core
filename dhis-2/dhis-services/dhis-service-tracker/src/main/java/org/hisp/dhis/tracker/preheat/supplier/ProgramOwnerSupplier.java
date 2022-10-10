@@ -33,7 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
@@ -54,7 +55,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
     @Override

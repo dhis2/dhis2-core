@@ -30,7 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Program;
@@ -50,10 +51,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramInstanceSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
+    @Nonnull
     private final ProgramStore programStore;
 
     @Override

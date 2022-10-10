@@ -34,7 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,17 +69,17 @@ import com.google.common.collect.Sets;
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {
-    @NonNull
+    @Nonnull
     @Qualifier( "serviceTrackerRuleEngine" )
     private final ProgramRuleEngine programRuleEngine;
 
-    @NonNull
+    @Nonnull
     private final RuleEngineConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
 
-    @NonNull
+    @Nonnull
     private final RuleEngineConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
 
-    @NonNull
+    @Nonnull
     private final TrackerConverterService<Attribute, TrackedEntityAttributeValue> attributeValueTrackerConverterService;
 
     /**

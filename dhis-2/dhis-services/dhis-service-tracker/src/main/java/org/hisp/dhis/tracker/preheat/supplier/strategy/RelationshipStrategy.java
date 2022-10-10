@@ -30,7 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Component;
 @StrategyFor( value = Relationship.class, mapper = RelationshipMapper.class )
 public class RelationshipStrategy implements ClassBasedSupplierStrategy
 {
-    @NonNull
+    @Nonnull
     private final RelationshipStore relationshipStore;
 
     @Override
