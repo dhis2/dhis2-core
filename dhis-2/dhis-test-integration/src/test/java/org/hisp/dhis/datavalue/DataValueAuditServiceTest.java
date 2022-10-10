@@ -323,7 +323,9 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
 
         // assertContainsOnly( List.of(), audits );
         assertEquals( 4, audits.size() );
-        audits.forEach(System.err::println);
+        audits.forEach( x -> {
+            System.err.println( x.getAuditType() );
+        } );
         assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
         assertEquals( AuditType.UPDATE, audits.get( 2 ).getAuditType() );
         assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
