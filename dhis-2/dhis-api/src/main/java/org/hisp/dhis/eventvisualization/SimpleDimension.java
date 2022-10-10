@@ -43,6 +43,7 @@ import lombok.Data;
 
 import org.hisp.dhis.common.DimensionType;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -120,7 +121,23 @@ public class SimpleDimension implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @Nonnull
-    private List<String> values = new ArrayList<>();
+    private List<String> values;
+
+    public SimpleDimension( @Nonnull Attribute parent, @Nonnull String dimension )
+    {
+        this( parent, dimension, new ArrayList<>() );
+    }
+
+    @JsonCreator
+    public SimpleDimension(
+        @JsonProperty( "parent" ) @Nonnull Attribute parent,
+        @JsonProperty( "dimension" ) @Nonnull String dimension,
+        @JsonProperty( "values" ) @Nonnull List<String> values )
+    {
+        this.parent = parent;
+        this.dimension = dimension;
+        this.values = values;
+    }
 
     boolean belongsTo( final Attribute parent )
     {
