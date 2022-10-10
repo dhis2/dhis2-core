@@ -46,7 +46,6 @@ import com.google.common.base.Joiner;
 /**
  * @author Dusan Bernat
  */
-
 @Service( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" )
 @RequiredArgsConstructor
 public class DataElementGroupResolver implements ExpressionResolver
