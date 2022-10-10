@@ -23,6 +23,56 @@ To contribute to the software read the [contributor guidelines](https://develope
 
 The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
+## Run DHIS2 in Docker
+
+The following guides use [Docker Compose](https://docs.docker.com/compose/install/) to run DHIS2
+using Docker.
+
+A DB dump is downloaded automatically the first time you start DHIS2. If you switch between
+different DHIS2 versions and/or need to download a different DB dump you will need to remove the
+shared volume `db-dump` using
+
+```sh
+docker compose down --volumes
+```
+
+### Pre-built Image
+
+We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
+repositories
+
+* releases or release candidates [dhis2/core](https://hub.docker.com/r/dhis2/core/tags)
+* development (branches master, and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
+* PRs labeled with `publish-docker-image` [dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags)
+
+To run DHIS2 from latest master (as it is on GitHub) run
+
+```sh
+DHIS2_IMAGE=dhis2/core-dev:2.37 \
+DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.37.8/dhis2-db-sierra-leone.sql.gz \
+  docker compose up
+```
+
+### Local Image
+
+Build a DHIS2 Docker image first as described in [Docker image](#docker-image). Then execute
+
+```sh
+docker compose up
+```
+
+DHIS2 should become available at `http://localhost:8080` with the Sierra Leone Demo DB.
+
+### Demo DB
+
+If you want to start DHIS2 with a specific demo DB you can pass a URL like
+
+```sh
+DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.37.5/dhis2-db-sierra-leone.sql.gz docker compose up
+```
+
+using versions we for example publish to https://databases.dhis2.org/
+
 ## Build process
 
 This repository contains the source code for the server-side component of DHIS 2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). 
