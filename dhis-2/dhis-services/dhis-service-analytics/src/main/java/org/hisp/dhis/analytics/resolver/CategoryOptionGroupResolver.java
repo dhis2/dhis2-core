@@ -50,7 +50,6 @@ import com.google.common.base.Joiner;
 /**
  * @author Dusan Bernat
  */
-
 @Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
 @AllArgsConstructor
 public class CategoryOptionGroupResolver implements ExpressionResolver
