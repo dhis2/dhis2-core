@@ -117,7 +117,7 @@ public interface DataValueStore
      * @param source the Source of the DataValue.
      * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
-     * @param deleted Include deleted data values
+     * @param includeDeleted Include deleted data values
      * @return the DataValue which corresponds to the given parameters, or null
      *         if no match.
      */
