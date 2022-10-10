@@ -25,7 +25,7 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-9.0-jdk11-openjdk-slim" // source of image to publish to Dockerhub (one of the matrix axes)
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
         DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
     }
 
@@ -73,7 +73,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jdk11-openjdk-slim', '8.5-jdk11-openjdk-slim'
+                        values '9.0-jre11', '8.5-jre11'
                     }
                 }
                 environment {
