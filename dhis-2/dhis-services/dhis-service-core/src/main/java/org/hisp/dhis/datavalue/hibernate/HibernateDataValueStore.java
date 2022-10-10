@@ -136,6 +136,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
+        return getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo, false );
+    }
+
+    @Override
+    public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, boolean includeDeleted )
+    {
         Period storedPeriod = periodStore.reloadPeriod( period );
 
         if ( storedPeriod == null )
@@ -143,9 +150,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return null;
         }
 
-        String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period and dv.deleted = false  "
-            +
-            "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
+        String includeDeletedSql = includeDeleted ? "" : "and dv.deleted = false ";
+
+        String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period "
+            + includeDeletedSql
+            + "and dv.attributeOptionCombo =:attributeOptionCombo and dv.categoryOptionCombo =:categoryOptionCombo and dv.source =:source ";
 
         return getSingleResult( getQuery( hql )
             .setParameter( "dataElement", dataElement )
