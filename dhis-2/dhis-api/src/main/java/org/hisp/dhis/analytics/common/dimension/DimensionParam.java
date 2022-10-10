@@ -212,6 +212,8 @@ public class DimensionParam implements UidObject
     {
         OUNAME( ValueType.TEXT ),
         ENROLLMENTDATE( ValueType.DATETIME ),
+        ENDDATE( ValueType.DATETIME ),
+        INCIDENTDATE( ValueType.DATETIME ),
         EXECUTIONDATE( ValueType.DATETIME );
         // TODO: do we need more here ?
 

@@ -46,7 +46,8 @@ public enum ValueTypeMapping
     // TODO: adds mappings here
     NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
     DECIMAL( BigDecimal::new, ValueType.NUMBER ),
-    STRING( s -> s );
+    STRING( s -> s ),
+    TEXT( s -> s );
 
     private final Function<String, Object> converter;
 
@@ -65,7 +66,7 @@ public enum ValueTypeMapping
         return stream( values() )
             .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
             .findFirst()
-            .orElse( STRING );
+            .orElse( TEXT );
     }
 
     private boolean supports( ValueType valueType )

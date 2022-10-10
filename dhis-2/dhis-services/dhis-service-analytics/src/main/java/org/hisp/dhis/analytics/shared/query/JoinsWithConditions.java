@@ -53,7 +53,7 @@ public class JoinsWithConditions extends BaseRenderable
 
     private String renderPair( Pair<Renderable, Renderable> tableWithJoinCondition )
     {
-        return "left join " + tableWithJoinCondition.getKey().render() + " on "
+        return " left join " + tableWithJoinCondition.getKey().render() + " on "
             + tableWithJoinCondition.getValue().render();
     }
 }

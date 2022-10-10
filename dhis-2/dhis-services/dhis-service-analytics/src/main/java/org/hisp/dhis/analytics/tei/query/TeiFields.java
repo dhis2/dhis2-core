@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tei.query;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.Static.values;
 import static org.hisp.dhis.common.ValueType.DATETIME;
@@ -132,15 +133,20 @@ public class TeiFields
         teiQueryParams.getCommonParams().getOrderParams()
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
+            .filter( TeiFields::isNotPartOfStaticTeiFields )
             .forEach( p -> {
                 if ( isStaticDimension( p ) )
                 {
-                    fields.add( Field.of( EMPTY,
-                        () -> RenderableDimensionIdentifier.of( p ).render().toLowerCase(), EMPTY ) );
+                    DimensionIdentifier<Program, ProgramStage, DimensionParam> di = DimensionIdentifier.of(
+                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(),
+                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(), p.getDimension() );
+
+                    fields.add( Field.of( ENR_ALIAS,
+                        () -> RenderableDimensionIdentifier.of( di ).render().toLowerCase(), EMPTY ) );
                 }
                 else
                 {
-                    fields.add( Field.of( EMPTY,
+                    fields.add( Field.of( TEI_ALIAS,
                         () -> doubleQuote( RenderableDimensionIdentifier.of( p ).render() )
                             + ".VALUE",
                         "VALUE" ) );
@@ -150,9 +156,23 @@ public class TeiFields
         return fields.stream();
     }
 
+    /**
+     * check if the dimension identifier does not belong to static tei fields to
+     * avoid redundant duplicates in select statement
+     *
+     * @param dimensionIdentifier
+     * @return boolean
+     */
+    private static boolean isNotPartOfStaticTeiFields(
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
+    {
+        return Stream.of( TeiFields.Static.values() )
+            .noneMatch( v -> dimensionIdentifier.getDimension().getUid().equalsIgnoreCase( v.alias() ) );
+    }
+
     public static Stream<Field> getStaticFields()
     {
-        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( EMPTY, () -> a, a ) );
+        return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
     public static Set<GridHeader> getGridHeaders( final TeiQueryParams teiQueryParams )

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.analytics.shared.processing;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,6 +44,10 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
     @Override
     public void validate( CommonQueryRequest commonQueryRequest )
     {
-        // TODO: validate common request params
+        if ( commonQueryRequest.getProgram().size() == 0
+            || commonQueryRequest.getProgram().stream().anyMatch( StringUtils::isBlank ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7136 ) );
+        }
     }
 }

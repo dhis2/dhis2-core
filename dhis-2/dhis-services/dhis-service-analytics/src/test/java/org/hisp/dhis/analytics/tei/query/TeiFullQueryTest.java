@@ -73,9 +73,9 @@ class TeiFullQueryTest extends DhisConvenienceTest
         String sql = query.render();
 
         // then
-        assertTrue( sql.contains( "ouname from" ) );
+        assertTrue( sql.contains( "ouname" ) );
 
-        assertTrue( sql.contains( "order by ouname asc" ) );
+        assertTrue( sql.contains( "order by enr.ouname asc" ) );
     }
 
     @Test

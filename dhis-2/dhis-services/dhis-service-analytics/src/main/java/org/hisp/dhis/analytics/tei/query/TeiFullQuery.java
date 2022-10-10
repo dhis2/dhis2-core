@@ -119,7 +119,15 @@ public class TeiFullQuery extends BaseRenderable
     {
         List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
             .map( p -> (Renderable) () -> isStaticDimension( p )
-                ? p.getOrderBy().toString().toLowerCase() + SPACE + p.getSortDirection().name().toLowerCase()
+                // uid of static dimension is not uid, in fact it is just name
+                // (like ouname)
+                // static dimension has to have ENROLLMENT ALIAS, left join
+                // relies on join of enrollment and/or event cpl tables,
+                // enr should be always there. This is the reason for ENR_ALIAS,
+                // otherwise we have no unique columns in select statement
+                ? QueryContextConstants.ENR_ALIAS + QueryContextConstants.DOT
+                    + p.getOrderBy().getDimension().getUid().toLowerCase() + SPACE
+                    + p.getSortDirection().name().toLowerCase()
                 : doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name().toLowerCase() )
             .collect( toList() );
 
@@ -172,13 +180,14 @@ public class TeiFullQuery extends BaseRenderable
         JoinsWithConditions.JoinsWithConditionsBuilder builder = JoinsWithConditions.builder();
 
         getOrdersForSubQuery( teiQueryParams ).stream()
-            .map( this::toOrderSubQueryWithCondition )
+            .flatMap( p -> toOrderSubQueryWithCondition( p ).stream() )
             .forEach( builder::tablesWithJoinCondition );
 
         return builder.build();
     }
 
-    private Pair<Renderable, Renderable> toOrderSubQueryWithCondition( AnalyticsSortingParams analyticsSortingParams )
+    private List<Pair<Renderable, Renderable>> toOrderSubQueryWithCondition(
+        AnalyticsSortingParams analyticsSortingParams )
     {
         return LeftJoinQueryBuilder.of( analyticsSortingParams, queryContext );
     }
