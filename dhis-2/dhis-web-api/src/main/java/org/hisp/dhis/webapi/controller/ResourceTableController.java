@@ -79,6 +79,7 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
+        @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
@@ -101,14 +102,13 @@ public class ResourceTableController
             skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
         }
 
-        if ( skipEvents && skipEnrollment )
+        if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms,
-            skipResourceTables );
+            skipPrograms, skipResourceTables );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );
