@@ -150,12 +150,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             return null;
         }
 
-        String includeDeletedSql = "";
-
-        if ( !includeDeleted )
-        {
-            includeDeletedSql = "and dv.deleted = false   ";
-        }
+String includeDeletedSql = includeDeleted ? "" : "and dv.deleted = false ";
 
         String hql = "select dv from DataValue dv  where dv.dataElement =:dataElement and dv.period =:period "
             + includeDeletedSql
