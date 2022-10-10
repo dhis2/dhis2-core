@@ -133,7 +133,7 @@ public class TeiFields
         teiQueryParams.getCommonParams().getOrderParams()
             .stream()
             .map( AnalyticsSortingParams::getOrderBy )
-            .filter( TeiFields::isNotInSetOfFields )
+            .filter( TeiFields::isNotPartOfStaticTeiFields )
             .forEach( p -> {
                 if ( isStaticDimension( p ) )
                 {
@@ -156,7 +156,14 @@ public class TeiFields
         return fields.stream();
     }
 
-    private static boolean isNotInSetOfFields(
+    /**
+     * check if the dimension identifier does not belong to static tei fields to
+     * avoid redundant duplicates in select statement
+     *
+     * @param dimensionIdentifier
+     * @return boolean
+     */
+    private static boolean isNotPartOfStaticTeiFields(
         DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
     {
         return Stream.of( TeiFields.Static.values() )
