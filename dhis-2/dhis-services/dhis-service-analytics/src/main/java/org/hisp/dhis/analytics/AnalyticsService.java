@@ -116,6 +116,15 @@ public interface AnalyticsService
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
 
     /**
+     * Generates an aggregated value grid for the given query based on the given
+     * analytical object.
+     *
+     * @param object the analytical object.
+     * @return aggregated data as a Grid object.
+     */
+    Grid getAggregatedDataValues( AnalyticalObject object );
+
+    /**
      * Generates a raw data value grid for the given query. The grid will
      * represent a table with denormalized raw data. This means that no
      * aggregation will be performed on the data, and dimensions specified in
@@ -143,15 +152,6 @@ public interface AnalyticsService
      * @return a grid containing a data value set representing aggregated data.
      */
     Grid getAggregatedDataValueSetAsGrid( DataQueryParams params );
-
-    /**
-     * Generates an aggregated value grid for the given query based on the given
-     * analytical object.
-     *
-     * @param object the analytical object.
-     * @return aggregated data as a Grid object.
-     */
-    Grid getAggregatedDataValues( AnalyticalObject object );
 
     /**
      * Generates a mapping where the key represents the dimensional item
