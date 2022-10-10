@@ -5,8 +5,6 @@ COPY config/dhis2_home/dhis.conf /config/dhis2_home/dhis.conf
 COPY src /src
 
 RUN chmod +x wait-for-it.sh && \
-    mvn compile
+    mvn --batch-mode --no-transfer-progress compile
 
 VOLUME /target
-
-
