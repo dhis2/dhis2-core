@@ -116,6 +116,22 @@ public class DataValueAudit
             dataValueAudit.getAuditType() );
     }
 
+    public static DataValueAudit from( DataValueAudit dataValueAudit, Date created )
+    {
+        DataValueAudit dva = new DataValueAudit(
+            dataValueAudit.getDataElement(),
+            dataValueAudit.getPeriod(),
+            dataValueAudit.getOrganisationUnit(),
+            dataValueAudit.getCategoryOptionCombo(),
+            dataValueAudit.getAttributeOptionCombo(),
+            dataValueAudit.getValue(),
+            dataValueAudit.getModifiedBy(),
+            dataValueAudit.getAuditType() );
+        dva.setCreated( created );
+
+        return dva;
+    }
+
     @Override
     public int hashCode()
     {
