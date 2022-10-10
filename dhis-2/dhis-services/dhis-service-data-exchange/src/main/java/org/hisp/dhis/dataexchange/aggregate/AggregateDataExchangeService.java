@@ -52,6 +52,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
@@ -76,18 +78,22 @@ public class AggregateDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
+    private final I18nManager i18nManager;
+
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
     public AggregateDataExchangeService( AnalyticsService analyticsService,
         AggregateDataExchangeStore aggregateDataExchangeStore,
         DataQueryService dataQueryService,
         DataValueSetService dataValueSetService,
+        I18nManager i18nManager,
         @Qualifier( AES_128_STRING_ENCRYPTOR ) PBEStringCleanablePasswordEncryptor encryptor )
     {
         this.analyticsService = analyticsService;
         this.aggregateDataExchangeStore = aggregateDataExchangeStore;
         this.dataQueryService = dataQueryService;
         this.dataValueSetService = dataValueSetService;
+        this.i18nManager = i18nManager;
         this.encryptor = encryptor;
     }
 
@@ -239,18 +245,19 @@ public class AggregateDataExchangeService
      */
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
         IdScheme outputDataElementIdScheme = toIdSchemeOrDefault( request.getOutputDataElementIdScheme() );
         IdScheme outputOrgUnitIdScheme = toIdSchemeOrDefault( request.getOutputOrgUnitIdScheme() );
         IdScheme outputIdScheme = toIdSchemeOrDefault( request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
-            request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
+            request.getFilters(), f -> toDimensionalObject( f, format, inputIdScheme ) );
 
         return DataQueryParams.newBuilder()
-            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), inputIdScheme ) )
-            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), inputIdScheme ) )
-            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), inputIdScheme ) )
+            .addDimension( toDimensionalObject( DATA_X_DIM_ID, request.getDx(), format, inputIdScheme ) )
+            .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), format, inputIdScheme ) )
+            .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), format, inputIdScheme ) )
             .addFilters( filters )
             .withOutputDataElementIdScheme( outputDataElementIdScheme )
             .withOutputOrgUnitIdScheme( outputOrgUnitIdScheme )
@@ -264,26 +271,29 @@ public class AggregateDataExchangeService
      *
      * @param dimension the dimension.
      * @param items the list of dimension items.
+     * @param format the {@link I18nFormat}.
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( String dimension,
+        List<String> items, I18nFormat format, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            dimension, items, new Date(), null, null, false, inputIdScheme );
+            dimension, items, new Date(), null, format, false, inputIdScheme );
     }
 
     /**
      * Creates a dimensional object based on the given filter and ID scheme.
      *
      * @param filter the {@link Filter}.
+     * @param format the {@link I18nFormat}.
      * @param inputIdScheme the {@link IdScheme}.
      * @return a {@link DimensionalObject}.
      */
-    private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
+    private DimensionalObject toDimensionalObject( Filter filter, I18nFormat format, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, format, false, inputIdScheme );
     }
 
     /**

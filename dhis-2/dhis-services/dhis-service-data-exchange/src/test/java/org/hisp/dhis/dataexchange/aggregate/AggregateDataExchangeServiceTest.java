@@ -56,6 +56,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,6 +79,9 @@ class AggregateDataExchangeServiceTest
     @Mock
     private DataValueSetService dataValueSetService;
 
+    @Mock
+    private I18nManager i18nManager;
+
     @InjectMocks
     private AggregateDataExchangeService service;
 
@@ -85,18 +89,20 @@ class AggregateDataExchangeServiceTest
     @SuppressWarnings( "unchecked" )
     void testExchangeData()
     {
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( new I18nFormat( null ) );
         when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
             .thenReturn( new DataValueSet() );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
         when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
@@ -136,16 +142,18 @@ class AggregateDataExchangeServiceTest
     @SuppressWarnings( "unchecked" )
     void testToDataQueryParams()
     {
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( new I18nFormat( null ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), nullable( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
 
