@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import lombok.Data;
 
@@ -109,17 +109,17 @@ public class SimpleDimension implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private Attribute parent;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private String dimension;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private List<String> values = new ArrayList<>();
 
     boolean belongsTo( final Attribute parent )

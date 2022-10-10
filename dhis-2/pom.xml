@@ -837,6 +837,13 @@
                     <bannedImport>javax.transaction.Transactional</bannedImport>
                   </bannedImports>
                 </RestrictImports>
+                <RestrictImports>
+                  <reason>Use javax.annotation.Nonnull and javax.annotation.CheckForNull instead</reason>
+                  <bannedImports>
+                    <bannedImport>javax.validation.constraints.NotNull</bannedImport>
+                    <bannedImport>lombok.NonNull</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
               </rules>
             </configuration>
           </execution>

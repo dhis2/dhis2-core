@@ -32,11 +32,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -80,28 +79,28 @@ public class EventAnalyticsController
 
     private static final String EXPLAIN_PATH = "/explain";
 
-    @NonNull
+    @Nonnull
     private final EventDataQueryService eventDataService;
 
-    @NonNull
+    @Nonnull
     private final EventAnalyticsService analyticsService;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
-    @NonNull
+    @Nonnull
     private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @NonNull
+    @Nonnull
     private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
-    @NotNull
+    @Nonnull
     private final ExecutionPlanStore executionPlanStore;
 
-    @NotNull
+    @Nonnull
     private final DimensionMapperService dimensionMapperService;
 
-    @NotNull
+    @Nonnull
     private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
