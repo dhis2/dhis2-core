@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,8 +42,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -58,11 +55,7 @@ public class IdentifiableObjectController
     @Override
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
-        List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
-        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.find( uid ) );
-        optional.ifPresent( identifiableObjects::add );
-
-        return identifiableObjects;
+        return manager.find( uid ).map( List::of ).orElseGet( List::of );
     }
 
     @Override

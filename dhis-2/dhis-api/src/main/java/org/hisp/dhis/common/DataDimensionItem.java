@@ -45,8 +45,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -55,29 +53,26 @@ import com.google.common.collect.Lists;
 @JacksonXmlRootElement( localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class DataDimensionItem
 {
-    public static final Set<Class<? extends IdentifiableObject>> DATA_DIMENSION_CLASSES = ImmutableSet
-        .<Class<? extends IdentifiableObject>> builder()
-        .add( Indicator.class )
-        .add( DataElement.class )
-        .add( DataElementOperand.class )
-        .add( ReportingRate.class )
-        .add( ProgramIndicator.class )
-        .add( ProgramDataElementDimensionItem.class )
-        .add( ProgramTrackedEntityAttributeDimensionItem.class )
-        .add( ValidationRule.class )
-        .build();
+    public static final Set<Class<? extends BaseDimensionalItemObject>> DATA_DIMENSION_CLASSES = Set.of(
+        Indicator.class,
+        DataElement.class,
+        DataElementOperand.class,
+        ReportingRate.class,
+        ProgramIndicator.class,
+        ProgramDataElementDimensionItem.class,
+        ProgramTrackedEntityAttributeDimensionItem.class,
+        ValidationRule.class );
 
-    public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = ImmutableMap
-        .<DataDimensionItemType, Class<? extends NameableObject>> builder()
-        .put( DataDimensionItemType.INDICATOR, Indicator.class )
-        .put( DataDimensionItemType.DATA_ELEMENT, DataElement.class )
-        .put( DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class )
-        .put( DataDimensionItemType.REPORTING_RATE, ReportingRate.class )
-        .put( DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class )
-        .put( DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class )
-        .put( DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class )
-        .put( DataDimensionItemType.VALIDATION_RULE, ValidationRule.class )
-        .build();
+    public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = Map
+        .of(
+            DataDimensionItemType.INDICATOR, Indicator.class,
+            DataDimensionItemType.DATA_ELEMENT, DataElement.class,
+            DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class,
+            DataDimensionItemType.REPORTING_RATE, ReportingRate.class,
+            DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class,
+            DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
+            DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class,
+            DataDimensionItemType.VALIDATION_RULE, ValidationRule.class );
 
     private int id;
 

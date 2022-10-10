@@ -111,7 +111,6 @@ import org.springframework.util.Assert;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -196,13 +195,13 @@ public class DataQueryParams
 
     public static final int NUMERATOR_DENOMINATOR_PROPERTIES_COUNT = 5;
 
-    public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of(
+    public static final Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIM_CLASSES = Set.of(
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, Category.class );
 
-    private static final ImmutableSet<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableSet.of(
+    private static final Set<String> DIMENSION_PERMUTATION_IGNORE_DIMS = Set.of(
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
 
-    public static final ImmutableSet<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableSet.of(
+    public static final Set<DimensionType> COMPLETENESS_DIMENSION_TYPES = Set.of(
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
 
     /**
@@ -2508,7 +2507,7 @@ public class DataQueryParams
     public Set<DimensionalItemObject> getAllDataSets()
     {
         return getAllReportingRates().stream()
-            .map( r -> (ReportingRate) r )
+            .map( ReportingRate.class::cast )
             .map( ReportingRate::getDataSet )
             .collect( Collectors.toSet() );
     }
@@ -2567,7 +2566,7 @@ public class DataQueryParams
     public List<OrganisationUnit> getAllTypedOrganisationUnits()
     {
         return ImmutableList.copyOf( getAllOrganisationUnits().stream()
-            .map( ou -> (OrganisationUnit) ou )
+            .map( OrganisationUnit.class::cast )
             .collect( Collectors.toList() ) );
     }
 
