@@ -29,7 +29,6 @@ package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,8 +118,6 @@ public class DefaultDataValueAuditService
         OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo )
     {
-        List<DataValueAudit> dataValueAudits = new ArrayList<>();
-
         CategoryOptionCombo coc = ObjectUtils.firstNonNull( categoryOptionCombo, categoryOptionComboStore
             .getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME ) );
 
@@ -132,7 +129,7 @@ public class DefaultDataValueAuditService
 
         if ( dataValue == null )
         {
-            return dataValueAudits;
+            return List.of();
         }
 
         DataValueAuditQueryParams params = new DataValueAuditQueryParams()
@@ -142,30 +139,31 @@ public class DefaultDataValueAuditService
             .setCategoryOptionCombo( coc )
             .setAttributeOptionCombo( aoc );
 
-        List<DataValueAudit> persistedDataValueAudits = dataValueAuditStore.getDataValueAudits( params ).stream()
+        List<DataValueAudit> dataValueAudits = dataValueAuditStore.getDataValueAudits( params ).stream()
             .map( x -> DataValueAudit.from( x, x.getCreated() ) )
             .collect( Collectors.toList() );
 
-        dataValueAudits.addAll( persistedDataValueAudits );
-
-        System.err
-            .println( "------------------------------------------------------------------------------------------" );
-        dataValueAudits.forEach( x -> {
-            System.err
-                .println( "type=" + x.getAuditType() + ", value: " + x.getValue() + ", created=" + x.getCreated() );
-        } );
-
-        DataValueAudit dataValueAudit = createDataValueAudit( dataValue );
-
-        if ( dataValueAudits.isEmpty()
-            || dataValueAudits.get( dataValueAudits.size() - 1 ).getAuditType() == AuditType.DELETE )
+        if ( dataValueAudits.isEmpty() )
         {
-            dataValueAudits.add( dataValueAudit );
+            dataValueAudits.add( createDataValueAudit( dataValue ) );
+            return dataValueAudits;
         }
-        else if ( !dataValue.isDeleted()
+
+        // case if the audit trail started out with DELETE
+        if ( dataValueAudits.get( dataValueAudits.size() - 1 ).getAuditType() == AuditType.DELETE )
+        {
+            DataValueAudit valueAudit = createDataValueAudit( dataValue );
+            valueAudit.setValue( dataValueAudits.get( dataValueAudits.size() - 1 ).getValue() );
+            dataValueAudits.add( valueAudit );
+        }
+
+        // unless top is CREATE, inject current DV as audit on top
+        if ( !dataValue.isDeleted()
             && dataValueAudits.get( 0 ).getAuditType() != AuditType.CREATE )
         {
+            DataValueAudit dataValueAudit = createDataValueAudit( dataValue );
             dataValueAudit.setAuditType( AuditType.UPDATE );
+            dataValueAudit.setCreated( dataValue.getLastUpdated() );
             dataValueAudits.add( 0, dataValueAudit );
         }
 
