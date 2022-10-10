@@ -107,6 +107,14 @@ public class DefaultAnalyticsService
     }
 
     @Override
+    public Grid getAggregatedDataValues( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValues( params );
+    }
+
+    @Override
     public Grid getRawDataValues( DataQueryParams params )
     {
         params = checkSecurityConstraints( params );
@@ -119,6 +127,8 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
+        params = checkSecurityConstraints( params );
+
         Grid grid = getAggregatedDataValueSetGrid( params );
 
         return getDataValueSet( params, grid );
@@ -127,17 +137,11 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
     {
+        params = checkSecurityConstraints( params );
+
         Grid grid = getAggregatedDataValueSetGrid( params );
 
         return getDataValueSetAsGrid( grid );
-    }
-
-    @Override
-    public Grid getAggregatedDataValues( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValues( params );
     }
 
     @Override
