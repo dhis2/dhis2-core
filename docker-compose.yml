@@ -17,7 +17,7 @@ services:
       - db-dump:/docker-entrypoint-initdb.d/
     environment:
       POSTGRES_USER: dhis
-      POSTGRES_DB: dhis2
+      POSTGRES_DB: dhis
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
     healthcheck:
