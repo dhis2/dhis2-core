@@ -373,8 +373,6 @@ public class JCloudsAppStorageService
                 return app;
             }
 
-            String namespace = app.getActivities().getDhis().getNamespace();
-
             // -----------------------------------------------------------------
             // Unzip the app
             // -----------------------------------------------------------------
@@ -405,6 +403,12 @@ public class JCloudsAppStorageService
                     log.error( "Unable to store app file '" + name + "'", e );
                 }
             } );
+
+            String namespace = app.getActivities().getDhis().getNamespace();
+            if ( namespace != null && !namespace.isEmpty() )
+            {
+                reservedNamespaces.put( namespace, app );
+            }
 
             log.info( String.format( ""
                 + "New app '%s' installed"
