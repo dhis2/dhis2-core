@@ -45,7 +45,7 @@ We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name
 repositories
 
 * releases or release candidates [dhis2/core](https://hub.docker.com/r/dhis2/core/tags)
-* development (branches master, and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
+* development (branches master and the previous 3 supported major versions) [dhis2/core-dev](https://hub.docker.com/r/dhis2/core-dev/tags)
 * PRs labeled with `publish-docker-image` [dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags)
 
 To run DHIS2 from latest master (as it is on GitHub) run
