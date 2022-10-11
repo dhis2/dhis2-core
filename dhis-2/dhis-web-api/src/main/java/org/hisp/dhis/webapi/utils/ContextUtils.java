@@ -345,6 +345,21 @@ public class ContextUtils
     }
 
     /**
+     * Indicates whether the given requests indicates that it accepts a
+     * compressed response.
+     *
+     * @param request the HttpServletRequest.
+     * @return whether the given requests indicates that it accepts a compressed
+     *         response.
+     */
+    public static boolean isAcceptCsvZip( HttpServletRequest request )
+    {
+        return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".zip" ))
+            || (request.getHeader( "Accept" ) != null
+                && request.getHeader( "Accept" ).contains( "application/csv+zip" )));
+    }
+
+    /**
      * Extracts and returns the file name from a content disposition header
      * value.
      *
