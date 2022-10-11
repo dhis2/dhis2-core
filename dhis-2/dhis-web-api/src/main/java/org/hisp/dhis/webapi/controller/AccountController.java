@@ -467,11 +467,25 @@ public class AccountController
         User currentUser,
         HttpServletRequest request )
     {
-        String username = currentUser.getUsername();
-        UserCredentials credentials = currentUser.getUserCredentials();
-
         Map<String, String> result = new HashMap<>();
-        if ( credentials == null )
+
+        String username = null;
+        if ( currentUser != null )
+        {
+            username = currentUser.getUsername();
+        }
+
+        if ( username == null )
+        {
+            username = (String) request.getSession().getAttribute( "username" );
+        }
+
+        if ( currentUser == null )
+        {
+            currentUser = userService.getUserByUsername( username );
+        }
+
+        if ( username == null )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Username is not valid, redirecting to login." );
@@ -479,10 +493,10 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
-            credentials.getUserInfo().getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUserCredentials().getUsername(), password,
+            currentUser.getUserCredentials().getUserInfo().getEmail(), false );
 
-        if ( userService.credentialsNonExpired( credentials ) )
+        if ( userService.credentialsNonExpired( currentUser.getUserCredentials() ) )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Account is not expired, redirecting to login." );
@@ -490,7 +504,7 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        if ( !passwordManager.matches( oldPassword, credentials.getPassword() ) )
+        if ( !passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() ) )
         {
             result.put( "status", "NON_MATCHING_PASSWORD" );
             result.put( "message", "Old password is wrong, please correct and try again." );
@@ -516,10 +530,11 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        userService.encodeAndSetPassword( credentials, password );
-        userService.updateUserCredentials( credentials );
+        userService.encodeAndSetPassword( currentUser.getUserCredentials(), password );
+        userService.updateUserCredentials( currentUser.getUserCredentials() );
 
-        authenticate( username, password, getAuthorities( credentials.getUserAuthorityGroups() ), request );
+        authenticate( username, password, getAuthorities( currentUser.getUserCredentials().getUserAuthorityGroups() ),
+            request );
 
         result.put( "status", "OK" );
         result.put( "message", "Account was updated." );
