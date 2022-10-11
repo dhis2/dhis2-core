@@ -341,7 +341,7 @@ public class ContextUtils
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
         return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
-            || (request.getHeader(HttpHeaders.ACCEPT) != null
+            || (request.getHeader( HttpHeaders.ACCEPT ) != null
                 && request.getHeader( HttpHeaders.ACCEPT ).contains( "application/csv+gzip" )));
     }
 
