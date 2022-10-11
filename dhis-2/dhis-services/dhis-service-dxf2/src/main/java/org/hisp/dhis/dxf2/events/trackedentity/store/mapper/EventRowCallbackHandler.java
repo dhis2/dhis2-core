@@ -98,6 +98,15 @@ public class EventRowCallbackHandler
         event.setProgramStage( rs.getString( getColumnName( COLUMNS.PROGRAM_STAGE_UID ) ) );
         event.setAttributeOptionCombo( rs.getString( getColumnName( COLUMNS.COC_UID ) ) );
         event.setAttributeCategoryOptions( rs.getString( getColumnName( COLUMNS.CAT_OPTIONS ) ) );
+        event.setAssignedUser( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER ) ) );
+        event.setAssignedUserFirstName( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_FIRST_NAME ) ) );
+        event.setAssignedUserSurname( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_SURNAME ) ) );
+        event.setAssignedUserUsername( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_USERNAME ) ) );
+
+        if ( event.getAssignedUserFirstName() != null && event.getAssignedUserSurname() != null )
+        {
+            event.setAssignedUserDisplayName( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() );
+        }
 
         return event;
     }

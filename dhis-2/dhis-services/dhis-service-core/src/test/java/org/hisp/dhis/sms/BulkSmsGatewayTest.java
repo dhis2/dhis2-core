@@ -34,10 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -59,8 +58,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -71,7 +68,6 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Zubair Asghar.
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class BulkSmsGatewayTest extends DhisConvenienceTest
 {
@@ -97,11 +93,14 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
 
     private SmsGatewayConfig smsGatewayConfig;
 
-    private Set<String> recipients = new HashSet<>();
+    private final Set<String> recipients = Set.of( PHONE_NUMBER );
 
-    private OutboundMessageBatch batch;
+    private final List<OutboundMessage> outboundMessageList = List.of(
+        new OutboundMessage( SUBJECT, MESSAGE, recipients ),
+        new OutboundMessage( SUBJECT, MESSAGE, recipients ),
+        new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
 
-    private List<OutboundMessage> outboundMessageList = new ArrayList<>();
+    private final OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
 
     @BeforeEach
     public void initTest()
@@ -111,15 +110,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
         smsGatewayConfig.setUsername( "username" );
         smsGatewayConfig.setPassword( "password" );
 
-        recipients.add( PHONE_NUMBER );
-
-        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
-        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
-        outboundMessageList.add( new OutboundMessage( SUBJECT, MESSAGE, recipients ) );
-
-        batch = new OutboundMessageBatch( outboundMessageList, DeliveryChannel.SMS );
-
-        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( smsGatewayConfig.getPassword() );
+        lenient().when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( smsGatewayConfig.getPassword() );
     }
 
     @Test

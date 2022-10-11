@@ -547,7 +547,8 @@ public class Event
         this.assignedUserDisplayName = assignedUserDisplayName;
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAssignedUserFirstName()
     {
         return assignedUserFirstName;
@@ -558,7 +559,8 @@ public class Event
         this.assignedUserFirstName = assignedUserFirstName;
     }
 
-    @JsonIgnore
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getAssignedUserSurname()
     {
         return assignedUserSurname;

@@ -110,6 +110,21 @@ public interface DataValueStore
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
 
     /**
+     * Returns a DataValue.
+     *
+     * @param dataElement the DataElement of the DataValue.
+     * @param period the Period of the DataValue.
+     * @param source the Source of the DataValue.
+     * @param categoryOptionCombo the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param includeDeleted Include deleted data values
+     * @return the DataValue which corresponds to the given parameters, or null
+     *         if no match.
+     */
+    DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, boolean includeDeleted );
+
+    /**
      * Returns a soft deleted DataValue.
      *
      * @param dataValue the DataValue to use as parameters.
