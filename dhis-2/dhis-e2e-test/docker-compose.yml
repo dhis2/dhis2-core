@@ -26,7 +26,6 @@ services:
 
   web:
     image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
-    pull_policy: missing
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     depends_on:
