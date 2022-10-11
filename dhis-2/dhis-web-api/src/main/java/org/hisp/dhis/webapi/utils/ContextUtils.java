@@ -47,6 +47,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -340,8 +341,23 @@ public class ContextUtils
     public static boolean isAcceptCsvGzip( HttpServletRequest request )
     {
         return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".gz" ))
-            || (request.getHeader( "Accept" ) != null
-                && request.getHeader( "Accept" ).contains( "application/csv+gzip" )));
+            || (request.getHeader( HttpHeaders.ACCEPT ) != null
+                && request.getHeader( HttpHeaders.ACCEPT ).contains( "application/csv+gzip" )));
+    }
+
+    /**
+     * Indicates whether the given requests indicates that it accepts a
+     * compressed response.
+     *
+     * @param request the HttpServletRequest.
+     * @return whether the given requests indicates that it accepts a compressed
+     *         response.
+     */
+    public static boolean isAcceptCsvZip( HttpServletRequest request )
+    {
+        return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".zip" ))
+            || (request.getHeader( HttpHeaders.ACCEPT ) != null
+                && request.getHeader( HttpHeaders.ACCEPT ).contains( "application/csv+zip" )));
     }
 
     /**
