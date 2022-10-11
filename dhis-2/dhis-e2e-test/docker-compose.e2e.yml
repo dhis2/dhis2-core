@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   e2e-test:

@@ -31,7 +31,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -46,23 +50,23 @@ public interface IdentifiableObjectManager
 {
     String ID = IdentifiableObjectManager.class.getName();
 
-    void save( IdentifiableObject object );
+    void save( @Nonnull IdentifiableObject object );
 
-    void save( IdentifiableObject object, boolean clearSharing );
+    void save( @Nonnull IdentifiableObject object, boolean clearSharing );
 
-    void save( List<IdentifiableObject> objects );
+    void save( @Nonnull List<IdentifiableObject> objects );
 
-    void update( IdentifiableObject object );
+    void update( @Nonnull IdentifiableObject object );
 
-    void update( IdentifiableObject object, User user );
+    void update( @Nonnull IdentifiableObject object, User user );
 
-    void update( List<IdentifiableObject> objects );
+    void update( @Nonnull List<IdentifiableObject> objects );
 
-    void update( List<IdentifiableObject> objects, User user );
+    void update( @Nonnull List<IdentifiableObject> objects, User user );
 
-    void delete( IdentifiableObject object );
+    void delete( @Nonnull IdentifiableObject object );
 
-    void delete( IdentifiableObject object, User user );
+    void delete( @Nonnull IdentifiableObject object, User user );
 
     /**
      * Lookup objects of unknown type.
@@ -72,223 +76,286 @@ public interface IdentifiableObjectManager
      * {@link org.hisp.dhis.common.IdentifiableObjectManager#get(Class, String)}.
      *
      * @param uid a UID of an object of unknown type
-     * @return The {@link IdentifiableObject} with the given UID or null if no
-     *         such object exists
+     * @return The {@link IdentifiableObject} with the given UID
      */
-    IdentifiableObject find( String uid );
+    @Nonnull
+    Optional<? extends IdentifiableObject> find( @Nonnull String uid );
 
-    <T extends IdentifiableObject> T get( Class<T> type, long id );
+    @Nonnull
+    <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id );
 
     /**
      * Retrieves the object of the given type and UID, or null if no object
      * exists.
      *
-     * @param <T>
      * @param type the object class type.
      * @param uid the UID.
      * @return the object with the given UID.
      */
-    <T extends IdentifiableObject> T get( Class<T> type, String uid );
+    @CheckForNull
+    <T extends IdentifiableObject> T get( @Nonnull Class<T> type, @Nonnull String uid );
 
     /**
      * Retrieves the object of the given type and UID, throws exception if no
      * object exists.
      *
-     * @param <T>
      * @param type the object class type.
      * @param uid the UID.
      * @return the object with the given UID.
      * @throws IllegalQueryException if no object exists.
      */
-    <T extends IdentifiableObject> T load( Class<T> type, String uid )
+    @Nonnull
+    <T extends IdentifiableObject> T load( @Nonnull Class<T> type, @Nonnull String uid )
         throws IllegalQueryException;
 
     /**
      * Retrieves the object of the given type and UID, throws exception using
      * the given error code if no object exists.
      *
-     * @param <T>
      * @param type the object class type.
      * @param errorCode the {@link ErrorCode} to use for the exception.
      * @param uid the UID.
      * @return the object with the given UID.
      * @throws IllegalQueryException if no object exists.
      */
-    <T extends IdentifiableObject> T load( Class<T> type, ErrorCode errorCode, String uid )
+    @Nonnull
+    <T extends IdentifiableObject> T load( @Nonnull Class<T> type, @Nonnull ErrorCode errorCode, @Nonnull String uid )
         throws IllegalQueryException;
 
-    <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
+    <T extends IdentifiableObject> boolean exists( @Nonnull Class<T> type, @Nonnull String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, String uid );
+    @CheckForNull
+    <T extends IdentifiableObject> T get( @Nonnull Collection<Class<? extends T>> types, @Nonnull String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, IdScheme idScheme,
-        String value );
+    @CheckForNull
+    <T extends IdentifiableObject> T get( @Nonnull Collection<Class<? extends T>> types, @Nonnull IdScheme idScheme,
+        @Nonnull String value );
 
     /**
      * Retrieves the object of the given type and code, or null if no object
      * exists.
      *
-     * @param <T>
      * @param type the object class type.
      * @param code the code.
      * @return the object with the given code.
      */
-    <T extends IdentifiableObject> T getByCode( Class<T> type, String code );
+    @CheckForNull
+    <T extends IdentifiableObject> T getByCode( @Nonnull Class<T> type, @Nonnull String code );
 
     /**
      * Retrieves the object of the given type and code, throws exception if no
      * object exists.
      *
-     * @param <T>
      * @param type the object class type.
      * @param code the code.
      * @return the object with the given code.
      * @throws IllegalQueryException if no object exists.
      */
-    <T extends IdentifiableObject> T loadByCode( Class<T> type, String code )
+    @Nonnull
+    <T extends IdentifiableObject> T loadByCode( @Nonnull Class<T> type, @Nonnull String code )
         throws IllegalQueryException;
 
-    <T extends IdentifiableObject> List<T> getByCode( Class<T> type, Collection<String> codes );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getByCode( @Nonnull Class<T> type,
+        @Nonnull Collection<String> codes );
 
-    <T extends IdentifiableObject> T getByName( Class<T> type, String name );
+    @CheckForNull
+    <T extends IdentifiableObject> T getByName( @Nonnull Class<T> type, @Nonnull String name );
 
-    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value );
+    @CheckForNull
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( @Nonnull Class<T> type, @Nonnull Attribute attribute,
+        @Nonnull String value );
 
-    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value,
-        User userInfo );
+    @CheckForNull
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( @Nonnull Class<T> type, @Nonnull Attribute attribute,
+        @Nonnull String value,
+        @CheckForNull User userInfo );
 
-    <T extends IdentifiableObject> T search( Class<T> type, String query );
+    @CheckForNull
+    <T extends IdentifiableObject> T search( @Nonnull Class<T> type, @Nonnull String query );
 
-    <T extends IdentifiableObject> List<T> filter( Class<T> type, String query );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> filter( @Nonnull Class<T> type, @Nonnull String query );
 
-    <T extends IdentifiableObject> List<T> getAll( Class<T> type );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getAll( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> type );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getDataWriteAll( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> type );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getDataReadAll( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getAllSorted( Class<T> type );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getAllSorted( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> type, List<Attribute> attributes );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getAllByAttributes( @Nonnull Class<T> type,
+        @Nonnull List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> type,
-        List<Attribute> attributes );
+    @Nonnull
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( @Nonnull Class<T> type,
+        @Nonnull List<Attribute> attributes );
 
-    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> type, List<Attribute> attributes );
+    <T extends IdentifiableObject> long countAllValuesByAttributes( @Nonnull Class<T> type,
+        @Nonnull List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getByUid( @Nonnull Class<T> type,
+        @Nonnull Collection<String> uids );
 
     /**
      * Retrieves the objects of the given type and collection of UIDs, throws
      * exception is any object does not exist.
      *
-     * @param <T>
      * @param type the object class type.
      * @param uids the collection of UIDs.
      * @return a list of objects.
      * @throws IllegalQueryException if any object does not exist.
      */
-    <T extends IdentifiableObject> List<T> loadByUid( Class<T> type, Collection<String> uids )
+    @Nonnull
+    <T extends IdentifiableObject> List<T> loadByUid( @Nonnull Class<T> type,
+        @Nonnull Collection<String> uids )
         throws IllegalQueryException;
 
-    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,
-        Collection<String> uids );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getByUid(
+        @Nonnull Collection<Class<? extends T>> types,
+        @Nonnull Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getById( Class<T> type, Collection<Long> ids );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getById( @Nonnull Class<T> type, @Nonnull Collection<Long> ids );
 
-    <T extends IdentifiableObject> List<T> getOrdered( Class<T> type, IdScheme idScheme, Collection<String> values );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getOrdered( @Nonnull Class<T> type, @Nonnull IdScheme idScheme,
+        @Nonnull Collection<String> values );
 
-    <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> type, List<String> uids );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getByUidOrdered( @Nonnull Class<T> type,
+        @Nonnull List<String> uids );
 
-    <T extends IdentifiableObject> List<T> getLikeName( Class<T> type, String name );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getLikeName( @Nonnull Class<T> type, @Nonnull String name );
 
-    <T extends IdentifiableObject> List<T> getLikeName( Class<T> type, String name, boolean caseSensitive );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getLikeName( @Nonnull Class<T> type, @Nonnull String name,
+        boolean caseSensitive );
 
-    <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> type, int first, int max );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getBetweenSorted( @Nonnull Class<T> type, int first, int max );
 
-    <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> type, Set<String> words, int first, int max );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getBetweenLikeName( @Nonnull Class<T> type,
+        @Nonnull Set<String> words, int first, int max );
 
-    <T extends IdentifiableObject> Date getLastUpdated( Class<T> type );
+    <T extends IdentifiableObject> Date getLastUpdated( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> type, IdentifiableProperty property );
+    @Nonnull
+    <T extends IdentifiableObject> Map<String, T> getIdMap( @Nonnull Class<T> type,
+        @Nonnull IdentifiableProperty property );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> type, IdScheme idScheme );
+    @Nonnull
+    <T extends IdentifiableObject> Map<String, T> getIdMap( @Nonnull Class<T> type,
+        @Nonnull IdScheme idScheme );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> type, IdentifiableProperty property );
+    @Nonnull
+    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( @Nonnull Class<T> type,
+        @Nonnull IdentifiableProperty property );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> type, IdScheme idScheme );
+    @Nonnull
+    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( @Nonnull Class<T> type,
+        @Nonnull IdScheme idScheme );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> type, IdentifiableProperty property,
-        Collection<String> identifiers );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getObjects( @Nonnull Class<T> type,
+        @Nonnull IdentifiableProperty property,
+        @Nonnull Collection<String> identifiers );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> type, Collection<Long> identifiers );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getObjects( @Nonnull Class<T> type,
+        @Nonnull Collection<Long> identifiers );
 
-    <T extends IdentifiableObject> T getObject( Class<T> type, IdentifiableProperty property, String value );
+    @CheckForNull
+    <T extends IdentifiableObject> T getObject( @Nonnull Class<T> type, @Nonnull IdentifiableProperty property,
+        @Nonnull String value );
 
-    <T extends IdentifiableObject> T getObject( Class<T> type, IdScheme idScheme, String value );
+    @CheckForNull
+    <T extends IdentifiableObject> T getObject( @Nonnull Class<T> type, @Nonnull IdScheme idScheme,
+        @Nonnull String value );
 
-    IdentifiableObject getObject( String uid, String simpleClassName );
+    @CheckForNull
+    IdentifiableObject getObject( @Nonnull String uid, @Nonnull String simpleClassName );
 
-    IdentifiableObject getObject( long id, String simpleClassName );
+    @CheckForNull
+    IdentifiableObject getObject( long id, @Nonnull String simpleClassName );
 
-    <T extends IdentifiableObject> int getCount( Class<T> type );
+    <T extends IdentifiableObject> int getCount( @Nonnull Class<T> type );
 
-    <T extends IdentifiableObject> int getCountByCreated( Class<T> type, Date created );
+    <T extends IdentifiableObject> int getCountByCreated( @Nonnull Class<T> type, @Nonnull Date created );
 
-    <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> type, Date lastUpdated );
+    <T extends IdentifiableObject> int getCountByLastUpdated( @Nonnull Class<T> type, @Nonnull Date lastUpdated );
 
-    <T extends DimensionalObject> List<T> getDataDimensions( Class<T> type );
+    @Nonnull
+    <T extends DimensionalObject> List<T> getDataDimensions( @Nonnull Class<T> type );
 
-    <T extends DimensionalObject> List<T> getDataDimensionsNoAcl( Class<T> type );
+    @Nonnull
+    <T extends DimensionalObject> List<T> getDataDimensionsNoAcl( @Nonnull Class<T> type );
 
-    void refresh( Object object );
+    void refresh( @Nonnull Object object );
 
     /**
      * Resets all properties that are not owned by the object type.
      *
      * @param object object to reset
      */
-    void resetNonOwnerProperties( Object object );
+    void resetNonOwnerProperties( @Nonnull Object object );
 
     void flush();
 
     void clear();
 
-    void evict( Object object );
+    void evict( @Nonnull Object object );
 
-    <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> type, Attribute attribute, String value );
+    <T extends IdentifiableObject> List<T> getByAttributeAndValue( @Nonnull Class<T> type, @Nonnull Attribute attribute,
+        @Nonnull String value );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> type, T object,
-        AttributeValue attributeValue );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( @Nonnull Class<T> type,
+        @Nonnull T object, @Nonnull AttributeValue attributeValue );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> type, T object,
-        Attribute attribute, String value );
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( @Nonnull Class<T> type,
+        @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value );
 
-    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> type,
-        Attribute attribute, List<String> values );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getAllByAttributeAndValues( @Nonnull Class<T> type,
+        @Nonnull Attribute attribute, @Nonnull List<String> values );
 
+    @Nonnull
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
-    void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
+    void updateTranslations( @Nonnull IdentifiableObject persistedObject, @Nonnull Set<Translation> translations );
 
-    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> type, Collection<String> uids );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getNoAcl( @Nonnull Class<T> type, @Nonnull Collection<String> uids );
 
-    boolean isDefault( IdentifiableObject object );
+    boolean isDefault( @Nonnull IdentifiableObject object );
 
-    List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> type, Date date );
+    @Nonnull
+    List<String> getUidsCreatedBefore( @Nonnull Class<? extends IdentifiableObject> type, @Nonnull Date date );
 
     /**
      * Remove given UserGroup UID from all sharing records in database
      */
-    void removeUserGroupFromSharing( String userGroupUid );
+    void removeUserGroupFromSharing( @Nonnull String userGroupUid );
 
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------
 
-    <T extends IdentifiableObject> T getNoAcl( Class<T> type, String uid );
+    @CheckForNull
+    <T extends IdentifiableObject> T getNoAcl( @Nonnull Class<T> type, @Nonnull String uid );
 
-    <T extends IdentifiableObject> void updateNoAcl( T object );
+    <T extends IdentifiableObject> void updateNoAcl( @Nonnull T object );
 
-    <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> type );
+    @Nonnull
+    <T extends IdentifiableObject> List<T> getAllNoAcl( @Nonnull Class<T> type );
 }

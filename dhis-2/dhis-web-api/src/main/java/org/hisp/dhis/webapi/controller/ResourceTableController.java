@@ -77,7 +77,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @AllArgsConstructor
 public class ResourceTableController
 {
-
     public static final String RESOURCE_PATH = "/resourceTables";
 
     private final SchedulingManager schedulingManager;
@@ -92,7 +91,7 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
-        @RequestParam( required = false ) boolean skipTei,
+        @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
@@ -115,14 +114,7 @@ public class ResourceTableController
             skipTableTypes.add( ENROLLMENT );
         }
 
-        if ( skipTei )
-        {
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE );
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE_EVENTS );
-            skipTableTypes.add( TRACKED_ENTITY_INSTANCE_ENROLLMENTS );
-        }
-
-        if ( skipEvents && skipEnrollment )
+        if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
         }
