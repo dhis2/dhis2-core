@@ -52,6 +52,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -631,7 +633,7 @@ public class EventController
         }
     }
 
-    @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    @GetMapping( produces = { "application/csv", "application/csv+gzip", "application/csv+zip", "text/csv" } )
     public void getCsvEvents(
         EventCriteria eventCriteria,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
@@ -651,6 +653,14 @@ public class EventController
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
             response.setContentType( "application/csv+gzip" );
+        }
+        else if ( ContextUtils.isAcceptCsvZip( request ) )
+        {
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            response.setContentType( "application/csv+zip" );
+            ZipOutputStream zos = new ZipOutputStream( outputStream );
+            zos.putNextEntry( new ZipEntry( "events.csv" ) );
+            outputStream = zos;
         }
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
