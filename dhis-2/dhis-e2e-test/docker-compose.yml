@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3.8"
 
 services:
   redis:
@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: dhis
-      POSTGRES_DB: dhis2
+      POSTGRES_DB: dhis
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
     healthcheck:
@@ -25,8 +25,8 @@ services:
       retries: 3
 
   web:
-    image: "${IMAGE_NAME}"
-    pull_policy: never
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    pull_policy: missing
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     depends_on:

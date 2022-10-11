@@ -93,23 +93,11 @@ pipeline {
                             }
                         }
                     }
-                    stage('Start instance') {
-                        steps {
-                            script {
-                                dir("dhis-2/dhis-e2e-test") {
-                                    sh "IMAGE_NAME=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} up --detach"
-                                }
-                            }
-                        }
-                    }
                     stage('Run tests') {
                         steps {
                             script {
-                                def tests_image_full_name = "core-api-tests:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}"
-
                                 dir("dhis-2/dhis-e2e-test") {
-                                    sh "docker build --tag ${tests_image_full_name} ."
-                                    sh "IMAGE_NAME=${tests_image_full_name} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.e2e.yml up --exit-code-from e2e-test"
+                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
                             }
                         }
