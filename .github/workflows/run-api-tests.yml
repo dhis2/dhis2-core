@@ -27,7 +27,7 @@ jobs:
         run: |
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -P jdk8,-default -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -P jdk8,-default -f dhis-2/dhis-web/pom.xml
-          mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
+          mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -P jdk8,-default -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Login to Docker Hub
         if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
