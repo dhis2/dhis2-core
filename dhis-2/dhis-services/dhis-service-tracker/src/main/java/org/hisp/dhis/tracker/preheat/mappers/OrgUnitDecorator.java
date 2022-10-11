@@ -34,7 +34,7 @@ public abstract class OrgUnitDecorator implements OrganisationUnitMapper
 
     private final OrganisationUnitMapper delegate;
 
-    public OrgUnitDecorator( OrganisationUnitMapper delegate )
+    protected OrgUnitDecorator( OrganisationUnitMapper delegate )
     {
         this.delegate = delegate;
     }
@@ -42,6 +42,11 @@ public abstract class OrgUnitDecorator implements OrganisationUnitMapper
     @Override
     public OrganisationUnit map( OrganisationUnit organisationUnit )
     {
+        if ( organisationUnit == null )
+        {
+            return null;
+        }
+
         OrganisationUnit organisationUnit1 = delegate.map( organisationUnit );
         organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
         return organisationUnit1;
