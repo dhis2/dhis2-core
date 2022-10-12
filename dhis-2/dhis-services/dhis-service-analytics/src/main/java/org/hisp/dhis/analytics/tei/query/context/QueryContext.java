@@ -30,14 +30,17 @@ package org.hisp.dhis.analytics.tei.query.context;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
+import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.analytics.shared.query.Renderable;
 import org.hisp.dhis.analytics.shared.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -59,8 +62,13 @@ public class QueryContext
         return new QueryContext(
             teiQueryParams,
             SortingContext.SortingContextBuilder.of(
-                teiQueryParams.getCommonParams().getOrderParams(),
-                teiQueryParams.getTrackedEntityType() )
+                Optional.ofNullable( teiQueryParams )
+                    .map( TeiQueryParams::getCommonParams )
+                    .map( CommonParams::getOrderParams )
+                    .orElse( Collections.emptyList() ),
+                Optional.ofNullable( teiQueryParams )
+                    .map( TeiQueryParams::getTrackedEntityType )
+                    .orElse( null ) )
                 .build() );
     }
 
