@@ -1539,16 +1539,15 @@ public class JdbcEventStore implements EventStore
 
     private String inCondition( QueryFilter filter, String boundParameter, String queryCol )
     {
-        return new StringBuilder().append( " " )
-            .append( queryCol )
-            .append( " " )
-            .append( filter.getSqlOperator() )
-            .append( " " )
-            .append( "(" )
-            .append( ":" )
-            .append( boundParameter )
-            .append( ") " )
-            .toString();
+        return " "
+            + queryCol
+            + " "
+            + filter.getSqlOperator()
+            + " "
+            + "("
+            + ":"
+            + boundParameter
+            + ") ";
     }
 
     private String getFromWhereClause( EventSearchParams params, StringBuilder dataElementAndFiltersSql,
@@ -2268,7 +2267,7 @@ public class JdbcEventStore implements EventStore
             mapSqlParameterSource.addValue( "organisationunitid", params.getOrgUnit()
                 .getId() );
 
-            orgUnitSql.append( ouTable + ".organisationunitid = " )
+            orgUnitSql.append( ouTable ).append( ".organisationunitid = " )
                 .append( ":organisationunitid" )
                 .append( " " );
         }
@@ -2282,6 +2281,10 @@ public class JdbcEventStore implements EventStore
             {
                 String boundOuPath = "ouPath_" + ++count;
                 OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                if ( unit == null )
+                {
+                    continue;
+                }
                 mapSqlParameterSource.addValue( boundOuPath, unit.getPath() + "%" );
 
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
@@ -2331,7 +2334,7 @@ public class JdbcEventStore implements EventStore
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
                         .append( " (" )
-                        .append( ouTable + ".organisationunitid = " )
+                        .append( ouTable ).append( ".organisationunitid = " )
                         .append( ":organisationunitid" )
                         .append( ")) " );
                 }

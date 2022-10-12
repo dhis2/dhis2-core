@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import java.util.Map;
 import java.util.function.Consumer;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,8 +44,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Class represents a thread which will be triggered as soon as tracker
  * notification consumer consumes a message from tracker notification queue.
@@ -50,30 +51,22 @@ import com.google.common.collect.ImmutableMap;
  * @author Zubair Asghar
  */
 
+@RequiredArgsConstructor
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
 public class TrackerNotificationThread extends SecurityContextRunnable
 {
+    private final ProgramNotificationService programNotificationService;
+
     private final Notifier notifier;
 
-    private ProgramNotificationService programNotificationService;
+    private final IdentifiableObjectManager manager;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private IdentifiableObjectManager manager;
-
-    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
-        .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
-        .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
-        .build();
-
-    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier,
-        IdentifiableObjectManager manager )
-    {
-        this.programNotificationService = programNotificationService;
-        this.notifier = notifier;
-        this.manager = manager;
-    }
+    private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = Map.of(
+        ProgramInstance.class, programNotificationService::sendEnrollmentNotifications,
+        ProgramStageInstance.class, programNotificationService::sendEventCompletionNotifications );
 
     @Override
     public void call()
@@ -87,8 +80,10 @@ public class TrackerNotificationThread extends SecurityContextRunnable
         {
             BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(),
                 sideEffectDataBundle.getObject() );
-
-            serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
+            if ( object != null )
+            {
+                serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
+            }
         }
 
         notifier.notify( sideEffectDataBundle.getJobConfiguration(), NotificationLevel.DEBUG,

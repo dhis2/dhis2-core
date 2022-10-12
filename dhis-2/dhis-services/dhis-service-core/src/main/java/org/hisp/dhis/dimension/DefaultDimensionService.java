@@ -83,6 +83,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
@@ -128,8 +129,7 @@ import com.google.common.collect.Sets;
  */
 @AllArgsConstructor
 @Service( "org.hisp.dhis.dimension.DimensionService" )
-public class DefaultDimensionService
-    implements DimensionService
+public class DefaultDimensionService implements DimensionService
 {
     private final IdentifiableObjectManager idObjectManager;
 
@@ -335,6 +335,10 @@ public class DefaultDimensionService
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
     {
         BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
+        if ( dimension == null )
+        {
+            throw new IllegalQueryException( "Dimension not found by ID: " + uid );
+        }
         BaseDimensionalObject copy = mergeService.clone( dimension );
 
         if ( filterCanRead )
@@ -568,6 +572,10 @@ public class DefaultDimensionService
                 {
                     for ( String ou : uids )
                     {
+                        if ( ou == null )
+                        {
+                            continue;
+                        }
                         if ( KEY_USER_ORGUNIT.equals( ou ) )
                         {
                             object.setUserOrganisationUnit( true );
@@ -580,7 +588,7 @@ public class DefaultDimensionService
                         {
                             object.setUserOrganisationUnitGrandChildren( true );
                         }
-                        else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
+                        else if ( ou.startsWith( KEY_LEVEL ) )
                         {
                             String level = DimensionalObjectUtils.getValueFromKeywordParam( ou );
 
@@ -592,7 +600,7 @@ public class DefaultDimensionService
                                 object.getOrganisationUnitLevels().add( orgUnitLevel );
                             }
                         }
-                        else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
+                        else if ( ou.startsWith( KEY_ORGUNIT_GROUP ) )
                         {
                             String uid = DimensionalObjectUtils.getUidFromGroupParam( ou );
 

@@ -99,7 +99,7 @@ public class DataElementOperandController
 
     private final CategoryService dataElementCategoryService;
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
@@ -142,7 +142,9 @@ public class DataElementOperandController
             if ( deg != null )
             {
                 DataElementGroup dataElementGroup = manager.get( DataElementGroup.class, deg );
-                dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals );
+                dataElementOperands = dataElementGroup == null
+                    ? new ArrayList<>()
+                    : dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals );
             }
             else if ( ds != null )
             {

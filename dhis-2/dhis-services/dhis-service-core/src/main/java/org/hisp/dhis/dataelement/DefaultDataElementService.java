@@ -97,7 +97,7 @@ public class DefaultDataElementService
         }
         // need to reload the options in case this is a create and the options
         // is a shallow reference object
-        OptionSet options = optionSetStore.getByUid( dataElement.getOptionSet().getUid() );
+        OptionSet options = optionSetStore.get( dataElement.getOptionSet().getId() );
         if ( options.getValueType() != dataElement.getValueType() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1115, options.getValueType() ) );

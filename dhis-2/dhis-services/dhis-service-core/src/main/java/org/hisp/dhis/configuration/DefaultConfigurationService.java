@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Iterator;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -43,19 +43,12 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@AllArgsConstructor
 @Service( "org.hisp.dhis.configuration.ConfigurationService" )
-public class DefaultConfigurationService
-    implements ConfigurationService
+public class DefaultConfigurationService implements ConfigurationService
 {
-    private GenericStore<Configuration> configurationStore;
-
-    public DefaultConfigurationService(
-        @Qualifier( "org.hisp.dhis.configuration.ConfigurationStore" ) GenericStore<Configuration> configurationStore )
-    {
-        checkNotNull( configurationStore );
-
-        this.configurationStore = configurationStore;
-    }
+    @Qualifier( "org.hisp.dhis.configuration.ConfigurationStore" )
+    private final GenericStore<Configuration> configurationStore;
 
     // -------------------------------------------------------------------------
     // ConfigurationService implementation
@@ -65,7 +58,11 @@ public class DefaultConfigurationService
     @Transactional
     public void setConfiguration( Configuration configuration )
     {
-        if ( configuration != null && configuration.getId() > 0 )
+        if ( configuration == null )
+        {
+            return;
+        }
+        if ( configuration.getId() > 0 )
         {
             configurationStore.update( configuration );
         }
