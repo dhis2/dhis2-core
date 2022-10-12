@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
@@ -65,7 +67,6 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -638,10 +639,11 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @Nonnull
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> loadByUid( @Nonnull Class<T> type, @Nonnull Collection<String> uids )
+    public <T extends IdentifiableObject> List<T> loadByUid( @Nonnull Class<T> type,
+        @CheckForNull Collection<String> uids )
         throws IllegalQueryException
     {
-        if ( uids.isEmpty() )
+        if ( uids == null || uids.isEmpty() )
         {
             return List.of();
         }
@@ -1030,7 +1032,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @Override
     public void resetNonOwnerProperties( @Nonnull Object object )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( getRealClass( object ) );
 
         schema.getProperties()
             .stream()
@@ -1246,7 +1248,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
 
-        Class<?> realClass = HibernateProxyUtils.getRealClass( object );
+        Class<?> realClass = getRealClass( object );
 
         if ( !defaults.containsKey( realClass ) )
         {
@@ -1272,7 +1274,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @SuppressWarnings( "unchecked" )
     private <T extends IdentifiableObject> IdentifiableObjectStore<T> getIdentifiableObjectStore( @Nonnull T object )
     {
-        return getIdentifiableObjectStore( (Class<T>) HibernateProxyUtils.getRealClass( object ) );
+        return getIdentifiableObjectStore( (Class<T>) getRealClass( object ) );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1294,13 +1296,15 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     private <T extends E, E extends IdentifiableObject, S extends IdentifiableObjectStore<? extends E>> S getObjectStore(
         Class<T> type, Map<Class<? extends E>, S> cache, Set<S> stores )
     {
-        return cache.computeIfAbsent( type, key -> {
+        @SuppressWarnings( "unchecked" )
+        Class<T> realType = HibernateProxy.class.isAssignableFrom( type ) ? (Class<T>) type.getSuperclass() : type;
+        return cache.computeIfAbsent( realType, key -> {
             S store = stores.stream().filter( s -> s.getClazz() == key ).findFirst().orElse( null );
             if ( store == null )
             {
                 // as this is within the "loader" function this will only get
                 // logged once
-                log.warn( "No IdentifiableObjectStore found for class: '{}'", type );
+                log.warn( "No IdentifiableObjectStore found for class: '{}'", realType );
             }
             return store;
         } );

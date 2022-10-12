@@ -225,7 +225,7 @@ public interface IdentifiableObjectManager
      */
     @Nonnull
     <T extends IdentifiableObject> List<T> loadByUid( @Nonnull Class<T> type,
-        @Nonnull Collection<String> uids )
+        @CheckForNull Collection<String> uids )
         throws IllegalQueryException;
 
     @Nonnull
