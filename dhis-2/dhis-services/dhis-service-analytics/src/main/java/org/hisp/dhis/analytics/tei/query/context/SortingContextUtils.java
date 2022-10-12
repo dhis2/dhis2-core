@@ -30,18 +30,18 @@ package org.hisp.dhis.analytics.tei.query.context;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 
-import lombok.experimental.UtilityClass;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-@UtilityClass
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 class SortingContextUtils
 {
-
-    String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+    static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType )
     {
         return "select innermost_enr.*" +
@@ -52,7 +52,7 @@ class SortingContextUtils
             " where innermost_enr.rn = 1";
     }
 
-    String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+    static String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         DimensionIdentifier.ElementWithOffset<ProgramStage> programStage,
         TrackedEntityType trackedEntityType )
     {
