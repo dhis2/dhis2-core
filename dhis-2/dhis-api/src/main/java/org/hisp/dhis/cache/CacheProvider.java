@@ -48,8 +48,6 @@ public interface CacheProvider
 
     <V> Cache<V> createAnalyticsCache();
 
-    <V> Cache<V> createDefaultObjectCache();
-
     <V> Cache<V> createIsDataApprovedCache();
 
     <V> Cache<V> createAllConstantsCache();
