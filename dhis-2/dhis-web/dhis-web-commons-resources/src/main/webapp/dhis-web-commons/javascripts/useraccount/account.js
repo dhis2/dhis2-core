@@ -8,6 +8,10 @@ var validationRules = {
       required: true,
       rangelength: [2, 80]
     },
+    username: {
+      required: true,
+      rangelength: [4, 80]
+    },
     password: {
       required: true,
       rangelength: [8, 40],
