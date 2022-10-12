@@ -296,13 +296,21 @@ public class QueryItemHelper
             } ) ).collect( Collectors.toList() );
     }
 
+    /**
+     * Compare option code and row content type of option value is derived from
+     * ValueType enum
+     *
+     * @see org.hisp.dhis.common.ValueType
+     * @param code
+     * @param rowContent
+     * @return true when equal
+     */
     private static boolean isItemOptionEqualToRowContent( String code, Object rowContent )
     {
         if ( StringUtils.isBlank( code ) )
         {
             return false;
         }
-        // see ValueType enum
 
         // String
         if ( rowContent instanceof String )
