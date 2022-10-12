@@ -28,10 +28,10 @@ services:
     image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
-    environment:
-      - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8080"
