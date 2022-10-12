@@ -50,7 +50,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -471,7 +471,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
         }
 
         @Override
-        public int compareTo( @NotNull MessagePair other )
+        public int compareTo( @Nonnull MessagePair other )
         {
             return new CompareToBuilder()
                 .append( this.result, other.result )

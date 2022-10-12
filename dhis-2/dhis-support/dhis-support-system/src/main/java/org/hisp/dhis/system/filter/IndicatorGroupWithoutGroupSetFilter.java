@@ -39,6 +39,6 @@ public class IndicatorGroupWithoutGroupSetFilter
     @Override
     public boolean retain( IndicatorGroup object )
     {
-        return object == null || object.getGroupSet() == null;
+        return object == null || object.getGroupSets().isEmpty();
     }
 }

@@ -36,7 +36,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -65,19 +66,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class TrackerEnrollmentCriteriaMapper
 {
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final OrganisationUnitService organisationUnitService;
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Transactional( readOnly = true )

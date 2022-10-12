@@ -30,7 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,10 +50,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class PeriodTypeSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final PeriodStore periodStore;
 
-    @NonNull
+    @Nonnull
     private final PreheatCacheService cache;
 
     @Override

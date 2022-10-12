@@ -50,7 +50,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,28 +85,28 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class EventManager
 {
-    @NonNull
+    @Nonnull
     @Qualifier( "checkersRunOnInsert" )
     private final List<Checker> checkersRunOnInsert;
 
-    @NonNull
+    @Nonnull
     @Qualifier( "checkersRunOnUpdate" )
     private final List<Checker> checkersRunOnUpdate;
 
-    @NonNull
+    @Nonnull
     @Qualifier( "checkersRunOnDelete" )
     private final List<Checker> checkersRunOnDelete;
 
-    @NonNull
+    @Nonnull
     private final Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase;
 
-    @NonNull
+    @Nonnull
     private final EventPersistenceService eventPersistenceService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityDataValueAuditService entityDataValueAuditService;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
     private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";

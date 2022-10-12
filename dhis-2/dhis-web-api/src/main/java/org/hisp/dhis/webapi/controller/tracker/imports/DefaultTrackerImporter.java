@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -53,10 +54,10 @@ public class DefaultTrackerImporter implements TrackerImporter
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
-    @NonNull
+    @Nonnull
     private final TrackerSyncImporter syncImporter;
 
-    @NonNull
+    @Nonnull
     private final TrackerAsyncImporter asyncImporter;
 
     @Override

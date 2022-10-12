@@ -32,7 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileResourceSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final FileResourceService fileResourceService;
 
     @Override

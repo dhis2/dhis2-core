@@ -34,7 +34,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,10 +59,10 @@ public class SupplementaryDataProvider
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
-    @NonNull
+    @Nonnull
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
     public Map<String, List<String>> getSupplementaryData( List<ProgramRule> programRules )
