@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +100,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
      * objects might. The cache exists to avoid doing a lookup by name by
      * remembering the database ID, so it can be used in subsequent lookups.
      */
-    private final Map<Class<?>, Long> defaultObjectCache = new HashMap<>( 4 );
+    private final Map<Class<?>, Long> defaultObjectCache = new ConcurrentHashMap<>( 4 );
 
     @Nonnull
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
