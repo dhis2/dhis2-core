@@ -441,6 +441,28 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void get_ThrowsExceptionWhenObjectNotExists()
+    {
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.get( DataElement.class, 42L ) );
+        assertEquals( "Object with ID 42 does not exist for type: org.hisp.dhis.dataelement.DataElement",
+            ex.getMessage() );
+    }
+
+    @Test
+    void get_ThrowsExcetionWhenStoreNotExists()
+    {
+        class DoesNotExist extends BaseIdentifiableObject
+        {
+        }
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> idObjectManager.get( DoesNotExist.class, 42L ) );
+        assertEquals(
+            "No store registered for objects of type: class org.hisp.dhis.common.IdentifiableObjectManagerTest$1DoesNotExist",
+            ex.getMessage() );
+    }
+
+    @Test
     void getByUidTest()
     {
         DataElement dataElementA = createDataElement( 'A' );

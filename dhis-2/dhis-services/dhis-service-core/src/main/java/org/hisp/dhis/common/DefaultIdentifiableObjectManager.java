@@ -51,7 +51,6 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.proxy.HibernateProxy;
@@ -264,7 +263,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
         if ( store == null )
         {
-            throw new ObjectNotFoundException( id, "No store registered for objects of type: " + type );
+            throw new IllegalQueryException( "No store registered for objects of type: " + type );
         }
 
         return store.get( id );

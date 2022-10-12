@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -250,10 +251,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
     }
 
+    @Nonnull
     @Override
     public final T get( long id )
     {
-        T object = getSession().get( getClazz(), id );
+        T object = getNoPostProcess( id );
 
         if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {

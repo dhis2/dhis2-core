@@ -72,9 +72,11 @@ public interface GenericStore<T>
      *
      * @param id the object identifier.
      * @return the object identified by the given identifier.
+     * @throws IllegalQueryException when no such object exists in the database
      */
     @Nonnull
-    T get( long id );
+    T get( long id )
+        throws IllegalQueryException;
 
     long countAllValuesByAttributes( @Nonnull List<Attribute> attributes );
 

@@ -37,7 +37,6 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import org.hibernate.ObjectNotFoundException;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -83,16 +82,16 @@ public interface IdentifiableObjectManager
     Optional<? extends IdentifiableObject> find( @Nonnull String uid );
 
     /**
+     * Lookup objects of a specific type by database ID.
      *
      * @param type the object class type.
      * @param id object's database ID
      * @return the found object
-     * @throws ObjectNotFoundException when no such object exists in the
-     *         database
+     * @throws IllegalQueryException when no such object exists in the database
      */
     @Nonnull
     <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id )
-        throws ObjectNotFoundException;
+        throws IllegalQueryException;
 
     /**
      * Retrieves the object of the given type and UID, or null if no object
