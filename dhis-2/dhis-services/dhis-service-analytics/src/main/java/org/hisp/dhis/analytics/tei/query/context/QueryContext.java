@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
@@ -41,14 +42,27 @@ import org.hisp.dhis.analytics.shared.query.Renderable;
 import org.hisp.dhis.analytics.shared.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
-@RequiredArgsConstructor( staticName = "of" )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public class QueryContext
 {
     @Getter
     private final TeiQueryParams teiQueryParams;
 
+    @Getter
+    private final SortingContext sortingContext;
+
     @Delegate
     private final ParameterManager parameterManager = new ParameterManager();
+
+    public static QueryContext of( TeiQueryParams teiQueryParams )
+    {
+        return new QueryContext(
+            teiQueryParams,
+            SortingContext.SortingContextBuilder.of(
+                teiQueryParams.getCommonParams().getOrderParams(),
+                teiQueryParams.getTrackedEntityType() )
+                .build() );
+    }
 
     public String getMainTableName()
     {

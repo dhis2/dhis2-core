@@ -25,55 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+@UtilityClass
+class SortingContextUtils
 {
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
-
-    private final QueryContext queryContext;
-
-    @Override
-    public String render()
+    String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+        TrackedEntityType trackedEntityType )
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
-
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
-
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+        return "select innermost_enr.*" +
+            " from (select *," +
+            " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn " +
+            " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +
+            " where programuid = '" + program.getElement().getUid() + "') innermost_enr" +
+            " where innermost_enr.rn = 1";
     }
 
+    String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
+        DimensionIdentifier.ElementWithOffset<ProgramStage> programStage,
+        TrackedEntityType trackedEntityType )
+    {
+        return "select innermost_evt.*" +
+            " from (select *," +
+            " row_number() over (partition by programinstanceuid order by incidentdate desc) as rn" +
+            " from " + ANALYTICS_TEI_EVT + trackedEntityType.getUid().toLowerCase() +
+            " where programuid = '" + program.getElement().getUid() + "'" +
+            " and programstageuid = '" + programStage.getElement().getUid() + "') innermost_evt" +
+            " where innermost_evt.rn = 1";
+    }
 }

@@ -36,8 +36,8 @@ import org.hisp.dhis.analytics.shared.GridAdaptor;
 import org.hisp.dhis.analytics.shared.QueryExecutor;
 import org.hisp.dhis.analytics.shared.SqlQuery;
 import org.hisp.dhis.analytics.shared.SqlQueryResult;
-import org.hisp.dhis.analytics.tei.query.QueryContext;
 import org.hisp.dhis.analytics.tei.query.TeiFullQuery;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.Grid;
 import org.springframework.stereotype.Service;
 

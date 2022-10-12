@@ -42,7 +42,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 
 @Getter
 @RequiredArgsConstructor( staticName = "of" )

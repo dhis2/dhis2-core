@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 
 import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.tei.query.QueryContext;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.junit.jupiter.api.Test;
 
 class ConstantValuesRendererTest

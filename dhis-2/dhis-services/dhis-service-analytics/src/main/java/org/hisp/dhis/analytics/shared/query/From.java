@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.shared.query;
 
 import static org.apache.commons.lang3.StringUtils.SPACE;
 
+import java.util.Collections;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor( staticName = "of" )
@@ -48,6 +50,6 @@ public class From implements Renderable
     {
         return From.of(
             Table.ofStrings( table, alias ),
-            JoinsWithConditions.builder().build() );
+            JoinsWithConditions.of( Collections.emptyList() ) );
     }
 }

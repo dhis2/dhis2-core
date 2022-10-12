@@ -59,6 +59,7 @@ import org.hisp.dhis.analytics.shared.query.Query;
 import org.hisp.dhis.analytics.shared.query.Renderable;
 import org.hisp.dhis.analytics.shared.query.Select;
 import org.hisp.dhis.analytics.shared.query.Where;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;

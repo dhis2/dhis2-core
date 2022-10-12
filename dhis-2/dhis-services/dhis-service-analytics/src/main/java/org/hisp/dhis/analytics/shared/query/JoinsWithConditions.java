@@ -32,12 +32,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
 
-import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-@Builder
+@RequiredArgsConstructor( staticName = "of" )
 public class JoinsWithConditions extends BaseRenderable
 {
     @Singular

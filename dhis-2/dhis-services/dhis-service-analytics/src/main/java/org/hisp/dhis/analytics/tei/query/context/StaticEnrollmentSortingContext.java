@@ -25,55 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.tei.query.context;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer.fieldsEqual;
+import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.*;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @RequiredArgsConstructor( staticName = "of" )
-public class ProgramAttributeCondition extends BaseRenderable
+class StaticEnrollmentSortingContext
 {
+    private final AnalyticsSortingParams param;
 
-    private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
+    private final int sequence;
 
-    private final QueryContext queryContext;
+    private final TrackedEntityType trackedEntityType;
 
-    @Override
-    public String render()
+    public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
-        List<BinaryConditionRenderer> renderers = new ArrayList<>();
 
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> di = param.getOrderBy();
+        DimensionParam sortingDimension = di.getDimension();
+        String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
+        String render = doubleQuote( RenderableDimensionIdentifier.of( di ).render() );
 
-        for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
-        {
-
-            BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
-                Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
-                item.getOperator(),
-                item.getValues(),
-                valueTypeMapping,
-                queryContext );
-
-            renderers.add( binaryConditionRenderer );
-        }
-
-        return OrCondition.of( renderers ).render();
+        return SortingContext.builder()
+            .field( Field.of( uniqueAlias, sortingDimension::getUid, render ) )
+            .order( () -> render + SPACE + param.getSortDirection().name() )
+            .leftJoin(
+                Pair.of(
+                    () -> "(" + SortingContextUtils.enrollmentSelect( di.getProgram(), trackedEntityType ) + ") "
+                        + uniqueAlias,
+                    fieldsEqual( TEI_ALIAS, TEI_UID, uniqueAlias, TEI_UID ) ) );
     }
 
 }
