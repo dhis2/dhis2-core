@@ -36,7 +36,6 @@ import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface CompleteDataSetRegistrationStore
 {

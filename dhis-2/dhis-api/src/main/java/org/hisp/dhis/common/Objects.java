@@ -57,7 +57,6 @@ import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public enum Objects
 {

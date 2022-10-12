@@ -34,7 +34,6 @@ import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Dang Duy hieu
- * @version $Id$
  */
 public interface DataBrowserGridService
 {
