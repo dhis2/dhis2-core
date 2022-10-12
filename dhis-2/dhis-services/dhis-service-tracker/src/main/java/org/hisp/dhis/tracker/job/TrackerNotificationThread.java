@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.job;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
@@ -51,22 +49,27 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 
-@RequiredArgsConstructor
 @Component
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
 public class TrackerNotificationThread extends SecurityContextRunnable
 {
-    private final ProgramNotificationService programNotificationService;
-
     private final Notifier notifier;
 
     private final IdentifiableObjectManager manager;
 
+    private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper;
+
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = Map.of(
-        ProgramInstance.class, programNotificationService::sendEnrollmentNotifications,
-        ProgramStageInstance.class, programNotificationService::sendEventCompletionNotifications );
+    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier,
+        IdentifiableObjectManager manager )
+    {
+        this.notifier = notifier;
+        this.manager = manager;
+        this.serviceMapper = Map.of(
+            ProgramInstance.class, programNotificationService::sendEnrollmentNotifications,
+            ProgramStageInstance.class, programNotificationService::sendEventCompletionNotifications );
+    }
 
     @Override
     public void call()
