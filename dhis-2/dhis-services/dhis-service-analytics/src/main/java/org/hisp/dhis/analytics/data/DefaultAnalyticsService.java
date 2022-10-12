@@ -134,6 +134,8 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
+        params = checkSecurityConstraints( params );
+
         DataQueryParams query = newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
