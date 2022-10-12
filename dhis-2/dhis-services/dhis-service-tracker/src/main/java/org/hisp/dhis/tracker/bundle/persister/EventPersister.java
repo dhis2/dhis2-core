@@ -189,7 +189,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
-            handleDataValueCreatedUpdatedDates( dv, eventDataValue );
+            handleDataValueCreatedUpdatedDates( valuesHolder, dv, eventDataValue );
 
             if ( StringUtils.isEmpty( dv.getValue() ) )
             {
@@ -218,10 +218,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         } );
     }
 
-    private void handleDataValueCreatedUpdatedDates( DataValue dv, EventDataValue eventDataValue )
+    private void handleDataValueCreatedUpdatedDates( ValuesHolder valuesHolder, DataValue dv,
+        EventDataValue eventDataValue )
     {
-        eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
-        eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
+        if ( valuesHolder.getAuditType() != null )
+        {
+            eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
+            eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
+        }
     }
 
     private Date getFromOrNewDate( DataValue dv, Function<DataValue, Instant> dateGetter )
