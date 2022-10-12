@@ -162,27 +162,22 @@ public class JdbcAuditRepository implements AuditRepository
 
         if ( !query.getAuditAttributes().isEmpty() )
         {
-            query.getAuditAttributes().forEach( ( attribute, value ) -> {
-                sql.append( sqlHelper.whereAnd() )
-                    .append( "attributes->>" )
-                    .append( "'" + attribute + "'" )
-                    .append( " = " )
-                    .append( "'" + value + "'" );
-            } );
+            query.getAuditAttributes().forEach( ( attribute, value ) -> sql.append( sqlHelper.whereAnd() )
+                .append( "attributes->>" )
+                .append( "'" ).append( attribute ).append( "'" )
+                .append( " = " )
+                .append( "'" ).append( value ).append( "'" ) );
         }
 
         if ( query.getRange() != null )
         {
             AuditQuery.Range range = query.getRange();
 
-            if ( range.getFrom() != null )
-            {
-                sql.append( sqlHelper.whereAnd() )
-                    .append( "createdAt >= " )
-                    .append( "'" )
-                    .append( range.getFrom() )
-                    .append( "'" );
-            }
+            sql.append( sqlHelper.whereAnd() )
+                .append( "createdAt >= " )
+                .append( "'" )
+                .append( range.getFrom() )
+                .append( "'" );
 
             if ( range.getTo() != null )
             {

@@ -91,12 +91,9 @@ public class DefaultSMSCommandService
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
-        if ( command != null )
-        {
-            command.getCodes().addAll( codes );
+        command.getCodes().addAll( codes );
 
-            smsCommandStore.update( command );
-        }
+        smsCommandStore.update( command );
     }
 
     @Override
@@ -126,12 +123,9 @@ public class DefaultSMSCommandService
     {
         SMSCommand command = smsCommandStore.get( commandId );
 
-        if ( command != null )
-        {
-            command.getSpecialCharacters().addAll( specialCharacters );
+        command.getSpecialCharacters().addAll( specialCharacters );
 
-            smsCommandStore.update( command );
-        }
+        smsCommandStore.update( command );
     }
 
     @Override

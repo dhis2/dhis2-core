@@ -40,8 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.sms.incoming.IncomingSmsService" )
-public class DefaultIncomingSmsService
-    implements IncomingSmsService
+public class DefaultIncomingSmsService implements IncomingSmsService
 {
     private static final String DEFAULT_GATEWAY = "default";
 
@@ -132,10 +131,7 @@ public class DefaultIncomingSmsService
     {
         IncomingSms incomingSms = incomingSmsStore.get( id );
 
-        if ( incomingSms != null )
-        {
-            incomingSmsStore.delete( incomingSms );
-        }
+        incomingSmsStore.delete( incomingSms );
     }
 
     @Override

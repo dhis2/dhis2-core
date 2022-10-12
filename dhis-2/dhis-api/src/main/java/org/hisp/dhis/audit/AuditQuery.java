@@ -110,11 +110,12 @@ public class AuditQuery
         /**
          * From date to fetch audits from.
          */
-        private @Nonnull LocalDateTime from;
+        @Nonnull
+        LocalDateTime from;
 
         /**
          * To date to fetch audits from.
          */
-        private LocalDateTime to;
+        LocalDateTime to;
     }
 }
