@@ -31,8 +31,12 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -278,24 +283,76 @@ public class QueryItemHelper
      */
     private static List<Option> getItemOptionsThatMatchesRows( Grid grid, int columnIndex )
     {
-        List<Option> options = new ArrayList<>();
         GridHeader gridHeader = grid.getHeaders().get( columnIndex );
 
-        options.addAll( gridHeader
+        return gridHeader
             .getOptionSetObject()
             .getOptions()
             .stream()
             .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
                 Object o = r.get( columnIndex );
-                if ( o instanceof String )
-                {
-                    return ((String) o).equalsIgnoreCase( opt.getCode() );
-                }
 
-                return false;
-            } ) ).collect( toList() ) );
+                return isItemOptionEqualToRowContent( opt.getCode(), o );
+            } ) ).collect( Collectors.toList() );
+    }
 
-        return options;
+    private static boolean isItemOptionEqualToRowContent( String code, Object rowContent )
+    {
+        if ( StringUtils.isBlank( code ) )
+        {
+            return false;
+        }
+        // see ValueType enum
+
+        // String
+        if ( rowContent instanceof String )
+        {
+            return ((String) rowContent).equalsIgnoreCase( code );
+        }
+
+        // Integer, Double
+        if ( rowContent instanceof Number && isNumeric( code ) )
+        {
+            try
+            {
+                return ((Number) rowContent).doubleValue() == Double.parseDouble( code );
+            }
+            catch ( NumberFormatException ignored )
+            {
+            }
+        }
+
+        // Boolean
+        if ( rowContent instanceof Boolean )
+        {
+            return ((Boolean) rowContent) == Boolean.parseBoolean( code );
+        }
+
+        // LocalDate
+        if ( rowContent instanceof LocalDate )
+        {
+            try
+            {
+                return ((LocalDate) rowContent).isEqual( LocalDate.parse( code ) );
+            }
+            catch ( DateTimeParseException ignored )
+            {
+            }
+        }
+
+        // LocalDateTime
+        if ( rowContent instanceof LocalDateTime )
+        {
+            try
+            {
+                return ((LocalDateTime) rowContent).isEqual( LocalDateTime.parse( code ) );
+            }
+            catch ( DateTimeParseException ignored )
+            {
+            }
+        }
+
+        return false;
     }
 
     /**
