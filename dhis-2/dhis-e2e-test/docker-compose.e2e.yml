@@ -1,9 +1,11 @@
-version: "3"
+version: "3.8"
 
 services:
-  e2e-test:
+  test:
+    build: .
     stdin_open: true
-    image: "${IMAGE_NAME}"
     environment:
       RP_UUID: ${RP_UUID}
     command: ./wait-for-it.sh web:8080 -t 0 -- mvn test --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district -Drp.enable=true -Drp.launch=api_test_2.38 -Drp.attributes=version:2.38;
+    depends_on:
+      - web
