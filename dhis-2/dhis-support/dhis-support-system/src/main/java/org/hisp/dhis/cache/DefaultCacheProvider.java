@@ -183,6 +183,22 @@ public class DefaultCacheProvider
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
+    /**
+     * Cache for default objects such as default category combination and
+     * default category option combination which are permanent and will never
+     * change.
+     */
+    @Override
+    public <V> Cache<V> createDefaultObjectCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.defaultObjectCache.name() )
+            .expireAfterAccess( 12, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 4 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_100 ) ) ) );
+    }
+
     @Override
     public <V> Cache<V> createIsDataApprovedCache()
     {

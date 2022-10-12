@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableMap;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,15 +41,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +55,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -89,37 +88,50 @@ import com.google.gson.internal.Primitives;
  * @author Lars Helge Overland
  */
 @Slf4j
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager implements IdentifiableObjectManager
 {
     public static final String DEFAULT = "default";
 
     /**
-     * "Cache" for default category objects IDs. The IDs never change but the
-     * objects might. The cache exists to avoid doing a lookup by name by
-     * remembering the database ID, so it can be used in subsequent lookups.
+     * Cache for default category objects. Disabled during test phase.
      */
-    private final Map<Class<?>, Long> defaultObjectCache = new ConcurrentHashMap<>( 4 );
+    private final Cache<Long> defaultObjectCache;
 
-    @Nonnull
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
-    @Nonnull
     private final Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
 
-    @Nonnull
     private final SessionFactory sessionFactory;
 
-    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @Nonnull
     protected final SchemaService schemaService;
 
     private final Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreCache = new ConcurrentHashMap<>();
 
     private final Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreCache = new ConcurrentHashMap<>();
+
+    public DefaultIdentifiableObjectManager(
+        Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
+        Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
+        SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
+        CacheProvider cacheProvider )
+    {
+        checkNotNull( identifiableObjectStores );
+        checkNotNull( dimensionalObjectStores );
+        checkNotNull( sessionFactory );
+        checkNotNull( currentUserService );
+        checkNotNull( schemaService );
+        checkNotNull( cacheProvider );
+
+        this.identifiableObjectStores = identifiableObjectStores;
+        this.dimensionalObjectStores = dimensionalObjectStores;
+        this.sessionFactory = sessionFactory;
+        this.currentUserService = currentUserService;
+        this.schemaService = schemaService;
+        this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
+    }
 
     // --------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
@@ -1195,14 +1207,18 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        BiFunction<Map<Class<?>, Long>, Class<? extends IdentifiableObject>, Long> getIdByName = ( cache,
-            type ) -> defaultObjectCache.computeIfAbsent( type, key -> {
-                IdentifiableObject obj = getByName( type, DEFAULT );
+        ToLongFunction<Class<? extends IdentifiableObject>> getIdCachedByName = type -> defaultObjectCache
+            .get( type.getName(), t -> {
+                IdentifiableObject obj = getByName( type, "default" );
                 return obj == null ? -1 : obj.getId();
             } );
-        return Stream.of( Category.class, CategoryCombo.class, CategoryOption.class, CategoryOptionCombo.class )
-            .collect(
-                toUnmodifiableMap( Function.identity(), t -> get( t, getIdByName.apply( defaultObjectCache, t ) ) ) );
+
+        return Map.of(
+            Category.class, get( Category.class, getIdCachedByName.applyAsLong( Category.class ) ),
+            CategoryCombo.class, get( CategoryCombo.class, getIdCachedByName.applyAsLong( CategoryCombo.class ) ),
+            CategoryOption.class, get( CategoryOption.class, getIdCachedByName.applyAsLong( CategoryOption.class ) ),
+            CategoryOptionCombo.class, get( CategoryOptionCombo.class,
+                getIdCachedByName.applyAsLong( CategoryOptionCombo.class ) ) );
     }
 
     @Nonnull
