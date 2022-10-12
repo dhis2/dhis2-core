@@ -297,7 +297,7 @@ public class QueryItemHelper
     }
 
     /**
-     * Compare option code and row content type of option value is derived from
+     * Compare option code and row content. Type of option value is derived from
      * ValueType enum
      *
      * @see org.hisp.dhis.common.ValueType
