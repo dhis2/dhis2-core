@@ -35,10 +35,10 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import java.io.IOException;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -81,37 +81,37 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class VisualizationDataController
 {
-    @NonNull
+    @Nonnull
     private OrganisationUnitService organisationUnitService;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
-    @NonNull
+    @Nonnull
     private final VisualizationService visualizationService;
 
-    @NonNull
+    @Nonnull
     private final VisualizationGridService visualizationGridService;
 
-    @NonNull
+    @Nonnull
     private final ChartService chartService;
 
-    @NonNull
+    @Nonnull
     private final DataElementService dataElementService;
 
-    @NonNull
+    @Nonnull
     private final CategoryService categoryService;
 
-    @NonNull
+    @Nonnull
     private final IndicatorService indicatorService;
 
-    @NonNull
+    @Nonnull
     private final I18nManager i18nManager;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final RenderService renderService;
 
     @GetMapping( value = "/visualizations/{uid}/data.html" )

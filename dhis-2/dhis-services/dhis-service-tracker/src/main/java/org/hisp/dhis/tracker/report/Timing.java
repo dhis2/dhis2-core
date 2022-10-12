@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import javax.annotation.Nonnull;
+
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -45,11 +46,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @EqualsAndHashCode
 public class Timing
 {
-    @NonNull
+    @Nonnull
     @JsonProperty
     public final String totalTime;
 
-    @NonNull
+    @Nonnull
     @JsonProperty
     public final String name;
 }

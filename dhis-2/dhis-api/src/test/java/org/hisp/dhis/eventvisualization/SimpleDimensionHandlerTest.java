@@ -130,10 +130,8 @@ class SimpleDimensionHandlerTest
 
     private SimpleDimension stubSimpleEventDimension( final String dimension )
     {
-        final SimpleDimension simpleDimension = new SimpleDimension();
+        final SimpleDimension simpleDimension = new SimpleDimension( COLUMN, dimension );
 
-        simpleDimension.setDimension( dimension );
-        simpleDimension.setParent( COLUMN );
         simpleDimension.setValues( asList( "value1", "value2" ) );
 
         return simpleDimension;

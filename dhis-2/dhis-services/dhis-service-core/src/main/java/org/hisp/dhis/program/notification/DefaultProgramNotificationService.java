@@ -43,11 +43,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,31 +102,31 @@ public class DefaultProgramNotificationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @NonNull
+    @Nonnull
     private final ProgramMessageService programMessageService;
 
-    @NonNull
+    @Nonnull
     private final MessageService messageService;
 
-    @NonNull
+    @Nonnull
     private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
+    @Nonnull
     private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @NonNull
+    @Nonnull
     private final IdentifiableObjectManager identifiableObjectManager;
 
-    @NonNull
+    @Nonnull
     private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
 
-    @NonNull
+    @Nonnull
     private final NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
 
-    @NonNull
+    @Nonnull
     private final ProgramNotificationTemplateService notificationTemplateService;
 
-    @NonNull
+    @Nonnull
     private final NotificationTemplateMapper notificationTemplateMapper;
 
     // -------------------------------------------------------------------------

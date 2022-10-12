@@ -32,7 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +58,7 @@ import org.springframework.stereotype.Component;
 public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
 {
 
-    @NonNull
+    @Nonnull
     private final UserService userService;
 
     @Override

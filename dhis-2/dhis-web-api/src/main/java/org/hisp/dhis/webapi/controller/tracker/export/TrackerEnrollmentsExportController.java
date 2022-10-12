@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -70,13 +71,13 @@ public class TrackerEnrollmentsExportController
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    @NonNull
+    @Nonnull
     private final TrackerEnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
-    @NonNull
+    @Nonnull
     private final EnrollmentService enrollmentService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
