@@ -31,7 +31,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,6 +44,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
+
 /**
  * Service to retrieve all dimensions that can be used in Cross Program Line
  * Listing given a TrackedEntityType.
@@ -53,13 +54,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @NonNull
+    @Nonnull
     private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
     @Override
@@ -99,5 +100,4 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
             .filter( uid -> StringUtils.equals( uid, trackedEntityTypeId ) )
             .isPresent();
     }
-
 }
