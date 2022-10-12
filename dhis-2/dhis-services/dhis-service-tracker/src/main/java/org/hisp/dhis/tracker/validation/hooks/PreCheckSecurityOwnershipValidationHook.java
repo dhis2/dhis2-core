@@ -43,7 +43,8 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 
 import java.util.Map;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,13 +86,13 @@ import org.springframework.stereotype.Component;
 public class PreCheckSecurityOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    @NonNull
+    @Nonnull
     private final AclService aclService;
 
-    @NonNull
+    @Nonnull
     private final TrackerOwnershipManager ownershipAccessManager;
 
-    @NonNull
+    @Nonnull
     private final OrganisationUnitService organisationUnitService;
 
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";

@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
@@ -40,11 +41,11 @@ import org.springframework.stereotype.Component;
 public class EventImporterUserService
 {
 
-    @NonNull
+    @Nonnull
     @Delegate
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final UsernameSupplier usernameSupplier;
 
     public String getAuditUsername()

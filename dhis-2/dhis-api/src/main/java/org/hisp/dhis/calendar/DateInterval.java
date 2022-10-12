@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.calendar;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 /**
  * Class representing a date interval.
@@ -41,13 +41,13 @@ public class DateInterval
     /**
      * Start of interval. Required.
      */
-    @NotNull
+    @Nonnull
     private final DateTimeUnit from;
 
     /**
      * End of interval. Required.
      */
-    @NotNull
+    @Nonnull
     private final DateTimeUnit to;
 
     /**

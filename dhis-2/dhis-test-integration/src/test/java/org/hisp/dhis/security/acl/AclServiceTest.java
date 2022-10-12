@@ -1005,6 +1005,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         // Given
         User userA = makeUser( "A" );
         manager.save( userA );
+        Program program = createProgram( 'A' );
+        manager.save( program );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setName( "FavA" );
@@ -1012,6 +1014,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         eventVisualization.getSharing().setOwner( userA );
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
         eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setProgram( program );
         assertTrue( aclService.canUpdate( userA, eventVisualization ) );
         manager.save( eventVisualization );
         // Then
@@ -1060,6 +1063,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         // Given
         User userA = makeUser( "A" );
         manager.save( userA );
+        Program program = createProgram( 'A' );
+        manager.save( program );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setName( "FavA" );
@@ -1067,6 +1072,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         eventVisualization.getSharing().setOwner( userA );
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
         eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setProgram( program );
         assertTrue( aclService.canUpdate( userA, eventVisualization ) );
         manager.save( eventVisualization );
         // Then
@@ -1109,6 +1115,8 @@ class AclServiceTest extends TransactionalIntegrationTest
         // Given
         User userA = makeUser( "A" );
         manager.save( userA );
+        Program program = createProgram( 'A' );
+        manager.save( program );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
         eventVisualization.setName( "FavA" );
@@ -1116,6 +1124,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         eventVisualization.getSharing().setOwner( userA );
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
         eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setProgram( program );
         assertTrue( aclService.canUpdate( userA, eventVisualization ) );
         manager.save( eventVisualization );
         // Then
@@ -1135,6 +1144,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
         categoryOptionGroupSet.setAutoFields();
         categoryOptionGroupSet.setName( "cogA" );
+        categoryOptionGroupSet.setShortName( "cogA" );
         manager.save( categoryOptionGroupSet );
         assertTrue( aclService.canDataOrMetadataRead( user1, categoryOptionGroupSet ) );
         // data shareable object //

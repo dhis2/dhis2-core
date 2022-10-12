@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 public class NotificationLoggerUtil
 {
 
-    @NotNull
+    @Nonnull
     public static void log( Logger logger, NotificationLevel notificationLevel, String message )
     {
         switch ( notificationLevel )

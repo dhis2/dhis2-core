@@ -30,7 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Component;
 @StrategyFor( value = Enrollment.class, mapper = ProgramInstanceMapper.class )
 public class EnrollmentStrategy implements ClassBasedSupplierStrategy
 {
-    @NonNull
+    @Nonnull
     private final ProgramInstanceStore programInstanceStore;
 
     @Override
