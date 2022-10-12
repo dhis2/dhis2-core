@@ -87,11 +87,9 @@ public interface IdentifiableObjectManager
      * @param type the object class type.
      * @param id object's database ID
      * @return the found object
-     * @throws IllegalQueryException when no such object exists in the database
      */
-    @Nonnull
-    <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id )
-        throws IllegalQueryException;
+    @CheckForNull
+    <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id );
 
     /**
      * Retrieves the object of the given type and UID, or null if no object

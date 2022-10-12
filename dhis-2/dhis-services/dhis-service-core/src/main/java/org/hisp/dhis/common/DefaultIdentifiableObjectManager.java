@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
@@ -254,7 +255,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .findFirst();
     }
 
-    @Nonnull
+    @CheckForNull
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id )
@@ -263,7 +264,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
         if ( store == null )
         {
-            throw new IllegalQueryException( "No store registered for objects of type: " + type );
+            return null;
         }
 
         return store.get( id );
@@ -1215,11 +1216,13 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             } );
 
         return Map.of(
-            Category.class, get( Category.class, getIdCachedByName.applyAsLong( Category.class ) ),
-            CategoryCombo.class, get( CategoryCombo.class, getIdCachedByName.applyAsLong( CategoryCombo.class ) ),
-            CategoryOption.class, get( CategoryOption.class, getIdCachedByName.applyAsLong( CategoryOption.class ) ),
-            CategoryOptionCombo.class, get( CategoryOptionCombo.class,
-                getIdCachedByName.applyAsLong( CategoryOptionCombo.class ) ) );
+            Category.class, requireNonNull( get( Category.class, getIdCachedByName.applyAsLong( Category.class ) ) ),
+            CategoryCombo.class,
+            requireNonNull( get( CategoryCombo.class, getIdCachedByName.applyAsLong( CategoryCombo.class ) ) ),
+            CategoryOption.class,
+            requireNonNull( get( CategoryOption.class, getIdCachedByName.applyAsLong( CategoryOption.class ) ) ),
+            CategoryOptionCombo.class, requireNonNull( get( CategoryOptionCombo.class,
+                getIdCachedByName.applyAsLong( CategoryOptionCombo.class ) ) ) );
     }
 
     @Nonnull

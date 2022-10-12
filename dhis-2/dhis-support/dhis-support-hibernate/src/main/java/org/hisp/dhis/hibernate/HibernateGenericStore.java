@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import javax.annotation.CheckForNull;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -62,7 +62,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.context.ApplicationEventPublisher;
@@ -468,7 +467,7 @@ public class HibernateGenericStore<T>
         getSession().delete( object );
     }
 
-    @Nonnull
+    @CheckForNull
     @Override
     public T get( long id )
     {
@@ -476,16 +475,10 @@ public class HibernateGenericStore<T>
         return postProcessObject( object );
     }
 
-    @Nonnull
+    @CheckForNull
     protected final T getNoPostProcess( long id )
     {
-        T object = getSession().get( getClazz(), id );
-        if ( object == null )
-        {
-            throw new IllegalQueryException(
-                format( "Object with ID %d does not exist for type: %s", id, getClazz().getName() ) );
-        }
-        return object;
+        return getSession().get( getClazz(), id );
     }
 
     /**
