@@ -175,14 +175,11 @@ public class JdbcAuditRepository implements AuditRepository
         {
             AuditQuery.Range range = query.getRange();
 
-            if ( range.getFrom() != null )
-            {
-                sql.append( sqlHelper.whereAnd() )
-                    .append( "createdAt >= " )
-                    .append( "'" )
-                    .append( range.getFrom() )
-                    .append( "'" );
-            }
+            sql.append( sqlHelper.whereAnd() )
+                .append( "createdAt >= " )
+                .append( "'" )
+                .append( range.getFrom() )
+                .append( "'" );
 
             if ( range.getTo() != null )
             {

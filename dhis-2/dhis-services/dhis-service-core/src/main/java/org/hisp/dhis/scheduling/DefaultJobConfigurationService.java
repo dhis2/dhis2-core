@@ -117,7 +117,11 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
+            JobConfiguration existing = jobConfigurationStore.getByUid( jobConfiguration.getUid() );
+            if ( existing != null )
+            {
+                jobConfigurationStore.delete( existing );
+            }
         }
     }
 

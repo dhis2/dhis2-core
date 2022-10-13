@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.resolver;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -113,21 +114,23 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
 
     private List<String> getCategoryOptionCombosIntersection( List<String> cogUidList, String dataElementId )
     {
-        List<String> cocUidIntersection = null;
+        List<String> cocUidIntersection = new ArrayList<>();
 
         for ( String cogUid : cogUidList )
         {
-            CategoryOptionGroup cog = categoryOptionGroupStore
-                .getByUid( cogUid );
-
+            CategoryOptionGroup cog = categoryOptionGroupStore.getByUid( cogUid );
+            if ( cog == null )
+            {
+                continue;
+            }
             List<String> cocUids = categoryOptionComboStore
                 .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId ).stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
-            if ( cocUidIntersection == null )
+            if ( cocUidIntersection.isEmpty() )
             {
-                cocUidIntersection = cocUids;
+                cocUidIntersection.addAll( cocUids );
             }
             else
             {
