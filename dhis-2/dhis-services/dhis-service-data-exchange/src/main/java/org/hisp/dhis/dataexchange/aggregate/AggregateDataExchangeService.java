@@ -38,6 +38,8 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -45,6 +47,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -91,8 +94,18 @@ public class AggregateDataExchangeService
         this.encryptor = encryptor;
     }
 
+    /**
+     * Retrieves an {@link AggregateDataExchange} by identifier. Throws an
+     * exception if no object with the given identifier exists.
+     *
+     * @param uid the UID.
+     * @return an {@link AggregateDataExchange}.
+     * @throws IllegalQueryException if no object with the given identifier
+     *         exists.
+     */
+    @Nonnull
     @Transactional( readOnly = true )
-    public AggregateDataExchange getById( String uid )
+    public AggregateDataExchange loadByUid( String uid )
     {
         return aggregateDataExchangeStore.loadByUid( uid );
     }
