@@ -138,8 +138,8 @@ public class SortingContext
 
         private PrivateBuilder enrichWithTeiDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
-            // we can assume here param is a either a TEI/Program attribute
-            // static dimension in the form asc=pUid.dimension (or
+            // we can assume here param is a either a static dimension or
+            // a TEI/Program attribute in the form asc=pUid.dimension (or
             // desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
             return builder

@@ -38,6 +38,7 @@ import java.util.Optional;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -198,7 +199,7 @@ public class DimensionParam implements UidObject
         {
             return queryItem.getItem().getUid();
         }
-        return staticDimension.name();
+        return staticDimension.getColumnName();
     }
 
     @Override
@@ -214,10 +215,22 @@ public class DimensionParam implements UidObject
         ENROLLMENTDATE( ValueType.DATETIME ),
         ENDDATE( ValueType.DATETIME ),
         INCIDENTDATE( ValueType.DATETIME ),
-        EXECUTIONDATE( ValueType.DATETIME );
+        EXECUTIONDATE( ValueType.DATETIME ),
+        LASTUPDATED( ValueType.DATETIME ),
+        CREATED( ValueType.DATETIME );
         // TODO: do we need more here ?
 
         private final ValueType valueType;
+
+        @Getter
+        private final String columnName;
+
+        StaticDimension( ValueType valueType )
+        {
+            this.valueType = valueType;
+            // by default, columnName is "name" in lowercase
+            this.columnName = StringUtils.lowerCase( name() );
+        }
 
         static Optional<StaticDimension> of( String value )
         {
