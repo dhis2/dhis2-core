@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.shared.query.Field;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;

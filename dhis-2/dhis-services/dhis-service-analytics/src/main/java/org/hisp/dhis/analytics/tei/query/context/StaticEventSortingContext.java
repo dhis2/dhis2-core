@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
-import static org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer.fieldsEqual;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.*;
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.eventSelect;
@@ -40,8 +40,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.RenderableDimensionIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;

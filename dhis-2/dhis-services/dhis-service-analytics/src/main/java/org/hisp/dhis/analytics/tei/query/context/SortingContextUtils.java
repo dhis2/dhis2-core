@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 class SortingContextUtils
 {
+    // TODO: Think about implementing this using the query builders
     static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         TrackedEntityType trackedEntityType )
     {
@@ -52,6 +53,7 @@ class SortingContextUtils
             " where innermost_enr.rn = 1";
     }
 
+    // TODO: Think about implementing this using the query builders
     static String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         DimensionIdentifier.ElementWithOffset<ProgramStage> programStage,
         TrackedEntityType trackedEntityType )

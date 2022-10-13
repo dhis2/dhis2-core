@@ -41,8 +41,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
 import org.hisp.dhis.analytics.common.CommonParams;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Table;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )

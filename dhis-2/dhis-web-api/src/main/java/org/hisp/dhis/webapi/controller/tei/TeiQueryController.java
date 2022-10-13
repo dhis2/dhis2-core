@@ -40,9 +40,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.processing.Processor;
+import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
-import org.hisp.dhis.analytics.shared.processing.Processor;
-import org.hisp.dhis.analytics.shared.processing.Validator;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;

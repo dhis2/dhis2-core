@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
@@ -41,7 +41,7 @@ import lombok.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.shared.query.*;
+import org.hisp.dhis.analytics.common.query.*;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @Builder( access = AccessLevel.PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )

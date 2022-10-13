@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.tei.query;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Field;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Field;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class RenderableDataValue extends BaseRenderable
