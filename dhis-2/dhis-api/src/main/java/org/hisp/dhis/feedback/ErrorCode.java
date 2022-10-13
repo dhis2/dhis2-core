@@ -291,6 +291,9 @@ public enum ErrorCode
     E6019( "AttributeValue `{0}` is an invalid `{1}` ID" ),
     E6020( "AttributeValue `{0}` is an invalid username" ),
     E6021( "AttributeValue `{0}` is an invalid phone number" ),
+    E6022( "AttributeValue `{0}` is an invalid letter" ),
+    E6023( "AttributeValue `{0}` has length greater than max length {1}" ),
+    E6024( "AttributeValue `{0}` invalid time value" ),
 
     /* File resource */
     E6100( "Filename not present" ),

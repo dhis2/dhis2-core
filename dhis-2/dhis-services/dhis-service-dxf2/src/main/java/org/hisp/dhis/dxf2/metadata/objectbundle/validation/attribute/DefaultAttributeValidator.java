@@ -69,12 +69,15 @@ public class DefaultAttributeValidator implements AttributeValidator
         new SimpleImmutableEntry<>( ValueType.PHONE_NUMBER, NumberCheck.isPhoneNumber ),
         new SimpleImmutableEntry<>( ValueType.DATE, DateCheck.isDate ),
         new SimpleImmutableEntry<>( ValueType.DATETIME, DateCheck.isDateTime ),
+        new SimpleImmutableEntry<>( ValueType.TIME, DateCheck.isTime ),
         new SimpleImmutableEntry<>( ValueType.BOOLEAN, TextCheck.isBoolean ),
         new SimpleImmutableEntry<>( ValueType.TRUE_ONLY, TextCheck.isTrueOnly ),
-        new SimpleImmutableEntry<>( ValueType.EMAIL, TextCheck.isEmail ) );
+        new SimpleImmutableEntry<>( ValueType.EMAIL, TextCheck.isEmail ),
+        new SimpleImmutableEntry<>( ValueType.LETTER, TextCheck.isLetter ) );
 
     private final Map<ValueType, EntityCheck> mapEntityCheck = Map.ofEntries(
         new SimpleImmutableEntry<>( ValueType.ORGANISATION_UNIT, EntityCheck.isOrganisationUnitExist ),
+        new SimpleImmutableEntry<>( ValueType.IMAGE, EntityCheck.isFileResourceExist ),
         new SimpleImmutableEntry<>( ValueType.FILE_RESOURCE, EntityCheck.isFileResourceExist ) );
 
     private final Map<ValueType, UserCheck.Function> mapUserCheck = Map.ofEntries(

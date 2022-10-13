@@ -65,6 +65,8 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
 {
     private final AttributeValidator attributeValidator;
 
+    private static final int MAX_LENGTH = 50000;
+
     @Override
     public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
         List<T> persistedObjects, List<T> nonPersistedObjects,
@@ -92,10 +94,11 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
             List<ErrorReport> errorReports = new ArrayList<>();
 
             object.getAttributeValues()
-                .forEach( av -> getValueType( av.getAttribute().getUid(), attributesMap, klass.getSimpleName(),
-                    errorReports::add )
-                        .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
-                            errorReports::add ) ) );
+                .forEach( av -> validateValueMaxLength( av.getValue(), errorReports::add )
+                    .ifPresent( b -> getValueType( av.getAttribute().getUid(), attributesMap, klass.getSimpleName(),
+                        errorReports::add )
+                            .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
+                                errorReports::add ) ) ) );
 
             if ( !errorReports.isEmpty() )
             {
@@ -128,5 +131,21 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
         }
 
         return Optional.of( attribute.getValueType() );
+    }
+
+    private Optional<String> validateValueMaxLength( String value, Consumer<ErrorReport> addError )
+    {
+        if ( value == null )
+        {
+            return Optional.empty();
+        }
+
+        if ( value.length() > MAX_LENGTH )
+        {
+            addError.accept( new ErrorReport( Attribute.class, ErrorCode.E6023, value, MAX_LENGTH ) );
+            return Optional.empty();
+        }
+
+        return Optional.of( value );
     }
 }

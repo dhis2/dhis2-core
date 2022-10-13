@@ -538,4 +538,133 @@ class MetadataAttributeCheckTest
         assertFalse( CollectionUtils.isEmpty( objectReportList ) );
         assertEquals( ErrorCode.E6021, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
+
+    @Test
+    void testTimeInvalid()
+    {
+        attribute.setValueType( ValueType.TIME );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "25:30" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertFalse( CollectionUtils.isEmpty( objectReportList ) );
+        assertEquals( ErrorCode.E6024, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testTimeValid()
+    {
+        attribute.setValueType( ValueType.TIME );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "23:30" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertTrue( CollectionUtils.isEmpty( objectReportList ) );
+    }
+
+    @Test
+    void testEmailValid()
+    {
+        attribute.setValueType( ValueType.EMAIL );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "aa@aaa.com" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertTrue( CollectionUtils.isEmpty( objectReportList ) );
+    }
+
+    @Test
+    void testEmailInValid()
+    {
+        attribute.setValueType( ValueType.EMAIL );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "aa@aaacom" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertFalse( CollectionUtils.isEmpty( objectReportList ) );
+        assertEquals( ErrorCode.E6018, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testLetterInvalid()
+    {
+        attribute.setValueType( ValueType.LETTER );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "aa" ) );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertFalse( CollectionUtils.isEmpty( objectReportList ) );
+        assertEquals( ErrorCode.E6022, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testImageInvalid()
+    {
+        attribute.setValueType( ValueType.FILE_RESOURCE );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "imageUid" ) );
+
+        // FileResource doesn't exist
+        when( manager.get( FileResource.class, "imageUid" ) ).thenReturn( null );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertFalse( CollectionUtils.isEmpty( objectReportList ) );
+        assertEquals( ErrorCode.E6019, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void testImageValid()
+    {
+        attribute.setValueType( ValueType.FILE_RESOURCE );
+        organisationUnit.getAttributeValues().add( new AttributeValue( attribute, "imageUid" ) );
+
+        // FileResource doesn't exist
+        when( manager.get( FileResource.class, "imageUid" ) ).thenReturn( new FileResource() );
+
+        List<ObjectReport> objectReportList = new ArrayList<>();
+
+        metadataAttributeCheck.check( objectBundle, OrganisationUnit.class, Lists.newArrayList( organisationUnit ),
+            Collections
+                .emptyList(),
+            ImportStrategy.CREATE_AND_UPDATE,
+            validationContext, objectReport -> objectReportList.add( objectReport ) );
+
+        assertTrue( CollectionUtils.isEmpty( objectReportList ) );
+    }
 }

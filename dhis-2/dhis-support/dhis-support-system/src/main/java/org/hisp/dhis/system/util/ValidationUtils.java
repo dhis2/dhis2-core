@@ -28,6 +28,7 @@
 package org.hisp.dhis.system.util;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.system.util.MathUtils.isInteger;
 import static org.hisp.dhis.system.util.MathUtils.parseDouble;
 
 import java.awt.geom.Point2D;
@@ -39,6 +40,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -185,7 +187,7 @@ public class ValidationUtils
     }
 
     /**
-     * Validates whether a string is valid for the HH:mm time format.
+     * Validates whether a string is valid for the ç time format.
      *
      * @param time the time string
      *
@@ -841,5 +843,10 @@ public class ValidationUtils
     public static boolean isPhoneNumber( String string )
     {
         return GENERIC_PHONE_NUMBER.matcher( string ).matches();
+    }
+
+    public static boolean isAgeValid( String age )
+    {
+        return isInteger( age ) && NumberUtils.toInt( age ) < 150;
     }
 }

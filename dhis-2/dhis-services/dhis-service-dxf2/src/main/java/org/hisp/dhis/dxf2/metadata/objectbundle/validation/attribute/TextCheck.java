@@ -46,15 +46,17 @@ import org.hisp.dhis.system.util.ValidationUtils;
 @FunctionalInterface
 public interface TextCheck extends Function<String, List<ErrorReport>>
 {
-    DateCheck empty = $ -> List.of();
+    TextCheck empty = $ -> List.of();
 
-    DateCheck isBoolean = check( str -> MathUtils.isBool( str ), ErrorCode.E6016 );
+    TextCheck isBoolean = check( MathUtils::isBool, ErrorCode.E6016 );
 
-    DateCheck isTrueOnly = check( str -> "true".equals( str ), ErrorCode.E6017 );
+    TextCheck isTrueOnly = check( "true"::equals, ErrorCode.E6017 );
 
-    DateCheck isEmail = check( str -> ValidationUtils.emailIsValid( str ), ErrorCode.E6018 );
+    TextCheck isEmail = check( ValidationUtils::emailIsValid, ErrorCode.E6018 );
 
-    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
+    TextCheck isLetter = check( ValidationUtils::isValidLetter, ErrorCode.E6022 );
+
+    static TextCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {
         return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
             : List.of();

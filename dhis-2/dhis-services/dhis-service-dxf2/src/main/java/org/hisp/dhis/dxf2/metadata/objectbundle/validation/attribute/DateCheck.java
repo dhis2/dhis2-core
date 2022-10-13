@@ -35,6 +35,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -50,6 +51,8 @@ public interface DateCheck extends Function<String, List<ErrorReport>>
     DateCheck isDate = check( DateUtils::dateIsValid, ErrorCode.E6014 );
 
     DateCheck isDateTime = check( DateUtils::dateTimeIsValid, ErrorCode.E6015 );
+
+    DateCheck isTime = check( ValidationUtils::timeIsValid, ErrorCode.E6024 );
 
     static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
     {
