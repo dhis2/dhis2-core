@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -250,12 +251,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         }
     }
 
+    @CheckForNull
     @Override
     public final T get( long id )
     {
-        T object = getSession().get( getClazz(), id );
+        T object = getNoPostProcess( id );
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( object != null && !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
                 AuditLogUtil.ACTION_READ_DENIED );

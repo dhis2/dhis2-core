@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import java.util.List;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.attribute.Attribute;
@@ -71,9 +72,9 @@ public interface GenericStore<T>
      * look in the current Session, then hit the database if not existing.
      *
      * @param id the object identifier.
-     * @return the object identified by the given identifier.
+     * @return the object identified by the given identifier or null
      */
-    @Nonnull
+    @CheckForNull
     T get( long id );
 
     long countAllValuesByAttributes( @Nonnull List<Attribute> attributes );
