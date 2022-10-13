@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.shared.ValueTypeMapping.STRING;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
@@ -48,7 +48,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.query.*;
+import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;

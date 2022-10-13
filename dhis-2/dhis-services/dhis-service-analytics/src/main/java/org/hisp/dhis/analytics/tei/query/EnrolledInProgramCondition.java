@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.DOT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class EnrolledInProgramCondition extends BaseRenderable

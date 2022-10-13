@@ -52,6 +52,29 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
 
     private final D dimension;
 
+    public DimensionIdentifierType getDimensionIdentifierType()
+    {
+        if ( isEventDimension() )
+        {
+            return DimensionIdentifierType.EVENT;
+        }
+        if ( isEnrollmentDimension() )
+        {
+            return DimensionIdentifierType.ENROLLMENT;
+        }
+        return DimensionIdentifierType.TEI;
+    }
+
+    public boolean isEnrollmentDimension()
+    {
+        return hasProgram() && !hasProgramStage();
+    }
+
+    public boolean isEventDimension()
+    {
+        return hasProgram() && hasProgramStage();
+    }
+
     public boolean hasProgram()
     {
         return program != null && program.isPresent();
@@ -117,5 +140,12 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
             }
             return EMPTY;
         }
+    }
+
+    public enum DimensionIdentifierType
+    {
+        TEI,
+        ENROLLMENT,
+        EVENT
     }
 }

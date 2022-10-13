@@ -34,7 +34,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
 
 import java.util.List;
 import java.util.Map;
@@ -47,26 +46,24 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsPagingParams;
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
+import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
-import org.hisp.dhis.analytics.shared.SqlQuery;
-import org.hisp.dhis.analytics.shared.query.AndCondition;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.From;
-import org.hisp.dhis.analytics.shared.query.JoinsWithConditions;
-import org.hisp.dhis.analytics.shared.query.LimitOffset;
-import org.hisp.dhis.analytics.shared.query.OrCondition;
-import org.hisp.dhis.analytics.shared.query.Order;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.RenderableUtils;
-import org.hisp.dhis.analytics.shared.query.Select;
-import org.hisp.dhis.analytics.shared.query.Where;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.From;
+import org.hisp.dhis.analytics.common.query.LimitOffset;
+import org.hisp.dhis.analytics.common.query.OrCondition;
+import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.common.query.RenderableUtils;
+import org.hisp.dhis.analytics.common.query.Select;
+import org.hisp.dhis.analytics.common.query.Where;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -117,93 +114,31 @@ public class TeiFullQuery extends BaseRenderable
 
     private Order getOrder()
     {
-        List<Renderable> collect = teiQueryParams.getCommonParams().getOrderParams().stream()
-            .map( p -> (Renderable) () -> isStaticDimension( p )
-                // uid of static dimension is not uid, in fact it is just name
-                // (like ouname)
-                // static dimension has to have ENROLLMENT ALIAS, left join
-                // relies on join of enrollment and/or event cpl tables,
-                // enr should be always there. This is the reason for ENR_ALIAS,
-                // otherwise we have no unique columns in select statement
-                ? QueryContextConstants.ENR_ALIAS + QueryContextConstants.DOT
-                    + p.getOrderBy().getDimension().getUid().toLowerCase() + SPACE
-                    + p.getSortDirection().name().toLowerCase()
-                : doubleQuote( p.getOrderBy().toString() ) + SPACE + p.getSortDirection().name().toLowerCase() )
-            .collect( toList() );
-
         return Order.builder()
-            .orders( collect )
+            .orders( queryContext.getSortingContext().getOrders() )
             .build();
-    }
-
-    /**
-     * Static element is term for the parameter used directly as a database
-     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
-     * example columns with uid strings
-     *
-     * @param p AnalyticsSortingParas
-     * @return boolean
-     */
-    private boolean isStaticDimension( AnalyticsSortingParams p )
-    {
-        return p.getOrderBy().getDimension().getDimensionParamObjectType() == STATIC_DIMENSION;
     }
 
     private Select getSelect()
     {
         Stream<Field> staticFields = TeiFields.getStaticFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
-        Stream<Field> orderingFields = TeiFields.getOrderingFields( teiQueryParams );
+        Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
+
+        Stream<Field> fields = Stream.of( staticFields, dimensionsFields, orderingFields )
+            .flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )
         {
-            return Select.of(
-                Stream.of( staticFields, dimensionsFields, orderingFields )
-                    .flatMap( identity() )
-                    .filter( f -> teiQueryParams.getCommonParams().getHeaders().contains( f.getFieldAlias() ) )
-                    .collect( toList() ) );
+            fields = fields.filter( f -> teiQueryParams.getCommonParams().getHeaders().contains( f.getFieldAlias() ) );
         }
 
-        return Select.of(
-            Stream.of( staticFields, dimensionsFields, orderingFields )
-                .flatMap( identity() )
-                .collect( toList() ) );
+        return Select.of( fields.collect( toList() ) );
     }
 
     private From getFrom()
     {
-        return From.of( queryContext.getMainTable(), getJoinTablesAndConditions() );
-    }
-
-    private JoinsWithConditions getJoinTablesAndConditions()
-    {
-        JoinsWithConditions.JoinsWithConditionsBuilder builder = JoinsWithConditions.builder();
-
-        getOrdersForSubQuery( teiQueryParams ).stream()
-            .flatMap( p -> toOrderSubQueryWithCondition( p ).stream() )
-            .forEach( builder::tablesWithJoinCondition );
-
-        return builder.build();
-    }
-
-    private List<Pair<Renderable, Renderable>> toOrderSubQueryWithCondition(
-        AnalyticsSortingParams analyticsSortingParams )
-    {
-        return LeftJoinQueryBuilder.of( analyticsSortingParams, queryContext );
-    }
-
-    private List<AnalyticsSortingParams> getOrdersForSubQuery( TeiQueryParams teiQueryParams )
-    {
-        return teiQueryParams.getCommonParams().getOrderParams().stream()
-            .filter( this::needsSubQuery )
-            .collect( toList() );
-    }
-
-    private boolean needsSubQuery( AnalyticsSortingParams analyticsSortingParams )
-    {
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> orderBy = analyticsSortingParams.getOrderBy();
-
-        return orderBy.hasProgram();
+        return From.of( queryContext.getMainTable(), queryContext.getSortingContext().getLeftJoins() );
     }
 
     private Where getWhere()

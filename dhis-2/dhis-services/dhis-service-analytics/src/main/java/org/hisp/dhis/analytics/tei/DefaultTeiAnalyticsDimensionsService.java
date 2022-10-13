@@ -31,7 +31,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -53,13 +54,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsService
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @NonNull
+    @Nonnull
     private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
     @Override
@@ -99,5 +100,4 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
             .filter( uid -> StringUtils.equals( uid, trackedEntityTypeId ) )
             .isPresent();
     }
-
 }

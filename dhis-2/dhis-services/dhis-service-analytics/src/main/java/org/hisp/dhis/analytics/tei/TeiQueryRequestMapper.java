@@ -32,7 +32,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.QueryRequest;
-import org.hisp.dhis.analytics.shared.processing.CommonQueryRequestMapper;
+import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;

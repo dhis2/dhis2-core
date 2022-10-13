@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.shared.query.From.ofSingleTableAndAlias;
+import static org.hisp.dhis.analytics.common.query.From.ofSingleTableAndAlias;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
@@ -44,21 +44,22 @@ import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.shared.ValueTypeMapping;
-import org.hisp.dhis.analytics.shared.query.BaseRenderable;
-import org.hisp.dhis.analytics.shared.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.shared.query.ExistsCondition;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.From;
-import org.hisp.dhis.analytics.shared.query.LimitOffset;
-import org.hisp.dhis.analytics.shared.query.Order;
-import org.hisp.dhis.analytics.shared.query.Query;
-import org.hisp.dhis.analytics.shared.query.Renderable;
-import org.hisp.dhis.analytics.shared.query.Select;
-import org.hisp.dhis.analytics.shared.query.Where;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.ExistsCondition;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.From;
+import org.hisp.dhis.analytics.common.query.LimitOffset;
+import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Query;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.analytics.common.query.Select;
+import org.hisp.dhis.analytics.common.query.Where;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;

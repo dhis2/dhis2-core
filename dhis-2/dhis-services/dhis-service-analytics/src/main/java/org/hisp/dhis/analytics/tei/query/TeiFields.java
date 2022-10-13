@@ -28,34 +28,24 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.shared.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.TeiFields.Static.values;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
-import org.hisp.dhis.analytics.shared.query.Field;
-import org.hisp.dhis.analytics.shared.query.RenderableDimensionIdentifier;
+import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 public class TeiFields
@@ -126,50 +116,6 @@ public class TeiFields
             .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
-    public static Stream<Field> getOrderingFields( final TeiQueryParams teiQueryParams )
-    {
-        List<Field> fields = new ArrayList<>();
-
-        teiQueryParams.getCommonParams().getOrderParams()
-            .stream()
-            .map( AnalyticsSortingParams::getOrderBy )
-            .filter( TeiFields::isNotPartOfStaticTeiFields )
-            .forEach( p -> {
-                if ( isStaticDimension( p ) )
-                {
-                    DimensionIdentifier<Program, ProgramStage, DimensionParam> di = DimensionIdentifier.of(
-                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(),
-                        DimensionIdentifier.ElementWithOffset.emptyElementWithOffset(), p.getDimension() );
-
-                    fields.add( Field.of( ENR_ALIAS,
-                        () -> RenderableDimensionIdentifier.of( di ).render().toLowerCase(), EMPTY ) );
-                }
-                else
-                {
-                    fields.add( Field.of( TEI_ALIAS,
-                        () -> doubleQuote( RenderableDimensionIdentifier.of( p ).render() )
-                            + ".VALUE",
-                        "VALUE" ) );
-                }
-            } );
-
-        return fields.stream();
-    }
-
-    /**
-     * check if the dimension identifier does not belong to static tei fields to
-     * avoid redundant duplicates in select statement
-     *
-     * @param dimensionIdentifier
-     * @return boolean
-     */
-    private static boolean isNotPartOfStaticTeiFields(
-        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier )
-    {
-        return Stream.of( TeiFields.Static.values() )
-            .noneMatch( v -> dimensionIdentifier.getDimension().getUid().equalsIgnoreCase( v.alias() ) );
-    }
-
     public static Stream<Field> getStaticFields()
     {
         return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
@@ -188,18 +134,5 @@ public class TeiFields
             f -> headers.add( new GridHeader( f.getFieldAlias(), "", TEXT, false, true ) ) );
 
         return headers;
-    }
-
-    /**
-     * Static element is term for the parameter used directly as a database
-     * table column name (example: OU, uidlevel1, ..) Dynamic elements are for
-     * example columns with uid strings
-     *
-     * @param p AnalyticsSortingParas
-     * @return boolean
-     */
-    private static boolean isStaticDimension( DimensionIdentifier<Program, ProgramStage, DimensionParam> p )
-    {
-        return p.getDimension().getDimensionParamObjectType() == DimensionParamObjectType.STATIC_DIMENSION;
     }
 }

@@ -33,16 +33,16 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
+import org.hisp.dhis.analytics.common.processing.Processor;
+import org.hisp.dhis.analytics.common.processing.Validator;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
-import org.hisp.dhis.analytics.shared.processing.Processor;
-import org.hisp.dhis.analytics.shared.processing.Validator;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.tei.TeiAnalyticsQueryService;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -75,34 +75,34 @@ class TeiQueryController
 
     static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 
-    @NonNull
+    @Nonnull
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
-    @NonNull
+    @Nonnull
     private final Processor<TeiQueryRequest> teiQueryRequestProcessor;
 
-    @NonNull
+    @Nonnull
     private final Processor<CommonQueryRequest> commonQueryRequestProcessor;
 
-    @NonNull
+    @Nonnull
     private final Validator<QueryRequest<TeiQueryRequest>> teiQueryRequestValidator;
 
-    @NonNull
+    @Nonnull
     private final Validator<CommonQueryRequest> commonQueryRequestValidator;
 
-    @NonNull
+    @Nonnull
     private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @NonNull
+    @Nonnull
     private final DimensionMapperService dimensionMapperService;
 
-    @NonNull
+    @Nonnull
     private final TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
 
-    @NonNull
+    @Nonnull
     private final TeiQueryRequestMapper mapper;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
     @GetMapping( "query/{trackedEntityType}" )

@@ -153,7 +153,7 @@ public class DimensionParam implements UidObject
         return Objects.nonNull( queryItem );
     }
 
-    private boolean isStaticDimension()
+    public boolean isStaticDimension()
     {
         return !isQueryItem() && !isDimensionalObject();
     }
