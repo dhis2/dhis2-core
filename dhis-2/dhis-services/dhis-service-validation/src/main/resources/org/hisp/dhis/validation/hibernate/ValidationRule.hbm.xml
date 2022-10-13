@@ -35,11 +35,11 @@
 
     <many-to-one name="leftSide" column="leftexpressionid" class="org.hisp.dhis.expression.Expression"
       cascade="all-delete-orphan" foreign-key="fk_validationrule_leftexpressionid" 
-      not-null="false" />
+      not-null="false" unique="true"/>
 
     <many-to-one name="rightSide" column="rightexpressionid" class="org.hisp.dhis.expression.Expression"
       cascade="all-delete-orphan" foreign-key="fk_validationrule_rightexpressionid" 
-      not-null="false" />
+      not-null="false" unique="true"/>
 
     <property name="skipFormValidation" />
 
