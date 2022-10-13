@@ -50,7 +50,7 @@ import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 
 /**
- * A wrapper for DimensionObject|QueryItem to abstract them
+ * A wrapper for DimensionObject|QueryItem|StaticDimension to abstract them
  */
 @Data
 @Slf4j
@@ -144,12 +144,12 @@ public class DimensionParam implements UidObject
         return type == FILTERS;
     }
 
-    private boolean isDimensionalObject()
+    public boolean isDimensionalObject()
     {
         return Objects.nonNull( dimensionalObject );
     }
 
-    private boolean isQueryItem()
+    public boolean isQueryItem()
     {
         return Objects.nonNull( queryItem );
     }

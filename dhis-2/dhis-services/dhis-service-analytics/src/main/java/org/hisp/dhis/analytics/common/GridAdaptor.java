@@ -40,23 +40,15 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.springframework.util.Assert.notNull;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.MetadataItem;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
@@ -134,33 +126,28 @@ public class GridAdaptor
             return metaData;
         }
 
-        if ( commonParams.getDimensionIdentifiers() != null )
+        if ( hasDimensionalObjects( commonParams ) )
         {
             final Map<String, MetadataItem> metaDataItems = new HashMap<>();
-
-            commonParams.getDimensionIdentifiers()
-                .stream()
-                .flatMap( Collection::stream )
-                .map( DimensionIdentifier::getDimension )
-                .map( DimensionParam::getDimensionalObject )
-                .map( DimensionalObject::getItems )
-                .flatMap( Collection::stream )
-                .forEach( dio -> metaDataItems.put( dio.getUid(),
-                    commonQueryRequest.isIncludeMetadataDetails()
-                        ? new MetadataItem( dio.getDisplayName(), dio )
-                        : new MetadataItem( dio.getDisplayName() ) ) );
-
-            metaData.put( ITEMS.getKey(), metaDataItems );
-
             final Map<String, List<String>> metaDataDimensions = new HashMap<>();
 
-            commonParams.getDimensionIdentifiers()
-                .stream()
-                .flatMap( Collection::stream )
-                .forEach( di -> metaDataDimensions.put( di.getDimension().getDimensionalObject().getUid(),
-                    di.getDimension().getDimensionalObject().getItems().stream()
-                        .map( PrimaryKeyObject::getUid ).collect( toList() ) ) );
+            List<DimensionalObject> dimensionalObjects = getDimensionalObjects( commonParams );
 
+            for ( DimensionalObject dimension : dimensionalObjects )
+            {
+                dimension.getItems()
+                    .forEach( dio -> metaDataItems.put( dio.getUid(),
+                        commonQueryRequest.isIncludeMetadataDetails()
+                            ? new MetadataItem( dio.getDisplayName(), dio )
+                            : new MetadataItem( dio.getDisplayName() ) ) );
+
+                metaDataDimensions.put( dimension.getUid(),
+                    dimension.getItems().stream()
+                        .map( PrimaryKeyObject::getUid ).collect( toList() ) );
+
+            }
+
+            metaData.put( ITEMS.getKey(), metaDataItems );
             metaData.put( DIMENSIONS.getKey(), metaDataDimensions );
 
             if ( commonQueryRequest.isHierarchyMeta() || commonQueryRequest.isShowHierarchy() )
@@ -187,6 +174,30 @@ public class GridAdaptor
         }
 
         return metaData;
+    }
+
+    private List<DimensionalObject> getDimensionalObjects( CommonParams commonParams )
+    {
+        return streamOfDimensionParams( commonParams )
+            .filter( DimensionParam::isDimensionalObject )
+            .map( DimensionParam::getDimensionalObject )
+            .collect( toList() );
+    }
+
+    private boolean hasDimensionalObjects( CommonParams commonParams )
+    {
+        return streamOfDimensionParams( commonParams )
+            .anyMatch( DimensionParam::isDimensionalObject );
+    }
+
+    private Stream<DimensionParam> streamOfDimensionParams( CommonParams commonParams )
+    {
+        return Optional.ofNullable( commonParams )
+            .map( CommonParams::getDimensionIdentifiers )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .flatMap( Collection::stream )
+            .map( DimensionIdentifier::getDimension );
     }
 
     private static Map<String, Object> addOrganisationUnitsHierarchyIntoMetaData( final List<OrganisationUnit> roots,
