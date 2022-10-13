@@ -29,6 +29,10 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
+/**
+ * Decorator to be applied to {@link OrganisationUnitMapper} to correctly map
+ * the recursive parent field
+ */
 public abstract class OrgUnitDecorator implements OrganisationUnitMapper
 {
 
