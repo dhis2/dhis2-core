@@ -35,6 +35,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * DHIS 2 import operation summary response.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor
