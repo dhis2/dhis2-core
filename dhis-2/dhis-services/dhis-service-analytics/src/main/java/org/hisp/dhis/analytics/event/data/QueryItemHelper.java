@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
-import static org.apache.commons.lang3.StringUtils.isNumeric;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.time.LocalDate;
@@ -48,6 +47,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.Grid;
@@ -61,6 +62,7 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Dusan Bernat
  */
+@Slf4j
 public class QueryItemHelper
 {
     private static final String ITEM_NAME_SEP = ": ";
@@ -305,7 +307,7 @@ public class QueryItemHelper
      * @param rowContent
      * @return true when equal
      */
-    private static boolean isItemOptionEqualToRowContent( String code, Object rowContent )
+    public static boolean isItemOptionEqualToRowContent( String code, Object rowContent )
     {
         if ( StringUtils.isBlank( code ) )
         {
@@ -319,14 +321,15 @@ public class QueryItemHelper
         }
 
         // Integer, Double
-        if ( rowContent instanceof Number && isNumeric( code ) )
+        if ( rowContent instanceof Number )
         {
             try
             {
                 return ((Number) rowContent).doubleValue() == Double.parseDouble( code );
             }
-            catch ( NumberFormatException ignored )
+            catch ( NumberFormatException e )
             {
+                log.warn( String.format( "code %s is not Doublw", code ), e.getMessage() );
             }
         }
 
@@ -343,8 +346,9 @@ public class QueryItemHelper
             {
                 return ((LocalDate) rowContent).isEqual( LocalDate.parse( code ) );
             }
-            catch ( DateTimeParseException ignored )
+            catch ( DateTimeParseException e )
             {
+                log.warn( String.format( "code %s is not LocalDate", code ), e.getMessage() );
             }
         }
 
@@ -355,8 +359,9 @@ public class QueryItemHelper
             {
                 return ((LocalDateTime) rowContent).isEqual( LocalDateTime.parse( code ) );
             }
-            catch ( DateTimeParseException ignored )
+            catch ( DateTimeParseException e )
             {
+                log.warn( String.format( "code %s is not LocalDateTime", code ), e.getMessage() );
             }
         }
 
