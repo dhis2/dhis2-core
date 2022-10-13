@@ -40,6 +40,8 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -69,6 +71,7 @@ import org.springframework.web.client.HttpClientErrorException;
  * @author Lars Helge Overland
  */
 @Service
+@RequiredArgsConstructor
 public class AggregateDataExchangeService
 {
     private final AnalyticsService analyticsService;
@@ -79,20 +82,8 @@ public class AggregateDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
+    @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
-
-    public AggregateDataExchangeService( AnalyticsService analyticsService,
-        AggregateDataExchangeStore aggregateDataExchangeStore,
-        DataQueryService dataQueryService,
-        DataValueSetService dataValueSetService,
-        @Qualifier( AES_128_STRING_ENCRYPTOR ) PBEStringCleanablePasswordEncryptor encryptor )
-    {
-        this.analyticsService = analyticsService;
-        this.aggregateDataExchangeStore = aggregateDataExchangeStore;
-        this.dataQueryService = dataQueryService;
-        this.dataValueSetService = dataValueSetService;
-        this.encryptor = encryptor;
-    }
 
     /**
      * Retrieves an {@link AggregateDataExchange} by identifier. Throws an
