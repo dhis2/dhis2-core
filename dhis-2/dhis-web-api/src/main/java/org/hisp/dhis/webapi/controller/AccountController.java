@@ -485,7 +485,22 @@ public class AccountController
     {
         Map<String, String> result = new HashMap<>();
 
-        String username = user.getUsername();
+        String username = null;
+        if ( user != null )
+        {
+            username = user.getUsername();
+        }
+
+        if ( username == null )
+        {
+            username = (String) request.getSession().getAttribute( "username" );
+        }
+
+        if ( user == null )
+        {
+            user = userService.getUserByUsername( username );
+        }
+
         if ( username == null )
         {
             result.put( "status", "NON_EXPIRED" );
