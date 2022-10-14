@@ -63,7 +63,7 @@ function accountSubmitHandler() {
     data: $("#accountForm").serialize(),
     type: 'POST',
     success: function(data) {
-      window.location.href = "../../dhis-web-commons-about/redirect.action";
+      window.location.href = "../../";
     },
     error: function(jqXHR, textStatus, errorThrown) {
       var data = JSON.parse(jqXHR.responseText);
