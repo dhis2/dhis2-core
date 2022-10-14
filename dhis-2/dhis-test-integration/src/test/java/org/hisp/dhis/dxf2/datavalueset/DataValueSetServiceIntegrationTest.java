@@ -695,6 +695,31 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    void testImportDataValueSetWithCode()
+    {
+        ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" );
+
+        List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
+            getDataValue( "DE_A", "201201", "OU_A", "10001" ),
+            getDataValue( "DE_A", "201201", "OU_B", "10002" ),
+            getDataValue( "DE_B", "201201", "OU_A", "10003" ),
+            getDataValue( "DE_B", "201201", "OU_B", "10004" ) );
+
+        DataValueSet dataValueSet = new DataValueSet();
+        dataValueSet.setDataValues( dataValues );
+
+        ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 4, 0, 0, summary );
+
+        assertImportDataValues( 4, List.of(
+            new DataValue( deA, peA, ouA, ocDef, ocDef ),
+            new DataValue( deA, peA, ouB, ocDef, ocDef ),
+            new DataValue( deB, peA, ouA, ocDef, ocDef ),
+            new DataValue( deB, peA, ouB, ocDef, ocDef ) ) );
+    }
+
+    @Test
     void testImportDataValuesXmlWithAttribute()
     {
         ImportOptions importOptions = new ImportOptions().setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
@@ -1326,6 +1351,45 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Asserts that the import process lead to the given data values being
+     * persisted.
+     *
+     * @param expectedCount the expected persisted data value count.
+     * @param expectedDataValues the expected persisted data values.
+     */
+    private void assertImportDataValues( int expectedCount, List<DataValue> expectedDataValues )
+    {
+        List<DataValue> dataValues = dataValueService.getAllDataValues();
+        assertNotNull( dataValues );
+        assertEquals( expectedCount, dataValues.size() );
+        expectedDataValues.forEach( dv -> assertTrue( dataValues.contains( dv ) ) );
+    }
+
+    /**
+     * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+     *
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param orgUnit the org unit.
+     * @param value the data value.
+     * @return a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+     */
+    private org.hisp.dhis.dxf2.datavalue.DataValue getDataValue(
+        String dataElement, String period, String orgUnit, String value )
+    {
+        org.hisp.dhis.dxf2.datavalue.DataValue dv = new org.hisp.dhis.dxf2.datavalue.DataValue();
+        dv.setDataElement( dataElement );
+        dv.setPeriod( period );
+        dv.setOrgUnit( orgUnit );
+        dv.setValue( value );
+        dv.setStoredBy( "john" );
+        dv.setComment( "comment" );
+        dv.setFollowup( false );
+        return dv;
+    }
+
     private void assertImportDataValues( ImportSummary summary )
     {
         assertNotNull( summary );
