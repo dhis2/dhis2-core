@@ -53,7 +53,7 @@ jobs:
         if: ${{ steps.cache-sierra-leone-db.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
-          wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz --directory-prefix ${{ env.SIERRA_LEONE_DB_PATH }}
+          wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz --no-clobber --directory-prefix ${{ env.SIERRA_LEONE_DB_PATH }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
