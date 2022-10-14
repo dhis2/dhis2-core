@@ -117,7 +117,7 @@ public class DefaultRelationshipService
     }
 
     @Override
-    // @Transactional( readOnly = true )
+    @Transactional( readOnly = true )
     public Relationship getRelationshipIncludeDeleted( String uid )
     {
         return relationshipStore.getByUidsIncludeDeleted( List.of( uid ) )
