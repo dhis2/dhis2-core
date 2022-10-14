@@ -106,10 +106,6 @@ public class DefaultRelationshipService
     @Transactional
     public void updateRelationship( Relationship relationship )
     {
-        // TODO: Do we need next 2 lines? relationship never changes during
-        // update
-        relationship.getFrom().setRelationship( relationship );
-        relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );
     }
 
@@ -121,7 +117,7 @@ public class DefaultRelationshipService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    // @Transactional( readOnly = true )
     public Relationship getRelationshipIncludeDeleted( String uid )
     {
         return relationshipStore.getByUidsIncludeDeleted( List.of( uid ) )
