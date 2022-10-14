@@ -146,17 +146,32 @@ public class AggregateDataExchangeService
 
     /**
      * Returns the source data for the analytics data exchange with the given
-     * identifier.
+     * identifier in the analytics data format.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
      * @return the source data for the analytics data exchange.
      */
-    public List<Grid> getSourceData( String uid )
+    public List<Grid> getSourceAnalyticsData( String uid )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
         return mapToList( exchange.getSource().getRequests(),
             request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
+    }
+
+    /**
+     * Returns the source data for the analytics data exchange with the given
+     * identifier in the data value set format.
+     *
+     * @param uid the {@link AggregateDataExchange} identifier.
+     * @return the source data for the analytics data exchange.
+     */
+    public List<DataValueSet> getSourceData( String uid )
+    {
+        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
+
+        return mapToList( exchange.getSource().getRequests(),
+            request -> analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) ) );
     }
 
     /**
