@@ -282,6 +282,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         {
             eventDataValue = new EventDataValue();
             eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
+            eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
             persistedValue = dv.getValue();
             auditType = AuditType.CREATE;
         }
