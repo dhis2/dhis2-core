@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
@@ -142,21 +141,6 @@ public class AggregateDataExchangeService
             ( success, failed ) -> toStageSummary( success, failed, exchange ) );
 
         return summaries;
-    }
-
-    /**
-     * Returns the source data for the analytics data exchange with the given
-     * identifier in the analytics data format.
-     *
-     * @param uid the {@link AggregateDataExchange} identifier.
-     * @return the source data for the analytics data exchange.
-     */
-    public List<Grid> getSourceAnalyticsData( String uid )
-    {
-        AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
-
-        return mapToList( exchange.getSource().getRequests(),
-            request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
     }
 
     /**
