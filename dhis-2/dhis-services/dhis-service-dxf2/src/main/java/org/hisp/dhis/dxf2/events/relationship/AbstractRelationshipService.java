@@ -356,18 +356,75 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship );
-
-        daoRelationship.setRelationshipType( _relationship.getRelationshipType() );
-        daoRelationship.setTo( _relationship.getTo() );
-        daoRelationship.setFrom( _relationship.getFrom() );
-
-        relationshipService.updateRelationship( daoRelationship );
+        relationshipService.updateRelationship( updatedDAORelationship( daoRelationship, relationship ) );
 
         importSummary.setReference( daoRelationship.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
         return importSummary;
+    }
+
+    /**
+     * Update the relationship object fetched from the db only setting
+     * relationshipItem instance type. Using the same relationship and
+     * relationshipItem objects maintains hibernate session reference
+     *
+     * @param relationshipDb relationship fetched from db
+     * @param relationshipInput relationship in the payload
+     * @return relationshipDb with updated relationshipItems
+     */
+    private org.hisp.dhis.relationship.Relationship updatedDAORelationship(
+        org.hisp.dhis.relationship.Relationship relationshipDb, Relationship relationshipInput )
+    {
+        RelationshipType relationshipType = relationshipTypeCache.get( relationshipInput.getRelationshipType() );
+        relationshipDb.setRelationshipType( relationshipType );
+
+        RelationshipItem fromItem = relationshipDb.getFrom();
+        fromItem.setTrackedEntityInstance( null );
+        fromItem.setProgramStageInstance( null );
+        fromItem.setProgramInstance( null );
+
+        // FROM
+        if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            fromItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
+        }
+        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            fromItem
+                .setProgramInstance(
+                    programInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
+        }
+        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            fromItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
+        }
+
+        RelationshipItem toItem = relationshipDb.getTo();
+        toItem.setTrackedEntityInstance( null );
+        toItem.setProgramStageInstance( null );
+        toItem.setProgramInstance( null );
+
+        // TO
+        if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            toItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
+        }
+        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            toItem.setProgramInstance(
+                programInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
+        }
+        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            toItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
+        }
+
+        return relationshipDb;
     }
 
     @Override
