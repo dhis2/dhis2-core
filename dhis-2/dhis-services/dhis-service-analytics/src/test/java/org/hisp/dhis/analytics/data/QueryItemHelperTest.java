@@ -31,6 +31,8 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -327,6 +329,62 @@ class QueryItemHelperTest extends DhisConvenienceTest
         // Then
         assertTrue(
             options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForText()
+    {
+        // given
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "abc", "AbC" ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForDouble()
+    {
+        // given
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1.0", Double.parseDouble( "1.0" ) ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForInteger()
+    {
+        // given
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "1", Integer.parseInt( "1" ) ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForBoolean()
+    {
+        // given
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( "TruE", Boolean.parseBoolean( "true" ) ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForLocalDate()
+    {
+        // given
+        LocalDate localDate = LocalDate.now();
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDate.toString(), localDate ) );
+    }
+
+    @Test
+    void testisItemOptionEqualToRowContentForLocalDateTime()
+    {
+        // given
+        LocalDateTime localDateTime = LocalDateTime.now();
+        // when
+        // then
+        assertTrue( QueryItemHelper.isItemOptionEqualToRowContent( localDateTime.toString(), localDateTime ) );
     }
 
     private Grid stubGridWithRowsAndOptionSet( OptionSet optionSet )
