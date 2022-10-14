@@ -38,16 +38,12 @@ jobs:
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
           mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
 
-      # TODO why do we need the restore-keys?
       - name: Get Sierra Leone DB from cache
         uses: actions/cache@v3
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
           key: sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
-          restore-keys: |
-            sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
-            sierra-leone-db-
 
       - name: Download Sierra Leone DB
         if: ${{ steps.cache-sierra-leone-db.outputs.cache-hit != 'true' }}
