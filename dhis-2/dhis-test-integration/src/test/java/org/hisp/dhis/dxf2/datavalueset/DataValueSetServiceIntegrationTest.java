@@ -695,6 +695,62 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    void testImportDataValueSet()
+    {
+        ImportOptions importOptions = new ImportOptions();
+
+        List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
+            getDataValue( "f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001" ),
+            getDataValue( "f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002" ),
+            getDataValue( "f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003" ),
+            getDataValue( "f7n9E0hX8qk", "201202", "BdfsJfj87js", "10004" ),
+            getDataValue( "Ix2HsbDMLea", "201201", "DiszpKrYNg8", "10005" ),
+            getDataValue( "Ix2HsbDMLea", "201201", "BdfsJfj87js", "10006" ),
+            getDataValue( "Ix2HsbDMLea", "201202", "DiszpKrYNg8", "10007" ),
+            getDataValue( "Ix2HsbDMLea", "201202", "BdfsJfj87js", "10008" ),
+            getDataValue( "eY5ehpbEsB7", "201201", "DiszpKrYNg8", "10009" ),
+            getDataValue( "eY5ehpbEsB7", "201201", "BdfsJfj87js", "10010" ),
+            getDataValue( "eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011" ),
+            getDataValue( "eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012" ) );
+
+        DataValueSet dataValueSet = new DataValueSet();
+        dataValueSet.setDataValues( dataValues );
+
+        ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertImportDataValues( summary );
+    }
+
+    @Test
+    void testImportDataValueSetWithCode()
+    {
+        ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" );
+
+        List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
+            getDataValue( "DE_A", "201201", "OU_A", "10001" ),
+            getDataValue( "DE_A", "201201", "OU_B", "10002" ),
+            getDataValue( "DE_A", "201202", "OU_A", "10003" ),
+            getDataValue( "DE_A", "201202", "OU_B", "10004" ),
+            getDataValue( "DE_B", "201201", "OU_A", "10005" ),
+            getDataValue( "DE_B", "201201", "OU_B", "10006" ),
+            getDataValue( "DE_B", "201202", "OU_A", "10007" ),
+            getDataValue( "DE_B", "201202", "OU_B", "10008" ),
+            getDataValue( "DE_C", "201201", "OU_A", "10009" ),
+            getDataValue( "DE_C", "201201", "OU_B", "10010" ),
+            getDataValue( "DE_C", "201202", "OU_A", "10011" ),
+            getDataValue( "DE_C", "201202", "OU_B", "10012" ) );
+
+        DataValueSet dataValueSet = new DataValueSet();
+        dataValueSet.setDataValues( dataValues );
+
+        ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertImportDataValues( summary );
+    }
+
+    @Test
     void testImportDataValuesXmlWithAttribute()
     {
         ImportOptions importOptions = new ImportOptions().setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
@@ -1326,6 +1382,30 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+     *
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param orgUnit the org unit.
+     * @param value the data value.
+     * @return a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
+     */
+    private org.hisp.dhis.dxf2.datavalue.DataValue getDataValue(
+        String dataElement, String period, String orgUnit, String value )
+    {
+        org.hisp.dhis.dxf2.datavalue.DataValue dv = new org.hisp.dhis.dxf2.datavalue.DataValue();
+        dv.setDataElement( dataElement );
+        dv.setPeriod( period );
+        dv.setOrgUnit( orgUnit );
+        dv.setValue( value );
+        dv.setStoredBy( "john" );
+        dv.setComment( "comment" );
+        dv.setFollowup( false );
+        return dv;
+    }
+
     private void assertImportDataValues( ImportSummary summary )
     {
         assertNotNull( summary );
