@@ -127,7 +127,7 @@ public class DefaultAnalyticsService
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
-        params = checkSecurityConstraints( params );
+        // params = checkSecurityConstraints( params );
 
         Grid grid = getAggregatedDataValueSetGrid( params );
 

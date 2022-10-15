@@ -37,6 +37,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
@@ -63,6 +64,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Main service class for aggregate data exchange.
@@ -135,6 +138,9 @@ public class AggregateDataExchangeService
             AggregateDataExchangeService::toItemSummary,
             request -> {
                 ImportSummary summary = exchangeData( exchange, request );
+                System.out.println( "-- summary --" );
+                System.out.println( summary );
+                System.out.println( summary.getConflicts() );
                 summaries.addImportSummary( summary );
                 return summary;
             },
@@ -154,8 +160,14 @@ public class AggregateDataExchangeService
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
-        return mapToList( exchange.getSource().getRequests(),
-            request -> analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) ) );
+        Function<SourceRequest, DataValueSet> f = request -> {
+            DataQueryParams p = toDataQueryParams( request );
+            System.out.println( "--data query--" );
+            System.out.println( p );
+            return analyticsService.getAggregatedDataValueSet( p );
+        };
+
+        return mapToList( exchange.getSource().getRequests(), f );
     }
 
     /**
@@ -171,10 +183,20 @@ public class AggregateDataExchangeService
     {
         try
         {
-            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) );
+            DataQueryParams params = toDataQueryParams( request );
+            System.out.println( "--data query--" );
+            System.out.println( params );
+            DataValueSet dataValueSet = analyticsService.getAggregatedDataValueSet( params );
 
-            return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
+            System.out.println( "--payload--" );
+            System.out.println( new ObjectMapper().writeValueAsString( dataValueSet ) );
+
+            ImportSummary s = exchange.getTarget().getType() == TargetType.INTERNAL
+                ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
+            System.out.println( "--summary--" );
+            System.out.println( s );
+            return s;
         }
         catch ( HttpClientErrorException ex )
         {
@@ -197,6 +219,7 @@ public class AggregateDataExchangeService
      */
     private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
+        System.out.println( "ID scheme " + toImportOptions( exchange ).getIdSchemes().getIdScheme() );
         return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
@@ -246,6 +269,8 @@ public class AggregateDataExchangeService
         IdScheme outputDataElementIdScheme = toIdSchemeOrDefault( request.getOutputDataElementIdScheme() );
         IdScheme outputOrgUnitIdScheme = toIdSchemeOrDefault( request.getOutputOrgUnitIdScheme() );
         IdScheme outputIdScheme = toIdSchemeOrDefault( request.getOutputIdScheme() );
+
+        System.out.println( "Input ID scheme: " + inputIdScheme );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );

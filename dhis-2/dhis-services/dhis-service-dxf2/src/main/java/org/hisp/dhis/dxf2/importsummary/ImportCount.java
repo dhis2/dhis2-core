@@ -102,7 +102,7 @@ public class ImportCount
     @Override
     public String toString()
     {
-        return "[imports=" + imported + ", updates=" + updated + ", ignores=" + ignored + "]";
+        return "[imported=" + imported + ", updated=" + updated + ", ignored=" + ignored + ", deleted=" + deleted + "]";
     }
 
     public void incrementImported()

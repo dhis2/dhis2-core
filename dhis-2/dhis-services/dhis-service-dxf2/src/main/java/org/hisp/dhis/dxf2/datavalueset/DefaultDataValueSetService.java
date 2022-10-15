@@ -715,6 +715,7 @@ public class DefaultDataValueSetService
 
         clock.logTime( "Validated outer meta-data" );
         notifier.notify( id, notificationLevel, "Importing data values" );
+        System.out.println( "-- Importing data values: " + dataValueSet.getDataValues() );
 
         List<? extends DataValueEntry> values = dataValueSet.getDataValues();
         int index = 0;
@@ -722,6 +723,7 @@ public class DefaultDataValueSetService
         {
             for ( DataValueEntry dataValue : values )
             {
+                System.out.println( "Importing data value " + index + " - " + dataValue );
                 importDataValue( context, dataSetContext, importCount, now, index++, dataValue );
             }
         }
@@ -771,6 +773,7 @@ public class DefaultDataValueSetService
         // -----------------------------------------------------------------
         if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
         {
+            System.out.println( "-- Skipping data value " + dataValue );
             importCount.incrementIgnored();
             return;
         }
@@ -780,6 +783,7 @@ public class DefaultDataValueSetService
         // -----------------------------------------------------------------
         DataValue internalValue = createDataValue( dataValue, context, valueContext, now );
 
+        System.out.println( "Data value 1: " + internalValue );
         // -----------------------------------------------------------------
         // Save, update or delete data value
         // -----------------------------------------------------------------
@@ -805,6 +809,7 @@ public class DefaultDataValueSetService
             return;
         }
 
+        System.out.println( "Data value 3: " + internalValue );
         // -----------------------------------------------------------------
         // Check soft deleted data values on update and import
         // -----------------------------------------------------------------

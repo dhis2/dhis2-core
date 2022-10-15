@@ -251,6 +251,8 @@ public class DataValueSetImportValidator
         for ( DataValueValidation validation : dataValueValidations )
         {
             validation.validate( dataValue, context, dataSetContext, valueContext );
+
+            System.out.println( "-- validation errors " + summary.getConflicts() );
             if ( summary.skippedValueCount() > skippedBefore
                 || summary.getTotalConflictOccurrenceCount() > totalConflictsBefore )
             {
