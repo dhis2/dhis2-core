@@ -695,6 +695,34 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    void testImportDataValueSet()
+    {
+        ImportOptions importOptions = new ImportOptions();
+
+        List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
+            getDataValue( "f7n9E0hX8qk", "201201", "DiszpKrYNg8", "10001" ),
+            getDataValue( "f7n9E0hX8qk", "201201", "BdfsJfj87js", "10002" ),
+            getDataValue( "f7n9E0hX8qk", "201202", "DiszpKrYNg8", "10003" ),
+            getDataValue( "f7n9E0hX8qk", "201202", "BdfsJfj87js", "10004" ),
+            getDataValue( "Ix2HsbDMLea", "201201", "DiszpKrYNg8", "10005" ),
+            getDataValue( "Ix2HsbDMLea", "201201", "BdfsJfj87js", "10006" ),
+            getDataValue( "Ix2HsbDMLea", "201202", "DiszpKrYNg8", "10007" ),
+            getDataValue( "Ix2HsbDMLea", "201202", "BdfsJfj87js", "10008" ),
+            getDataValue( "eY5ehpbEsB7", "201201", "DiszpKrYNg8", "10009" ),
+            getDataValue( "eY5ehpbEsB7", "201201", "BdfsJfj87js", "10010" ),
+            getDataValue( "eY5ehpbEsB7", "201202", "DiszpKrYNg8", "10011" ),
+            getDataValue( "eY5ehpbEsB7", "201202", "BdfsJfj87js", "10012" ) );
+
+        DataValueSet dataValueSet = new DataValueSet();
+        dataValueSet.setDataValues( dataValues );
+
+        ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertImportDataValues( summary );
+    }
+
+    @Test
     void testImportDataValueSetWithCode()
     {
         ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" );
@@ -702,8 +730,16 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
             getDataValue( "DE_A", "201201", "OU_A", "10001" ),
             getDataValue( "DE_A", "201201", "OU_B", "10002" ),
-            getDataValue( "DE_B", "201201", "OU_A", "10003" ),
-            getDataValue( "DE_B", "201201", "OU_B", "10004" ) );
+            getDataValue( "DE_A", "201202", "OU_A", "10003" ),
+            getDataValue( "DE_A", "201202", "OU_B", "10004" ),
+            getDataValue( "DE_B", "201201", "OU_A", "10005" ),
+            getDataValue( "DE_B", "201201", "OU_B", "10006" ),
+            getDataValue( "DE_B", "201202", "OU_A", "10007" ),
+            getDataValue( "DE_B", "201202", "OU_B", "10008" ),
+            getDataValue( "DE_C", "201201", "OU_A", "10009" ),
+            getDataValue( "DE_C", "201201", "OU_B", "10010" ),
+            getDataValue( "DE_C", "201202", "OU_A", "10011" ),
+            getDataValue( "DE_C", "201202", "OU_B", "10012" ) );
 
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setDataValues( dataValues );
@@ -711,12 +747,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
 
         assertSuccessWithImportedUpdatedDeleted( 4, 0, 0, summary );
-
-        assertImportDataValues( 4, List.of(
-            new DataValue( deA, peA, ouA, ocDef, ocDef ),
-            new DataValue( deA, peA, ouB, ocDef, ocDef ),
-            new DataValue( deB, peA, ouA, ocDef, ocDef ),
-            new DataValue( deB, peA, ouB, ocDef, ocDef ) ) );
+        assertImportDataValues( summary );
     }
 
     @Test
@@ -1351,21 +1382,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    /**
-     * Asserts that the import process lead to the given data values being
-     * persisted.
-     *
-     * @param expectedCount the expected persisted data value count.
-     * @param expectedDataValues the expected persisted data values.
-     */
-    private void assertImportDataValues( int expectedCount, List<DataValue> expectedDataValues )
-    {
-        List<DataValue> dataValues = dataValueService.getAllDataValues();
-        assertNotNull( dataValues );
-        assertEquals( expectedCount, dataValues.size() );
-        expectedDataValues.forEach( dv -> assertTrue( dataValues.contains( dv ) ) );
-    }
 
     /**
      * Creates a {@link org.hisp.dhis.dxf2.datavalue.DataValue}.
