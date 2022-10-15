@@ -725,7 +725,39 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
     @Test
     void testImportDataValueSetWithCode()
     {
-        ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" );
+        ImportOptions importOptions = new ImportOptions()
+            .setIdScheme( "CODE" );
+
+        List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
+            getDataValue( "DE_A", "201201", "OU_A", "10001" ),
+            getDataValue( "DE_A", "201201", "OU_B", "10002" ),
+            getDataValue( "DE_A", "201202", "OU_A", "10003" ),
+            getDataValue( "DE_A", "201202", "OU_B", "10004" ),
+            getDataValue( "DE_B", "201201", "OU_A", "10005" ),
+            getDataValue( "DE_B", "201201", "OU_B", "10006" ),
+            getDataValue( "DE_B", "201202", "OU_A", "10007" ),
+            getDataValue( "DE_B", "201202", "OU_B", "10008" ),
+            getDataValue( "DE_C", "201201", "OU_A", "10009" ),
+            getDataValue( "DE_C", "201201", "OU_B", "10010" ),
+            getDataValue( "DE_C", "201202", "OU_A", "10011" ),
+            getDataValue( "DE_C", "201202", "OU_B", "10012" ) );
+
+        DataValueSet dataValueSet = new DataValueSet();
+        dataValueSet.setDataValues( dataValues );
+
+        ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
+        assertImportDataValues( summary );
+    }
+
+    @Test
+    void testImportDataValueSetWithSpecificCode()
+    {
+        ImportOptions importOptions = new ImportOptions()
+            .setDataElementIdScheme( "CODE" )
+            .setOrgUnitIdScheme( "CODE" )
+            .setIdScheme( null );
 
         List<org.hisp.dhis.dxf2.datavalue.DataValue> dataValues = List.of(
             getDataValue( "DE_A", "201201", "OU_A", "10001" ),
