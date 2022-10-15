@@ -116,14 +116,17 @@ public class SortingContext
                 return mergeContexts( builder,
                     StaticEventSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
                         .getSortingContextBuilder() );
-            } // it is data element
+            } // it is either data element or program indicator ( content of
+              // EventDataValues json object )
             else if ( param.getOrderBy().getDimension()
-                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
+                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT ||
+                param.getOrderBy().getDimension()
+                    .getDimensionParamObjectType() == DimensionParamObjectType.PROGRAM_INDICATOR )
             {
                 return mergeContexts( builder,
                     EventDataValuesSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
                         .getSortingContextBuilder() );
-            }// it is program indicator (?)
+            }
             return builder;
         }
 
