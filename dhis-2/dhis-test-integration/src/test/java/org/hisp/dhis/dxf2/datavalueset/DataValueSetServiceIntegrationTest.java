@@ -746,7 +746,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
 
         ImportSummary summary = dataValueSetService.importDataValueSet( dataValueSet, importOptions );
 
-        assertSuccessWithImportedUpdatedDeleted( 4, 0, 0, summary );
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertImportDataValues( summary );
     }
 
