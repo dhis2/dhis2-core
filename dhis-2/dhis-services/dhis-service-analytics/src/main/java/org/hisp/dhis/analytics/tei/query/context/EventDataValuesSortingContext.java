@@ -29,7 +29,13 @@ package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.*;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.DOT;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
+import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
+import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.eventSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
@@ -39,13 +45,13 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.RenderableDimensionIdentifier;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @RequiredArgsConstructor( staticName = "of" )
-class StaticEnrollmentSortingContext
+public class EventDataValuesSortingContext
 {
     private final AnalyticsSortingParams param;
 
@@ -56,17 +62,28 @@ class StaticEnrollmentSortingContext
     public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
         DimensionIdentifier<Program, ProgramStage, DimensionParam> di = param.getOrderBy();
+
         DimensionParam sortingDimension = di.getDimension();
+
         String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
-        String render = doubleQuote( RenderableDimensionIdentifier.of( di ).render() );
+
+        String fieldAlias = doubleQuote( di.toString() );
+
+        String enrollmentAlias = ENR_ALIAS + "_" + sequence;
+
+        Renderable renderable = () -> "eventdatavalues -> '" + sortingDimension.getUid() + "' ->> 'value'";
 
         return SortingContext.builder()
-            .field( Field.of( uniqueAlias, sortingDimension::getUid, render ) )
-            .order( () -> render + SPACE + param.getSortDirection().name() )
+            .field( Field.of( uniqueAlias, renderable, fieldAlias ) )
+            .order( () -> uniqueAlias + DOT + renderable.render() + SPACE + param.getSortDirection().name() )
             .leftJoin(
                 Pair.of(
-                    () -> "(" + SortingContextUtils.enrollmentSelect( di.getProgram(), trackedEntityType ) + ") "
+                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType ) + ") " + enrollmentAlias,
+                    fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
+            .leftJoin(
+                Pair.of(
+                    () -> "(" + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType ) + ") "
                         + uniqueAlias,
-                    fieldsEqual( TEI_ALIAS, TEI_UID, uniqueAlias, TEI_UID ) ) );
+                    fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
     }
 }

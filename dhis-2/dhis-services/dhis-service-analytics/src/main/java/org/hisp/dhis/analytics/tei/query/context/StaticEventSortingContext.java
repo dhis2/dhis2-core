@@ -55,7 +55,7 @@ class StaticEventSortingContext
 
     private final TrackedEntityType trackedEntityType;
 
-    public SortingContext.PrivateBuilder getBuilder()
+    public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
         // For example asc=pUid.psUid.ouname
         DimensionIdentifier<Program, ProgramStage, DimensionParam> di = param.getOrderBy();
@@ -77,5 +77,4 @@ class StaticEventSortingContext
                         + uniqueAlias,
                     fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
     }
-
 }
