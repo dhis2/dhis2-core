@@ -197,9 +197,7 @@ public class AggregateDataExchangeService
      */
     private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
-        ImportOptions importOptions = toImportOptions( exchange );
-        System.out.println( "-- import options " + importOptions );
-        return dataValueSetService.importDataValueSet( dataValueSet, importOptions );
+        return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
     /**
@@ -214,9 +212,7 @@ public class AggregateDataExchangeService
      */
     private ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
-        ImportOptions importOptions = toImportOptions( exchange );
-
-        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, importOptions );
+        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
     }
 
     /**
