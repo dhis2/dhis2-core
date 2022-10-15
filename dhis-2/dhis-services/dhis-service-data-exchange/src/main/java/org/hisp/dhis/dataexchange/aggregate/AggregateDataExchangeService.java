@@ -42,7 +42,6 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -227,10 +226,10 @@ public class AggregateDataExchangeService
         TargetRequest request = exchange.getTarget().getRequest();
 
         return new ImportOptions()
-            .setDataElementIdScheme( getOrDefault( request.getDataElementIdScheme() ) )
-            .setOrgUnitIdScheme( getOrDefault( request.getOrgUnitIdScheme() ) )
-            .setCategoryOptionComboIdScheme( getOrDefault( request.getCategoryOptionComboIdScheme() ) )
-            .setIdScheme( getOrDefault( request.getIdScheme() ) );
+            .setDataElementIdScheme( request.getDataElementIdScheme() )
+            .setOrgUnitIdScheme( request.getOrgUnitIdScheme() )
+            .setCategoryOptionComboIdScheme( request.getCategoryOptionComboIdScheme() )
+            .setIdScheme( request.getIdScheme() );
     }
 
     /**
@@ -242,10 +241,10 @@ public class AggregateDataExchangeService
      */
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
-        IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
-        IdScheme outputDataElementIdScheme = toIdSchemeOrDefault( request.getOutputDataElementIdScheme() );
-        IdScheme outputOrgUnitIdScheme = toIdSchemeOrDefault( request.getOutputOrgUnitIdScheme() );
-        IdScheme outputIdScheme = toIdSchemeOrDefault( request.getOutputIdScheme() );
+        IdScheme inputIdScheme = toIdScheme( request.getInputIdScheme() );
+        IdScheme outputDataElementIdScheme = toIdScheme( request.getOutputDataElementIdScheme() );
+        IdScheme outputOrgUnitIdScheme = toIdScheme( request.getOutputOrgUnitIdScheme() );
+        IdScheme outputIdScheme = toIdScheme( request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
@@ -289,27 +288,15 @@ public class AggregateDataExchangeService
     }
 
     /**
-     * Returns the ID scheme string or the the default ID scheme if the given ID
-     * scheme string is null.
-     *
-     * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or the default ID scheme string if null.
-     */
-    String getOrDefault( String idScheme )
-    {
-        return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
-    }
-
-    /**
      * Returns the {@link IdScheme} based on the given ID scheme string, or the
-     * default ID scheme if the given ID scheme string is null.
+     * null if the given ID scheme string is null.
      *
      * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or the default ID scheme if null.
+     * @return the given ID scheme, or null.
      */
-    IdScheme toIdSchemeOrDefault( String idScheme )
+    IdScheme toIdScheme( String idScheme )
     {
-        return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
+        return idScheme != null ? IdScheme.from( idScheme ) : null;
     }
 
     /**
