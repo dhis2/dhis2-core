@@ -61,7 +61,6 @@ class TeiFullQueryTest extends DhisConvenienceTest
     void testSqlQueryRenderingWithOrgUnitNameObject()
     {
         // given
-
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( createTrackedEntityType( 'A' ) )
             .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, "ouname" ) )
@@ -78,7 +77,7 @@ class TeiFullQueryTest extends DhisConvenienceTest
         // then
         assertTrue( sql.contains( "ouname" ) );
 
-        assertContains( "order by t_1.\"OUNAME\" ASC", sql );
+        assertContains( "order by t_1.\"OUNAME\" ASC".toLowerCase(), sql.toLowerCase() );
     }
 
     @Test
