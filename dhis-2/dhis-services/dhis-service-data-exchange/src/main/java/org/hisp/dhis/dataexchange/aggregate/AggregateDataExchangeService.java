@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -196,7 +197,9 @@ public class AggregateDataExchangeService
      */
     private ImportSummary pushToInternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
-        return dataValueSetService.importDataValueSet( dataValueSet, toImportOptions( exchange ) );
+        ImportOptions importOptions = toImportOptions( exchange );
+        System.out.println( "-- import options " + importOptions );
+        return dataValueSetService.importDataValueSet( dataValueSet, importOptions );
     }
 
     /**
@@ -211,12 +214,17 @@ public class AggregateDataExchangeService
      */
     private ImportSummary pushToExternal( AggregateDataExchange exchange, DataValueSet dataValueSet )
     {
-        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, toImportOptions( exchange ) );
+        ImportOptions importOptions = toImportOptions( exchange );
+
+        return getDhis2Client( exchange ).saveDataValueSet( dataValueSet, importOptions );
     }
 
     /**
      * Converts the {@link TargetRequest} of the given
      * {@link AggregateDataExchange} to an {@link ImportOptions}.
+     * <p>
+     * Note that the data value set service does not using {@code null} values
+     * as specific ID schemes. When it does, this method can be simplified.
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return an {@link ImportOptions}.
@@ -225,11 +233,26 @@ public class AggregateDataExchangeService
     {
         TargetRequest request = exchange.getTarget().getRequest();
 
-        return new ImportOptions()
-            .setDataElementIdScheme( request.getDataElementIdScheme() )
-            .setOrgUnitIdScheme( request.getOrgUnitIdScheme() )
-            .setCategoryOptionComboIdScheme( request.getCategoryOptionComboIdScheme() )
-            .setIdScheme( request.getIdScheme() );
+        ImportOptions options = new ImportOptions();
+
+        if ( isNotBlank( request.getDataElementIdScheme() ) )
+        {
+            options.setDataElementIdScheme( request.getDataElementIdScheme() );
+        }
+        if ( isNotBlank( request.getOrgUnitIdScheme() ) )
+        {
+            options.setOrgUnitIdScheme( request.getOrgUnitIdScheme() );
+        }
+        if ( isNotBlank( request.getCategoryOptionComboIdScheme() ) )
+        {
+            options.setCategoryOptionComboIdScheme( request.getCategoryOptionComboIdScheme() );
+        }
+        if ( isNotBlank( request.getIdScheme() ) )
+        {
+            options.setIdScheme( request.getIdScheme() );
+        }
+
+        return options;
     }
 
     /**

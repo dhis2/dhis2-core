@@ -169,7 +169,7 @@ class AggregateDataExchangeServiceTest
     }
 
     @Test
-    void testToImportOptions()
+    void testToImportOptionsA()
     {
         TargetRequest request = new TargetRequest()
             .setDataElementIdScheme( "code" )
@@ -186,7 +186,30 @@ class AggregateDataExchangeServiceTest
 
         assertEquals( IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme() );
         assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
-        assertEquals( IdScheme.NULL, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
+    }
+
+    @Test
+    void testToImportOptionsB()
+    {
+        TargetRequest request = new TargetRequest()
+            .setDataElementIdScheme( "uid" )
+            .setOrgUnitIdScheme( "code" );
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( new Api() )
+            .setRequest( request );
+        AggregateDataExchange exchange = new AggregateDataExchange()
+            .setTarget( target );
+
+        ImportOptions options = service.toImportOptions( exchange );
+
+        assertEquals( IdScheme.UID, options.getIdSchemes().getDataElementIdScheme() );
+        assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
         assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
     }
 
