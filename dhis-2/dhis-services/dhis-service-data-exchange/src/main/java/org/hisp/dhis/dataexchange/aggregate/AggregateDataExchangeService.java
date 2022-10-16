@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -40,7 +41,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -209,6 +209,9 @@ public class AggregateDataExchangeService
     /**
      * Converts the {@link TargetRequest} of the given
      * {@link AggregateDataExchange} to an {@link ImportOptions}.
+     * <p>
+     * Note that the data value set service does not using {@code null} values
+     * as specific ID schemes. When it does, this method can be simplified.
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return an {@link ImportOptions}.
@@ -217,11 +220,26 @@ public class AggregateDataExchangeService
     {
         TargetRequest request = exchange.getTarget().getRequest();
 
-        return new ImportOptions()
-            .setDataElementIdScheme( getOrDefault( request.getDataElementIdScheme() ) )
-            .setOrgUnitIdScheme( getOrDefault( request.getOrgUnitIdScheme() ) )
-            .setCategoryOptionComboIdScheme( getOrDefault( request.getCategoryOptionComboIdScheme() ) )
-            .setIdScheme( getOrDefault( request.getIdScheme() ) );
+        ImportOptions options = new ImportOptions();
+
+        if ( isNotBlank( request.getDataElementIdScheme() ) )
+        {
+            options.setDataElementIdScheme( request.getDataElementIdScheme() );
+        }
+        if ( isNotBlank( request.getOrgUnitIdScheme() ) )
+        {
+            options.setOrgUnitIdScheme( request.getOrgUnitIdScheme() );
+        }
+        if ( isNotBlank( request.getCategoryOptionComboIdScheme() ) )
+        {
+            options.setCategoryOptionComboIdScheme( request.getCategoryOptionComboIdScheme() );
+        }
+        if ( isNotBlank( request.getIdScheme() ) )
+        {
+            options.setIdScheme( request.getIdScheme() );
+        }
+
+        return options;
     }
 
     /**
@@ -234,10 +252,10 @@ public class AggregateDataExchangeService
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
-        IdScheme outputDataElementIdScheme = toIdSchemeOrDefault( request.getOutputDataElementIdScheme() );
-        IdScheme outputOrgUnitIdScheme = toIdSchemeOrDefault( request.getOutputOrgUnitIdScheme() );
-        IdScheme outputIdScheme = toIdSchemeOrDefault( request.getOutputIdScheme() );
+        IdScheme inputIdScheme = toIdScheme( request.getInputIdScheme() );
+        IdScheme outputDataElementIdScheme = toIdScheme( request.getOutputDataElementIdScheme() );
+        IdScheme outputOrgUnitIdScheme = toIdScheme( request.getOutputOrgUnitIdScheme() );
+        IdScheme outputIdScheme = toIdScheme( request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, format, inputIdScheme ) );
@@ -285,27 +303,15 @@ public class AggregateDataExchangeService
     }
 
     /**
-     * Returns the ID scheme string or the the default ID scheme if the given ID
-     * scheme string is null.
-     *
-     * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or the default ID scheme string if null.
-     */
-    String getOrDefault( String idScheme )
-    {
-        return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
-    }
-
-    /**
      * Returns the {@link IdScheme} based on the given ID scheme string, or the
-     * default ID scheme if the given ID scheme string is null.
+     * null if the given ID scheme string is null.
      *
      * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or the default ID scheme if null.
+     * @return the given ID scheme, or null.
      */
-    IdScheme toIdSchemeOrDefault( String idScheme )
+    IdScheme toIdScheme( String idScheme )
     {
-        return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
+        return idScheme != null ? IdScheme.from( idScheme ) : null;
     }
 
     /**
