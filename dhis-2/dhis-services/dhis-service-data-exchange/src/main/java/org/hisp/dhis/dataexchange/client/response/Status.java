@@ -30,6 +30,8 @@ package org.hisp.dhis.dataexchange.client.response;
 /**
  * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
  * support data exchange with various DHIS 2 versions.
+ *
+ * @author Lars Helge Overland
  */
 public enum Status
 {

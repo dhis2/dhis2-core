@@ -29,6 +29,11 @@ package org.hisp.dhis.dataexchange.client.auth;
 
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Interface representing authentication type and relevant credentials.
+ *
+ * @author Lars Helge Overland
+ */
 public interface Authentication
 {
     /**
