@@ -36,25 +36,13 @@
     class="org.hisp.dhis.webportal.module.ConfigurableModuleComparator">
     <property name="order">
       <list>
-        <value>dhis-web-pivot</value>
         <value>dhis-web-visualizer</value>
         <value>dhis-web-mapping</value>
         <value>dhis-web-event-reports</value>
         <value>dhis-web-event-visualizer</value>
         <value>dhis-web-dataentry</value>
-        <value>dhis-web-event-capture</value>
         <value>dhis-web-tracker-capture</value>
-        <value>dhis-web-maintenance-dataadmin</value>
-        <value>dhis-web-maintenance-dataset</value>
-        <value>dhis-web-importexport</value>
-        <value>dhis-web-maintenance-mobile</value>
-        <value>dhis-web-maintenance-organisationunit</value>
-        <value>dhis-web-maintenance-program</value>
-        <value>dhis-web-maintenance-settings</value>
-        <value>dhis-web-maintenance-user</value>
-        <value>dhis-web-validationrule</value>
         <value>dhis-web-reporting</value>
-        <value>dhis-web-sms</value>
         <value>dhis-web-dashboard</value>
       </list>
     </property>

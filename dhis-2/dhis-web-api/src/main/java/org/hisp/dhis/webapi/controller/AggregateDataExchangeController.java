@@ -32,9 +32,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
@@ -76,7 +76,7 @@ public class AggregateDataExchangeController
 
     @GetMapping( "/{uid}/sourceData" )
     @ResponseStatus( value = HttpStatus.OK )
-    public List<Grid> getSourceData( @PathVariable String uid )
+    public List<DataValueSet> getSourceDataValues( @PathVariable String uid )
     {
         return service.getSourceData( uid );
     }
