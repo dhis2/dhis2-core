@@ -30,6 +30,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,15 +95,15 @@ class AggregateDataExchangeServiceTest
         when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
             .thenReturn( new DataValueSet() );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
         when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
@@ -145,15 +146,15 @@ class AggregateDataExchangeServiceTest
         when( i18nManager.getI18nFormat() )
             .thenReturn( new I18nFormat( null ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
         when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), any( IdScheme.class ) ) )
+            nullable( List.class ), any( I18nFormat.class ), anyBoolean(), nullable( IdScheme.class ) ) )
                 .thenReturn( new BaseDimensionalObject(
                     DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
 
@@ -177,7 +178,7 @@ class AggregateDataExchangeServiceTest
     }
 
     @Test
-    void testToImportOptions()
+    void testToImportOptionsA()
     {
         TargetRequest request = new TargetRequest()
             .setDataElementIdScheme( "code" )
@@ -195,22 +196,39 @@ class AggregateDataExchangeServiceTest
         assertEquals( IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme() );
         assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
         assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
         assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
     }
 
     @Test
-    void testGetOrDefault()
+    void testToImportOptionsB()
     {
-        assertEquals( "CODE", service.getOrDefault( "CODE" ) );
-        assertEquals( "UID", service.getOrDefault( null ) );
+        TargetRequest request = new TargetRequest()
+            .setDataElementIdScheme( "uid" )
+            .setOrgUnitIdScheme( "code" );
+        Target target = new Target()
+            .setType( TargetType.EXTERNAL )
+            .setApi( new Api() )
+            .setRequest( request );
+        AggregateDataExchange exchange = new AggregateDataExchange()
+            .setTarget( target );
+
+        ImportOptions options = service.toImportOptions( exchange );
+
+        assertEquals( IdScheme.UID, options.getIdSchemes().getDataElementIdScheme() );
+        assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
+        assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
     }
 
     @Test
-    void testToIdSchemeOrDefault()
+    void testToIdScheme()
     {
-        assertEquals( IdScheme.CODE, service.toIdSchemeOrDefault( "code" ) );
-        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "UID" ) );
-        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( null ) );
+        assertEquals( IdScheme.CODE, service.toIdScheme( "code" ) );
+        assertEquals( IdScheme.UID, service.toIdScheme( "UID" ) );
+        assertEquals( IdScheme.UID, service.toIdScheme( "uid" ) );
+        assertNull( service.toIdScheme( null ) );
     }
 
     @Test
