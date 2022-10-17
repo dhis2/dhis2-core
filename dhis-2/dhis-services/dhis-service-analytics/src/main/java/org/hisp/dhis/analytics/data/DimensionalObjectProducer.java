@@ -481,6 +481,10 @@ public class DimensionalObjectProducer
 
         for ( String ou : items )
         {
+            if ( ou == null )
+            {
+                continue;
+            }
             if ( KEY_USER_ORGUNIT.equals( ou ) && isNotEmpty( userOrgUnits ) )
             {
                 ous.addAll( userOrgUnits );
@@ -493,13 +497,13 @@ public class DimensionalObjectProducer
             {
                 ous.addAll( getSortedGrandChildren( userOrgUnits ) );
             }
-            else if ( ou != null && ou.startsWith( KEY_LEVEL ) )
+            else if ( ou.startsWith( KEY_LEVEL ) )
             {
                 String level = getValueFromKeywordParam( ou );
                 Integer orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevelOrUid( level );
                 addIgnoreNull( levels, orgUnitLevel );
             }
-            else if ( ou != null && ou.startsWith( KEY_ORGUNIT_GROUP ) )
+            else if ( ou.startsWith( KEY_ORGUNIT_GROUP ) )
             {
                 String uid = getUidFromGroupParam( ou );
                 OrganisationUnitGroup group = idObjectManager.getObject(
