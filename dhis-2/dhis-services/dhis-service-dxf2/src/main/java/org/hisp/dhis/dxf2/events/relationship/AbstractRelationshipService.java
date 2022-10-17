@@ -399,25 +399,26 @@ public abstract class AbstractRelationshipService
         return relationshipDb;
     }
 
-    private void updateRelationshipItem( RelationshipConstraint relationshipType, RelationshipItem relationshipItem,
+    private void updateRelationshipItem( RelationshipConstraint relationshipConstraint,
+        RelationshipItem relationshipItem,
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipInput )
     {
         relationshipItem.setTrackedEntityInstance( null );
         relationshipItem.setProgramStageInstance( null );
         relationshipItem.setProgramInstance( null );
 
-        if ( relationshipType.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        if ( relationshipConstraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             relationshipItem.setTrackedEntityInstance(
                 trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
-        else if ( relationshipType.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             relationshipItem
                 .setProgramInstance(
                     programInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
-        else if ( relationshipType.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             relationshipItem.setProgramStageInstance(
                 programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
