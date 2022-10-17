@@ -29,6 +29,8 @@ package org.hisp.dhis.predictor.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
@@ -66,7 +68,7 @@ public class HibernatePredictorStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void save( Predictor predictor )
+    public void save( @Nonnull Predictor predictor )
     {
         predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
@@ -74,7 +76,7 @@ public class HibernatePredictorStore
     }
 
     @Override
-    public void update( Predictor predictor )
+    public void update( @Nonnull Predictor predictor )
     {
         predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
