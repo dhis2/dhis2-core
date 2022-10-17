@@ -60,7 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class RelationshipServiceTest extends TransactionalIntegrationTest
+class RelationshipServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -167,7 +167,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldAddTeiToTeiRelationship()
+    void shouldAddTeiToTeiRelationship()
     {
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationshipType( relationshipTypeTeiToTei.getUid() );
@@ -193,7 +193,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldUpdateTeiToTeiRelationship()
+    void shouldUpdateTeiToTeiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, teiB, null, null );
 
@@ -224,7 +224,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldAddTeiToPiRelationship()
+    void shouldAddTeiToPiRelationship()
     {
         Relationship relationship = new Relationship();
         relationship.setRelationshipType( relationshipTypeTeiToPi.getUid() );
@@ -250,7 +250,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldUpdateTeiToPiRelationship()
+    void shouldUpdateTeiToPiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, programInstanceA, null );
 
@@ -281,7 +281,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldAddTeiToPsiRelationship()
+    void shouldAddTeiToPsiRelationship()
     {
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationshipType( relationshipTypeTeiToPsi.getUid() );
@@ -307,7 +307,7 @@ public class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void shouldUpdateTeiToPsiRelationship()
+    void shouldUpdateTeiToPsiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, null, programStageInstanceA );
 
