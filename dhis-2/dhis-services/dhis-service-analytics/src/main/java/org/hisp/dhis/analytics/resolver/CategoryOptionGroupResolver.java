@@ -118,11 +118,7 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
 
         for ( String cogUid : cogUidList )
         {
-            CategoryOptionGroup cog = categoryOptionGroupStore.getByUid( cogUid );
-            if ( cog == null )
-            {
-                continue;
-            }
+            CategoryOptionGroup cog = categoryOptionGroupStore.loadByUid( cogUid );
             List<String> cocUids = categoryOptionComboStore
                 .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId ).stream()
                 .map( BaseIdentifiableObject::getUid )
