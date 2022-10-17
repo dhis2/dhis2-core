@@ -28,6 +28,18 @@
                     </dependency>
                 </dependencies>
                 <configuration>
+                    <from>
+                        <platforms>
+                            <platform>
+                                <architecture>amd64</architecture>
+                                <os>linux</os>
+                            </platform>
+                            <platform>
+                                <architecture>arm64</architecture>
+                                <os>linux</os>
+                            </platform>
+                        </platforms>
+                    </from>
                     <container>
                         <environment>
                             <!-- default DHIS2 web application context to / but allow for customization -->
