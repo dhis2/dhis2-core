@@ -115,8 +115,8 @@ pipeline {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                     // Docker images are built in a matrix of different base images
                     // all these images are used for testing but only one is published and endorsed for use in production
-                    // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
-                    sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
+                    // which is the DOCKER_IMAGE_NAME_FULL
+                    sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_FULL} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
                     sh "docker manifest push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
                 }
             }
