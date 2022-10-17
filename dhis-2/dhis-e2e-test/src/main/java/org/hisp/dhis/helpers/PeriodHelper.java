@@ -25,59 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.analytics;
+package org.hisp.dhis.helpers;
 
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
+import static java.time.LocalDate.now;
+import static java.time.format.DateTimeFormatter.BASIC_ISO_DATE;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
- * Provides events endpoints/operations associated to the parent
- * "analytics/events".
+ * Helper class to assist with period and relative period manipulation.
  *
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author maikel arabori
  */
-public class AnalyticsEventActions
-    extends RestApiActions
+public class PeriodHelper
 {
-
-    public AnalyticsEventActions()
+    public enum Period
     {
-        super( "/analytics/events" );
+        LAST_YEAR( "Last year" ),
+        THIS_YEAR( "This year" ),
+        LAST_6_MONTHS( "Last 6 months" ),
+        LAST_12_MONTHS( "Last 12 months" ),
+        LAST_5_YEARS( "Last 5 years" ),
+        WEEKS_THIS_YEAR( "Weeks this year" ),
+        TODAY( "Today" );
+
+        private final String label;
+
+        Period( String label )
+        {
+            this.label = label;
+        }
+
+        public String label()
+        {
+            return label;
+        }
     }
 
-    public AnalyticsEventActions( String endpoint )
+    private PeriodHelper()
     {
-        super( "/analytics/events" + endpoint );
+        throw new UnsupportedOperationException( "helper" );
     }
 
-    public AnalyticsEventActions query()
+    public static String getRelativePeriodDate( Period relativePeriod )
     {
-        return new AnalyticsEventActions( "/query" );
-    }
-
-    public AnalyticsEventActions aggregate()
-    {
-        return new AnalyticsEventActions( "/aggregate" );
-    }
-
-    public ApiResponse getDimensions( String programStage )
-    {
-        return this.get( "/dimensions", new QueryParamsBuilder()
-            .add( "programStageId", programStage ) ).validateStatus( 200 );
-    }
-
-    public ApiResponse getDimensions( String programStage, QueryParamsBuilder queryParamsBuilder )
-    {
-        queryParamsBuilder.add( "programStageId", programStage );
-
-        return this.get( "/dimensions", queryParamsBuilder ).validateStatus( 200 );
-    }
-
-    public ApiResponse getDimensionsByDimensionType( String programStage, String dimensionType )
-    {
-        return this.get( "/dimensions", new QueryParamsBuilder()
-            .add( "programStageId", programStage )
-            .add( "filter", "dimensionType:eq:" + dimensionType ) ).validateStatus( 200 );
+        switch ( relativePeriod )
+        {
+        case LAST_YEAR:
+            return now().plusYears( 1 ).format( BASIC_ISO_DATE );
+        case LAST_5_YEARS:
+            return now().plusYears( 5 ).format( BASIC_ISO_DATE );
+        case LAST_12_MONTHS:
+            return now().plusMonths( 12 ).format( BASIC_ISO_DATE );
+        case LAST_6_MONTHS:
+            return now().plusMonths( 6 ).format( BASIC_ISO_DATE );
+        default:
+            return EMPTY;
+        }
     }
 }
