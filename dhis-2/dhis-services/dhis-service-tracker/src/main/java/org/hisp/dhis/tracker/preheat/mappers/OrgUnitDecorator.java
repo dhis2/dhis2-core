@@ -25,18 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client.response;
+package org.hisp.dhis.tracker.preheat.mappers;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
- * support data exchange with various DHIS 2 versions.
- *
- * @author Lars Helge Overland
+ * Decorator to be applied to {@link OrganisationUnitMapper} to correctly map
+ * the recursive parent field
  */
-public enum Status
+public abstract class OrgUnitDecorator implements OrganisationUnitMapper
 {
-    OK,
-    SUCCESS,
-    WARNING,
-    ERROR
+
+    private final OrganisationUnitMapper delegate;
+
+    protected OrgUnitDecorator( OrganisationUnitMapper delegate )
+    {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public OrganisationUnit map( OrganisationUnit organisationUnit )
+    {
+        if ( organisationUnit == null )
+        {
+            return null;
+        }
+
+        OrganisationUnit organisationUnit1 = delegate.map( organisationUnit );
+        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
+        return organisationUnit1;
+    }
+
+    private OrganisationUnit fetchParent( OrganisationUnit organisationUnit )
+    {
+        if ( organisationUnit == null )
+        {
+            return null;
+        }
+
+        OrganisationUnit organisationUnit1 = new OrganisationUnit();
+        organisationUnit1.setUid( organisationUnit.getUid() );
+        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
+
+        return organisationUnit1;
+    }
 }

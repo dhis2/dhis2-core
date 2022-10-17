@@ -34,6 +34,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Authentication with session cookie.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class CookieAuthentication

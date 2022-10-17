@@ -25,18 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.client.response;
+package org.hisp.dhis.actions;
 
 /**
- * DHIS 2 API response status. {@code OK} and {@code SUCCESS} are present to
- * support data exchange with various DHIS 2 versions.
+ * Encapsulates the operations/actions related to the "/resourceTables"
+ * endpoint.
  *
- * @author Lars Helge Overland
+ * @author maikel arabori
  */
-public enum Status
+public class ResourceTableActions extends RestApiActions
 {
-    OK,
-    SUCCESS,
-    WARNING,
-    ERROR
+
+    public ResourceTableActions()
+    {
+        super( "/resourceTables" );
+    }
 }
