@@ -7,10 +7,10 @@ pipeline {
         label 'ec2-jdk11'
     }
 
-    /*triggers {
+    triggers {
         cron('H H(9-16)/2 * * 1-5')
         pollSCM('H/30 * * * *')
-    }*/
+    }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
@@ -32,7 +32,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                //implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
+                implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
@@ -42,7 +42,7 @@ pipeline {
                 }
             }
 
-            /*post {
+            post {
                 always {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
@@ -58,7 +58,7 @@ pipeline {
                         }
                     }
                 }
-            }*/
+            }
         }
 
         stage('Run api tests') {
@@ -87,8 +87,6 @@ pipeline {
                         steps {
                             withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
-                                    // DOCKER_IMAGE_NAME_BASE_FULL = tomcat:9.0-jre11/8.5-jre11
-                                    // DOCKER_IMAGE_NAME_FULL = dhis2/core-dev:master-9.0-jre11/8.5-jre11
                                     sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
                                             -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                                             -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL}"
@@ -130,9 +128,9 @@ pipeline {
             }
         }
 
-        /*stage('Sync WAR') {
+        stage('Sync WAR') {
             steps {
-                //implementIoBuildStarted(buildName: "${STAGE_NAME}")
+                implementIoBuildStarted(buildName: "${STAGE_NAME}")
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
@@ -144,7 +142,7 @@ pipeline {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
             }
-        }*/
+        }
 
         stage('Publish images') {
             steps {
@@ -153,18 +151,12 @@ pipeline {
                         // Docker images are built in a matrix of different base images
                         // all these images are used for testing but only one is published and endorsed for use in production
                         // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
-                        //sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-                        //sh "docker push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
 
-                        // DOCKER_IMAGE_NAME_PUBLISH_SOURCE = dhis2/core-dev:master-9.0-jre11
-                        // DOCKER_IMAGE_NAME_PUBLISH_TARGET = dhis2/core-dev:master
                         sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
                         sh "docker manifest push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
 
 
                         if (env.GIT_BRANCH == 'master') {
-                            // sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME}:latest"
-                            // sh "docker push ${DOCKER_IMAGE_NAME}:latest"
                             sh "docker manifest create ${DOCKER_IMAGE_NAME}:latest \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
                             sh "docker manifest push ${DOCKER_IMAGE_NAME}:latest"
                         }
@@ -173,7 +165,7 @@ pipeline {
             }
         }
 
-        /*stage ('Update Play Instance') {
+        stage ('Update Play Instance') {
             steps {
                 implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
                 echo 'Updating Play Instance ...'
@@ -189,7 +181,7 @@ pipeline {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
             }
-        }*/
+        }
     }
 
     post {
@@ -197,7 +189,7 @@ pipeline {
             archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
         }
 
-        /*failure {
+        failure {
             script {
                 slack.sendFailureMessage()
             }
@@ -207,6 +199,6 @@ pipeline {
             script {
                 slack.sendTimedoutMessage(30)
             }
-        }*/
+        }
     }
 }
