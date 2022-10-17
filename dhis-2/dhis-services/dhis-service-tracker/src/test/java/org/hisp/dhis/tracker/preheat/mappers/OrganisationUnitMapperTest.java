@@ -32,6 +32,8 @@ import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.attributeVa
 import static org.hisp.dhis.tracker.preheat.mappers.AttributeCreator.setIdSchemeFields;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Set;
 
@@ -57,5 +59,29 @@ class OrganisationUnitMapperTest
         assertEquals( "meet", mapped.getName() );
         assertEquals( "green", mapped.getCode() );
         assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
+    }
+
+    @Test
+    void testParentFieldsAreMapped()
+    {
+        OrganisationUnit rootOrgUnit = new OrganisationUnit();
+        rootOrgUnit.setUid( "root" );
+        OrganisationUnit level1OrgUnit = new OrganisationUnit();
+        level1OrgUnit.setUid( "level1" );
+        OrganisationUnit level2OrgUnit = new OrganisationUnit();
+        level2OrgUnit.setUid( "level2" );
+
+        level2OrgUnit.setParent( level1OrgUnit );
+        level1OrgUnit.setParent( rootOrgUnit );
+        rootOrgUnit.setParent( null );
+
+        OrganisationUnit mapped = OrganisationUnitMapper.INSTANCE.map( level2OrgUnit );
+
+        assertEquals( "level2", mapped.getUid() );
+        assertNotNull( mapped.getParent() );
+        assertEquals( "level1", mapped.getParent().getUid() );
+        assertNotNull( mapped.getParent().getParent() );
+        assertEquals( "root", mapped.getParent().getParent().getUid() );
+        assertNull( mapped.getParent().getParent().getParent() );
     }
 }

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.sms.command;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -39,29 +39,18 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@AllArgsConstructor
 @Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
-    private SMSCommandStore smsCommandStore;
-
-    public DefaultSMSCommandService( SMSCommandStore smsCommandStore )
-    {
-        checkNotNull( smsCommandStore );
-
-        this.smsCommandStore = smsCommandStore;
-    }
+    private final SMSCommandStore smsCommandStore;
 
     @Override
     @Transactional( readOnly = true )
     public List<SMSCommand> getSMSCommands()
     {
         return smsCommandStore.getAll();
-    }
-
-    public void setSmsCommandStore( SMSCommandStore smsCommandStore )
-    {
-        this.smsCommandStore = smsCommandStore;
     }
 
     @Override
@@ -139,10 +128,12 @@ public class DefaultSMSCommandService
     public void deleteCodeSet( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
+        if ( command != null )
+        {
+            command.getCodes().removeAll( codes );
 
-        command.getCodes().removeAll( codes );
-
-        smsCommandStore.update( command );
+            smsCommandStore.update( command );
+        }
     }
 
     @Override
@@ -157,9 +148,11 @@ public class DefaultSMSCommandService
     public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
+        if ( command != null )
+        {
+            command.getSpecialCharacters().removeAll( specialCharacters );
 
-        command.getSpecialCharacters().removeAll( specialCharacters );
-
-        smsCommandStore.update( command );
+            smsCommandStore.update( command );
+        }
     }
 }
