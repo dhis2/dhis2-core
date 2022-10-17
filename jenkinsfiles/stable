@@ -34,8 +34,9 @@ pipeline {
                 echo 'Building DHIS2 ...'
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
+                        sh 'mvn -DskipTests -Dmaven.test.skip=true -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
+                        sh 'mvn -DskipTests -Dmaven.test.skip=true -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
+                        // TODO: jib:build... Really, radnov?
                     }
                 }
             }
@@ -56,31 +57,34 @@ pipeline {
                         values '9.0-jre11', '8.5-jre11'
                     }
                 }
+
                 environment {
                     DOCKER_IMAGE_NAME_BASE_FULL = "${DOCKER_IMAGE_NAME_BASE}:${DOCKER_IMAGE_TAG_BASE}"
                     DOCKER_IMAGE_NAME_FULL = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-${DOCKER_IMAGE_TAG_BASE}" // used to test against different Tomcat variants
                 }
+
                 stages {
                     stage('Build Docker image') {
                         steps {
-                            script {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
                                     sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild \
+                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                                             -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
                                             -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                                 }
-                            }
                         }
                     }
+
                     stage('Run tests') {
                         steps {
                             script {
                                 dir("dhis-2/dhis-e2e-test") {
+                                    sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
                                     sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
                             }
                         }
+
                         post {
                             always {
                                 script {
@@ -89,6 +93,7 @@ pipeline {
                                     }
                                 }
                             }
+
                             failure {
                                 script {
                                     dir("dhis-2/dhis-e2e-test") {
@@ -109,23 +114,23 @@ pipeline {
                     // Docker images are built in a matrix of different base images
                     // all these images are used for testing but only one is published and endorsed for use in production
                     // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
-                    sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-                    sh "docker push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
+                    sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
+                    sh "docker manifest push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
                 }
             }
         }
 
-        stage ('Sync WAR') {
+        /*stage ('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
-        }
+        }*/
     }
 
-    post {
+    /*post {
         failure {
             script {
                 slack.sendFailureMessage()
@@ -137,5 +142,5 @@ pipeline {
                 slack.sendTimedoutMessage(30)
             }
         }
-    }
+    }*/
 }
