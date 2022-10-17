@@ -90,9 +90,8 @@ pipeline {
                                     // DOCKER_IMAGE_NAME_BASE_FULL = tomcat:9.0-jre11/8.5-jre11
                                     // DOCKER_IMAGE_NAME_FULL = dhis2/core-dev:master-9.0-jre11/8.5-jre11
                                     sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild \
-                                            -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
-                                            -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                                            -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build \
+                                            -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL}"
                                 }
                             }
                         }
@@ -154,8 +153,14 @@ pipeline {
                         // Docker images are built in a matrix of different base images
                         // all these images are used for testing but only one is published and endorsed for use in production
                         // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
-                        sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-                        sh "docker push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
+                        //sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
+                        //sh "docker push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
+
+                        // DOCKER_IMAGE_NAME_PUBLISH_SOURCE = dhis2/core-dev:master-9.0-jre11
+                        // DOCKER_IMAGE_NAME_PUBLISH_TARGET = dhis2/core-dev:master
+                        sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
+                        sh "docker manifest push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
+
 
                         if (env.GIT_BRANCH == 'master') {
                             // sh "docker tag ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} ${DOCKER_IMAGE_NAME}:latest"
