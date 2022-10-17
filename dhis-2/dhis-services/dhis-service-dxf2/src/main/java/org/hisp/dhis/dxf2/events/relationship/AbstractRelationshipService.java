@@ -387,51 +387,41 @@ public abstract class AbstractRelationshipService
         relationshipDb.setRelationshipType( relationshipType );
 
         RelationshipItem fromItem = relationshipDb.getFrom();
-        fromItem.setTrackedEntityInstance( null );
-        fromItem.setProgramStageInstance( null );
-        fromItem.setProgramInstance( null );
 
         // FROM
-        if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
-        {
-            fromItem.setTrackedEntityInstance(
-                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
-        }
-        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
-        {
-            fromItem
-                .setProgramInstance(
-                    programInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
-        }
-        else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
-        {
-            fromItem.setProgramStageInstance(
-                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getFrom() ) ) );
-        }
+        updateRelationshipItem( relationshipType.getFromConstraint(), fromItem, relationshipInput.getFrom() );
 
         RelationshipItem toItem = relationshipDb.getTo();
-        toItem.setTrackedEntityInstance( null );
-        toItem.setProgramStageInstance( null );
-        toItem.setProgramInstance( null );
 
         // TO
-        if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
-        {
-            toItem.setTrackedEntityInstance(
-                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
-        }
-        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
-        {
-            toItem.setProgramInstance(
-                programInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
-        }
-        else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
-        {
-            toItem.setProgramStageInstance(
-                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput.getTo() ) ) );
-        }
+        updateRelationshipItem( relationshipType.getToConstraint(), toItem, relationshipInput.getTo() );
 
         return relationshipDb;
+    }
+
+    private void updateRelationshipItem( RelationshipConstraint relationshipType, RelationshipItem relationshipItem,
+        org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipInput )
+    {
+        relationshipItem.setTrackedEntityInstance( null );
+        relationshipItem.setProgramStageInstance( null );
+        relationshipItem.setProgramInstance( null );
+
+        if ( relationshipType.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            relationshipItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
+        else if ( relationshipType.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            relationshipItem
+                .setProgramInstance(
+                    programInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
+        else if ( relationshipType.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            relationshipItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
     }
 
     @Override
