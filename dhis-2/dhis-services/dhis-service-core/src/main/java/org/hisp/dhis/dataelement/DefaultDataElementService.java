@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.attribute.Attribute;
@@ -248,7 +250,7 @@ public class DefaultDataElementService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids )
+    public List<DataElementGroup> getDataElementGroupsByUid( @Nonnull Collection<String> uids )
     {
         return dataElementGroupStore.getByUid( uids );
     }
