@@ -41,7 +41,11 @@ import lombok.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @Builder( access = AccessLevel.PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
@@ -113,14 +117,27 @@ public class SortingContext
             if ( param.getOrderBy().getDimension().isStaticDimension() )
             {
                 return mergeContexts( builder,
-                    StaticEventSortingContext.of( param, counter.getAndIncrement(), trackedEntityType ).getBuilder() );
-            } // it is either a data element or program indicator (?)
-            return builder;
+                    StaticEventSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
+                        .getSortingContextBuilder() );
+            } // it is either data element or program indicator ( content of
+              // EventDataValues json object )
+            else if ( param.getOrderBy().getDimension()
+                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
+            {
+                return mergeContexts( builder,
+                    EventDataValuesSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
+                        .getSortingContextBuilder() );
+            }
+            else
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2037, param.getOrderBy().getDimension()
+                    .getDimensionParamObjectType() ) );
+            }
         }
 
         private PrivateBuilder enrichWithEnrollmentDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
-            // we can assume here param is a either a ProgramAttribute or a
+            // we can assume here param is either a ProgramAttribute or a
             // static dimension in the form asc=pUid.dimension (or
             // desc=pUid.dimension)
             if ( param.getOrderBy().getDimension().isStaticDimension() )
@@ -138,7 +155,7 @@ public class SortingContext
 
         private PrivateBuilder enrichWithTeiDimension( PrivateBuilder builder, AnalyticsSortingParams param )
         {
-            // we can assume here param is a either a static dimension or
+            // we can assume here param is either a static dimension or
             // a TEI/Program attribute in the form asc=pUid.dimension (or
             // desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
