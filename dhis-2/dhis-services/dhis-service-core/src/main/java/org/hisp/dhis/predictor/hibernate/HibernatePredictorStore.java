@@ -80,6 +80,6 @@ public class HibernatePredictorStore
     {
         predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
-        super.save( predictor );
+        super.update( predictor );
     }
 }
