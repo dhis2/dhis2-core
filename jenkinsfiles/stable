@@ -66,12 +66,14 @@ pipeline {
                 stages {
                     stage('Build Docker image') {
                         steps {
+                            withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                                 withMaven(options: [artifactsPublisher(disabled: true)]) {
                                     sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
                                             -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
                                             -Djib.from.image=${DOCKER_IMAGE_NAME_BASE_FULL} -Djib.to.image=${DOCKER_IMAGE_NAME_FULL} \
                                             -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
                                 }
+                            }
                         }
                     }
 
