@@ -43,6 +43,9 @@ import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 @Builder( access = AccessLevel.PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
@@ -119,15 +122,17 @@ public class SortingContext
             } // it is either data element or program indicator ( content of
               // EventDataValues json object )
             else if ( param.getOrderBy().getDimension()
-                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT ||
-                param.getOrderBy().getDimension()
-                    .getDimensionParamObjectType() == DimensionParamObjectType.PROGRAM_INDICATOR )
+                .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
             {
                 return mergeContexts( builder,
                     EventDataValuesSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
                         .getSortingContextBuilder() );
             }
-            return builder;
+            else
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2037, param.getOrderBy().getDimension()
+                    .getDimensionParamObjectType() ) );
+            }
         }
 
         private PrivateBuilder enrichWithEnrollmentDimension( PrivateBuilder builder, AnalyticsSortingParams param )
