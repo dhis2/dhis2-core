@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.user.hibernate;
 
+import javax.annotation.Nonnull;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -52,14 +54,14 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     }
 
     @Override
-    public void save( UserGroup object, boolean clearSharing )
+    public void save( @Nonnull UserGroup object, boolean clearSharing )
     {
         super.save( object, clearSharing );
         object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
     }
 
     @Override
-    public void update( UserGroup object, User user )
+    public void update( @Nonnull UserGroup object, User user )
     {
         super.update( object, user );
         object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
