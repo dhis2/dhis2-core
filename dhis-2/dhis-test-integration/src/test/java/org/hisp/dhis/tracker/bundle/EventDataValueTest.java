@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,7 +107,7 @@ class EventDataValueTest extends TrackerTest
     }
 
     @Test
-    void testTrackedEntityProgramAttributeValueUpdate()
+    void testEventDataValueUpdate()
         throws IOException
     {
         TrackerImportReport trackerImportReport = trackerImportService
@@ -137,5 +138,14 @@ class EventDataValueTest extends TrackerTest
         assertThat( values, hasItem( "First" ) );
         assertThat( values, hasItem( "Second" ) );
         assertThat( values, hasItem( "Fourth updated" ) );
+
+        Map<String, EventDataValue> dataValueMap = eventDataValues.stream()
+            .collect( Collectors.toMap( EventDataValue::getDataElement, ev -> ev ) );
+        Map<String, EventDataValue> updatedDataValueMap = updatedPsi.getEventDataValues().stream()
+            .collect( Collectors.toMap( EventDataValue::getDataElement, ev -> ev ) );
+        String updatedDataElementId = "DATAEL00004";
+        assertEquals( dataValueMap.get( updatedDataElementId ).getCreated(),
+            updatedDataValueMap.get( updatedDataElementId ).getCreated() );
+        assertEquals( "Fourth updated", updatedDataValueMap.get( updatedDataElementId ).getValue() );
     }
 }
