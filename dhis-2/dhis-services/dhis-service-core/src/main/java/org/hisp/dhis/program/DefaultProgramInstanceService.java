@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -141,7 +143,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramInstance> getProgramInstances( List<String> uids )
+    public List<ProgramInstance> getProgramInstances( @Nonnull List<String> uids )
     {
         return programInstanceStore.getByUid( uids );
     }

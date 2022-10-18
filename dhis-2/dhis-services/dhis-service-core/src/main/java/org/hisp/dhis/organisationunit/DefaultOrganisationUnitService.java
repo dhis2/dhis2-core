@@ -43,6 +43,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -198,7 +200,7 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
-    public List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids )
+    public List<OrganisationUnit> getOrganisationUnitsByUid( @Nonnull Collection<String> uids )
     {
         return organisationUnitStore.getByUid( new HashSet<>( uids ) );
     }

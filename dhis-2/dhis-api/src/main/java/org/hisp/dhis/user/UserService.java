@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.hisp.dhis.dataset.DataSet;
@@ -122,7 +123,7 @@ public interface UserService
      * @param uids the identifiers of the collection of Users to retrieve.
      * @return the User.
      */
-    List<User> getUsers( Collection<String> uids );
+    List<User> getUsers( @Nonnull Collection<String> uids );
 
     /**
      * Retrieves a collection of User with the given usernames.
@@ -333,7 +334,7 @@ public interface UserService
      * @param uids the UIDs.
      * @return a List of UserRolea.
      */
-    List<UserRole> getUserRolesByUid( Collection<String> uids );
+    List<UserRole> getUserRolesByUid( @Nonnull Collection<String> uids );
 
     /**
      * Retrieves all UserRole.
