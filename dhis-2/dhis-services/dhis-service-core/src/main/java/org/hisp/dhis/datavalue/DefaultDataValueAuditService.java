@@ -149,7 +149,6 @@ public class DefaultDataValueAuditService
             return dataValueAudits;
         }
 
-        // case if the audit trail started out with DELETE
         if ( dataValueAudits.get( dataValueAudits.size() - 1 ).getAuditType() == AuditType.DELETE )
         {
             DataValueAudit valueAudit = createDataValueAudit( dataValue );
@@ -157,9 +156,7 @@ public class DefaultDataValueAuditService
             dataValueAudits.add( valueAudit );
         }
 
-        // unless top is CREATE, inject current DV as audit on top
-        if ( !dataValue.isDeleted()
-            && dataValueAudits.get( 0 ).getAuditType() != AuditType.CREATE )
+        if ( !dataValue.isDeleted() && dataValueAudits.get( 0 ).getAuditType() != AuditType.CREATE )
         {
             DataValueAudit dataValueAudit = createDataValueAudit( dataValue );
             dataValueAudit.setAuditType( AuditType.UPDATE );
@@ -168,6 +165,12 @@ public class DefaultDataValueAuditService
         }
 
         dataValueAudits.get( dataValueAudits.size() - 1 ).setAuditType( AuditType.CREATE );
+        dataValueAudits.get( dataValueAudits.size() - 1 ).setCreated( dataValue.getCreated() );
+
+        dataValueAudits.forEach( x -> {
+            System.err
+                    .println( "type: " + x.getAuditType() + ",value: " + x.getValue() + ", created: " + x.getCreated() );
+        } );
 
         return dataValueAudits;
     }
