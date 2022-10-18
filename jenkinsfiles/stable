@@ -37,7 +37,6 @@ pipeline {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -DskipTests -Dmaven.test.skip=true -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
                         sh 'mvn -DskipTests -Dmaven.test.skip=true -X -T 4 --batch-mode --no-transfer-progress install -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
-                        // TODO: jib:build... Really, radnov?
                     }
                 }
             }
@@ -123,17 +122,17 @@ pipeline {
             }
         }
 
-        /*stage ('Sync WAR') {
+        stage ('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
                 sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
-        }*/
+        }
     }
 
-    /*post {
+    post {
         failure {
             script {
                 slack.sendFailureMessage()
@@ -145,5 +144,5 @@ pipeline {
                 slack.sendTimedoutMessage(30)
             }
         }
-    }*/
+    }
 }
