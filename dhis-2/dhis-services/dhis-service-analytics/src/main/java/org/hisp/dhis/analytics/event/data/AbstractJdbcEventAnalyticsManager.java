@@ -101,6 +101,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -961,7 +962,44 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                if ( header.hasOptionSet() )
+                {
+                    Optional<Option> option = header.getOptionSetObject()
+                        .getOptions()
+                        .stream()
+                        .filter( o -> {
+                            // There is a request to use the same value in row
+                            // and meta info for options.
+                            // For the case when the option set is ValueType
+                            // "Number" and option code is numeric,
+                            // the string interpretation of value is fetched as
+                            // a Double value. This value can vary
+                            // from option code; for example value:"1.0" option
+                            // code:"1".
+                            try
+                            {
+                                return value instanceof Double &&
+                                    Double.parseDouble( o.getCode() ) == (Double) value;
+                            }
+                            catch ( Exception ignored )
+                            {
+                                return false;
+                            }
+                        } )
+                        .findFirst();
+                    if ( option.isPresent() )
+                    {
+                        grid.addValue( option.get().getCode() );
+                    }
+                    else
+                    {
+                        grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                    }
+                }
+                else
+                {
+                    grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                }
             }
         }
         else if ( header.getValueType() == ValueType.REFERENCE )
