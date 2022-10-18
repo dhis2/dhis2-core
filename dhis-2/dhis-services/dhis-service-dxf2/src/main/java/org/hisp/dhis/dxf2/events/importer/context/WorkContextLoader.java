@@ -110,6 +110,8 @@ public class WorkContextLoader
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
 
+        sessionFactory.getCurrentSession().flush();
+
         ImportOptions localImportOptions = importOptions;
         // API allows a null Import Options
         if ( localImportOptions == null )
@@ -118,8 +120,6 @@ public class WorkContextLoader
         }
 
         initializeUser( localImportOptions );
-
-        sessionFactory.getCurrentSession().flush();
 
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
