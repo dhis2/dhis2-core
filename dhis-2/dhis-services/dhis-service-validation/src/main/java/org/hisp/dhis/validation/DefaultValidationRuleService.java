@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -176,7 +178,7 @@ public class DefaultValidationRuleService
 
     @Transactional( readOnly = true )
     @Override
-    public List<ValidationRule> getValidationRulesByUid( Collection<String> uids )
+    public List<ValidationRule> getValidationRulesByUid( @Nonnull Collection<String> uids )
     {
         return validationRuleStore.getByUid( uids );
     }

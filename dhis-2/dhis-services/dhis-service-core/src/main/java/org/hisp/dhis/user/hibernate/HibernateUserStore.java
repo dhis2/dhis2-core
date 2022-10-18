@@ -115,7 +115,7 @@ public class HibernateUserStore
     }
 
     @Override
-    public void save( User user, boolean clearSharing )
+    public void save( @Nonnull User user, boolean clearSharing )
     {
         super.save( user, clearSharing );
 

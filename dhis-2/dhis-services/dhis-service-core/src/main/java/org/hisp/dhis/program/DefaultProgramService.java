@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
@@ -112,7 +114,7 @@ public class DefaultProgramService
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Program> getPrograms( Collection<String> uids )
+    public Collection<Program> getPrograms( @Nonnull Collection<String> uids )
     {
         return programStore.getByUid( uids );
     }

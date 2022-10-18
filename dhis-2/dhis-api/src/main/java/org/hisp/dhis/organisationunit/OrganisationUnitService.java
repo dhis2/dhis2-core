@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
@@ -141,7 +143,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
      * @param uids the collection of uids.
      * @return a list of OrganisationUnits.
      */
-    List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids );
+    List<OrganisationUnit> getOrganisationUnitsByUid( @Nonnull Collection<String> uids );
 
     /**
      * Returns a list of OrganisationUnits based on the given params.

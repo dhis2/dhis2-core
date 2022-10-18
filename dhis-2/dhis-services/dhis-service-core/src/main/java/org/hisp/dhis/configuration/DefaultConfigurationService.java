@@ -65,7 +65,11 @@ public class DefaultConfigurationService
     @Transactional
     public void setConfiguration( Configuration configuration )
     {
-        if ( configuration != null && configuration.getId() > 0 )
+        if ( configuration == null )
+        {
+            return;
+        }
+        if ( configuration.getId() > 0 )
         {
             configurationStore.update( configuration );
         }
