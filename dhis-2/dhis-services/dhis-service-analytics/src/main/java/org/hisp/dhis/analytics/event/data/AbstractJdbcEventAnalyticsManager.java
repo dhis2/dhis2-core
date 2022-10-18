@@ -968,11 +968,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
                         .getOptions()
                         .stream()
                         .filter( o -> {
-                            // There is a request to use the same value in row
-                            // and meta info for options.
+                            // There is a request to use the same value in the
+                            // grid row
+                            // and grid meta info for options.
                             // For the case when the option set is ValueType
                             // "Number" and option code is numeric,
-                            // the string interpretation of value is fetched as
+                            // the option value will be fetched from database as
                             // a Double value. This value can vary
                             // from option code; for example value:"1.0" option
                             // code:"1".
