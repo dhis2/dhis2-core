@@ -33,10 +33,10 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -111,7 +111,6 @@ public class WorkContextLoader
     @Transactional( readOnly = true )
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
-        sessionFactory.getCurrentSession().flush();
 
         ImportOptions localImportOptions = importOptions;
         // API allows a null Import Options
@@ -121,6 +120,8 @@ public class WorkContextLoader
         }
 
         initializeUser( localImportOptions );
+
+        sessionFactory.getCurrentSession().flush();
 
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
@@ -173,7 +174,7 @@ public class WorkContextLoader
             //
             if ( currentUser != null )
             {
-                initUser( currentUser );
+                initializeLazyCollections( currentUser );
                 importOptions.setUser( currentUser );
             }
             else
@@ -183,20 +184,19 @@ public class WorkContextLoader
         }
         else
         {
-            initUser( importOptions.getUser() );
+            initializeLazyCollections( importOptions.getUser() );
         }
     }
 
     /**
-     * Force Hibernate to pre-load all collections for the {@see User} object
-     * and fetch the "isSuper()" data. This is required to avoid an Hibernate
-     * error later, when this object becomes detached from the Hibernate
-     * Session.
+     * Force Hibernate to pre-load all collections for the {@see User}. This is
+     * required to avoid an Hibernate error later, when this object becomes
+     * detached from the Hibernate Session.
      */
-    private void initUser( User user )
+    private void initializeLazyCollections( User user )
     {
-        user = HibernateProxyUtils.unproxy( user );
-
-        user.isSuper();
+        Hibernate.initialize( user.getOrganisationUnits() );
+        Hibernate.initialize( user.getUserRoles() );
+        Hibernate.initialize( user.getGroups() );
     }
 }
