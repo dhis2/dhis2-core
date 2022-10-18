@@ -182,14 +182,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             // EventDataValue.dataElement contains a UID
             EventDataValue eventDataValue = dataValueDBMap.get( dataElement.getUid() );
 
-            ValuesHolder valuesHolder = getAuditParameters( eventDataValue, dv );
+            ValuesHolder valuesHolder = getAuditAndDateParameters( eventDataValue, dv );
 
             eventDataValue = valuesHolder.getEventDataValue();
 
             eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
-
-            handleDataValueCreatedUpdatedDates( valuesHolder, dv, eventDataValue );
 
             if ( StringUtils.isEmpty( dv.getValue() ) )
             {
@@ -216,16 +214,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi,
                 new Date(), valuesHolder );
         } );
-    }
-
-    private void handleDataValueCreatedUpdatedDates( ValuesHolder valuesHolder, DataValue dv,
-        EventDataValue eventDataValue )
-    {
-        if ( valuesHolder.getAuditType() != null )
-        {
-            eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
-            eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
-        }
     }
 
     private Date getFromOrNewDate( DataValue dv, Function<DataValue, Instant> dateGetter )
@@ -285,7 +273,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         return !StringUtils.equals( dv.getValue(), eventDataValue.getValue() );
     }
 
-    private ValuesHolder getAuditParameters( EventDataValue eventDataValue, DataValue dv )
+    private ValuesHolder getAuditAndDateParameters( EventDataValue eventDataValue, DataValue dv )
     {
         String persistedValue;
 
@@ -294,6 +282,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         if ( isNewDataValue( eventDataValue, dv ) )
         {
             eventDataValue = new EventDataValue();
+            eventDataValue.setCreated( getFromOrNewDate( dv, DataValue::getCreatedAt ) );
+            eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
             persistedValue = dv.getValue();
             auditType = AuditType.CREATE;
         }
@@ -304,11 +294,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             if ( isUpdate( eventDataValue, dv ) )
             {
                 auditType = AuditType.UPDATE;
+                eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
             }
 
             if ( isDeletion( eventDataValue, dv ) )
             {
                 auditType = AuditType.DELETE;
+                eventDataValue.setLastUpdated( getFromOrNewDate( dv, DataValue::getUpdatedAt ) );
             }
         }
 
