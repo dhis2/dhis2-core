@@ -39,18 +39,18 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Helper to convert date fields from controller's Criteria into a plain string
  * that can be merged into PE dimension
  */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class CustomDateHelper
 {
-
-    private CustomDateHelper()
-    {
-    }
 
     public static String getCustomDateFilters( Predicate<AnalyticsDateFilter> appliesTo,
         Function<AnalyticsDateFilter, Function<Object, String>> function, Object criteria )

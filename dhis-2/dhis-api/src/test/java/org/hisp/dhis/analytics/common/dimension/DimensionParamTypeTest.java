@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.processing;
+package org.hisp.dhis.analytics.common.dimension;
 
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.Test;
 
-/**
- * Processor class for CommonQueryRequest objects.
- */
-@Component
-@RequiredArgsConstructor
-public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest>
+class DimensionParamTypeTest
 {
-    private final SystemSettingManager systemSettingManager;
 
-    @Override
-    public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
+    @Test
+    void mapDates()
     {
-        return commonQueryRequest
-            .withPageSize( computePageSize( commonQueryRequest ) );
-    }
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
+            .withIncidentDate( "LAST_MONTH" )
+            .withEnrollmentDate( "2021-06-30" )
+            .withLastUpdated( "TODAY" )
+            .withScheduledDate( "YESTERDAY" );
+        Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply( request );
 
-    private Integer computePageSize( CommonQueryRequest commonQueryRequest )
-    {
-        int maxLimit = systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
+        List<String> expected = List.of( "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
+            "pe:2021-06-30:ENROLLMENT_DATE",
+            "pe:LAST_MONTH:INCIDENT_DATE",
+            "pe:YESTERDAY:SCHEDULED_DATE",
+            "pe:TODAY:LAST_UPDATED" );
 
-        if ( commonQueryRequest.isPaging() )
-        {
-            if ( commonQueryRequest.getPageSize() != null && maxLimit > 0 &&
-                commonQueryRequest.getPageSize() > maxLimit )
-            {
-                return maxLimit;
-            }
-            else
-            {
-                return commonQueryRequest.getPageSize();
-            }
-        }
-        else
-        {
-            return maxLimit;
-        }
+        assertEquals( expected, dateFilters );
     }
 }

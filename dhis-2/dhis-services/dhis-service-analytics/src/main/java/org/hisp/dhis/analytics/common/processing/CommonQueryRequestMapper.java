@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.analytics.EventOutputType.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParam.isStaticDimensionIdentifier;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.HEADERS;
@@ -166,7 +167,7 @@ public class CommonQueryRequestMapper
     {
         List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionParams = new ArrayList<>();
 
-        Stream.of( DIMENSIONS, FILTERS )
+        Stream.of( DIMENSIONS, FILTERS, DATE_FILTERS )
             .forEach( dimensionParamType -> {
                 // A Collection of dimensions or filters coming from the request
                 Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );

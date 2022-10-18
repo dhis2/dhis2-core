@@ -35,9 +35,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -143,6 +146,13 @@ public class TeiFullQuery extends BaseRenderable
 
     private Where getWhere()
     {
+        // We want all PERIOD dimension to be in the same group
+        Stream<DimensionIdentifier<Program, ProgramStage, DimensionParam>> periodDimensions = teiQueryParams
+            .getCommonParams().getDimensionIdentifiers()
+            .stream()
+            .flatMap( Collection::stream )
+            .filter( d -> d.getDimension().isPeriodDimension() );
+
         // conditions on programs (is enrolled in program)
         Stream<Renderable> programConditions = teiQueryParams
             .getCommonParams()
@@ -154,15 +164,30 @@ public class TeiFullQuery extends BaseRenderable
         // conditions on filters/dimensions
         Stream<Renderable> dimensionConditions = teiQueryParams.getCommonParams().getDimensionIdentifiers()
             .stream()
+            .filter( this::isNotPeriodDimension )
             .map( this::toConditions )
             .map( OrCondition::of );
 
+        Renderable periodConditions = OrCondition.of( periodDimensions
+            .map( periodDimension -> toCondition( DimensionParamObjectType.PERIOD,
+                Collections.singletonList( periodDimension ) ) )
+            .collect( toList() ) );
+
         return Where.of(
             AndCondition.of(
-                Stream.concat(
+                Stream.of(
                     programConditions,
-                    dimensionConditions )
+                    dimensionConditions,
+                    Stream.of( periodConditions ) )
+                    .flatMap( Function.identity() )
                     .collect( toList() ) ) );
+    }
+
+    private boolean isNotPeriodDimension(
+        List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
+    {
+        return dimensionIdentifiers.stream()
+            .noneMatch( dimId -> dimId.getDimension().isPeriodDimension() );
     }
 
     private List<Renderable> toConditions(
@@ -201,6 +226,13 @@ public class TeiFullQuery extends BaseRenderable
             return AndCondition.of(
                 dimensionIdentifiers.stream()
                     .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
+                    .collect( toList() ) );
+        }
+        if ( type == PERIOD )
+        {
+            return AndCondition.of(
+                dimensionIdentifiers.stream()
+                    .map( dimensionIdentifier -> PeriodCondition.of( dimensionIdentifier, queryContext ) )
                     .collect( toList() ) );
         }
 

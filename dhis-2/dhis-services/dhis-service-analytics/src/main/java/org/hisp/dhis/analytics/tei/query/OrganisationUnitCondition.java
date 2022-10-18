@@ -27,30 +27,19 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.P_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
 import org.hisp.dhis.analytics.common.query.*;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -58,8 +47,7 @@ import org.hisp.dhis.program.ProgramStage;
  * Provides methods responsible for generating SQL statements on top of
  * organization units, for events, enrollments and teis.
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class OrganisationUnitCondition extends BaseRenderable
+public class OrganisationUnitCondition extends AbstractCondition
 {
     private static final String OU_FIELD = "ou";
 
@@ -67,29 +55,19 @@ public class OrganisationUnitCondition extends BaseRenderable
 
     private final QueryContext queryContext;
 
-    @Override
-    public String render()
+    private OrganisationUnitCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+        QueryContext queryContext )
     {
-        boolean filterForEvent = dimensionIdentifier.hasProgram() && dimensionIdentifier.hasProgramStage();
-        boolean filterForEnrollment = dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage();
-        boolean filterForTei = !dimensionIdentifier.hasProgram() && !dimensionIdentifier.hasProgramStage();
+        super( dimensionIdentifier, queryContext );
+        this.queryContext = queryContext;
+        this.dimensionIdentifier = dimensionIdentifier;
 
-        if ( filterForEvent )
-        {
-            return conditionsForEvent();
-        }
+    }
 
-        if ( filterForEnrollment )
-        {
-            return conditionsForEnrollment();
-        }
-
-        if ( filterForTei )
-        {
-            return conditionsForTei();
-        }
-
-        return EMPTY;
+    public static OrganisationUnitCondition of(
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier, QueryContext queryContext )
+    {
+        return new OrganisationUnitCondition( dimensionIdentifier, queryContext );
     }
 
     /**
@@ -100,7 +78,9 @@ public class OrganisationUnitCondition extends BaseRenderable
      *
      * @return the SQL statement
      */
-    private String conditionsForTei()
+
+    @Override
+    protected Renderable getTeiCondition()
     {
         List<Renderable> orgUnitConditions = new ArrayList<>();
 
@@ -114,7 +94,7 @@ public class OrganisationUnitCondition extends BaseRenderable
                 queryContext );
             orgUnitConditions.add( condition );
         }
-        return AndCondition.of( orgUnitConditions ).render();
+        return AndCondition.of( orgUnitConditions );
     }
 
     /**
@@ -128,9 +108,9 @@ public class OrganisationUnitCondition extends BaseRenderable
      *
      * @return the SQL statement
      */
-    private String conditionsForEnrollment()
+    @Override
+    protected Renderable getEnrollmentCondition()
     {
-        String programUid = dimensionIdentifier.getProgram().getElement().getUid();
         List<Renderable> orgUnitConditions = new ArrayList<>();
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
@@ -144,19 +124,7 @@ public class OrganisationUnitCondition extends BaseRenderable
             orgUnitConditions.add( condition );
         }
 
-        return ExistsCondition.of( Query.builder()
-            .select( Select.of( "1" ) )
-            .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryConditionRenderer.of(
-                    Field.of( ENR_ALIAS, () -> P_UID, null ),
-                    QueryOperator.EQ,
-                    () -> queryContext.bindParamAndGetIndex( programUid ) ),
-                AndCondition.of( orgUnitConditions ) ) )
-            .order( Order.ofOrder( Field.of( ENR_ALIAS, () -> "enrollmentdate", null ).render() + " desc" ) )
-            .limit( LimitOffset.ofStrings( "1", "0" ) )
-            .build() ).render();
+        return AndCondition.of( orgUnitConditions );
     }
 
     /**
@@ -173,49 +141,21 @@ public class OrganisationUnitCondition extends BaseRenderable
      *
      * @return the SQL statement
      */
-    private String conditionsForEvent()
+    @Override
+    protected Renderable getEventCondition()
     {
-        String programUid = dimensionIdentifier.getProgram().getElement().getUid();
-        String programStageUid = dimensionIdentifier.getProgramStage().getElement().getUid();
         List<Renderable> orgUnitConditions = new ArrayList<>();
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
             BinaryConditionRenderer condition = BinaryConditionRenderer.of(
-                Field.of( ENR_ALIAS, () -> OU_FIELD, null ).render(),
+                Field.of( EVT_ALIAS, () -> OU_FIELD, null ).render(),
                 IN,
                 item.getValues(),
                 STRING,
                 queryContext );
             orgUnitConditions.add( condition );
         }
-
-        ExistsCondition eventInnerCondition = ExistsCondition.of( Query.builder()
-            .select( Select.of( "1" ) )
-            .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
-                BinaryConditionRenderer.of(
-                    Field.of( EVT_ALIAS, () -> PS_UID, null ),
-                    QueryOperator.EQ,
-                    () -> queryContext.bindParamAndGetIndex( programStageUid ) ),
-                AndCondition.of( orgUnitConditions ) ) )
-            .order( Order.ofOrder( "executiondate desc" ) )
-            .limit( LimitOffset.ofStrings( "1", "0" ) )
-            .build() );
-
-        return ExistsCondition.of( Query.builder()
-            .select( Select.of( "1" ) )
-            .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryConditionRenderer.of(
-                    Field.of( ENR_ALIAS, () -> P_UID, null ),
-                    QueryOperator.EQ,
-                    () -> queryContext.bindParamAndGetIndex( programUid ) ),
-                eventInnerCondition ) )
-            .order( Order.ofOrder( Field.of( ENR_ALIAS, () -> "enrollmentdate", null ).render() + " desc" ) )
-            .limit( LimitOffset.ofStrings( "1", "0" ) )
-            .build() ).render();
+        return AndCondition.of( orgUnitConditions );
     }
 }
