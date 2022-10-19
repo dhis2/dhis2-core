@@ -113,7 +113,7 @@ class CategoryOptionGroupResolverTest
 
         when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
             .thenReturn( Sets.newHashSet( dimensionalItemId ) );
-        when( categoryOptionGroupStore.getByUid( anyString() ) )
+        when( categoryOptionGroupStore.loadByUid( anyString() ) )
             .thenReturn( createCategoryOptionGroup( 'A' ) );
         when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString(), anyString() ) )
             .thenReturn( List.of( coc1, coc2, coc3 ) );

@@ -41,6 +41,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -199,7 +201,8 @@ public class DefaultGeoJsonService implements GeoJsonService
         }
     }
 
-    private List<OrganisationUnit> fetchOrganisationUnits( GeoJsonImportParams params, Set<String> ouIdentifiers )
+    private List<OrganisationUnit> fetchOrganisationUnits( GeoJsonImportParams params,
+        @Nonnull Set<String> ouIdentifiers )
     {
         switch ( params.getIdType() )
         {

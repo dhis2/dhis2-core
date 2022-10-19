@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -108,7 +110,7 @@ public interface ProgramInstanceService
      * @param uids PSI UIDs to check
      * @return ProgramInstance list
      */
-    List<ProgramInstance> getProgramInstances( List<String> uids );
+    List<ProgramInstance> getProgramInstances( @Nonnull List<String> uids );
 
     /**
      * Checks for the existence of a PI by UID. Deleted values are not taken

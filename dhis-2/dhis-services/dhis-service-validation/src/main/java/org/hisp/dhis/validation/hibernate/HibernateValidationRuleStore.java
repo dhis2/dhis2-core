@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -75,7 +76,7 @@ public class HibernateValidationRuleStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void save( ValidationRule validationRule )
+    public void save( @Nonnull ValidationRule validationRule )
     {
         PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
 
@@ -85,7 +86,7 @@ public class HibernateValidationRuleStore
     }
 
     @Override
-    public void update( ValidationRule validationRule )
+    public void update( @Nonnull ValidationRule validationRule )
     {
         PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
 
