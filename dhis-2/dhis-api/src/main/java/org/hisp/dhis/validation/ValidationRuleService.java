@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 
@@ -193,7 +195,7 @@ public interface ValidationRuleService extends ValidationRuleDataIntegrityProvid
 
     List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max );
 
-    List<ValidationRule> getValidationRulesByUid( Collection<String> uids );
+    List<ValidationRule> getValidationRulesByUid( @Nonnull Collection<String> uids );
 
     int getValidationRuleCount();
 

@@ -157,7 +157,7 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML,
-        ContextUtils.CONTENT_TYPE_CSV } )
+        ContextUtils.CONTENT_TYPE_TEXT_CSV } )
     public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
     {
@@ -352,12 +352,12 @@ public class TrackedEntityInstanceController
         GridUtils.toXls( getGridByCriteria( criteria ), response.getOutputStream() );
     }
 
-    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_TEXT_CSV )
     public void queryTrackedEntityInstancesCsv( TrackedEntityInstanceCriteria criteria,
         HttpServletResponse response )
         throws Exception
     {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT_CSV, CacheStrategy.NO_CACHE );
         GridUtils.toCsv( getGridByCriteria( criteria ), response.getWriter() );
     }
 

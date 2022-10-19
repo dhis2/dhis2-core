@@ -25,50 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement.hibernate;
+package org.hisp.dhis.helpers;
 
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementOperandStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static java.time.LocalDate.now;
+import static java.time.format.DateTimeFormatter.BASIC_ISO_DATE;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Helper class to assist with period and relative period manipulation.
+ *
+ * @author maikel arabori
  */
-@Repository( "org.hisp.dhis.dataelement.DataElementOperandStore" )
-public class HibernateDataElementOperandStore
-    extends HibernateIdentifiableObjectStore<DataElementOperand>
-    implements DataElementOperandStore
+public class PeriodHelper
 {
-    public HibernateDataElementOperandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    public enum Period
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementOperand.class, currentUserService, aclService,
-            false );
+        LAST_YEAR( "Last year" ),
+        THIS_YEAR( "This year" ),
+        LAST_6_MONTHS( "Last 6 months" ),
+        LAST_12_MONTHS( "Last 12 months" ),
+        LAST_5_YEARS( "Last 5 years" ),
+        WEEKS_THIS_YEAR( "Weeks this year" ),
+        TODAY( "Today" );
 
-        transientIdentifiableProperties = true;
+        private final String label;
+
+        Period( String label )
+        {
+            this.label = label;
+        }
+
+        public String label()
+        {
+            return label;
+        }
     }
 
-    @Nonnull
-    @Override
-    public List<DataElementOperand> getAllOrderedName()
+    private PeriodHelper()
     {
-        return getQuery( "from DataElementOperand d" ).list();
+        throw new UnsupportedOperationException( "helper" );
     }
 
-    @Nonnull
-    @Override
-    public List<DataElementOperand> getAllOrderedName( int first, int max )
+    public static String getRelativePeriodDate( Period relativePeriod )
     {
-        return getQuery( "from DataElementOperand d" ).setFirstResult( first ).setMaxResults( max ).list();
+        switch ( relativePeriod )
+        {
+        case LAST_YEAR:
+            return now().plusYears( 1 ).format( BASIC_ISO_DATE );
+        case LAST_5_YEARS:
+            return now().plusYears( 5 ).format( BASIC_ISO_DATE );
+        case LAST_12_MONTHS:
+            return now().plusMonths( 12 ).format( BASIC_ISO_DATE );
+        case LAST_6_MONTHS:
+            return now().plusMonths( 6 ).format( BASIC_ISO_DATE );
+        default:
+            return EMPTY;
+        }
     }
 }

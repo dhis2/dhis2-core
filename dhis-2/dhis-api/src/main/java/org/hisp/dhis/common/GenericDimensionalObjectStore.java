@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Lars Helge Overland
  */
@@ -42,6 +44,7 @@ public interface GenericDimensionalObjectStore<T>
      *        dimensional.
      * @return a List of objects.
      */
+    @Nonnull
     List<T> getByDataDimension( boolean dataDimension );
 
     /**
@@ -51,6 +54,7 @@ public interface GenericDimensionalObjectStore<T>
      *        dimensional.
      * @return a List of objects.
      */
+    @Nonnull
     List<T> getByDataDimensionNoAcl( boolean dataDimension );
 
 }

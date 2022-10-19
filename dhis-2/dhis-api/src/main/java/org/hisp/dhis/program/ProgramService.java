@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -100,7 +102,7 @@ public interface ProgramService
      */
     List<Program> getAllPrograms();
 
-    Collection<Program> getPrograms( Collection<String> uids );
+    Collection<Program> getPrograms( @Nonnull Collection<String> uids );
 
     /**
      * Get all {@link Program} belong to a orgunit
