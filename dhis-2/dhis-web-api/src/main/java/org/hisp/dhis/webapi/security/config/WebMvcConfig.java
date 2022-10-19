@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
+import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -97,12 +98,15 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
     // Paths where XML should still be allowed.
     public static final List<Pattern> XML_PATTERNS = List.of(
-        Pattern.compile( "/(\\d\\d/)?relationships(.xml)?(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?enrollments(.xml)?(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?events(.xml)?(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(.xml)?(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?dataValueSets(.xml)?(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(.xml)?(/?$|/.+)" ) );
+        Pattern.compile( "/(\\d\\d/)?relationships(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?enrollments(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?events(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?dataValueSets(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?" ) );
+
+    public static final List<Pattern> CSV_PATTERNS = List.of(
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances.csv(.+)?" ) );
 
     @Autowired
     public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -194,6 +198,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
 
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters
