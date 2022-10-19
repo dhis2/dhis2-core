@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.lang3.StringUtils;
@@ -192,7 +193,7 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids )
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes( @Nonnull List<String> uids )
     {
         return attributeStore.getByUid( uids );
     }

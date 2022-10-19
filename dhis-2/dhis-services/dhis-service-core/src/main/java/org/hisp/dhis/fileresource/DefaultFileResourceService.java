@@ -40,6 +40,8 @@ import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -109,7 +111,7 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<FileResource> getFileResources( List<String> uids )
+    public List<FileResource> getFileResources( @Nonnull List<String> uids )
     {
         return fileResourceStore.getByUid( uids ).stream()
             .map( this::checkStorageStatus )

@@ -101,6 +101,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -953,15 +954,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
         {
             Object value = sqlRowSet.getObject( index );
+
             boolean isDouble = value instanceof Double;
 
             if ( value == null || (isDouble && Double.isNaN( (Double) value )) )
             {
                 grid.addValue( EMPTY );
             }
+            else if ( isDouble && !Double.isNaN( (Double) value ) )
+            {
+                addGridDoubleTypeValue( (Double) value, grid, header, params );
+            }
             else
             {
-                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
             }
         }
         else if ( header.getValueType() == ValueType.REFERENCE )
@@ -990,6 +996,53 @@ public abstract class AbstractJdbcEventAnalyticsManager
         else
         {
             grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
+        }
+    }
+
+    /**
+     * Double value type will be added into the grid. There is special handling
+     * for Option Set (Type numeric)/Option. The code in grid/meta info and
+     * related value in row has to be the same (FE request) if possible. The
+     * string interpretation of code coming from Option/Code can vary from
+     * Option/value (double) fetched from database ("1" vs "1.0") By the
+     * equality (both are converted to double) of both the Option/Code is used
+     * as a value
+     *
+     * @param value
+     * @param grid
+     * @param header
+     * @param params
+     */
+    private void addGridDoubleTypeValue( Double value, Grid grid, GridHeader header, EventQueryParams params )
+    {
+        if ( header.hasOptionSet() )
+        {
+            Optional<Option> option = header.getOptionSetObject()
+                .getOptions()
+                .stream()
+                .filter( o -> {
+                    try
+                    {
+                        return Double.parseDouble( o.getCode() ) == value;
+                    }
+                    catch ( Exception ignored )
+                    {
+                        return false;
+                    }
+                } )
+                .findFirst();
+            if ( option.isPresent() )
+            {
+                grid.addValue( option.get().getCode() );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+            }
+        }
+        else
+        {
+            grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
         }
     }
 

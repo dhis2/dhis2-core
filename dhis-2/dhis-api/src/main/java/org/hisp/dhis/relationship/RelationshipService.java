@@ -30,6 +30,8 @@ package org.hisp.dhis.relationship;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -98,7 +100,7 @@ public interface RelationshipService
 
     Relationship getRelationshipIncludeDeleted( String uid );
 
-    List<Relationship> getRelationships( List<String> uids );
+    List<Relationship> getRelationships( @Nonnull List<String> uids );
 
     default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         boolean skipAccessValidation )
