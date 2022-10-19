@@ -67,7 +67,11 @@ public abstract class AbstractCondition extends BaseRenderable
         return getTeiCondition().render();
     }
 
-    protected abstract Renderable getTeiCondition();
+    protected Renderable getTeiCondition()
+    {
+        // Default implementation, subclasses will override where needed
+        throw new IllegalStateException( "Not supported for TEI dimension" );
+    };
 
     private String enrollmentConditionInternal()
     {
@@ -76,7 +80,11 @@ public abstract class AbstractCondition extends BaseRenderable
             + getEnrollmentCondition().render() + ")";
     }
 
-    protected abstract Renderable getEnrollmentCondition();
+    protected Renderable getEnrollmentCondition()
+    {
+        // Default implementation, subclasses will override where needed
+        throw new IllegalStateException( "Not supported for enrollment dimension" );
+    }
 
     private String getEnrollmentSubQuery( String programUid )
     {
@@ -101,7 +109,11 @@ public abstract class AbstractCondition extends BaseRenderable
             " where " + getEventCondition().render() + ")";
     }
 
-    protected abstract Renderable getEventCondition();
+    protected Renderable getEventCondition()
+    {
+        // Default implementation, subclasses will override where needed
+        throw new IllegalStateException( "Not supported for event dimension" );
+    }
 
     private String getEventSubQuery( String programStageUid )
     {
