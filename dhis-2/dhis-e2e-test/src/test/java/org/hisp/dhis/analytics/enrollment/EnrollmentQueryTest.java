@@ -42,7 +42,6 @@ import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +49,6 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-@Disabled
 public class EnrollmentQueryTest extends AnalyticsApiTest
 {
     private AnalyticsEnrollmentsActions enrollmentsActions = new AnalyticsEnrollmentsActions();
