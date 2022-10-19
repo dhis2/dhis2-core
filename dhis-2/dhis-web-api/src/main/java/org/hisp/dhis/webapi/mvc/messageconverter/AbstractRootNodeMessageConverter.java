@@ -31,7 +31,6 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.ge
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
 import java.io.IOException;
-import java.util.*;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
