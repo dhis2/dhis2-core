@@ -34,7 +34,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @RequiredArgsConstructor( staticName = "of" )
@@ -61,8 +60,4 @@ public class AndCondition extends BaseRenderable
             .collect( joining( " and " ) );
     }
 
-    public boolean isNotEmpty()
-    {
-        return CollectionUtils.isNotEmpty( conditions );
-    }
 }

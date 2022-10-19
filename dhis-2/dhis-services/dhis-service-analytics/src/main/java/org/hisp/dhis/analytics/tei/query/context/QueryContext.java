@@ -55,12 +55,16 @@ public class QueryContext
     private final SortingContext sortingContext;
 
     @Delegate
-    private final ParameterManager parameterManager = new ParameterManager();
+    private final ParameterManager parameterManager;
 
     public static QueryContext of( TeiQueryParams teiQueryParams )
     {
+        ParameterManager parameterManager = new ParameterManager();
+
         return new QueryContext(
+
             teiQueryParams,
+
             SortingContext.SortingContextBuilder.of(
                 Optional.ofNullable( teiQueryParams )
                     .map( TeiQueryParams::getCommonParams )
@@ -68,8 +72,10 @@ public class QueryContext
                     .orElse( Collections.emptyList() ),
                 Optional.ofNullable( teiQueryParams )
                     .map( TeiQueryParams::getTrackedEntityType )
-                    .orElse( null ) )
-                .build() );
+                    .orElse( null ),
+                parameterManager ).build(),
+
+            parameterManager );
     }
 
     public String getMainTableName()
@@ -87,7 +93,7 @@ public class QueryContext
         return Table.ofStrings( getMainTableName(), TEI_ALIAS );
     }
 
-    private static class ParameterManager
+    static class ParameterManager
     {
         private int parameterIndex = 0;
 

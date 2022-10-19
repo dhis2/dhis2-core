@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
@@ -88,24 +90,24 @@ public abstract class AbstractCondition extends BaseRenderable
 
     private String getEnrollmentSubQuery( String programUid )
     {
-        return " (SELECT *" +
+        return "(select *" +
             " from (select *, row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn"
             +
-            " from analytics_tei_enrollments_" + queryContext.getTetTableSuffix() +
+            " from " + ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix() +
             " where programuid = " + queryContext.bindParamAndGetIndex( programUid ) +
-            " and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) INNERMOST_ENR" +
-            " where INNERMOST_ENR.rn = 1) " + ENR_ALIAS;
+            " and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr" +
+            " where innermost_enr.rn = 1) " + ENR_ALIAS;
     }
 
     private String conditionForEvent()
     {
         String programUid = dimensionIdentifier.getProgram().getElement().getUid();
         String programStageUid = dimensionIdentifier.getProgramStage().getElement().getUid();
-        return "exists( select 1 from " +
+        return "exists (select 1 from " +
             getEnrollmentSubQuery( programUid ) +
-            " LEFT JOIN " +
+            " left join " +
             getEventSubQuery( programStageUid ) +
-            " ON " + ENR_ALIAS + ".programinstanceuid = " + EVT_ALIAS + ".programinstanceuid" +
+            " on " + ENR_ALIAS + ".programinstanceuid = " + EVT_ALIAS + ".programinstanceuid" +
             " where " + getEventCondition().render() + ")";
     }
 
@@ -117,11 +119,11 @@ public abstract class AbstractCondition extends BaseRenderable
 
     private String getEventSubQuery( String programStageUid )
     {
-        return " (SELECT *" +
+        return "(select *" +
             " from (select *, row_number() over (partition by programinstanceuid order by executiondate desc) as rn" +
-            " from analytics_tei_events_" + queryContext.getTetTableSuffix() +
-            " where programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) + " " +
-            "and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) INNERMOST_ENR" +
-            " where INNERMOST_ENR.rn = 1) " + EVT_ALIAS;
+            " from " + ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix() +
+            " where programstageuid = " + queryContext.bindParamAndGetIndex( programStageUid ) +
+            " and " + TEI_ALIAS + ".trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr" +
+            " where innermost_enr.rn = 1) " + EVT_ALIAS;
     }
 }

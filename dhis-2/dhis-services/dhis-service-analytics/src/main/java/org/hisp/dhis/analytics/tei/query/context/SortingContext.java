@@ -75,6 +75,8 @@ public class SortingContext
 
         private final TrackedEntityType trackedEntityType;
 
+        private final QueryContext.ParameterManager parameterManager;
+
         private final AtomicInteger counter = new AtomicInteger( 0 );
 
         public SortingContext build()
@@ -117,7 +119,8 @@ public class SortingContext
             if ( param.getOrderBy().getDimension().isStaticDimension() )
             {
                 return mergeContexts( builder,
-                    StaticEventSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
+                    StaticEventSortingContext
+                        .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                         .getSortingContextBuilder() );
             } // it is either data element or program indicator ( content of
               // EventDataValues json object )
@@ -125,7 +128,8 @@ public class SortingContext
                 .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
             {
                 return mergeContexts( builder,
-                    EventDataValuesSortingContext.of( param, counter.getAndIncrement(), trackedEntityType )
+                    EventDataValuesSortingContext
+                        .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                         .getSortingContextBuilder() );
             }
             else
@@ -143,7 +147,8 @@ public class SortingContext
             if ( param.getOrderBy().getDimension().isStaticDimension() )
             {
                 return mergeContexts( builder, StaticEnrollmentSortingContext
-                    .of( param, counter.getAndIncrement(), trackedEntityType ).getSortingContextBuilder() );
+                    .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
+                    .getSortingContextBuilder() );
             } // it should be a ProgramAttribute then
             AnalyticsSortingParams teiParam = AnalyticsSortingParams.builder()
                 .sortDirection( param.getSortDirection() )

@@ -33,6 +33,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
+import org.apache.commons.lang3.StringUtils;
+
 @RequiredArgsConstructor( staticName = "of" )
 public class Where extends BaseRenderable
 {
@@ -47,9 +49,10 @@ public class Where extends BaseRenderable
     @Override
     public String render()
     {
-        if ( condition.isNotEmpty() )
+        String renderedCondition = condition.render();
+        if ( StringUtils.isNotBlank( renderedCondition ) )
         {
-            return "where " + condition.render();
+            return "where " + renderedCondition;
         }
         return EMPTY;
     }

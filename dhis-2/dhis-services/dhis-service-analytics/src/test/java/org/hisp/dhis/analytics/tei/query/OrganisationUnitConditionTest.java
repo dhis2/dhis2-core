@@ -118,14 +118,14 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals(
-            "exists( select 1 from  (SELECT * from (select *, row_number() over (partition by" +
-                " trackedentityinstanceuid order by enrollmentdate desc) as rn from" +
-                " analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and t_1.trackedentityinstanceuid" +
-                " = trackedentityinstanceuid) INNERMOST_ENR where INNERMOST_ENR.rn = 1) enr LEFT JOIN" +
-                "  (SELECT * from (select *, row_number() over (partition by programinstanceuid order by" +
-                " executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 " +
-                "and t_1.trackedentityinstanceuid = trackedentityinstanceuid) INNERMOST_ENR where " +
-                "INNERMOST_ENR.rn = 1) evt ON enr.programinstanceuid = evt.programinstanceuid where evt.ou = :3)",
+            "exists (select 1 from (select * from (select *, row_number() over " +
+                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
+                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
+                "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.ou = :3)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -156,15 +156,14 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals(
-            "exists( select 1 from  (SELECT * from (select *, row_number() over (partition by " +
-                "trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and t_1.trackedentityinstanceuid " +
-                "= trackedentityinstanceuid) INNERMOST_ENR where INNERMOST_ENR.rn = 1) enr LEFT JOIN  " +
-                "(SELECT * from (select *, row_number() over (partition by programinstanceuid order " +
-                "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 " +
-                "and t_1.trackedentityinstanceuid = trackedentityinstanceuid) INNERMOST_ENR where INNERMOST_ENR.rn = 1)"
-                +
-                " evt ON enr.programinstanceuid = evt.programinstanceuid where evt.ou in (:3))",
+            "exists (select 1 from (select * from (select *, row_number() over " +
+                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
+                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "enr left join (select * from (select *, row_number() over (partition by programinstanceuid order " +
+                "by executiondate desc) as rn from analytics_tei_events_t2d3uj69rab where programstageuid = :2 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "evt on enr.programinstanceuid = evt.programinstanceuid where evt.ou in (:3))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -195,10 +194,11 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals(
-            "exists (select 1 from  (SELECT * from (select *, row_number() over (partition by" +
-                " trackedentityinstanceuid order by enrollmentdate desc) as rn from" +
-                " analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and t_1.trackedentityinstanceuid" +
-                " = trackedentityinstanceuid) INNERMOST_ENR where INNERMOST_ENR.rn = 1) enr where enr.ou = :2)",
+            "exists (select 1 from (select * from (select *, row_number() over " +
+                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
+                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "enr where enr.ou = :2)",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );
@@ -227,10 +227,11 @@ class OrganisationUnitConditionTest
 
         // Then
         assertEquals(
-            "exists (select 1 from  (SELECT * from (select *, row_number() over (partition by " +
-                "trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
-                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and t_1.trackedentityinstanceuid " +
-                "= trackedentityinstanceuid) INNERMOST_ENR where INNERMOST_ENR.rn = 1) enr where enr.ou in (:2))",
+            "exists (select 1 from (select * from (select *, row_number() over " +
+                "(partition by trackedentityinstanceuid order by enrollmentdate desc) as rn from " +
+                "analytics_tei_enrollments_t2d3uj69rab where programuid = :1 and " +
+                "t_1.trackedentityinstanceuid = trackedentityinstanceuid) innermost_enr where innermost_enr.rn = 1) " +
+                "enr where enr.ou in (:2))",
             statement );
         assertEquals( dimensionIdentifier.getProgram().getElement().getUid(),
             queryContext.getParametersByPlaceHolder().get( "1" ) );

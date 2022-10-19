@@ -55,6 +55,8 @@ class StaticEventSortingContext
 
     private final TrackedEntityType trackedEntityType;
 
+    private final QueryContext.ParameterManager parameterManager;
+
     public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
         // For example asc=pUid.psUid.ouname
@@ -69,11 +71,14 @@ class StaticEventSortingContext
             .order( () -> render + SPACE + param.getSortDirection().name() )
             .leftJoin(
                 Pair.of(
-                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType ) + ") " + enrollmentAlias,
+                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
+                        + enrollmentAlias,
                     fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
             .leftJoin(
                 Pair.of(
-                    () -> "(" + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType ) + ") "
+                    () -> "("
+                        + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
+                        + ") "
                         + uniqueAlias,
                     fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
     }
