@@ -76,7 +76,7 @@ pipeline {
                             }
                         }
                     }
-
+/*
                     stage('Run tests') {
                         steps {
                             script {
@@ -106,6 +106,7 @@ pipeline {
                             }
                         }
                     }
+*/
                 }
             }
         }
