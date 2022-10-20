@@ -200,15 +200,13 @@ public class BaseDimensionalItemObject
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( !super.equals( o ) )
-        {
-            return false;
-        }
+        return this == obj || super.equals( obj ) && objectEquals( (BaseDimensionalItemObject) obj );
+    }
 
-        final BaseDimensionalItemObject that = (BaseDimensionalItemObject) o;
-
+    private boolean objectEquals( BaseDimensionalItemObject that )
+    {
         return Objects.equals( this.queryMods, that.queryMods );
     }
 
