@@ -167,11 +167,6 @@ public class DefaultDataValueAuditService
         dataValueAudits.get( dataValueAudits.size() - 1 ).setAuditType( AuditType.CREATE );
         dataValueAudits.get( dataValueAudits.size() - 1 ).setCreated( dataValue.getCreated() );
 
-        dataValueAudits.forEach( x -> {
-            System.err
-                    .println( "type: " + x.getAuditType() + ",value: " + x.getValue() + ", created: " + x.getCreated() );
-        } );
-
         return dataValueAudits;
     }
 

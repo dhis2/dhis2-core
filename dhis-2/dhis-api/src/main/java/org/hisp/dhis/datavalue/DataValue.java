@@ -479,4 +479,18 @@ public class DataValue
     {
         return auditValue;
     }
+
+    /**
+     * Use for testing only.
+     *
+     * @param auditValue Old data value (aka audit value)
+     */
+    public void setValues( String value, String auditValue )
+    {
+        this.value = value;
+        this.auditValue = auditValue;
+
+        valueIsSet = true;
+        auditValueIsSet = true;
+    }
 }

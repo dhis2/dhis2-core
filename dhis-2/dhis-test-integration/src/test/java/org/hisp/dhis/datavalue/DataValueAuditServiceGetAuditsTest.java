@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
-import org.hisp.dhis.audit.Audit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
@@ -41,7 +40,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,10 +108,10 @@ class DataValueAuditServiceGetAuditsTest extends TransactionalIntegrationTest
             defaultCategoryOptionCombo );
         dataValueService.addDataValue( dataValue );
 
-        dataValue.setValue( "20" );
+        dataValue.setValues( "20", "10" );
         dataValueService.updateDataValue( dataValue );
 
-        dataValue.setValue( "30" );
+        dataValue.setValues( "30", "20" );
         dataValueService.updateDataValue( dataValue );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
@@ -169,7 +167,7 @@ class DataValueAuditServiceGetAuditsTest extends TransactionalIntegrationTest
         dataValueService.addDataValue( dataValue );
         dataValueService.deleteDataValue( dataValue );
 
-        dataValue.setValue( "20" );
+        dataValue.setValues( "20", dataValue.getValue() );
         dataValueService.addDataValue( dataValue );
 
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
@@ -179,6 +177,71 @@ class DataValueAuditServiceGetAuditsTest extends TransactionalIntegrationTest
         validateAudit( audits.get( 0 ), AuditType.CREATE, "20" );
         validateAudit( audits.get( 1 ), AuditType.DELETE, "10" );
         validateAudit( audits.get( 2 ), AuditType.CREATE, "10" );
+    }
+
+    @Test
+    void testGetSingleDataValueAuditWithDeleteThenCreateUpdate()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        Period period = createPeriod( "202008" );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        dataElementService.addDataElement( dataElement );
+        periodService.addPeriod( period );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
+        categoryService.addCategoryOptionCombo( defaultCategoryOptionCombo );
+
+        DataValue dataValue = createDataValue( dataElement, period, organisationUnit, "10",
+            defaultCategoryOptionCombo );
+        dataValueService.addDataValue( dataValue );
+        dataValueService.deleteDataValue( dataValue );
+
+        dataValue.setValues( "20", dataValue.getValue() );
+        dataValueService.addDataValue( dataValue );
+
+        dataValue.setValues( "30", dataValue.getValue() );
+        dataValueService.updateDataValue( dataValue );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElement, period, organisationUnit, defaultCategoryOptionCombo, defaultCategoryOptionCombo );
+
+        assertEquals( 5, audits.size() );
+        validateAudit( audits.get( 0 ), AuditType.UPDATE, "30" );
+        validateAudit( audits.get( 1 ), AuditType.UPDATE, "20" );
+        validateAudit( audits.get( 2 ), AuditType.CREATE, "20" );
+        validateAudit( audits.get( 3 ), AuditType.DELETE, "10" );
+        validateAudit( audits.get( 4 ), AuditType.CREATE, "10" );
+    }
+
+    @Test
+    void testCreateOneTwoDelete()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        Period period = createPeriod( "202008" );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        dataElementService.addDataElement( dataElement );
+        periodService.addPeriod( period );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
+        categoryService.addCategoryOptionCombo( defaultCategoryOptionCombo );
+
+        DataValue dataValue = createDataValue( dataElement, period, organisationUnit, "1",
+            defaultCategoryOptionCombo );
+        dataValueService.addDataValue( dataValue );
+        dataValueService.deleteDataValue( dataValue );
+
+        dataValue.setValues( "2", dataValue.getValue() );
+        dataValueService.addDataValue( dataValue );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElement, period, organisationUnit, defaultCategoryOptionCombo, defaultCategoryOptionCombo );
+
+        assertEquals( 3, audits.size() );
+        validateAudit( audits.get( 0 ), AuditType.CREATE, "2" );
+        validateAudit( audits.get( 1 ), AuditType.DELETE, "1" );
+        validateAudit( audits.get( 2 ), AuditType.CREATE, "1" );
     }
 
     private void validateAudit( DataValueAudit audit, AuditType type, String value )
