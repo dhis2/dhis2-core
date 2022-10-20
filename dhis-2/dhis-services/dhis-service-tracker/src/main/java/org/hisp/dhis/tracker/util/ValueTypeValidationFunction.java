@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.util;
 
-import java.util.function.Function;
+import java.util.function.Predicate;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.common.ValueType;
@@ -37,13 +37,13 @@ import org.hisp.dhis.common.ValueType;
 /**
  * @author Luca Cambi
  */
-@Builder
 @Getter
+@AllArgsConstructor
 public class ValueTypeValidationFunction
 {
-    private Function<String, Boolean> function;
+    private final ValueType valueType;
 
-    private ValueType valueType;
+    private final Predicate<String> function;
 
-    private String message;
+    private final String message;
 }

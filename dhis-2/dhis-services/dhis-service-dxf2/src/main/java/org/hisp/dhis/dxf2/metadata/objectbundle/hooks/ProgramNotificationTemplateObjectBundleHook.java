@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
@@ -36,28 +39,23 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
 /**
  * @author Halvdan Hoem Grelland
  */
 @Component
 public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectBundleHook<ProgramNotificationTemplate>
 {
-    private ImmutableMap<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = new ImmutableMap.Builder<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>>()
-        .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
-            template -> template.getRecipientProgramAttribute().getValueType() )
-        .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
-        .put( ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL )
-        .build();
+    private static final Map<ProgramNotificationRecipient, Function<ProgramNotificationTemplate, ValueType>> RECIPIENT_TO_VALUETYPE_RESOLVER = Map
+        .of(
+            ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
+            template -> template.getRecipientProgramAttribute().getValueType(),
+            ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType(),
+            ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL );
 
-    private static final ImmutableMap<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
-        .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
-        .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
-        .put( ValueType.URL, Sets.newHashSet( DeliveryChannel.HTTP ) )
-        .build();
+    private static final Map<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = Map.of(
+        ValueType.PHONE_NUMBER, Set.of( DeliveryChannel.SMS ),
+        ValueType.EMAIL, Set.of( DeliveryChannel.EMAIL ),
+        ValueType.URL, Set.of( DeliveryChannel.HTTP ) );
 
     @Override
     public void preCreate( ProgramNotificationTemplate template, ObjectBundle bundle )
@@ -111,22 +109,17 @@ public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectB
 
         if ( !(template.getNotificationRecipient().isExternalRecipient()) )
         {
-            template.setDeliveryChannels( Sets.newHashSet() );
+            template.setDeliveryChannels( new HashSet<>() );
         }
     }
 
     private void postProcess( ProgramNotificationTemplate template )
     {
-        ProgramNotificationRecipient pnr = template.getNotificationRecipient();
+        Function<ProgramNotificationTemplate, ValueType> toValueType = RECIPIENT_TO_VALUETYPE_RESOLVER.get(
+            template.getNotificationRecipient() );
 
-        ValueType valueType = null;
+        ValueType valueType = toValueType == null ? null : toValueType.apply( template );
 
-        if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
-        {
-            Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
-            valueType = resolver.apply( template );
-        }
-
-        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, Sets.newHashSet() ) );
+        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, new HashSet<>() ) );
     }
 }
