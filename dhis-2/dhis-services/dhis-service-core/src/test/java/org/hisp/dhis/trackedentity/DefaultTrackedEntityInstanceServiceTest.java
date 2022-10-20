@@ -29,7 +29,8 @@ package org.hisp.dhis.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 import java.util.Set;
 
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -84,15 +86,15 @@ class DefaultTrackedEntityInstanceServiceTest
 
     private TrackedEntityInstanceQueryParams params;
 
-    private DefaultTrackedEntityInstanceService spyTeiService;
+    private DefaultTrackedEntityInstanceService teiService;
 
     @BeforeEach
     void setup()
     {
-        spyTeiService = spy( new DefaultTrackedEntityInstanceService( trackedEntityInstanceStore, attributeValueService,
+        teiService = new DefaultTrackedEntityInstanceService( trackedEntityInstanceStore, attributeValueService,
             attributeService, trackedEntityTypeService, organisationUnitService,
             currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityInstanceAuditService,
-            attributeValueAuditService ) );
+            attributeValueAuditService );
 
         User user = new User();
         user.setOrganisationUnits( Set.of( new OrganisationUnit() ) );
@@ -100,6 +102,9 @@ class DefaultTrackedEntityInstanceServiceTest
 
         params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+        params.setProgram( new Program( "Test program" ) );
+        params.getProgram().setMaxTeiCountToReturn( 10 );
+        params.setTrackedEntityInstanceUids( Set.of( "1" ) );
     }
 
     @Test
@@ -108,10 +113,9 @@ class DefaultTrackedEntityInstanceServiceTest
         when( trackedEntityInstanceStore
             .getTrackedEntityInstanceCountForGrid( any( TrackedEntityInstanceQueryParams.class ) ) ).thenReturn( 20 );
 
-        spyTeiService.validateSearchScope( params, true );
         IllegalQueryException expectedException = assertThrows(
             IllegalQueryException.class,
-            () -> spyTeiService.checkIfMaxTeiLimitIsReached( new TrackedEntityInstanceQueryParams(), 10 ) );
+            () -> teiService.validateSearchScope( params, true ), "test message" );
 
         assertEquals( "maxteicountreached", expectedException.getMessage() );
     }
@@ -122,8 +126,6 @@ class DefaultTrackedEntityInstanceServiceTest
         when( trackedEntityInstanceStore
             .getTrackedEntityInstanceCountForGrid( any( TrackedEntityInstanceQueryParams.class ) ) ).thenReturn( 0 );
 
-        spyTeiService.validateSearchScope( params, true );
-        verify( spyTeiService, times( 1 ) ).checkIfMaxTeiLimitIsReached( any( TrackedEntityInstanceQueryParams.class ),
-            anyInt() );
+        teiService.validateSearchScope( params, true );
     }
 }
