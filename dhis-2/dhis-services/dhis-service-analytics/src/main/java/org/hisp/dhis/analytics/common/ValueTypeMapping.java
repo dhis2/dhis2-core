@@ -35,11 +35,13 @@ import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.util.DateUtils;
 
 public enum ValueTypeMapping
 {
@@ -47,7 +49,13 @@ public enum ValueTypeMapping
     NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
     DECIMAL( BigDecimal::new, ValueType.NUMBER ),
     STRING( s -> s ),
-    TEXT( s -> s );
+    TEXT( s -> s ),
+    DATE( ValueTypeMapping::dateConverter, ValueType.DATE, ValueType.DATETIME, ValueType.TIME );
+
+    private static Date dateConverter( String dateAsString )
+    {
+        return DateUtils.getMediumDate( dateAsString );
+    }
 
     private final Function<String, Object> converter;
 

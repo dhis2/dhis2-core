@@ -27,128 +27,41 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.analytics.common.query.From.ofSingleTableAndAlias;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_1_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PSI_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PS_UID;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
-import static org.hisp.dhis.common.QueryOperator.IN;
-
-import java.util.Optional;
-
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
-import org.hisp.dhis.analytics.common.query.ExistsCondition;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.From;
-import org.hisp.dhis.analytics.common.query.LimitOffset;
-import org.hisp.dhis.analytics.common.query.Order;
-import org.hisp.dhis.analytics.common.query.Query;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.common.query.Select;
-import org.hisp.dhis.analytics.common.query.Where;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class EventDataValueCondition extends BaseRenderable
+public class EventDataValueCondition extends AbstractCondition
 {
-    private static final Select SELECT_1 = Select.of( "1" );
+    private final QueryContext queryContext;
 
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
 
-    private final QueryContext queryContext;
+    private EventDataValueCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+        QueryContext queryContext )
+    {
+        super( dimensionIdentifier, queryContext );
+        this.queryContext = queryContext;
+        this.dimensionIdentifier = dimensionIdentifier;
+    }
+
+    public static EventDataValueCondition of(
+        DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+        QueryContext queryContext )
+    {
+        return new EventDataValueCondition( dimensionIdentifier, queryContext );
+    }
 
     @Override
-    public String render()
-    {
-        return ExistsCondition.of( getSubQuery() ).render();
-    }
-
-    private Renderable getSubQuery()
-    {
-        Query innermostEventSubQuery = Query.builder()
-            .select( SELECT_1 )
-            .from( ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_1_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PSI_UID, EVT_1_ALIAS, PSI_UID ),
-                getItemCondition() ) )
-            .build();
-
-        Query innerEventSubQuery = Query.builder()
-            .select( SELECT_1 )
-            .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_EVT + queryContext.getTetTableSuffix(), EVT_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( EVT_ALIAS, PI_UID, ENR_ALIAS, PI_UID ),
-                BinaryConditionRenderer.of(
-                    Field.of( EVT_ALIAS, () -> PS_UID, null ),
-                    QueryOperator.EQ,
-                    () -> queryContext.bindParamAndGetIndex( getProgramStageUid() ) ),
-                ExistsCondition.of( innermostEventSubQuery ) ) )
-            // TODO: negative offset will require ASC instead of DESC
-            .order( Order.ofOrder( "executiondate desc" ) )
-            .limit( getProgramStageLimitOffset() )
-            .build();
-
-        return Query.builder()
-            .select( SELECT_1 )
-            .from( From.ofSingleTableAndAlias( ANALYTICS_TEI_ENR + queryContext.getTetTableSuffix(), ENR_ALIAS ) )
-            .where( Where.ofConditions(
-                BinaryConditionRenderer.fieldsEqual( ENR_ALIAS, TEI_UID, TEI_ALIAS, TEI_UID ),
-                BinaryConditionRenderer.of(
-                    Field.of( ENR_ALIAS, () -> QueryContextConstants.P_UID, null ),
-                    QueryOperator.EQ,
-                    () -> queryContext.bindParamAndGetIndex( getProgramUid() ) ),
-                ExistsCondition.of( innerEventSubQuery ) ) )
-            // TODO: negative offset will require ASC instead of DESC
-            .order( Order.ofOrder( "enrollmentdate desc" ) )
-            .limit( getProgramLimitOffset() )
-            .build();
-    }
-
-    private String getProgramUid()
-    {
-        return dimensionIdentifier.getProgram().getElement().getUid();
-    }
-
-    private String getProgramStageUid()
-    {
-        return dimensionIdentifier.getProgramStage().getElement().getUid();
-    }
-
-    private LimitOffset getProgramStageLimitOffset()
-    {
-        // TODO: at the moment we only support integer index as offset
-        return LimitOffset.ofStrings( "1", Optional.of( dimensionIdentifier )
-            .map( DimensionIdentifier::getProgramStage )
-            .map( DimensionIdentifier.ElementWithOffset::getOffset )
-            .orElse( "0" ) );
-    }
-
-    private LimitOffset getProgramLimitOffset()
-    {
-        // TODO: at the moment we only support integer index as offset
-        return LimitOffset.ofStrings( "1", Optional.of( dimensionIdentifier )
-            .map( DimensionIdentifier::getProgram )
-            .map( DimensionIdentifier.ElementWithOffset::getOffset )
-            .orElse( "0" ) );
-    }
-
-    private BinaryConditionRenderer getItemCondition()
+    protected Renderable getEventCondition()
     {
         ValueTypeMapping valueTypeMapping = ValueTypeMapping
             .fromValueType( dimensionIdentifier.getDimension().getValueType() );
@@ -156,14 +69,11 @@ public class EventDataValueCondition extends BaseRenderable
         DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
         String doUid = dimensionIdentifier.getDimension().getDimensionObjectUid();
 
-        Renderable value = item.getOperator().equals( IN )
-            ? () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertMany( item.getValues() ) )
-            : () -> queryContext.bindParamAndGetIndex( valueTypeMapping.convertSingle( item.getValues().get( 0 ) ) );
-
         return BinaryConditionRenderer.of(
-            RenderableDataValue.of( EVT_1_ALIAS, doUid, valueTypeMapping ),
+            RenderableDataValue.of( EVT_ALIAS, doUid, valueTypeMapping ),
             item.getOperator(),
-            value );
+            item.getValues(),
+            valueTypeMapping,
+            queryContext );
     }
-
 }

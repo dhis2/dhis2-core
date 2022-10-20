@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.analytics.common.dimension;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Singular;
+import java.util.Collection;
+import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.junit.jupiter.api.Test;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class Where extends BaseRenderable
+class DimensionParamTypeTest
 {
-    @Singular
-    private final AndCondition condition;
 
-    public static Where ofConditions( Renderable... renderables )
+    @Test
+    void mapDates()
     {
-        return of( AndCondition.of( asList( renderables ) ) );
-    }
+        CommonQueryRequest request = new CommonQueryRequest()
+            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
+            .withIncidentDate( "LAST_MONTH" )
+            .withEnrollmentDate( "2021-06-30" )
+            .withLastUpdated( "TODAY" )
+            .withScheduledDate( "YESTERDAY" );
+        Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply( request );
 
-    @Override
-    public String render()
-    {
-        String renderedCondition = condition.render();
-        if ( StringUtils.isNotBlank( renderedCondition ) )
-        {
-            return "where " + renderedCondition;
-        }
-        return EMPTY;
-    }
+        List<String> expected = List.of( "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
+            "pe:2021-06-30:ENROLLMENT_DATE",
+            "pe:LAST_MONTH:INCIDENT_DATE",
+            "pe:YESTERDAY:SCHEDULED_DATE",
+            "pe:TODAY:LAST_UPDATED" );
 
+        assertEquals( expected, dateFilters );
+    }
 }

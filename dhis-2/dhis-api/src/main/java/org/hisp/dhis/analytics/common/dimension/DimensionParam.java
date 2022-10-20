@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common.dimension;
 
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.DATE_FILTERS;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamType.FILTERS;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.Builder;
 import lombok.Data;
@@ -44,8 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 
@@ -86,6 +90,13 @@ public class DimensionParam implements UidObject
     {
         Objects.requireNonNull( dimensionalObjectOrQueryItem );
         Objects.requireNonNull( dimensionParamType );
+
+        if ( dimensionParamType == DATE_FILTERS )
+        {
+            items = items.stream()
+                .map( item -> QueryOperator.EQ + ":" + item )
+                .collect( Collectors.toList() );
+        }
 
         DimensionParamBuilder builder = DimensionParam.builder()
             .type( dimensionParamType )
@@ -206,6 +217,11 @@ public class DimensionParam implements UidObject
     public String getUid()
     {
         return getDimensionObjectUid();
+    }
+
+    public boolean isPeriodDimension()
+    {
+        return isDimensionalObject() && dimensionalObject.getDimensionType() == DimensionType.PERIOD;
     }
 
     @RequiredArgsConstructor

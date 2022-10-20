@@ -43,27 +43,29 @@ class SortingContextUtils
 {
     // TODO: Think about implementing this using the query builders
     static String enrollmentSelect( DimensionIdentifier.ElementWithOffset<Program> program,
-        TrackedEntityType trackedEntityType )
+        TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
     {
         return "select innermost_enr.*" +
             " from (select *," +
             " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate desc) as rn " +
             " from " + ANALYTICS_TEI_ENR + trackedEntityType.getUid().toLowerCase() +
-            " where programuid = '" + program.getElement().getUid() + "') innermost_enr" +
+            " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() )
+            + ") innermost_enr" +
             " where innermost_enr.rn = 1";
     }
 
     // TODO: Think about implementing this using the query builders
     static String eventSelect( DimensionIdentifier.ElementWithOffset<Program> program,
         DimensionIdentifier.ElementWithOffset<ProgramStage> programStage,
-        TrackedEntityType trackedEntityType )
+        TrackedEntityType trackedEntityType, QueryContext.ParameterManager parameterManager )
     {
         return "select innermost_evt.*" +
             " from (select *," +
             " row_number() over (partition by programinstanceuid order by incidentdate desc) as rn" +
             " from " + ANALYTICS_TEI_EVT + trackedEntityType.getUid().toLowerCase() +
-            " where programuid = '" + program.getElement().getUid() + "'" +
-            " and programstageuid = '" + programStage.getElement().getUid() + "') innermost_evt" +
+            " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() ) +
+            " and programstageuid = " + parameterManager.bindParamAndGetIndex( programStage.getElement().getUid() )
+            + ") innermost_evt" +
             " where innermost_evt.rn = 1";
     }
 }

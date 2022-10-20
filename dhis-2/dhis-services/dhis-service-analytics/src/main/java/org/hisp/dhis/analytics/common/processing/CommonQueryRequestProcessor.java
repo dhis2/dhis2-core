@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
-import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
-import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
-import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -51,14 +47,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
-        return commonQueryRequest.withDimension(
-            getDimensionsWithRefactoredPeDimension(
-                emptyIfNull( commonQueryRequest.getDimension() ),
-                getCustomDateFilters(
-                    AnalyticsDateFilter::appliesToTei,
-                    analyticsDateFilter -> o -> analyticsDateFilter.getTeiExtractor()
-                        .apply( (CommonQueryRequest) o ),
-                    commonQueryRequest ) ) )
+        return commonQueryRequest
             .withPageSize( computePageSize( commonQueryRequest ) );
     }
 

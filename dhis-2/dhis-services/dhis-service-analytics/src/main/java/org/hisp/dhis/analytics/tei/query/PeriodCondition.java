@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.analytics.tei.query;
+
+import static java.time.temporal.ChronoUnit.DAYS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.tei.query.context.QueryContext;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.util.DateUtils;
+
+public class PeriodCondition extends AbstractCondition
+{
+
+    private final QueryContext queryContext;
+
+    private final Pair<Date, Date> interval;
+
+    private final TimeField timeField;
+
+    private PeriodCondition( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+        QueryContext queryContext )
+    {
+        super( dimensionIdentifier, queryContext );
+        this.queryContext = queryContext;
+
+        Date minDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
+            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .map( Period::getStartDate )
+            .reduce( DateUtils::min ).orElse( null );
+
+        Date maxDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
+            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .map( Period::getEndDate )
+            .map( this::nextDay )
+            .reduce( DateUtils::max ).orElse( null );
+
+        this.interval = Pair.of( minDate, maxDate );
+        this.timeField = TimeField.valueOf(
+            ((Period) dimensionIdentifier
+                .getDimension()
+                .getDimensionalObject()
+                .getItems()
+                .get( 0 ))
+                    .getDateField() );
+    }
+
+    private Date nextDay( Date date )
+    {
+        return Date.from( date.toInstant().plus( 1, DAYS ) );
+    }
+
+    public static PeriodCondition of( DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier,
+        QueryContext queryContext )
+    {
+        return new PeriodCondition( dimensionIdentifier, queryContext );
+    }
+
+    @Override
+    protected Renderable getTeiCondition()
+    {
+        return AndCondition.of(
+            List.of(
+                BinaryConditionRenderer.of(
+                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
+                    QueryOperator.GE,
+                    ConstantValuesRenderer.of(
+                        DateUtils.getMediumDateString( interval.getLeft() ),
+                        ValueTypeMapping.DATE,
+                        queryContext ) ),
+                BinaryConditionRenderer.of(
+                    Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
+                    QueryOperator.LT,
+                    ConstantValuesRenderer.of(
+                        DateUtils.getMediumDateString( interval.getRight() ),
+                        ValueTypeMapping.DATE, queryContext ) ) ) );
+    }
+
+    @Override
+    protected Renderable getEnrollmentCondition()
+    {
+        return getCondition( ENR_ALIAS );
+    }
+
+    @Override
+    protected Renderable getEventCondition()
+    {
+        return getCondition( EVT_ALIAS );
+    }
+
+    private AndCondition getCondition( String alias )
+    {
+        return AndCondition.of(
+            List.of(
+                BinaryConditionRenderer.of(
+                    Field.of( alias, timeField::getField, null ),
+                    QueryOperator.GE,
+                    ConstantValuesRenderer.of(
+                        DateUtils.getMediumDateString( interval.getLeft() ),
+                        ValueTypeMapping.DATE,
+                        queryContext ) ),
+                BinaryConditionRenderer.of(
+                    Field.of( alias, timeField::getField, null ),
+                    QueryOperator.LT,
+                    ConstantValuesRenderer.of(
+                        DateUtils.getMediumDateString( interval.getRight() ),
+                        ValueTypeMapping.DATE,
+                        queryContext ) ) ) );
+    }
+
+}

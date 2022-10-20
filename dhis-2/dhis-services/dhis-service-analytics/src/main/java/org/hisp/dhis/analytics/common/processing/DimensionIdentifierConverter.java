@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.split;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +47,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DimensionIdentifierConverter
 {
-    private static final Character DIMENSION_SEPARATOR = '.';
 
     /**
      *
@@ -109,64 +106,6 @@ public class DimensionIdentifierConverter
         else
         {
             return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
-        }
-    }
-
-    private DimensionIdentifier<StringUid, StringUid, StringUid> fromFullDimensionId( String fullDimensionId )
-    {
-        List<ElementWithOffset<StringUid>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
-
-        if ( uidWithOffsets.size() == 3 ) // ie.: abcde[1].fghi[4].jklm
-        {
-            assertDimensionIdHasNoOffset( uidWithOffsets.get( 2 ) );
-            return DimensionIdentifier.of( uidWithOffsets.get( 0 ), uidWithOffsets.get( 1 ),
-                uidWithOffsets.get( 2 ).getElement() );
-        }
-
-        if ( uidWithOffsets.size() == 2 ) // ie.: abcde[1].hfjg
-        {
-            assertDimensionIdHasNoOffset( uidWithOffsets.get( 1 ) );
-            return DimensionIdentifier.of( uidWithOffsets.get( 0 ), emptyElementWithOffset(),
-                uidWithOffsets.get( 1 ).getElement() );
-
-        }
-
-        if ( uidWithOffsets.size() == 1 ) // ie.: fgrg
-        {
-            assertDimensionIdHasNoOffset( uidWithOffsets.get( 0 ) );
-            return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(),
-                uidWithOffsets.get( 0 ).getElement() );
-        }
-
-        throw new IllegalArgumentException( "Malformed parameter: " + fullDimensionId );
-    }
-
-    private List<ElementWithOffset<StringUid>> parseFullDimensionId( String fullDimensionId )
-    {
-        return stream( split( fullDimensionId, DIMENSION_SEPARATOR ) )
-            .map( this::elementWithOffsetByString )
-            .collect( toList() );
-    }
-
-    private void assertDimensionIdHasNoOffset(
-        ElementWithOffset<StringUid> dimensionIdWithOffset )
-    {
-        if ( dimensionIdWithOffset.hasOffset() )
-        {
-            throw new IllegalArgumentException( "Only program and program stage can have offsets" );
-        }
-    }
-
-    private ElementWithOffset<StringUid> elementWithOffsetByString( String elementWithOffset )
-    {
-        String[] split = split( elementWithOffset, "[]" );
-        if ( split.length == 2 )
-        {
-            return ElementWithOffset.of( StringUid.of( split[0] ), split[1] );
-        }
-        else
-        {
-            return ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
         }
     }
 

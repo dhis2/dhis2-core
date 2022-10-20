@@ -27,7 +27,18 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
+import static org.hisp.dhis.common.AnalyticsDateFilter.ENROLLMENT_DATE;
+import static org.hisp.dhis.common.AnalyticsDateFilter.EVENT_DATE;
+import static org.hisp.dhis.common.AnalyticsDateFilter.INCIDENT_DATE;
+import static org.hisp.dhis.common.AnalyticsDateFilter.LAST_UPDATED;
+import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,8 +46,10 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
+import org.hisp.dhis.common.AnalyticsDateFilter;
 
 @Getter
 @RequiredArgsConstructor
@@ -47,6 +60,17 @@ public enum DimensionParamType
 
     HEADERS( CommonQueryRequest::getHeaders ),
 
+    DATE_FILTERS( commonQueryRequest -> Stream.of(
+        EVENT_DATE,
+        ENROLLMENT_DATE,
+        INCIDENT_DATE,
+        SCHEDULED_DATE,
+        LAST_UPDATED )
+        .map( analyticsDateFilter -> parseDate( commonQueryRequest, analyticsDateFilter ) )
+        .filter( Objects::nonNull )
+        .flatMap( Collection::stream )
+        .collect( Collectors.toList() ) ),
+
     // uidsGetter invoked on this enum, will return a collection made of:
     // - commonQueryRequest.getAsc(), suffixed by ":asc"
     // - commonQueryRequest.getDesc(), suffixed by ":desc"
@@ -56,6 +80,41 @@ public enum DimensionParamType
         commonQueryRequest.getDesc().stream()
             .map( s -> s + ":" + SortOrder.DESC.getValue() ) )
         .collect( Collectors.toList() ) );
+
+    private static List<String> parseDate( CommonQueryRequest commonQueryRequest,
+        AnalyticsDateFilter analyticsDateFilter )
+    {
+        String dateFilter = analyticsDateFilter.getTeiExtractor().apply( commonQueryRequest );
+        if ( StringUtils.isEmpty( dateFilter ) )
+        {
+            return Collections.emptyList();
+        }
+        String[] dateFilterItems = dateFilter.split( ";" );
+        return Stream.of( dateFilterItems )
+            .map( dateFilterItem -> toDimensionParam( dateFilterItem, analyticsDateFilter ) )
+            .collect( Collectors.toList() );
+    }
+
+    private static String toDimensionParam( String dateFilterItem, AnalyticsDateFilter analyticsDateFilter )
+    {
+        // here dateItem filter is in the form of
+        // programUid.programStageUid.period
+        // we need to return
+        // programUid.programStageUid.pe:period:analyticsDateFilter
+        DimensionIdentifier<StringUid, StringUid, StringUid> parsedItem = fromFullDimensionId( dateFilterItem );
+
+        String period = parsedItem.getDimension().getUid();
+
+        DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = DimensionIdentifier.of(
+            parsedItem.getProgram(),
+            parsedItem.getProgramStage(),
+            StringUid.of( PERIOD_DIM_ID ) );
+
+        return String.join( ":",
+            dimensionIdentifier.toString(),
+            period,
+            analyticsDateFilter.name() );
+    }
 
     // the getter method to invoke to retrieve the dimensions or filters from
     // the CommonQueryRequest
