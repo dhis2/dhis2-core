@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -375,9 +374,6 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         relationship.setFrom( from );
         relationship.setTo( to );
-
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         manager.save( relationship );
 
