@@ -213,7 +213,7 @@ public class DefaultDataValueService
     {
         if ( config.isEnabled( CHANGELOG_AGGREGATE ) )
         {
-            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(),
+            DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getValue(),
                 currentUserService.getCurrentUsername(), AuditType.DELETE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
