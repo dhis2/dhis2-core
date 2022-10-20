@@ -222,6 +222,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 sql += quote( item.getItem().getUid() );
             }
+            else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT
+                && item.getValueType() == ValueType.ORGANISATION_UNIT )
+            {
+                sql += quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+            }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
                 if ( item.hasRepeatableStageParams() )
