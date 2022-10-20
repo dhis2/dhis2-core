@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -56,10 +55,10 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipServiceTest extends TransactionalIntegrationTest
+public class RelationshipServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -166,7 +165,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void shouldAddTeiToTeiRelationship()
+    public void shouldAddTeiToTeiRelationship()
     {
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationshipType( relationshipTypeTeiToTei.getUid() );
@@ -185,14 +184,14 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getImported() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     @Test
-    void shouldUpdateTeiToTeiRelationship()
+    public void shouldUpdateTeiToTeiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, teiB, null, null );
 
@@ -215,15 +214,15 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getUpdated() );
+        assertEquals( relationship.getUid(), relationshipDb.getRelationship() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     @Test
-    void shouldAddTeiToPiRelationship()
+    public void shouldAddTeiToPiRelationship()
     {
         Relationship relationship = new Relationship();
         relationship.setRelationshipType( relationshipTypeTeiToPi.getUid() );
@@ -242,14 +241,14 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getImported() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     @Test
-    void shouldUpdateTeiToPiRelationship()
+    public void shouldUpdateTeiToPiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, programInstanceA, null );
 
@@ -272,15 +271,15 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getUpdated() );
+        assertEquals( relationship.getUid(), relationshipDb.getRelationship() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     @Test
-    void shouldAddTeiToPsiRelationship()
+    public void shouldAddTeiToPsiRelationship()
     {
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationshipType( relationshipTypeTeiToPsi.getUid() );
@@ -299,14 +298,14 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getImported() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getImported() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     @Test
-    void shouldUpdateTeiToPsiRelationship()
+    public void shouldUpdateTeiToPsiRelationship()
     {
         org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, null, programStageInstanceA );
 
@@ -329,11 +328,11 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
 
         Relationship relationshipDb = relationshipService.getRelationshipByUid( importSummary.getReference() );
 
-        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() ),
-            () -> assertEquals( 1, importSummary.getImportCount().getUpdated() ),
-            () -> assertEquals( relationship.getUid(), relationshipDb.getRelationship() ),
-            () -> assertEquals( relationshipDb.getFrom(), from ),
-            () -> assertEquals( relationshipDb.getTo(), to ) );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 1, importSummary.getImportCount().getUpdated() );
+        assertEquals( relationship.getUid(), relationshipDb.getRelationship() );
+        assertEquals( relationshipDb.getFrom(), from );
+        assertEquals( relationshipDb.getTo(), to );
     }
 
     private RelationshipItem teiFrom()
