@@ -764,7 +764,7 @@ public class DefaultTrackedEntityInstanceService
 
     public void checkIfMaxTeiLimitIsReached( TrackedEntityInstanceQueryParams params, int maxTeiLimit )
     {
-        int instanceCount = getTrackedEntityInstanceCount( params, true, true );
+        int instanceCount = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
         if ( maxTeiLimit > 0 && instanceCount > maxTeiLimit )
         {
             throw new IllegalQueryException( "maxteicountreached" );
