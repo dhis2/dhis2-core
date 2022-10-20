@@ -632,7 +632,7 @@ public class BaseIdentifiableObject
     public boolean equals( Object obj )
     {
         return this == obj || obj instanceof BaseIdentifiableObject
-            && getRealClass( this ) != getRealClass( obj )
+            && getRealClass( this ) == getRealClass( obj )
             && typedEquals( (IdentifiableObject) obj );
     }
 

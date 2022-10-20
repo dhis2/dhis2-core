@@ -207,7 +207,7 @@ public class BaseDimensionalItemObject
 
     private boolean objectEquals( BaseDimensionalItemObject that )
     {
-        return Objects.equals( this.queryMods, that.queryMods );
+        return Objects.equals( queryMods, that.queryMods );
     }
 
     @Override
