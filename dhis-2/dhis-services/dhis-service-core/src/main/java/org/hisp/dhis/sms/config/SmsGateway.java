@@ -141,7 +141,7 @@ public abstract class SmsGateway
 
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        if ( OK_CODES.contains( httpStatus ) )
+        if ( httpStatus != null && OK_CODES.contains( httpStatus ) )
         {
             gatewayResponse = GATEWAY_RESPONSE_MAP.get( httpStatus );
 

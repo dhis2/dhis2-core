@@ -115,11 +115,12 @@ public class ProgramNotificationTemplateObjectBundleHook extends AbstractObjectB
 
     private void postProcess( ProgramNotificationTemplate template )
     {
-        Function<ProgramNotificationTemplate, ValueType> toValueType = RECIPIENT_TO_VALUETYPE_RESOLVER.get(
-            template.getNotificationRecipient() );
+        ProgramNotificationRecipient recipient = template.getNotificationRecipient();
+        Function<ProgramNotificationTemplate, ValueType> toValueType = RECIPIENT_TO_VALUETYPE_RESOLVER.get( recipient );
 
         ValueType valueType = toValueType == null ? null : toValueType.apply( template );
 
-        template.setDeliveryChannels( CHANNEL_MAPPER.getOrDefault( valueType, new HashSet<>() ) );
+        Set<DeliveryChannel> deliveryChannels = valueType == null ? null : CHANNEL_MAPPER.get( valueType );
+        template.setDeliveryChannels( deliveryChannels == null ? new HashSet<>() : deliveryChannels );
     }
 }
