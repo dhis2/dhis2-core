@@ -36,3 +36,4 @@ node_modules
 
 # ignore generated artifact directory
 docker/artifacts
+postgresql-persistence
