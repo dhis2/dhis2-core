@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.QueryFilter.OPTION_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -233,7 +234,9 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest
         }
         for ( Option option : deE.getOptionSet().getOptions() )
         {
-            assertNotNull( itemMap.get( option.getUid() ) );
+            // Because skipData is set to "true" and no option code is specified
+            // as filter.
+            assertNull( itemMap.get( option.getUid() ) );
         }
         assertNotNull( itemMap.get( deA.getUid() ) );
         assertNotNull( itemMap.get( deE.getUid() ) );
