@@ -430,7 +430,7 @@ public class EventController
 
     }
 
-    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_TEXT_CSV )
     public void queryEventsCsv(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -498,7 +498,7 @@ public class EventController
             totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
         GridUtils.toCsv( grid, response.getWriter() );
 
