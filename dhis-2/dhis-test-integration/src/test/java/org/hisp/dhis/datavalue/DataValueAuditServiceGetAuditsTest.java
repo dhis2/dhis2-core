@@ -278,6 +278,42 @@ class DataValueAuditServiceGetAuditsTest extends TransactionalIntegrationTest
         assertEquals( AuditType.CREATE, audits.get( 2 ).getAuditType() );
     }
 
+    @Test
+    void testGetDataValueAuditWithFakeCreateDeleteAndUndelete()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        Period period = createPeriod( "202008" );
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        dataElementService.addDataElement( dataElement );
+        periodService.addPeriod( period );
+        organisationUnitService.addOrganisationUnit( organisationUnit );
+        categoryService.addCategoryOptionCombo( defaultCategoryOptionCombo );
+
+        DataValue dataValue = createDataValue( dataElement, period, organisationUnit, "10",
+            defaultCategoryOptionCombo );
+        dataValueService.addDataValue( dataValue );
+
+        dataValue.setValues( "20", dataValue.getValue() );
+        dataValueService.updateDataValue( dataValue );
+
+        dataValue.setValues( "30", dataValue.getValue() );
+        dataValueService.updateDataValue( dataValue );
+
+        dataValue.setValues( "40", dataValue.getValue() );
+        dataValueService.updateDataValue( dataValue );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElement, period, organisationUnit, defaultCategoryOptionCombo, defaultCategoryOptionCombo );
+
+        assertEquals( 4, audits.size() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
+    }
+
     private void validateAudit( DataValueAudit audit, AuditType type, String value )
     {
         assertEquals( type, audit.getAuditType() );
