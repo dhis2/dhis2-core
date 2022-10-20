@@ -28,6 +28,10 @@
 package org.hisp.dhis.tracker.validation.service.attribute;
 
 import java.util.*;
+import java.util.function.Predicate;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -36,7 +40,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.util.ValueTypeValidationFunction;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -48,6 +51,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class TrackedAttributeValidationService
 {
+    /**
+     * @author Luca Cambi
+     */
+    @Getter
+    @AllArgsConstructor
+    private static class ValueTypeValidationFunction
+    {
+        private final ValueType valueType;
+
+        private final Predicate<String> function;
+
+        private final String message;
+    }
+
     private final FileResourceService fileResourceService;
 
     private static final String VALUE_STRING = "Value";
@@ -128,4 +145,5 @@ public class TrackedAttributeValidationService
 
         return null;
     }
+
 }

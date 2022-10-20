@@ -40,6 +40,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -109,7 +111,7 @@ public abstract class BaseNotificationMessageRenderer<T>
                                                                                                              // for
                                                                                                              // DataElement
 
-    private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS = Map
+    private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> expressionToValueResolvers = Map
         .of(
             ExpressionType.VARIABLE, ( entity, keys ) -> resolveVariableValues( keys, entity ),
             ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
@@ -210,9 +212,10 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Internal methods
     // -------------------------------------------------------------------------
 
-    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
+    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, @Nonnull ExpressionType type,
+        T entity )
     {
-        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, ( e, s ) -> Map.of() ).apply( entity,
+        return expressionToValueResolvers.getOrDefault( type, ( e, s ) -> Map.of() ).apply( entity,
             expressions );
     }
 
