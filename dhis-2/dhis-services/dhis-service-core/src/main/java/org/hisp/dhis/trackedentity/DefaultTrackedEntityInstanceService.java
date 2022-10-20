@@ -757,13 +757,17 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            int instanceCount = getTrackedEntityInstanceCount( params, true, true );
-            if ( maxTeiLimit > 0 && instanceCount > maxTeiLimit )
-            {
-                throw new IllegalQueryException( "maxteicountreached" );
-            }
-
+            checkIfMaxTeiLimitIsReached( params, maxTeiLimit );
             params.setMaxTeiLimit( maxTeiLimit );
+        }
+    }
+
+    public void checkIfMaxTeiLimitIsReached( TrackedEntityInstanceQueryParams params, int maxTeiLimit )
+    {
+        int instanceCount = getTrackedEntityInstanceCount( params, true, true );
+        if ( maxTeiLimit > 0 && instanceCount > maxTeiLimit )
+        {
+            throw new IllegalQueryException( "maxteicountreached" );
         }
     }
 
