@@ -224,18 +224,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.hasRepeatableStageParams() )
-                {
-                    sql += quote( item.getRepeatableStageParams().getDimension() );
-                }
-                else if ( item.getProgramStage() != null )
-                {
-                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
-                }
-                else
-                {
-                    sql += quote( item.getItem().getUid() );
-                }
+                sql += getSortColumnForDataElementDimensionType( item );
             }
             else
             {
@@ -254,6 +243,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    private String getSortColumnForDataElementDimensionType( QueryItem item )
+    {
+        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        {
+            return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+        }
+
+        if ( item.hasRepeatableStageParams() )
+        {
+            return quote( item.getRepeatableStageParams().getDimension() );
+        }
+
+        if ( item.getProgramStage() != null )
+        {
+            return quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+        }
+
+        return quote( item.getItem().getUid() );
     }
 
     /**
