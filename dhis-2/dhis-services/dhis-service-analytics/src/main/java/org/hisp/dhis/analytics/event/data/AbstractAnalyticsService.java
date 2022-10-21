@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
@@ -46,12 +46,16 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
@@ -59,7 +63,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -67,6 +70,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
@@ -83,25 +87,14 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 public abstract class AbstractAnalyticsService
 {
-    final AnalyticsSecurityManager securityManager;
+    protected final AnalyticsSecurityManager securityManager;
 
-    final EventQueryValidator queryValidator;
+    protected final EventQueryValidator queryValidator;
 
-    final SchemaIdResponseMapper schemaIdResponseMapper;
-
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        SchemaIdResponseMapper schemaIdResponseMapper )
-    {
-        checkNotNull( securityManager );
-        checkNotNull( queryValidator );
-        checkNotNull( schemaIdResponseMapper );
-
-        this.securityManager = securityManager;
-        this.queryValidator = queryValidator;
-        this.schemaIdResponseMapper = schemaIdResponseMapper;
-    }
+    protected final SchemaIdResponseMapper schemaIdResponseMapper;
 
     protected Grid getGrid( EventQueryParams params )
     {
@@ -115,10 +108,10 @@ public abstract class AbstractAnalyticsService
 
         queryValidator.validate( params );
 
-        // keywords as well as their periods are removed in the next step,
-        // params object is modified
-        List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream().map(
-            DimensionalObject::getDimensionItemKeywords )
+        // Keywords and periods are removed in the next step
+
+        List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream()
+            .map( DimensionalObject::getDimensionItemKeywords )
             .filter( dimensionItemKeywords -> dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty() )
             .flatMap( dk -> dk.getKeywords().stream() ).collect( toList() );
 
@@ -141,9 +134,9 @@ public abstract class AbstractAnalyticsService
         for ( QueryItem item : params.getItems() )
         {
             /**
-             * Special case: If the request contains an item of Org Unit value
-             * type and the item UID is linked to coordinates (coordinateField),
-             * then create an Header of ValueType COORDINATE and type "Point"
+             * If the request contains an item of value type ORGANISATION_UNIT
+             * and the item UID is linked to coordinates (coordinateField), then
+             * create header of value type COORDINATE and type Point.
              */
             if ( item.getValueType() == ValueType.ORGANISATION_UNIT
                 && params.getCoordinateField().equals( item.getItem().getUid() ) )
@@ -154,7 +147,6 @@ public abstract class AbstractAnalyticsService
             }
             else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
             {
-
                 String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
@@ -189,7 +181,7 @@ public abstract class AbstractAnalyticsService
         }
 
         // ---------------------------------------------------------------------
-        // Meta-data
+        // Metadata
         // ---------------------------------------------------------------------
 
         addMetadata( params, periodKeywords, grid );
@@ -226,17 +218,14 @@ public abstract class AbstractAnalyticsService
      */
     void maybeApplyIdScheme( EventQueryParams params, Grid grid )
     {
-        if ( !params.isSkipMeta() )
+        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
         {
-            if ( params.hasCustomIdSchemaSet() )
-            {
-                // Apply all schemas set/mapped to the grid.
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-            }
+            // Apply ID schemes mapped to the grid.
+            grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
         }
     }
 
-    private static void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
+    private void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
     {
         if ( params.isPaging() )
         {
@@ -249,13 +238,13 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Based on the given item this method returns the correct uid based on
+     * Based on the given item this method returns the correct UID based on
      * internal rules/requirements.
      *
      * @param item the current QueryItem
      * @return the correct uid based on the item type
      */
-    private String getItemUid( final QueryItem item )
+    private String getItemUid( QueryItem item )
     {
         String uid = item.getItem().getUid();
 
@@ -271,7 +260,7 @@ public abstract class AbstractAnalyticsService
 
     protected abstract long addEventData( Grid grid, EventQueryParams params );
 
-    private void maybeApplyHeaders( final EventQueryParams params, final Grid grid )
+    private void maybeApplyHeaders( EventQueryParams params, Grid grid )
     {
         if ( params.hasHeaders() )
         {
@@ -303,35 +292,55 @@ public abstract class AbstractAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            final Map<String, Object> metadata = new HashMap<>();
+            Map<String, Object> metadata = new HashMap<>();
+            Map<String, List<Option>> optionsPresentInGrid = getItemOptions( grid, params );
+            Set<Option> optionItems = new LinkedHashSet<>();
+            boolean hasResults = isNotEmpty( grid.getRows() );
 
-            Map<String, List<Option>> options = getItemOptions( grid, params );
-
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options.values().stream()
-                .flatMap( Collection::stream ).distinct().collect( toList() ) ) );
-
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
-
-            if ( params.isHierarchyMeta() || params.isShowHierarchy() )
+            if ( hasResults )
             {
-                User user = securityManager.getCurrentUser( params );
-                List<OrganisationUnit> organisationUnits = asTypedList(
-                    params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-                Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-
-                if ( params.isHierarchyMeta() )
-                {
-                    metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-                }
-
-                if ( params.isShowHierarchy() )
-                {
-                    metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
-                        getParentNameGraphMap( organisationUnits, roots, true ) );
-                }
+                optionItems.addAll( optionsPresentInGrid.values().stream()
+                    .flatMap( Collection::stream ).distinct().collect( toList() ) );
+            }
+            else
+            {
+                optionItems.addAll( getItemOptions( params.getItemOptions(), params.getItems() ) );
             }
 
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, optionItems ) );
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, optionsPresentInGrid ) );
+            maybeAddOrgUnitHierarchyInfo( params, metadata );
+
             grid.setMetaData( metadata );
+        }
+    }
+
+    /**
+     * Depending on the params "hierarchy" metadata boolean flags, this method
+     * may append (or not) Org. Unit data into the given metadata map.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param metadata map.
+     */
+    private void maybeAddOrgUnitHierarchyInfo( EventQueryParams params, Map<String, Object> metadata )
+    {
+        if ( params.isHierarchyMeta() || params.isShowHierarchy() )
+        {
+            User user = securityManager.getCurrentUser( params );
+            List<OrganisationUnit> organisationUnits = asTypedList(
+                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            if ( params.isHierarchyMeta() )
+            {
+                metadata.put( ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            }
+
+            if ( params.isShowHierarchy() )
+            {
+                metadata.put( ORG_UNIT_NAME_HIERARCHY.getKey(),
+                    getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
         }
     }
 
@@ -342,7 +351,7 @@ public abstract class AbstractAnalyticsService
      * @return a map.
      */
     private Map<String, MetadataItem> getMetadataItems( EventQueryParams params,
-        List<DimensionItemKeywords.Keyword> periodKeywords, List<Option> itemOptions )
+        List<DimensionItemKeywords.Keyword> periodKeywords, Set<Option> itemOptions )
     {
         Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
@@ -366,8 +375,8 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach(
-                item -> addItemIntoMetadata( metadataItemMap, item, includeDetails, params.getDisplayProperty() ) );
+            .forEach( item -> addItemToMetadata(
+                metadataItemMap, item, includeDetails, params.getDisplayProperty() ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
         {
@@ -383,26 +392,25 @@ public abstract class AbstractAnalyticsService
         return metadataItemMap;
     }
 
-    private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
-        final boolean includeDetails, final DisplayProperty displayProperty )
+    private void addItemToMetadata( Map<String, MetadataItem> metadataItemMap, QueryItem item,
+        boolean includeDetails, DisplayProperty displayProperty )
     {
-        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
+        MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayProperty( displayProperty ),
             includeDetails ? item.getItem() : null );
 
-        metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
+        metadataItemMap.put( getItemIdWithProgramStageIdPrefix( item ), metadataItem );
 
-        // This is done for backward compatibility reason. It should remain here
-        // while the New Event Report is living along with its "classic"
-        // version.
+        // Done for backwards compatibility
+
         metadataItemMap.put( item.getItemId(), metadataItem );
     }
 
     /**
-     * Program Stage id prefix for meta items
+     * Returns the query item identifier, may have a program stage prefix.
      *
-     * @param item QueryItem.
+     * @param item {@link QueryItem}.
      */
-    private String getItemIdMaybeWithProgramStageIdPrefix( QueryItem item )
+    private String getItemIdWithProgramStageIdPrefix( QueryItem item )
     {
         if ( item.hasProgramStage() )
         {
@@ -413,54 +421,32 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * check the period dimension keywords
+     * Indicates whether any keywords exist.
      *
-     * @param periodKeywords PeriodKeywords.
+     * @param keywords the list of {@link Keyword}.
      */
-    private boolean hasPeriodKeywords( List<DimensionItemKeywords.Keyword> periodKeywords )
+    private boolean hasPeriodKeywords( List<DimensionItemKeywords.Keyword> keywords )
     {
-        return periodKeywords != null && !periodKeywords.isEmpty();
+        return keywords != null && !keywords.isEmpty();
     }
 
     /**
-     * Add into the MetadataItemMap itemOptions
+     * Adds the given metadata items.
      *
-     * @param metadataItemMap MetadataItemMap.
-     * @param params EventQueryParams.
-     * @param itemOptions itemOtion list.
+     * @param metadataItemMap the metadata item map.
+     * @param params the {@link EventQueryParams}.
+     * @param itemOptions the list of {@link Option}.
      */
-    private void addMetadataItems( final Map<String, MetadataItem> metadataItemMap, final EventQueryParams params,
-        final List<Option> itemOptions )
+    private void addMetadataItems( Map<String, MetadataItem> metadataItemMap,
+        EventQueryParams params, Set<Option> itemOptions )
     {
         boolean includeDetails = params.isIncludeMetadataDetails();
 
-        if ( !params.isSkipData() )
-        {
-            // filtering if the rows in grid are there (skipData = false)
-            itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
-                    includeDetails ? option.getUid() : null, option.getCode() ) ) );
-        }
-        else
-        {
-            // filtering if the rows in grid are not there (skipData = true
-            // only)
-            // dimension=Zj7UnCAulEk.K6uUAvq500H:IN:A00;A60;A01 -> IN indicates
-            // there is a filter
-            // the stream contains all options if no filter or only options fit
-            // to the filter
-            // options can be divided by separator <<;>>
-            params.getItemOptions().stream()
-                .filter( option -> option != null &&
-                    (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
-                        params.getItems().stream().filter( QueryItem::hasFilter )
-                            .anyMatch( qi -> qi.getFilters().stream()
-                                .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
-                                    .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
-                .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayProperty( params.getDisplayProperty() ),
-                        includeDetails ? option.getUid() : null, option.getCode() ) ) );
-        }
+        itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
+            new MetadataItem(
+                option.getDisplayProperty( params.getDisplayProperty() ),
+                includeDetails ? option.getUid() : null,
+                option.getCode() ) ) );
     }
 
     /**
@@ -468,6 +454,7 @@ public abstract class AbstractAnalyticsService
      * identifiers.
      *
      * @param params the data query parameters.
+     * @param itemOptions the data query parameters.
      * @return a map.
      */
     private Map<String, List<String>> getDimensionItems( EventQueryParams params,
@@ -489,16 +476,15 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
-            final String itemUid = getItemUid( item );
+            String itemUid = getItemUid( item );
 
             if ( item.hasOptionSet() )
             {
-                // The call itemOptions.get( item.getItem().getUid() ) can
-                // return null.
+                // The call itemOptions.get( itemUid ) can return null.
                 // This should be ok, the query item can't have both legends and
                 // options.
                 dimensionItems.put( itemUid,
-                    getDimensionItemUidList( params, item, itemOptions.get( item.getItem().getUid() ) ) );
+                    getDimensionItemUidsFrom( itemOptions.get( itemUid ), item.getOptionSetFilterItemsOrAll() ) );
             }
             else if ( item.hasLegendSet() )
             {
@@ -530,28 +516,29 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Return a list of dimension item uids. If itemOptions is null, it returns
-     * an empty List, which means no options set and no legend set.
+     * Based on the given arguments, this method will extract a list of uids of
+     * {@link Option}. If itemOptions is null, it returns the default list of
+     * uids (defaultOptionUids). Otherwise, it will return the list of uids from
+     * itemOptions.
      *
-     * @param params EventQueryParams.
-     * @param item QueryItem
-     * @param itemOptions itemOtion list.
-     * @return a list of uids.
+     * @param itemOptions a list of {@link Option} objects
+     * @param defaultOptionUids a list of default {@link Option} uids
+     * @return a list of uids
      */
-    private List<String> getDimensionItemUidList( EventQueryParams params, QueryItem item, List<Option> itemOptions )
+    private List<String> getDimensionItemUidsFrom( List<Option> itemOptions, List<String> defaultOptionUids )
     {
-        if ( params.isSkipData() )
+        List<String> dimensionUids = new ArrayList<>();
+
+        if ( itemOptions == null )
         {
-            return item.getOptionSetFilterItemsOrAll();
+            dimensionUids.addAll( defaultOptionUids );
         }
-        else if ( itemOptions != null )
+        else
         {
-            return itemOptions.stream()
-                .map( BaseIdentifiableObject::getUid )
-                .collect( toList() );
+            dimensionUids.addAll( IdentifiableObjectUtils.getUids( itemOptions ) );
         }
 
-        return Lists.newArrayList();
+        return dimensionUids;
     }
 
     /**
