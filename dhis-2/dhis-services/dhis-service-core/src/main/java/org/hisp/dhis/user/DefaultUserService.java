@@ -211,7 +211,13 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public User getUserByUsername(String username) {
-    return userStore.getUserByUsername(username);
+    return userStore.getUserByUsername(username, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByUsernameIgnoreCase(String username) {
+    return userStore.getUserByUsername(username, true);
   }
 
   @Override
@@ -539,7 +545,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional(readOnly = true)
   public User getUserWithEagerFetchAuthorities(String username) {
-    User user = userStore.getUserByUsername(username);
+    User user = userStore.getUserByUsername(username, false);
 
     if (user != null) {
       user.getAllAuthorities();
