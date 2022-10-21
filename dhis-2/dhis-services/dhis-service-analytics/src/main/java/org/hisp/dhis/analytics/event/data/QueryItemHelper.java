@@ -192,12 +192,10 @@ public class QueryItemHelper
 
         options.stream().filter( Objects::nonNull ).forEach(
             option -> {
-                boolean queryItemsHaveNoFilter = queryItems.stream().noneMatch( QueryItem::hasFilter );
-
                 boolean queryItemsFilterMatchOptionCode = queryItems.stream().anyMatch(
                     queryItem -> queryItem.hasFilter() && filtersContainOption( option, queryItem.getFilters() ) );
 
-                if ( queryItemsHaveNoFilter || queryItemsFilterMatchOptionCode )
+                if ( queryItemsFilterMatchOptionCode )
                 {
                     matchedOptions.add( option );
                 }
