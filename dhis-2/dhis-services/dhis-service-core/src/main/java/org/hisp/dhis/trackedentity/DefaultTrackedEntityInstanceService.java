@@ -755,13 +755,17 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 && params.isPaging()
-                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
-            {
-                throw new IllegalQueryException( "maxteicountreached" );
-            }
-
+            checkIfMaxTeiLimitIsReached( params, maxTeiLimit );
             params.setMaxTeiLimit( maxTeiLimit );
+        }
+    }
+
+    private void checkIfMaxTeiLimitIsReached( TrackedEntityInstanceQueryParams params, int maxTeiLimit )
+    {
+        int instanceCount = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
+        if ( maxTeiLimit > 0 && instanceCount > maxTeiLimit )
+        {
+            throw new IllegalQueryException( "maxteicountreached" );
         }
     }
 
