@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import java.util.Set;
+import java.util.Collections;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -97,14 +97,14 @@ class DefaultTrackedEntityInstanceServiceTest
             attributeValueAuditService );
 
         User user = new User();
-        user.setOrganisationUnits( Set.of( new OrganisationUnit() ) );
+        user.setOrganisationUnits( Collections.singleton( new OrganisationUnit() ) );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setProgram( new Program( "Test program" ) );
         params.getProgram().setMaxTeiCountToReturn( 10 );
-        params.setTrackedEntityInstanceUids( Set.of( "1" ) );
+        params.setTrackedEntityInstanceUids( Collections.singleton( "1" ) );
     }
 
     @Test
