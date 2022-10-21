@@ -538,7 +538,7 @@ public class AccountController {
 
   private Map<String, String> validateUserName(String username, boolean validateIfExists) {
     boolean isNull = username == null;
-    boolean usernameExists = userService.getUserByUsername(username) != null;
+    boolean usernameExists = userService.getUserByUsernameIgnoreCase(username) != null;
     boolean isValidSyntax = ValidationUtils.usernameIsValid(username, false);
 
     // Custom code required because of our hacked jQuery validation

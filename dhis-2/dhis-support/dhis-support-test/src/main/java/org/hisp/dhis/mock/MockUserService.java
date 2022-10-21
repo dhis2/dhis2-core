@@ -291,6 +291,11 @@ public class MockUserService implements UserService {
   }
 
   @Override
+  public User getUserByUsernameIgnoreCase(String username) {
+    return null;
+  }
+
+  @Override
   public User getUserByIdentifier(String id) {
     return null;
   }

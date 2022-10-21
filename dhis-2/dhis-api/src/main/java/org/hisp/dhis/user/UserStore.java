@@ -87,9 +87,10 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * Returns User for given username.
    *
    * @param username username for which the User will be returned
+   * @param ignoreCase
    * @return User for given username or null
    */
-  User getUserByUsername(String username);
+  User getUserByUsername(String username, boolean ignoreCase);
 
   /**
    * Returns User with given userId.

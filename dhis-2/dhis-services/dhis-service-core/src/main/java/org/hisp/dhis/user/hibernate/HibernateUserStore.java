@@ -468,12 +468,15 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public User getUserByUsername(String username) {
+  public User getUserByUsername(String username, boolean ignoreCase) {
     if (username == null) {
       return null;
     }
 
-    String hql = "from User u where u.username = :username";
+    String hql =
+        ignoreCase
+            ? "from User u where lower(u.username) = lower(:username)"
+            : "from User u where u.username = :username";
 
     TypedQuery<User> typedQuery = sessionFactory.getCurrentSession().createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
