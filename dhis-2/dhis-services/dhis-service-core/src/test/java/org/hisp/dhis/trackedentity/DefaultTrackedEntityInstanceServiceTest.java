@@ -97,7 +97,8 @@ class DefaultTrackedEntityInstanceServiceTest
             attributeValueAuditService );
 
         User user = new User();
-        user.setOrganisationUnits( Set.of( new OrganisationUnit() ) );
+        user.setOrganisationUnits( Set.of( new OrganisationUnit( "A" ) ) );
+        user.setTeiSearchOrganisationUnits( Set.of( new OrganisationUnit( "B" ) ) );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         params = new TrackedEntityInstanceQueryParams();
