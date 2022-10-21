@@ -284,7 +284,7 @@ class QueryItemHelperTest extends DhisConvenienceTest
         Set<Option> actualOptions = QueryItemHelper.getItemOptions( options, queryItems );
 
         // Then
-        assertEquals( 3, actualOptions.size(), "Should have size of 3: actualOptions" );
+        assertEquals( 0, actualOptions.size(), "Should have size of 0: actualOptions" );
     }
 
     @Test
