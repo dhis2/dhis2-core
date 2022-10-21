@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.actions;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 
@@ -45,7 +43,6 @@ import org.hisp.dhis.dto.ImportSummary;
 public class SystemActions
     extends RestApiActions
 {
-    private Logger logger = LogManager.getLogger( SystemActions.class.getName() );
 
     public SystemActions()
     {
@@ -58,7 +55,8 @@ public class SystemActions
     }
 
     /**
-     * Waits until the task is completed and returns a response
+     * Waits until the task is completed and returns a response. The default
+     * timeout is 20 seconds.
      *
      * @param taskType
      * @param taskId
@@ -66,12 +64,25 @@ public class SystemActions
      */
     public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
     {
+        return waitUntilTaskCompleted( taskType, taskId, 20 );
+    }
+
+    /**
+     * Waits until the task is completed and returns a response.
+     *
+     * @param taskType the task type
+     * @param taskId the task unique id
+     * @param timeout maximum time to wait for the task to complete (in seconds)
+     * @return
+     */
+    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId, long timeout )
+    {
         Callable<Boolean> taskIsCompleted = () -> getTask( taskType, taskId )
             .validateStatus( 200 )
             .extractList( "completed" ).contains( true );
 
         with()
-            .atMost( 20, TimeUnit.SECONDS )
+            .atMost( timeout, SECONDS )
             .await().until( () -> taskIsCompleted.call() );
 
         return getTask( taskType, taskId );

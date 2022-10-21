@@ -115,7 +115,7 @@ public class HibernateUserStore
     }
 
     @Override
-    public void save( User user, boolean clearSharing )
+    public void save( @Nonnull User user, boolean clearSharing )
     {
         super.save( user, clearSharing );
 
@@ -464,14 +464,15 @@ public class HibernateUserStore
     }
 
     @Override
-    public User getUserByUsername( String username )
+    public User getUserByUsername( String username, boolean ignoreCase )
     {
         if ( username == null )
         {
             return null;
         }
 
-        String hql = "from User u where u.username = :username";
+        String hql = ignoreCase ? "from User u where lower(u.username) = lower(:username)"
+            : "from User u where u.username = :username";
 
         TypedQuery<User> typedQuery = sessionFactory.getCurrentSession().createQuery( hql,
             User.class );

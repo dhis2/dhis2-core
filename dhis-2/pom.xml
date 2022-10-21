@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.44</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.0.45</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -72,7 +72,7 @@
     <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.7.3</spring-security.version>
+    <spring-security.version>5.7.4</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -86,16 +86,16 @@
     <spring-data-redis.version>2.7.5</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
-    <spring-retry.version>1.3.3</spring-retry.version>
+    <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.6.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
     <lettuce.version>6.2.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.4.0</flyway-core.version>
+    <flyway-core.version>9.5.1</flyway-core.version>
     <hibernate.version>5.6.12.Final</hibernate.version>
-    <hibernate-types.version>2.19.2</hibernate-types.version>
+    <hibernate-types.version>2.20.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.9.5.5</c3p0.version>
     <HikariCP.version>5.0.1</HikariCP.version>
@@ -157,7 +157,7 @@
     <jetty.version>10.0.12</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>1.9.6.Final</version.debezium>
+    <version.debezium>2.0.0.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -215,7 +215,7 @@
     <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.12.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>7.2.1</dependency-check-maven.version>
+    <dependency-check-maven.version>7.3.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.2.1</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
@@ -577,7 +577,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.7.2</version>
+              <version>4.7.3</version>
             </dependency>
           </dependencies>
           <configuration>
