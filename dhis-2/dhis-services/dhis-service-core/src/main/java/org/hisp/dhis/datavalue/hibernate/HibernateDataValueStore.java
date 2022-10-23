@@ -616,7 +616,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     /**
      * Creates a {@link DeflatedDataValue} from a query row.
      */
-    private DeflatedDataValue getDefalatedDataValueFromResultSet( ResultSet resultSet, Boolean joinOrgUnit )
+    private DeflatedDataValue getDefalatedDataValueFromResultSet( ResultSet resultSet, boolean joinOrgUnit )
         throws SQLException
     {
         Integer dataElementId = resultSet.getInt( 1 );
@@ -643,7 +643,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     }
 
     /**
-     * Adds a {@see DeflatedDataValue} to a blocking queue
+     * Adds a {@link DeflatedDataValue} to a blocking queue
      *
      * @param blockingQueue the queue to add to
      * @param ddv the deflated data value
@@ -652,10 +652,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     {
         try
         {
-            blockingQueue.offer( ddv, DDV_QUEUE_TIMEOUT_VALUE, DDV_QUEUE_TIMEOUT_UNIT );
+            if ( !blockingQueue.offer( ddv, DDV_QUEUE_TIMEOUT_VALUE, DDV_QUEUE_TIMEOUT_UNIT ) )
+            {
+                log.error( "HibernateDataValueStore failed to add to BlockingQueue." );
+            }
         }
-        catch ( InterruptedException e )
+        catch ( InterruptedException ex )
         {
+            log.error( "HibernateDataValueStore BlockingQueue InterruptedException: " + ex.getMessage() );
+            Thread.currentThread().interrupt();
         }
     }
 }
