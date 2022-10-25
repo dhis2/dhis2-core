@@ -70,7 +70,7 @@ public class PushNotificationService
         notification.setIsAndroid( true );
 
         StringMap contentStringMap = new StringMap();
-        contentStringMap.en( "Demo content" );
+        contentStringMap.en( "New tracked entity instance enrollment" );
         notification.setContents( contentStringMap );
         notification.setIncludedSegments( users );
         notification.setAdmSmallIcon( ICON_URL );
@@ -80,6 +80,7 @@ public class PushNotificationService
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put( "isSilent", "true" );
+        jsonObject.put( "teiId", "ay2hFKxwqNR" );
         notification.setData( jsonObject );
 
         return notification;
