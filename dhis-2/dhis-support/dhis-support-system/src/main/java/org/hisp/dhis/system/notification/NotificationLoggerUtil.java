@@ -36,11 +36,9 @@ import org.slf4j.Logger;
  */
 public class NotificationLoggerUtil
 {
-
-    @Nonnull
-    public static void log( Logger logger, NotificationLevel notificationLevel, String message )
+    public static void log( Logger logger, @Nonnull NotificationLevel level, String message )
     {
-        switch ( notificationLevel )
+        switch ( level )
         {
         case LOOP:
         case DEBUG:
