@@ -35,16 +35,20 @@ import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.MemoryOffsetBackingStore;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
 import io.debezium.connector.postgresql.PostgresConnector;
 import io.debezium.connector.postgresql.PostgresConnectorConfig;
+import io.debezium.data.Envelope.Operation;
 import io.debezium.embedded.Connect;
 import io.debezium.embedded.EmbeddedEngine;
 import io.debezium.engine.DebeziumEngine;
@@ -55,16 +59,18 @@ import io.debezium.engine.format.ChangeEventFormat;
 @Service
 public class PushNotificationChangeEventListener extends AbstractStartupRoutine
 {
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
+
     private final DhisConfigurationProvider dhisConfig;
 
     private final Executor executor = Executors.newSingleThreadExecutor();
 
-    // private EmbeddedEngine engine;
     private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
-
-    public PushNotificationChangeEventListener( DhisConfigurationProvider dhisConfig )
+    public PushNotificationChangeEventListener( DhisConfigurationProvider dhisConfig,
+        TrackedEntityInstanceService trackedEntityInstanceService )
     {
         this.dhisConfig = dhisConfig;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
     }
 
     @Override
@@ -89,10 +95,6 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
             .with( PostgresConnectorConfig.SNAPSHOT_MODE, PostgresConnectorConfig.SnapshotMode.NEVER )
             .build();
 
-        // this.engine = EmbeddedEngine.create()
-        // .using( config )
-        // .notifying( this::handleDbChangeEvent )
-        // .build();
         this.engine = DebeziumEngine.create( ChangeEventFormat.of( Connect.class ) )
             .using( config.asProperties() )
             .notifying( this::handleChangeEvent )
@@ -111,8 +113,35 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
         engine.close();
     }
 
-    private void handleChangeEvent( RecordChangeEvent<SourceRecord> record )
-    {
-        log.info( "Handling DB change event " + record );
+    private void handleChangeEvent( RecordChangeEvent<SourceRecord> event ) {
+        Struct payload = (Struct) event.record().value();
+        Operation op = Operation.forCode( payload.getString( "op" ) );
+
+        if ( op != Operation.CREATE && op != Operation.UPDATE )
+        {
+            return;
+        }
+
+        log.info( "Handling DB change event " + event );
+        Struct after = payload.getStruct( "after" );
+        if ( after == null )
+        {
+            // should not happen but let's not demo an NPE :joy:
+            return;
+        }
+        Long trackedentityinstanceid = after.getInt64( "trackedentityinstanceid" );
+        if ( trackedentityinstanceid == null )
+        {
+            // should not happen but let's not demo an NPE :joy:
+            return;
+        }
+        log.info( "DB event operation {} for TEI id {} ", op, trackedentityinstanceid );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedentityinstanceid );
+        if ( tei == null )
+        {
+            // should not happen but let's not demo an NPE :joy:
+            return;
+        }
+        log.info( "Found TEI with uid {}", tei.getUid() );
     }
 }

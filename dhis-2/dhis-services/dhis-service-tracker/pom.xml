@@ -165,11 +165,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
-    <!-- Debezium -->
-<!--    <dependency>-->
-<!--      <groupId>io.debezium</groupId>-->
-<!--      <artifactId>debezium-api</artifactId>-->
-<!--    </dependency>-->
     <dependency>
       <groupId>io.debezium</groupId>
       <artifactId>debezium-embedded</artifactId>
