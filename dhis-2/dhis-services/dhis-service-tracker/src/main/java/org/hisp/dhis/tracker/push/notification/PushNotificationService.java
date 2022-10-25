@@ -31,6 +31,8 @@ import java.util.List;
 
 import lombok.Getter;
 
+import org.json.simple.JSONObject;
+
 import com.onesignal.client.ApiClient;
 import com.onesignal.client.ApiException;
 import com.onesignal.client.Configuration;
@@ -61,7 +63,7 @@ public class PushNotificationService
         userKey.setBearerToken( USER_KEY_TOKEN );
     }
 
-    private Notification createNotification()
+    public Notification createNotification( List<String> users )
     {
         Notification notification = new Notification();
         notification.setAppId( USER_KEY_TOKEN );
@@ -70,11 +72,15 @@ public class PushNotificationService
         StringMap contentStringMap = new StringMap();
         contentStringMap.en( "Demo content" );
         notification.setContents( contentStringMap );
-        notification.setIncludedSegments( List.of( new String[] { "Subscribed Users" } ) );
+        notification.setIncludedSegments( users );
         notification.setAdmSmallIcon( ICON_URL );
         notification.setLargeIcon( ICON_URL );
         notification.setHuaweiSmallIcon( ICON_URL );
         notification.setHuaweiLargeIcon( ICON_URL );
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put( "isSilent", "true" );
+        notification.setData( jsonObject );
 
         return notification;
     }
@@ -86,7 +92,7 @@ public class PushNotificationService
         DefaultApi defaultApi = new DefaultApi( pushService.getDefaultClient() );
 
         CreateNotificationSuccessResponse notificationResponse = defaultApi
-            .createNotification( pushService.createNotification() );
+            .createNotification( pushService.createNotification( List.of( new String[] { "Subscribed Users" } ) ) );
 
         System.out.print( notificationResponse.getId() );
     }
