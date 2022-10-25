@@ -113,6 +113,10 @@ public enum ConfigurationKey
     CONNECTION_URL( "connection.url", "", false ),
 
     /**
+     * Database hostname.
+     */
+    CONNECTION_HOSTNAME( "connection.hostname", "", false ),
+    /**
      * Database username.
      */
     CONNECTION_USERNAME( "connection.username", "", false ),

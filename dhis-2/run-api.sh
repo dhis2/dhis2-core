@@ -10,8 +10,8 @@ DHIS2_HOSTNAME=localhost
 DEFAULT_DHIS2_PORT=9090
 DEFAULT_DHIS2_HOME=/opt/dhis2
 
+DHIS2_HOME=${1:-$DEFAULT_DHIS2_HOME}
 DHIS2_PORT=${2:-$DEFAULT_DHIS2_PORT}
-#DHIS2_HOME=${1:-$DEFAULT_DHIS2_HOME}
 
 echo -e "Usage: run-api.sh ([DHIS2_HOME_FOLDER] [DHIS2_PORT])\n"
 echo -e "Note: JDK 11 or later is required!\n"
@@ -43,6 +43,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     -Ddhis2.home=$DHIS2_HOME \
     -Djetty.host=$DHIS2_HOSTNAME \
     -Djetty.http.port=$DHIS2_PORT \
+    -Dlog4j2.configurationFile=$DHIS2_HOME/log4j2.xml \
     -jar "$(dirname "$0")/dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar"
   exit 0;
 fi
@@ -56,4 +57,5 @@ java \
     -Ddhis2.home=$DHIS2_HOME \
     -Djetty.host=$DHIS2_HOSTNAME \
     -Djetty.http.port=$DHIS2_PORT \
+    -Dlog4j2.configurationFile=$DHIS2_HOME/log4j2.xml \
     -jar "$(dirname "$0")/dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar"
