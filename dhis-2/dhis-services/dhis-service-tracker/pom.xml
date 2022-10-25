@@ -212,6 +212,12 @@
       <artifactId>joda-time</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>onesignal-java-client</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
 
   </dependencies>
   <properties>
