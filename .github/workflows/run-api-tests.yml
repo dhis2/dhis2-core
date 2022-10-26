@@ -54,6 +54,7 @@ jobs:
 
       - name: Run tests
         run: |
+          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
           cd dhis-2/dhis-e2e-test
           DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
