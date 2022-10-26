@@ -27,74 +27,8 @@
  */
 package org.hisp.dhis.tracker.push.notification;
 
-import java.util.List;
-
-import lombok.Getter;
-
-import org.json.simple.JSONObject;
-
-import com.onesignal.client.ApiClient;
-import com.onesignal.client.ApiException;
-import com.onesignal.client.Configuration;
-import com.onesignal.client.api.DefaultApi;
-import com.onesignal.client.auth.HttpBearerAuth;
-import com.onesignal.client.model.*;
-
-public class PushNotificationService
+public interface PushNotificationService
 {
 
-    private static final String APP_KEY_TOKEN = "Y2MzNjJiODEtYmIxNS00YjFhLWJmMWQtMDhiNjU5NDhhNzM2";
-
-    private static final String USER_KEY_TOKEN = "35b5e65e-377b-49f4-b613-ed9d206a208a";
-
-    private static final String ICON_URL = "src/main/webapp/dhis-web-commons/security/logo_mobile.png";
-
-    @Getter
-    private final ApiClient defaultClient;
-
-    public PushNotificationService()
-    {
-        defaultClient = Configuration.getDefaultApiClient();
-
-        HttpBearerAuth appKey = (HttpBearerAuth) defaultClient.getAuthentication( "app_key" );
-        appKey.setBearerToken( APP_KEY_TOKEN );
-
-        HttpBearerAuth userKey = (HttpBearerAuth) defaultClient.getAuthentication( "user_key" );
-        userKey.setBearerToken( USER_KEY_TOKEN );
-    }
-
-    public Notification createNotification( List<String> users )
-    {
-        Notification notification = new Notification();
-        notification.setAppId( USER_KEY_TOKEN );
-        notification.setIsAndroid( true );
-
-        StringMap contentStringMap = new StringMap();
-        contentStringMap.en( "New tracked entity instance enrollment" );
-        notification.setContents( contentStringMap );
-        notification.setIncludedSegments( users );
-        notification.setAdmSmallIcon( ICON_URL );
-        notification.setLargeIcon( ICON_URL );
-        notification.setHuaweiSmallIcon( ICON_URL );
-        notification.setHuaweiLargeIcon( ICON_URL );
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put( "isSilent", "true" );
-        jsonObject.put( "teiId", "ay2hFKxwqNR" );
-        notification.setData( jsonObject );
-
-        return notification;
-    }
-
-    public static void main( String[] args )
-        throws ApiException
-    {
-        PushNotificationService pushService = new PushNotificationService();
-        DefaultApi defaultApi = new DefaultApi( pushService.getDefaultClient() );
-
-        CreateNotificationSuccessResponse notificationResponse = defaultApi
-            .createNotification( pushService.createNotification( List.of( new String[] { "Subscribed Users" } ) ) );
-
-        System.out.print( notificationResponse.getId() );
-    }
+    boolean sendNotification( boolean isSilent, String teiId );
 }
