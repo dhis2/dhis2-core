@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.push.notification;
 
 import java.util.List;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.json.simple.JSONObject;
@@ -44,8 +43,8 @@ import com.onesignal.client.model.CreateNotificationSuccessResponse;
 import com.onesignal.client.model.Notification;
 import com.onesignal.client.model.StringMap;
 
-@Service
 @Slf4j
+@Service
 public class PushNotificationServiceImpl implements PushNotificationService
 {
 
@@ -57,12 +56,9 @@ public class PushNotificationServiceImpl implements PushNotificationService
 
     private final DefaultApi defaultApi;
 
-    @Getter
-    private final ApiClient defaultClient;
-
     public PushNotificationServiceImpl()
     {
-        defaultClient = Configuration.getDefaultApiClient();
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
         defaultApi = new DefaultApi( defaultClient );
 
         HttpBearerAuth appKey = (HttpBearerAuth) defaultClient.getAuthentication( "app_key" );

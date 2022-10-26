@@ -43,6 +43,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.push.notification.PushNotificationService;
 import org.springframework.stereotype.Service;
 
 import io.debezium.config.Configuration;
@@ -65,12 +66,16 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
 
     private final Executor executor = Executors.newSingleThreadExecutor();
 
+    private final PushNotificationService pushNotificationService;
+
     private DebeziumEngine<RecordChangeEvent<SourceRecord>> engine;
+
     public PushNotificationChangeEventListener( DhisConfigurationProvider dhisConfig,
-        TrackedEntityInstanceService trackedEntityInstanceService )
+        TrackedEntityInstanceService trackedEntityInstanceService, PushNotificationService pushNotificationService )
     {
         this.dhisConfig = dhisConfig;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @Override
@@ -113,7 +118,8 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
         engine.close();
     }
 
-    private void handleChangeEvent( RecordChangeEvent<SourceRecord> event ) {
+    private void handleChangeEvent( RecordChangeEvent<SourceRecord> event )
+    {
         Struct payload = (Struct) event.record().value();
         Operation op = Operation.forCode( payload.getString( "op" ) );
 
@@ -143,5 +149,6 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
             return;
         }
         log.info( "Found TEI with uid {}", tei.getUid() );
+        pushNotificationService.sendNotification( false, tei.getUid() );
     }
 }
