@@ -23,6 +23,10 @@ services:
 
   db:
     image: postgis/postgis:10-2.5-alpine
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
     volumes:
       - db-dump:/docker-entrypoint-initdb.d/
     environment:
