@@ -109,10 +109,4 @@ public class PushNotificationServiceImpl implements PushNotificationService
             return false;
         }
     }
-
-    public static void main( String[] args )
-    {
-        PushNotificationServiceImpl pushService = new PushNotificationServiceImpl();
-        pushService.sendNotification( true, "ay2hFKxwqNR", "New tracked entity instance enrollment" );
-    }
 }
