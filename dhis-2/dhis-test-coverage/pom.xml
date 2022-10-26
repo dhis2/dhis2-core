@@ -149,48 +149,6 @@
     <build>
         <plugins>
             <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <configuration>
-            <failOnWarning>true</failOnWarning>
-            <ignoredUnusedDeclaredDependencies>
-                <!-- compile dependency to get coverage in aggregate report -->
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-api</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-schema</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-acl</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-node</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-field-filtering</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-tracker</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-commons</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-external</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-system</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-jdbc</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-expression-parser</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-artemis</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-cache-invalidation</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api-test</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-test-integration</ignoredUnusedDeclaredDependency>
-                <!-- surefire complains about it being missing, so I added it as a dependency even though dhis-test-coverage has no tests
-                     better alternative would be a way to exclude the module from surefire itself -->
-                <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUnusedDeclaredDependency>
-            </ignoredUnusedDeclaredDependencies>
-            </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <executions>
