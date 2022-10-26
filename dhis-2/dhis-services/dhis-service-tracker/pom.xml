@@ -225,6 +225,7 @@
       <artifactId>onesignal-java-client</artifactId>
       <version>1.0.1</version>
       <scope>compile</scope>
+      <systemPath>${project.basedir}/../../onesignal-java-client-1.0.1.jar</systemPath>
     </dependency>
 
   </dependencies>
