@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.push.notification;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
@@ -45,6 +45,7 @@ import com.onesignal.client.model.Notification;
 import com.onesignal.client.model.StringMap;
 
 @Service
+@Slf4j
 public class PushNotificationServiceImpl implements PushNotificationService
 {
 
@@ -59,11 +60,8 @@ public class PushNotificationServiceImpl implements PushNotificationService
     @Getter
     private final ApiClient defaultClient;
 
-    private final Logger logger;
-
     public PushNotificationServiceImpl()
     {
-        logger = Logger.getLogger( PushNotificationServiceImpl.class.getName() );
         defaultClient = Configuration.getDefaultApiClient();
         defaultApi = new DefaultApi( defaultClient );
 
@@ -105,13 +103,13 @@ public class PushNotificationServiceImpl implements PushNotificationService
             CreateNotificationSuccessResponse response = defaultApi
                 .createNotification( notification );
 
-            logger.info( "Notification id: " + response.getId() );
+            log.info( "Notification id sent: {}", response.getId() );
 
             return !response.getId().isEmpty();
         }
         catch ( ApiException e )
         {
-            logger.severe( "Push notification not sent: " + e );
+            log.error( "Push notification not sent: ", e );
             return false;
         }
     }
