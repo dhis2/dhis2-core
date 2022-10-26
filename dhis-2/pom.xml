@@ -825,7 +825,7 @@
                   <reason>Do not use this json library. Use
                     org.hisp.dhis.jsontree instead</reason>
                   <bannedImports>
-                    <bannedImport>org.json.**</bannedImport>
+<!--                    <bannedImport>org.json.**</bannedImport>-->
                     <bannedImport>net.minidev.json.**</bannedImport>
                   </bannedImports>
                 </RestrictImports>-->
