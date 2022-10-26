@@ -50,7 +50,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -68,7 +67,7 @@ public abstract class SmsGateway
 
     public static final String KEY_RECIPIENT = "recipients";
 
-    public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+    public static final Set<HttpStatus> OK_CODES = Set.of( HttpStatus.OK,
         HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
@@ -142,7 +141,7 @@ public abstract class SmsGateway
 
         OutboundMessageResponse status = new OutboundMessageResponse();
 
-        if ( OK_CODES.contains( httpStatus ) )
+        if ( httpStatus != null && OK_CODES.contains( httpStatus ) )
         {
             gatewayResponse = GATEWAY_RESPONSE_MAP.get( httpStatus );
 

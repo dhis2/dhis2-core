@@ -371,6 +371,7 @@ public class DefaultProgramInstanceService
         return programInstanceStore.get( entityInstance, program, status );
     }
 
+    @Nonnull
     @Override
     @Transactional
     public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,

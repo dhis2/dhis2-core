@@ -30,7 +30,7 @@ package org.hisp.dhis.fileresource;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLConnection;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -41,8 +41,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.imgscalr.Scalr;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @Author Zubair Asghar.
  */
@@ -50,7 +48,7 @@ import com.google.common.collect.ImmutableMap;
 @Service( "org.hisp.dhis.fileresource.ImageProcessingService" )
 public class DefaultImageProcessingService implements ImageProcessingService
 {
-    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_SIZES = ImmutableMap.of(
+    private static final Map<ImageFileDimension, ImageSize> IMAGE_FILE_SIZES = Map.of(
         ImageFileDimension.SMALL, new ImageSize( 256, 256 ),
         ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ),
         ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) );
@@ -60,10 +58,10 @@ public class DefaultImageProcessingService implements ImageProcessingService
     {
         if ( !isInputValid( fileResource, file ) )
         {
-            return new HashMap<>();
+            return new EnumMap<>( ImageFileDimension.class );
         }
 
-        Map<ImageFileDimension, File> images = new HashMap<>();
+        Map<ImageFileDimension, File> images = new EnumMap<>( ImageFileDimension.class );
 
         try
         {
@@ -92,7 +90,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
         {
             log.error( "Image file resource cannot be processed" );
             DebugUtils.getStackTrace( e );
-            return new HashMap<>();
+            return new EnumMap<>( ImageFileDimension.class );
         }
 
         return images;
@@ -126,10 +124,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
                 return false;
             }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
     private static class ImageSize
