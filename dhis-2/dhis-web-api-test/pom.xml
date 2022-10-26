@@ -39,6 +39,7 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-metadata-workflow</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-api</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-analytics</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-validation</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
@@ -151,6 +152,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-analytics</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-tracker</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>

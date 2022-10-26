@@ -25,25 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.export;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.web.view.InstantMapper;
+import org.hisp.dhis.tracker.web.view.TrackedEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Mapper( uses = {
+    RelationshipMapper.class,
+    AttributeMapper.class,
+    EnrollmentMapper.class,
+    ProgramOwnerMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
 {
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

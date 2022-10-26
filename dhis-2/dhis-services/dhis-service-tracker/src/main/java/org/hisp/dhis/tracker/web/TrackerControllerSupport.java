@@ -25,25 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
-
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+public class TrackerControllerSupport
 {
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    public static final String RESOURCE_PATH = "tracker";
 }

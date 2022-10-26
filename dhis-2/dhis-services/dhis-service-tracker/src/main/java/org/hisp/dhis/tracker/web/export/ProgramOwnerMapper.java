@@ -25,25 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.export;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.tracker.web.view.ProgramOwner;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Mapper
+public interface ProgramOwnerMapper
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
 }

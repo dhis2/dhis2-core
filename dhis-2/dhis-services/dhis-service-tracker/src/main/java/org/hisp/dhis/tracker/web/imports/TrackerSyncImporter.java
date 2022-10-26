@@ -25,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.imports;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.stereotype.Component;
 
 /**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
+ * @author Luca Cambi <luca@dhis2.org>
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Component
+@RequiredArgsConstructor
+public class TrackerSyncImporter
 {
 
-    @Test
-    void testAsyncPostJsonTracker()
+    @Nonnull
+    private final TrackerImportService trackerImportService;
+
+    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
     }
 }

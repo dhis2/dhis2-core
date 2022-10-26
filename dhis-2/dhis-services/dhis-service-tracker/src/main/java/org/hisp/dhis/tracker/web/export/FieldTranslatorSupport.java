@@ -25,25 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.export;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.util.Arrays;
+import java.util.Optional;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+import com.google.common.base.CaseFormat;
+
+class FieldTranslatorSupport
 {
 
-    @Test
-    void testAsyncPostJsonTracker()
+    public static Optional<String> translate( String dtoFieldName,
+        Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator )
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        String upperSnakeCase = CaseFormat.LOWER_CAMEL.to( CaseFormat.UPPER_UNDERSCORE, dtoFieldName );
+        return Arrays.stream( translator )
+            .filter( fieldTranslator -> fieldTranslator.name().equals( upperSnakeCase ) )
+            .findFirst()
+            .map( anEnum -> (PagingAndSortingCriteriaAdapter.EntityNameSupplier) anEnum )
+            .map( PagingAndSortingCriteriaAdapter.EntityNameSupplier::getEntityName );
     }
+
 }

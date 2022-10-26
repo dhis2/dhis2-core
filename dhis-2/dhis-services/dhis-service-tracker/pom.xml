@@ -13,6 +13,20 @@
   <packaging>jar</packaging>
   <name>DHIS Tracker services</name>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <ignoredUnusedDeclaredDependencies combine.children="append">
+            <!-- Used by Spring MockMvcResultMatchers.jsonPath -->
+            <ignoredUnusedDeclaredDependency>com.jayway.jsonpath:json-path</ignoredUnusedDeclaredDependency>
+          </ignoredUnusedDeclaredDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <dependencies>
 
     <dependency>
@@ -34,6 +48,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-acl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-field-filtering</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -62,6 +80,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
@@ -100,6 +122,14 @@
       <artifactId>spring-security-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
@@ -111,12 +141,10 @@
       <groupId>com.scalified</groupId>
       <artifactId>tree</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -148,6 +176,14 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-csv</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
     <dependency>
       <groupId>org.locationtech.jts</groupId>
@@ -210,6 +246,16 @@
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-geojson</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
       <scope>test</scope>
     </dependency>
 

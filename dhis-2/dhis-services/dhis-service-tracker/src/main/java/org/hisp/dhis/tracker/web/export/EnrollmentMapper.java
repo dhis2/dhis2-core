@@ -25,25 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.export;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.tracker.web.view.Enrollment;
+import org.hisp.dhis.tracker.web.view.InstantMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Mapper( uses = {
+    RelationshipMapper.class,
+    AttributeMapper.class,
+    NoteMapper.class,
+    EventMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface EnrollmentMapper extends ViewMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

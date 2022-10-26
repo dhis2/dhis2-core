@@ -25,25 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.imports;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.web.view.InstantMapper;
+import org.hisp.dhis.tracker.web.view.Relationship;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Mapper( uses = {
+    RelationshipItemMapper.class,
+    InstantMapper.class,
+    MetadataIdentifierMapper.class
+} )
+interface RelationshipMapper
+    extends DomainMapper<Relationship, org.hisp.dhis.tracker.domain.Relationship>
 {
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    @Mapping( target = "relationshipType", source = "relationshipType", qualifiedByName = "toMetadataIdentifier" )
+    org.hisp.dhis.tracker.domain.Relationship from( Relationship relationship,
+        @Context TrackerIdSchemeParams idSchemeParams );
 }

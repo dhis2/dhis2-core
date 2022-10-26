@@ -25,25 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.view;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.time.Instant;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.ValueType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Attribute
 {
+    @JsonProperty
+    private String attribute;
 
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    @JsonProperty
+    private String code;
+
+    @JsonProperty
+    private String displayName;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private ValueType valueType;
+
+    @JsonProperty
+    private String value;
 }

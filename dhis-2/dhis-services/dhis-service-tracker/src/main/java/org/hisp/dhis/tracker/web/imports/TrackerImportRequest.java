@@ -25,25 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.imports;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import lombok.Builder;
+import lombok.Value;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.security.core.Authentication;
+
+@Value
+@Builder
+public class TrackerImportRequest
 {
+    private final Authentication authentication;
 
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    private final String uid;
+
+    private final String userUid;
+
+    private final ContextService contextService;
+
+    private final TrackerBundleParams trackerBundleParams;
+
+    private final boolean isAsync;
+
+    private final TrackerBundleReportMode trackerBundleReportMode;
 }

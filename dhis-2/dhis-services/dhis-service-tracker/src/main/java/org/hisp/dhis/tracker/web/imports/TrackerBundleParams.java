@@ -25,25 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.imports;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import org.hisp.dhis.tracker.web.view.Enrollment;
+import org.hisp.dhis.tracker.web.view.Event;
+import org.hisp.dhis.tracker.web.view.Relationship;
+import org.hisp.dhis.tracker.web.view.TrackedEntity;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
+ * Maps the Tracker import payload
  *
- * @author Jan Bernitt
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Getter
+@ToString
+@EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
+public class TrackerBundleParams
 {
+    /**
+     * Tracked entities to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+    /**
+     * Enrollments to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Enrollment> enrollments = new ArrayList<>();
+
+    /**
+     * Events to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Event> events = new ArrayList<>();
+
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Relationship> relationships = new ArrayList<>();
 }

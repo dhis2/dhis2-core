@@ -25,25 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.export.trigramsummary;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
+ * TrigramSummary object to store trigram indexing status
  *
- * @author Jan Bernitt
+ * @author Ameen Mohamed
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
-{
 
-    @Test
-    void testAsyncPostJsonTracker()
+@JacksonXmlRootElement
+@NoArgsConstructor
+public class TrigramSummary
+{
+    private List<ObjectNode> indexedAttributes = new ArrayList<>();
+
+    private List<ObjectNode> indexableAttributes = new ArrayList<>();
+
+    private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
+
+    @JsonProperty
+    public List<ObjectNode> getIndexedAttributes()
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        return indexedAttributes;
+    }
+
+    public void setIndexedAttributes( List<ObjectNode> indexedAttributes )
+    {
+        this.indexedAttributes = indexedAttributes;
+    }
+
+    @JsonProperty
+    public List<ObjectNode> getIndexableAttributes()
+    {
+        return indexableAttributes;
+    }
+
+    public void setIndexableAttributes(
+        List<ObjectNode> indexableAttributes )
+    {
+        this.indexableAttributes = indexableAttributes;
+    }
+
+    @JsonProperty
+    public List<ObjectNode> getObsoleteIndexedAttributes()
+    {
+        return obsoleteIndexedAttributes;
+    }
+
+    public void setObsoleteIndexedAttributes(
+        List<ObjectNode> obsoleteIndexedAttributes )
+    {
+        this.obsoleteIndexedAttributes = obsoleteIndexedAttributes;
     }
 }

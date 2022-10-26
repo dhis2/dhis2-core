@@ -25,25 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.view;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
 
-/**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+import org.hisp.dhis.util.DateUtils;
+import org.mapstruct.Mapper;
+
+@Mapper
+public interface InstantMapper
 {
 
-    @Test
-    void testAsyncPostJsonTracker()
+    default Instant fromString( String dateAsString )
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        return DateUtils.instantFromDateAsString( dateAsString );
     }
+
+    default Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    default Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }

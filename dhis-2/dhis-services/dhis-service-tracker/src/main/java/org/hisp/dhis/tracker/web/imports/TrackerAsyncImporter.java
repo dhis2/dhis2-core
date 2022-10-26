@@ -25,25 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.tracker.web.imports;
 
-import org.hisp.dhis.tracker.web.imports.TrackerImportController;
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.security.AuthenticationSerializer;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.job.TrackerMessage;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 /**
- * Tests the {@link TrackerImportController} using (mocked) REST requests.
- *
- * @author Jan Bernitt
+ * @author Luca Cambi <luca@dhis2.org>
  */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+@Component
+@RequiredArgsConstructor
+public class TrackerAsyncImporter
 {
+    @Nonnull
+    private final MessageManager messageManager;
 
-    @Test
-    void testAsyncPostJsonTracker()
+    public TrackerImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .trackerImportParams( params )
+            .authentication( AuthenticationSerializer.serialize( authentication ) )
+            .uid( uid )
+            .build();
+
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
+
+        return null; // empty report is not
+                     // returned
+                     // in async creation
     }
 }
