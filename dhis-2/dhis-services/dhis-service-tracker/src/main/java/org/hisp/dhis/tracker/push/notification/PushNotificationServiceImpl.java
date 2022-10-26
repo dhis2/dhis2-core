@@ -69,14 +69,14 @@ public class PushNotificationServiceImpl implements PushNotificationService
     }
 
     @SuppressWarnings( "unchecked" )
-    private Notification createNotification( boolean isSilent, String teiId )
+    private Notification createNotification( boolean isSilent, String teiId, String eventDescription )
     {
         Notification notification = new Notification();
         notification.setAppId( USER_KEY_TOKEN );
         notification.setIsAndroid( true );
 
         StringMap contentStringMap = new StringMap();
-        contentStringMap.en( "New tracked entity instance enrollment" );
+        contentStringMap.en( eventDescription );
         notification.setContents( contentStringMap );
         notification.setIncludedSegments( List.of( new String[] { "Subscribed Users" } ) );
         notification.setAdmSmallIcon( ICON_URL );
@@ -90,9 +90,9 @@ public class PushNotificationServiceImpl implements PushNotificationService
         return notification;
     }
 
-    public boolean sendNotification( boolean isSilent, String teiId )
+    public boolean sendNotification( boolean isSilent, String eventDescription, String teiId )
     {
-        Notification notification = createNotification( isSilent, teiId );
+        Notification notification = createNotification( isSilent, teiId, eventDescription );
 
         try
         {
@@ -113,6 +113,6 @@ public class PushNotificationServiceImpl implements PushNotificationService
     public static void main( String[] args )
     {
         PushNotificationServiceImpl pushService = new PushNotificationServiceImpl();
-        pushService.sendNotification( true, "ay2hFKxwqNR" );
+        pushService.sendNotification( true, "ay2hFKxwqNR", "New tracked entity instance enrollment" );
     }
 }

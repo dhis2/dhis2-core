@@ -149,6 +149,15 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
             return;
         }
         log.info( "Found TEI with uid {}", tei.getUid() );
-        pushNotificationService.sendNotification( false, tei.getUid() );
+
+        if ( op != Operation.CREATE )
+        {
+            pushNotificationService.sendNotification( false, tei.getUid(), "New enrollment" );
+        }
+        else
+        {
+            pushNotificationService.sendNotification( true, tei.getUid(), "Access revoked" );
+        }
+
     }
 }
