@@ -11,7 +11,7 @@ else
     # Bash 4.3 and older chokes on empty arrays with set -u.
     set -eo pipefail
 fi
-shopt -s nullglob globstar
+#shopxt -s nullglob globstar
 
 #
 ## script environment

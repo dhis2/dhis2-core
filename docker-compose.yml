@@ -22,7 +22,7 @@ services:
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
     healthcheck:
       test: ["CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null"]
-      start_period: 120s
+      start_period: 240s
       interval: 1s
       timeout: 3s
       retries: 5
@@ -38,6 +38,11 @@ services:
     working_dir: /opt/dump
     volumes:
       - db-dump:/opt/dump
-
+  nginx:
+    image: nginx
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8081:80"
 volumes:
   db-dump:
