@@ -40,7 +40,9 @@ import com.onesignal.client.ApiException;
 import com.onesignal.client.Configuration;
 import com.onesignal.client.api.DefaultApi;
 import com.onesignal.client.auth.HttpBearerAuth;
-import com.onesignal.client.model.*;
+import com.onesignal.client.model.CreateNotificationSuccessResponse;
+import com.onesignal.client.model.Notification;
+import com.onesignal.client.model.StringMap;
 
 @Service
 public class PushNotificationServiceImpl implements PushNotificationService
@@ -115,7 +117,6 @@ public class PushNotificationServiceImpl implements PushNotificationService
     }
 
     public static void main( String[] args )
-        throws ApiException
     {
         PushNotificationServiceImpl pushService = new PushNotificationServiceImpl();
         pushService.sendNotification( true, "ay2hFKxwqNR" );
