@@ -89,10 +89,12 @@ public class PushNotificationServiceImpl implements PushNotificationService
         jsonObject.put( "teiId", teiId );
         notification.setData( jsonObject );
 
+        log.info( "Teiid: {}", teiId );
+
         return notification;
     }
 
-    public boolean sendNotification( boolean isSilent, boolean forceLogout, String eventDescription, String teiId )
+    public boolean sendNotification( boolean isSilent, boolean forceLogout, String teiId, String eventDescription )
     {
         Notification notification = createNotification( isSilent, forceLogout, teiId, eventDescription );
 
