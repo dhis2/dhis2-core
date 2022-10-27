@@ -28,7 +28,18 @@
 
 package org.hisp.dhis.tracker.teis;
 
+<<<<<<< HEAD
 import com.google.gson.JsonObject;
+=======
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
+
+>>>>>>> 6762972318 (fix: illegal argument when missing filterable attributes, clean code)
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -42,6 +53,7 @@ import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -120,6 +132,17 @@ class TrackedEntityInstanceQueryTests
             .body( "height", greaterThanOrEqualTo( 1 ) )
             .body( "rows", hasItem(
                 hasToStringContaining( Arrays.asList( teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue() ) ) ) );
+    }
+
+    @Test
+    public void shouldReturnBadRequestProgramWithNoFilterableAttributes()
+    {
+        trackedEntityInstanceQueryActions
+            .get( "?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2" )
+            .validate()
+            .statusCode( 400 )
+            .body( "status", equalTo( "ERROR" ) )
+            .body( "httpStatusCode", equalTo( 400 ) );
     }
 
     private String createTei()

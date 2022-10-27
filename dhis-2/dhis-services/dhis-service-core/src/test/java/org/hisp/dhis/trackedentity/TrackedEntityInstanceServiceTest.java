@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -299,5 +300,44 @@ class TrackedEntityInstanceServiceTest
 
         assertEquals( 1, grid.getHeight() );
 
+    }
+
+    @Test
+    void testTrackedEntityInstanceGridWithNoFilterableAttributes()
+    {
+        User user = createUser( "NoAttributeFilterUser" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        assertThrows( IllegalArgumentException.class,
+            () -> entityInstanceService.getTrackedEntityInstancesGrid( params ) );
+    }
+
+    @Test
+    void testTrackedEntityInstanceGridWithNoDisplayAttributes()
+    {
+        User user = createUser( "NoDisplayAttributeFilterUser" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+
+        filtH.setDisplayInListNoProgram( false );
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        assertThrows( IllegalArgumentException.class,
+            () -> entityInstanceService.getTrackedEntityInstancesGrid( params ) );
     }
 }
