@@ -333,4 +333,41 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( 1, grid.getHeight() );
 
     }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testTrackedEntityInstanceGridWithNoFilterableAttributes()
+    {
+        User user = createUser( "NoAttributeFilterUser" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        entityInstanceService.getTrackedEntityInstancesGrid( params );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void testTrackedEntityInstanceGridWithNoDisplayAttributes()
+    {
+        User user = createUser( "NoDisplayAttributeFilterUser" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+
+        filtH.setDisplayInListNoProgram( false );
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        entityInstanceService.getTrackedEntityInstancesGrid( params );
+    }
 }
