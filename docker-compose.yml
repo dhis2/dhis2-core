@@ -4,7 +4,7 @@ services:
   web:
     image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
     ports:
-      - 127.0.0.1:8080:8080 # DHIS2
+      - 127.0.0.1:8181:8080 # DHIS2
       - 127.0.0.1:8081:8081 # Debugger
       - 127.0.0.1:9010:9010 # JMX port (for example for VisualVM)
     volumes:
