@@ -234,7 +234,6 @@ public class DimensionParam implements UidObject
         EXECUTIONDATE( ValueType.DATETIME ),
         LASTUPDATED( ValueType.DATETIME ),
         CREATED( ValueType.DATETIME );
-        // TODO: do we need more here ?
 
         private final ValueType valueType;
 

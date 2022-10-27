@@ -63,8 +63,6 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.statement(),
             new MapSqlParameterSource().addValues( query.params() ) );
 
-        // TODO: How to handle exceptions during the query execution?
-
         return new SqlQueryResult( rowSet );
     }
 }

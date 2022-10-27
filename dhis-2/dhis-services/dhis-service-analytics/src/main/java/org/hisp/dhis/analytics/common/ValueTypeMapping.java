@@ -45,7 +45,6 @@ import org.hisp.dhis.util.DateUtils;
 
 public enum ValueTypeMapping
 {
-    // TODO: adds mappings here
     NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
     DECIMAL( BigDecimal::new, ValueType.NUMBER ),
     STRING( s -> s ),

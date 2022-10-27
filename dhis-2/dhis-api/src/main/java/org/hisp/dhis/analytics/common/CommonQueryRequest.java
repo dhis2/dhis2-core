@@ -38,6 +38,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.With;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
@@ -156,4 +158,11 @@ public class CommonQueryRequest
      * The default is false.
      */
     private boolean totalPages = false;
+
+    public boolean hasPrograms()
+    {
+        return CollectionUtils.emptyIfNull( program )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
 }

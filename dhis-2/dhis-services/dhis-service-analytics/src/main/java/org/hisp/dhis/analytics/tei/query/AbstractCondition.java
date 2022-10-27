@@ -73,7 +73,7 @@ public abstract class AbstractCondition extends BaseRenderable
     {
         // Default implementation, subclasses will override where needed
         throw new IllegalStateException( "Not supported for TEI dimension" );
-    };
+    }
 
     private String enrollmentConditionInternal()
     {

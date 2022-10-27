@@ -48,6 +48,5 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
     public void validate( QueryRequest<TeiQueryRequest> queryRequest )
     {
         commonQueryRequestValidator.validate( queryRequest.getCommonQueryRequest() );
-        // TODO: DHIS2-13382 validate the TEI part of the request
     }
 }

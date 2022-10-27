@@ -84,7 +84,7 @@ public class BinaryConditionRenderer extends BaseRenderable
             return InOrEqConditionRenderer.of( left, right ).render();
         }
         // NE / NEQ
-        if ( NEQ == queryOperator || NE == queryOperator )
+        if ( NEQ == queryOperator )
         {
             if ( hasNullValue( right ) )
             {

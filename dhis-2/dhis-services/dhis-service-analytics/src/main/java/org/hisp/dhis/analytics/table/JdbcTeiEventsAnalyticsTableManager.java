@@ -72,13 +72,11 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -91,6 +89,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component( "org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager" )
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 {
+    private static final String AND = " and (";
+
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     public JdbcTeiEventsAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
@@ -194,7 +194,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
         List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
         Calendar calendar = PeriodType.getCalendar();
 
@@ -206,7 +205,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
             Collections.sort( dataYears );
 
-            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getTableColumns( programs, tet ),
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getTableColumns(),
                 newArrayList(), tet );
 
             for ( Integer year : dataYears )
@@ -233,15 +232,15 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " inner join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
             .append( " where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " )
             .append( " and tet.trackedentitytypeid = " + tet.getId() + " " )
-            .append( " and (" + getDateLinkedToStatus() + ") is not null " )
-            .append( " and (" + getDateLinkedToStatus() + ") > '1000-01-01' " )
+            .append( AND + getDateLinkedToStatus() + ") is not null " )
+            .append( AND + getDateLinkedToStatus() + ") > '1000-01-01' " )
             .append( " and psi.deleted is false " )
             .append( " and tei.deleted is false" );
 
         if ( params.getFromDate() != null )
         {
             sql.append(
-                " and (" + getDateLinkedToStatus() + ") >= '" + getMediumDateString( params.getFromDate() ) + "'" );
+                AND + getDateLinkedToStatus() + ") >= '" + getMediumDateString( params.getFromDate() ) + "'" );
         }
 
         sql.append( " ) as temp where temp.supportedyear >= " + FIRST_YEAR_SUPPORTED +
@@ -250,50 +249,13 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         return jdbcTemplate.queryForList( sql.toString(), Integer.class );
     }
 
-    private List<AnalyticsTableColumn> getTableColumns( List<Program> programs, TrackedEntityType tet )
+    private List<AnalyticsTableColumn> getTableColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>( getFixedColumns() );
 
         columns.addAll( addPeriodTypeColumns( "dps" ) );
 
-        // programs.stream()
-        // .filter( p -> Objects.nonNull( p.getTrackedEntityType() ) )
-        // .filter( p -> p.getTrackedEntityType().getUid().equals( tet.getUid()
-        // ) )
-        // .flatMap( p -> p.getProgramStages().stream() )
-        // .flatMap( ps -> ps.getDataElements().stream() )
-        // .distinct()
-        // .forEach( de -> columns.add( new AnalyticsTableColumn(
-        // "cast(eventdatavalues -> '"
-        // + de.getUid() + "' ->> 'value' as "
-        // + getDatabaseValueType( de.getValueType() ) + ")", JSONB, true ) ) );
-
         return columns;
-    }
-
-    /**
-     * Returns the postgres value type of analytics table column which this
-     * manager handles.
-     *
-     * @return type of column value.
-     */
-    private static String getDatabaseValueType( ValueType valueType )
-    {
-        switch ( valueType )
-        {
-        case PERCENTAGE:
-            return "numeric(4,2)";
-        case DATETIME:
-            return "time";
-        case INTEGER:
-        case INTEGER_NEGATIVE:
-        case INTEGER_POSITIVE:
-        case INTEGER_ZERO_OR_POSITIVE:
-        case NUMBER:
-            return "numeric";
-        default:
-            return "varchar";
-        }
     }
 
     /**

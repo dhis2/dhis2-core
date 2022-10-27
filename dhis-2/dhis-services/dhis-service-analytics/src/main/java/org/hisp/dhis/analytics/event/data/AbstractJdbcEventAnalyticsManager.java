@@ -134,13 +134,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final String _AND_ = " and ";
+    private static final String AND = " and ";
 
-    private static final String _OR_ = " or ";
+    private static final String OR = " or ";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
+
+    private static final String VALUE = "value";
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -152,7 +154,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected final ExecutionPlanStore executionPlanStore;
 
-    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+    protected AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
     {
@@ -214,17 +216,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private String getSortColumns( EventQueryParams params, SortOrder order )
     {
-        String sql = "";
+        StringBuilder sql = new StringBuilder();
 
         for ( QueryItem item : order == ASC ? params.getAsc() : params.getDesc() )
         {
             if ( item.getItem().getDimensionItemType() == PROGRAM_INDICATOR )
             {
-                sql += quote( item.getItem().getUid() );
+                sql.append( quote( item.getItem().getUid() ) );
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                sql += getSortColumnForDataElementDimensionType( item );
+                sql.append( getSortColumnForDataElementDimensionType( item ) );
             }
             else
             {
@@ -232,17 +234,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
                  * Query returns UIDs but we want sorting on name or shortName
                  * (depending on DisplayProperty) for OUGS/COGS
                  */
-                sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
+                sql.append( Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( this::hasItems )
                     .map( dim -> toCase( dim, quoteAlias( item.getItem().getUid() ), params.getDisplayProperty() ) )
-                    .orElse( quoteAlias( item.getItem().getUid() ) );
+                    .orElse( quoteAlias( item.getItem().getUid() ) ) );
             }
 
-            sql += order == ASC ? " asc," : " desc,";
+            sql.append( order == ASC ? " asc," : " desc," );
         }
 
-        return sql;
+        return sql.toString();
     }
 
     private String getSortColumnForDataElementDimensionType( QueryItem item )
@@ -500,7 +502,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         List<String> selectColumnNames = getGroupByColumnNames( params, true );
 
-        if ( selectColumnNames.size() > 0 )
+        if ( !selectColumnNames.isEmpty() )
         {
             sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
         }
@@ -631,18 +633,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( params.hasValueDimension() )
             {
-                double value = rowSet.getDouble( "value" );
+                double value = rowSet.getDouble( VALUE );
                 grid.addValue( params.isSkipRounding() ? value : getRounded( value ) );
             }
             else if ( params.hasProgramIndicatorDimension() )
             {
-                double value = rowSet.getDouble( "value" );
+                double value = rowSet.getDouble( VALUE );
                 ProgramIndicator indicator = params.getProgramIndicator();
                 grid.addValue( AnalyticsUtils.getRoundedValue( params, indicator.getDecimals(), value ) );
             }
             else
             {
-                int value = rowSet.getInt( "value" );
+                int value = rowSet.getInt( VALUE );
                 grid.addValue( value );
             }
 
@@ -1128,7 +1130,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return "";
         }
-        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
+        return hlp.whereAnd() + " " + String.join( AND, sqlConditionByGroup.values() );
     }
 
     /**
@@ -1174,7 +1176,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         return queryItem.getFilters().stream()
             .map( filter -> toSql( queryItem, filter, params ) )
-            .collect( joining( _AND_ ) );
+            .collect( joining( AND ) );
     }
 
     /**
@@ -1233,6 +1235,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NLIKE:
                 case NILIKE:
                     return nullAndEmptyMatcher( item, filter, field );
+                default:
                 }
             }
 

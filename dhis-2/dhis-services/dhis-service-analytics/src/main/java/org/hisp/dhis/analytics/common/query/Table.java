@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class Table implements Renderable
 {
-    private final Renderable table;
+    private final Renderable tableName;
 
     private final Renderable alias;
 
@@ -49,6 +49,6 @@ public class Table implements Renderable
     @Override
     public String render()
     {
-        return join( SPACE, table.render(), alias.render() );
+        return join( SPACE, tableName.render(), alias.render() );
     }
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -44,8 +43,7 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
     @Override
     public void validate( CommonQueryRequest commonQueryRequest )
     {
-        if ( commonQueryRequest.getProgram().size() == 0
-            || commonQueryRequest.getProgram().stream().anyMatch( StringUtils::isBlank ) )
+        if ( !commonQueryRequest.hasPrograms() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7136 ) );
         }

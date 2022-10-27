@@ -65,12 +65,12 @@ public class PeriodCondition extends AbstractCondition
         this.queryContext = queryContext;
 
         Date minDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .map( Period.class::cast )
             .map( Period::getStartDate )
             .reduce( DateUtils::min ).orElse( null );
 
         Date maxDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .map( Period.class::cast )
             .map( Period::getEndDate )
             .map( this::nextDay )
             .reduce( DateUtils::max ).orElse( null );

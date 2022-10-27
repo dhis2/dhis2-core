@@ -81,6 +81,12 @@ public enum QueryOperator
             return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
         }
 
+        // To still support NE operator until it gets removed
+        if ( string.trim().equals( "NE" ) )
+        {
+            return NEQ;
+        }
+
         return valueOf( string.toUpperCase() );
     }
 

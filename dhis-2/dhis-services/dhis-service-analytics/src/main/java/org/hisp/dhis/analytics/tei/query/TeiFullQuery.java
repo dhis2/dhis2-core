@@ -204,7 +204,6 @@ public class TeiFullQuery extends BaseRenderable
     private Renderable toCondition( DimensionParamObjectType type,
         List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> dimensionIdentifiers )
     {
-        // TODO: depending on the type, we should build a proper condition
         if ( type == DATA_ELEMENT )
         {
             return AndCondition.of(
