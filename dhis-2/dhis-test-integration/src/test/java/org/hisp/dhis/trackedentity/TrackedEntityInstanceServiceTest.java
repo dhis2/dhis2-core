@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -308,5 +309,37 @@ class TrackedEntityInstanceServiceTest
         Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
 
         assertEquals( 1, grid.getHeight() );
+    }
+
+    @Test
+    void testTrackedEntityInstanceGridWithNoFilterableAttributes()
+    {
+        injectSecurityContext( superUser );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        assertThrows( IllegalArgumentException.class,
+            () -> entityInstanceService.getTrackedEntityInstancesGrid( params ) );
+    }
+
+    @Test
+    void testTrackedEntityInstanceGridWithNoDisplayAttributes()
+    {
+        injectSecurityContext( superUser );
+        filtH.setDisplayInListNoProgram( false );
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        assertThrows( IllegalArgumentException.class,
+            () -> entityInstanceService.getTrackedEntityInstancesGrid( params ) );
     }
 }
