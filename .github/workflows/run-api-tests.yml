@@ -31,7 +31,7 @@ jobs:
           cache: maven
       - name: Build core image
         run: |
-          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
+          mvn org.apache.maven.plugins:maven-install-plugin:3.0.1:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
           mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f dhis-2/dhis-web/pom.xml
           mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web/dhis-web-portal/pom.xml jib:dockerBuild -Djib.to.image=$CORE_IMAGE_NAME
@@ -54,7 +54,7 @@ jobs:
 
       - name: Run tests
         run: |
-          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
+          mvn org.apache.maven.plugins:maven-install-plugin:3.0.1:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
           cd dhis-2/dhis-e2e-test
           DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 

@@ -23,7 +23,7 @@ jobs:
           cache: maven
       - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
         run: |
-          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar 
+          mvn org.apache.maven.plugins:maven-install-plugin:3.0.1:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar 
           mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
       - name: Report coverage to codecov
@@ -72,7 +72,7 @@ jobs:
           cache: maven
       - name: Run integration tests
         run: |
-          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
+          mvn org.apache.maven.plugins:maven-install-plugin:3.0.1:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
           mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
       - uses: actions/upload-artifact@v3
@@ -125,7 +125,7 @@ jobs:
           cache: maven
       - name: Run integration h2 tests
         run: |
-          mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
+          mvn org.apache.maven.plugins:maven-install-plugin:3.0.1:install-file -Dfile=dhis-2/onesignal-java-client-1.0.1.jar
           mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
         timeout-minutes: 30
       - uses: actions/upload-artifact@v3
