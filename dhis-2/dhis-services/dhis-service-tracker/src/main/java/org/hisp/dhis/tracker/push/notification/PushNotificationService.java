@@ -30,5 +30,5 @@ package org.hisp.dhis.tracker.push.notification;
 public interface PushNotificationService
 {
 
-    boolean sendNotification( boolean isSilent, String eventDescription, String teiId );
+    boolean sendNotification( boolean isSilent, boolean forceLogout, String eventDescription, String teiId );
 }

@@ -148,15 +148,18 @@ public class PushNotificationChangeEventListener extends AbstractStartupRoutine
             // should not happen but let's not demo an NPE :joy:
             return;
         }
-        log.info( "Found TEI with uid {}", tei.getUid() );
 
-        if ( op != Operation.CREATE )
+        tei.setUid( "RD9TbV3jszL" );
+
+        if ( op == Operation.CREATE )
         {
-            pushNotificationService.sendNotification( false, tei.getUid(), "New enrollment" );
+            log.info( "Notification new enrollment for tei id: {}", tei.getUid() );
+            pushNotificationService.sendNotification( false, false, tei.getUid(), "New enrollment" );
         }
         else
         {
-            pushNotificationService.sendNotification( true, tei.getUid(), "Access revoked" );
+            log.info( "Notification access revoked for tei id: {}", tei.getUid() );
+            pushNotificationService.sendNotification( true, true, tei.getUid(), "Access revoked" );
         }
 
     }

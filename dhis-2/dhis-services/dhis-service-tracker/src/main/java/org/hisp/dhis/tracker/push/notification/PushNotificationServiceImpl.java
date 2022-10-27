@@ -69,7 +69,8 @@ public class PushNotificationServiceImpl implements PushNotificationService
     }
 
     @SuppressWarnings( "unchecked" )
-    private Notification createNotification( boolean isSilent, String teiId, String eventDescription )
+    private Notification createNotification( boolean isSilent, boolean forceLogout, String teiId,
+        String eventDescription )
     {
         Notification notification = new Notification();
         notification.setAppId( USER_KEY_TOKEN );
@@ -84,22 +85,24 @@ public class PushNotificationServiceImpl implements PushNotificationService
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put( "isSilent", isSilent );
+        jsonObject.put( "forceLogout", forceLogout );
         jsonObject.put( "teiId", teiId );
         notification.setData( jsonObject );
 
         return notification;
     }
 
-    public boolean sendNotification( boolean isSilent, String eventDescription, String teiId )
+    public boolean sendNotification( boolean isSilent, boolean forceLogout, String eventDescription, String teiId )
     {
-        Notification notification = createNotification( isSilent, teiId, eventDescription );
+        Notification notification = createNotification( isSilent, forceLogout, teiId, eventDescription );
 
         try
         {
             CreateNotificationSuccessResponse response = defaultApi
                 .createNotification( notification );
 
-            log.info( "Notification id sent: {}", response.getId() );
+            log.info( "Notification id sent: {}, is silent? {}, force logout? {}", response.getId(), isSilent,
+                forceLogout );
 
             return !response.getId().isEmpty();
         }
