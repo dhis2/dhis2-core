@@ -26,7 +26,6 @@ pipeline {
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
         DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
-        DOCKER_IMAGE_NAME_PUBLISH_TARGET = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}" // used to publish to Dockerhub
     }
 
     stages {
@@ -147,19 +146,16 @@ pipeline {
         stage('Publish images') {
             steps {
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    script {
-                        // Docker images are built in a matrix of different base images
-                        // all these images are used for testing but only one is published and endorsed for use in production
-                        // which is the DOCKER_IMAGE_NAME_PUBLISH_SOURCE
+                    if (env.GIT_BRANCH == 'master') {
+                        tag = 'latest'
+                    } else {
+                        tag = env.GIT_BRANCH
+                    }
 
-                        sh "docker manifest create ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
-                        sh "docker manifest push ${DOCKER_IMAGE_NAME_PUBLISH_TARGET}"
-
-
-                        if (env.GIT_BRANCH == 'master') {
-                            sh "docker manifest create ${DOCKER_IMAGE_NAME}:latest \$(docker manifest inspect ${DOCKER_IMAGE_NAME_PUBLISH_TARGET} | jq -r '.manifests[].digest' | xargs -I {} echo dhis2/core-dev@{})"
-                            sh "docker manifest push ${DOCKER_IMAGE_NAME}:latest"
-                        }
+                    withMaven(options: [artifactsPublisher(disabled: true)]) {
+                        sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+                                        -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+                                        -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag}"
                     }
                 }
             }
