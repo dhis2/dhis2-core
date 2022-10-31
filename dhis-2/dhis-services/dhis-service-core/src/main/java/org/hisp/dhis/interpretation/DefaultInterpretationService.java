@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.interpretation;
 
+import static java.util.Collections.emptySet;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -118,8 +121,6 @@ public class DefaultInterpretationService
     {
         User user = currentUserService.getCurrentUser();
 
-        Set<User> users = new HashSet<>();
-
         if ( user != null )
         {
             interpretation.setCreatedBy( user );
@@ -130,7 +131,7 @@ public class DefaultInterpretationService
             interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
         }
 
-        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
         interpretation.setMentionsFromUsers( users );
         updateSharingForMentions( interpretation, users );
 
@@ -287,7 +288,8 @@ public class DefaultInterpretationService
         if ( interpretableObjectSchema.isSubscribable() )
         {
             SubscribableObject object = (SubscribableObject) interpretableObject;
-            Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
+            Set<User> subscribers = new HashSet<>(
+                userService.getUsers( firstNonNull( object.getSubscribers(), emptySet() ) ) );
             subscribers.remove( currentUserService.getCurrentUser() );
 
             if ( !subscribers.isEmpty() )
