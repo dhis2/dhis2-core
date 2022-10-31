@@ -344,25 +344,13 @@ public class Period
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof Period && objectEquals( (Period) obj );
+    }
 
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
+    private boolean objectEquals( Period other )
+    {
         return startDate.equals( other.getStartDate() ) &&
             endDate.equals( other.getEndDate() ) &&
             periodType.equals( other.getPeriodType() ) &&

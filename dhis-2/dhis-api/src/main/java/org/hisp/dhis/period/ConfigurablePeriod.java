@@ -32,10 +32,9 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
-public class ConfigurablePeriod
-    extends Period
+public class ConfigurablePeriod extends Period
 {
-    private String value;
+    private final String value;
 
     public ConfigurablePeriod( String value )
     {
@@ -63,25 +62,13 @@ public class ConfigurablePeriod
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof Period && objectEquals( (Period) obj );
+    }
 
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
+    private boolean objectEquals( Period other )
+    {
         return value.equals( other.getIsoDate() );
     }
 
