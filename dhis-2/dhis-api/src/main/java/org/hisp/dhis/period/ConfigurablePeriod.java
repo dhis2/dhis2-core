@@ -28,7 +28,6 @@
 package org.hisp.dhis.period;
 
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
@@ -65,12 +64,12 @@ public class ConfigurablePeriod extends Period
     @Override
     public boolean equals( Object obj )
     {
-        return this == obj || obj instanceof ConfigurablePeriod && objectEquals( (ConfigurablePeriod) obj );
+        return this == obj || obj instanceof Period && objectEquals( (Period) obj );
     }
 
-    private boolean objectEquals( ConfigurablePeriod other )
+    private boolean objectEquals( Period other )
     {
-        return Objects.equals( value, other.value );
+        return value.equals( other.getIsoDate() );
     }
 
     @Override
