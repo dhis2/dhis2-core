@@ -145,11 +145,11 @@ public class MessageConversation
 
     public void addMessage( Message message )
     {
-        if ( message != null )
+        if ( message == null )
         {
-            message.setAutoFields();
+            return;
         }
-
+        message.setAutoFields();
         this.messages.add( message );
         if ( !message.isInternal() )
         {

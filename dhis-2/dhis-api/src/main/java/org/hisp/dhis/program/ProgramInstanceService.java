@@ -271,6 +271,7 @@ public interface ProgramInstanceService
      * @param uid UID to use for new instance
      * @return ProgramInstance
      */
+    @Nonnull
     ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }
