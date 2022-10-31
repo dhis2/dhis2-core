@@ -25,7 +25,7 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}-9.0-jre11" // source of image to publish to Dockerhub (one of the matrix axes)
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11"
     }
 
     stages {

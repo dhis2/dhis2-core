@@ -112,9 +112,6 @@ pipeline {
 
         stage('Publish images') {
             steps {
-                // Docker images are built in a matrix of different base images
-                // all these images are used for testing but only one is published and endorsed for use in production
-                // which is the DOCKER_IMAGE_NAME_PUBLISH_TARGET
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
