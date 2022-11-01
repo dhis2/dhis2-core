@@ -54,7 +54,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * formula represents the total value for all category option combos for that
  * data element.
  *
- * @author Margrethe Store
  */
 @JacksonXmlRootElement( localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class ExpressionDimensionItem

@@ -42,10 +42,6 @@ import org.springframework.transaction.annotation.Transactional;
  * The expression is a string describing a formula containing data element ids
  * and category option combo ids. The formula can potentially contain references
  * to data element totals.
- *
- * @author Margrethe Store
- * @author Lars Helge Overland
- * @author Jim Grace
  */
 @Slf4j
 @Service( "org.hisp.dhis.expression.ExpressionDimensionItemService" )

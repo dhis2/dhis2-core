@@ -55,6 +55,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Dusan Bernat
  */
+
+/**
+ *
+ */
 @Controller
 @RequestMapping( value = "/expressionDimensionItems" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -63,6 +67,11 @@ public class ExpressionDimensionItemController
 {
     private final ExpressionDimensionItemService expressionService;
 
+    /**
+     *
+     * @param descriptionFilter
+     * @return
+     */
     @ResponseBody
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<List<ExpressionDimensionItem>> getExpressionDimensionItems(
@@ -95,6 +104,11 @@ public class ExpressionDimensionItemController
         }
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
     @ResponseBody
     @GetMapping( path = "{id}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ExpressionDimensionItem> getExpressionDimensionItems( @PathVariable Long id )
@@ -112,6 +126,11 @@ public class ExpressionDimensionItemController
         }
     }
 
+    /**
+     *
+     * @param expressionDimensionItem
+     * @return
+     */
     @ResponseBody
     @PostMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ExpressionDimensionItem> createExpressionDimensionItem(
@@ -129,6 +148,11 @@ public class ExpressionDimensionItemController
         }
     }
 
+    /**
+     *
+     * @param expressionDimensionItem
+     * @return
+     */
     @ResponseBody
     @PutMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ExpressionDimensionItem> updateExpressionDimensionItem(
@@ -146,6 +170,11 @@ public class ExpressionDimensionItemController
         }
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     */
     @ResponseBody
     @DeleteMapping( path = "{id}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<ExpressionDimensionItem> deleteExpressionDimensionItem( @PathVariable Long id )
