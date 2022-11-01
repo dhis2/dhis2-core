@@ -1426,15 +1426,16 @@ public abstract class BaseAnalyticalObject
         return subscribers;
     }
 
-    @CheckForNull
-    public void setSubscribers( Set<String> subscribers )
+    public void setSubscribers( @CheckForNull Set<String> subscribers )
     {
         if ( subscribers == null )
         {
-            subscribers = new HashSet<>();
+            this.subscribers = new HashSet<>();
         }
-
-        this.subscribers = subscribers;
+        else
+        {
+            this.subscribers = subscribers;
+        }
     }
 
     @Override
