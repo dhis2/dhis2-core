@@ -29,6 +29,8 @@ package org.hisp.dhis.document;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.user.User;
 
 /**
@@ -87,7 +89,7 @@ public interface DocumentService
 
     int getDocumentCountByName( String name );
 
-    List<Document> getDocumentsByUid( List<String> uids );
+    List<Document> getDocumentsByUid( @Nonnull List<String> uids );
 
     long getCountDocumentByUser( User user );
 }

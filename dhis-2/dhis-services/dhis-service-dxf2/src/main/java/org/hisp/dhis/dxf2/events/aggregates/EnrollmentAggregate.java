@@ -36,7 +36,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -57,10 +58,10 @@ public class EnrollmentAggregate
     extends
     AbstractAggregate
 {
-    @NonNull
+    @Nonnull
     private final EnrollmentStore enrollmentStore;
 
-    @NonNull
+    @Nonnull
     private final EventAggregate eventAggregate;
 
     /**

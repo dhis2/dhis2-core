@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.MessageManager;
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TrackerAsyncImporter
 {
-    @NonNull
+    @Nonnull
     private final MessageManager messageManager;
 
     public TrackerImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )

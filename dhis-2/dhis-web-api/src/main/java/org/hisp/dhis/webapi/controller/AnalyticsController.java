@@ -32,10 +32,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
 
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -72,13 +72,13 @@ public class AnalyticsController
 
     private static final String RAW_DATA_PATH = "/rawData";
 
-    @NonNull
+    @Nonnull
     private final DataQueryService dataQueryService;
 
-    @NonNull
+    @Nonnull
     private final AnalyticsService analyticsService;
 
-    @NonNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
     // -------------------------------------------------------------------------

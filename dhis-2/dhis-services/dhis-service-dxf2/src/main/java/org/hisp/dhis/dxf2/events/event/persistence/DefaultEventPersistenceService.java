@@ -33,7 +33,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -54,10 +55,10 @@ public class DefaultEventPersistenceService
     implements
     EventPersistenceService
 {
-    @NonNull
+    @Nonnull
     private final EventStore jdbcEventStore;
 
-    @NonNull
+    @Nonnull
     private final EventCommentStore jdbcEventCommentStore;
 
     @Override

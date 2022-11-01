@@ -35,6 +35,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -42,7 +44,7 @@ public interface FileResourceService
 {
     FileResource getFileResource( String uid );
 
-    List<FileResource> getFileResources( List<String> uids );
+    List<FileResource> getFileResources( @Nonnull List<String> uids );
 
     List<FileResource> getOrphanedFileResources();
 

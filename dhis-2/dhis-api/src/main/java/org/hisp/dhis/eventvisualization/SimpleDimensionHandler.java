@@ -139,9 +139,7 @@ public class SimpleDimensionHandler
     private SimpleDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
         final Attribute attribute )
     {
-        final SimpleDimension simpleDimension = new SimpleDimension();
-        simpleDimension.setParent( attribute );
-        simpleDimension.setDimension( dimensionalObject.getUid() );
+        final SimpleDimension simpleDimension = new SimpleDimension( attribute, dimensionalObject.getUid() );
 
         if ( isNotEmpty( dimensionalObject.getItems() ) )
         {

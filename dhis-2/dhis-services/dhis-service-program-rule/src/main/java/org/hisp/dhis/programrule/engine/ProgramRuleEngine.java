@@ -30,7 +30,8 @@ package org.hisp.dhis.programrule.engine;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,19 +60,19 @@ public class ProgramRuleEngine
 {
     private static final String ERROR = "Program cannot be null";
 
-    @NonNull
+    @Nonnull
     private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
-    @NonNull
+    @Nonnull
     private final ProgramRuleVariableService programRuleVariableService;
 
-    @NonNull
+    @Nonnull
     private final ConstantService constantService;
 
-    @NonNull
+    @Nonnull
     private final ImplementableRuleService implementableRuleService;
 
-    @NonNull
+    @Nonnull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )

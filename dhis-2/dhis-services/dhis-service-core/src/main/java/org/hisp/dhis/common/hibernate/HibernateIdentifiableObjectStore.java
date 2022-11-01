@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -54,7 +56,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -106,19 +107,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // -------------------------------------------------------------------------
 
     @Override
-    public void save( T object )
+    public void save( @Nonnull T object )
     {
         save( object, true );
     }
 
     @Override
-    public void save( T object, User user )
+    public void save( @Nonnull T object, @CheckForNull User user )
     {
         save( object, user, true );
     }
 
     @Override
-    public void save( T object, boolean clearSharing )
+    public void save( @Nonnull T object, boolean clearSharing )
     {
         save( object, currentUserService.getCurrentUser(), clearSharing );
     }
@@ -127,51 +128,45 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( IdentifiableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( object ) ) )
+        object.setAutoFields();
+
+        object.setAutoFields();
+        object.setLastUpdatedBy( user );
+
+        if ( clearSharing )
         {
-            object.setAutoFields();
+            object.setPublicAccess( AccessStringHelper.DEFAULT );
+            SharingUtils.resetAccessCollections( object );
+        }
 
-            BaseIdentifiableObject identifiableObject = object;
-            identifiableObject.setAutoFields();
-            identifiableObject.setLastUpdatedBy( user );
+        if ( object.getCreatedBy() == null )
+        {
+            object.setCreatedBy( user );
+        }
 
-            if ( clearSharing )
-            {
-                identifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-                SharingUtils.resetAccessCollections( identifiableObject );
-            }
-
-            if ( identifiableObject.getCreatedBy() == null )
-            {
-                identifiableObject.setCreatedBy( user );
-            }
-
-            if ( identifiableObject.getSharing().getOwner() == null )
-            {
-                identifiableObject.getSharing().setOwner( identifiableObject.getCreatedBy() );
-            }
+        if ( object.getSharing().getOwner() == null )
+        {
+            object.getSharing().setOwner( object.getCreatedBy() );
         }
 
         if ( user != null && aclService.isClassShareable( clazz ) )
         {
-            BaseIdentifiableObject identifiableObject = object;
-
             if ( clearSharing )
             {
-                if ( aclService.canMakePublic( user, identifiableObject ) )
+                if ( aclService.canMakePublic( user, (BaseIdentifiableObject) object ) )
                 {
-                    if ( aclService.defaultPublic( identifiableObject ) )
+                    if ( aclService.defaultPublic( (BaseIdentifiableObject) object ) )
                     {
-                        identifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+                        object.setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
-                else if ( aclService.canMakePrivate( user, identifiableObject ) )
+                else if ( aclService.canMakePrivate( user, (BaseIdentifiableObject) object ) )
                 {
-                    identifiableObject.setPublicAccess( AccessStringHelper.newInstance().build() );
+                    object.setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
             }
 
-            if ( !checkPublicAccess( user, identifiableObject ) )
+            if ( !checkPublicAccess( user, object ) )
             {
                 AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_CREATE_DENIED );
                 throw new CreateAccessDeniedException( object.toString() );
@@ -183,32 +178,29 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public void update( T object )
+    public void update( @Nonnull T object )
     {
         update( object, currentUserService.getCurrentUser() );
     }
 
     @Override
-    public void update( T object, User user )
+    public void update( @Nonnull T object, @CheckForNull User user )
     {
         String username = user != null ? user.getUsername() : "system-process";
 
-        if ( object != null )
+        object.setAutoFields();
+
+        object.setAutoFields();
+        object.setLastUpdatedBy( user );
+
+        if ( object.getSharing().getOwner() == null )
         {
-            object.setAutoFields();
+            object.getSharing().setOwner( user );
+        }
 
-            object.setAutoFields();
-            object.setLastUpdatedBy( user );
-
-            if ( object.getSharing().getOwner() == null )
-            {
-                object.getSharing().setOwner( user );
-            }
-
-            if ( object.getCreatedBy() == null )
-            {
-                object.setCreatedBy( user );
-            }
+        if ( object.getCreatedBy() == null )
+        {
+            object.setCreatedBy( user );
         }
 
         if ( !isUpdateAllowed( object, user ) )
@@ -219,20 +211,17 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE );
 
-        if ( object != null )
-        {
-            getSession().update( object );
-        }
+        getSession().update( object );
     }
 
     @Override
-    public void delete( T object )
+    public void delete( @Nonnull T object )
     {
         this.delete( object, currentUserService.getCurrentUser() );
     }
 
     @Override
-    public final void delete( T object, User user )
+    public final void delete( @Nonnull T object, @CheckForNull User user )
     {
         String username = user != null ? user.getUsername() : "system-process";
 
@@ -244,18 +233,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_DELETE );
 
-        if ( object != null )
-        {
-            super.delete( object );
-        }
+        super.delete( object );
     }
 
+    @CheckForNull
     @Override
     public final T get( long id )
     {
-        T object = getSession().get( getClazz(), id );
+        T object = getNoPostProcess( id );
 
-        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
+        if ( object != null && !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
                 AuditLogUtil.ACTION_READ_DENIED );
@@ -265,6 +252,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return postProcessObject( object );
     }
 
+    @Nonnull
     @Override
     public final List<T> getAll()
     {
@@ -286,7 +274,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final T getByUid( String uid )
+    public final T getByUid( @Nonnull String uid )
     {
         if ( isTransientIdentifiableProperties() )
         {
@@ -303,7 +291,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final T getByUidNoAcl( String uid )
+    public final T getByUidNoAcl( @Nonnull String uid )
     {
         if ( isTransientIdentifiableProperties() )
         {
@@ -318,8 +306,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
+    @Nonnull
     @Override
-    public final T loadByUid( String uid )
+    public final T loadByUid( @Nonnull String uid )
     {
         T object = getByUid( uid );
 
@@ -332,7 +321,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final void updateNoAcl( T object )
+    public final void updateNoAcl( @Nonnull T object )
     {
         object.setAutoFields();
         getSession().update( object );
@@ -342,7 +331,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Uses query since name property might not be unique.
      */
     @Override
-    public final T getByName( String name )
+    @CheckForNull
+    public final T getByName( @Nonnull String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -365,7 +355,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final T getByCode( String code )
+    @CheckForNull
+    public final T getByCode( @Nonnull String code )
     {
         if ( isTransientIdentifiableProperties() )
         {
@@ -381,8 +372,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
+    @Nonnull
     @Override
-    public final T loadByCode( String code )
+    public final T loadByCode( @Nonnull String code )
     {
         T object = getByCode( code );
 
@@ -395,9 +387,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public T getByUniqueAttributeValue( Attribute attribute, String value )
+    @CheckForNull
+    public T getByUniqueAttributeValue( @Nonnull Attribute attribute, @Nonnull String value )
     {
-        if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
+        if ( StringUtils.isEmpty( value ) || !attribute.isUnique() )
         {
             return null;
         }
@@ -415,9 +408,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public T getByUniqueAttributeValue( Attribute attribute, String value, User user )
+    @CheckForNull
+    public T getByUniqueAttributeValue( @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull User user )
     {
-        if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
+        if ( StringUtils.isEmpty( value ) || !attribute.isUnique() )
         {
             return null;
         }
@@ -434,8 +428,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllEqName( String name )
+    public List<T> getAllEqName( @Nonnull String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -447,14 +442,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLikeName( String name )
+    public List<T> getAllLikeName( @Nonnull String name )
     {
         return getAllLikeName( name, true );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLikeName( String name, boolean caseSensitive )
+    public List<T> getAllLikeName( @Nonnull String name, boolean caseSensitive )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -477,14 +474,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLikeName( String name, int first, int max )
+    public List<T> getAllLikeName( @Nonnull String name, int first, int max )
     {
         return getAllLikeName( name, first, max, true );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive )
+    public List<T> getAllLikeName( @Nonnull String name, int first, int max, boolean caseSensitive )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -509,8 +508,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLikeName( Set<String> nameWords, int first, int max )
+    public List<T> getAllLikeName( @Nonnull Set<String> nameWords, int first, int max )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -539,43 +539,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
-    public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue,
-        int first, int max )
-    {
-        if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
-        {
-            return new ArrayList<>();
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addOrder( root -> builder.asc( root.get( "name" ) ) )
-            .setFirstResult( first )
-            .setMaxResults( max );
-
-        if ( nameWords.isEmpty() )
-        {
-            return getList( builder, param );
-        }
-
-        List<Function<Root<T>, Predicate>> conjunction = new ArrayList<>();
-
-        for ( String word : nameWords )
-        {
-            conjunction
-                .add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
-        }
-
-        conjunction.add( root -> builder.equal( builder.lower( root.get( attribute ) ), attributeValue ) );
-
-        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) )
-            .collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
-
-        return getList( builder, param );
-    }
-
+    @Nonnull
     @Override
     public List<T> getAllOrderedName()
     {
@@ -588,6 +552,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
+    @Nonnull
     @Override
     public List<T> getAllOrderedName( int first, int max )
     {
@@ -602,6 +567,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, param );
     }
 
+    @Nonnull
     @Override
     public List<T> getAllOrderedLastUpdated( int first, int max )
     {
@@ -615,7 +581,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountLikeName( String name )
+    public int getCountLikeName( @Nonnull String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -628,7 +594,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountGeLastUpdated( Date lastUpdated )
+    public int getCountGeLastUpdated( @Nonnull Date lastUpdated )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -640,8 +606,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getCount( builder, param ).intValue();
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllGeLastUpdated( Date lastUpdated )
+    public List<T> getAllGeLastUpdated( @Nonnull Date lastUpdated )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -654,7 +621,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public int getCountGeCreated( Date created )
+    public int getCountGeCreated( @Nonnull Date created )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -666,8 +633,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getCount( builder, param ).intValue();
     }
 
+    @Nonnull
     @Override
-    public List<T> getAllLeCreated( Date created )
+    public List<T> getAllLeCreated( @Nonnull Date created )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -680,6 +648,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    @CheckForNull
     public Date getLastUpdated()
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -701,6 +670,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( typedQuery );
     }
 
+    @Nonnull
     @Override
     public List<T> getByDataDimension( boolean dataDimension )
     {
@@ -713,6 +683,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, jpaQueryParameters );
     }
 
+    @Nonnull
     @Override
     public List<T> getByDataDimensionNoAcl( boolean dataDimension )
     {
@@ -724,36 +695,40 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, jpaQueryParameters );
     }
 
+    @Nonnull
     @Override
-    public List<T> getById( Collection<Long> ids )
+    public List<T> getById( @Nonnull Collection<Long> ids )
     {
         return getById( ids, currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
-    public List<T> getById( Collection<Long> ids, User user )
+    public List<T> getById( @Nonnull Collection<Long> ids, User user )
     {
-        if ( ids == null || ids.isEmpty() )
+        if ( ids.isEmpty() )
         {
-            return new ArrayList<>();
+            return List.of();
         }
 
         CriteriaBuilder builder = getCriteriaBuilder();
         return getList( builder, createInQuery( builder, user, "id", ids ) );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByUid( Collection<String> uids )
+    public List<T> getByUid( @Nonnull Collection<String> uids )
     {
         return getByUid( uids, currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByUid( Collection<String> uids, User user )
+    public List<T> getByUid( @Nonnull Collection<String> uids, User user )
     {
-        if ( uids == null || uids.isEmpty() )
+        if ( uids.isEmpty() )
         {
-            return new ArrayList<>();
+            return List.of();
         }
 
         // TODO Include paging to avoid exceeding max query length
@@ -765,34 +740,38 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             partition -> createInQuery( sharingPredicates, "uid", partition ) );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByUidNoAcl( Collection<String> uids )
+    public List<T> getByUidNoAcl( @Nonnull Collection<String> uids )
     {
         return getListFromPartitions( getCriteriaBuilder(), uids, OBJECT_FETCH_SIZE,
             partition -> createInQuery( List.of(), "uid", partition ) );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByCode( Collection<String> codes )
+    public List<T> getByCode( @Nonnull Collection<String> codes )
     {
         return getByCode( codes, currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByCode( Collection<String> codes, User user )
+    public List<T> getByCode( @Nonnull Collection<String> codes, User user )
     {
-        if ( codes == null || codes.isEmpty() )
+        if ( codes.isEmpty() )
         {
-            return new ArrayList<>();
+            return List.of();
         }
         CriteriaBuilder builder = getCriteriaBuilder();
         return getList( builder, createInQuery( builder, user, "code", codes ) );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByName( Collection<String> names, User user )
+    public List<T> getByName( @Nonnull Collection<String> names, User user )
     {
-        if ( names == null || names.isEmpty() )
+        if ( names.isEmpty() )
         {
             return new ArrayList<>();
         }
@@ -800,20 +779,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, createInQuery( builder, user, "name", names ) );
     }
 
+    @Nonnull
     @Override
-    public List<T> getByName( Collection<String> names )
+    public List<T> getByName( @Nonnull Collection<String> names )
     {
         return getByName( names, currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
     public List<T> getAllNoAcl()
     {
         return super.getAll();
     }
 
+    @Nonnull
     @Override
-    public List<String> getUidsCreatedBefore( Date date )
+    public List<String> getUidsCreatedBefore( @Nonnull Date date )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -834,12 +816,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // Data sharing
     // ----------------------------------------------------------------------------------------------------------------
 
+    @Nonnull
     @Override
     public final List<T> getDataReadAll()
     {
         return getDataReadAll( currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
     public final List<T> getDataReadAll( User user )
     {
@@ -851,12 +835,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, parameters );
     }
 
+    @Nonnull
     @Override
     public final List<T> getDataWriteAll()
     {
         return getDataWriteAll( currentUserService.getCurrentUser() );
     }
 
+    @Nonnull
     @Override
     public final List<T> getDataWriteAll( User user )
     {
@@ -872,7 +858,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Remove given UserGroup UID from all sharing records in given tableName
      */
     @Override
-    public void removeUserGroupFromSharing( String userGroupUid, String tableName )
+    public void removeUserGroupFromSharing( @Nonnull String userGroupUid, @Nonnull String tableName )
     {
         if ( !ObjectUtils.allNotNull( userGroupUid, tableName ) )
         {
@@ -906,46 +892,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private boolean isReadAllowed( T object, User user )
     {
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( sharingEnabled( user ) )
         {
-            IdentifiableObject idObject = object;
-
-            if ( sharingEnabled( user ) )
-            {
-                return aclService.canRead( user, idObject );
-            }
+            return aclService.canRead( user, object );
         }
-
         return true;
     }
 
     private boolean isUpdateAllowed( T object, User user )
     {
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( aclService.isClassShareable( clazz ) )
         {
-            IdentifiableObject idObject = object;
-
-            if ( aclService.isClassShareable( clazz ) )
-            {
-                return aclService.canUpdate( user, idObject );
-            }
+            return aclService.canUpdate( user, object );
         }
-
         return true;
     }
 
     private boolean isDeleteAllowed( T object, User user )
     {
-        if ( IdentifiableObject.class.isInstance( object ) )
+        if ( aclService.isClassShareable( clazz ) )
         {
-            IdentifiableObject idObject = object;
-
-            if ( aclService.isClassShareable( clazz ) )
-            {
-                return aclService.canDelete( user, idObject );
-            }
+            return aclService.canDelete( user, object );
         }
-
         return true;
     }
 

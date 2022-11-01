@@ -35,7 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -74,22 +75,22 @@ class TrackedEntitiesSupportService
 
     private static final String FIELD_EVENTS = "events";
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
-    @NonNull
+    @Nonnull
     private final TrackerAccessManager trackerAccessManager;
 
-    @NonNull
+    @Nonnull
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @SneakyThrows

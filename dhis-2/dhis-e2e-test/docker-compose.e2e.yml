@@ -1,9 +1,13 @@
-version: "3"
+version: "3.8"
 
 services:
-  e2e-test:
+  test:
+    build: .
     stdin_open: true
-    image: "${IMAGE_NAME}"
     environment:
       RP_UUID: ${RP_UUID}
-    command: ./wait-for-it.sh web:8080 -t 0 -- mvn test --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district -Dtest.track_called_endpoints=true -Drp.enable=true -Drp.launch=api_test_master -Drp.attributes=version:master;
+      DHIS2_E2E_TEST_ARGS: "${DHIS2_E2E_TEST_ARGS:-}" # to for example pass a profile like -Panalytics
+      DHIS2_E2E_TEST_USER_ARGS: "${DHIS2_E2E_TEST_USER_ARGS:--Duser.default.username=admin -Duser.default.password=district}" # adjust if you for example use a demo DB dump instead of the default empty DB
+    command: sh -c './wait-for-it.sh web:8080 -t 600 -- mvn test $$DHIS2_E2E_TEST_ARGS $$DHIS2_E2E_TEST_USER_ARGS --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Dtest.track_called_endpoints=true -Drp.enable=true -Drp.launch=api_test_master -Drp.attributes=version:master;'
+    depends_on:
+      - web

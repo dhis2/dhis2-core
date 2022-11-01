@@ -157,13 +157,13 @@ public class IndicatorGroupSet
     public void addIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         members.add( indicatorGroup );
-        indicatorGroup.setGroupSet( this );
+        indicatorGroup.getGroupSets().add( this );
     }
 
     public void removeIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         members.remove( indicatorGroup );
-        indicatorGroup.setGroupSet( null );
+        indicatorGroup.getGroupSets().remove( this );
     }
 
     // -------------------------------------------------------------------------

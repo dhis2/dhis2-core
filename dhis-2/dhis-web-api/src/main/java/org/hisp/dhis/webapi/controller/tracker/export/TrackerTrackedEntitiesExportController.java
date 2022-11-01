@@ -38,10 +38,10 @@ import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -72,19 +72,19 @@ public class TrackerTrackedEntitiesExportController
 
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
-    @NonNull
+    @Nonnull
     private final TrackerTrackedEntityCriteriaMapper criteriaMapper;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntitiesSupportService trackedEntitiesSupportService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
-    @NonNull
+    @Nonnull
     private final CsvEventService<TrackedEntity> csvEventService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
