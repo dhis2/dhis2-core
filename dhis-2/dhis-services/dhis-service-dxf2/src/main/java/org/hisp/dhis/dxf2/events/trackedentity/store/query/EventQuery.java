@@ -81,7 +81,11 @@ public class EventQuery
             "FROM dataelementcategoryoption opt " +
             "join categoryoptioncombos_categoryoptions ccc " +
             "on opt.categoryoptionid = ccc.categoryoptionid " +
-            "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) );
+            "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) ),
+        ASSIGNED_USER( new TableColumn( "ui", "uid", "userid" ) ),
+        ASSIGNED_USER_FIRST_NAME( new TableColumn( "ui", "firstname" ) ),
+        ASSIGNED_USER_SURNAME( new TableColumn( "ui", "surname" ) ),
+        ASSIGNED_USER_USERNAME( new TableColumn( "ui", "username" ) );
 
         @Getter
         private final QueryElement queryElement;
@@ -119,6 +123,7 @@ public class EventQuery
             "join programstage ps on psi.programstageid = ps.programstageid " +
             "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
             "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
+            "left join userinfo ui on psi.assigneduserid = ui.userinfoid " +
             "where pi.programinstanceid in (:ids)";
     }
 
