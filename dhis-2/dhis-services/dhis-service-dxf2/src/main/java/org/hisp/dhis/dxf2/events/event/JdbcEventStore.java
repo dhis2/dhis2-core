@@ -1052,7 +1052,8 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append(
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
                 .append(
-                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+                    "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
+                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
         }
         else
         {
