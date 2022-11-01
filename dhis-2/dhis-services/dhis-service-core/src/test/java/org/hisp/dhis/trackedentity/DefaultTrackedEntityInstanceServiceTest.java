@@ -112,7 +112,8 @@ class DefaultTrackedEntityInstanceServiceTest
     void exceptionThrownWhenTeiLimitReached()
     {
         when( trackedEntityInstanceStore
-            .getTrackedEntityInstanceCountForGrid( any( TrackedEntityInstanceQueryParams.class ) ) ).thenReturn( 20 );
+            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
+                .thenReturn( 20 );
 
         IllegalQueryException expectedException = assertThrows(
             IllegalQueryException.class,
@@ -125,7 +126,8 @@ class DefaultTrackedEntityInstanceServiceTest
     void noExceptionThrownWhenTeiLimitNotReached()
     {
         when( trackedEntityInstanceStore
-            .getTrackedEntityInstanceCountForGrid( any( TrackedEntityInstanceQueryParams.class ) ) ).thenReturn( 0 );
+            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
+                .thenReturn( 0 );
 
         teiService.validateSearchScope( params, true );
     }
