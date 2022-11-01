@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.interpretation;
 
-import static java.util.Collections.emptySet;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -288,8 +285,7 @@ public class DefaultInterpretationService
         if ( interpretableObjectSchema.isSubscribable() )
         {
             SubscribableObject object = (SubscribableObject) interpretableObject;
-            Set<User> subscribers = new HashSet<>(
-                userService.getUsers( firstNonNull( object.getSubscribers(), emptySet() ) ) );
+            Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
 
             if ( !subscribers.isEmpty() )
