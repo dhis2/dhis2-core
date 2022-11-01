@@ -54,6 +54,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -1424,8 +1426,14 @@ public abstract class BaseAnalyticalObject
         return subscribers;
     }
 
+    @CheckForNull
     public void setSubscribers( Set<String> subscribers )
     {
+        if ( subscribers == null )
+        {
+            subscribers = new HashSet<>();
+        }
+
         this.subscribers = subscribers;
     }
 
