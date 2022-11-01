@@ -100,7 +100,7 @@ public class ExpressionDimensionItemController
         }
         catch ( Exception e )
         {
-            return new ResponseEntity<>( null, HttpStatus.INTERNAL_SERVER_ERROR );
+            return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 
@@ -122,7 +122,7 @@ public class ExpressionDimensionItemController
         }
         catch ( Exception e )
         {
-            return new ResponseEntity<>( null, HttpStatus.INTERNAL_SERVER_ERROR );
+            return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 
@@ -144,7 +144,7 @@ public class ExpressionDimensionItemController
         }
         catch ( Exception e )
         {
-            return new ResponseEntity<>( null, HttpStatus.INTERNAL_SERVER_ERROR );
+            return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 
@@ -166,7 +166,7 @@ public class ExpressionDimensionItemController
         }
         catch ( Exception e )
         {
-            return new ResponseEntity<>( null, HttpStatus.INTERNAL_SERVER_ERROR );
+            return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 
@@ -185,7 +185,7 @@ public class ExpressionDimensionItemController
 
             if ( item == null )
             {
-                return new ResponseEntity<>( null, HttpStatus.NOT_FOUND );
+                return new ResponseEntity<>( HttpStatus.NOT_FOUND );
             }
 
             expressionService.deleteExpressionDimensionItem( item );
@@ -194,7 +194,7 @@ public class ExpressionDimensionItemController
         }
         catch ( Exception e )
         {
-            return new ResponseEntity<>( null, HttpStatus.INTERNAL_SERVER_ERROR );
+            return new ResponseEntity<>( HttpStatus.INTERNAL_SERVER_ERROR );
         }
     }
 }
