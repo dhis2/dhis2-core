@@ -857,14 +857,18 @@ public class JdbcEventStore implements EventStore
         }
     }
 
-    private String getEventSelectIdentifiersByIdScheme( IdSchemes idSchemes )
+    private String getEventSelectIdentifiersByIdScheme( EventSearchParams params )
     {
+        IdSchemes idSchemes = params.getIdSchemes();
+
         StringBuilder sqlBuilder = new StringBuilder();
 
+        String ouTableName = getOuTableName( params );
+
         sqlBuilder.append( getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
-            "ou.uid as ou_identifier, ",
-            "ou.attributevalues #>> '{%s, value}' as ou_identifier, ",
-            "ou.code as ou_identifier, " ) );
+            ouTableName + ".uid as ou_identifier, ",
+            ouTableName + ".attributevalues #>> '{%s, value}' as ou_identifier, ",
+            ouTableName + ".code as ou_identifier, " ) );
 
         sqlBuilder.append( getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
             "p.uid as p_identifier, ",
@@ -1083,7 +1087,7 @@ public class JdbcEventStore implements EventStore
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder selectBuilder = new StringBuilder().append( "select " )
-            .append( getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) )
+            .append( getEventSelectIdentifiersByIdScheme( params ) )
             .append( " psi.uid as psi_uid, " )
             .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, " )
             .append( "coc.uid as coc_uid, " )
@@ -1125,6 +1129,18 @@ public class JdbcEventStore implements EventStore
             .toString();
     }
 
+    private boolean checkForOwnership( EventSearchParams params )
+    {
+        return Optional.ofNullable( params.getProgram() )
+            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
+            .isPresent();
+    }
+
+    private String getOuTableName( EventSearchParams params )
+    {
+        return checkForOwnership( params ) ? " psiou" : " ou";
+    }
+
     private StringBuilder getFromWhereClause( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
         List<OrganisationUnit> organisationUnits, User user, SqlHelper hlp, StringBuilder dataElementAndFiltersSql )
     {
@@ -1137,14 +1153,13 @@ public class JdbcEventStore implements EventStore
                 "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid " )
             .append( "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid " );
 
-        if ( Optional.ofNullable( params.getProgram() )
-            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
-            .isPresent() )
+        if ( checkForOwnership( params ) )
         {
             fromBuilder.append(
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
                 .append(
-                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+                    "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
+                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
         }
         else
         {
@@ -1549,9 +1564,20 @@ public class JdbcEventStore implements EventStore
                 + "inner join program p on p.programid = pi.programid "
                 + "inner join programstage ps on ps.programstageid = psi.programstageid "
                 + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-                + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
-                + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
                 + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
+
+        if ( checkForOwnership( params ) )
+        {
+            sqlBuilder.append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
+                .append(
+                    "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
+                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
+        }
+        else
+        {
+            sqlBuilder.append( "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " );
+        }
 
         sqlBuilder.append( dataElementAndFiltersSql );
 
@@ -2240,12 +2266,14 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder orgUnitSql = new StringBuilder();
 
+        String ouTable = getOuTableName( params );
+
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
             mapSqlParameterSource.addValue( "organisationunitid", params.getOrgUnit()
                 .getId() );
 
-            orgUnitSql.append( " ou.organisationunitid = " )
+            orgUnitSql.append( ouTable + ".organisationunitid = " )
                 .append( ":organisationunitid" )
                 .append( " " );
         }
@@ -2271,8 +2299,8 @@ public class JdbcEventStore implements EventStore
                             : unit.getLevel() + 1 );
 
                     String hierarchyLevel = params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
-                        ? " ou.hierarchylevel > "
-                        : " ou.hierarchylevel = ";
+                        ? ouTable + ".hierarchylevel > "
+                        : ouTable + ".hierarchylevel = ";
 
                     orgUnitSql.append( orHlp.or() )
                         .append( path )
@@ -2307,7 +2335,8 @@ public class JdbcEventStore implements EventStore
 
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
-                        .append( " (ou.organisationunitid = " )
+                        .append( " (" )
+                        .append( ouTable + ".organisationunitid = " )
                         .append( ":organisationunitid" )
                         .append( ")) " );
                 }
