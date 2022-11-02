@@ -74,6 +74,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -520,7 +521,7 @@ class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
         ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).isIso8601( true )
             .build();
-        context.getDataElementLatestFuturePeriodMap().put( valueContext.getDataElement().getUid(),
+        context.getDataSetLatestFuturePeriodMap().put( dataSetContext.getDataSet().getUid(),
             PeriodType.getPeriodFromIsoString( "2020-01" ) );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7641,
@@ -559,10 +560,12 @@ class DataValueSetImportValidatorTest
         ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
         DataInputPeriod inputPeriod = new DataInputPeriod();
         inputPeriod.setPeriod( PeriodType.getPeriodFromIsoString( "2019" ) );
-        dataSetContext.getDataSet().setDataInputPeriods( singleton( inputPeriod ) );
+        DataSet dataSet = dataSetContext.getDataSet();
+        dataSet.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.YEARLY ) );
+        dataSet.setDataInputPeriods( singleton( inputPeriod ) );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7643, "Period: `<object1>` is not open for this data set at this time: `<object2>`",
-            context, dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
+            context, dataValue.getPeriod(), dataSet.getUid() );
     }
 
     @Test
@@ -680,6 +683,7 @@ class DataValueSetImportValidatorTest
             {
                 DataSet ds = new DataSet();
                 ds.setUid( dsId );
+                ds.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ) );
                 builder.dataSet( ds );
             }
         }

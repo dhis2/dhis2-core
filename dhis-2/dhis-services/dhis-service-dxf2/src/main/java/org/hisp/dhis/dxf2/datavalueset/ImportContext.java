@@ -29,7 +29,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.emptySet;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -133,13 +135,17 @@ public final class ImportContext
 
     private final ImportSummary summary;
 
+    private boolean stageConflicts = false;
+
+    private final List<ImportConflict> stagedConflicts = new ArrayList<>();
+
     private final CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
 
     private final CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
 
     private final CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
-    private final CachingMap<String, DataSet> dataElementDataSetMap = new CachingMap<>();
+    private final CachingMap<String, List<DataSet>> dataElementDataSetMap = new CachingMap<>();
 
     private final CachingMap<String, Period> periodMap = new CachingMap<>();
 
@@ -153,7 +159,7 @@ public final class ImportContext
 
     private final CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
 
-    private final CachingMap<String, Period> dataElementLatestFuturePeriodMap = new CachingMap<>();
+    private final CachingMap<String, Period> dataSetLatestFuturePeriodMap = new CachingMap<>();
 
     private final CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
@@ -212,7 +218,42 @@ public final class ImportContext
 
     public void addConflict( int index, ImportConflictDescriptor descriptor, String... objects )
     {
-        summary.addConflict( ImportConflict.createConflict( i18n, singularNameForType, index, descriptor, objects ) );
+        ImportConflict c = createConflict( index, descriptor, objects );
+        if ( stageConflicts )
+        {
+            stagedConflicts.add( c );
+        }
+        else
+        {
+            summary.addConflict( c );
+        }
+    }
+
+    private ImportConflict createConflict( int index, ImportConflictDescriptor descriptor, String[] objects )
+    {
+        return ImportConflict.createConflict( i18n, singularNameForType, index, descriptor, objects );
+    }
+
+    public void stageConflicts()
+    {
+        stageConflicts = true;
+    }
+
+    public void discardConflicts()
+    {
+        stagedConflicts.clear();
+        stageConflicts = false;
+    }
+
+    public void commitConflicts()
+    {
+        stagedConflicts.forEach( summary::addConflict );
+        discardConflicts();
+    }
+
+    public int getStagedConflictsCount()
+    {
+        return stagedConflicts.size();
     }
 
     public String getStoredBy( DataValueEntry dataValue )
@@ -222,12 +263,12 @@ public final class ImportContext
             : dataValue.getStoredBy();
     }
 
-    public DataSet getApprovalDataSet( DataSetContext dataSetContext, DataValueContext valueContext )
+    public List<DataSet> getRelevantDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
     {
         return dataSetContext.getDataSet() != null
-            ? dataSetContext.getDataSet()
+            ? List.of( dataSetContext.getDataSet() )
             : getDataElementDataSetMap().get( valueContext.getDataElement().getUid(),
-                valueContext.getDataElement()::getApprovalDataSet );
+                () -> List.copyOf( valueContext.getDataElement().getDataSets() ) );
     }
 
     /**

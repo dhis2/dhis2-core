@@ -61,6 +61,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.AutoCorrectedStringDeserializer;
 import org.hisp.dhis.util.SharingUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -280,6 +281,7 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonProperty
+    @JsonDeserialize( using = AutoCorrectedStringDeserializer.class )
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The name of this Object. Required and unique." )
     @PropertyRange( min = 1 )

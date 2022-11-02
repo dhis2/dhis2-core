@@ -646,6 +646,17 @@ public abstract class PeriodType
     // CalendarPeriodType
     // -------------------------------------------------------------------------
 
+    public final Period getFuturePeriod( int periodOffset )
+    {
+        Period period = createPeriod();
+
+        // Rewind one as 0 open periods implies current period is locked
+
+        period = getPreviousPeriod( period );
+
+        return getNextPeriod( period, periodOffset );
+    }
+
     /**
      * Returns a period shifted from the given period. If the offset is
      * positive, the result will be from following periods. If the offset is
