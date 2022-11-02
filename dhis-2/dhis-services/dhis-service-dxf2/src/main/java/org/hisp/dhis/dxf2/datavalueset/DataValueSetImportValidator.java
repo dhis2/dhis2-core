@@ -588,9 +588,11 @@ public class DataValueSetImportValidator
 
         if ( context.isForceDataInput() )
             return; // skip this validation
-        List<DataSet> dataSets = context.getRelevantDataSets( dataSetContext, valueContext );
+        List<DataSet> dataSets = context.getApplicableDataSets( dataSetContext, valueContext );
         if ( dataSets.isEmpty() )
+        {
             return; // if there are no data sets data input is valid as well
+        }
 
         context.stageConflicts();
         for ( DataSet dataSet : dataSets )
@@ -632,7 +634,7 @@ public class DataValueSetImportValidator
         {
             context.addConflict( valueContext.getIndex(),
                 DataValueImportConflict.PERIOD_AFTER_DATA_ELEMENT_PERIODS,
-                dataValue.getPeriod(), dataValue.getDataElement(), latestFuturePeriod.getIsoDate() );
+                dataValue.getPeriod(), dataValue.getDataElement(), dataSet.getUid(), latestFuturePeriod.getIsoDate() );
         }
 
         // is the dataset not already approved?
@@ -653,7 +655,8 @@ public class DataValueSetImportValidator
             }
         }
 
-        // is data input allowed now?
+        // is data input allowed now? (data of "past" periods cannot be entered
+        // any more)
         if ( !dataSet.isDataInputPeriodAndDateAllowed( valueContext.getPeriod(), new Date() ) )
         {
             context.addConflict( valueContext.getIndex(),

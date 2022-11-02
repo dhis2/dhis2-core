@@ -263,7 +263,7 @@ public final class ImportContext
             : dataValue.getStoredBy();
     }
 
-    public List<DataSet> getRelevantDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
+    public List<DataSet> getApplicableDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
     {
         return dataSetContext.getDataSet() != null
             ? List.of( dataSetContext.getDataSet() )

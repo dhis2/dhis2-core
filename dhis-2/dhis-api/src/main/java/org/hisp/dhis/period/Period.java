@@ -360,8 +360,7 @@ public class Period
     @Override
     public String toString()
     {
-        return "[" + (dateField == null ? "DEFAULT" : dateField) + " | "
-            + (periodType == null ? "" : periodType.getName() + ": ") + startDate + " - " + endDate + "]";
+        return getIsoDate();
     }
 
     // -------------------------------------------------------------------------
