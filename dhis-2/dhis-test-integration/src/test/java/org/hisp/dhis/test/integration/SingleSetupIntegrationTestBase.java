@@ -28,6 +28,7 @@
 package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.BaseSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
