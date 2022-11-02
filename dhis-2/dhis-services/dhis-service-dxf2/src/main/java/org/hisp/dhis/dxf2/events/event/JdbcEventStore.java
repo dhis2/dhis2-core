@@ -2011,7 +2011,7 @@ public class JdbcEventStore implements EventStore
                 {
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
-                        .append( ouTable + "(.organisationunitid = " + params.getOrgUnit().getId() + ")) " );
+                        .append( " ( " + ouTable + ".organisationunitid = " + params.getOrgUnit().getId() + ")) " );
                 }
             }
         }
