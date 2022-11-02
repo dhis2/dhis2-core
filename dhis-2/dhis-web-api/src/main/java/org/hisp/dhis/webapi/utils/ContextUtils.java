@@ -84,6 +84,8 @@ public class ContextUtils
 
     public static final String CONTENT_TYPE_CSV_GZIP = "application/csv+gzip";
 
+    public static final String CONTENT_TYPE_CSV_ZIP = "application/csv+zip";
+
     public static final String CONTENT_TYPE_PNG = "image/png";
 
     public static final String CONTENT_TYPE_JPG = "image/jpeg";
@@ -357,7 +359,7 @@ public class ContextUtils
     {
         return request != null && ((request.getPathInfo() != null && request.getPathInfo().endsWith( ".zip" ))
             || (request.getHeader( HttpHeaders.ACCEPT ) != null
-                && request.getHeader( HttpHeaders.ACCEPT ).contains( "application/csv+zip" )));
+                && request.getHeader( HttpHeaders.ACCEPT ).contains( CONTENT_TYPE_CSV_ZIP )));
     }
 
     /**

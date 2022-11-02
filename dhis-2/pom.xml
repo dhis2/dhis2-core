@@ -72,7 +72,7 @@
     <dhis-json-tree.version>0.4.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.7.4</spring-security.version>
+    <spring-security.version>5.7.5</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.5.1</flyway-core.version>
+    <flyway-core.version>9.6.0</flyway-core.version>
     <hibernate.version>5.6.12.Final</hibernate.version>
     <hibernate-types.version>2.20.0</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -136,7 +136,7 @@
     <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.15</batik-transcoder.version>
+    <batik-transcoder.version>1.16</batik-transcoder.version>
     <fop.version>2.7</fop.version>
     <mapstruct.version>1.5.3.Final</mapstruct.version>
     <geotools.version>27.2</geotools.version>
@@ -164,7 +164,7 @@
     <google-api-client.version>2.0.0</google-api-client.version>
     <lombok.version>1.18.24</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.12.0</joda-time.version>
+    <joda-time.version>2.12.1</joda-time.version>
     <cron-utils.version>9.2.0</cron-utils.version>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
