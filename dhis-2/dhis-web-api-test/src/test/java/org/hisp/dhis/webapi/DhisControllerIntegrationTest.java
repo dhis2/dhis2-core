@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.util.Collections;
-
-import org.hisp.dhis.IntegrationH2Test;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.IntegrationTestConfig;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,20 +50,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}.
+ * Base class for all Spring Mock MVC based controller tests which use postgres
+ * database in a docker instance.
  *
- * @author Jan Bernitt
+ * @author Viet Nguyen
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
-    WebTestConfiguration.class } )
-@ActiveProfiles( "test-h2" )
-@IntegrationH2Test
+@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class, IntegrationTestConfig.class } )
+@ActiveProfiles( profiles = { "test-postgres" } )
+@IntegrationTest
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase
+public class DhisControllerIntegrationTest extends DhisControllerTestBase
 {
+    public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -79,6 +79,9 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
     @Autowired
     protected DbmsManager dbmsManager;
+
+    @Autowired
+    protected DhisConfigurationProvider dhisConfigurationProvider;
 
     @BeforeEach
     final void setup()
@@ -96,15 +99,22 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
 
         TestUtils.executeStartupRoutines( webApplicationContext );
 
+        integrationTestBefore();
+
         dbmsManager.flushSession();
         dbmsManager.clearSession();
     }
 
-    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
+    protected void integrationTestBefore()
+        throws Exception
     {
-        User user = makeUser( userName, Collections.singletonList( "ALL" ) );
-        user.getDataViewOrganisationUnits().add( manager.get( OrganisationUnit.class, orgUnitId ) );
-        userService.addUser( user );
-        switchContextToUser( user );
+        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        // Enable to query logger to log only what's happening inside the test
+        // method
+        if ( enableQueryLogging )
+        {
+            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
+            Configurator.setRootLevel( Level.INFO );
+        }
     }
 }

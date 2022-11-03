@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Objects;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -256,21 +258,15 @@ public class ProgramStageDataElement
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+        return this == obj || obj instanceof ProgramStageDataElement && objectEquals( (ProgramStageDataElement) obj );
+    }
 
-        ProgramStageDataElement that = (ProgramStageDataElement) o;
-
-        if ( dataElement != null ? !dataElement.equals( that.dataElement ) : that.dataElement != null )
-            return false;
-        if ( programStage != null ? !programStage.equals( that.programStage ) : that.programStage != null )
-            return false;
-
-        return true;
+    private boolean objectEquals( ProgramStageDataElement other )
+    {
+        return Objects.equals( dataElement, other.dataElement )
+            && Objects.equals( programStage, other.programStage );
     }
 
     @Override

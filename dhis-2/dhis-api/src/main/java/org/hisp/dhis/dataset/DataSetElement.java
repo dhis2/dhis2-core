@@ -120,26 +120,9 @@ public class DataSetElement implements EmbeddedObject, Serializable
     }
 
     @Override
-    public boolean equals( Object object )
+    public boolean equals( Object obj )
     {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        DataSetElement other = (DataSetElement) object;
-
-        return objectEquals( other );
+        return this == obj || obj instanceof DataSetElement && objectEquals( (DataSetElement) obj );
     }
 
     public boolean objectEquals( DataSetElement other )

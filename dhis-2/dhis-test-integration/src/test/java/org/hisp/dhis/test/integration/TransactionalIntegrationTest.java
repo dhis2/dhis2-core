@@ -30,6 +30,7 @@ package org.hisp.dhis.test.integration;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.BaseSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
