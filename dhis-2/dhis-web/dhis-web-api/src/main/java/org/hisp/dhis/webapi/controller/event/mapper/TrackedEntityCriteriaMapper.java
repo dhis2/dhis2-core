@@ -126,8 +126,6 @@ public class TrackedEntityCriteriaMapper
             possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
         }
 
-        QueryFilter queryFilter = getQueryFilter( criteria.getQuery() );
-
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
@@ -181,7 +179,7 @@ public class TrackedEntityCriteriaMapper
 
         validateOrderParams( program, orderParams, attributes );
 
-        params.setQuery( queryFilter )
+        params.setQuery( getQueryFilter( criteria.getQuery() ) )
             .setProgram( program )
             .setProgramStage( validateProgramStage( criteria, program ) )
             .setProgramStatus( criteria.getProgramStatus() )
