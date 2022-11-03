@@ -780,14 +780,30 @@ public class JdbcEventStore implements EventStore
         }
     }
 
-    private String getEventSelectIdentifiersByIdScheme( IdSchemes idSchemes )
+    private boolean checkForOwnership( EventSearchParams params )
     {
+        return Optional.ofNullable( params.getProgram() )
+            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
+            .isPresent();
+    }
+
+    private String getOuTableName( EventSearchParams params )
+    {
+        return checkForOwnership( params ) ? " psiou" : " ou";
+    }
+
+    private String getEventSelectIdentifiersByIdScheme( EventSearchParams params )
+    {
+        IdSchemes idSchemes = params.getIdSchemes();
+
         StringBuilder sqlBuilder = new StringBuilder();
 
+        String ouTableName = getOuTableName( params );
+
         sqlBuilder.append( getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
-            "ou.uid as ou_identifier, ",
-            "ou.attributevalues #>> '{%s, value}' as ou_identifier, ",
-            "ou.code as ou_identifier, " ) );
+            ouTableName + ".uid as ou_identifier, ",
+            ouTableName + ".attributevalues #>> '{%s, value}' as ou_identifier, ",
+            ouTableName + ".code as ou_identifier, " ) );
 
         sqlBuilder.append( getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
             "p.uid as p_identifier, ",
@@ -952,7 +968,7 @@ public class JdbcEventStore implements EventStore
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
-            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
+            + getEventSelectIdentifiersByIdScheme( params )
             + " psi.uid as psi_uid, "
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
@@ -991,14 +1007,13 @@ public class JdbcEventStore implements EventStore
             + "inner join program p on p.programid=pi.programid "
             + "inner join programstage ps on ps.programstageid=psi.programstageid " );
 
-        if ( Optional.ofNullable( params.getProgram() )
-            .filter( p -> Objects.nonNull( p.getProgramType() ) && p.getProgramType() == ProgramType.WITH_REGISTRATION )
-            .isPresent() )
+        if ( checkForOwnership( params ) )
         {
             sqlBuilder.append(
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
                 .append(
-                    "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) " );
+                    "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
+                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
         }
         else
         {
@@ -1246,11 +1261,21 @@ public class JdbcEventStore implements EventStore
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
-            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
             + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
+        if ( checkForOwnership( params ) )
+        {
+            sqlBuilder.append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
+                .append(
+                    "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
+                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
+        }
+        else
+        {
+            sqlBuilder.append( "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " );
+        }
         Set<String> joinedColumns = new HashSet<>();
 
         String eventDataValuesWhereSql = "";
@@ -1917,27 +1942,31 @@ public class JdbcEventStore implements EventStore
     {
         StringBuilder orgUnitSql = new StringBuilder();
 
+        String ouTable = getOuTableName( params );
+
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
-            orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
+            orgUnitSql.append( ouTable + ".organisationunitid = " + params.getOrgUnit().getId() + " " );
         }
         else
         {
             SqlHelper orHlp = new SqlHelper( true );
-            String path = "ou.path LIKE '";
+            String path = ouTable + ".path LIKE '";
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
                 {
                     orgUnitSql.append( orHlp.or() ).append( path )
                         .append( organisationUnit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + organisationUnit.getLevel() );
+                        .append( hlp.whereAnd() )
+                        .append( ouTable + ".hierarchylevel > " + organisationUnit.getLevel() );
                 }
                 else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
                     orgUnitSql.append( orHlp.or() ).append( path )
                         .append( organisationUnit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (organisationUnit.getLevel() + 1) );
+                        .append( hlp.whereAnd() )
+                        .append( ouTable + ".hierarchylevel = " + (organisationUnit.getLevel() + 1) );
                 }
                 else
                 {
@@ -1955,7 +1984,7 @@ public class JdbcEventStore implements EventStore
                 {
                     orgUnitSql.insert( 0, " (" );
                     orgUnitSql.append( orHlp.or() )
-                        .append( " (ou.organisationunitid = " + params.getOrgUnit().getId() + ")) " );
+                        .append( " (" + ouTable + ".organisationunitid = " + params.getOrgUnit().getId() + ")) " );
                 }
             }
         }
