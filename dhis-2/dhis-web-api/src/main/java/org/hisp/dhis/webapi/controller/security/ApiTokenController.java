@@ -126,10 +126,10 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @Override
     @PostMapping( consumes = "application/json" )
     @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
+    public WebMessage postJsonObject( ApiToken apiToken )
         throws Exception
     {
-        final ApiToken apiToken = deserializeJsonEntity( request );
+        // final ApiToken apiToken = deserializeJsonEntity( request );
 
         User user = currentUserService.getCurrentUser();
         if ( !aclService.canCreate( user, getEntityClass() ) )

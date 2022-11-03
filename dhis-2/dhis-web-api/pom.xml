@@ -315,6 +315,12 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- Springdoc OpenAPI -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-ui</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>org.hamcrest</groupId>

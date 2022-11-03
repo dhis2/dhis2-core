@@ -34,13 +34,7 @@ import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,13 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -64,22 +52,13 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.Pagination;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.*;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -105,6 +84,10 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * Base controller for APIs that only want to offer read only access through
@@ -189,8 +172,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) OrderParams orderParams,
+        HttpServletResponse response,
+        @Parameter( hidden = true ) @CurrentUser User currentUser )
         throws QueryParserException
     {
         List<Order> orders = orderParams.getOrders( getSchema() );
@@ -251,9 +236,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( produces = { "text/csv", "application/text" } )
+    @ApiResponse( responseCode = "200", description = "List of objects in CSV format", content = @Content( mediaType = "text/csv", schema = @io.swagger.v3.oas.annotations.media.Schema( implementation = String.class ) ) )
     public ResponseEntity<String> getObjectListCsv(
-        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        @CurrentUser User currentUser,
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) OrderParams orderParams,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
         @RequestParam( defaultValue = ";" ) String arraySeparator,
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
@@ -399,10 +386,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
-    public @ResponseBody ResponseEntity<?> getObject(
+    @ApiResponse( responseCode = "200", description = "The object with the given uid" )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObject(
         @PathVariable( "uid" ) String pvUid,
-        @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser,
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -452,11 +440,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}/{property}" )
+    @ApiResponse( responseCode = "200", description = "The object property with the given uid"
+
+    )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
-        @CurrentUser User currentUser,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletResponse response )
         throws Exception
     {

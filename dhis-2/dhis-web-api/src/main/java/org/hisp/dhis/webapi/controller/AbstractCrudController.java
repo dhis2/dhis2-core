@@ -28,35 +28,18 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-import static org.springframework.http.MediaType.TEXT_XML_VALUE;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
+import static org.springframework.http.MediaType.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
@@ -100,17 +83,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -165,11 +145,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // OLD PATCH
     // --------------------------------------------------------------------------
 
+    @Hidden
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiResponse( responseCode = "204", description = "successfully updated object" )
     public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
+        @PathVariable( "uid" ) String pvUid, @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -199,12 +181,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postPatchEntity( null, patchedObject );
     }
 
+    @Hidden
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @ApiResponse( responseCode = "204", description = "successfully updated property" )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser,
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletRequest request )
         throws Exception
     {
@@ -278,12 +262,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * removed.
      */
     @ResponseBody
-    @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
+    @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage patchObject(
         @PathVariable( "uid" ) String pvUid,
-        @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser,
-        HttpServletRequest request )
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
+        @io.swagger.v3.oas.annotations.parameters.RequestBody JsonPatch patch )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -303,7 +287,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         manager.resetNonOwnerProperties( persistedObject );
 
-        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        // JsonPatch patch = jsonMapper.readValue( request.getInputStream(),
+        // JsonPatch.class );
 
         final T patchedObject = doPatch( patch, persistedObject );
 
@@ -383,6 +368,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchedObject;
     }
 
+    @Hidden
     @ResponseBody
     @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
@@ -430,12 +416,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
+    public WebMessage postJsonObject( T object )
         throws Exception
     {
-        return postObject( deserializeJsonEntity( request ) );
+        // T parsed = deserializeJsonEntity( request );
+        T parsed = object;
+        return postObject( parsed );
     }
 
+    @Hidden
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
@@ -489,6 +478,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return importReport.getFirstObjectReport();
     }
 
+    @Hidden
     @PostMapping( value = "/{uid}/favorite" )
     @ResponseBody
     public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -513,6 +503,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
+    @Hidden
     @PostMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     public WebMessage subscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -543,8 +534,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
+        @RequestBody T request )
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
@@ -559,7 +551,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T parsed = deserializeJsonEntity( request );
+        T parsed = (request);
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
         preUpdateEntity( objects.get( 0 ), parsed );
@@ -594,7 +586,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -638,12 +631,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
+    @Hidden
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
     public WebMessage replaceTranslations(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
+        @PathVariable( "uid" ) String pvUid, @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -685,7 +679,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
-    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -716,6 +711,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return objectReport( importReport );
     }
 
+    @Hidden
     @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseBody
     public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -740,6 +736,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return ok( String.format( "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
+    @Hidden
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     @SuppressWarnings( "unchecked" )
@@ -927,6 +924,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
+    @Hidden
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )

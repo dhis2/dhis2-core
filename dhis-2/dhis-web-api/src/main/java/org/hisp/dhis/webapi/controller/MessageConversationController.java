@@ -84,7 +84,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -98,7 +97,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -152,30 +150,34 @@ public class MessageConversationController
         }
     }
 
-    @Override
-    public ResponseEntity<?> getObject( @PathVariable String uid, Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
-    {
-        org.hisp.dhis.message.MessageConversation messageConversation = messageService.getMessageConversation( uid );
-
-        if ( messageConversation == null )
-        {
-            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
-            ObjectNode objectNode = fieldFilterService.createObjectNode()
-                .put( "message", "No MessageConversation found with UID: " + uid );
-
-            return ResponseEntity.ok( objectNode );
-        }
-
-        if ( !canReadMessageConversation( currentUser, messageConversation ) )
-        {
-            throw new AccessDeniedException( "Not authorized to access this conversation." );
-        }
-
-        return super.getObject( uid, rpParameters, currentUser, request, response );
-    }
+    // @Override
+    // public ResponseEntity<org.hisp.dhis.message.MessageConversation>
+    // getObject( @PathVariable String uid, Map<String, String> rpParameters,
+    // @CurrentUser User currentUser, HttpServletRequest request,
+    // HttpServletResponse response )
+    // throws Exception
+    // {
+    // org.hisp.dhis.message.MessageConversation messageConversation =
+    // messageService.getMessageConversation( uid );
+    //
+    // if ( messageConversation == null )
+    // {
+    // response.setStatus( HttpServletResponse.SC_NOT_FOUND );
+    // ObjectNode objectNode = fieldFilterService.createObjectNode()
+    // .put( "message", "No MessageConversation found with UID: " + uid );
+    //
+    // return ResponseEntity.ok( objectNode );
+    // }
+    //
+    // if ( !canReadMessageConversation( currentUser, messageConversation ) )
+    // {
+    // throw new AccessDeniedException( "Not authorized to access this
+    // conversation." );
+    // }
+    //
+    // return super.getObject( uid, rpParameters, currentUser, request, response
+    // );
+    // }
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -251,14 +253,14 @@ public class MessageConversationController
         return postObject( request, messageConversation );
     }
 
-    @Override
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
-    {
-        MessageConversation messageConversation = renderService
-            .fromJson( request.getInputStream(), MessageConversation.class );
-        return postObject( request, messageConversation );
-    }
+    // @Override
+    // public WebMessage postJsonObject( MessageConversation request )
+    // throws Exception
+    // {
+    //// MessageConversation messageConversation = renderService
+    //// .fromJson( request.getInputStream(), MessageConversation.class );
+    // return postObject( request, messageConversation );
+    // }
 
     private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
         throws WebMessageException

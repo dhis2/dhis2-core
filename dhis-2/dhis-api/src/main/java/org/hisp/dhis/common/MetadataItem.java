@@ -191,6 +191,7 @@ public class MetadataItem
         }
     }
 
+    @com.fasterxml.jackson.annotation.JsonSetter
     private void setDataItem( DimensionalObject dimensionalObject )
     {
         if ( dimensionalObject == null )

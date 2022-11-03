@@ -70,6 +70,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 
 /**
  * Base controller for APIs that only want to offer read-only access though Gist
@@ -94,6 +95,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // GET Gist
     // --------------------------------------------------------------------------
 
+    @Hidden
     @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
@@ -104,6 +106,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
+    @Hidden
     @GetMapping( value = "/{uid}/gist", produces = "text/csv" )
     public void getObjectGistAsCsv( @PathVariable( "uid" ) String uid,
         HttpServletRequest request, HttpServletResponse response )
@@ -114,6 +117,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .toBuilder().typedAttributeValues( false ).build() );
     }
 
+    @Hidden
     @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         HttpServletRequest request, HttpServletResponse response )
@@ -122,6 +126,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             getSchema() );
     }
 
+    @Hidden
     @GetMapping( value = "/gist", produces = "text/csv" )
     public void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -130,6 +135,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .toBuilder().typedAttributeValues( false ).build() );
     }
 
+    @Hidden
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,
@@ -154,6 +160,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
 
+    @Hidden
     @GetMapping( value = "/{uid}/{property}/gist", produces = "text/csv" )
     public void getObjectPropertyGistAsCsv(
         @PathVariable( "uid" ) String uid,

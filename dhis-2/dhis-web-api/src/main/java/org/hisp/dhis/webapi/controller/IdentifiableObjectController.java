@@ -55,7 +55,7 @@ public class IdentifiableObjectController
     @Override
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
-        return manager.find( uid ).map( List::of ).orElseGet( List::of );
+        return (List<IdentifiableObject>) manager.find( uid ).map( List::of ).orElseGet( List::of );
     }
 
     @Override
@@ -66,7 +66,7 @@ public class IdentifiableObjectController
     }
 
     @Override
-    public WebMessage postJsonObject( HttpServletRequest request )
+    public WebMessage postJsonObject( IdentifiableObject request )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
@@ -74,7 +74,7 @@ public class IdentifiableObjectController
 
     @Override
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request )
+        IdentifiableObject request )
         throws Exception
     {
         throw new HttpRequestMethodNotSupportedException( "PUT" );

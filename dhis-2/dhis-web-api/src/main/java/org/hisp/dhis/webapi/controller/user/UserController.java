@@ -28,27 +28,13 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
-import static org.springframework.http.MediaType.TEXT_XML_VALUE;
+import static org.springframework.http.MediaType.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,12 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.UserOrgUnitType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
@@ -97,16 +78,7 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserInvitationStatus;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSetting;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.user.Users;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -114,30 +86,28 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+
 @Slf4j
 @Controller
-@RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE )
 public class UserController
     extends AbstractCrudController<User>
 {
@@ -278,9 +248,9 @@ public class UserController
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
-        @CurrentUser User currentUser,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletResponse response )
         throws Exception
     {
@@ -322,10 +292,10 @@ public class UserController
     @Override
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
+    public WebMessage postJsonObject( User user )
         throws Exception
     {
-        return postObject( renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        return postObject( user );
     }
 
     private WebMessage postObject( User user )
@@ -350,6 +320,7 @@ public class UserController
         return postInvite( request, user );
     }
 
+    @Hidden
     @PostMapping( value = INVITE_PATH, consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlInvite( HttpServletRequest request )
@@ -415,6 +386,7 @@ public class UserController
 
     @PostMapping( value = "/{id}" + INVITE_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
+    @Operation( summary = "Resend an invitation", description = "Resend an invitation" )
     public void resendInvite( @PathVariable String id, HttpServletRequest request )
         throws Exception
     {
@@ -596,7 +568,8 @@ public class UserController
      */
     @PostMapping( "/{uid}/twoFA/disabled" )
     @ResponseBody
-    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
+    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
         userService.disableTwoFA( currentUser, uid, errors::add );
@@ -624,9 +597,10 @@ public class UserController
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     @Override
+    @Parameter
     public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
+        @PathVariable( "uid" ) String pvUid, @Parameter( hidden = true ) @RequestParam Map<String, String> rpParameters,
+        @Parameter( hidden = true ) @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -701,7 +675,8 @@ public class UserController
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE,
         TEXT_XML_VALUE }, produces = APPLICATION_XML_VALUE )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
         HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -715,11 +690,13 @@ public class UserController
     @Override
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid,
+        @Parameter( hidden = true ) @CurrentUser User currentUser,
+        @RequestBody User user )
         throws Exception
     {
-        User inputUser = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        User inputUser = user;// renderService.fromJson(
+                              // request.getInputStream(), getEntityClass() );
 
         List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
         if ( users.isEmpty() )

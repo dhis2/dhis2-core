@@ -141,6 +141,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+import io.swagger.v3.oas.annotations.Hidden;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -823,6 +824,7 @@ public class EventController
     // Create
     // -------------------------------------------------------------------------
 
+    @Hidden
     @PostMapping( consumes = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postXmlEvent( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,

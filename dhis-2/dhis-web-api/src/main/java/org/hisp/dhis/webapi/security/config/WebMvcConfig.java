@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import static org.springdoc.core.Constants.API_DOCS_URL;
 import static org.springframework.http.MediaType.parseMediaType;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
@@ -49,19 +50,21 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.*;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.springdoc.core.*;
+import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.customizers.RouterOperationCustomizer;
+import org.springdoc.core.filters.OpenApiMethodFilter;
+import org.springdoc.webmvc.api.MultipleOpenApiWebMvcResource;
+import org.springdoc.webmvc.api.OpenApiWebMvcResource;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController;
+import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
@@ -77,6 +80,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -84,8 +88,10 @@ import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfigu
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import io.swagger.v3.oas.annotations.Operation;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -94,9 +100,84 @@ import com.google.common.collect.ImmutableMap;
 @Order( 1000 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
 @EnableGlobalMethodSecurity( prePostEnabled = true )
+@Import( {
+    SpringDocConfig.class,
+    org.springdoc.core.SpringDocConfiguration.class,
+    org.springdoc.webmvc.core.SpringDocWebMvcConfiguration.class,
+    org.springdoc.webmvc.core.MultipleOpenApiSupportConfiguration.class,
+    org.springdoc.core.SwaggerUiConfigParameters.class,
+    org.springdoc.core.SwaggerUiOAuthProperties.class,
+    org.springdoc.webmvc.ui.SwaggerConfig.class,
+    org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class } )
 public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
-    // Paths where XML should still be allowed.
+    @Bean
+    @Lazy( false )
+    MultipleOpenApiWebMvcResource multipleOpenApiResource( List<GroupedOpenApi> groupedOpenApis,
+        ObjectFactory<OpenAPIService> defaultOpenAPIBuilder, AbstractRequestService requestBuilder,
+        GenericResponseService responseBuilder, OperationService operationParser,
+        SpringDocConfigProperties springDocConfigProperties,
+        SpringDocProviders springDocProviders )
+    {
+        return new MultipleOpenApiWebMvcResource( groupedOpenApis,
+            defaultOpenAPIBuilder, requestBuilder,
+            responseBuilder, operationParser,
+            springDocConfigProperties,
+            springDocProviders );
+    }
+
+    @Bean
+    @Lazy( false )
+    OpenApiWebMvcResource openApiResource( ObjectFactory<OpenAPIService> openAPIBuilderObjectFactory,
+        AbstractRequestService requestBuilder,
+        GenericResponseService responseBuilder, OperationService operationParser,
+        SpringDocConfigProperties springDocConfigProperties,
+        Optional<List<OperationCustomizer>> operationCustomizers,
+        Optional<List<OpenApiCustomiser>> openApiCustomisers,
+        Optional<List<RouterOperationCustomizer>> routerOperationCustomizers,
+        Optional<List<OpenApiMethodFilter>> methodFilters,
+        SpringDocProviders springDocProviders )
+    {
+
+        SpringDocUtils.getConfig().addHiddenRestControllers( BasicErrorController.class );
+
+        return new DhisOpenApiWebMvcResource( openAPIBuilderObjectFactory, requestBuilder,
+            responseBuilder, operationParser, operationCustomizers,
+            openApiCustomisers, routerOperationCustomizers, methodFilters, springDocConfigProperties,
+            springDocProviders );
+    }
+
+    class DhisOpenApiWebMvcResource
+        extends OpenApiWebMvcResource
+    {
+        public DhisOpenApiWebMvcResource( ObjectFactory<OpenAPIService> openAPIBuilderObjectFactory,
+            AbstractRequestService requestBuilder, GenericResponseService responseBuilder,
+            OperationService operationParser,
+            Optional<List<OperationCustomizer>> operationCustomizers,
+            Optional<List<OpenApiCustomiser>> openApiCustomisers,
+            Optional<List<RouterOperationCustomizer>> routerOperationCustomizers,
+            Optional<List<OpenApiMethodFilter>> methodFilters,
+            SpringDocConfigProperties springDocConfigProperties, SpringDocProviders springDocProviders )
+        {
+            super( openAPIBuilderObjectFactory, requestBuilder, responseBuilder, operationParser, operationCustomizers,
+                openApiCustomisers, routerOperationCustomizers, methodFilters, springDocConfigProperties,
+                springDocProviders );
+        }
+
+        @Operation( hidden = true )
+        @GetMapping( value = API_DOCS_URL, produces = MediaType.APPLICATION_JSON_VALUE )
+        @Override
+        public String openapiJson( HttpServletRequest request, @Value( API_DOCS_URL ) String apiDocsUrl, Locale locale )
+            throws JsonProcessingException
+        {
+            // return super.openapiJson(request, apiDocsUrl, locale);
+            // Hijack here to prevent the default implementation from being
+            // called, since that will try generating the openapi
+            // spec for every controller.
+            return "empty";
+        }
+    }
+
     public static final List<Pattern> XML_PATTERNS = List.of(
         Pattern.compile( "/(\\d\\d/)?relationships(.xml)?(.+)?" ),
         Pattern.compile( "/(\\d\\d/)?enrollments(.xml)?(.+)?" ),

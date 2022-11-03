@@ -137,9 +137,7 @@ public class MapController
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws Exception
+    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser, Map newMap )
     {
         Map map = mappingService.getMap( uid );
 
@@ -150,7 +148,7 @@ public class MapController
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        Map newMap = deserializeJsonEntity( request );
+        // Map newMap = deserializeJsonEntity( request );
         newMap.setUid( uid );
 
         mergeService.merge( new MergeParams<>( newMap, map )
