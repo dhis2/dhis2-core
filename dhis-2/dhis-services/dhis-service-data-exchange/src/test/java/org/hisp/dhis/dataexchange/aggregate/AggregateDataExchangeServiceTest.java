@@ -223,6 +223,15 @@ class AggregateDataExchangeServiceTest
     }
 
     @Test
+    void testToIdSchemeOrDefault()
+    {
+        assertEquals( IdScheme.CODE, service.toIdSchemeOrDefault( "code" ) );
+        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "UID" ) );
+        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "uid" ) );
+        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( null ) );
+    }
+
+    @Test
     void testGetDhis2Client()
     {
         Api api = new Api()
