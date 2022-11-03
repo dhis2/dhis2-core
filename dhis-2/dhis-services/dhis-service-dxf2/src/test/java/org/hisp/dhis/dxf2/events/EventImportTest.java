@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
+import static java.util.Collections.singleton;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -41,7 +42,9 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,8 +85,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.json.simple.JSONArray;
@@ -260,6 +266,61 @@ class EventImportTest extends TransactionalIntegrationTest
         createUserAndInjectSecurityContext( true );
         // Flush all data to disk
         manager.flush();
+    }
+
+    @Test
+    void testAddEventProgramWithoutRegistrationWithUserGroupAccess()
+        throws IOException
+    {
+        User user = createUser( "SomeUser" );
+        user.setOrganisationUnits( new HashSet<>( Arrays.asList( organisationUnitA, organisationUnitB ) ) );
+        userService.addUser( user );
+
+        UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
+        manager.save( userGroup, true );
+
+        user.getGroups().add( userGroup );
+        manager.update( user );
+
+        Program program = programWithUserGroupAccess( user, userGroup );
+
+        injectSecurityContext( user );
+
+        ImportSummaries importSummaries = eventService
+            .addEventsJson( createEventJsonInputStream( program.getUid(), programStageA.getUid(),
+                organisationUnitA.getUid(), null, dataElementA, "10" ), null );
+
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+    }
+
+    private Program programWithUserGroupAccess( User user, UserGroup userGroup )
+    {
+        org.hisp.dhis.user.sharing.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.sharing.UserGroupAccess(
+            userGroup, AccessStringHelper.DATA_READ_WRITE );
+
+        HashMap<String, org.hisp.dhis.user.sharing.UserGroupAccess> map = new HashMap<>();
+        map.put( user.getUid(), userGroupAccess );
+
+        Program program = createProgram( 'Z', new HashSet<>(), organisationUnitA );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+
+        program.getSharing().setUserGroups( map );
+        program.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        program.getProgramStages().add( programStageA );
+        manager.save( program, false );
+
+        ProgramInstance pi = new ProgramInstance();
+        pi.setEnrollmentDate( new Date() );
+        pi.setIncidentDate( new Date() );
+        pi.setProgram( program );
+        pi.setStatus( ProgramStatus.ACTIVE );
+        pi.setStoredBy( "test" );
+        pi.setName( "PiTest" );
+        pi.setUid( CodeGenerator.generateUid() );
+        manager.save( pi );
+
+        return program;
     }
 
     @Test
