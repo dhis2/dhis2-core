@@ -203,7 +203,7 @@ public class TrackerIdentifierCollector
     private void collectRelationships(
         Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
-        relationships.parallelStream().forEach( relationship -> {
+        relationships.forEach( relationship -> {
 
             RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
 
