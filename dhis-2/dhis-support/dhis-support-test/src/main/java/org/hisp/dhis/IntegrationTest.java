@@ -25,25 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.util;
+package org.hisp.dhis;
 
-import java.util.function.Function;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lombok.Builder;
-import lombok.Getter;
-
-import org.hisp.dhis.common.ValueType;
+import org.junit.jupiter.api.Tag;
 
 /**
- * @author Luca Cambi
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Builder
-@Getter
-public class ValueTypeValidationFunction
+@Target( { ElementType.TYPE, ElementType.METHOD } )
+@Retention( RetentionPolicy.RUNTIME )
+@Tag( "integration" )
+public @interface IntegrationTest
 {
-    private Function<String, Boolean> function;
-
-    private ValueType valueType;
-
-    private String message;
 }

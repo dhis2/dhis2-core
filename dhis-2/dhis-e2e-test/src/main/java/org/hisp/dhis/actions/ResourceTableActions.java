@@ -25,69 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
-
-import java.util.Date;
+package org.hisp.dhis.actions;
 
 /**
- * @author Lars Helge Overland
+ * Encapsulates the operations/actions related to the "/resourceTables"
+ * endpoint.
+ *
+ * @author maikel arabori
  */
-public class ConfigurablePeriod
-    extends Period
+public class ResourceTableActions extends RestApiActions
 {
-    private String value;
 
-    public ConfigurablePeriod( String value )
+    public ResourceTableActions()
     {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
-    }
-
-    @Override
-    public String getIsoDate()
-    {
-        return value;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
-        return value.equals( other.getIsoDate() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + value + "]";
+        super( "/resourceTables" );
     }
 }

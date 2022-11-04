@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
@@ -145,17 +146,17 @@ public class AggregateDataExchangeService
 
     /**
      * Returns the source data for the analytics data exchange with the given
-     * identifier in the data value set format.
+     * identifier.
      *
      * @param uid the {@link AggregateDataExchange} identifier.
      * @return the source data for the analytics data exchange.
      */
-    public List<DataValueSet> getSourceData( String uid )
+    public List<Grid> getSourceData( String uid )
     {
         AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid( uid );
 
         return mapToList( exchange.getSource().getRequests(),
-            request -> analyticsService.getAggregatedDataValueSet( toDataQueryParams( request ) ) );
+            request -> analyticsService.getAggregatedDataValues( toDataQueryParams( request ) ) );
     }
 
     /**
@@ -260,7 +261,7 @@ public class AggregateDataExchangeService
      */
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
-        IdScheme inputIdScheme = toIdScheme( request.getInputIdScheme() );
+        IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
         IdScheme outputDataElementIdScheme = toIdScheme( request.getOutputDataElementIdScheme() );
         IdScheme outputOrgUnitIdScheme = toIdScheme( request.getOutputOrgUnitIdScheme() );
         IdScheme outputIdScheme = toIdScheme( request.getOutputIdScheme() );
@@ -307,15 +308,27 @@ public class AggregateDataExchangeService
     }
 
     /**
-     * Returns the {@link IdScheme} based on the given ID scheme string, or the
-     * null if the given ID scheme string is null.
+     * Returns the {@link IdScheme} based on the given ID scheme string, or null
+     * if the given ID scheme string is null.
      *
      * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or null.
+     * @return the given ID scheme, or null if null.
      */
     IdScheme toIdScheme( String idScheme )
     {
         return idScheme != null ? IdScheme.from( idScheme ) : null;
+    }
+
+    /**
+     * Returns the {@link IdScheme} based on the given ID scheme string, or the
+     * default ID scheme if the given ID scheme string is null.
+     *
+     * @param idScheme the ID scheme string.
+     * @return the given ID scheme, or the default ID scheme if null.
+     */
+    IdScheme toIdSchemeOrDefault( String idScheme )
+    {
+        return idScheme != null ? IdScheme.from( idScheme ) : IdScheme.UID;
     }
 
     /**

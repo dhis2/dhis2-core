@@ -124,7 +124,7 @@ public class DataElementOperandController
 
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
-        List<DataElementOperand> dataElementOperands;
+        List<DataElementOperand> dataElementOperands = List.of();
 
         if ( options.isTrue( "persisted" ) )
         {
@@ -142,7 +142,11 @@ public class DataElementOperandController
             if ( deg != null )
             {
                 DataElementGroup dataElementGroup = manager.get( DataElementGroup.class, deg );
-                dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals );
+                if ( dataElementGroup != null )
+                {
+                    dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(),
+                        totals );
+                }
             }
             else if ( ds != null )
             {

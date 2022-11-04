@@ -466,9 +466,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void getByUidWithNull()
+    void getByUidWithEmpty()
     {
-        assertIsEmpty( idObjectManager.getByUid( DataElement.class, null ) );
+        assertIsEmpty( idObjectManager.getByUid( DataElement.class, List.of() ) );
     }
 
     @Test
@@ -488,9 +488,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void loadByUidNullTest()
+    void loadByUidWithEmpty()
     {
-        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, null ) );
+        assertIsEmpty( idObjectManager.loadByUid( DataElement.class, List.of() ) );
     }
 
     @Test

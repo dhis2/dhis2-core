@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -106,10 +108,6 @@ public class DefaultRelationshipService
     @Transactional
     public void updateRelationship( Relationship relationship )
     {
-        // TODO: Do we need next 2 lines? relationship never changes during
-        // update
-        relationship.getFrom().setRelationship( relationship );
-        relationship.getTo().setRelationship( relationship );
         relationshipStore.update( relationship );
     }
 
@@ -132,7 +130,7 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationships( List<String> uids )
+    public List<Relationship> getRelationships( @Nonnull List<String> uids )
     {
         return relationshipStore.getByUid( uids );
     }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common.hibernate;
 
+import javax.annotation.Nonnull;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.SoftDeletableObject;
@@ -50,7 +52,7 @@ public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
     }
 
     @Override
-    public void delete( SoftDeletableObject object )
+    public void delete( @Nonnull SoftDeletableObject object )
     {
         publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
         object.setDeleted( true );
