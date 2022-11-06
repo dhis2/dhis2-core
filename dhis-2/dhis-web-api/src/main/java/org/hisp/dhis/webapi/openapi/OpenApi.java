@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -36,7 +37,26 @@ import java.lang.annotation.Target;
 @Inherited
 @Target( ElementType.METHOD )
 @Retention( RetentionPolicy.RUNTIME )
-public @interface UndeclaredParameters
+public @interface OpenApi
 {
-    UndeclaredParam[] value();
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @Repeatable( Params.class )
+    @interface Param
+    {
+        String name() default "";
+
+        Class<?> value();
+
+        String[] fields() default {};
+    }
+
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Params
+    {
+        Param[] value();
+    }
 }

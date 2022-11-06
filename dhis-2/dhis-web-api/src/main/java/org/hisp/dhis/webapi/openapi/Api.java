@@ -31,6 +31,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -65,7 +66,7 @@ class Api
      * Here, while one {@link Schema} is resolved more {@link Schema} might be
      * added.
      */
-    Map<String, Schema> schemas = new ConcurrentSkipListMap<>();
+    Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
 
     /**
      * A {@link Ref} is used for all {@link IdentifiableObject} fields and
@@ -213,6 +214,6 @@ class Api
             return "";
         if ( !name.startsWith( "org.hisp.dhis." ) || name.contains( ".openapi." ) )
             return source.getSimpleName();
-        return name.substring( name.lastIndexOf( '.', name.lastIndexOf( '.' ) - 1 ) + 1 ).replace( '$', '.' );
+        return name.replace( "org.hisp.dhis.", "" ).replace( '$', '.' );
     }
 }

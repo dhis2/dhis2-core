@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -36,10 +36,19 @@ import org.junit.jupiter.api.Test;
 class OpenApiControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void testGetModel()
+    void testGetOpenApiDocument()
     {
         JsonObject doc = GET( "/openapi/openapi.json" ).content();
-        assertNotNull( doc );
+        assertTrue( doc.isObject() );
+        assertTrue( doc.getObject( "paths" ).size() > 100 );
+        assertTrue( doc.getObject( "components.schemas" ).size() > 100 );
+    }
+
+    @Test
+    void testGetOpenApiDocument_SingleController()
+    {
+        JsonObject doc = GET( "/openapi/openapi.json?root=users" ).content();
+        assertTrue( doc.isObject() );
         System.out.println( doc );
     }
 }

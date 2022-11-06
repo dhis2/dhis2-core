@@ -33,10 +33,10 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -44,6 +44,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -185,11 +186,7 @@ public class OpenApiGenerator
     private void generatePath( String path, List<Api.Endpoint> endpoints )
     {
         EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
-        for ( Api.Endpoint e : endpoints )
-        {
-            for ( RequestMethod m : e.getMethods() )
-                endpointByMethod.put( m, e );
-        }
+        endpoints.forEach( e -> e.getMethods().forEach( m -> endpointByMethod.put( m, e ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
 
@@ -207,7 +204,7 @@ public class OpenApiGenerator
                 .ifPresent( requestBody -> addObjectMember( "requestBody",
                     () -> generateRequestBody( requestBody, endpoint.getConsumes() ) ) );
             addObjectMember( "responses", () -> endpoint.getResponses()
-                .forEach( response -> generateResponse( response, endpoint.getProduces() ) ) );
+                .forEach( response -> generateResponse( response, endpoint.getProduces(), endpoint.getConsumes() ) ) );
         } );
     }
 
@@ -224,7 +221,7 @@ public class OpenApiGenerator
 
     private void generateRequestBody( Api.Parameter body, List<MimeType> consumes )
     {
-        if ( body != null && consumes.isEmpty() )
+        if ( consumes.isEmpty() )
             consumes.add( APPLICATION_JSON );
         addStringMember( "description", null ); // TODO
         addBooleanMember( "required", body.isRequired() );
@@ -236,15 +233,24 @@ public class OpenApiGenerator
         } );
     }
 
-    private void generateResponse( Api.Response response, List<MimeType> produces )
+    private void generateResponse( Api.Response response, List<MimeType> produces, List<MimeType> consumes )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
             addStringMember( "description", null ); // TODO
             // addObjectMember( "headers", null ); //TODO
-            if ( response.getBody() != null && produces.isEmpty() )
-                produces.add( APPLICATION_JSON );
-            addObjectMember( "content", () -> produces.forEach( type -> addObjectMember( type.toString(),
-                () -> addObjectMember( "schema", () -> generateSchemaOrRef( response.getBody() ) ) ) ) );
+            if ( response.getBody() != null
+                && response.getBody().getSource() != void.class
+                && response.getStatus() != HttpStatus.NO_CONTENT )
+            {
+                if ( produces.isEmpty() )
+                {
+                    // make API symmetric by sing the first consumes if no
+                    // produces is set
+                    produces.add( !consumes.isEmpty() ? consumes.get( 0 ) : APPLICATION_JSON );
+                }
+                addObjectMember( "content", () -> produces.forEach( type -> addObjectMember( type.toString(),
+                    () -> addObjectMember( "schema", () -> generateSchemaOrRef( response.getBody() ) ) ) ) );
+            }
         } );
     }
 
@@ -279,7 +285,7 @@ public class OpenApiGenerator
         {
             addStringMember( "type", "array" );
             addObjectMember( "items",
-                () -> generateSchemaOrRef( api.getSchemas().get( type.getComponentType().getName() ) ) );
+                () -> generateSchemaOrRef( api.getSchemas().get( type.getComponentType() ) ) );
         }
         if ( !schema.getFields().isEmpty() )
         {
@@ -312,7 +318,8 @@ public class OpenApiGenerator
 
     private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
     {
-        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new HashMap<>();
+        // OBS! We use a TreeMap to also get alphabetical order/grouping
+        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
         for ( Api.Controller c : api.getControllers() )
         {
             if ( c.getPaths().isEmpty() )

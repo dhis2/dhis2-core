@@ -43,10 +43,13 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.Value;
@@ -73,7 +76,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
-class ApiProcessor
+/**
+ * Given a set of controller {@link Class}es this creates a {@link Api} model
+ * that describes all relevant {@link Api.Endpoint}s and {@link Api.Schema}s.
+ *
+ * @author Jan Bernitt
+ */
+class ApiAnalyser
 {
     public static void main( String[] args )
         throws Exception
@@ -85,13 +94,18 @@ class ApiProcessor
         {
             classes = files
                 .filter( f -> f.getFileName().toString().endsWith( "Controller.class" ) )
-                .map( ApiProcessor::toClassName )
-                .map( ApiProcessor::toClass )
+                .map( ApiAnalyser::toClassName )
+                .map( ApiAnalyser::toClass )
                 .filter( c -> !Modifier.isAbstract( c.getModifiers() ) )
                 .collect( toList() );
         }
         Api api = describeApi( classes );
-        System.out.println( OpenApiGenerator.generate( api ) );
+        String doc = OpenApiGenerator.generate( api );
+        if ( args.length == 1 )
+        {
+            Files.writeString( Path.of( args[0] ), doc, StandardOpenOption.CREATE );
+        }
+        System.out.println( doc );
         System.out.println(
             format( "%d controllers, %d schemas", api.getControllers().size(), api.getSchemas().size() ) );
     }
@@ -117,9 +131,10 @@ class ApiProcessor
     public static Api describeApi( List<Class<?>> controllers )
     {
         Api api = new Api();
-        api.getSchemas().put( String.class.getSimpleName(), Api.STRING );
+        api.getSchemas().put( String.class, Api.STRING );
+        api.getSchemas().put( Api.Ref.class, Api.ref( null ) );
         controllers.stream()
-            .filter( ApiProcessor::isControllerType )
+            .filter( ApiAnalyser::isControllerType )
             .forEach( source -> api.getControllers().add( describeController( api, source ) ) );
         return api;
     }
@@ -172,9 +187,9 @@ class ApiProcessor
             }
         }
         // - undeclared parameters (not found in signature)
-        if ( source.isAnnotationPresent( UndeclaredParameters.class ) )
+        if ( source.isAnnotationPresent( OpenApi.Params.class ) )
         {
-            stream( source.getAnnotation( UndeclaredParameters.class ).value() )
+            stream( source.getAnnotation( OpenApi.Params.class ).value() )
                 .forEach( p -> describeUndeclaredParameters( api, controller, e, p ) );
         }
         // response:
@@ -188,7 +203,7 @@ class ApiProcessor
     }
 
     private static void describeUndeclaredParameters( Api api, Api.Controller controller, Api.Endpoint endpoint,
-        UndeclaredParam param )
+        OpenApi.Param param )
     {
         String name = param.name();
         Class<?> value = param.value();
@@ -247,7 +262,7 @@ class ApiProcessor
 
     private static Api.Parameter describeParameter( Api api, Method source )
     {
-        String name = getProperty( source.getName() );
+        String name = getName( source );
         Api.Schema type = describeSchema( api, source.getParameterCount() == 0
             ? source.getReturnType()
             : source.getParameterTypes()[0] );
@@ -264,7 +279,7 @@ class ApiProcessor
         Api.Schema s = currentlyResolved.get( source );
         if ( s != null )
             return s;
-        return api.getSchemas().computeIfAbsent( source.getName(), key -> {
+        return api.getSchemas().computeIfAbsent( source, key -> {
             Api.Schema schema = new Api.Schema( source, null );
             currentlyResolved.put( source, schema );
             if ( source.isEnum() || source.isInterface() )
@@ -274,24 +289,32 @@ class ApiProcessor
                 describeSchema( api, source.getComponentType(), currentlyResolved );
                 return schema;
             }
+            Set<String> fieldsAdded = new HashSet<>();
             for ( Method m : source.getMethods() )
             {
-                if ( isSchemaField( m ) )
+                if ( isSchemaField( m ) && !fieldsAdded.contains( getName( m ) ) )
                 {
                     Type type = m.getParameterCount() == 1 ? m.getGenericParameterTypes()[0] : m.getGenericReturnType();
                     Api.Schema ms = describeCustomSchema( api, type, currentlyResolved );
                     if ( ms != null )
-                        schema.getFields().add( new Api.Field( getProperty( m ), ms, getFieldRequired( m ) ) );
+                    {
+                        String name = getName( m );
+                        fieldsAdded.add( name );
+                        schema.getFields().add( new Api.Field( name, ms, getFieldRequired( m ) ) );
+                    }
                 }
             }
             for ( Field f : source.getDeclaredFields() )
             {
-                if ( isSchemaField( f )
-                    && schema.getFields().stream().noneMatch( field -> field.getName().equals( f.getName() ) ) )
+                if ( isSchemaField( f ) && !fieldsAdded.contains( getName( f ) ) )
                 {
                     Api.Schema fs = describeCustomSchema( api, f.getGenericType(), currentlyResolved );
                     if ( fs != null )
-                        schema.getFields().add( new Api.Field( getProperty( f ), fs, getFieldRequired( f ) ) );
+                    {
+                        String name = getName( f );
+                        fieldsAdded.add( name );
+                        schema.getFields().add( new Api.Field( name, fs, getFieldRequired( f ) ) );
+                    }
                 }
             }
             return schema;
@@ -393,15 +416,17 @@ class ApiProcessor
         return null;
     }
 
-    private static <T extends Member & AnnotatedElement> String getProperty( T member )
+    private static <T extends Member & AnnotatedElement> String getName( T member )
     {
-        String name = member instanceof Field ? member.getName() : getProperty( member.getName() );
-        String customName = member.getAnnotation( JsonProperty.class ).value();
+        String name = member instanceof Field ? member.getName() : getPropertyName( (Method) member );
+        JsonProperty property = member.getAnnotation( JsonProperty.class );
+        String customName = property == null ? "" : property.value();
         return customName.isEmpty() ? name : customName;
     }
 
-    private static String getProperty( String name )
+    private static String getPropertyName( Method method )
     {
+        String name = method.getName();
         String prop = name.substring( name.startsWith( "is" ) ? 2 : 3 );
         return Character.toLowerCase( prop.charAt( 0 ) ) + prop.substring( 1 );
     }
