@@ -81,6 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.UndeclaredParam;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -187,6 +188,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
+    @UndeclaredParam( name = "fields", value = String[].class )
+    @UndeclaredParam( name = "filter", value = String[].class )
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -250,6 +254,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @UndeclaredParam( name = "fields", value = String[].class )
+    @UndeclaredParam( name = "filter", value = String[].class )
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
     @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -397,6 +404,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return null;
     }
 
+    @UndeclaredParam( name = "fields", value = String[].class )
+    @UndeclaredParam( name = "filter", value = String[].class )
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
@@ -451,6 +461,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @UndeclaredParam( name = "fields", value = String[].class )
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,

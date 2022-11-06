@@ -95,6 +95,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.UndeclaredParam;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -165,6 +166,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // OLD PATCH
     // --------------------------------------------------------------------------
 
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
@@ -199,6 +202,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postPatchEntity( null, patchedObject );
     }
 
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
@@ -277,6 +283,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * to support "application/json" after the old patch behavior has been
      * removed.
      */
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( JsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
     public WebMessage patchObject(
@@ -383,6 +392,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchedObject;
     }
 
+    @UndeclaredParam( name = "{options}", value = WebOptions.class )
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( BulkJsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
@@ -428,6 +440,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // POST
     // --------------------------------------------------------------------------
 
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
@@ -436,6 +450,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return postObject( deserializeJsonEntity( request ) );
     }
 
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
@@ -541,6 +557,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // PUT
     // --------------------------------------------------------------------------
 
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
@@ -592,6 +610,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
+    @UndeclaredParam( name = "{import-options}", value = MetadataImportParams.class )
+    @UndeclaredParam( IdentifiableObject.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
@@ -638,6 +658,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
+    @UndeclaredParam( value = IdentifiableObject.class, fields = "translations" )
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
@@ -770,6 +791,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // Identifiable object collections add, delete
     // --------------------------------------------------------------------------
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -783,6 +805,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -806,6 +829,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -819,6 +843,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -870,6 +895,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -883,6 +909,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
+    @UndeclaredParam( IdentifiableObjects.class )
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -927,6 +954,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
+    @UndeclaredParam( Sharing.class )
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )
