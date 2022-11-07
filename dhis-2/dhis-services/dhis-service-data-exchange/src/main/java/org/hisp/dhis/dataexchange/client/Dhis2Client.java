@@ -59,7 +59,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Client for DHIS 2.
+ * API client for DHIS 2.
  *
  * @author Lars Helge Overland
  */

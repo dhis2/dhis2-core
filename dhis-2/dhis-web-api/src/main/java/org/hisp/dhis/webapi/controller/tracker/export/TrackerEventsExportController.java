@@ -39,10 +39,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -86,22 +86,22 @@ public class TrackerEventsExportController
 
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
-    @NonNull
+    @Nonnull
     private final EventService eventService;
 
-    @NonNull
+    @Nonnull
     private final ContextService contextService;
 
-    @NonNull
+    @Nonnull
     private final TrackerEventCriteriaMapper requestToSearchParams;
 
-    @NonNull
+    @Nonnull
     private final ProgramStageInstanceService programStageInstanceService;
 
-    @NonNull
+    @Nonnull
     private final CsvEventService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )

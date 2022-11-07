@@ -29,7 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.Optional;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.Category;
@@ -57,10 +58,10 @@ public class DefaultsSupplier extends AbstractPreheatSupplier
 
     private static final long CACHE_CAPACITY = 10;
 
-    @NonNull
+    @Nonnull
     private final IdentifiableObjectManager manager;
 
-    @NonNull
+    @Nonnull
     private final PreheatCacheService cache;
 
     @Override

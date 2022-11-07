@@ -27,18 +27,24 @@
  */
 package org.hisp.dhis.dataexchange.client.auth;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Authentication with session cookie.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class CookieAuthentication
     implements Authentication
 {
-    @NonNull
+    @Nonnull
     private final String sessionId;
 
     @Override

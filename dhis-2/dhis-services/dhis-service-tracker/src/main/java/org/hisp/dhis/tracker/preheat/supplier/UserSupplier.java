@@ -33,7 +33,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,10 +55,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final IdentifiableObjectManager manager;
 
-    @NonNull
+    @Nonnull
     private final UserService userService;
 
     @Override

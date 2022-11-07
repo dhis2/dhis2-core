@@ -25,25 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.util;
-
-import java.util.function.Function;
-
-import lombok.Builder;
-import lombok.Getter;
-
-import org.hisp.dhis.common.ValueType;
+package org.hisp.dhis.actions;
 
 /**
- * @author Luca Cambi
+ * Encapsulates the operations/actions related to the "/resourceTables"
+ * endpoint.
+ *
+ * @author maikel arabori
  */
-@Builder
-@Getter
-public class ValueTypeValidationFunction
+public class ResourceTableActions extends RestApiActions
 {
-    private Function<String, Boolean> function;
 
-    private ValueType valueType;
-
-    private String message;
+    public ResourceTableActions()
+    {
+        super( "/resourceTables" );
+    }
 }

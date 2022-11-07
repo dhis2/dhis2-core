@@ -200,6 +200,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
+                .antMatchers( "/dhis-web-commons/security/expired.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/invite.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/restore.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/recovery.action" ).permitAll()

@@ -31,8 +31,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
@@ -75,28 +75,28 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @AllArgsConstructor
 public class EnrollmentAnalyticsController
 {
-    @NotNull
+    @Nonnull
     private final EventDataQueryService eventDataQueryService;
 
-    @NotNull
+    @Nonnull
     private final EnrollmentAnalyticsService analyticsService;
 
-    @NotNull
+    @Nonnull
     private final ContextUtils contextUtils;
 
-    @NotNull
+    @Nonnull
     private final ExecutionPlanStore executionPlanStore;
 
-    @NotNull
+    @Nonnull
     private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @NotNull
+    @Nonnull
     private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @NotNull
+    @Nonnull
     private DimensionMapperService dimensionMapperService;
 
-    @NotNull
+    @Nonnull
     private final SystemSettingManager systemSettingManager;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )

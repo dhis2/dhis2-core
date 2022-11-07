@@ -58,15 +58,15 @@ public interface IdentifiableObjectManager
 
     void update( @Nonnull IdentifiableObject object );
 
-    void update( @Nonnull IdentifiableObject object, User user );
+    void update( @Nonnull IdentifiableObject object, @CheckForNull User user );
 
     void update( @Nonnull List<IdentifiableObject> objects );
 
-    void update( @Nonnull List<IdentifiableObject> objects, User user );
+    void update( @Nonnull List<IdentifiableObject> objects, @CheckForNull User user );
 
     void delete( @Nonnull IdentifiableObject object );
 
-    void delete( @Nonnull IdentifiableObject object, User user );
+    void delete( @Nonnull IdentifiableObject object, @CheckForNull User user );
 
     /**
      * Lookup objects of unknown type.
@@ -81,7 +81,14 @@ public interface IdentifiableObjectManager
     @Nonnull
     Optional<? extends IdentifiableObject> find( @Nonnull String uid );
 
-    @Nonnull
+    /**
+     * Lookup objects of a specific type by database ID.
+     *
+     * @param type the object class type.
+     * @param id object's database ID
+     * @return the found object
+     */
+    @CheckForNull
     <T extends IdentifiableObject> T get( @Nonnull Class<T> type, long id );
 
     /**
@@ -215,12 +222,11 @@ public interface IdentifiableObjectManager
      */
     @Nonnull
     <T extends IdentifiableObject> List<T> loadByUid( @Nonnull Class<T> type,
-        @Nonnull Collection<String> uids )
+        @CheckForNull Collection<String> uids )
         throws IllegalQueryException;
 
     @Nonnull
-    <T extends IdentifiableObject> List<T> getByUid(
-        @Nonnull Collection<Class<? extends T>> types,
+    <T extends IdentifiableObject> List<T> getByUid( @Nonnull Collection<Class<? extends T>> types,
         @Nonnull Collection<String> uids );
 
     @Nonnull
@@ -268,8 +274,7 @@ public interface IdentifiableObjectManager
 
     @Nonnull
     <T extends IdentifiableObject> List<T> getObjects( @Nonnull Class<T> type,
-        @Nonnull IdentifiableProperty property,
-        @Nonnull Collection<String> identifiers );
+        @Nonnull IdentifiableProperty property, @Nonnull Collection<String> identifiers );
 
     @Nonnull
     <T extends IdentifiableObject> List<T> getObjects( @Nonnull Class<T> type,
@@ -316,6 +321,7 @@ public interface IdentifiableObjectManager
 
     void evict( @Nonnull Object object );
 
+    @Nonnull
     <T extends IdentifiableObject> List<T> getByAttributeAndValue( @Nonnull Class<T> type, @Nonnull Attribute attribute,
         @Nonnull String value );
 

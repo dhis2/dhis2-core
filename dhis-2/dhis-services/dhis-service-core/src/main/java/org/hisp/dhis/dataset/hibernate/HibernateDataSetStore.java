@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -80,7 +81,7 @@ public class HibernateDataSetStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void save( DataSet dataSet )
+    public void save( @Nonnull DataSet dataSet )
     {
         PeriodType periodType = periodService.reloadPeriodType( dataSet.getPeriodType() );
 
@@ -90,7 +91,7 @@ public class HibernateDataSetStore
     }
 
     @Override
-    public void update( DataSet dataSet )
+    public void update( @Nonnull DataSet dataSet )
     {
         PeriodType periodType = periodService.reloadPeriodType( dataSet.getPeriodType() );
 

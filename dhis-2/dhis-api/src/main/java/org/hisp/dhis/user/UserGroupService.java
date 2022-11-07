@@ -30,6 +30,8 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 public interface UserGroupService
 {
     String ID = UserGroupService.class.getName();
@@ -58,15 +60,15 @@ public interface UserGroupService
 
     boolean canAddOrRemoveMember( String uid, User currentUser );
 
-    void addUserToGroups( User user, Collection<String> uids );
+    void addUserToGroups( User user, @Nonnull Collection<String> uids );
 
-    void addUserToGroups( User user, Collection<String> uids, User currentUser );
+    void addUserToGroups( User user, @Nonnull Collection<String> uids, User currentUser );
 
-    void removeUserFromGroups( User user, Collection<String> uids );
+    void removeUserFromGroups( User user, @Nonnull Collection<String> uids );
 
-    void updateUserGroups( User user, Collection<String> uids );
+    void updateUserGroups( User user, @Nonnull Collection<String> uids );
 
-    void updateUserGroups( User user, Collection<String> uids, User currentUser );
+    void updateUserGroups( User user, @Nonnull Collection<String> uids, User currentUser );
 
     List<UserGroup> getAllUserGroups();
 

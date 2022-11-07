@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.artemis.audit.listener;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -74,22 +74,22 @@ public class HibernateListenerConfigurer
     @PersistenceUnit
     private EntityManagerFactory emf;
 
-    @NonNull
+    @Nonnull
     private final PostInsertAuditListener postInsertAuditListener;
 
-    @NonNull
+    @Nonnull
     private final PostUpdateAuditListener postUpdateEventListener;
 
-    @NonNull
+    @Nonnull
     private final PostDeleteAuditListener postDeleteEventListener;
 
-    @NonNull
+    @Nonnull
     private final PostLoadAuditListener postLoadEventListener;
 
-    @NonNull
+    @Nonnull
     private final AuditMatrix auditMatrix;
 
-    @NonNull
+    @Nonnull
     private DhisConfigurationProvider config;
 
     @PostConstruct

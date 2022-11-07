@@ -27,18 +27,24 @@
  */
 package org.hisp.dhis.dataexchange.client.auth;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Authentication with access token (PAT).
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class AccessTokenAuthentication
     implements Authentication
 {
-    @NonNull
+    @Nonnull
     private final String accessToken;
 
     @Override

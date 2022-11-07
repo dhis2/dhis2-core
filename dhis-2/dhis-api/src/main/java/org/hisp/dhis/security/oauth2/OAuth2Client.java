@@ -136,24 +136,14 @@ public class OAuth2Client
     @Override
     public boolean equals( Object obj )
     {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-        if ( !super.equals( obj ) )
-        {
-            return false;
-        }
+        return this == obj || obj instanceof OAuth2Client && super.equals( obj ) && objectEquals( (OAuth2Client) obj );
+    }
 
-        final OAuth2Client other = (OAuth2Client) obj;
-
-        return Objects.equals( this.cid, other.cid )
-            && Objects.equals( this.secret, other.secret )
-            && Objects.equals( this.redirectUris, other.redirectUris )
-            && Objects.equals( this.grantTypes, other.grantTypes );
+    private boolean objectEquals( OAuth2Client other )
+    {
+        return Objects.equals( cid, other.cid )
+            && Objects.equals( secret, other.secret )
+            && Objects.equals( redirectUris, other.redirectUris )
+            && Objects.equals( grantTypes, other.grantTypes );
     }
 }

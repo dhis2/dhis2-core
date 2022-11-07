@@ -31,6 +31,8 @@ import static com.google.common.base.Preconditions.*;
 
 import java.util.*;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.cache.*;
 import org.hisp.dhis.security.acl.*;
 import org.springframework.stereotype.*;
@@ -197,7 +199,7 @@ public class DefaultUserGroupService
 
     @Override
     @Transactional
-    public void updateUserGroups( User user, Collection<String> uids, User currentUser )
+    public void updateUserGroups( User user, @Nonnull Collection<String> uids, User currentUser )
     {
         Collection<UserGroup> updates = getUserGroupsByUid( uids );
 
@@ -219,7 +221,7 @@ public class DefaultUserGroupService
         }
     }
 
-    private Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
+    private Collection<UserGroup> getUserGroupsByUid( @Nonnull Collection<String> uids )
     {
         return userGroupStore.getByUid( uids );
     }

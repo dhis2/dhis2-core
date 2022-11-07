@@ -25,69 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.Date;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Lars Helge Overland
+ * Decorator to be applied to {@link OrganisationUnitMapper} to correctly map
+ * the recursive parent field
  */
-public class ConfigurablePeriod
-    extends Period
+public abstract class OrgUnitDecorator implements OrganisationUnitMapper
 {
-    private String value;
 
-    public ConfigurablePeriod( String value )
+    private final OrganisationUnitMapper delegate;
+
+    protected OrgUnitDecorator( OrganisationUnitMapper delegate )
     {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
+        this.delegate = delegate;
     }
 
     @Override
-    public String getIsoDate()
+    public OrganisationUnit map( OrganisationUnit organisationUnit )
     {
-        return value;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
+        if ( organisationUnit == null )
         {
-            return true;
+            return null;
         }
 
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
-        return value.equals( other.getIsoDate() );
+        OrganisationUnit organisationUnit1 = delegate.map( organisationUnit );
+        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
+        return organisationUnit1;
     }
 
-    @Override
-    public String toString()
+    private OrganisationUnit fetchParent( OrganisationUnit organisationUnit )
     {
-        return "[" + value + "]";
+        if ( organisationUnit == null )
+        {
+            return null;
+        }
+
+        OrganisationUnit organisationUnit1 = new OrganisationUnit();
+        organisationUnit1.setUid( organisationUnit.getUid() );
+        organisationUnit1.setParent( fetchParent( organisationUnit.getParent() ) );
+
+        return organisationUnit1;
     }
 }

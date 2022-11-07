@@ -32,6 +32,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.mapgeneration.comparator.IntervalLowValueAscComparator;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +57,8 @@ import org.springframework.util.Assert;
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
+@Getter
+@Setter
 public class InternalMapLayer
 {
     protected String name;
@@ -216,7 +221,7 @@ public class InternalMapLayer
      */
     public void setIntervalSetFromLegendSet( org.hisp.dhis.legend.LegendSet legendSet )
     {
-        IntervalSet intervalSet = new IntervalSet();
+        IntervalSet fromLegendSet = new IntervalSet();
 
         for ( org.hisp.dhis.legend.Legend legend : legendSet.getLegends() )
         {
@@ -224,12 +229,12 @@ public class InternalMapLayer
 
             Interval interval = new Interval( color, legend.getStartValue(), legend.getEndValue() );
 
-            intervalSet.getIntervals().add( interval );
+            fromLegendSet.getIntervals().add( interval );
         }
 
-        Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
+        fromLegendSet.getIntervals().sort( IntervalLowValueAscComparator.INSTANCE );
 
-        this.intervalSet = intervalSet;
+        this.intervalSet = fromLegendSet;
     }
 
     /**
@@ -339,7 +344,7 @@ public class InternalMapLayer
             intervalSet.getIntervals().add( interval );
         }
 
-        Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
+        intervalSet.getIntervals().sort( IntervalLowValueAscComparator.INSTANCE );
 
         this.intervalSet = intervalSet;
     }
@@ -379,7 +384,7 @@ public class InternalMapLayer
             intervalSet.getIntervals().add( interval );
         }
 
-        Collections.sort( intervalSet.getIntervals(), IntervalLowValueAscComparator.INSTANCE );
+        intervalSet.getIntervals().sort( IntervalLowValueAscComparator.INSTANCE );
 
         this.intervalSet = intervalSet;
     }
@@ -396,124 +401,5 @@ public class InternalMapLayer
         Collections.sort( values );
 
         return values;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public List<InternalMapObject> getMapObjects()
-    {
-        return mapObjects;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    public Period getPeriod()
-    {
-        return period;
-    }
-
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
-
-    public Integer getMethod()
-    {
-        return method;
-    }
-
-    public void setMethod( Integer method )
-    {
-        this.method = method;
-    }
-
-    public String getLayer()
-    {
-        return layer;
-    }
-
-    public void setLayer( String layer )
-    {
-        this.layer = layer;
-    }
-
-    public Integer getRadiusHigh()
-    {
-        return radiusHigh;
-    }
-
-    public void setRadiusHigh( Integer radiusHigh )
-    {
-        this.radiusHigh = radiusHigh;
-    }
-
-    public Integer getRadiusLow()
-    {
-        return radiusLow;
-    }
-
-    public void setRadiusLow( Integer radiusLow )
-    {
-        this.radiusLow = radiusLow;
-    }
-
-    public Color getColorHigh()
-    {
-        return colorHigh;
-    }
-
-    public void setColorHigh( Color colorHigh )
-    {
-        this.colorHigh = colorHigh;
-    }
-
-    public Color getColorLow()
-    {
-        return colorLow;
-    }
-
-    public void setColorLow( Color colorLow )
-    {
-        this.colorLow = colorLow;
-    }
-
-    public float getOpacity()
-    {
-        return opacity;
-    }
-
-    public void setOpacity( float opacity )
-    {
-        this.opacity = opacity;
-    }
-
-    public Integer getClasses()
-    {
-        return classes;
-    }
-
-    public void setClasses( Integer classes )
-    {
-        this.classes = classes;
-    }
-
-    public IntervalSet getIntervalSet()
-    {
-        return intervalSet;
-    }
-
-    public void setIntervalSet( IntervalSet intervalSet )
-    {
-        this.intervalSet = intervalSet;
     }
 }

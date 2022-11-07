@@ -43,7 +43,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,19 +76,19 @@ import com.google.common.collect.ImmutableMap;
 public class DefaultTrackerImportService
     implements TrackerImportService
 {
-    @NonNull
+    @Nonnull
     private final TrackerBundleService trackerBundleService;
 
-    @NonNull
+    @Nonnull
     private final TrackerValidationService trackerValidationService;
 
-    @NonNull
+    @Nonnull
     private final TrackerPreprocessService trackerPreprocessService;
 
-    @NonNull
+    @Nonnull
     private final TrackerUserService trackerUserService;
 
-    @NonNull
+    @Nonnull
     private final Notifier notifier;
 
     @Override

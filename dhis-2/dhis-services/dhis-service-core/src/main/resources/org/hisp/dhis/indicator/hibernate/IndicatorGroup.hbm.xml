@@ -36,10 +36,11 @@
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <join table="indicatorgroupsetmembers" inverse="true">
+    <set name="groupSets" table="indicatorgroupsetmembers" inverse="true">
+      <cache usage="read-write" />
       <key column="indicatorgroupid" />
-      <many-to-one column="indicatorgroupsetid" name="groupSet" />
-    </join>
+      <many-to-many class="org.hisp.dhis.indicator.IndicatorGroupSet" column="indicatorgroupsetid" />
+    </set>
 
   </class>
 
