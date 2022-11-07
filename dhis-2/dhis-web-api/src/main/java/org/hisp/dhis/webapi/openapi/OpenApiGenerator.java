@@ -35,6 +35,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -128,6 +129,8 @@ public class OpenApiGenerator
 
     static
     {
+        // TODO use a builder for this instead so only the needed fields are set
+        // => better scaling
         addBasicSchema( int.class, "integer", "int32", false );
         addBasicSchema( long.class, "integer", "int64", false );
         addBasicSchema( float.class, "number", "float", false );
@@ -181,6 +184,8 @@ public class OpenApiGenerator
 
     private String indent;
 
+    private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
+
     private void generateDocument()
     {
         addRootObject( () -> {
@@ -227,7 +232,7 @@ public class OpenApiGenerator
     {
         addObjectMember( method.name().toLowerCase(), () -> {
             addStringMember( "summary", null ); // TODO
-            addStringMember( "operationId", endpoint.getName() );
+            addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             addArrayMember( "parameters", endpoint.getParameters().stream()
                 .filter( p -> p.getIn() != Api.Parameter.In.BODY ),
                 this::generateParameter );
@@ -246,7 +251,7 @@ public class OpenApiGenerator
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
-            addStringMember( "description", null ); // TODO
+            addStringMember( "description", "TODO description is required" ); // TODO
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
@@ -362,6 +367,15 @@ public class OpenApiGenerator
     /*
      * Open API document generation helpers
      */
+
+    private String getUniqueOperationId( Api.Endpoint endpoint )
+    {
+        String baseOperationId = endpoint.getIn().getName() + "." + endpoint.getName();
+        List<Api.Endpoint> endpoints = endpointsByBaseOperationId.computeIfAbsent( baseOperationId,
+            key -> new ArrayList<>() );
+        endpoints.add( endpoint );
+        return endpoints.size() == 1 ? baseOperationId : baseOperationId + endpoints.size();
+    }
 
     private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
     {

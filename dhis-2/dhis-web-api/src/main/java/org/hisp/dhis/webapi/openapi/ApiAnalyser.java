@@ -151,7 +151,7 @@ class ApiAnalyser
         RequestMapping rm = source.getAnnotation( RequestMapping.class );
         String name = rm != null && !rm.name().isEmpty() ? rm.name()
             : source.getSimpleName().replace( "Controller", "" );
-        Api.Controller controller = new Api.Controller( source, name );
+        Api.Controller controller = new Api.Controller( api, source, name );
         if ( rm != null )
             controller.getPaths().addAll( List.of( rm.value() ) );
         for ( Method m : source.getMethods() )
@@ -169,7 +169,7 @@ class ApiAnalyser
     {
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
 
-        Api.Endpoint e = new Api.Endpoint( source, name );
+        Api.Endpoint e = new Api.Endpoint( controller, source, name );
 
         // request:
         e.getPaths().addAll( List.of( mapping.getPath() ) );

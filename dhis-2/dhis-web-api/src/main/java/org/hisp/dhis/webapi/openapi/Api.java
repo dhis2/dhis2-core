@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
@@ -98,9 +99,14 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Controller
     {
         @ToString.Exclude
+        Api in;
+
+        @ToString.Exclude
+        @EqualsAndHashCode.Include
         Class<?> source;
 
         String name;
@@ -111,10 +117,14 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Endpoint
     {
+        @ToString.Exclude
+        Controller in;
 
         @ToString.Exclude
+        @EqualsAndHashCode.Include
         Method source;
 
         String name;
@@ -170,6 +180,7 @@ class Api
     {
 
         @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         Class<?> source;
 
         /**
@@ -179,6 +190,7 @@ class Api
         String name;
 
         @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         Type hint;
 
         /**
