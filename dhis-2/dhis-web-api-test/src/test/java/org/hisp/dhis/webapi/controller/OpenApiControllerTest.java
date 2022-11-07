@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
+import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
@@ -40,8 +42,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject doc = GET( "/openapi/openapi.json" ).content();
         assertTrue( doc.isObject() );
-        assertTrue( doc.getObject( "paths" ).size() > 100 );
-        assertTrue( doc.getObject( "components.schemas" ).size() > 100 );
+        assertGreaterOrEqual( 150, doc.getObject( "paths" ).size() );
+        assertGreaterOrEqual( 200, doc.getObject( "components.schemas" ).size() );
     }
 
     @Test
@@ -49,6 +51,10 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject doc = GET( "/openapi/openapi.json?root=users" ).content();
         assertTrue( doc.isObject() );
-        System.out.println( doc );
+        assertTrue(
+            doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
+        assertLessOrEqual( 25, doc.getObject( "paths" ).size() );
+        assertLessOrEqual( 20, doc.getObject( "components.schemas" ).size() );
     }
+
 }

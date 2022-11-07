@@ -658,7 +658,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    @OpenApi.Param( value = IdentifiableObject.class, fields = "translations" )
+    @OpenApi.Param( value = IdentifiableObject.class, includes = "translations" )
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody

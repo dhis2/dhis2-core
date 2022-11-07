@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
@@ -47,12 +48,16 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.period.PeriodType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -139,8 +144,12 @@ public class OpenApiGenerator
         addBasicSchema( Date.class, "string", "date-time", true );
         addBasicSchema( Locale.class, "string", null, true );
         addBasicSchema( JsonNode.class, "object", null, null );
+        addBasicSchema( ObjectNode.class, "object", null, null );
+        addBasicSchema( ArrayNode.class, "array", null, null );
+        addBasicSchema( RootNode.class, "object", null, false );
         addBasicSchema( JsonPointer.class, "string", null, false );
-
+        addBasicSchema( PeriodType.class, "string", null, false );
+        addBasicSchema( Serializable.class, "string", null, null );
     }
 
     public static String generate( Api api )
@@ -203,7 +212,14 @@ public class OpenApiGenerator
         // properly
         // as in theory these endpoints can be different not just by their
         // responses
-        endpoints.forEach( e -> e.getMethods().forEach( m -> endpointByMethod.put( m, e ) ) );
+        endpoints.forEach( e -> e.getMethods().forEach( m -> endpointByMethod.compute( m, ( k, v ) -> {
+            // a hack to prefer the JSON endpoint if there is a clash
+            if ( v == null )
+                return e;
+            if ( v.getConsumes().contains( MediaType.APPLICATION_JSON ) )
+                return v;
+            return e;
+        } ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
 
@@ -324,6 +340,7 @@ public class OpenApiGenerator
         }
         else
         {
+            System.out.println( schema + " " + schema.getSource() + " " + schema.getHint() );
             log.warn( schema.toString() );
         }
     }

@@ -54,7 +54,7 @@ public class OpenApiController
     private final ApplicationContext context;
 
     @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getOpenApiDocument( @RequestParam Set<String> root, HttpServletResponse response )
+    public void getOpenApiDocument( @RequestParam( required = false ) Set<String> root, HttpServletResponse response )
         throws IOException
     {
         Api api = ApiAnalyser.describeApi( getAllControllerClasses(), root );

@@ -39,19 +39,44 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface OpenApi
 {
+    /**
+     * A single named parameter or request body parameter.
+     */
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )
     @Repeatable( ParamRepeat.class )
     @interface Param
     {
+        /**
+         * @return name of the parameter, empty for request body parameter
+         */
         String name() default "";
 
+        /**
+         * For complex parameter objects use {@link Params} instead.
+         *
+         * @return type of the parameter, should be a simple type for a path
+         *         parameter.
+         */
         Class<?> value();
 
-        String[] fields() default {};
+        /**
+         * @return set of property names to include from the {@link #value()}
+         *         type, all other properties are implicitly excluded.
+         */
+        String[] includes() default {};
+
+        /**
+         * @return set of property names to exclude from the {@link #value()}
+         *         type
+         */
+        String[] excludes() default {};
     }
 
+    /**
+     * A parameter object. Each property of the object becomes a parameter.
+     */
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )
@@ -60,7 +85,17 @@ public @interface OpenApi
     {
         Class<?> value();
 
-        String[] fields() default {};
+        /**
+         * @return set of property names to include from the {@link #value()}
+         *         type, all other properties are implicitly excluded.
+         */
+        String[] includes() default {};
+
+        /**
+         * @return set of property names to exclude from the {@link #value()}
+         *         type
+         */
+        String[] excludes() default {};
     }
 
     @Inherited

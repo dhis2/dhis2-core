@@ -44,6 +44,7 @@ import java.lang.reflect.WildcardType;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -133,7 +134,7 @@ class ApiAnalyser
         api.getSchemas().put( Api.Ref.class, Api.ref( null ) );
         Stream<Class<?>> scope = controllers.stream()
             .filter( ApiAnalyser::isControllerType );
-        if ( !roots.isEmpty() )
+        if ( roots != null && !roots.isEmpty() )
         {
             Set<String> normalizedRoots = roots.stream()
                 .map( path -> path.startsWith( "/" ) ? path : "/" + path )
@@ -355,6 +356,7 @@ class ApiAnalyser
             Class<?> cls = (Class<?>) source;
             if ( JsonNode.class.isAssignableFrom( cls ) )
             {
+                // TODO keep type?
                 return new Api.Schema( JsonNode.class, "", source );
             }
             return describeSchema( api, cls );
@@ -376,6 +378,9 @@ class ApiAnalyser
         if ( source instanceof WildcardType )
         {
             WildcardType wt = (WildcardType) source;
+            if ( wt.getLowerBounds().length == 0
+                && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
+                return new Api.Schema( Object.class, "", wt );
             return describeBodySchema( api, wt.getUpperBounds()[0] );
         }
         return null;
