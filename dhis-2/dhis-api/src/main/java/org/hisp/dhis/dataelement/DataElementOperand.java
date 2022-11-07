@@ -401,18 +401,17 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
-        DataElementOperand that = (DataElementOperand) o;
-        return Objects.equals( dataElement, that.dataElement ) &&
-            Objects.equals( categoryOptionCombo, that.categoryOptionCombo ) &&
-            Objects.equals( attributeOptionCombo, that.attributeOptionCombo );
+        return this == obj
+            || obj instanceof DataElementOperand && super.equals( obj ) && objectEquals( (DataElementOperand) obj );
+    }
+
+    private boolean objectEquals( DataElementOperand other )
+    {
+        return Objects.equals( dataElement, other.dataElement )
+            && Objects.equals( categoryOptionCombo, other.categoryOptionCombo )
+            && Objects.equals( attributeOptionCombo, other.attributeOptionCombo );
     }
 
     @Override

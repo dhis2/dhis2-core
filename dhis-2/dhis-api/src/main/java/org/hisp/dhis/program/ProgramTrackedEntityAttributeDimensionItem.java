@@ -124,26 +124,16 @@ public class ProgramTrackedEntityAttributeDimensionItem
     }
 
     @Override
-    public boolean equals( Object object )
+    public boolean equals( Object obj )
     {
-        if ( this == object )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof ProgramTrackedEntityAttributeDimensionItem && objectEquals(
+            (ProgramTrackedEntityAttributeDimensionItem) obj );
+    }
 
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        ProgramTrackedEntityAttributeDimensionItem other = (ProgramTrackedEntityAttributeDimensionItem) object;
-
-        return Objects.equal( attribute, other.attribute ) && Objects.equal( program, other.program );
+    private boolean objectEquals( ProgramTrackedEntityAttributeDimensionItem other )
+    {
+        return Objects.equal( attribute, other.attribute )
+            && Objects.equal( program, other.program );
     }
 
     // -------------------------------------------------------------------------
