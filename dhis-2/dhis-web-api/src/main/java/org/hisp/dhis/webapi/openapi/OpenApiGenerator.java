@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -43,11 +45,16 @@ import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.util.MimeType;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
+
+@Slf4j
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class OpenApiGenerator
 {
@@ -94,7 +101,7 @@ public class OpenApiGenerator
 
         String format;
 
-        boolean nullable;
+        Boolean nullable;
 
         Integer minLength;
 
@@ -103,12 +110,12 @@ public class OpenApiGenerator
 
     private static final Map<Class<?>, BasicSchema> BASIC_SCHEMAS = new IdentityHashMap<>();
 
-    private static void addBasicSchema( Class<?> of, String type, String format, boolean nullable )
+    private static void addBasicSchema( Class<?> of, String type, String format, Boolean nullable )
     {
         addBasicSchema( of, type, format, nullable, null, null );
     }
 
-    private static void addBasicSchema( Class<?> of, String type, String format, boolean nullable, Integer minLength,
+    private static void addBasicSchema( Class<?> of, String type, String format, Boolean nullable, Integer minLength,
         Integer maxLength )
     {
         BASIC_SCHEMAS.put( of, new BasicSchema( type, format, nullable, minLength, maxLength ) );
@@ -130,6 +137,10 @@ public class OpenApiGenerator
         addBasicSchema( Character.class, "string", null, true, 1, 1 );
         addBasicSchema( String.class, "string", null, true );
         addBasicSchema( Date.class, "string", "date-time", true );
+        addBasicSchema( Locale.class, "string", null, true );
+        addBasicSchema( JsonNode.class, "object", null, null );
+        addBasicSchema( JsonPointer.class, "string", null, false );
+
     }
 
     public static String generate( Api api )
@@ -147,11 +158,9 @@ public class OpenApiGenerator
         int capacity = endpoints * 256 + api.getSchemas().size() * 512;
         OpenApiGenerator gen = new OpenApiGenerator( api, new StringBuilder( capacity ), config.format, config.document,
             "" );
-        gen.generate();
+        gen.generateDocument();
         return gen.out.toString();
     }
-
-    private static final MimeType APPLICATION_JSON = MimeType.valueOf( "application/json" );
 
     private final Api api;
 
@@ -163,7 +172,7 @@ public class OpenApiGenerator
 
     private String indent;
 
-    public void generate()
+    private void generateDocument()
     {
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
@@ -176,6 +185,8 @@ public class OpenApiGenerator
             addObjectMember( "paths", this::generatePaths );
             addObjectMember( "components", () -> addObjectMember( "schemas", this::generateSchemas ) );
         } );
+        log.info( format( "OpenAPI document generated for %d controllers with %d named schemas",
+            api.getControllers().size(), api.getSchemas().size() ) );
     }
 
     private void generatePaths()
@@ -186,6 +197,12 @@ public class OpenApiGenerator
     private void generatePath( String path, List<Api.Endpoint> endpoints )
     {
         EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
+        // FIXME this discards endpoints where same method is defined multiple
+        // times because of different media types
+        // this needs to be merged but OpenAPI does not really support this
+        // properly
+        // as in theory these endpoints can be different not just by their
+        // responses
         endpoints.forEach( e -> e.getMethods().forEach( m -> endpointByMethod.put( m, e ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
@@ -196,10 +213,10 @@ public class OpenApiGenerator
             addStringMember( "summary", null ); // TODO
             addStringMember( "operationId", endpoint.getName() );
             addArrayMember( "parameters", endpoint.getParameters().stream()
-                .filter( p -> p.getLocation() != Api.Parameter.Location.BODY ),
+                .filter( p -> p.getIn() != Api.Parameter.In.BODY ),
                 this::generateParameter );
             endpoint.getParameters().stream()
-                .filter( p -> p.getLocation() == Api.Parameter.Location.BODY )
+                .filter( p -> p.getIn() == Api.Parameter.In.BODY )
                 .findFirst()
                 .ifPresent( requestBody -> addObjectMember( "requestBody",
                     () -> generateRequestBody( requestBody, endpoint.getConsumes() ) ) );
@@ -212,17 +229,17 @@ public class OpenApiGenerator
     {
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
-            addStringMember( "in", parameter.getLocation().name().toLowerCase() );
+            addStringMember( "in", parameter.getIn().name().toLowerCase() );
             addStringMember( "description", null ); // TODO
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
     }
 
-    private void generateRequestBody( Api.Parameter body, List<MimeType> consumes )
+    private void generateRequestBody( Api.Parameter body, List<MediaType> consumes )
     {
         if ( consumes.isEmpty() )
-            consumes.add( APPLICATION_JSON );
+            consumes.add( MediaType.APPLICATION_JSON );
         addStringMember( "description", null ); // TODO
         addBooleanMember( "required", body.isRequired() );
         addObjectMember( "content", () -> {
@@ -233,10 +250,10 @@ public class OpenApiGenerator
         } );
     }
 
-    private void generateResponse( Api.Response response, List<MimeType> produces, List<MimeType> consumes )
+    private void generateResponse( Api.Response response, List<MediaType> produces, List<MediaType> consumes )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", null ); // TODO
+            addStringMember( "description", "TODO description is required" ); // TODO
             // addObjectMember( "headers", null ); //TODO
             if ( response.getBody() != null
                 && response.getBody().getSource() != void.class
@@ -246,7 +263,7 @@ public class OpenApiGenerator
                 {
                     // make API symmetric by sing the first consumes if no
                     // produces is set
-                    produces.add( !consumes.isEmpty() ? consumes.get( 0 ) : APPLICATION_JSON );
+                    produces.add( !consumes.isEmpty() ? consumes.get( 0 ) : MediaType.APPLICATION_JSON );
                 }
                 addObjectMember( "content", () -> produces.forEach( type -> addObjectMember( type.toString(),
                     () -> addObjectMember( "schema", () -> generateSchemaOrRef( response.getBody() ) ) ) ) );
@@ -257,8 +274,15 @@ public class OpenApiGenerator
     private void generateSchemas()
     {
         api.getSchemas().values().stream()
-            .filter( s -> !s.getName().isEmpty() )
+            .filter( OpenApiGenerator::isReferencableSchema )
             .forEach( s -> addObjectMember( s.getName(), () -> generateSchema( s ) ) );
+    }
+
+    private static boolean isReferencableSchema( Api.Schema schema )
+    {
+        return !schema.getName().isEmpty()
+            && !schema.getFields().isEmpty()
+            && !BASIC_SCHEMAS.containsKey( schema.getSource() );
     }
 
     private void generateSchema( Api.Schema schema )
@@ -269,7 +293,7 @@ public class OpenApiGenerator
         {
             addStringMember( "type", bs.getType() );
             addStringMember( "format", bs.getFormat() );
-            addBooleanMember( "nullable", bs.isNullable() );
+            addBooleanMember( "nullable", bs.getNullable() );
             addNumberMember( "minLength", bs.getMinLength() );
             addNumberMember( "maxLength", bs.getMaxLength() );
             return;
@@ -286,15 +310,21 @@ public class OpenApiGenerator
             addStringMember( "type", "array" );
             addObjectMember( "items",
                 () -> generateSchemaOrRef( api.getSchemas().get( type.getComponentType() ) ) );
+            return;
         }
+        // best guess: it is an object type
+        addStringMember( "type", "object" );
         if ( !schema.getFields().isEmpty() )
         {
-            addStringMember( "type", "object" );
             addArrayMember( "required", schema.getFields().stream()
                 .filter( f -> Boolean.TRUE.equals( f.getRequired() ) ),
                 f -> addStringMember( null, f.getName() ) );
             addObjectMember( "properties", () -> schema.getFields()
                 .forEach( field -> addObjectMember( field.getName(), () -> generateSchemaOrRef( field.getType() ) ) ) );
+        }
+        else
+        {
+            log.warn( schema.toString() );
         }
     }
 
@@ -302,7 +332,7 @@ public class OpenApiGenerator
     {
         if ( schema == null )
             return;
-        if ( schema.getName().isEmpty() )
+        if ( !isReferencableSchema( schema ) )
         {
             generateSchema( schema );
         }
@@ -405,6 +435,14 @@ public class OpenApiGenerator
             appendMemberName( name );
             appendString( value );
             appendMemberComma();
+        }
+    }
+
+    private void addBooleanMember( String name, Boolean value )
+    {
+        if ( value != null )
+        {
+            addBooleanMember( name, value.booleanValue() );
         }
     }
 

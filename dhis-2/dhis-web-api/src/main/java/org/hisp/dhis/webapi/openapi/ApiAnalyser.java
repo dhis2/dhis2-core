@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
@@ -99,15 +99,13 @@ class ApiAnalyser
                 .filter( c -> !Modifier.isAbstract( c.getModifiers() ) )
                 .collect( toList() );
         }
-        Api api = describeApi( classes );
+        Set<String> roots = args.length < 2 ? Set.of() : Stream.of( args ).skip( 1 ).collect( toUnmodifiableSet() );
+        Api api = describeApi( classes, roots );
         String doc = OpenApiGenerator.generate( api );
-        if ( args.length == 1 )
+        if ( args.length >= 1 )
         {
-            Files.writeString( Path.of( args[0] ), doc, StandardOpenOption.CREATE );
+            Files.writeString( Path.of( args[0] ), doc, StandardOpenOption.TRUNCATE_EXISTING );
         }
-        System.out.println( doc );
-        System.out.println(
-            format( "%d controllers, %d schemas", api.getControllers().size(), api.getSchemas().size() ) );
     }
 
     private static String toClassName( Path f )
@@ -128,13 +126,21 @@ class ApiAnalyser
         }
     }
 
-    public static Api describeApi( List<Class<?>> controllers )
+    public static Api describeApi( List<Class<?>> controllers, Set<String> roots )
     {
         Api api = new Api();
         api.getSchemas().put( String.class, Api.STRING );
         api.getSchemas().put( Api.Ref.class, Api.ref( null ) );
-        controllers.stream()
-            .filter( ApiAnalyser::isControllerType )
+        Stream<Class<?>> scope = controllers.stream()
+            .filter( ApiAnalyser::isControllerType );
+        if ( !roots.isEmpty() )
+        {
+            Set<String> normalizedRoots = roots.stream()
+                .map( path -> path.startsWith( "/" ) ? path : "/" + path )
+                .collect( toUnmodifiableSet() );
+            scope = scope.filter( c -> isRoot( c, normalizedRoots ) );
+        }
+        scope
             .forEach( source -> api.getControllers().add( describeController( api, source ) ) );
         return api;
     }
@@ -165,7 +171,7 @@ class ApiAnalyser
         Api.Endpoint e = new Api.Endpoint( source, name );
 
         // request:
-        e.getPaths().addAll( List.of( mapping.getValue() ) );
+        e.getPaths().addAll( List.of( mapping.getPath() ) );
         e.getMethods().addAll( List.of( mapping.method ) );
         stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).forEach( e.getConsumes()::add );
         // - declared parameters
@@ -177,9 +183,11 @@ class ApiAnalyser
             }
             else if ( isComplexEndpointParameter( p ) )
             {
+                boolean requireJsonProperty = stream( p.getType().getMethods() )
+                    .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
                 for ( Method m : p.getType().getMethods() )
                 {
-                    if ( isEndpointParameter( m, 1, List.of( "set" ) ) )
+                    if ( isEndpointParameter( m, 1, List.of( "set" ), requireJsonProperty ) )
                     {
                         e.getParameters().add( describeParameter( api, m ) );
                     }
@@ -187,22 +195,38 @@ class ApiAnalyser
             }
         }
         // - undeclared parameters (not found in signature)
-        if ( source.isAnnotationPresent( OpenApi.Params.class ) )
+        if ( source.isAnnotationPresent( OpenApi.ParamRepeat.class ) )
         {
-            stream( source.getAnnotation( OpenApi.Params.class ).value() )
-                .forEach( p -> describeUndeclaredParameters( api, controller, e, p ) );
+            stream( source.getAnnotation( OpenApi.ParamRepeat.class ).value() )
+                .forEach( p -> describeOpenApiParam( api, controller, e, p ) );
+        }
+        else if ( source.isAnnotationPresent( OpenApi.Param.class ) )
+        {
+            describeOpenApiParam( api, controller, e, source.getAnnotation( OpenApi.Param.class ) );
+        }
+        if ( source.isAnnotationPresent( OpenApi.ParamsRepeat.class ) )
+        {
+            stream( source.getAnnotation( OpenApi.ParamsRepeat.class ).value() )
+                .forEach( p -> describeOpenApiParams( api, e, p ) );
+        }
+        else if ( source.isAnnotationPresent( OpenApi.Params.class ) )
+        {
+            describeOpenApiParams( api, e, source.getAnnotation( OpenApi.Params.class ) );
         }
         // response:
         stream( mapping.getProduces() ).map( MediaType::parseMediaType ).forEach( e.getProduces()::add );
         HttpStatus status = HttpStatus.OK;
         if ( source.isAnnotationPresent( ResponseStatus.class ) )
-            status = source.getAnnotation( ResponseStatus.class ).value();
+        {
+            ResponseStatus a = source.getAnnotation( ResponseStatus.class );
+            status = firstNonEqual( HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code(), status );
+        }
         Api.Schema body = describeBodySchema( api, source.getGenericReturnType() );
         e.getResponses().add( new Api.Response( status, body ) );
         return e;
     }
 
-    private static void describeUndeclaredParameters( Api api, Api.Controller controller, Api.Endpoint endpoint,
+    private static void describeOpenApiParam( Api api, Api.Controller controller, Api.Endpoint endpoint,
         OpenApi.Param param )
     {
         String name = param.name();
@@ -213,25 +237,29 @@ class ApiAnalyser
                 .getActualTypeArguments()[0];
         }
         List<Api.Parameter> params = endpoint.getParameters();
-        if ( name.isEmpty() || "{}".equals( name ) )
+        if ( name.isEmpty() )
         {
             params.add(
-                new Api.Parameter( endpoint.getSource(), "", Api.Parameter.Location.BODY, true,
+                new Api.Parameter( endpoint.getSource(), "", Api.Parameter.In.BODY, true,
                     describeSchema( api, value ) ) );
-        }
-        else if ( name.startsWith( "{" ) && name.endsWith( "}" ) )
-        {
-            stream( value.getMethods() )
-                .filter( m -> isEndpointParameter( m, 0, List.of( "has", "is", "get" ) ) )
-                .map( m -> describeParameter( api, m ) )
-                .forEach( params::add );
         }
         else
         {
             params.add(
-                new Api.Parameter( endpoint.getSource(), name, Api.Parameter.Location.QUERY, false,
+                new Api.Parameter( endpoint.getSource(), name, Api.Parameter.In.QUERY, false,
                     describeSchema( api, value ) ) );
         }
+    }
+
+    private static void describeOpenApiParams( Api api, Api.Endpoint endpoint, OpenApi.Params params )
+    {
+        Class<?> value = params.value();
+        boolean requireJsonProperty = stream( value.getMethods() )
+            .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
+        stream( value.getMethods() )
+            .filter( m -> isEndpointParameter( m, 0, List.of( "has", "is", "get" ), requireJsonProperty ) )
+            .map( m -> describeParameter( api, m ) )
+            .forEach( endpoint.getParameters()::add );
     }
 
     private static Api.Parameter describeParameter( Api api, Parameter source )
@@ -240,22 +268,21 @@ class ApiAnalyser
         if ( source.isAnnotationPresent( PathVariable.class ) )
         {
             PathVariable a = source.getAnnotation( PathVariable.class );
-            return new Api.Parameter( source, a.name().isEmpty() ? source.getName() : a.name(),
-                Api.Parameter.Location.PATH, a.required(), schema );
+            String name = firstNonEmpty( a.name(), a.value(), source.getName() );
+            return new Api.Parameter( source, name, Api.Parameter.In.PATH, a.required(), schema );
         }
         if ( source.isAnnotationPresent( RequestParam.class ) )
         {
             RequestParam a = source.getAnnotation( RequestParam.class );
             boolean required = a.required()
                 && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
-            return new Api.Parameter( source, a.name().isEmpty() ? source.getName() : a.name(),
-                Api.Parameter.Location.QUERY,
-                required, schema );
+            String name = firstNonEmpty( a.name(), a.value(), source.getName() );
+            return new Api.Parameter( source, name, Api.Parameter.In.QUERY, required, schema );
         }
         if ( source.isAnnotationPresent( RequestBody.class ) )
         {
             RequestBody a = source.getAnnotation( RequestBody.class );
-            return new Api.Parameter( source, "", Api.Parameter.Location.BODY, a.required(), schema );
+            return new Api.Parameter( source, "", Api.Parameter.In.BODY, a.required(), schema );
         }
         throw new UnsupportedOperationException( "not yet" );
     }
@@ -266,7 +293,7 @@ class ApiAnalyser
         Api.Schema type = describeSchema( api, source.getParameterCount() == 0
             ? source.getReturnType()
             : source.getParameterTypes()[0] );
-        return new Api.Parameter( source, name, Api.Parameter.Location.QUERY, false, type );
+        return new Api.Parameter( source, name, Api.Parameter.In.QUERY, false, type );
     }
 
     private static Api.Schema describeSchema( Api api, Class<?> source )
@@ -328,7 +355,7 @@ class ApiAnalyser
             Class<?> cls = (Class<?>) source;
             if ( JsonNode.class.isAssignableFrom( cls ) )
             {
-                return new Api.Schema( JsonNode.class, "JSON", source );
+                return new Api.Schema( JsonNode.class, "", source );
             }
             return describeSchema( api, cls );
         }
@@ -416,19 +443,19 @@ class ApiAnalyser
         return null;
     }
 
+    private static String getPropertyName( Method method )
+    {
+        String name = method.getName();
+        String prop = name.substring( name.startsWith( "is" ) ? 2 : 3 );
+        return Character.toLowerCase( prop.charAt( 0 ) ) + prop.substring( 1 );
+    }
+
     private static <T extends Member & AnnotatedElement> String getName( T member )
     {
         String name = member instanceof Field ? member.getName() : getPropertyName( (Method) member );
         JsonProperty property = member.getAnnotation( JsonProperty.class );
         String customName = property == null ? "" : property.value();
         return customName.isEmpty() ? name : customName;
-    }
-
-    private static String getPropertyName( Method method )
-    {
-        String name = method.getName();
-        String prop = name.substring( name.startsWith( "is" ) ? 2 : 3 );
-        return Character.toLowerCase( prop.charAt( 0 ) ) + prop.substring( 1 );
     }
 
     private static <T extends AnnotatedElement & Member> boolean isSchemaField( T member )
@@ -462,47 +489,76 @@ class ApiAnalyser
             || source.isAnnotationPresent( RequestBody.class );
     }
 
-    private static boolean isEndpointParameter( Method source, int parameterCount, List<String> prefixes )
+    private static boolean isEndpointParameter( Method source, int parameterCount, List<String> prefixes,
+        boolean requireJsonProperty )
     {
-        return prefixes.stream().anyMatch( prefix -> source.getName().substring( 0, prefix.length() ).equals( prefix ) )
+        return prefixes.stream().anyMatch( prefix -> source.getName().startsWith( prefix ) )
             && source.getParameterCount() == parameterCount
             && Modifier.isPublic( source.getModifiers() )
-            && source.getDeclaringClass() != Object.class;
+            && source.getDeclaringClass() != Object.class
+            && (!requireJsonProperty || source.isAnnotationPresent( JsonProperty.class ));
+    }
+
+    private static boolean isRoot( Class<?> controller, Set<String> expected )
+    {
+        RequestMapping a = controller.getAnnotation( RequestMapping.class );
+        return a != null && stream( firstNonEmpty( a.value(), a.path() ) ).anyMatch( expected::contains );
     }
 
     private static Mapping getMapping( Method source )
     {
         if ( source.isAnnotationPresent( RequestMapping.class ) )
         {
-            RequestMapping rm = source.getAnnotation( RequestMapping.class );
-            return new Mapping( rm.name(), rm.value(), rm.method(), rm.params(), rm.headers(), rm.consumes(),
-                rm.produces() );
+            RequestMapping a = source.getAnnotation( RequestMapping.class );
+            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ), a.method(), a.params(), a.headers(),
+                a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( GetMapping.class ) )
         {
-            GetMapping gm = source.getAnnotation( GetMapping.class );
-            return new Mapping( gm.name(), gm.value(), new RequestMethod[] { RequestMethod.GET }, gm.params(),
-                gm.headers(), gm.consumes(), gm.produces() );
+            GetMapping a = source.getAnnotation( GetMapping.class );
+            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+                new RequestMethod[] { RequestMethod.GET }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PutMapping.class ) )
         {
-            PutMapping pm = source.getAnnotation( PutMapping.class );
-            return new Mapping( pm.name(), pm.value(), new RequestMethod[] { RequestMethod.PUT }, pm.params(),
-                pm.headers(), pm.consumes(), pm.produces() );
+            PutMapping a = source.getAnnotation( PutMapping.class );
+            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+                new RequestMethod[] { RequestMethod.PUT }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PostMapping.class ) )
         {
-            PostMapping pm = source.getAnnotation( PostMapping.class );
-            return new Mapping( pm.name(), pm.value(), new RequestMethod[] { RequestMethod.POST }, pm.params(),
-                pm.headers(), pm.consumes(), pm.produces() );
+            PostMapping a = source.getAnnotation( PostMapping.class );
+            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+                new RequestMethod[] { RequestMethod.POST }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PatchMapping.class ) )
         {
-            PatchMapping pm = source.getAnnotation( PatchMapping.class );
-            return new Mapping( pm.name(), pm.value(), new RequestMethod[] { RequestMethod.PATCH }, pm.params(),
-                pm.headers(), pm.consumes(), pm.produces() );
+            PatchMapping a = source.getAnnotation( PatchMapping.class );
+            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+                new RequestMethod[] { RequestMethod.PATCH }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         return null;
+    }
+
+    private static String[] firstNonEmpty( String[] a, String[] b )
+    {
+        return a.length == 0 ? b : a;
+    }
+
+    private static String firstNonEmpty( String a, String b )
+    {
+        return a.length() == 0 ? b : a;
+    }
+
+    private static String firstNonEmpty( String a, String b, String c )
+    {
+        String ab = firstNonEmpty( a, b );
+        return ab.length() > 0 ? ab : c;
+    }
+
+    private static <E extends Enum<E>> E firstNonEqual( E to, E... samples )
+    {
+        return stream( samples ).filter( e -> e != to ).findFirst().orElse( samples[0] );
     }
 
     @Value
@@ -510,7 +566,7 @@ class ApiAnalyser
     {
         String name;
 
-        String[] value;
+        String[] path;
 
         RequestMethod[] method;
 

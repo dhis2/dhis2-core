@@ -166,7 +166,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // OLD PATCH
     // --------------------------------------------------------------------------
 
-    @OpenApi.Param( name = "{options}", value = WebOptions.class )
+    @OpenApi.Params( WebOptions.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
@@ -202,8 +202,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postPatchEntity( null, patchedObject );
     }
 
-    @OpenApi.Param( name = "{options}", value = WebOptions.class )
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
@@ -283,8 +283,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
      * to support "application/json" after the old patch behavior has been
      * removed.
      */
-    @OpenApi.Param( name = "{options}", value = WebOptions.class )
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( JsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
@@ -392,8 +392,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchedObject;
     }
 
-    @OpenApi.Param( name = "{options}", value = WebOptions.class )
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( BulkJsonPatch.class )
     @ResponseBody
     @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
@@ -440,7 +440,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // POST
     // --------------------------------------------------------------------------
 
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -450,7 +450,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return postObject( deserializeJsonEntity( request ) );
     }
 
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
@@ -557,7 +557,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // PUT
     // --------------------------------------------------------------------------
 
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -610,7 +610,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    @OpenApi.Param( name = "{import-options}", value = MetadataImportParams.class )
+    @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( IdentifiableObject.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody

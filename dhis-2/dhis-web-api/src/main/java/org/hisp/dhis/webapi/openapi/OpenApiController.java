@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -58,33 +57,30 @@ public class OpenApiController
     public void getOpenApiDocument( @RequestParam Set<String> root, HttpServletResponse response )
         throws IOException
     {
-        Stream<Class<?>> controllerClasses = getAllControllerClasses();
-        if ( root != null && !root.isEmpty() )
-        {
-            Set<String> roots = root.stream().map( path -> path.startsWith( "/" ) ? path : "/" + path )
-                .collect( toUnmodifiableSet() );
-            controllerClasses = controllerClasses.filter( c -> isRoot( c, roots ) );
-        }
-        Api api = ApiAnalyser.describeApi( controllerClasses.collect( toList() ) );
+        Api api = ApiAnalyser.describeApi( getAllControllerClasses(), root );
         response.setContentType( APPLICATION_JSON_VALUE );
         response.getWriter().write( OpenApiGenerator.generate( api ) );
     }
 
-    private static boolean isRoot( Class<?> controller, Set<String> expected )
-    {
-        RequestMapping mapping = controller.getAnnotation( RequestMapping.class );
-        return mapping != null && stream( mapping.value() ).anyMatch( expected::contains );
-    }
-
-    private Stream<Class<?>> getAllControllerClasses()
+    private List<Class<?>> getAllControllerClasses()
     {
         return Stream.concat(
             context.getBeansWithAnnotation( RestController.class ).values().stream(),
             context.getBeansWithAnnotation( Controller.class ).values().stream() )
             .map( Object::getClass )
-            // OBS! this moves from the spring enhanced classes to source class
-            .map( c -> !c.isAnnotationPresent( RestController.class ) && !c.isAnnotationPresent( Controller.class )
+            .map( OpenApiController::deProxyClass )
+            .collect( toList() );
+    }
+
+    /**
+     * In case the bean class is a spring-enhanced proxy this resolves the
+     * source class.
+     */
+    private static Class<?> deProxyClass( Class<?> c )
+    {
+        return !c.isAnnotationPresent( RestController.class )
+            && !c.isAnnotationPresent( Controller.class )
                 ? c.getSuperclass()
-                : c );
+                : c;
     }
 }

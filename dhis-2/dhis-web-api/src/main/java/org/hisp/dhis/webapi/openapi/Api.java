@@ -43,7 +43,7 @@ import lombok.Value;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.MimeType;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
@@ -125,9 +125,9 @@ class Api
 
         List<Parameter> parameters = new ArrayList<>();
 
-        List<MimeType> consumes = new ArrayList<>();
+        List<MediaType> consumes = new ArrayList<>();
 
-        List<MimeType> produces = new ArrayList<>();
+        List<MediaType> produces = new ArrayList<>();
 
         List<Response> responses = new ArrayList<>();
     }
@@ -136,7 +136,7 @@ class Api
     static class Parameter
     {
 
-        public enum Location
+        public enum In
         {
             PATH,
             QUERY,
@@ -148,7 +148,7 @@ class Api
 
         String name;
 
-        Location location;
+        In in;
 
         boolean required;
 

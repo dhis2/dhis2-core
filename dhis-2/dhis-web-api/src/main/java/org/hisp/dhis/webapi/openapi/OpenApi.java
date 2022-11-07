@@ -42,7 +42,7 @@ public @interface OpenApi
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )
-    @Repeatable( Params.class )
+    @Repeatable( ParamRepeat.class )
     @interface Param
     {
         String name() default "";
@@ -55,8 +55,27 @@ public @interface OpenApi
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )
+    @Repeatable( ParamsRepeat.class )
     @interface Params
     {
+        Class<?> value();
+
+        String[] fields() default {};
+    }
+
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface ParamRepeat
+    {
         Param[] value();
+    }
+
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface ParamsRepeat
+    {
+        Params[] value();
     }
 }

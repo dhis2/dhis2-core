@@ -50,7 +50,7 @@ public class ApiPrinter
                     e.getName(), printName( response.getBody() ) ) );
                 for ( Api.Parameter p : e.getParameters() )
                 {
-                    str.append( format( "\t\t%s %s %s: %s%n", p.isRequired() ? "!" : "?", p.getLocation(), p.getName(),
+                    str.append( format( "\t\t%s %s %s: %s%n", p.isRequired() ? "!" : "?", p.getIn(), p.getName(),
                         printName( p.getType() ) ) );
                 }
             }
