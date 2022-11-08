@@ -32,6 +32,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
@@ -46,11 +47,15 @@ import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -101,8 +106,15 @@ public class OpenApiGenerator
     }
 
     @Value
-    private static class BasicSchema
+    @Builder
+    private static class SimpleType
     {
+        Class<?> source;
+
+        /*
+         * OpenAPI properties below:
+         */
+
         String type;
 
         String format;
@@ -112,54 +124,59 @@ public class OpenApiGenerator
         Integer minLength;
 
         Integer maxLength;
+
+        String[] enums;
     }
 
-    private static final Map<Class<?>, BasicSchema> BASIC_SCHEMAS = new IdentityHashMap<>();
+    private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
 
-    private static void addBasicSchema( Class<?> of, String type, String format, Boolean nullable )
+    private static void addSimpleType( Class<?> source, Consumer<SimpleType.SimpleTypeBuilder> schema )
     {
-        addBasicSchema( of, type, format, nullable, null, null );
-    }
-
-    private static void addBasicSchema( Class<?> of, String type, String format, Boolean nullable, Integer minLength,
-        Integer maxLength )
-    {
-        BASIC_SCHEMAS.put( of, new BasicSchema( type, format, nullable, minLength, maxLength ) );
+        SimpleType.SimpleTypeBuilder b = new SimpleType.SimpleTypeBuilder();
+        b.source( source );
+        schema.accept( b );
+        SimpleType s = b.build();
+        SIMPLE_TYPES.computeIfAbsent( s.source, key -> new ArrayList<>() ).add( s );
     }
 
     static
     {
-        // TODO use a builder for this instead so only the needed fields are set
-        // => better scaling
-        addBasicSchema( int.class, "integer", "int32", false );
-        addBasicSchema( long.class, "integer", "int64", false );
-        addBasicSchema( float.class, "number", "float", false );
-        addBasicSchema( double.class, "number", "double", false );
-        addBasicSchema( boolean.class, "boolean", null, false );
-        addBasicSchema( char.class, "string", null, false, 1, 1 );
-        addBasicSchema( Integer.class, "integer", "int32", false );
-        addBasicSchema( Long.class, "integer", "int64", true );
-        addBasicSchema( Float.class, "number", "float", true );
-        addBasicSchema( Double.class, "number", "double", true );
-        addBasicSchema( Boolean.class, "boolean", null, true );
-        addBasicSchema( Character.class, "string", null, true, 1, 1 );
-        addBasicSchema( String.class, "string", null, true );
-        addBasicSchema( Date.class, "string", "date-time", true );
-        addBasicSchema( Locale.class, "string", null, true );
-        addBasicSchema( JsonNode.class, "object", null, null );
-        addBasicSchema( ObjectNode.class, "object", null, null );
-        addBasicSchema( ArrayNode.class, "array", null, null );
-        addBasicSchema( RootNode.class, "object", null, false );
-        addBasicSchema( JsonPointer.class, "string", null, false );
-        addBasicSchema( PeriodType.class, "string", null, false );
-        addBasicSchema( Serializable.class, "string", null, null );
+        addSimpleType( int.class, schema -> schema.type( "integer" ).format( "int32" ).nullable( false ) );
+        addSimpleType( long.class, schema -> schema.type( "integer" ).format( "int64" ).nullable( false ) );
+        addSimpleType( float.class, schema -> schema.type( "number" ).format( "float" ).nullable( false ) );
+        addSimpleType( double.class, schema -> schema.type( "number" ).format( "double" ).nullable( false ) );
+        addSimpleType( boolean.class, schema -> schema.type( "boolean" ).nullable( false ) );
+        addSimpleType( char.class, schema -> schema.type( "string" ).nullable( false ).minLength( 1 ).maxLength( 1 ) );
+        addSimpleType( Integer.class, schema -> schema.type( "integer" ).format( "int32" ).nullable( true ) );
+        addSimpleType( Long.class, schema -> schema.type( "integer" ).format( "int64" ).nullable( true ) );
+        addSimpleType( Float.class, schema -> schema.type( "number" ).format( "float" ).nullable( true ) );
+        addSimpleType( Double.class, schema -> schema.type( "number" ).format( "double" ).nullable( true ) );
+        addSimpleType( Boolean.class, schema -> schema.type( "boolean" ).nullable( true ) );
+        addSimpleType( Character.class,
+            schema -> schema.type( "string" ).nullable( true ).minLength( 1 ).maxLength( 1 ) );
+        addSimpleType( String.class, schema -> schema.type( "string" ).nullable( true ) );
+        addSimpleType( Date.class, schema -> schema.type( "string" ).format( "date-time" ).nullable( true ) );
+        addSimpleType( Locale.class, schema -> schema.type( "string" ).nullable( true ) );
+        addSimpleType( JsonNode.class, schema -> schema.type( "object" ) );
+        addSimpleType( ObjectNode.class, schema -> schema.type( "object" ) );
+        addSimpleType( ArrayNode.class, schema -> schema.type( "array" ) );
+        addSimpleType( RootNode.class, schema -> schema.type( "object" ) );
+        addSimpleType( JsonPointer.class, schema -> schema.type( "string" ) );
+        addSimpleType( Period.class, schema -> schema.type( "string" ) );
+        addSimpleType( PeriodType.class, schema -> schema.type( "string" )
+            .enums( stream( PeriodTypeEnum.values() ).map( PeriodTypeEnum::getName ).toArray( String[]::new ) ) );
+        addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
+        addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );
+        // not quite
+        addSimpleType( Serializable.class, schema -> schema.type( "string" ) );
+        addSimpleType( Geometry.class, schema -> schema.type( "object" ) );
     }
 
     public static String generate( Api api )
     {
         return generate( api, new Config(
             new Config.Format( true, true, true, true, true, "  " ),
-            new Config.Document( "2.40", "https://play.dhis2.org/dev", true, true ) ) );
+            new Config.Document( "2.40", "https://play.dhis2.org/dev/api", true, true ) ) );
     }
 
     public static String generate( Api api, Config config )
@@ -296,6 +313,8 @@ public class OpenApiGenerator
     {
         api.getSchemas().values().stream()
             .filter( OpenApiGenerator::isReferencableSchema )
+            .sorted( ( a, b ) -> a.getName().indexOf( '.' ) < 0 && b.getName().indexOf( '.' ) >= 0 ? -1
+                : a.getName().compareTo( b.getName() ) )
             .forEach( s -> addObjectMember( s.getName(), () -> generateSchema( s ) ) );
     }
 
@@ -303,20 +322,24 @@ public class OpenApiGenerator
     {
         return !schema.getName().isEmpty()
             && !schema.getFields().isEmpty()
-            && !BASIC_SCHEMAS.containsKey( schema.getSource() );
+            && !SIMPLE_TYPES.containsKey( schema.getSource() );
     }
 
     private void generateSchema( Api.Schema schema )
     {
         Class<?> type = schema.getSource();
-        BasicSchema bs = BASIC_SCHEMAS.get( type );
-        if ( bs != null )
+        List<SimpleType> types = SIMPLE_TYPES.get( type );
+        if ( types != null )
         {
-            addStringMember( "type", bs.getType() );
-            addStringMember( "format", bs.getFormat() );
-            addBooleanMember( "nullable", bs.getNullable() );
-            addNumberMember( "minLength", bs.getMinLength() );
-            addNumberMember( "maxLength", bs.getMaxLength() );
+            if ( types.size() == 1 )
+            {
+                generateSimpleTypeSchema( types.get( 0 ) );
+            }
+            else
+            {
+                addArrayMember( "oneOf",
+                    () -> types.forEach( t -> addObjectMember( null, () -> generateSimpleTypeSchema( t ) ) ) );
+            }
             return;
         }
         if ( type.isEnum() )
@@ -337,6 +360,14 @@ public class OpenApiGenerator
         addStringMember( "type", "object" );
         if ( !schema.getFields().isEmpty() )
         {
+            if ( type == Map.class )
+            {
+                addObjectMember( "additionalProperties",
+                    () -> generateSchemaOrRef( schema.getFields().get( 1 ).getType() ) );
+                if ( schema.getFields().get( 0 ).getType().getSource() != String.class )
+                    addStringMember( "description", "keys are " + schema.getFields().get( 0 ).getType().getSource() );
+                return;
+            }
             addArrayMember( "required", schema.getFields().stream()
                 .filter( f -> Boolean.TRUE.equals( f.getRequired() ) ),
                 f -> addStringMember( null, f.getName() ) );
@@ -347,6 +378,20 @@ public class OpenApiGenerator
         {
             System.out.println( schema + " " + schema.getSource() + " " + schema.getHint() );
             log.warn( schema.toString() );
+        }
+    }
+
+    private void generateSimpleTypeSchema( SimpleType simpleType )
+    {
+        addStringMember( "type", simpleType.getType() );
+        addStringMember( "format", simpleType.getFormat() );
+        addBooleanMember( "nullable", simpleType.getNullable() );
+        addNumberMember( "minLength", simpleType.getMinLength() );
+        addNumberMember( "maxLength", simpleType.getMaxLength() );
+        if ( simpleType.getEnums() != null )
+        {
+            addArrayMember( "enum", stream( simpleType.getEnums() ),
+                constant -> addStringMember( null, constant ) );
         }
     }
 

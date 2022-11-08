@@ -42,6 +42,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -114,6 +115,8 @@ class Api
         List<String> paths = new ArrayList<>();
 
         List<Endpoint> endpoints = new ArrayList<>();
+
+        List<String> tags = new ArrayList<>();
     }
 
     @Value
@@ -140,6 +143,8 @@ class Api
         List<MediaType> produces = new ArrayList<>();
 
         List<Response> responses = new ArrayList<>();
+
+        List<String> tags = new ArrayList<>();
     }
 
     @Value
@@ -224,8 +229,12 @@ class Api
         if ( source.isPrimitive() || source.isEnum() || source.isArray() || name.startsWith( "java.lang" )
             || name.startsWith( "java.util" ) )
             return "";
-        if ( !name.startsWith( "org.hisp.dhis." ) || name.contains( ".openapi." ) )
+        if ( name.contains( ".openapi." )
+            || !name.startsWith( "org.hisp.dhis." )
+            || IdentifiableObject.class.isAssignableFrom( source )
+            || EmbeddedObject.class.isAssignableFrom( source ) )
             return source.getSimpleName();
-        return name.replace( "org.hisp.dhis.", "" ).replace( '$', '.' );
+        return name.replace( "org.hisp.dhis.", "" ).replace( '$', '.' )
+            .replace( "common.", "" ).replace( "commons.", "" );
     }
 }

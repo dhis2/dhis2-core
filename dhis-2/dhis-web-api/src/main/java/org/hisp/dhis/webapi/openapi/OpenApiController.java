@@ -54,10 +54,13 @@ public class OpenApiController
     private final ApplicationContext context;
 
     @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getOpenApiDocument( @RequestParam( required = false ) Set<String> root, HttpServletResponse response )
+    public void getOpenApiDocument(
+        @RequestParam( required = false ) Set<String> path,
+        @RequestParam( required = false ) Set<String> tag,
+        HttpServletResponse response )
         throws IOException
     {
-        Api api = ApiAnalyser.describeApi( getAllControllerClasses(), root );
+        Api api = RestApiAnalyser.describeApi( getAllControllerClasses(), path, tag );
         response.setContentType( APPLICATION_JSON_VALUE );
         response.getWriter().write( OpenApiGenerator.generate( api ) );
     }

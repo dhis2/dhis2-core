@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
@@ -41,9 +39,6 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -56,7 +51,7 @@ import java.util.stream.Stream;
 import lombok.Value;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -83,66 +78,36 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Jan Bernitt
  */
-class ApiAnalyser
+final class RestApiAnalyser
 {
-    public static void main( String[] args )
-        throws Exception
-    {
-        Path path = Path
-            .of( AbstractCrudController.class.getProtectionDomain().getCodeSource().getLocation().getPath() );
-        List<Class<?>> classes;
-        try ( Stream<Path> files = Files.walk( path ) )
-        {
-            classes = files
-                .filter( f -> f.getFileName().toString().endsWith( "Controller.class" ) )
-                .map( ApiAnalyser::toClassName )
-                .map( ApiAnalyser::toClass )
-                .filter( c -> !Modifier.isAbstract( c.getModifiers() ) )
-                .collect( toList() );
-        }
-        Set<String> roots = args.length < 2 ? Set.of() : Stream.of( args ).skip( 1 ).collect( toUnmodifiableSet() );
-        Api api = describeApi( classes, roots );
-        String doc = OpenApiGenerator.generate( api );
-        if ( args.length >= 1 )
-        {
-            Files.writeString( Path.of( args[0] ), doc, StandardOpenOption.TRUNCATE_EXISTING );
-        }
-    }
-
-    private static String toClassName( Path f )
-    {
-        return f.toString().substring( f.toString().indexOf( "org/hisp/" ) ).replace( ".class", "" )
-            .replace( '/', '.' );
-    }
-
-    private static Class<?> toClass( String className )
-    {
-        try
-        {
-            return Class.forName( className );
-        }
-        catch ( Exception ex )
-        {
-            throw new IllegalArgumentException( "failed loading: " + className, ex );
-        }
-    }
-
-    public static Api describeApi( List<Class<?>> controllers, Set<String> roots )
+    /**
+     * Create an {@link Api} model from controller {@link Class}.
+     *
+     * The included classes can be filtered based on REST API resource path or
+     * {@link OpenApi.Tags} present on the controller class level. Method level
+     * path and tags will not be considered for this filter.
+     *
+     * @param controllers all potential controllers
+     * @param paths filter based on resource path (empty includes all)
+     * @param tags filter based on tags (empty includes all)
+     * @return the {@link Api} for all controllers matching both of the filters
+     */
+    public static Api describeApi( List<Class<?>> controllers, Set<String> paths, Set<String> tags )
     {
         Api api = new Api();
         api.getSchemas().put( String.class, Api.STRING );
         api.getSchemas().put( Api.Ref.class, Api.ref( null ) );
-        Stream<Class<?>> scope = controllers.stream()
-            .filter( ApiAnalyser::isControllerType );
-        if ( roots != null && !roots.isEmpty() )
+        Stream<Class<?>> scope = controllers.stream().filter( RestApiAnalyser::isControllerType );
+        if ( paths != null && !paths.isEmpty() )
         {
-            Set<String> normalizedRoots = roots.stream()
-                .map( path -> path.startsWith( "/" ) ? path : "/" + path )
-                .collect( toUnmodifiableSet() );
-            scope = scope.filter( c -> isRoot( c, normalizedRoots ) );
+            scope = scope.filter( c -> isRoot( c, paths ) );
         }
-        scope
-            .forEach( source -> api.getControllers().add( describeController( api, source ) ) );
+        if ( tags != null && !tags.isEmpty() )
+        {
+            scope = scope.filter( c -> c.isAnnotationPresent( OpenApi.Tags.class )
+                && Stream.of( c.getAnnotation( OpenApi.Tags.class ).value() ).anyMatch( tags::contains ) );
+        }
+        scope.forEach( source -> api.getControllers().add( describeController( api, source ) ) );
         return api;
     }
 
@@ -265,7 +230,7 @@ class ApiAnalyser
 
     private static Api.Parameter describeParameter( Api api, Parameter source )
     {
-        Api.Schema schema = describeSchema( api, source.getType() );
+        Api.Schema schema = describeCustomSchema( api, source.getParameterizedType(), new IdentityHashMap<>() );
         if ( source.isAnnotationPresent( PathVariable.class ) )
         {
             PathVariable a = source.getAnnotation( PathVariable.class );
@@ -291,9 +256,10 @@ class ApiAnalyser
     private static Api.Parameter describeParameter( Api api, Method source )
     {
         String name = getName( source );
-        Api.Schema type = describeSchema( api, source.getParameterCount() == 0
-            ? source.getReturnType()
-            : source.getParameterTypes()[0] );
+        Type s = source.getParameterCount() == 0
+            ? source.getGenericReturnType()
+            : source.getGenericParameterTypes()[0];
+        Api.Schema type = describeCustomSchema( api, s, new IdentityHashMap<>() );
         return new Api.Parameter( source, name, Api.Parameter.In.QUERY, false, type );
     }
 
@@ -420,10 +386,11 @@ class ApiAnalyser
         else if ( source instanceof Class<?> )
         {
             Class<?> type = (Class<?>) source;
-            if ( IdentifiableObject.class.isAssignableFrom( type ) )
+            if ( IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
                 return Api.ref( type );
-            if ( IdentifiableObject[].class.isAssignableFrom( type ) )
+            if ( IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
                 return Api.refs( type.getComponentType() );
+            // FIXME only use refs if this is not an array within the response
             if ( Object[].class.isAssignableFrom( type ) )
             {
                 Class<?> comp = type.getComponentType();
@@ -470,8 +437,9 @@ class ApiAnalyser
 
     private static boolean isControllerType( Class<?> source )
     {
-        return source.isAnnotationPresent( RestController.class )
-            || source.isAnnotationPresent( Controller.class );
+        return (source.isAnnotationPresent( RestController.class )
+            || source.isAnnotationPresent( Controller.class ))
+            && !source.isAnnotationPresent( OpenApi.Ignore.class );
     }
 
     private static boolean isComplexEndpointParameter( Parameter source )
@@ -480,14 +448,15 @@ class ApiAnalyser
         if ( type.isInterface()
             || type.isEnum()
             || IdentifiableObject.class.isAssignableFrom( type )
-            || source.getAnnotations().length > 0 )
+            || source.getAnnotations().length > 0
+            || source.isAnnotationPresent( OpenApi.Ignore.class ) )
             return false;
         return stream( type.getDeclaredConstructors() ).anyMatch( c -> c.getParameterCount() == 0 );
     }
 
     private static boolean isSimpleEndpointParameter( Parameter source )
     {
-        if ( source.getType() == Map.class )
+        if ( source.getType() == Map.class || source.isAnnotationPresent( OpenApi.Ignore.class ) )
             return false;
         return source.isAnnotationPresent( PathVariable.class )
             || source.isAnnotationPresent( RequestParam.class )
@@ -504,14 +473,18 @@ class ApiAnalyser
             && (!requireJsonProperty || source.isAnnotationPresent( JsonProperty.class ));
     }
 
-    private static boolean isRoot( Class<?> controller, Set<String> expected )
+    private static boolean isRoot( Class<?> controller, Set<String> included )
     {
         RequestMapping a = controller.getAnnotation( RequestMapping.class );
-        return a != null && stream( firstNonEmpty( a.value(), a.path() ) ).anyMatch( expected::contains );
+        return a != null && stream( firstNonEmpty( a.value(), a.path() ) ).anyMatch( included::contains );
     }
 
     private static Mapping getMapping( Method source )
     {
+        if ( source.isAnnotationPresent( OpenApi.Ignore.class ) )
+        {
+            return null;// ignore this
+        }
         if ( source.isAnnotationPresent( RequestMapping.class ) )
         {
             RequestMapping a = source.getAnnotation( RequestMapping.class );
@@ -561,6 +534,7 @@ class ApiAnalyser
         return ab.length() > 0 ? ab : c;
     }
 
+    @SafeVarargs
     private static <E extends Enum<E>> E firstNonEqual( E to, E... samples )
     {
         return stream( samples ).filter( e -> e != to ).findFirst().orElse( samples[0] );

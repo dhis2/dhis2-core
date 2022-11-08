@@ -34,11 +34,48 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * All annotations used to adjust the generation of OpenAPI document(s).
+ *
+ * @author Jan Bernitt
+ */
 @Inherited
 @Target( ElementType.METHOD )
 @Retention( RetentionPolicy.RUNTIME )
 public @interface OpenApi
 {
+    /**
+     * When annotated on type level the tags are added to all endpoints of the
+     * controller.
+     *
+     * When annotated on method level the tags are added to the annotated
+     * endpoint (operation).
+     *
+     * Tags can be used to split generation into multiple OpenAPI document.
+     */
+    @Inherited
+    @Target( { ElementType.METHOD, ElementType.TYPE } )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Tags
+    {
+        String[] value();
+    }
+
+    /**
+     * Annotate a controller type to ignore the entire controller.
+     *
+     * Annotate a controller endpoint method to ignore that endpoint.
+     *
+     * Annotate a controller endpoint method parameter to ignore that parameter.
+     */
+    @Inherited
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER } )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Ignore
+    {
+        // marker annotation
+    }
+
     /**
      * A single named parameter or request body parameter.
      */
