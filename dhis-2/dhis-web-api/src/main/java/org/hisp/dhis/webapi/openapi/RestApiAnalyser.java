@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -46,6 +47,10 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import lombok.Value;
@@ -113,12 +118,11 @@ final class RestApiAnalyser
 
     private static Api.Controller describeController( Api api, Class<?> source )
     {
-        RequestMapping rm = source.getAnnotation( RequestMapping.class );
-        String name = rm != null && !rm.name().isEmpty() ? rm.name()
-            : source.getSimpleName().replace( "Controller", "" );
+        String name = getAnnotated( source, RequestMapping.class, RequestMapping::name, n -> !n.isEmpty(),
+            () -> source.getSimpleName().replace( "Controller", "" ) );
         Api.Controller controller = new Api.Controller( api, source, name );
-        if ( rm != null )
-            controller.getPaths().addAll( List.of( rm.value() ) );
+        whenAnnotated( source, RequestMapping.class, a -> controller.getPaths().addAll( List.of( a.value() ) ) );
+        whenAnnotated( source, OpenApi.Tags.class, a -> controller.getTags().addAll( List.of( a.value() ) ) );
         for ( Method m : source.getMethods() )
         {
             Mapping mapping = getMapping( m );
@@ -135,6 +139,7 @@ final class RestApiAnalyser
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
 
         Api.Endpoint e = new Api.Endpoint( controller, source, name );
+        whenAnnotated( source, OpenApi.Tags.class, a -> e.getTags().addAll( List.of( a.value() ) ) );
 
         // request:
         e.getPaths().addAll( List.of( mapping.getPath() ) );
@@ -556,5 +561,29 @@ final class RestApiAnalyser
         String[] consumes;
 
         String[] produces;
+    }
+
+    /*
+     * Helpers for working with annotations
+     */
+
+    private static <A extends Annotation, T extends AnnotatedElement> void whenAnnotated( T on, Class<A> type,
+        Consumer<A> whenPresent )
+    {
+        if ( on.isAnnotationPresent( type ) )
+        {
+            whenPresent.accept( on.getAnnotation( type ) );
+        }
+    }
+
+    private static <A extends Annotation, B, T extends AnnotatedElement> B getAnnotated( T on, Class<A> type,
+        Function<A, B> whenPresent, Predicate<B> test, Supplier<B> otherwise )
+    {
+        if ( !on.isAnnotationPresent( type ) )
+        {
+            return otherwise.get();
+        }
+        B value = whenPresent.apply( on.getAnnotation( type ) );
+        return test.test( value ) ? value : otherwise.get();
     }
 }

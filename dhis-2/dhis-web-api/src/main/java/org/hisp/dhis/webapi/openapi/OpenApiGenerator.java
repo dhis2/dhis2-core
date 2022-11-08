@@ -247,9 +247,13 @@ public class OpenApiGenerator
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
     {
+        List<String> tags = Stream.concat( endpoint.getIn().getTags().stream(), endpoint.getTags().stream() )
+            .collect( toList() );
         addObjectMember( method.name().toLowerCase(), () -> {
             addStringMember( "summary", null ); // TODO
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
+            if ( !tags.isEmpty() )
+                addArrayMember( "tags", () -> tags.forEach( tag -> addStringMember( null, tag ) ) );
             addArrayMember( "parameters", endpoint.getParameters().stream()
                 .filter( p -> p.getIn() != Api.Parameter.In.BODY ),
                 this::generateParameter );

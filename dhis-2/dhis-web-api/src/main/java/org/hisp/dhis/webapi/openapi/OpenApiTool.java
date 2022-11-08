@@ -34,7 +34,6 @@ import java.io.PrintWriter;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,8 +113,7 @@ public class OpenApiTool implements ToolProvider
         String doc = OpenApiGenerator.generate( api );
         try
         {
-            Path output = Files.writeString( Path.of( args[args.length - 1] ), doc,
-                StandardOpenOption.TRUNCATE_EXISTING );
+            Path output = Files.writeString( Path.of( args[args.length - 1] ), doc );
             out.printf( "Generated OpenAPI document %s with %d controllers, %d schemas %n",
                 output, api.getControllers().size(), api.getSchemas().size() );
         }

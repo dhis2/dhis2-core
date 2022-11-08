@@ -77,7 +77,8 @@ public @interface OpenApi
     }
 
     /**
-     * A single named parameter or request body parameter.
+     * Used to add a single named parameter or request body parameter that is
+     * not present (or ignored) in the method signature.
      */
     @Inherited
     @Target( ElementType.METHOD )
@@ -112,7 +113,8 @@ public @interface OpenApi
     }
 
     /**
-     * A parameter object. Each property of the object becomes a parameter.
+     * Used to add a parameter object that is not present (or ignored) in the
+     * method signature. Each property of the object becomes a parameter.
      */
     @Inherited
     @Target( ElementType.METHOD )

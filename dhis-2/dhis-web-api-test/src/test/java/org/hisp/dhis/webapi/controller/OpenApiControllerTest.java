@@ -35,6 +35,15 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock
+ * MVC tests.
+ *
+ * The documents returned by the controller are generated "on-the-fly" and are
+ * not dependent on any database input.
+ *
+ * @author Jan Bernitt
+ */
 class OpenApiControllerTest extends DhisControllerConvenienceTest
 {
     @Test
