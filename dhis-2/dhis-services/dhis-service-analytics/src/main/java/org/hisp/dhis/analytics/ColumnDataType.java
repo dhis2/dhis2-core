@@ -33,6 +33,7 @@ package org.hisp.dhis.analytics;
 public enum ColumnDataType
 {
     CHARACTER_11( "character(11)" ),
+    CHARACTER_32( "character(32)" ),
     VARCHAR_50( "varchar(50)" ),
     VARCHAR_255( "varchar(255)" ),
     VARCHAR_1200( "varchar(1200)" ),

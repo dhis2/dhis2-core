@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_32;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
@@ -133,7 +134,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         new AnalyticsTableColumn( quote( "uidlevel4" ), CHARACTER_11, NULL, "ous.uidlevel4" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), VARCHAR_255, NULL, "ou.name" ),
-        new AnalyticsTableColumn( quote( "oucode" ), CHARACTER_11, NULL, "ou.code" ),
+        new AnalyticsTableColumn( quote( "oucode" ), CHARACTER_32, NULL, "ou.code" ),
         new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, NULL, "ous.level" ) );
 
     private static final List<AnalyticsTableColumn> ADDITIONAL_GROUP_BY_COLS = List.of(
