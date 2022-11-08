@@ -64,14 +64,14 @@
 
     <!-- Security-->
     <spring-security.version>5.7.5</spring-security.version>
-    <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
+    <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <cglib.version>3.2.4</cglib.version>
 
     <!-- Spring-->
-    <spring.version>5.3.18</spring.version>
+    <spring.version>5.3.23</spring.version>
     <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
     <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
