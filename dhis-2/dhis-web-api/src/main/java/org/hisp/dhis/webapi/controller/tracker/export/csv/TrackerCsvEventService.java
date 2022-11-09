@@ -156,9 +156,16 @@ public class TrackerCsvEventService
         throws IOException,
         ParseException
     {
-        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
-            .withUseHeader( skipFirst )
+        CsvSchema csvSchema = CsvSchema.emptySchema()
+            .withHeader()
             .withColumnReordering( true );
+
+        if ( !skipFirst )
+        {
+            csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+                .withoutHeader()
+                .withColumnReordering( true );
+        }
 
         List<Event> events = Lists.newArrayList();
 
