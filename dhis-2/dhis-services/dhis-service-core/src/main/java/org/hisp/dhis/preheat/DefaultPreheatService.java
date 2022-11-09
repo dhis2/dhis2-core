@@ -28,6 +28,9 @@
 package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptySet;
+import static org.apache.commons.collections4.CollectionUtils.containsAll;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +59,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -163,6 +168,8 @@ public class DefaultPreheatService implements PreheatService
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> references = collectReferences(
             params.getObjects() );
 
+        Set<String> dashboardItemsUid = collectDashboardItemsUid( params.getObjects() );
+
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = references.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = references.get( PreheatIdentifier.CODE );
 
@@ -182,7 +189,10 @@ public class DefaultPreheatService implements PreheatService
                         Query query = Query.from( schemaService.getDynamicSchema( klass ) );
                         query.setUser( preheat.getUser() );
                         query.add( Restrictions.in( "id", ids ) );
-                        List<? extends IdentifiableObject> objects = queryService.query( query );
+
+                        boolean ignoreSharingSettings = containsAll( dashboardItemsUid, ids );
+                        List<? extends IdentifiableObject> objects = queryService.query( query, ignoreSharingSettings );
+
                         preheat.put( PreheatIdentifier.UID, objects );
                     }
                 }
@@ -430,6 +440,65 @@ public class DefaultPreheatService implements PreheatService
         {
             throw new PreheatException( "PreheatMode.REFERENCE, but no objects were provided." );
         }
+    }
+
+    /**
+     * Extracts and returns all uids from all dashboard items found in the given
+     * "objects".
+     *
+     * @param objects the map that contains lists of {@link IdentifiableObject}
+     * @return the set of dashboard items uid
+     */
+    private Set<String> collectDashboardItemsUid(
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    {
+        if ( MapUtils.isEmpty( objects ) )
+        {
+            return emptySet();
+        }
+
+        Set<String> itemsUid = new HashSet<>();
+
+        for ( Map.Entry<Class<? extends IdentifiableObject>, List<IdentifiableObject>> entry : objects.entrySet() )
+        {
+            List<IdentifiableObject> identifiableObjects = entry.getValue();
+            Class<? extends IdentifiableObject> type = entry.getKey();
+
+            if ( type.isAssignableFrom( Dashboard.class ) )
+            {
+                for ( IdentifiableObject obj : identifiableObjects )
+                {
+                    itemsUid.addAll( collectDashboardItemsUid( (Dashboard) obj ) );
+                }
+            }
+        }
+
+        return itemsUid;
+    }
+
+    /**
+     * Extracts and returns all uids from all dashboard items found in the given
+     * "objects".
+     *
+     * @param dashboard the {@link Dashboard}
+     * @return the set of dashboard items uid
+     */
+    private Set<String> collectDashboardItemsUid( Dashboard dashboard )
+    {
+        Set<String> itemsUid = new HashSet<>();
+
+        if ( isNotEmpty( dashboard.getItems() ) )
+        {
+            for ( DashboardItem item : dashboard.getItems() )
+            {
+                if ( item != null && item.getEmbeddedItem() != null )
+                {
+                    itemsUid.add( item.getEmbeddedItem().getUid() );
+                }
+            }
+        }
+
+        return itemsUid;
     }
 
     @Override

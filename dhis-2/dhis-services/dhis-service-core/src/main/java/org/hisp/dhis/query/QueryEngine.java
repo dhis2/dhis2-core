@@ -44,6 +44,16 @@ public interface QueryEngine<T>
     List<T> query( Query query );
 
     /**
+     * Return objects matching given query, T typed according to QueryEngine
+     * implementation.
+     *
+     * @param query Query instance to use
+     * @param ignoreSharingSettings ignore the sharing settings/permissions
+     * @return Matching objects
+     */
+    List<T> query( Query query, boolean ignoreSharingSettings );
+
+    /**
      * Returns how many objects matches the given query.
      *
      * @param query Query instance to use

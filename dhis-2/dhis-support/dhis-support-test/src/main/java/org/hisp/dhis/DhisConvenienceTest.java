@@ -83,6 +83,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -185,6 +187,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
@@ -1914,6 +1917,26 @@ public abstract class DhisConvenienceTest
         section.setSortOrder( sortOrder );
 
         return section;
+    }
+
+    public static Dashboard createDashboardWithItem( String name, Sharing sharing )
+    {
+        DashboardItem dashboardItem = createDashboardItem( "A" );
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "dashboard " + name );
+        dashboard.setSharing( sharing );
+        dashboard.getItems().add( dashboardItem );
+
+        return dashboard;
+    }
+
+    public static DashboardItem createDashboardItem( String name )
+    {
+        DashboardItem dashboardItem = new DashboardItem();
+        dashboardItem.setName( "dashboardItem " + name );
+        dashboardItem.setAutoFields();
+
+        return dashboardItem;
     }
 
     public static RelationshipType createMalariaCaseLinkedToPersonRelationshipType( char uniqueCharacter,

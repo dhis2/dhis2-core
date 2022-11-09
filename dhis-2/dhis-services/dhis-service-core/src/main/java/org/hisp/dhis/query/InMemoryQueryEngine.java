@@ -77,6 +77,12 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     }
 
     @Override
+    public List<T> query( Query query, boolean ignoreSharingSettings )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public long count( Query query )
     {
         validateQuery( query );

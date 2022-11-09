@@ -64,14 +64,20 @@ public class DefaultQueryService
     @Override
     public List<? extends IdentifiableObject> query( Query query )
     {
-        return queryObjects( query );
+        return query( query, false );
+    }
+
+    @Override
+    public List<? extends IdentifiableObject> query( Query query, boolean ignoreSharingSettings )
+    {
+        return queryObjects( query, ignoreSharingSettings );
     }
 
     @Override
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     public List<? extends IdentifiableObject> query( Query query, ResultTransformer transformer )
     {
-        List<? extends IdentifiableObject> objects = queryObjects( query );
+        List<? extends IdentifiableObject> objects = queryObjects( query, false );
 
         if ( transformer != null )
         {
@@ -143,7 +149,7 @@ public class DefaultQueryService
         return criteriaQueryEngine.count( pQuery );
     }
 
-    private List<? extends IdentifiableObject> queryObjects( Query query )
+    private List<? extends IdentifiableObject> queryObjects( Query query, boolean ignoreSharingSettings )
     {
         List<? extends IdentifiableObject> objects = query.getObjects();
 
@@ -160,7 +166,7 @@ public class DefaultQueryService
         Query pQuery = queryPlan.getPersistedQuery();
         Query npQuery = queryPlan.getNonPersistedQuery();
 
-        objects = criteriaQueryEngine.query( pQuery );
+        objects = criteriaQueryEngine.query( pQuery, ignoreSharingSettings );
 
         if ( !npQuery.isEmpty() )
         {

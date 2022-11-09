@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.preheat;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,6 +48,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -57,17 +60,17 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 class PreheatServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private PreheatService preheatService;
 
@@ -149,7 +152,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         deg1.addDataElement( de2 );
         deg2.addDataElement( de3 );
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService
-            .collectReferences( Lists.newArrayList( deg1, deg2 ) ).get( PreheatIdentifier.UID );
+            .collectReferences( List.of( deg1, deg2 ) ).get( PreheatIdentifier.UID );
         assertTrue( references.containsKey( DataElement.class ) );
         assertEquals( 3, references.get( DataElement.class ).size() );
         assertTrue( references.get( DataElement.class ).contains( de1.getUid() ) );
@@ -193,7 +196,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         deg1.addDataElement( de2 );
         deg2.addDataElement( de3 );
         Map<Class<? extends IdentifiableObject>, Set<String>> references = preheatService
-            .collectReferences( Lists.newArrayList( deg1, deg2 ) ).get( PreheatIdentifier.CODE );
+            .collectReferences( List.of( deg1, deg2 ) ).get( PreheatIdentifier.CODE );
         assertTrue( references.containsKey( DataElement.class ) );
         assertEquals( 3, references.get( DataElement.class ).size() );
         assertTrue( references.get( DataElement.class ).contains( de1.getCode() ) );
@@ -221,8 +224,8 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( dataElementGroup );
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElement.class, Lists.newArrayList( de1, de2 ) );
-        params.getObjects().put( User.class, Lists.newArrayList( user ) );
+        params.getObjects().put( DataElement.class, List.of( de1, de2 ) );
+        params.getObjects().put( User.class, List.of( user ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -235,6 +238,46 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElementGroup.class, dataElementGroup.getUid() ) );
         assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
+    }
+
+    @Test
+    void testPreheatReferenceUIDOnNonSharedDashboardItem()
+    {
+        User user = makeUser( "A" );
+        manager.save( user );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        manager.save( dataElementA, false );
+
+        Visualization vzA = createVisualization( 'A' );
+        vzA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() ); // non-shared
+        vzA.addDataDimensionItem( dataElementA );
+        manager.save( vzA, false );
+
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( user, DEFAULT ) );
+        Dashboard dashboard = createDashboardWithItem( "A", sharing );
+        dashboard.getItems().get( 0 ).setVisualization( vzA );
+        manager.save( dashboard, false );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.getObjects().put( Dashboard.class, List.of( dashboard ) );
+        params.getObjects().put( User.class, List.of( user ) );
+        preheatService.validate( params );
+        Preheat preheat = preheatService.preheat( params );
+        assertFalse( preheat.isEmpty() );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, Dashboard.class ) );
+        assertTrue( preheat.isEmpty( PreheatIdentifier.UID, DataElementGroup.class ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, User.class ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Dashboard.class, dashboard.getUid() ) );
+        assertTrue(
+            preheat.containsKey( PreheatIdentifier.UID, DashboardItem.class, dashboard.getItems().get( 0 ).getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Visualization.class, vzA.getUid() ) );
     }
 
     @Test
@@ -258,8 +301,8 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElement.class, Lists.newArrayList( de1, de2 ) );
-        params.getObjects().put( User.class, Lists.newArrayList( user ) );
+        params.getObjects().put( DataElement.class, List.of( de1, de2 ) );
+        params.getObjects().put( User.class, List.of( user ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -280,7 +323,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         defaultSetup();
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -302,7 +345,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         assertFalse( preheat.isEmpty() );
@@ -324,7 +367,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
 
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         preheatService.connectReferences( dataElementGroup, preheat, PreheatIdentifier.UID );
@@ -347,7 +390,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         PreheatParams params = new PreheatParams();
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
         params.setPreheatMode( PreheatMode.REFERENCE );
-        params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
+        params.getObjects().put( DataElementGroup.class, List.of( dataElementGroup ) );
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
         preheatService.connectReferences( dataElementGroup, preheat, PreheatIdentifier.CODE );

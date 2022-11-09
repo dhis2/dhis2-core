@@ -143,20 +143,20 @@ public class DashboardController
     }
 
     @Override
-    protected void preCreateEntity( final Dashboard dashboard )
+    protected void preCreateEntity( Dashboard dashboard )
         throws WebMessageException
     {
         checkPreConditions( dashboard );
     }
 
     @Override
-    protected void preUpdateEntity( final Dashboard dashboard, final Dashboard newDashboard )
+    protected void preUpdateEntity( Dashboard dashboard, Dashboard newDashboard )
         throws WebMessageException
     {
         checkPreConditions( newDashboard );
     }
 
-    private void checkPreConditions( final Dashboard dashboard )
+    private void checkPreConditions( Dashboard dashboard )
         throws WebMessageException
     {
         if ( !hasDashboardItemsTypeSet( dashboard.getItems() ) )
@@ -165,17 +165,17 @@ public class DashboardController
         }
     }
 
-    private boolean hasDashboardItemsTypeSet( final List<DashboardItem> items )
+    private boolean hasDashboardItemsTypeSet( List<DashboardItem> items )
     {
         if ( isNotEmpty( items ) )
         {
-            for ( final DashboardItem item : items )
+            for ( DashboardItem item : items )
             {
-                final boolean hasAssociationType = item != null
+                boolean hasAssociationType = item != null
                     && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null
                         || item.getMessages() != null);
 
-                final boolean hasType = item != null && item.getType() != null;
+                boolean hasType = item != null && item.getType() != null;
 
                 if ( !hasType && !hasAssociationType )
                 {
