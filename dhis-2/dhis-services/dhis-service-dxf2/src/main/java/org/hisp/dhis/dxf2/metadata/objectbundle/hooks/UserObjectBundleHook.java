@@ -36,7 +36,6 @@ import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -96,6 +95,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 currentUser.getUserCredentials().getCatDimensionConstraints() );
         }
 
+        if ( user.getUserCredentials().getCreatedBy() == null )
+        {
+            user.getUserCredentials().setCreatedBy( bundle.getUser() );
+        }
+
         bundle.putExtras( user, "uc", user.getUserCredentials() );
         user.setUserCredentials( null );
     }
@@ -133,6 +137,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         if ( user.getUserCredentials() == null )
             return;
+
+        // CreatedBy property is immutable
+        user.getUserCredentials().setCreatedBy( persisted.getUserCredentials().getCreatedBy() );
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), persisted.getUserCredentials().getCreatedBy() );
+
         bundle.putExtras( user, "uc", user.getUserCredentials() );
 
         if ( persisted.getAvatar() != null
@@ -158,7 +167,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
         final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
         final UserCredentials persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-            UserCredentials.class, user );
+            UserCredentials.class, user.getUserCredentials() );
 
         if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
         {
@@ -174,6 +183,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         user.setUserCredentials( persistedUserCredentials );
 
         sessionFactory.getCurrentSession().update( user.getUserCredentials() );
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), user.getUserCredentials() );
         bundle.removeExtras( user, "uc" );
     }
 
@@ -222,13 +232,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             user.setOrganisationUnits( (Set<OrganisationUnit>) userReferenceMap.get( "organisationUnits" ) );
             user.setDataViewOrganisationUnits(
                 (Set<OrganisationUnit>) userReferenceMap.get( "dataViewOrganisationUnits" ) );
-            userCredentials
-                .setCreatedBy( (User) userCredentialsReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
-
-            if ( userCredentials.getCreatedBy() == null )
-            {
-                userCredentials.setCreatedBy( bundle.getUser() );
-            }
 
             userCredentials.setLastUpdatedBy( bundle.getUser() );
 
