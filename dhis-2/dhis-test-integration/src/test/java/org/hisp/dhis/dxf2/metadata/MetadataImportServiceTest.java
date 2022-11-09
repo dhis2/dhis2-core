@@ -1053,12 +1053,9 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
      * Check if the createdBy field is updated when updating User
      */
     @Test
-    public void testUpdateUser()
+    void testUpdateUser()
     {
-        User user = createUser( 'A' );
-        user.setUid( "JuSPkgl5DXS" );
-        user.setEmail( "emailA@email.com" );
-        user.getUserCredentials().setPassword( "Abcd1234!" );
+        User user = createUserWithId( "A", "JuSPkgl5DXS", "" );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
         objects.put( User.class, List.of( user ) );
@@ -1066,18 +1063,18 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        String createdBy = user.getUserCredentials().getCreatedBy().getUid();
+        String createdBy = user.getCreatedBy().getUid();
 
         user.setCreatedBy( null );
-        user.getUserCredentials().setCreatedBy( null );
+        user.setCreatedBy( null );
         objects.put( User.class, List.of( user ) );
         params = createParams( ImportStrategy.UPDATE, objects );
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
         user = manager.get( User.class, user.getUid() );
-        assertNotNull( user.getUserCredentials().getCreatedBy() );
-        assertEquals( createdBy, user.getUserCredentials().getCreatedBy().getUid() );
+        assertNotNull( user.getCreatedBy() );
+        assertEquals( createdBy, user.getCreatedBy().getUid() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
