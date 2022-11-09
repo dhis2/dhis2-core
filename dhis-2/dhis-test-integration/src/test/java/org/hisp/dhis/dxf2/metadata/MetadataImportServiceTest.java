@@ -1049,6 +1049,37 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( aeC.getTarget().getApi().getAccessToken() ); // Encrypted
     }
 
+    /**
+     * Check if the createdBy field is updated when updating User
+     */
+    @Test
+    public void testUpdateUser()
+    {
+        User user = createUser( 'A' );
+        user.setUid( "JuSPkgl5DXS" );
+        user.setEmail( "emailA@email.com" );
+        user.getUserCredentials().setPassword( "Abcd1234!" );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
+        objects.put( User.class, List.of( user ) );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, objects );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        String createdBy = user.getUserCredentials().getCreatedBy().getUid();
+
+        user.setCreatedBy( null );
+        user.getUserCredentials().setCreatedBy( null );
+        objects.put( User.class, List.of( user ) );
+        params = createParams( ImportStrategy.UPDATE, objects );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        user = manager.get( User.class, user.getUid() );
+        assertNotNull( user.getUserCredentials().getCreatedBy() );
+        assertEquals( createdBy, user.getUserCredentials().getCreatedBy().getUid() );
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
