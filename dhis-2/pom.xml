@@ -78,7 +78,7 @@
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
     <nimbus.jose.jwt.version>9.25.6</nimbus.jose.jwt.version>
-    <com.google.zxing.core.version>3.5.0</com.google.zxing.core.version>
+    <com.google.zxing.core.version>3.5.1</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
 
     <!-- Spring -->
