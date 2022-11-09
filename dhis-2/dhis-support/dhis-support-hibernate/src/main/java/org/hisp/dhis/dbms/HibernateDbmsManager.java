@@ -306,7 +306,7 @@ public class HibernateDbmsManager
         emptyTable( "categoryoptiongroup" );
 
         emptyTable( "expression" );
-        emptyTable( "expression_dimensionitem" );
+        emptyTable( "expressiondimensionitem" );
         emptyTable( "categoryoptioncombo" );
         emptyTable( "categorycombo" );
         emptyTable( "dataelementcategory" );

@@ -25,25 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
-import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Dusan Bernat
  */
-
-/**
- *
- */
-@Controller
-@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
+public class ExpressionDimensionItemSchemaDescriptor
+    implements SchemaDescriptor
 {
+    public static final String SINGULAR = "expressionDimensionItem";
+
+    public static final String PLURAL = "expressionDimensionItems";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+        schema.setOrder( 1000 );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
+            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
+            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_DELETE" ) ) );
+
+        return schema;
+    }
 }

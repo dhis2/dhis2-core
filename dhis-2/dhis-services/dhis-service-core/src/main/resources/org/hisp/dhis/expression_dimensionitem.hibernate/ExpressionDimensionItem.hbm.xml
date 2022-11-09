@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem" table="expression_dimensionitem">
+    <class name="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem" table="expressiondimensionitem">
 
         <cache usage="read-write"/>
 
@@ -12,7 +14,13 @@
             <generator class="native"/>
         </id>
 
-        <property name="description"/>
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+        <property name="description" type="text" />
+
+        <property name="translations" type="jblTranslations"/>
 
         <property name="expression" type="text"/>
 
@@ -26,7 +34,9 @@
             </type>
         </property>
 
-        <property name="translations" type="jblTranslations"/>
+        <property name="attributeValues" type="jsbAttributeValues"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
 
     </class>
 </hibernate-mapping>
