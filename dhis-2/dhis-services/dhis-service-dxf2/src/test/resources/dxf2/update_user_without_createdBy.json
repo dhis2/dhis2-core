@@ -1,0 +1,43 @@
+{
+  "users": [
+    {
+      "email": "user@b.org",
+      "surname": "BB",
+      "firstName": "User",
+      "dataViewOrganisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "userCredentials": {
+        "id": "yqJHNnkF3SJ",
+        "cogsDimensionConstraints": [ ],
+        "selfRegistered": false,
+        "catDimensionConstraints": [ ],
+        "lastLogin": "2016-03-12T06:21:02.226+0000",
+        "created": "2016-03-12T06:21:02.329+0000",
+        "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
+        "userInfo": {
+          "id": "MwhEJUnTHkn"
+        },
+        "userRoles": [
+          {
+            "id": "tHEWGwIMsJk"
+          }
+        ],
+        "username": "UserBUpdated",
+        "invitation": false,
+        "disabled": false,
+        "externalAuth": false
+      },
+      "teiSearchOrganisationUnits": [ ],
+      "id": "MwhEJUnTHkn",
+      "attributeValues": [ ]
+    }
+  ]
+}
