@@ -157,7 +157,8 @@ final class ApiAnalyser
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
         Class<?> entityClass = getAnnotated( source, EntityType.class, EntityType::value, c -> c != EntityType.class,
             controller::getEntityClass );
-        Api.Endpoint endpoint = new Api.Endpoint( controller, source, entityClass, name );
+        Api.Endpoint endpoint = new Api.Endpoint( controller, source, entityClass, name,
+            ConsistentAnnotatedElement.of( source ).isAnnotationPresent( Deprecated.class ) ? Boolean.TRUE : null );
         whenAnnotated( source, OpenApi.Tags.class, a -> endpoint.getTags().addAll( List.of( a.value() ) ) );
         endpoint.getPaths().addAll( List.of( mapping.getPath() ) );
         endpoint.getMethods().addAll( List.of( mapping.method ) );
@@ -166,12 +167,12 @@ final class ApiAnalyser
         describeParameters( endpoint );
 
         // request media types
-        stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).forEach( endpoint.getConsumes()::add );
+        stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).forEach( endpoint.getRequestBody()::add );
         // request: assume JSON if nothing is set explicitly
-        if ( endpoint.getConsumes().isEmpty()
+        if ( endpoint.getRequestBody().isEmpty()
             && endpoint.getParameters().values().stream().anyMatch( p -> p.getIn() == Api.Parameter.In.BODY ) )
-            endpoint.getConsumes().add( MediaType.APPLICATION_JSON ); // our
-                                                                      // default
+            endpoint.getRequestBody().add( MediaType.APPLICATION_JSON ); // our
+                                                                         // default
 
         // response:
         endpoint.getResponses().putAll( describeResponses( endpoint, mapping ) );
@@ -186,7 +187,18 @@ final class ApiAnalyser
             .map( MediaType::parseMediaType )
             .collect( toSet() );
         if ( produces.isEmpty() )
-            produces.add( MediaType.APPLICATION_JSON ); // our default
+        {
+            // either make symmetric or assume JSON as standard
+            Set<MediaType> consumes = endpoint.getRequestBody();
+            if ( consumes.contains( MediaType.APPLICATION_JSON ) || consumes.contains( MediaType.APPLICATION_XML ) )
+            {
+                produces.addAll( consumes ); // make symmetric
+            }
+            else
+            {
+                produces.add( MediaType.APPLICATION_JSON );
+            }
+        }
 
         HttpStatus signatureStatus = getAnnotated( source, ResponseStatus.class,
             a -> firstNonEqual( HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code() ),

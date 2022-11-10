@@ -51,6 +51,8 @@ public class JsonGenerator
     {
         public static final Format PRETTY_PRINT = new Format( true, true, true, true, true, "  " );
 
+        public static final Format SMALL = new Format( false, false, false, false, false, "" );
+
         boolean newLineAfterMember;
 
         boolean newLineAfterObjectStart;
@@ -188,7 +190,7 @@ public class JsonGenerator
     {
         return str == null
             ? out.append( "null" )
-            : out.append( '"' ).append( str ).append( '"' );
+            : out.append( '"' ).append( str.replace( "\"", "\\\"" ) ).append( '"' );
     }
 
     private void appendMemberName( String name )
@@ -221,5 +223,4 @@ public class JsonGenerator
             out.setLength( out.length() - back ); // discard last ,
         }
     }
-
 }

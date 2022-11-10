@@ -167,6 +167,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // OLD PATCH
     // --------------------------------------------------------------------------
 
+    @OpenApi.Ignore
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Param( EntityType.class )
     @PatchMapping( value = "/{uid}" )

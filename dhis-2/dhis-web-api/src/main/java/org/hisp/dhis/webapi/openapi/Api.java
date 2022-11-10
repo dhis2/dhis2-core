@@ -153,6 +153,8 @@ class Api
 
         Set<String> tags = new TreeSet<>();
 
+        Boolean deprecated;
+
         @EqualsAndHashCode.Include
         Set<RequestMethod> methods = EnumSet.noneOf( RequestMethod.class );
 
@@ -160,7 +162,7 @@ class Api
         List<String> paths = new ArrayList<>();
 
         @EqualsAndHashCode.Include
-        Set<MediaType> consumes = new LinkedHashSet<>();
+        Set<MediaType> requestBody = new LinkedHashSet<>();
 
         Map<String, Parameter> parameters = new LinkedHashMap<>();
 
@@ -169,6 +171,11 @@ class Api
         boolean isSynthetic()
         {
             return source == null;
+        }
+
+        boolean isDeprecated()
+        {
+            return Boolean.TRUE == deprecated;
         }
     }
 
@@ -201,7 +208,8 @@ class Api
         HttpStatus status;
 
         // TODO List headers
-        // TODO description
+
+        String description = "dummy";
 
         Map<MediaType, Schema> content = new LinkedHashMap<>();
 

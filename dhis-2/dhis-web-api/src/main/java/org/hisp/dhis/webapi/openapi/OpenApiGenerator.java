@@ -80,11 +80,22 @@ public class OpenApiGenerator extends JsonGenerator
         Document document;
 
         @Value
+        @Builder
         static class Document
         {
             String version;
 
             String serverUrl;
+
+            String licenseName;
+
+            String licenseUrl;
+
+            String contactName;
+
+            String contactUrl;
+
+            String contactEmail;
 
             boolean syntheticSummary;
 
@@ -161,9 +172,16 @@ public class OpenApiGenerator extends JsonGenerator
 
     public static String generate( Api api )
     {
-        return generate( api, new Config(
-            Format.PRETTY_PRINT,
-            new Config.Document( "2.40", "https://play.dhis2.org/dev/api", true, true ) ) );
+        // "2.40", , true, true )
+        Config.Document doc = Config.Document.builder()
+            .version( "2.40" )
+            .serverUrl( "https://play.dhis2.org/dev/api" )
+            .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
+            .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
+            .syntheticSummary( true )
+            .syntheticDescription( true )
+            .build();
+        return generate( api, new Config( Format.PRETTY_PRINT, doc ) );
     }
 
     public static String generate( Api api, Config config )
@@ -199,6 +217,15 @@ public class OpenApiGenerator extends JsonGenerator
             addObjectMember( "info", () -> {
                 addStringMember( "title", "DHIS2 API" );
                 addStringMember( "version", document.version );
+                addObjectMember( "license", () -> {
+                    addStringMember( "name", document.licenseName );
+                    addStringMember( "url", document.licenseUrl );
+                } );
+                addObjectMember( "contact", () -> {
+                    addStringMember( "name", document.contactName );
+                    addStringMember( "url", document.contactUrl );
+                    addStringMember( "email", document.contactEmail );
+                } );
             } );
             addArrayMember( "servers",
                 () -> addObjectMember( null, () -> addStringMember( "url", document.serverUrl ) ) );
@@ -229,6 +256,7 @@ public class OpenApiGenerator extends JsonGenerator
         if ( endpoint.isSynthetic() )
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
+            addBooleanMember( "deprecated", endpoint.getDeprecated() );
             addStringMember( "summary", null ); // TODO
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
@@ -240,7 +268,7 @@ public class OpenApiGenerator extends JsonGenerator
                 .filter( p -> p.getIn() == Api.Parameter.In.BODY )
                 .findFirst()
                 .ifPresent( requestBody -> addObjectMember( "requestBody",
-                    () -> generateRequestBody( requestBody, endpoint.getConsumes() ) ) );
+                    () -> generateRequestBody( requestBody, endpoint.getRequestBody() ) ) );
             addObjectMember( "responses", () -> endpoint.getResponses().values().forEach( this::generateResponse ) );
         } );
     }
@@ -269,7 +297,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", "TODO description is required" ); // TODO
+            addStringMember( "description", response.getDescription() );
             // addObjectMember( "headers", null ); //TODO
             if ( !response.getContent().isEmpty()
                 && response.getStatus() != HttpStatus.NO_CONTENT )

@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.openapi;
 
 import java.util.Map;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -58,24 +61,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
  *
  * @author Jan Bernitt
  */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class ApiMerger
 {
-
     /**
      * Merges two endpoints for the same path and request method.
      *
      * A heuristic is used to decide which of the two endpoints is preserved
      * fully.
-     *
-     * @param a
-     * @param b
-     * @return
      */
     static Api.Endpoint mergeEndpoints( Api.Endpoint a, Api.Endpoint b, RequestMethod method )
     {
-        if ( a == null )
+        if ( a == null || a.isDeprecated() )
             return b;
-        if ( b == null )
+        if ( b == null || b.isDeprecated() )
             return a;
         Api.Endpoint primary = a;
         Api.Endpoint secondary = b;
@@ -90,11 +89,12 @@ public class ApiMerger
             }
         }
         Api.Endpoint merged = new Api.Endpoint( primary.getIn(), null, primary.getEntityClass(),
-            primary.getName() + "+" + secondary.getName() );
+            primary.getName() + "+" + secondary.getName(), primary.getDeprecated() );
         merged.getTags().addAll( primary.getTags() );
         merged.getTags().addAll( secondary.getTags() );
         merged.getMethods().add( method );
-        merged.getConsumes().addAll( primary.getConsumes() );
+        merged.getRequestBody().addAll( primary.getRequestBody() );
+        merged.getRequestBody().addAll( secondary.getRequestBody() );
         merged.getParameters().putAll( primary.getParameters() );
         Map<HttpStatus, Api.Response> responses = merged.getResponses();
         responses.putAll( primary.getResponses() );
