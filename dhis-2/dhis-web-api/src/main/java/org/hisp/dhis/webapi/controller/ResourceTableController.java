@@ -88,6 +88,7 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
+        @RequestParam( required = false ) boolean skipCpl,
         @RequestParam( required = false ) boolean skipOrgUnitOwnership,
         @RequestParam( required = false ) Integer lastYears )
     {
@@ -114,6 +115,13 @@ public class ResourceTableController
         if ( skipOrgUnitOwnership )
         {
             skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
+        }
+
+        if ( skipCpl )
+        {
+            skipTableTypes.add( AnalyticsTableType.TRACKED_ENTITY_INSTANCE );
+            skipTableTypes.add( AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS );
+            skipTableTypes.add( AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS );
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
