@@ -32,8 +32,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 
@@ -44,6 +49,7 @@ import lombok.Value;
 
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -85,7 +91,12 @@ class Api
     @Value
     static class Ref
     {
-        String id;
+    }
+
+    @Value
+    static class Unknown
+    {
+
     }
 
     @Value
@@ -110,13 +121,17 @@ class Api
         @EqualsAndHashCode.Include
         Class<?> source;
 
+        @ToString.Exclude
+        @EqualsAndHashCode.Include
+        Class<?> entityClass;
+
         String name;
 
         List<String> paths = new ArrayList<>();
 
         List<Endpoint> endpoints = new ArrayList<>();
 
-        List<String> tags = new ArrayList<>();
+        Set<String> tags = new TreeSet<>();
     }
 
     @Value
@@ -130,27 +145,33 @@ class Api
         @EqualsAndHashCode.Include
         Method source;
 
+        @ToString.Exclude
+        @EqualsAndHashCode.Include
+        Class<?> entityClass;
+
         String name;
 
         List<RequestMethod> methods = new ArrayList<>();
 
         List<String> paths = new ArrayList<>();
 
-        List<Parameter> parameters = new ArrayList<>();
+        Map<String, Parameter> parameters = new LinkedHashMap<>();
 
-        List<MediaType> consumes = new ArrayList<>();
+        Set<MediaType> consumes = new LinkedHashSet<>();
 
-        List<MediaType> produces = new ArrayList<>();
+        Map<HttpStatus, Response> responses = new EnumMap<>( HttpStatus.class );
 
-        List<Response> responses = new ArrayList<>();
+        Set<String> tags = new TreeSet<>();
 
-        List<String> tags = new ArrayList<>();
+        boolean isSynthetic()
+        {
+            return source == null;
+        }
     }
 
     @Value
     static class Parameter
     {
-
         public enum In
         {
             PATH,
@@ -175,8 +196,16 @@ class Api
     {
         HttpStatus status;
 
-        Schema body;
         // TODO List headers
+        // TODO description
+
+        Map<MediaType, Schema> content = new LinkedHashMap<>();
+
+        Response add( Set<MediaType> produces, Schema body )
+        {
+            produces.forEach( mediaType -> content.put( mediaType, body ) );
+            return this;
+        }
     }
 
     @Value
@@ -207,20 +236,28 @@ class Api
         {
             this( source, Api.schemaName( source ), hint );
         }
+
+        public boolean isNamed()
+        {
+            return !name.isEmpty();
+        }
     }
 
     public static final Schema STRING = new Schema( String.class, null );
 
     public static Schema ref( Class<?> to )
     {
-        Schema ref = new Schema( Ref.class, to );
-        ref.getFields().add( new Field( "id", STRING, true ) );
-        return ref;
+        return new Schema( Ref.class, "", to );
     }
 
     public static Schema refs( Class<?> to )
     {
         return new Schema( Ref[].class, to );
+    }
+
+    public static Schema unknown( Type hint )
+    {
+        return new Schema( Unknown.class, "", hint );
     }
 
     static String schemaName( Class<?> source )
@@ -232,7 +269,8 @@ class Api
         if ( name.contains( ".openapi." )
             || !name.startsWith( "org.hisp.dhis." )
             || IdentifiableObject.class.isAssignableFrom( source )
-            || EmbeddedObject.class.isAssignableFrom( source ) )
+            || EmbeddedObject.class.isAssignableFrom( source )
+            || source == WebMessage.class )
             return source.getSimpleName();
         return name.replace( "org.hisp.dhis.", "" ).replace( '$', '.' )
             .replace( "common.", "" ).replace( "commons.", "" );

@@ -45,6 +45,7 @@ import org.hisp.dhis.scheduling.JobProgress.Stage;
 import org.hisp.dhis.scheduling.JobProgress.Status;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,6 +63,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "scheduling" )
 @RestController
 @RequestMapping( value = "/scheduling" )
 @AllArgsConstructor

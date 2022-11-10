@@ -34,14 +34,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.http.HttpStatus;
+
 /**
  * All annotations used to adjust the generation of OpenAPI document(s).
  *
  * @author Jan Bernitt
  */
-@Inherited
-@Target( ElementType.METHOD )
-@Retention( RetentionPolicy.RUNTIME )
 public @interface OpenApi
 {
     /**
@@ -137,6 +136,55 @@ public @interface OpenApi
         String[] excludes() default {};
     }
 
+    /**
+     * Used to add or override the response for a specific {@link HttpStatus}.
+     *
+     * If the {@link #status()} is the same as the success status of the method
+     * this effectively overrides the return type of the method as present in
+     * the signature.
+     */
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @Repeatable( ResponseRepeat.class )
+    @interface Response
+    {
+        /**
+         * @return body type of the response
+         */
+        Class<?> value();
+
+        /**
+         * If status is left empty the {@link #value()} applies to the status
+         * inferred from the method signature.
+         *
+         * @return the statuses resulting in a response described by the
+         *         {@link #value()} type
+         */
+        HttpStatus[] status() default {};
+
+        String description() default "";
+
+        Header[] headers() default {};
+
+        /**
+         * @return supported content types of the response, if empty these are
+         *         inherited from the spring annotation(s)
+         */
+        String[] mediaTypes() default {};
+    }
+
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Header
+    {
+        String name();
+
+        Class<?> type() default String.class;
+
+        String description() default "";
+    }
+
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )
@@ -151,5 +199,13 @@ public @interface OpenApi
     @interface ParamsRepeat
     {
         Params[] value();
+    }
+
+    @Inherited
+    @Target( ElementType.METHOD )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface ResponseRepeat
+    {
+        Response[] value();
     }
 }

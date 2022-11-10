@@ -41,9 +41,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.gist.GistAutoType;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -60,9 +62,11 @@ import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,10 +81,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Jan Bernitt
  */
+@EntityType( EntityType.class )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 {
-
     @Autowired
     protected ObjectMapper jsonMapper;
 
@@ -94,6 +98,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // GET Gist
     // --------------------------------------------------------------------------
 
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
@@ -104,7 +109,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
-    @GetMapping( value = "/{uid}/gist", produces = "text/csv" )
+    @OpenApi.Response( String.class )
+    @GetMapping( value = { "/{uid}/gist", "/{uid}/gist.csv" }, produces = "text/csv" )
     public void getObjectGistAsCsv( @PathVariable( "uid" ) String uid,
         HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -122,7 +128,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             getSchema() );
     }
 
-    @GetMapping( value = "/gist", produces = "text/csv" )
+    @OpenApi.Response( value = String.class )
+    @GetMapping( value = { "/gist", "/gist.csv" }, produces = "text/csv" )
     public void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -130,6 +137,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .toBuilder().typedAttributeValues( false ).build() );
     }
 
+    @OpenApi.Response( status = HttpStatus.BAD_REQUEST, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,
@@ -154,7 +163,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
 
-    @GetMapping( value = "/{uid}/{property}/gist", produces = "text/csv" )
+    @OpenApi.Response( String.class )
+    @GetMapping( value = { "/{uid}/{property}/gist", "/{uid}/{property}/gist.csv" }, produces = "text/csv" )
     public void getObjectPropertyGistAsCsv(
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property,

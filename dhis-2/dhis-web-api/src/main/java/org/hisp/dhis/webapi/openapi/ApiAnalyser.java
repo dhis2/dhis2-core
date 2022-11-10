@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toSet;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -44,8 +45,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,15 +56,18 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.Value;
 
+import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,7 +81,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Given a set of controller {@link Class}es this creates a {@link Api} model
@@ -83,8 +88,16 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Jan Bernitt
  */
-final class RestApiAnalyser
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+final class ApiAnalyser
 {
+    /**
+     * A mapping annotation might have an empty array for the paths which is
+     * identical to just the root path o the controller. This array is used to
+     * reflect the presence of this root path as the path mapped.
+     */
+    private static final String[] ROOT_PATH = { "" };
+
     /**
      * Create an {@link Api} model from controller {@link Class}.
      *
@@ -100,9 +113,7 @@ final class RestApiAnalyser
     public static Api describeApi( List<Class<?>> controllers, Set<String> paths, Set<String> tags )
     {
         Api api = new Api();
-        api.getSchemas().put( String.class, Api.STRING );
-        api.getSchemas().put( Api.Ref.class, Api.ref( null ) );
-        Stream<Class<?>> scope = controllers.stream().filter( RestApiAnalyser::isControllerType );
+        Stream<Class<?>> scope = controllers.stream().filter( ApiAnalyser::isControllerType );
         if ( paths != null && !paths.isEmpty() )
         {
             scope = scope.filter( c -> isRoot( c, paths ) );
@@ -120,39 +131,98 @@ final class RestApiAnalyser
     {
         String name = getAnnotated( source, RequestMapping.class, RequestMapping::name, n -> !n.isEmpty(),
             () -> source.getSimpleName().replace( "Controller", "" ) );
-        Api.Controller controller = new Api.Controller( api, source, name );
+        Class<?> entityClass = source.isAnnotationPresent( EntityType.class )
+            ? source.getAnnotation( EntityType.class ).value()
+            : null;
+        if ( entityClass == EntityType.class )
+        {
+            entityClass = (Class<?>) (((ParameterizedType) source.getGenericSuperclass()).getActualTypeArguments()[0]);
+        }
+        Api.Controller controller = new Api.Controller( api, source, entityClass, name );
         whenAnnotated( source, RequestMapping.class, a -> controller.getPaths().addAll( List.of( a.value() ) ) );
         whenAnnotated( source, OpenApi.Tags.class, a -> controller.getTags().addAll( List.of( a.value() ) ) );
-        for ( Method m : source.getMethods() )
-        {
-            Mapping mapping = getMapping( m );
-            if ( mapping != null )
-            {
-                controller.getEndpoints().add( describeEndpoint( api, controller, m, mapping ) );
-            }
-        }
+
+        stream( source.getMethods() )
+            .map( ApiAnalyser::getMapping )
+            .filter( Objects::nonNull )
+            .map( mapping -> describeEndpoint( controller, mapping ) )
+            .forEach( endpoint -> controller.getEndpoints().add( endpoint ) );
+
         return controller;
     }
 
-    private static Api.Endpoint describeEndpoint( Api api, Api.Controller controller, Method source, Mapping mapping )
+    private static Api.Endpoint describeEndpoint( Api.Controller controller, Mapping mapping )
     {
+        Method source = mapping.getSource();
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
-
-        Api.Endpoint e = new Api.Endpoint( controller, source, name );
-        whenAnnotated( source, OpenApi.Tags.class, a -> e.getTags().addAll( List.of( a.value() ) ) );
+        Class<?> entityClass = getAnnotated( source, EntityType.class, EntityType::value, c -> c != EntityType.class,
+            controller::getEntityClass );
+        Api.Endpoint endpoint = new Api.Endpoint( controller, source, entityClass, name );
+        whenAnnotated( source, OpenApi.Tags.class, a -> endpoint.getTags().addAll( List.of( a.value() ) ) );
+        endpoint.getPaths().addAll( List.of( mapping.getPath() ) );
+        endpoint.getMethods().addAll( List.of( mapping.method ) );
 
         // request:
-        e.getPaths().addAll( List.of( mapping.getPath() ) );
-        e.getMethods().addAll( List.of( mapping.method ) );
-        stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).forEach( e.getConsumes()::add );
-        // - declared parameters
+        describeParameters( endpoint );
+
+        // request media types
+        stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).forEach( endpoint.getConsumes()::add );
+        // request: assume JSON if nothing is set explicitly
+        if ( endpoint.getConsumes().isEmpty()
+            && endpoint.getParameters().values().stream().anyMatch( p -> p.getIn() == Api.Parameter.In.BODY ) )
+            endpoint.getConsumes().add( MediaType.APPLICATION_JSON ); // our
+                                                                      // default
+
+        // response:
+        endpoint.getResponses().putAll( describeResponses( endpoint, mapping ) );
+
+        return endpoint;
+    }
+
+    private static Map<HttpStatus, Api.Response> describeResponses( Api.Endpoint endpoint, Mapping mapping )
+    {
+        Method source = mapping.getSource();
+        Set<MediaType> produces = stream( mapping.getProduces() )
+            .map( MediaType::parseMediaType )
+            .collect( toSet() );
+        if ( produces.isEmpty() )
+            produces.add( MediaType.APPLICATION_JSON ); // our default
+
+        HttpStatus signatureStatus = getAnnotated( source, ResponseStatus.class,
+            a -> firstNonEqual( HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code() ),
+            s -> s != HttpStatus.INTERNAL_SERVER_ERROR, () -> HttpStatus.OK );
+
+        Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
+        // response(s) declared via annotation(s)
+        getAnnotations( source, OpenApi.Response.class )
+            .forEach( a -> (a.status().length == 0 ? List.of( signatureStatus ) : List.of( a.status() ))
+                .forEach( status -> res.put( status, new Api.Response( status )
+                    .add( produces, describeOutputSchema( endpoint, getSubstitutedType( endpoint, a.value() ) ) ) ) ) );
+        // response from method signature
+        if ( !res.containsKey( signatureStatus ) )
+        {
+            res.put( signatureStatus, new Api.Response( signatureStatus )
+                .add( produces, describeOutputSchema( endpoint, source.getGenericReturnType() ) ) );
+        }
+        return res;
+    }
+
+    private static void describeParameters( Api.Endpoint endpoint )
+    {
+        Method source = endpoint.getSource();
+        // request parameter(s) declared via annotation(s)
+        getAnnotations( source, OpenApi.Param.class ).forEach( p -> describeParam( endpoint, p ) );
+        getAnnotations( source, OpenApi.Params.class ).forEach( p -> describeParams( endpoint, p ) );
+
+        // request parameters from method signature
         for ( Parameter p : source.getParameters() )
         {
-            if ( isSimpleEndpointParameter( p ) )
+            if ( isParam( p ) )
             {
-                e.getParameters().add( describeParameter( api, p ) );
+                Api.Parameter parameter = describeParameter( endpoint, p );
+                endpoint.getParameters().putIfAbsent( parameter.getName(), parameter );
             }
-            else if ( isComplexEndpointParameter( p ) )
+            else if ( isParams( p ) )
             {
                 boolean requireJsonProperty = stream( p.getType().getMethods() )
                     .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
@@ -160,87 +230,42 @@ final class RestApiAnalyser
                 {
                     if ( isEndpointParameter( m, 1, List.of( "set" ), requireJsonProperty ) )
                     {
-                        e.getParameters().add( describeParameter( api, m ) );
+                        Api.Parameter parameter = describeParameter( endpoint, m );
+                        endpoint.getParameters().putIfAbsent( parameter.getName(), parameter );
                     }
                 }
             }
         }
-        // - undeclared parameters (not found in signature)
-        if ( source.isAnnotationPresent( OpenApi.ParamRepeat.class ) )
-        {
-            stream( source.getAnnotation( OpenApi.ParamRepeat.class ).value() )
-                .forEach( p -> describeOpenApiParam( api, controller, e, p ) );
-        }
-        else if ( source.isAnnotationPresent( OpenApi.Param.class ) )
-        {
-            describeOpenApiParam( api, controller, e, source.getAnnotation( OpenApi.Param.class ) );
-        }
-        if ( source.isAnnotationPresent( OpenApi.ParamsRepeat.class ) )
-        {
-            stream( source.getAnnotation( OpenApi.ParamsRepeat.class ).value() )
-                .forEach( p -> describeOpenApiParams( api, e, p ) );
-        }
-        else if ( source.isAnnotationPresent( OpenApi.Params.class ) )
-        {
-            describeOpenApiParams( api, e, source.getAnnotation( OpenApi.Params.class ) );
-        }
-        // response:
-        stream( mapping.getProduces() ).map( MediaType::parseMediaType ).forEach( e.getProduces()::add );
-        HttpStatus status = HttpStatus.OK;
-        if ( source.isAnnotationPresent( ResponseStatus.class ) )
-        {
-            ResponseStatus a = source.getAnnotation( ResponseStatus.class );
-            status = firstNonEqual( HttpStatus.INTERNAL_SERVER_ERROR, a.value(), a.code(), status );
-        }
-        Api.Schema body = describeBodySchema( api, source.getGenericReturnType() );
-        e.getResponses().add( new Api.Response( status, body ) );
-        return e;
     }
 
-    private static void describeOpenApiParam( Api api, Api.Controller controller, Api.Endpoint endpoint,
-        OpenApi.Param param )
+    private static void describeParam( Api.Endpoint endpoint, OpenApi.Param param )
     {
         String name = param.name();
-        Class<?> value = param.value();
-        if ( value == IdentifiableObject.class )
-        {
-            value = (Class<?>) ((ParameterizedType) controller.getSource().getGenericSuperclass())
-                .getActualTypeArguments()[0];
-        }
-        List<Api.Parameter> params = endpoint.getParameters();
-        if ( name.isEmpty() )
-        {
-            params.add(
-                new Api.Parameter( endpoint.getSource(), "", Api.Parameter.In.BODY, true,
-                    describeSchema( api, value ) ) );
-        }
-        else
-        {
-            params.add(
-                new Api.Parameter( endpoint.getSource(), name, Api.Parameter.In.QUERY, false,
-                    describeSchema( api, value ) ) );
-        }
+        Api.Parameter.In in = name.isEmpty() ? Api.Parameter.In.BODY : Api.Parameter.In.QUERY;
+        endpoint.getParameters().putIfAbsent( name,
+            new Api.Parameter( endpoint.getSource(), name, in, in == Api.Parameter.In.BODY,
+                describeInputSchema( endpoint, getSubstitutedType( endpoint, param.value() ), in ) ) );
     }
 
-    private static void describeOpenApiParams( Api api, Api.Endpoint endpoint, OpenApi.Params params )
+    private static void describeParams( Api.Endpoint endpoint, OpenApi.Params params )
     {
         Class<?> value = params.value();
         boolean requireJsonProperty = stream( value.getMethods() )
             .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
         stream( value.getMethods() )
             .filter( m -> isEndpointParameter( m, 0, List.of( "has", "is", "get" ), requireJsonProperty ) )
-            .map( m -> describeParameter( api, m ) )
-            .forEach( endpoint.getParameters()::add );
+            .map( m -> describeParameter( endpoint, m ) )
+            .forEach( p -> endpoint.getParameters().putIfAbsent( p.getName(), p ) );
     }
 
-    private static Api.Parameter describeParameter( Api api, Parameter source )
+    private static Api.Parameter describeParameter( Api.Endpoint endpoint, Parameter source )
     {
-        Api.Schema schema = describeCustomSchema( api, source.getParameterizedType(), new IdentityHashMap<>() );
         if ( source.isAnnotationPresent( PathVariable.class ) )
         {
             PathVariable a = source.getAnnotation( PathVariable.class );
             String name = firstNonEmpty( a.name(), a.value(), source.getName() );
-            return new Api.Parameter( source, name, Api.Parameter.In.PATH, a.required(), schema );
+            return new Api.Parameter( source, name, Api.Parameter.In.PATH, a.required(),
+                describeInputSchema( endpoint, source.getParameterizedType(), Api.Parameter.In.PATH ) );
         }
         if ( source.isAnnotationPresent( RequestParam.class ) )
         {
@@ -248,53 +273,72 @@ final class RestApiAnalyser
             boolean required = a.required()
                 && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
             String name = firstNonEmpty( a.name(), a.value(), source.getName() );
-            return new Api.Parameter( source, name, Api.Parameter.In.QUERY, required, schema );
+            return new Api.Parameter( source, name, Api.Parameter.In.QUERY, required,
+                describeInputSchema( endpoint, source.getParameterizedType(), Api.Parameter.In.QUERY ) );
         }
         if ( source.isAnnotationPresent( RequestBody.class ) )
         {
             RequestBody a = source.getAnnotation( RequestBody.class );
-            return new Api.Parameter( source, "", Api.Parameter.In.BODY, a.required(), schema );
+            return new Api.Parameter( source, "", Api.Parameter.In.BODY, a.required(),
+                describeInputSchema( endpoint, source.getParameterizedType(), Api.Parameter.In.BODY ) );
         }
         throw new UnsupportedOperationException( "not yet" );
     }
 
-    private static Api.Parameter describeParameter( Api api, Method source )
+    private static Api.Parameter describeParameter( Api.Endpoint endpoint, Method source )
     {
         String name = getName( source );
         Type s = source.getParameterCount() == 0
             ? source.getGenericReturnType()
             : source.getGenericParameterTypes()[0];
-        Api.Schema type = describeCustomSchema( api, s, new IdentityHashMap<>() );
+        Api.Schema type = describeInputSchema( endpoint, s, Api.Parameter.In.QUERY );
         return new Api.Parameter( source, name, Api.Parameter.In.QUERY, false, type );
     }
 
-    private static Api.Schema describeSchema( Api api, Class<?> source )
+    private static Api.Schema describeInputSchema( Api.Endpoint endpoint, Type s, Api.Parameter.In in )
     {
-        return describeSchema( api, source, new IdentityHashMap<>() );
+        return describeSchema( endpoint, s, in != Api.Parameter.In.BODY, new IdentityHashMap<>() );
     }
 
-    private static Api.Schema describeSchema( Api api, Class<?> source, Map<Class<?>, Api.Schema> currentlyResolved )
+    private static Api.Schema describeOutputSchema( Api.Endpoint endpoint, Type source )
     {
-        Api.Schema s = currentlyResolved.get( source );
+        return describeSchema( endpoint, source, false, new IdentityHashMap<>() );
+    }
+
+    /**
+     * @return a schema describing a complex "record-like" or "bean" object
+     */
+    private static Api.Schema describeTypeSchema( Api.Endpoint endpoint, Class<?> type,
+        Map<Class<?>, Api.Schema> resolving )
+    {
+        Api.Schema s = resolving.get( type );
         if ( s != null )
             return s;
-        return api.getSchemas().computeIfAbsent( source, key -> {
-            Api.Schema schema = new Api.Schema( source, null );
-            currentlyResolved.put( source, schema );
-            if ( source.isEnum() || source.isInterface() )
+        return endpoint.getIn().getIn().getSchemas().computeIfAbsent( type, key -> {
+            Api.Schema schema = new Api.Schema( type, null );
+            resolving.put( type, schema );
+            if ( type.isEnum() || type.isInterface() )
                 return schema;
-            if ( source.isArray() )
+            if ( type.isArray() )
             {
-                describeSchema( api, source.getComponentType(), currentlyResolved );
+                // eventually this will resolve the simple element type
+                describeTypeSchema( endpoint, type.getComponentType(), resolving );
+                return schema;
+            }
+            String moduleName = type.getModule().getName();
+            if ( moduleName != null && (moduleName.startsWith( "java." ) || moduleName.startsWith( "jdk." )) )
+            {
+                // this is a build in type which we assume is a simple type with
+                // no fields
                 return schema;
             }
             Set<String> fieldsAdded = new HashSet<>();
-            for ( Method m : source.getMethods() )
+            for ( Method m : type.getMethods() )
             {
                 if ( isSchemaField( m ) && !fieldsAdded.contains( getName( m ) ) )
                 {
-                    Type type = m.getParameterCount() == 1 ? m.getGenericParameterTypes()[0] : m.getGenericReturnType();
-                    Api.Schema ms = describeCustomSchema( api, type, currentlyResolved );
+                    Type t = m.getParameterCount() == 1 ? m.getGenericParameterTypes()[0] : m.getGenericReturnType();
+                    Api.Schema ms = describeSchema( endpoint, t, true, resolving );
                     if ( ms != null )
                     {
                         String name = getName( m );
@@ -303,11 +347,11 @@ final class RestApiAnalyser
                     }
                 }
             }
-            for ( Field f : source.getDeclaredFields() )
+            for ( Field f : type.getDeclaredFields() )
             {
                 if ( isSchemaField( f ) && !fieldsAdded.contains( getName( f ) ) )
                 {
-                    Api.Schema fs = describeCustomSchema( api, f.getGenericType(), currentlyResolved );
+                    Api.Schema fs = describeSchema( endpoint, f.getGenericType(), true, resolving );
                     if ( fs != null )
                     {
                         String name = getName( f );
@@ -320,31 +364,49 @@ final class RestApiAnalyser
         } );
     }
 
-    private static Api.Schema describeBodySchema( Api api, Type source )
+    private static Api.Schema describeSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
+        Map<Class<?>, Api.Schema> resolving )
     {
         if ( source instanceof Class<?> )
         {
-            Class<?> cls = (Class<?>) source;
-            if ( JsonNode.class.isAssignableFrom( cls ) )
-            {
-                // TODO keep type?
-                return new Api.Schema( JsonNode.class, "", source );
-            }
-            return describeSchema( api, cls );
+            Class<?> type = (Class<?>) source;
+            if ( useRefs && IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
+                return Api.ref( type );
+            if ( useRefs && IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
+                return Api.refs( type.getComponentType() );
+            return describeTypeSchema( endpoint, type, resolving );
         }
         if ( source instanceof ParameterizedType )
         {
             ParameterizedType pt = (ParameterizedType) source;
-            Type rawType = pt.getRawType();
+            Class<?> rawType = (Class<?>) pt.getRawType();
+            if ( rawType == Class.class )
+                return new Api.Schema( String.class, "", source );
+            Type typeArg0 = pt.getActualTypeArguments()[0];
+            if ( Collection.class.isAssignableFrom( rawType ) && rawType.isInterface() || rawType == Iterable.class )
+            {
+                if ( typeArg0 instanceof Class<?> )
+                    return describeSchema( endpoint, Array.newInstance( (Class<?>) typeArg0, 0 ).getClass(),
+                        useRefs, resolving );
+                Api.Schema colSchema = new Api.Schema( Collection.class, source );
+                colSchema.getFields()
+                    .add( new Api.Field( "", describeSchema( endpoint, typeArg0, useRefs, resolving ), true ) );
+                return colSchema;
+            }
+            if ( Map.class.isAssignableFrom( rawType ) && rawType.isInterface() )
+            {
+                Api.Schema mapSchema = new Api.Schema( Map.class, source );
+                mapSchema.getFields().add( new Api.Field( "key",
+                    describeSchema( endpoint, typeArg0, false, resolving ), true ) );
+                mapSchema.getFields().add( new Api.Field( "value",
+                    describeSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ), true ) );
+                return mapSchema;
+            }
             if ( rawType == ResponseEntity.class )
             {
-                return describeBodySchema( api, pt.getActualTypeArguments()[0] );
+                return describeSchema( endpoint, typeArg0, false, resolving );
             }
-            if ( rawType == StreamingJsonRoot.class )
-            {
-                return new Api.Schema( StreamingJsonRoot.class, "", pt.getActualTypeArguments()[0] );
-            }
-            return describeCustomSchema( api, source, new IdentityHashMap<>() );
+            return Api.unknown( source );
         }
         if ( source instanceof WildcardType )
         {
@@ -352,62 +414,10 @@ final class RestApiAnalyser
             if ( wt.getLowerBounds().length == 0
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
                 return new Api.Schema( Object.class, "", wt );
-            return describeBodySchema( api, wt.getUpperBounds()[0] );
+            // simplification: <? extends X> => <X>
+            return describeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }
-        return null;
-    }
-
-    private static Api.Schema describeCustomSchema( Api api, Type source, Map<Class<?>, Api.Schema> currentlyResolved )
-    {
-        if ( source instanceof ParameterizedType )
-        {
-            ParameterizedType pt = (ParameterizedType) source;
-            Class<?> rawType = (Class<?>) pt.getRawType();
-            if ( rawType == Class.class )
-                return new Api.Schema( String.class, "", source );
-            if ( !rawType.isInterface() )
-                return null; // give up
-            if ( Collection.class.isAssignableFrom( rawType ) || rawType == Iterable.class )
-            {
-                Type itemType = pt.getActualTypeArguments()[0];
-                if ( itemType instanceof Class<?> )
-                    return describeCustomSchema( api, Array.newInstance( (Class<?>) itemType, 0 ).getClass(),
-                        currentlyResolved );
-                Api.Schema colSchema = new Api.Schema( Collection.class, source );
-                colSchema.getFields()
-                    .add( new Api.Field( "", describeCustomSchema( api, itemType, currentlyResolved ), true ) );
-                return colSchema;
-            }
-            if ( Map.class.isAssignableFrom( rawType ) )
-            {
-                Api.Schema mapSchema = new Api.Schema( Map.class, source );
-                mapSchema.getFields().add( new Api.Field( "key",
-                    describeCustomSchema( api, pt.getActualTypeArguments()[0], currentlyResolved ), true ) );
-                mapSchema.getFields().add( new Api.Field( "value",
-                    describeCustomSchema( api, pt.getActualTypeArguments()[1], currentlyResolved ), true ) );
-                return mapSchema;
-            }
-        }
-        else if ( source instanceof Class<?> )
-        {
-            Class<?> type = (Class<?>) source;
-            if ( IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
-                return Api.ref( type );
-            if ( IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
-                return Api.refs( type.getComponentType() );
-            // FIXME only use refs if this is not an array within the response
-            if ( Object[].class.isAssignableFrom( type ) )
-            {
-                Class<?> comp = type.getComponentType();
-                while ( Object[].class.isAssignableFrom( comp ) )
-                    comp = comp.getComponentType();
-                // if the type is an array type make sure the element type is
-                // also added
-                describeSchema( api, comp, currentlyResolved );
-            }
-            return describeSchema( api, type, currentlyResolved );
-        }
-        return null;
+        return Api.unknown( source );
     }
 
     private static Boolean getFieldRequired( AnnotatedElement source )
@@ -435,6 +445,22 @@ final class RestApiAnalyser
         return customName.isEmpty() ? name : customName;
     }
 
+    /**
+     * @return the type referred to by the type found in an annotation.
+     */
+    private static Class<?> getSubstitutedType( Api.Endpoint endpoint, Class<?> type )
+    {
+        if ( type == EntityType.class && endpoint.getEntityClass() != null )
+        {
+            return endpoint.getEntityClass();
+        }
+        if ( type == EntityType[].class && endpoint.getEntityClass() != null )
+        {
+            return Array.newInstance( endpoint.getEntityClass(), 0 ).getClass();
+        }
+        return type;
+    }
+
     private static <T extends AnnotatedElement & Member> boolean isSchemaField( T member )
     {
         return member.isAnnotationPresent( JsonProperty.class ) && !Modifier.isStatic( member.getModifiers() );
@@ -447,7 +473,10 @@ final class RestApiAnalyser
             && !source.isAnnotationPresent( OpenApi.Ignore.class );
     }
 
-    private static boolean isComplexEndpointParameter( Parameter source )
+    /**
+     * @return is this a parameter objects with properties which are parameters?
+     */
+    private static boolean isParams( Parameter source )
     {
         Class<?> type = source.getType();
         if ( type.isInterface()
@@ -459,7 +488,10 @@ final class RestApiAnalyser
         return stream( type.getDeclaredConstructors() ).anyMatch( c -> c.getParameterCount() == 0 );
     }
 
-    private static boolean isSimpleEndpointParameter( Parameter source )
+    /**
+     * @return is this a simple type parameter that needs to be considered?
+     */
+    private static boolean isParam( Parameter source )
     {
         if ( source.getType() == Map.class || source.isAnnotationPresent( OpenApi.Ignore.class ) )
             return false;
@@ -486,41 +518,52 @@ final class RestApiAnalyser
 
     private static Mapping getMapping( Method source )
     {
-        if ( source.isAnnotationPresent( OpenApi.Ignore.class ) )
+        if ( ConsistentAnnotatedElement.of( source ).isAnnotationPresent( OpenApi.Ignore.class ) )
         {
             return null;// ignore this
         }
         if ( source.isAnnotationPresent( RequestMapping.class ) )
         {
             RequestMapping a = source.getAnnotation( RequestMapping.class );
-            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ), a.method(), a.params(), a.headers(),
-                a.consumes(), a.produces() );
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+                a.method(), a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( GetMapping.class ) )
         {
             GetMapping a = source.getAnnotation( GetMapping.class );
-            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.GET }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PutMapping.class ) )
         {
             PutMapping a = source.getAnnotation( PutMapping.class );
-            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.PUT }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PostMapping.class ) )
         {
             PostMapping a = source.getAnnotation( PostMapping.class );
-            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.POST }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PatchMapping.class ) )
         {
             PatchMapping a = source.getAnnotation( PatchMapping.class );
-            return new Mapping( a.name(), firstNonEmpty( a.value(), a.path() ),
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.PATCH }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
+        if ( source.isAnnotationPresent( DeleteMapping.class ) )
+        {
+            DeleteMapping a = source.getAnnotation( DeleteMapping.class );
+            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+                new RequestMethod[] { RequestMethod.DELETE }, a.params(), a.headers(), a.consumes(), a.produces() );
+        }
         return null;
+    }
+
+    private static String[] firstNonEmpty( String[] a, String[] b, String[] c )
+    {
+        return firstNonEmpty( firstNonEmpty( a, b ), c );
     }
 
     private static String[] firstNonEmpty( String[] a, String[] b )
@@ -548,6 +591,8 @@ final class RestApiAnalyser
     @Value
     static class Mapping
     {
+        Method source;
+
         String name;
 
         String[] path;
@@ -567,23 +612,30 @@ final class RestApiAnalyser
      * Helpers for working with annotations
      */
 
+    private static <A extends Annotation> Stream<A> getAnnotations( Method on, Class<A> type )
+    {
+        return stream( ConsistentAnnotatedElement.of( on ).getAnnotationsByType( type ) );
+    }
+
     private static <A extends Annotation, T extends AnnotatedElement> void whenAnnotated( T on, Class<A> type,
         Consumer<A> whenPresent )
     {
-        if ( on.isAnnotationPresent( type ) )
+        AnnotatedElement target = ConsistentAnnotatedElement.of( on );
+        if ( target.isAnnotationPresent( type ) )
         {
-            whenPresent.accept( on.getAnnotation( type ) );
+            whenPresent.accept( target.getAnnotation( type ) );
         }
     }
 
     private static <A extends Annotation, B, T extends AnnotatedElement> B getAnnotated( T on, Class<A> type,
         Function<A, B> whenPresent, Predicate<B> test, Supplier<B> otherwise )
     {
-        if ( !on.isAnnotationPresent( type ) )
+        AnnotatedElement target = ConsistentAnnotatedElement.of( on );
+        if ( !target.isAnnotationPresent( type ) )
         {
             return otherwise.get();
         }
-        B value = whenPresent.apply( on.getAnnotation( type ) );
+        B value = whenPresent.apply( target.getAnnotation( type ) );
         return test.test( value ) ? value : otherwise.get();
     }
 }

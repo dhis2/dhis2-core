@@ -52,12 +52,14 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -191,6 +193,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( EntityType[].class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -257,6 +261,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
     @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -407,6 +414,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( EntityType.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
@@ -463,6 +473,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,

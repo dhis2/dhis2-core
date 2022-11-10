@@ -29,7 +29,10 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -37,16 +40,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +70,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class OpenApiGenerator
+public class OpenApiGenerator extends JsonGenerator
 {
     @Value
     static class Config
@@ -75,22 +78,6 @@ public class OpenApiGenerator
         Format format;
 
         Document document;
-
-        @Value
-        static class Format
-        {
-            boolean newLineAfterMember;
-
-            boolean newLineAfterObjectStart;
-
-            boolean newLineBeforeObjectEnd;
-
-            boolean newLineAfterArrayStart;
-
-            boolean newLineBeforeArrayEnd;
-
-            String memberIndent;
-        }
 
         @Value
         static class Document
@@ -175,7 +162,7 @@ public class OpenApiGenerator
     public static String generate( Api api )
     {
         return generate( api, new Config(
-            new Config.Format( true, true, true, true, true, "  " ),
+            Format.PRETTY_PRINT,
             new Config.Document( "2.40", "https://play.dhis2.org/dev/api", true, true ) ) );
     }
 
@@ -185,23 +172,25 @@ public class OpenApiGenerator
         for ( Api.Controller c : api.getControllers() )
             endpoints += c.getEndpoints().size();
         int capacity = endpoints * 256 + api.getSchemas().size() * 512;
-        OpenApiGenerator gen = new OpenApiGenerator( api, new StringBuilder( capacity ), config.format, config.document,
-            "" );
+        OpenApiGenerator gen = new OpenApiGenerator( api, config, new StringBuilder( capacity ) );
         gen.generateDocument();
-        return gen.out.toString();
+        return gen.toString();
     }
 
     private final Api api;
 
-    private final StringBuilder out;
-
-    private final Config.Format format;
-
     private final Config.Document document;
 
-    private String indent;
+    private OpenApiGenerator( Api api, Config config, StringBuilder out )
+    {
+        super( out, config.format );
+        this.api = api;
+        this.document = config.document;
+    }
 
     private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
+
+    private final Map<String, Api.Schema> referencedSchemasByName = new TreeMap<>();
 
     private void generateDocument()
     {
@@ -228,42 +217,28 @@ public class OpenApiGenerator
     private void generatePath( String path, List<Api.Endpoint> endpoints )
     {
         EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
-        // FIXME this discards endpoints where same method is defined multiple
-        // times because of different media types
-        // this needs to be merged but OpenAPI does not really support this
-        // properly
-        // as in theory these endpoints can be different not just by their
-        // responses
-        endpoints.forEach( e -> e.getMethods().forEach( m -> endpointByMethod.compute( m, ( k, v ) -> {
-            // a hack to prefer the JSON endpoint if there is a clash
-            if ( v == null )
-                return e;
-            if ( v.getConsumes().contains( MediaType.APPLICATION_JSON ) )
-                return v;
-            return e;
-        } ) ) );
+        endpoints.forEach( e -> e.getMethods()
+            .forEach( method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e ) ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
     {
-        List<String> tags = Stream.concat( endpoint.getIn().getTags().stream(), endpoint.getTags().stream() )
-            .collect( toList() );
+        Set<String> tags = union( endpoint.getIn().getTags(), endpoint.getTags() );
         addObjectMember( method.name().toLowerCase(), () -> {
             addStringMember( "summary", null ); // TODO
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
-                addArrayMember( "tags", () -> tags.forEach( tag -> addStringMember( null, tag ) ) );
-            addArrayMember( "parameters", endpoint.getParameters().stream()
+                addArrayMember( "tags", tags );
+            addArrayMember( "parameters", endpoint.getParameters().values().stream()
                 .filter( p -> p.getIn() != Api.Parameter.In.BODY ),
                 this::generateParameter );
-            endpoint.getParameters().stream()
+            endpoint.getParameters().values().stream()
                 .filter( p -> p.getIn() == Api.Parameter.In.BODY )
                 .findFirst()
                 .ifPresent( requestBody -> addObjectMember( "requestBody",
                     () -> generateRequestBody( requestBody, endpoint.getConsumes() ) ) );
-            addObjectMember( "responses", () -> endpoint.getResponses()
-                .forEach( response -> generateResponse( response, endpoint.getProduces(), endpoint.getConsumes() ) ) );
+            addObjectMember( "responses", () -> endpoint.getResponses().values().forEach( this::generateResponse ) );
         } );
     }
 
@@ -278,55 +253,72 @@ public class OpenApiGenerator
         } );
     }
 
-    private void generateRequestBody( Api.Parameter body, List<MediaType> consumes )
+    private void generateRequestBody( Api.Parameter body, Set<MediaType> consumes )
     {
         if ( consumes.isEmpty() )
             consumes.add( MediaType.APPLICATION_JSON );
         addStringMember( "description", null ); // TODO
         addBooleanMember( "required", body.isRequired() );
-        addObjectMember( "content", () -> {
-            consumes.forEach( type -> {
-                addObjectMember( type.toString(),
-                    () -> addObjectMember( "schema", () -> generateSchemaOrRef( body.getType() ) ) );
-            } );
-        } );
+        addObjectMember( "content", () -> consumes.forEach( type -> addObjectMember( type.toString(),
+            () -> addObjectMember( "schema", () -> generateSchemaOrRef( body.getType() ) ) ) ) );
     }
 
-    private void generateResponse( Api.Response response, List<MediaType> produces, List<MediaType> consumes )
+    private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
             addStringMember( "description", "TODO description is required" ); // TODO
             // addObjectMember( "headers", null ); //TODO
-            if ( response.getBody() != null
-                && response.getBody().getSource() != void.class
+            if ( !response.getContent().isEmpty()
                 && response.getStatus() != HttpStatus.NO_CONTENT )
             {
-                if ( produces.isEmpty() )
-                {
-                    // make API symmetric by sing the first consumes if no
-                    // produces is set
-                    produces.add( !consumes.isEmpty() ? consumes.get( 0 ) : MediaType.APPLICATION_JSON );
-                }
-                addObjectMember( "content", () -> produces.forEach( type -> addObjectMember( type.toString(),
-                    () -> addObjectMember( "schema", () -> generateSchemaOrRef( response.getBody() ) ) ) ) );
+                addObjectMember( "content",
+                    () -> response.getContent().forEach( ( produces, body ) -> addObjectMember( produces.toString(),
+                        () -> addObjectMember( "schema", () -> generateSchemaOrRef( body ) ) ) ) );
             }
         } );
     }
 
     private void generateSchemas()
     {
-        api.getSchemas().values().stream()
-            .filter( OpenApiGenerator::isReferencableSchema )
-            .sorted( ( a, b ) -> a.getName().indexOf( '.' ) < 0 && b.getName().indexOf( '.' ) >= 0 ? -1
-                : a.getName().compareTo( b.getName() ) )
-            .forEach( s -> addObjectMember( s.getName(), () -> generateSchema( s ) ) );
+        Set<String> generated = new HashSet<>();
+        while ( generated.size() < referencedSchemasByName.size() )
+        {
+            Set<String> remaining = referencedSchemasByName.keySet().stream()
+                .filter( not( generated::contains ) )
+                .collect( toCollection( TreeSet::new ) );
+            remaining.forEach( name -> addObjectMember( name,
+                () -> generateSchema( referencedSchemasByName.get( name ) ) ) );
+            generated.addAll( remaining );
+        }
     }
 
     private static boolean isReferencableSchema( Api.Schema schema )
     {
-        return !schema.getName().isEmpty()
+        return schema.isNamed()
             && !schema.getFields().isEmpty()
             && !SIMPLE_TYPES.containsKey( schema.getSource() );
+    }
+
+    private void generateSchemaOrRef( Api.Schema schema )
+    {
+        if ( schema == null )
+            return;
+        if ( schema.getSource() == Api.Ref.class )
+        {
+            String name = "Ref:" + ((Class<?>) schema.getHint()).getSimpleName();
+            addStringMember( "$ref", "#/components/schemas/" + name );
+            referencedSchemasByName.putIfAbsent( name, schema );
+            return;
+        }
+        if ( !isReferencableSchema( schema ) )
+        {
+            generateSchema( schema );
+        }
+        else
+        {
+            addStringMember( "$ref", "#/components/schemas/" + schema.getName() );
+            referencedSchemasByName.putIfAbsent( schema.getName(), schema );
+        }
     }
 
     private void generateSchema( Api.Schema schema )
@@ -346,18 +338,31 @@ public class OpenApiGenerator
             }
             return;
         }
+        if ( type == Api.Ref.class )
+        {
+            generateRefType( schema );
+            return;
+        }
+        if ( type == Api.Unknown.class )
+        {
+            addStringMember( "description",
+                "The exact type is unknown, Java type was: " + schema.getHint().getTypeName() );
+            return;
+        }
         if ( type.isEnum() )
         {
             addStringMember( "type", "string" );
-            addArrayMember( "enum", stream( type.getEnumConstants() ),
-                c -> addStringMember( null, ((Enum<?>) c).name() ) );
+            addArrayMember( "enum", stream( type.getEnumConstants() )
+                .map( e -> ((Enum<?>) e).name() ).collect( toList() ) );
             return;
         }
         if ( type.isArray() )
         {
+            Api.Schema elements = schema.getSource() == Api.Ref[].class
+                ? Api.ref( (Class<?>) schema.getHint() )
+                : api.getSchemas().get( type.getComponentType() );
             addStringMember( "type", "array" );
-            addObjectMember( "items",
-                () -> generateSchemaOrRef( api.getSchemas().get( type.getComponentType() ) ) );
+            addObjectMember( "items", () -> generateSchemaOrRef( elements ) );
             return;
         }
         // best guess: it is an object type
@@ -373,10 +378,11 @@ public class OpenApiGenerator
                 return;
             }
             addArrayMember( "required", schema.getFields().stream()
-                .filter( f -> Boolean.TRUE.equals( f.getRequired() ) ),
-                f -> addStringMember( null, f.getName() ) );
+                .filter( f -> Boolean.TRUE.equals( f.getRequired() ) )
+                .map( Api.Field::getName ).collect( toList() ) );
             addObjectMember( "properties", () -> schema.getFields()
-                .forEach( field -> addObjectMember( field.getName(), () -> generateSchemaOrRef( field.getType() ) ) ) );
+                .forEach( field -> addObjectMember( field.getName(),
+                    () -> generateSchemaOrRef( field.getType() ) ) ) );
         }
         else
         {
@@ -394,23 +400,25 @@ public class OpenApiGenerator
         addNumberMember( "maxLength", simpleType.getMaxLength() );
         if ( simpleType.getEnums() != null )
         {
-            addArrayMember( "enum", stream( simpleType.getEnums() ),
-                constant -> addStringMember( null, constant ) );
+            addArrayMember( "enum", List.of( simpleType.getEnums() ) );
         }
     }
 
-    private void generateSchemaOrRef( Api.Schema schema )
+    private void generateRefType( Api.Schema schema )
     {
-        if ( schema == null )
-            return;
-        if ( !isReferencableSchema( schema ) )
-        {
-            generateSchema( schema );
-        }
-        else
-        {
-            addStringMember( "$ref", "#/components/schemas/" + schema.getName() );
-        }
+        addStringMember( "type", "object" );
+        addStringMember( "description", "A UID reference to a " + ((Class<?>) schema.getHint()).getSimpleName() );
+        addArrayMember( "required", List.of( "id" ) );
+        addObjectMember( "properties", () -> {
+            addObjectMember( "id", () -> {
+                addStringMember( "type", "string" );
+                addStringMember( "format", "uid" );
+                addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
+                addBooleanMember( "readOnly", true );
+                addNumberMember( "minLength", 11 );
+                addNumberMember( "maxLength", 11 );
+            } );
+        } );
     }
 
     /*
@@ -449,149 +457,14 @@ public class OpenApiGenerator
         return endpointsByAbsolutePath;
     }
 
-    /*
-     * Basic JSON writing helpers
-     */
-
-    private void addRootObject( Runnable addMembers )
+    private static <E> Set<E> union( Set<E> a, Set<E> b )
     {
-        addObjectMember( null, addMembers );
-        discardLastMemberComma( 0 );
+        if ( a.isEmpty() && b.isEmpty() )
+            return Set.of();
+        if ( a.isEmpty() )
+            return b;
+        if ( b.isEmpty() )
+            return a;
+        return Stream.concat( a.stream(), b.stream() ).collect( toSet() );
     }
-
-    private void addObjectMember( String name, Runnable addMembers )
-    {
-        appendMemberName( name );
-        out.append( "{" );
-        if ( format.newLineAfterObjectStart )
-            out.append( '\n' );
-        int length = out.length();
-        if ( format.newLineAfterMember )
-            indent += format.memberIndent;
-        appendItems( addMembers );
-        if ( format.newLineAfterMember )
-            indent = indent.substring( 0, indent.length() - format.memberIndent.length() );
-        discardLastMemberComma( length );
-        if ( format.newLineBeforeObjectEnd )
-        {
-            out.append( '\n' );
-            appendMemberIndent();
-        }
-        out.append( "}" );
-        appendMemberComma();
-    }
-
-    private <E> void addArrayMember( String name, Stream<E> items, Consumer<E> forEach )
-    {
-        List<E> l = items.collect( toList() );
-        if ( !l.isEmpty() )
-        {
-            addArrayMember( name, () -> l.forEach( forEach ) );
-        }
-    }
-
-    private void addArrayMember( String name, Runnable addElements )
-    {
-        appendMemberName( name );
-        out.append( '[' );
-        if ( format.newLineAfterArrayStart )
-            out.append( '\n' );
-        int length = out.length();
-        appendItems( addElements );
-        discardLastMemberComma( length );
-        if ( format.newLineBeforeArrayEnd )
-        {
-            out.append( '\n' );
-            appendMemberIndent();
-        }
-        out.append( ']' );
-        appendMemberComma();
-    }
-
-    private void addStringMember( String name, String value )
-    {
-        if ( value != null )
-        {
-            appendMemberName( name );
-            appendString( value );
-            appendMemberComma();
-        }
-    }
-
-    private void addBooleanMember( String name, Boolean value )
-    {
-        if ( value != null )
-        {
-            addBooleanMember( name, value.booleanValue() );
-        }
-    }
-
-    private void addBooleanMember( String name, boolean value )
-    {
-        appendMemberName( name );
-        out.append( value ? "true" : "false" );
-        appendMemberComma();
-    }
-
-    private void addNumberMember( String name, Integer value )
-    {
-        if ( value != null )
-        {
-            addNumberMember( name, value.intValue() );
-        }
-    }
-
-    private void addNumberMember( String name, int value )
-    {
-        appendMemberName( name );
-        out.append( value );
-        appendMemberComma();
-    }
-
-    private void appendItems( Runnable items )
-    {
-        if ( items != null )
-        {
-            items.run();
-        }
-    }
-
-    private StringBuilder appendString( String str )
-    {
-        return str == null
-            ? out.append( "null" )
-            : out.append( '"' ).append( str ).append( '"' );
-    }
-
-    private void appendMemberName( String name )
-    {
-        appendMemberIndent();
-        if ( name != null )
-        {
-            appendString( name ).append( ':' );
-        }
-    }
-
-    private void appendMemberIndent()
-    {
-        if ( format.newLineAfterMember )
-            out.append( indent );
-    }
-
-    private void appendMemberComma()
-    {
-        out.append( ',' );
-        if ( format.newLineAfterMember )
-            out.append( '\n' );
-    }
-
-    private void discardLastMemberComma( int length )
-    {
-        if ( out.length() > length )
-        {
-            int back = format.newLineAfterMember ? 2 : 1;
-            out.setLength( out.length() - back ); // discard last ,
-        }
-    }
-
 }

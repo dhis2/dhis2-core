@@ -54,6 +54,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.SubscribableObject;
@@ -167,7 +168,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
@@ -204,7 +205,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
@@ -286,6 +287,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Params( MetadataImportParams.class )
     @OpenApi.Param( JsonPatch.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
     public WebMessage patchObject(
@@ -441,7 +444,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
@@ -451,7 +455,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage postXmlObject( HttpServletRequest request )
@@ -505,6 +510,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return importReport.getFirstObjectReport();
     }
 
+    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PostMapping( value = "/{uid}/favorite" )
     @ResponseBody
     public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -529,6 +536,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
+    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PostMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     public WebMessage subscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -558,7 +567,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
@@ -611,7 +622,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( IdentifiableObject.class )
+    @OpenApi.Param( EntityType.class )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
     public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
@@ -658,7 +671,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    @OpenApi.Param( value = IdentifiableObject.class, includes = "translations" )
+    @OpenApi.Param( value = EntityType.class, includes = "translations" )
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
@@ -704,6 +719,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // DELETE
     // --------------------------------------------------------------------------
 
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
     public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
@@ -737,6 +754,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return objectReport( importReport );
     }
 
+    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseBody
     public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
@@ -761,6 +780,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return ok( String.format( "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
+    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     @SuppressWarnings( "unchecked" )
@@ -868,6 +889,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -933,6 +955,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return typeReport( report );
     }
 
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
@@ -954,6 +977,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
+    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
     @OpenApi.Param( Sharing.class )
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
