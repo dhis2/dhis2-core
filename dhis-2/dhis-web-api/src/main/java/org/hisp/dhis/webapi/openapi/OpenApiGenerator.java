@@ -218,13 +218,16 @@ public class OpenApiGenerator extends JsonGenerator
     {
         EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
         endpoints.forEach( e -> e.getMethods()
-            .forEach( method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e ) ) ) );
+            .forEach(
+                method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e, method ) ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
     {
         Set<String> tags = union( endpoint.getIn().getTags(), endpoint.getTags() );
+        if ( endpoint.isSynthetic() )
+            tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
             addStringMember( "summary", null ); // TODO
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );

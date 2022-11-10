@@ -33,6 +33,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -142,26 +143,28 @@ class Api
         Controller in;
 
         @ToString.Exclude
-        @EqualsAndHashCode.Include
         Method source;
 
         @ToString.Exclude
-        @EqualsAndHashCode.Include
         Class<?> entityClass;
 
+        @EqualsAndHashCode.Include
         String name;
 
-        List<RequestMethod> methods = new ArrayList<>();
+        Set<String> tags = new TreeSet<>();
 
+        @EqualsAndHashCode.Include
+        Set<RequestMethod> methods = EnumSet.noneOf( RequestMethod.class );
+
+        @EqualsAndHashCode.Include
         List<String> paths = new ArrayList<>();
+
+        @EqualsAndHashCode.Include
+        Set<MediaType> consumes = new LinkedHashSet<>();
 
         Map<String, Parameter> parameters = new LinkedHashMap<>();
 
-        Set<MediaType> consumes = new LinkedHashSet<>();
-
         Map<HttpStatus, Response> responses = new EnumMap<>( HttpStatus.class );
-
-        Set<String> tags = new TreeSet<>();
 
         boolean isSynthetic()
         {
@@ -180,6 +183,7 @@ class Api
         }
 
         @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         AnnotatedElement source;
 
         String name;

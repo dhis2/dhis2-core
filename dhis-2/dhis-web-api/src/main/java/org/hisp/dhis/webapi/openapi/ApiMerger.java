@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -69,14 +71,54 @@ public class ApiMerger
      * @param b
      * @return
      */
-    static Api.Endpoint mergeEndpoints( Api.Endpoint a, Api.Endpoint b )
+    static Api.Endpoint mergeEndpoints( Api.Endpoint a, Api.Endpoint b, RequestMethod method )
     {
         if ( a == null )
             return b;
         if ( b == null )
             return a;
-        // FIXME - first see if one returns JSON => pick that
-        // otherwise pick the one accepting JSON
-        return a;
+        Api.Endpoint primary = a;
+        Api.Endpoint secondary = b;
+        if ( !a.isSynthetic() && !b.isSynthetic() )
+        {
+            long countA = countJsonResponses( a );
+            long countB = countJsonResponses( b );
+            if ( countB > countA )
+            {
+                primary = b;
+                secondary = a;
+            }
+        }
+        Api.Endpoint merged = new Api.Endpoint( primary.getIn(), null, primary.getEntityClass(),
+            primary.getName() + "+" + secondary.getName() );
+        merged.getTags().addAll( primary.getTags() );
+        merged.getTags().addAll( secondary.getTags() );
+        merged.getMethods().add( method );
+        merged.getConsumes().addAll( primary.getConsumes() );
+        merged.getParameters().putAll( primary.getParameters() );
+        Map<HttpStatus, Api.Response> responses = merged.getResponses();
+        responses.putAll( primary.getResponses() );
+        for ( Api.Response source : secondary.getResponses().values() )
+        {
+            if ( !responses.containsKey( source.getStatus() ) )
+            {
+                responses.put( source.getStatus(), source );
+            }
+            else
+            {
+                Api.Response target = responses.get( source.getStatus() );
+                source.getContent().entrySet().stream()
+                    .filter( e -> !target.getContent().containsKey( e.getKey() ) )
+                    .forEach( e -> target.getContent().put( e.getKey(), e.getValue() ) );
+            }
+        }
+        return merged;
+    }
+
+    private static long countJsonResponses( Api.Endpoint a )
+    {
+        return a.getResponses().values().stream()
+            .filter( r -> r.getContent().containsKey( MediaType.APPLICATION_JSON ) )
+            .count();
     }
 }
