@@ -56,12 +56,11 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -72,7 +71,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -120,7 +118,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         new AnalyticsTableColumn( quote( "trackedentityinstanceid" ), INTEGER, NOT_NULL,
             "tei.trackedentityinstanceid" ),
         new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "trackedentitytypeuid" ), CHARACTER_11, NOT_NULL, "tet.uid" ),
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "tei.created" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "tei.lastupdated" ),
         new AnalyticsTableColumn( quote( "inactive" ), BOOLEAN, "tei.inactive" ),
@@ -211,9 +208,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         // Review this logic, it could result in many columns
         CollectionUtils.emptyIfNull( programsByTetUid.get( tet.getUid() ) )
             .forEach( program -> columns.add( new AnalyticsTableColumn( quote( program.getUid() ), BOOLEAN,
-                " exists((select 1 from programinstance pi_0, program p_0"
+                " exists(select 1 from programinstance pi_0"
                     + " where pi_0.trackedentityinstanceid = tei.trackedentityinstanceid"
-                    + " and p_0.programid = pi_0.programid and p_0.uid='" + program.getUid() + "'))" ) ) );
+                    + " and pi_0.programid = " + program.getId() + ")" ) ) );
 
         List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
@@ -224,13 +221,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         }
 
         columns.addAll( trackedEntityAttributes.stream()
-            .map( BaseIdentifiableObject::getUid )
-            .distinct()
-            .map( teaUid -> new AnalyticsTableColumn( quote( teaUid ), VARCHAR_1200,
-                " (select teavin.value from trackedentityattribute teain "
-                    + " inner join trackedentityattributevalue teavin on teain.trackedentityattributeid = teavin.trackedentityattributeid "
-                    + " where tei.trackedentityinstanceid = teavin.trackedentityinstanceid and teain.uid = '"
-                    + teaUid + "')" ) )
+            .map( tea -> new AnalyticsTableColumn( quote( tea.getUid() ), VARCHAR_1200,
+                " (select teavin.value from trackedentityattributevalue teavin "
+                    + " where tei.trackedentityinstanceid = teavin.trackedentityinstanceid and teavin.trackedentityattributeid = "
+                    + tea.getId() + ")" ) )
             .collect( toList() ) );
 
         columns.addAll( addPeriodTypeColumns( "dps" ) );
@@ -259,16 +253,13 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
     private List<TrackedEntityAttribute> getAllTrackedEntityAttributes( TrackedEntityType trackedEntityType,
         List<Program> programs )
     {
-        List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
-
-        trackedEntityAttributes.addAll( trackedEntityAttributeService.getProgramTrackedEntityAttributes( programs ) );
-
-        trackedEntityAttributes.addAll(
-            Optional.of( trackedEntityType )
-                .map( TrackedEntityType::getTrackedEntityAttributes )
-                .orElse( Collections.emptyList() ) );
-
-        return trackedEntityAttributes;
+        return Stream.concat(
+            /* all attributes of programs */
+            trackedEntityAttributeService.getProgramTrackedEntityAttributes( programs ).stream(),
+            /* all attributes of the trackedEntityType */
+            CollectionUtils.emptyIfNull( trackedEntityType.getTrackedEntityAttributes() ).stream() )
+            .distinct()
+            .collect( toList() );
     }
 
     /**
@@ -349,24 +340,20 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
 
         removeLastComma( sql )
             .append( " from trackedentityinstance tei" )
-            .append( " left join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid" )
-            .append( " left join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
-            .append( " and tei.deleted is false" )
-            .append( " left join program p on p.programid = pi.programid and pi.deleted is false" )
-            .append( " left join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
-            .append( " left join programstage ps on ps.programstageid = psi.programstageid" )
             .append( " left join organisationunit ou on tei.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append(
-                " left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " )
-            .append(
-                " and (cast(date_trunc('month', tei.created) as date)=ougs.startdate or ougs.startdate is null) " )
             .append( " inner join _dateperiodstructure dps on cast(tei.created as date)=dps.dateperiod " )
             .append( " where tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
             .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
-            .append( " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
-            .append( " and psi.deleted is false " )
+            .append(
+                " and exists ( select 1 from programinstance pi where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
+                    +
+                    " and exists ( select 1 from programstageinstance psi where psi.programinstanceid = pi.programinstanceid"
+                    +
+                    " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
+                    " and psi.deleted is false  ) )" )
             .append( " and tei.created is not null " )
+            .append( " and tei.deleted is false" )
             .append( " group by " )
             .append(
                 addPeriodTypeColumns( "dps" ).stream().map( AnalyticsTableColumn::getAlias ).collect( joining( "," ) ) )
