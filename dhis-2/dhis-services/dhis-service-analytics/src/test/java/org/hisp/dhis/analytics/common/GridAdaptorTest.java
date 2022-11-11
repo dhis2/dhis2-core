@@ -99,7 +99,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         assertNotNull( grid, "Should not be null: grid" );
         assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
         assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 13, grid.getHeaders().size(), "Should have size of 13: headers" );
+        assertEquals( 12, grid.getHeaders().size(), "Should have size of 13: headers" );
         assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
     }
 
