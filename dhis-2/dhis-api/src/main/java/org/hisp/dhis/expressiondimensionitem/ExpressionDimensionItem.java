@@ -34,6 +34,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -91,6 +92,8 @@ public class ExpressionDimensionItem
      * data values are missing in the expression.
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+
+    private Visualization visualization;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -202,36 +205,6 @@ public class ExpressionDimensionItem
             "}";
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-    // @JsonProperty
-    // @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    // public long getId()
-    // {
-    // return id;
-    // }
-    //
-    // public void setId( long id )
-    // {
-    // this.id = id;
-    // }
-
-    // @JsonProperty
-    // @JacksonXmlProperty( localName = "id", isAttribute = true )
-    // @Description( "The Unique Identifier for this Object." )
-    // @Property( value = PropertyType.IDENTIFIER, required =
-    // Property.Value.FALSE )
-    // @PropertyRange( min = 11, max = 11 )
-    // public long getExpressionId()
-    // {
-    // return expressionId;
-    // }
-    //
-    // public void setExpressionId( long expressionId )
-    // {
-    // this.expressionId = expressionId;
-    // }
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getExpression()
@@ -286,5 +259,17 @@ public class ExpressionDimensionItem
     public void setSlidingWindow( Boolean slidingWindow )
     {
         this.slidingWindow = slidingWindow;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Visualization getVisualization()
+    {
+        return visualization;
+    }
+
+    public void setVisualization( Visualization visualization )
+    {
+        this.visualization = visualization;
     }
 }

@@ -327,5 +327,8 @@
 
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>
+
+    <many-to-one name="expressionDimensionItem" class="org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem"
+                 column="expressiondimensionitemid" unique="true" not-null="false" cascade="all"/>
   </class>
 </hibernate-mapping>
