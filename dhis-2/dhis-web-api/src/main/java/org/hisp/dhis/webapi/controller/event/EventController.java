@@ -35,6 +35,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -430,7 +432,7 @@ public class EventController
 
     }
 
-    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_TEXT_CSV )
     public void queryEventsCsv(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -498,7 +500,7 @@ public class EventController
             totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
         GridUtils.toCsv( grid, response.getWriter() );
 
@@ -652,12 +654,12 @@ public class EventController
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
-            response.setContentType( "application/csv+gzip" );
+            response.setContentType( CONTENT_TYPE_CSV_GZIP );
         }
         else if ( ContextUtils.isAcceptCsvZip( request ) )
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            response.setContentType( "application/csv+zip" );
+            response.setContentType( CONTENT_TYPE_CSV_ZIP );
             ZipOutputStream zos = new ZipOutputStream( outputStream );
             zos.putNextEntry( new ZipEntry( "events.csv" ) );
             outputStream = zos;

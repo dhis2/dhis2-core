@@ -53,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -218,7 +219,14 @@ public class DefaultUserService
     @Transactional( readOnly = true )
     public User getUserByUsername( String username )
     {
-        return userStore.getUserByUsername( username );
+        return userStore.getUserByUsername( username, false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public User getUserByUsernameIgnoreCase( String username )
+    {
+        return userStore.getUserByUsername( username, true );
     }
 
     @Override
@@ -247,7 +255,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public List<User> getUsers( Collection<String> uids )
+    public List<User> getUsers( @Nonnull Collection<String> uids )
     {
         return userStore.getByUid( uids );
     }
@@ -508,7 +516,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public List<UserRole> getUserRolesByUid( Collection<String> uids )
+    public List<UserRole> getUserRolesByUid( @Nonnull Collection<String> uids )
     {
         return userRoleStore.getByUid( uids );
     }
@@ -602,7 +610,7 @@ public class DefaultUserService
     @Transactional( readOnly = true )
     public User getUserWithEagerFetchAuthorities( String username )
     {
-        User user = userStore.getUserByUsername( username );
+        User user = userStore.getUserByUsername( username, false );
 
         if ( user != null )
         {
