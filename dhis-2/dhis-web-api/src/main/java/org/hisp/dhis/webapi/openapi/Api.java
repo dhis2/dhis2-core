@@ -51,9 +51,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -304,7 +302,7 @@ class Api
          * Empty unless this is a named "record" type that should be referenced
          * as a named schema in the generated OpenAPI document.
          */
-        String name;
+        boolean named;
 
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
@@ -320,11 +318,6 @@ class Api
             this( source, Api.schemaName( source ), hint );
         }
 
-        public boolean isNamed()
-        {
-            return !name.isEmpty();
-        }
-
         List<String> getRequiredFields()
         {
             return getFields().stream()
@@ -338,7 +331,7 @@ class Api
 
     public static Schema ref( Class<?> to )
     {
-        return new Schema( Ref.class, "", to );
+        return new Schema( Ref.class, false, to );
     }
 
     public static Schema refs( Class<?> to )
@@ -348,22 +341,16 @@ class Api
 
     public static Schema unknown( Type hint )
     {
-        return new Schema( Unknown.class, "", hint );
+        return new Schema( Unknown.class, false, hint );
     }
 
-    static String schemaName( Class<?> source )
+    static boolean schemaName( Class<?> source )
     {
         String name = source.getName();
-        if ( source.isPrimitive() || source.isEnum() || source.isArray() || name.startsWith( "java.lang" )
-            || name.startsWith( "java.util" ) )
-            return "";
-        if ( name.contains( ".openapi." )
-            || !name.startsWith( "org.hisp.dhis." )
-            || IdentifiableObject.class.isAssignableFrom( source )
-            || EmbeddedObject.class.isAssignableFrom( source )
-            || source == WebMessage.class )
-            return source.getSimpleName();
-        return name.replace( "org.hisp.dhis.", "" ).replace( '$', '.' )
-            .replace( "common.", "" ).replace( "commons.", "" );
+        return !source.isPrimitive()
+            && !source.isEnum()
+            && !source.isArray()
+            && !name.startsWith( "java.lang" )
+            && !name.startsWith( "java.util" );
     }
 }

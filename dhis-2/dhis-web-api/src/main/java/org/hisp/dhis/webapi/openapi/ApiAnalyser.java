@@ -409,18 +409,20 @@ final class ApiAnalyser
         if ( source instanceof Class<?> )
         {
             Class<?> type = (Class<?>) source;
+            // make sure the type schema itself exists even if a ref is used
+            Api.Schema forType = describeTypeSchema( endpoint, type, resolving );
             if ( useRefs && IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
                 return Api.ref( type );
             if ( useRefs && IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
                 return Api.refs( type.getComponentType() );
-            return describeTypeSchema( endpoint, type, resolving );
+            return forType;
         }
         if ( source instanceof ParameterizedType )
         {
             ParameterizedType pt = (ParameterizedType) source;
             Class<?> rawType = (Class<?>) pt.getRawType();
             if ( rawType == Class.class )
-                return new Api.Schema( String.class, "", source );
+                return new Api.Schema( String.class, false, source );
             Type typeArg0 = pt.getActualTypeArguments()[0];
             if ( Collection.class.isAssignableFrom( rawType ) && rawType.isInterface() || rawType == Iterable.class )
             {
@@ -452,7 +454,7 @@ final class ApiAnalyser
             WildcardType wt = (WildcardType) source;
             if ( wt.getLowerBounds().length == 0
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
-                return new Api.Schema( Object.class, "", wt );
+                return new Api.Schema( Object.class, false, wt );
             // simplification: <? extends X> => <X>
             return describeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }

@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -47,7 +45,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -224,7 +221,9 @@ public class OpenApiGenerator extends JsonGenerator
 
     private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
 
-    private final Map<String, Api.Schema> referencedSchemasByName = new TreeMap<>();
+    private final Map<String, Class<?>> typeByName = new TreeMap<>();
+
+    private final Map<String, Api.Schema> refTypeByName = new TreeMap<>();
 
     private void generateDocument()
     {
@@ -343,16 +342,15 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateSchemas()
     {
-        Set<String> generated = new HashSet<>();
-        while ( generated.size() < referencedSchemasByName.size() )
-        {
-            Set<String> remaining = referencedSchemasByName.keySet().stream()
-                .filter( not( generated::contains ) )
-                .collect( toCollection( TreeSet::new ) );
-            remaining.forEach( name -> addObjectMember( name,
-                () -> generateSchema( referencedSchemasByName.get( name ) ) ) );
-            generated.addAll( remaining );
-        }
+        // make sure all types have a unique name
+        api.getSchemas().entrySet().stream()
+            .filter( e -> e.getValue().isNamed() )
+            .forEach( e -> getUniqueName( e.getKey() ) );
+        // write normal schemas
+        typeByName
+            .forEach( ( name, type ) -> addObjectMember( name, () -> generateSchema( api.getSchemas().get( type ) ) ) );
+        // write ref schemas
+        refTypeByName.forEach( ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
     }
 
     private static boolean isReferencableSchema( Api.Schema schema )
@@ -368,9 +366,10 @@ public class OpenApiGenerator extends JsonGenerator
             return;
         if ( schema.getSource() == Api.Ref.class )
         {
-            String name = "Ref:" + ((Class<?>) schema.getHint()).getSimpleName();
+            Class<?> to = (Class<?>) schema.getHint();
+            String name = "Ref:" + getUniqueName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
-            referencedSchemasByName.putIfAbsent( name, schema );
+            refTypeByName.putIfAbsent( name, schema );
             return;
         }
         if ( !isReferencableSchema( schema ) )
@@ -379,9 +378,27 @@ public class OpenApiGenerator extends JsonGenerator
         }
         else
         {
-            addStringMember( "$ref", "#/components/schemas/" + schema.getName() );
-            referencedSchemasByName.putIfAbsent( schema.getName(), schema );
+            addStringMember( "$ref", "#/components/schemas/" + getUniqueName( schema.getSource() ) );
         }
+    }
+
+    private String getUniqueName( Class<?> type )
+    {
+        String name = type.getSimpleName();
+        Class<?> assigned = typeByName.get( name );
+        if ( assigned == type )
+        {
+            return name;
+        }
+        if ( assigned == null )
+        {
+            typeByName.put( name, type );
+            return name;
+        }
+        // clash => use full name
+        name = type.getCanonicalName().replace( "org.hisp.dhis.", "" );
+        typeByName.put( name, type );
+        return name;
     }
 
     private void generateSchema( Api.Schema schema )

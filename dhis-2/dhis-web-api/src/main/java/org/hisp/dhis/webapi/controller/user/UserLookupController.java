@@ -41,6 +41,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.webdomain.user.UserLookup;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,6 +57,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "user" )
 @RestController
 @RequestMapping( value = UserLookupController.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

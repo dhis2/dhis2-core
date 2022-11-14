@@ -44,6 +44,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "user" )
 @Controller
 @RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
 public class UserRoleController

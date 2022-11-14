@@ -63,18 +63,18 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
         assertTrue(
             doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
         assertLessOrEqual( 25, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 20, doc.getObject( "components.schemas" ).size() );
+        assertLessOrEqual( 30, doc.getObject( "components.schemas" ).size() );
     }
 
     @Test
     void testGetOpenApiDocument_TagFilter()
     {
-        JsonObject doc = GET( "/openapi/openapi.json?tag=metadata" ).content();
+        JsonObject doc = GET( "/openapi/openapi.json?tag=user" ).content();
         assertTrue( doc.isObject() );
         assertTrue(
             doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
-        assertLessOrEqual( 25, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 20, doc.getObject( "components.schemas" ).size() );
+        assertLessOrEqual( 80, doc.getObject( "paths" ).size() );
+        assertLessOrEqual( 35, doc.getObject( "components.schemas" ).size() );
     }
 
 }
