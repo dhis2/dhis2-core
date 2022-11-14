@@ -307,10 +307,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " left join program p on p.programid = ps.programid" )
             .append( " left join organisationunit ou on psi.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append(
-                " left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " )
-            .append( " and (cast(date_trunc('month', " + getDateLinkedToStatus()
-                + ") as date)=ougs.startdate or ougs.startdate is null) " )
             .append( " inner join _dateperiodstructure dps on cast(" + getDateLinkedToStatus()
                 + " as date)=dps.dateperiod " )
             .append( " where psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
