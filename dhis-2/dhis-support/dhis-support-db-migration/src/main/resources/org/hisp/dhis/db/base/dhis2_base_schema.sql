@@ -5365,7 +5365,7 @@ CREATE TABLE sectionindicators (
 --
 
 CREATE TABLE sequentialnumbercounter (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     owneruid character varying(255),
     key character varying(255),
     counter integer
