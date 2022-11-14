@@ -109,6 +109,8 @@ public @interface OpenApi
          *         type
          */
         String[] excludes() default {};
+
+        boolean required() default false;
     }
 
     /**

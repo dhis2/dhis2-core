@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.stream.Collectors.toList;
+
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -44,6 +46,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
@@ -78,6 +81,20 @@ class Api
     Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
 
     /**
+     * @return all tags used in the {@link Api}
+     */
+    Set<String> getTags()
+    {
+        Set<String> used = new TreeSet<>();
+        controllers.forEach( controller -> {
+            used.addAll( controller.getTags() );
+            controller.endpoints.forEach( endpoint -> used.addAll( endpoint.getTags() ) );
+        } );
+        used.add( "synthetic" );
+        return used;
+    }
+
+    /**
      * A {@link Ref} is used for all {@link IdentifiableObject} fields and
      * collections within other objects. This reflects the pattern used in DHIS2
      * that UID references to {@link IdentifiableObject}s are expected in this
@@ -98,6 +115,22 @@ class Api
     static class Unknown
     {
 
+    }
+
+    @Data
+    static final class Maybe<T>
+    {
+        T value;
+
+        boolean isPresent()
+        {
+            return value != null;
+        }
+
+        T orElse( T defaultValue )
+        {
+            return value != null ? value : defaultValue;
+        }
     }
 
     @Value
@@ -128,6 +161,10 @@ class Api
 
         String name;
 
+        @ToString.Exclude
+        @EqualsAndHashCode.Include
+        Descriptions descriptions;
+
         List<String> paths = new ArrayList<>();
 
         List<Endpoint> endpoints = new ArrayList<>();
@@ -146,10 +183,12 @@ class Api
         Method source;
 
         @ToString.Exclude
-        Class<?> entityClass;
+        Class<?> entityType;
 
         @EqualsAndHashCode.Include
         String name;
+
+        Maybe<String> description = new Maybe<>();
 
         Set<String> tags = new TreeSet<>();
 
@@ -159,10 +198,10 @@ class Api
         Set<RequestMethod> methods = EnumSet.noneOf( RequestMethod.class );
 
         @EqualsAndHashCode.Include
-        List<String> paths = new ArrayList<>();
+        Set<String> paths = new LinkedHashSet<>();
 
         @EqualsAndHashCode.Include
-        Set<MediaType> requestBody = new LinkedHashSet<>();
+        Maybe<RequestBody> requestBody = new Maybe<>();
 
         Map<String, Parameter> parameters = new LinkedHashMap<>();
 
@@ -177,6 +216,27 @@ class Api
         {
             return Boolean.TRUE == deprecated;
         }
+
+        String getEntityTypeName()
+        {
+            return entityType == null ? "?" : entityType.getSimpleName();
+        }
+    }
+
+    @Value
+    static class RequestBody
+    {
+
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
+        AnnotatedElement source;
+
+        boolean required;
+
+        String description = "dummy";
+
+        Map<MediaType, Schema> consumes = new LinkedHashMap<>();
+
     }
 
     @Value
@@ -186,7 +246,6 @@ class Api
         {
             PATH,
             QUERY,
-            BODY
         }
 
         @ToString.Exclude
@@ -199,6 +258,8 @@ class Api
 
         boolean required;
 
+        String description = "dummy";
+
         Schema type;
     }
 
@@ -207,9 +268,9 @@ class Api
     {
         HttpStatus status;
 
-        // TODO List headers
+        Map<String, Header> headers = new LinkedHashMap<>();
 
-        String description = "dummy";
+        Maybe<String> description = new Maybe<>();
 
         Map<MediaType, Schema> content = new LinkedHashMap<>();
 
@@ -218,6 +279,16 @@ class Api
             produces.forEach( mediaType -> content.put( mediaType, body ) );
             return this;
         }
+    }
+
+    @Value
+    static class Header
+    {
+        String name;
+
+        String description;
+
+        Schema type;
     }
 
     @Value
@@ -252,6 +323,14 @@ class Api
         public boolean isNamed()
         {
             return !name.isEmpty();
+        }
+
+        List<String> getRequiredFields()
+        {
+            return getFields().stream()
+                .filter( f -> Boolean.TRUE.equals( f.getRequired() ) )
+                .map( Api.Field::getName )
+                .collect( toList() );
         }
     }
 

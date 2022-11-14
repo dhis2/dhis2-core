@@ -61,7 +61,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.core.JsonPointer;
@@ -69,6 +68,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * Generates a <a href=
+ * "https://github.com/OAI/OpenAPI-Specification/blob/main/versions/">OpenAPI
+ * 3.x</a> version JSON document from an {@link Api} model.
+ *
+ * The generation offers a dozen {@link Config} options which concern both the
+ * {@link org.hisp.dhis.webapi.openapi.JsonGenerator.Format} of the generated
+ * JSON as well as the semantic {@link Config.Document} content.
+ *
+ * Alongside the input {@link Api} model there is a pool of known
+ * {@link SimpleType}s. This is the core translation of primitives, wrapper,
+ * {@link String}s but also used as a "correction" for seemingly complex types
+ * which in their serialized form become simple ones, like a period that uses
+ * its ISO string form.
+ *
+ * @author Jan Bernit
+ */
 @Slf4j
 public class OpenApiGenerator extends JsonGenerator
 {
@@ -212,6 +228,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateDocument()
     {
+        Descriptions tags = Descriptions.of( OpenApi.Tags.class );
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
@@ -227,6 +244,14 @@ public class OpenApiGenerator extends JsonGenerator
                     addStringMember( "email", document.contactEmail );
                 } );
             } );
+            addArrayMember( "tags", api.getTags().stream(), tag -> addObjectMember( null, () -> {
+                addStringMember( "name", tag );
+                addStringMember( "description", tags.get( tag + ".description" ) );
+                addObjectMember( "externalDocs", tags.exists( tag + ".externalDocs.url" ), () -> {
+                    addStringMember( "url", tags.get( tag + ".externalDocs.url" ) );
+                    addStringMember( "description", tags.get( tag + ".externalDocs.description" ) );
+                } );
+            } ) );
             addArrayMember( "servers",
                 () -> addObjectMember( null, () -> addStringMember( "url", document.serverUrl ) ) );
             addObjectMember( "paths", this::generatePaths );
@@ -244,9 +269,8 @@ public class OpenApiGenerator extends JsonGenerator
     private void generatePath( String path, List<Api.Endpoint> endpoints )
     {
         EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
-        endpoints.forEach( e -> e.getMethods()
-            .forEach(
-                method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e, method ) ) ) );
+        endpoints.forEach( e -> e.getMethods().forEach(
+            method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e, method ) ) ) );
         addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
     }
 
@@ -257,19 +281,27 @@ public class OpenApiGenerator extends JsonGenerator
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
-            addStringMember( "summary", null ); // TODO
+            addStringMember( "description", endpoint.getDescription().orElse( "(missing)" ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
+            {
                 addArrayMember( "tags", tags );
-            addArrayMember( "parameters", endpoint.getParameters().values().stream()
-                .filter( p -> p.getIn() != Api.Parameter.In.BODY ),
-                this::generateParameter );
-            endpoint.getParameters().values().stream()
-                .filter( p -> p.getIn() == Api.Parameter.In.BODY )
-                .findFirst()
-                .ifPresent( requestBody -> addObjectMember( "requestBody",
-                    () -> generateRequestBody( requestBody, endpoint.getRequestBody() ) ) );
-            addObjectMember( "responses", () -> endpoint.getResponses().values().forEach( this::generateResponse ) );
+            }
+            if ( !endpoint.getParameters().isEmpty() )
+            {
+                addArrayMember( "parameters",
+                    () -> endpoint.getParameters().values().forEach( this::generateParameter ) );
+            }
+            if ( endpoint.getRequestBody().isPresent() )
+            {
+                addObjectMember( "requestBody",
+                    () -> generateRequestBody( endpoint.getRequestBody().getValue() ) );
+            }
+            if ( !endpoint.getResponses().isEmpty() )
+            {
+                addObjectMember( "responses",
+                    () -> endpoint.getResponses().values().forEach( this::generateResponse ) );
+            }
         } );
     }
 
@@ -278,34 +310,34 @@ public class OpenApiGenerator extends JsonGenerator
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
-            addStringMember( "description", "TODO description is required" ); // TODO
+            addStringMember( "description", parameter.getDescription() );
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
     }
 
-    private void generateRequestBody( Api.Parameter body, Set<MediaType> consumes )
+    private void generateRequestBody( Api.RequestBody requestBody )
     {
-        if ( consumes.isEmpty() )
-            consumes.add( MediaType.APPLICATION_JSON );
-        addStringMember( "description", null ); // TODO
-        addBooleanMember( "required", body.isRequired() );
-        addObjectMember( "content", () -> consumes.forEach( type -> addObjectMember( type.toString(),
-            () -> addObjectMember( "schema", () -> generateSchemaOrRef( body.getType() ) ) ) ) );
+        addStringMember( "description", requestBody.getDescription() );
+        addBooleanMember( "required", requestBody.isRequired() );
+        addObjectMember( "content",
+            () -> requestBody.getConsumes().forEach( ( key, value ) -> addObjectMember( key.toString(),
+                () -> addObjectMember( "schema", () -> generateSchemaOrRef( value ) ) ) ) );
     }
 
     private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", response.getDescription() );
-            // addObjectMember( "headers", null ); //TODO
-            if ( !response.getContent().isEmpty()
-                && response.getStatus() != HttpStatus.NO_CONTENT )
-            {
-                addObjectMember( "content",
-                    () -> response.getContent().forEach( ( produces, body ) -> addObjectMember( produces.toString(),
-                        () -> addObjectMember( "schema", () -> generateSchemaOrRef( body ) ) ) ) );
-            }
+            addStringMember( "description", response.getDescription().orElse( "(missing)" ) );
+            addObjectMember( "headers",
+                () -> response.getHeaders().values().forEach( header -> addObjectMember( header.getName(), () -> {
+                    addStringMember( "description", header.getDescription() );
+                    addObjectMember( "schema", () -> generateSchema( header.getType() ) );
+                } ) ) );
+            boolean hasContent = !response.getContent().isEmpty() && response.getStatus() != HttpStatus.NO_CONTENT;
+            addObjectMember( "content", hasContent,
+                () -> response.getContent().forEach( ( produces, body ) -> addObjectMember( produces.toString(),
+                    () -> addObjectMember( "schema", () -> generateSchemaOrRef( body ) ) ) ) );
         } );
     }
 
@@ -408,12 +440,9 @@ public class OpenApiGenerator extends JsonGenerator
                     addStringMember( "description", "keys are " + schema.getFields().get( 0 ).getType().getSource() );
                 return;
             }
-            addArrayMember( "required", schema.getFields().stream()
-                .filter( f -> Boolean.TRUE.equals( f.getRequired() ) )
-                .map( Api.Field::getName ).collect( toList() ) );
+            addArrayMember( "required", schema.getRequiredFields() );
             addObjectMember( "properties", () -> schema.getFields()
-                .forEach( field -> addObjectMember( field.getName(),
-                    () -> generateSchemaOrRef( field.getType() ) ) ) );
+                .forEach( field -> addObjectMember( field.getName(), () -> generateSchemaOrRef( field.getType() ) ) ) );
         }
         else
         {
@@ -440,16 +469,14 @@ public class OpenApiGenerator extends JsonGenerator
         addStringMember( "type", "object" );
         addStringMember( "description", "A UID reference to a " + ((Class<?>) schema.getHint()).getSimpleName() );
         addArrayMember( "required", List.of( "id" ) );
-        addObjectMember( "properties", () -> {
-            addObjectMember( "id", () -> {
-                addStringMember( "type", "string" );
-                addStringMember( "format", "uid" );
-                addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
-                addBooleanMember( "readOnly", true );
-                addNumberMember( "minLength", 11 );
-                addNumberMember( "maxLength", 11 );
-            } );
-        } );
+        addObjectMember( "properties", () -> addObjectMember( "id", () -> {
+            addStringMember( "type", "string" );
+            addStringMember( "format", "uid" );
+            addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
+            addBooleanMember( "readOnly", true );
+            addNumberMember( "minLength", 11 );
+            addNumberMember( "maxLength", 11 );
+        } ) );
     }
 
     /*
@@ -491,7 +518,7 @@ public class OpenApiGenerator extends JsonGenerator
     private static <E> Set<E> union( Set<E> a, Set<E> b )
     {
         if ( a.isEmpty() && b.isEmpty() )
-            return Set.of();
+            return new HashSet<>();
         if ( a.isEmpty() )
             return b;
         if ( b.isEmpty() )

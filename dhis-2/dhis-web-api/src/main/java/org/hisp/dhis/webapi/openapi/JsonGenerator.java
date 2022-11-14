@@ -84,6 +84,14 @@ public class JsonGenerator
         discardLastMemberComma( 0 );
     }
 
+    final void addObjectMember( String name, boolean condition, Runnable addMembers )
+    {
+        if ( condition )
+        {
+            addObjectMember( name, addMembers );
+        }
+    }
+
     final void addObjectMember( String name, Runnable addMembers )
     {
         appendMemberName( name );

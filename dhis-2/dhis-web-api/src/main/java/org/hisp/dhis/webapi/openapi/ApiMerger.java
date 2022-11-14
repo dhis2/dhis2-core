@@ -88,13 +88,18 @@ public class ApiMerger
                 secondary = a;
             }
         }
-        Api.Endpoint merged = new Api.Endpoint( primary.getIn(), null, primary.getEntityClass(),
+        Api.Endpoint merged = new Api.Endpoint( primary.getIn(), null, primary.getEntityType(),
             primary.getName() + "+" + secondary.getName(), primary.getDeprecated() );
         merged.getTags().addAll( primary.getTags() );
         merged.getTags().addAll( secondary.getTags() );
+        merged.getDescription().setValue( primary.getDescription().orElse( secondary.getDescription().getValue() ) );
         merged.getMethods().add( method );
-        merged.getRequestBody().addAll( primary.getRequestBody() );
-        merged.getRequestBody().addAll( secondary.getRequestBody() );
+        merged.getRequestBody().setValue( primary.getRequestBody().getValue() );
+        if ( merged.getRequestBody().isPresent() && secondary.getRequestBody().isPresent() )
+        {
+            secondary.getRequestBody().getValue().getConsumes().forEach(
+                ( k, v ) -> merged.getRequestBody().getValue().getConsumes().putIfAbsent( k, v ) );
+        }
         merged.getParameters().putAll( primary.getParameters() );
         Map<HttpStatus, Api.Response> responses = merged.getResponses();
         responses.putAll( primary.getResponses() );
