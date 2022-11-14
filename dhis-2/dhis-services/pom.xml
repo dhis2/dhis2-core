@@ -22,6 +22,7 @@
   <modules>
     <!-- Level 1 -->
     <module>dhis-service-schema</module>
+    <module>dhis-service-event-hooks</module>
     <module>dhis-service-setting</module>
     <!-- Level 2 -->
     <module>dhis-service-acl</module>
