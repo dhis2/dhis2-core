@@ -29,7 +29,7 @@ package org.hisp.dhis.expressiondimensionitem;
 
 import java.io.Serializable;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
@@ -58,7 +58,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class ExpressionDimensionItem
-    extends BaseIdentifiableObject
+    extends BaseNameableObject
     implements Serializable, MetadataObject
 {
     /**

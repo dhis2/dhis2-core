@@ -1,17 +1,19 @@
 CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
 (
     expressionid bigint NOT NULL,
-    name character varying(230) COLLATE pg_catalog."default" NOT NULL,
-    code character varying(50) COLLATE pg_catalog."default",
+    code character varying(50),
+    name character varying(230) NOT NULL,
+    shortname character varying(50),
+    formname character varying(230),
     expression text,
-    description text COLLATE pg_catalog."default",
+    description text,
     missingvaluestrategy character varying(255) NOT NULL,
     slidingwindow boolean,
     lastupdated timestamp without time zone,
-    uid character varying(11) COLLATE pg_catalog."default",
+    uid character varying(11),
     created timestamp without time zone,
     userid bigint,
-    publicaccess character varying(8) COLLATE pg_catalog."default",
+    publicaccess character varying(8),
     lastupdatedby bigint,
     translations jsonb DEFAULT '[]'::jsonb,
     attributevalues jsonb DEFAULT '{}'::jsonb,
@@ -19,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
     CONSTRAINT expressiondimensionitem_pkey PRIMARY KEY (expressionid),
     CONSTRAINT expressiondimensionitem_code_key UNIQUE (code),
     CONSTRAINT expressiondimensionitem_uid_key UNIQUE (uid),
+    CONSTRAINT expressiondimensionitem_shortname_key UNIQUE (shortname),
     CONSTRAINT fk_expressiondimensionitem_userid FOREIGN KEY (userid)
     REFERENCES public.userinfo (userinfoid) MATCH SIMPLE
                           ON UPDATE NO ACTION
@@ -27,9 +30,7 @@ CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
     REFERENCES public.userinfo (userinfoid) MATCH SIMPLE
                           ON UPDATE NO ACTION
                           ON DELETE NO ACTION
-    )
-
-    TABLESPACE pg_default;
+    );
 
 ALTER TABLE IF EXISTS public.expressiondimensionitem
     OWNER to postgres;
