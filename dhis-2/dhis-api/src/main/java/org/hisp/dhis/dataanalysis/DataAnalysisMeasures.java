@@ -48,7 +48,7 @@ public class DataAnalysisMeasures
     // Constructor
     // -------------------------------------------------------------------------
 
-    public DataAnalysisMeasures( int orgUnitId, int categoryOptionComboId,
+    public DataAnalysisMeasures( long orgUnitId, long categoryOptionComboId,
         double average, double standardDeviation )
     {
         this.orgUnitId = orgUnitId;

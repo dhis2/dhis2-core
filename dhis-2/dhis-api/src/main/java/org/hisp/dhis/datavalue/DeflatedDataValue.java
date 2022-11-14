@@ -113,8 +113,8 @@ public class DeflatedDataValue
         this.deleted = dataValue.isDeleted();
     }
 
-    public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
-        Integer categoryOptionComboId, Integer attributeOptionComboId, String value,
+    public DeflatedDataValue( long dataElementId, long periodId, long sourceId,
+        long categoryOptionComboId, long attributeOptionComboId, String value,
         String storedBy, Date created, Date lastUpdated,
         String comment, boolean followup, boolean deleted )
     {

@@ -460,11 +460,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         while ( rowSet.next() )
         {
-            Integer dataElementId = rowSet.getInt( 1 );
-            Integer periodId = rowSet.getInt( 2 );
-            Integer organisationUnitId = rowSet.getInt( 3 );
-            Integer categoryOptionComboId = rowSet.getInt( 4 );
-            Integer attributeOptionComboId = rowSet.getInt( 5 );
+            long dataElementId = rowSet.getLong( 1 );
+            long periodId = rowSet.getLong( 2 );
+            long organisationUnitId = rowSet.getLong( 3 );
+            long categoryOptionComboId = rowSet.getLong( 4 );
+            long attributeOptionComboId = rowSet.getLong( 5 );
             String value = rowSet.getString( 6 );
             String storedBy = rowSet.getString( 7 );
             Date created = rowSet.getDate( 8 );
