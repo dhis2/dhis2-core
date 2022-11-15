@@ -14,7 +14,6 @@
   <name>DHIS Event Hooks</name>
 
   <dependencies>
-
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
@@ -29,8 +28,13 @@
       <artifactId>spring-tx</artifactId>
     </dependency>
 
-    <!-- Test -->
+    <!-- DHIS -->
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-commons</artifactId>
+    </dependency>
 
+    <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

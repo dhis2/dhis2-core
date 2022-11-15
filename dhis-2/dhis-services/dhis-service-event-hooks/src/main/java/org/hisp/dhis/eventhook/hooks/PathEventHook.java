@@ -33,6 +33,8 @@ import lombok.Data;
 
 import org.hisp.dhis.eventhook.EventHook;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author Morten Olav Hansen
  */
@@ -41,7 +43,9 @@ import org.hisp.dhis.eventhook.EventHook;
 @AllArgsConstructor
 public class PathEventHook<T> implements EventHook<T>
 {
+    @JsonProperty
     private String path;
 
+    @JsonProperty
     private T object;
 }

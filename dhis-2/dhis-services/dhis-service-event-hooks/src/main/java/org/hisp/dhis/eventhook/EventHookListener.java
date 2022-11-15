@@ -27,19 +27,28 @@
  */
 package org.hisp.dhis.eventhook;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
  */
 @Component
+@RequiredArgsConstructor
 public class EventHookListener
 {
+    private final ObjectMapper objectMapper;
+
     @TransactionalEventListener( classes = EventHook.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
-    public void getEvent( EventHook<?> eventHook )
+    public void eventListener( EventHook<?> eventHook )
+        throws JsonProcessingException
     {
-        System.err.println( eventHook );
+        System.err.println( objectMapper.writeValueAsString( eventHook ) );
     }
 }
