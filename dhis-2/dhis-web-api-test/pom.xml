@@ -21,6 +21,10 @@
         <artifactId>maven-dependency-plugin</artifactId>
         <configuration>
           <failOnWarning>true</failOnWarning>
+          <ignoredUnusedDeclaredDependencies>
+            <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
+          </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-setting</ignoredNonTestScopedDependency>
@@ -396,6 +400,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>json-tree</artifactId>
       <scope>test</scope>
@@ -403,11 +412,6 @@
     <dependency>
       <groupId>org.springframework.restdocs</groupId>
       <artifactId>spring-restdocs-mockmvc</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.skyscreamer</groupId>
-      <artifactId>jsonassert</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -672,9 +672,7 @@
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
@@ -689,12 +687,9 @@
               <ignoredUnusedDeclaredDependency>org.testcontainers:jdbc</ignoredUnusedDeclaredDependency>
               <!-- Removing makes some tests fail -->
               <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
