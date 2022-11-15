@@ -53,8 +53,6 @@ public class TeiFields
     public enum Static
     {
         TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
-        // TRACKER_ENTITY_TYPE( "trackedentitytypeuid", "Tracked Entity Type",
-        // TEXT ),
         LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
         CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by (display name)", TEXT ),
         LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by (display name)", TEXT ),
@@ -62,9 +60,7 @@ public class TeiFields
         LONGITUDE( "longitude", "Longitude", NUMBER ),
         LATITUDE( "latitude", "Latitude", NUMBER ),
         ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
-        ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT ),
-        ENROLLMENTS( "enrollments", "Enrollments", TEXT );
-
+        ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
         private final String alias;
 
         private final String fullName;
