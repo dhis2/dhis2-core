@@ -897,7 +897,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-event-schema</artifactId>
+        <artifactId>dhis-service-event-hooks</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
