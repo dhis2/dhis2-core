@@ -707,10 +707,7 @@
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
