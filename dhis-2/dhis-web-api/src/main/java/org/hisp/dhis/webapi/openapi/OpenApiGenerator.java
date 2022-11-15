@@ -56,6 +56,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -139,6 +140,11 @@ public class OpenApiGenerator extends JsonGenerator
         String[] enums;
     }
 
+    /**
+     * Text used when the description is missing
+     */
+    private static final String NO_DESCRIPTION = "_No description yet :(_";
+
     private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
 
     private static void addSimpleType( Class<?> source, Consumer<SimpleType.SimpleTypeBuilder> schema )
@@ -168,19 +174,24 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( String.class, schema -> schema.type( "string" ).nullable( true ) );
         addSimpleType( Date.class, schema -> schema.type( "string" ).format( "date-time" ).nullable( true ) );
         addSimpleType( Locale.class, schema -> schema.type( "string" ).nullable( true ) );
+        addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
+        addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );
+        addSimpleType( Serializable.class, schema -> schema.type( "string" ) );
+        addSimpleType( Serializable.class, schema -> schema.type( "number" ) );
+        addSimpleType( Serializable.class, schema -> schema.type( "boolean" ) );
+
+        addSimpleType( Period.class, schema -> schema.type( "string" ) );
+        addSimpleType( PeriodType.class, schema -> schema.type( "string" )
+            .enums( stream( PeriodTypeEnum.values() ).map( PeriodTypeEnum::getName ).toArray( String[]::new ) ) );
+
         addSimpleType( JsonNode.class, schema -> schema.type( "object" ) );
         addSimpleType( ObjectNode.class, schema -> schema.type( "object" ) );
         addSimpleType( ArrayNode.class, schema -> schema.type( "array" ) );
         addSimpleType( RootNode.class, schema -> schema.type( "object" ) );
         addSimpleType( JsonPointer.class, schema -> schema.type( "string" ) );
-        addSimpleType( Period.class, schema -> schema.type( "string" ) );
-        addSimpleType( PeriodType.class, schema -> schema.type( "string" )
-            .enums( stream( PeriodTypeEnum.values() ).map( PeriodTypeEnum::getName ).toArray( String[]::new ) ) );
-        addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
-        addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );
         // not quite
-        addSimpleType( Serializable.class, schema -> schema.type( "string" ) );
         addSimpleType( Geometry.class, schema -> schema.type( "object" ) );
+        addSimpleType( WebMessageResponse.class, schema -> schema.type( "object" ) );
     }
 
     public static String generate( Api api )
@@ -227,7 +238,6 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateDocument()
     {
-        Descriptions tags = Descriptions.of( OpenApi.Tags.class );
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
@@ -243,12 +253,12 @@ public class OpenApiGenerator extends JsonGenerator
                     addStringMember( "email", document.contactEmail );
                 } );
             } );
-            addArrayMember( "tags", api.getTags().stream(), tag -> addObjectMember( null, () -> {
-                addStringMember( "name", tag );
-                addStringMember( "description", tags.get( tag + ".description" ) );
-                addObjectMember( "externalDocs", tags.exists( tag + ".externalDocs.url" ), () -> {
-                    addStringMember( "url", tags.get( tag + ".externalDocs.url" ) );
-                    addStringMember( "description", tags.get( tag + ".externalDocs.description" ) );
+            addArrayMember( "tags", api.getTags().values().stream(), tag -> addObjectMember( null, () -> {
+                addStringMember( "name", tag.getName() );
+                addStringMember( "description", tag.getDescription().orElse( NO_DESCRIPTION ) );
+                addObjectMember( "externalDocs", tag.getExternalDocsUrl().isPresent(), () -> {
+                    addStringMember( "url", tag.getExternalDocsUrl().getValue() );
+                    addStringMember( "description", tag.getExternalDocsDescription().getValue() );
                 } );
             } ) );
             addArrayMember( "servers",
@@ -280,7 +290,7 @@ public class OpenApiGenerator extends JsonGenerator
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
-            addStringMember( "description", endpoint.getDescription().orElse( "(missing)" ) );
+            addStringMember( "description", endpoint.getDescription().orElse( NO_DESCRIPTION ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
             {
@@ -309,7 +319,7 @@ public class OpenApiGenerator extends JsonGenerator
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
-            addStringMember( "description", parameter.getDescription() );
+            addStringMember( "description", parameter.getDescription().orElse( NO_DESCRIPTION ) );
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
@@ -327,12 +337,12 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", response.getDescription().orElse( "(missing)" ) );
-            addObjectMember( "headers",
-                () -> response.getHeaders().values().forEach( header -> addObjectMember( header.getName(), () -> {
+            addStringMember( "description", response.getDescription().orElse( NO_DESCRIPTION ) );
+            addObjectMember( "headers", response.getHeaders().values(),
+                header -> addObjectMember( header.getName(), () -> {
                     addStringMember( "description", header.getDescription() );
                     addObjectMember( "schema", () -> generateSchema( header.getType() ) );
-                } ) ) );
+                } ) );
             boolean hasContent = !response.getContent().isEmpty() && response.getStatus() != HttpStatus.NO_CONTENT;
             addObjectMember( "content", hasContent,
                 () -> response.getContent().forEach( ( produces, body ) -> addObjectMember( produces.toString(),
@@ -345,7 +355,7 @@ public class OpenApiGenerator extends JsonGenerator
         // make sure all types have a unique name
         api.getSchemas().entrySet().stream()
             .filter( e -> e.getValue().isNamed() )
-            .forEach( e -> getUniqueName( e.getKey() ) );
+            .forEach( e -> getUniqueSchemaName( e.getKey() ) );
         // write normal schemas
         typeByName
             .forEach( ( name, type ) -> addObjectMember( name, () -> generateSchema( api.getSchemas().get( type ) ) ) );
@@ -367,7 +377,7 @@ public class OpenApiGenerator extends JsonGenerator
         if ( schema.getSource() == Api.Ref.class )
         {
             Class<?> to = (Class<?>) schema.getHint();
-            String name = "Ref:" + getUniqueName( to );
+            String name = "Ref:" + getUniqueSchemaName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
             refTypeByName.putIfAbsent( name, schema );
             return;
@@ -378,27 +388,8 @@ public class OpenApiGenerator extends JsonGenerator
         }
         else
         {
-            addStringMember( "$ref", "#/components/schemas/" + getUniqueName( schema.getSource() ) );
+            addStringMember( "$ref", "#/components/schemas/" + getUniqueSchemaName( schema.getSource() ) );
         }
-    }
-
-    private String getUniqueName( Class<?> type )
-    {
-        String name = type.getSimpleName();
-        Class<?> assigned = typeByName.get( name );
-        if ( assigned == type )
-        {
-            return name;
-        }
-        if ( assigned == null )
-        {
-            typeByName.put( name, type );
-            return name;
-        }
-        // clash => use full name
-        name = type.getCanonicalName().replace( "org.hisp.dhis.", "" );
-        typeByName.put( name, type );
-        return name;
     }
 
     private void generateSchema( Api.Schema schema )
@@ -472,7 +463,7 @@ public class OpenApiGenerator extends JsonGenerator
     {
         addStringMember( "type", simpleType.getType() );
         addStringMember( "format", simpleType.getFormat() );
-        addBooleanMember( "nullable", simpleType.getNullable() );
+        // addBooleanMember( "nullable", simpleType.getNullable() );
         addNumberMember( "minLength", simpleType.getMinLength() );
         addNumberMember( "maxLength", simpleType.getMaxLength() );
         if ( simpleType.getEnums() != null )
@@ -499,6 +490,25 @@ public class OpenApiGenerator extends JsonGenerator
     /*
      * Open API document generation helpers
      */
+
+    private String getUniqueSchemaName( Class<?> type )
+    {
+        String name = type.getSimpleName();
+        Class<?> assigned = typeByName.get( name );
+        if ( assigned == type )
+        {
+            return name;
+        }
+        if ( assigned == null )
+        {
+            typeByName.put( name, type );
+            return name;
+        }
+        // clash => use full name
+        name = type.getCanonicalName().replace( "org.hisp.dhis.", "" );
+        typeByName.put( name, type );
+        return name;
+    }
 
     private String getUniqueOperationId( Api.Endpoint endpoint )
     {

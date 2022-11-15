@@ -167,6 +167,7 @@ public class MeController
         Sets.newHashSet( UserSettingKey.values() ) );
 
     @GetMapping
+    @OpenApi.Response( MeDto.class )
     public @ResponseBody ResponseEntity<JsonNode> getCurrentUser( @CurrentUser( required = true ) User user,
         @RequestParam( defaultValue = "*" ) List<String> fields )
     {
@@ -211,6 +212,7 @@ public class MeController
     }
 
     @GetMapping( "/dataApprovalWorkflows" )
+    // TODO @OpenApi.Response( array of object with id+name )
     public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
         throws Exception

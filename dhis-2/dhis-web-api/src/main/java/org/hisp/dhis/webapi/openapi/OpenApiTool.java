@@ -109,7 +109,8 @@ public class OpenApiTool implements ToolProvider
                 tags.add( arg );
             }
         }
-        Api api = ApiAnalyser.describeApi( classes, paths, tags );
+        Api api = ApiAnalyse.analyseApi( classes, paths, tags );
+        ApiDescribe.describeApi( api );
         String doc = OpenApiGenerator.generate( api );
         try
         {

@@ -89,7 +89,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Jan Bernitt
  */
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
-final class ApiAnalyser
+final class ApiAnalyse
 {
     /**
      * A mapping annotation might have an empty array for the paths which is
@@ -110,24 +110,24 @@ final class ApiAnalyser
      * @param tags filter based on tags (empty includes all)
      * @return the {@link Api} for all controllers matching both of the filters
      */
-    public static Api describeApi( List<Class<?>> controllers, Set<String> paths, Set<String> tags )
+    public static Api analyseApi( List<Class<?>> controllers, Set<String> paths, Set<String> tags )
     {
         Api api = new Api();
-        Stream<Class<?>> scope = controllers.stream().filter( ApiAnalyser::isControllerType );
+        Stream<Class<?>> scope = controllers.stream().filter( ApiAnalyse::isControllerType );
         if ( paths != null && !paths.isEmpty() )
         {
-            scope = scope.filter( c -> isRoot( c, paths ) );
+            scope = scope.filter( c -> isRootPath( c, paths ) );
         }
         if ( tags != null && !tags.isEmpty() )
         {
             scope = scope.filter( c -> c.isAnnotationPresent( OpenApi.Tags.class )
                 && Stream.of( c.getAnnotation( OpenApi.Tags.class ).value() ).anyMatch( tags::contains ) );
         }
-        scope.forEach( source -> api.getControllers().add( describeController( api, source ) ) );
+        scope.forEach( source -> api.getControllers().add( analyseController( api, source ) ) );
         return api;
     }
 
-    private static Api.Controller describeController( Api api, Class<?> source )
+    private static Api.Controller analyseController( Api api, Class<?> source )
     {
         String name = getAnnotated( source, RequestMapping.class, RequestMapping::name, n -> !n.isEmpty(),
             () -> source.getSimpleName().replace( "Controller", "" ) );
@@ -138,20 +138,20 @@ final class ApiAnalyser
         {
             entityClass = (Class<?>) (((ParameterizedType) source.getGenericSuperclass()).getActualTypeArguments()[0]);
         }
-        Api.Controller controller = new Api.Controller( api, source, entityClass, name, Descriptions.of( source ) );
+        Api.Controller controller = new Api.Controller( api, source, entityClass, name );
         whenAnnotated( source, RequestMapping.class, a -> controller.getPaths().addAll( List.of( a.value() ) ) );
         whenAnnotated( source, OpenApi.Tags.class, a -> controller.getTags().addAll( List.of( a.value() ) ) );
 
         stream( source.getMethods() )
-            .map( ApiAnalyser::getMapping )
+            .map( ApiAnalyse::getMapping )
             .filter( Objects::nonNull )
-            .map( mapping -> describeEndpoint( controller, mapping ) )
+            .map( mapping -> analyseEndpoint( controller, mapping ) )
             .forEach( endpoint -> controller.getEndpoints().add( endpoint ) );
 
         return controller;
     }
 
-    private static Api.Endpoint describeEndpoint( Api.Controller controller, Mapping mapping )
+    private static Api.Endpoint analyseEndpoint( Api.Controller controller, Mapping mapping )
     {
         Method source = mapping.getSource();
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
@@ -162,15 +162,12 @@ final class ApiAnalyser
         Set<MediaType> consumes = stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).collect( toSet() );
         if ( consumes.isEmpty() )
         {
-            consumes.add( MediaType.APPLICATION_JSON ); // assume JSON if
-                                                        // nothing is set
-                                                        // explicitly
+            // assume JSON if nothing is set explicitly
+            consumes.add( MediaType.APPLICATION_JSON );
         }
 
         Api.Endpoint endpoint = new Api.Endpoint( controller, source, entityClass, name,
             ConsistentAnnotatedElement.of( source ).isAnnotationPresent( Deprecated.class ) ? Boolean.TRUE : null );
-        endpoint.getDescription().setValue( controller.getDescriptions().get( source.getName() + ".description",
-            desc -> desc.replace( "{entityType}", endpoint.getEntityTypeName() ) ) );
 
         whenAnnotated( source, OpenApi.Tags.class, a -> endpoint.getTags().addAll( List.of( a.value() ) ) );
         Stream.of( mapping.getPath() )
@@ -179,15 +176,15 @@ final class ApiAnalyser
         endpoint.getMethods().addAll( Set.of( mapping.method ) );
 
         // request:
-        describeParameters( endpoint, consumes );
+        analyseParameters( endpoint, consumes );
 
         // response:
-        endpoint.getResponses().putAll( describeResponses( endpoint, mapping, consumes ) );
+        endpoint.getResponses().putAll( analyseResponses( endpoint, mapping, consumes ) );
 
         return endpoint;
     }
 
-    private static Map<HttpStatus, Api.Response> describeResponses( Api.Endpoint endpoint, Mapping mapping,
+    private static Map<HttpStatus, Api.Response> analyseResponses( Api.Endpoint endpoint, Mapping mapping,
         Set<MediaType> consumes )
     {
         Method source = mapping.getSource();
@@ -216,34 +213,30 @@ final class ApiAnalyser
         getAnnotations( source, OpenApi.Response.class )
             .forEach( a -> (a.status().length == 0 ? List.of( signatureStatus ) : List.of( a.status() ))
                 .forEach( status -> res.put( status,
-                    describeResponse( endpoint, produces, status, getSubstitutedType( endpoint, a.value() ) ) ) ) );
+                    analyseResponse( endpoint, produces, status, getSubstitutedType( endpoint, a.value() ) ) ) ) );
         // response from method signature
         res.computeIfAbsent( signatureStatus,
-            status -> describeResponse( endpoint, produces, status, source.getGenericReturnType() ) );
+            status -> analyseResponse( endpoint, produces, status, source.getGenericReturnType() ) );
         return res;
     }
 
-    private static Api.Response describeResponse( Api.Endpoint endpoint, Set<MediaType> produces,
+    private static Api.Response analyseResponse( Api.Endpoint endpoint, Set<MediaType> produces,
         HttpStatus status, Type type )
     {
         Api.Response response = new Api.Response( status );
         if ( type != void.class && type != Void.class )
         {
-            response.add( produces, describeOutputSchema( endpoint, type ) );
+            response.add( produces, analyseOutputSchema( endpoint, type ) );
         }
-        String descKey = endpoint.getName() + ".response." + status.value() + ".description";
-        response.getDescription().setValue( endpoint.getIn().getDescriptions().get( descKey,
-            desc -> desc.replace( "{entityType}", endpoint.getEntityTypeName() ) ) );
         return response;
-
     }
 
-    private static void describeParameters( Api.Endpoint endpoint, Set<MediaType> consumes )
+    private static void analyseParameters( Api.Endpoint endpoint, Set<MediaType> consumes )
     {
         Method source = endpoint.getSource();
         // request parameter(s) declared via annotation(s)
-        getAnnotations( source, OpenApi.Param.class ).forEach( p -> describeParam( endpoint, p, consumes ) );
-        getAnnotations( source, OpenApi.Params.class ).forEach( p -> describeParams( endpoint, p ) );
+        getAnnotations( source, OpenApi.Param.class ).forEach( p -> analyseParam( endpoint, p, consumes ) );
+        getAnnotations( source, OpenApi.Params.class ).forEach( p -> analyseParams( endpoint, p ) );
 
         // request parameters from method signature
         for ( Parameter p : source.getParameters() )
@@ -257,8 +250,8 @@ final class ApiAnalyser
                 PathVariable a = p.getAnnotation( PathVariable.class );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, key, Api.Parameter.In.PATH, a.required(),
-                        describeInputSchema( endpoint, p.getParameterizedType() ) ) );
+                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.PATH, a.required(),
+                        analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
             if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
             {
@@ -267,8 +260,8 @@ final class ApiAnalyser
                     && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, key, Api.Parameter.In.QUERY, required,
-                        describeInputSchema( endpoint, p.getParameterizedType() ) ) );
+                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, required,
+                        analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestBody.class ) )
             {
@@ -276,7 +269,7 @@ final class ApiAnalyser
                 Api.RequestBody requestBody = endpoint.getRequestBody().isPresent()
                     ? endpoint.getRequestBody().getValue()
                     : new Api.RequestBody( p, a.required() );
-                Api.Schema type = describeInputSchema( endpoint, p.getParameterizedType() );
+                Api.Schema type = analyseInputSchema( endpoint, p.getParameterizedType() );
                 consumes.forEach( mediaType -> requestBody.getConsumes().putIfAbsent( mediaType, type ) );
             }
             else if ( isParams( p ) )
@@ -287,7 +280,7 @@ final class ApiAnalyser
                 {
                     if ( isEndpointParameter( m, 1, List.of( "set" ), requireJsonProperty ) )
                     {
-                        Api.Parameter parameter = describeParameter( endpoint, m );
+                        Api.Parameter parameter = analyseParameter( endpoint, m );
                         endpoint.getParameters().putIfAbsent( parameter.getName(), parameter );
                     }
                 }
@@ -295,15 +288,15 @@ final class ApiAnalyser
         }
     }
 
-    private static void describeParam( Api.Endpoint endpoint, OpenApi.Param param, Set<MediaType> consumes )
+    private static void analyseParam( Api.Endpoint endpoint, OpenApi.Param param, Set<MediaType> consumes )
     {
         String name = param.name();
-        Api.Schema type = describeInputSchema( endpoint, getSubstitutedType( endpoint, param.value() ) );
+        Api.Schema type = analyseInputSchema( endpoint, getSubstitutedType( endpoint, param.value() ) );
         boolean required = param.required();
         if ( !name.isEmpty() )
         {
             endpoint.getParameters().put( name,
-                new Api.Parameter( endpoint.getSource(), name, Api.Parameter.In.QUERY, required, type ) );
+                new Api.Parameter( endpoint.getSource(), null, name, Api.Parameter.In.QUERY, required, type ) );
         }
         else
         {
@@ -313,41 +306,41 @@ final class ApiAnalyser
         }
     }
 
-    private static void describeParams( Api.Endpoint endpoint, OpenApi.Params params )
+    private static void analyseParams( Api.Endpoint endpoint, OpenApi.Params params )
     {
         Class<?> value = params.value();
         boolean requireJsonProperty = stream( value.getMethods() )
             .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
         stream( value.getMethods() )
             .filter( m -> isEndpointParameter( m, 0, List.of( "has", "is", "get" ), requireJsonProperty ) )
-            .map( m -> describeParameter( endpoint, m ) )
+            .map( m -> analyseParameter( endpoint, m ) )
             .forEach( p -> endpoint.getParameters().putIfAbsent( p.getName(), p ) );
     }
 
-    private static Api.Parameter describeParameter( Api.Endpoint endpoint, Method source )
+    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Method source )
     {
         String name = getName( source );
         Type type = source.getParameterCount() == 0
             ? source.getGenericReturnType()
             : source.getGenericParameterTypes()[0];
-        return new Api.Parameter( source, name, Api.Parameter.In.QUERY, false,
-            describeInputSchema( endpoint, type ) );
+        return new Api.Parameter( source, source.getDeclaringClass(), name, Api.Parameter.In.QUERY, false,
+            analyseInputSchema( endpoint, type ) );
     }
 
-    private static Api.Schema describeInputSchema( Api.Endpoint endpoint, Type s )
+    private static Api.Schema analyseInputSchema( Api.Endpoint endpoint, Type source )
     {
-        return describeSchema( endpoint, s, false, new IdentityHashMap<>() );
+        return analyseSchema( endpoint, source, false, new IdentityHashMap<>() );
     }
 
-    private static Api.Schema describeOutputSchema( Api.Endpoint endpoint, Type source )
+    private static Api.Schema analyseOutputSchema( Api.Endpoint endpoint, Type source )
     {
-        return describeSchema( endpoint, source, false, new IdentityHashMap<>() );
+        return analyseSchema( endpoint, source, false, new IdentityHashMap<>() );
     }
 
     /**
      * @return a schema describing a complex "record-like" or "bean" object
      */
-    private static Api.Schema describeTypeSchema( Api.Endpoint endpoint, Class<?> type,
+    private static Api.Schema analyseTypeSchema( Api.Endpoint endpoint, Class<?> type,
         Map<Class<?>, Api.Schema> resolving )
     {
         Api.Schema s = resolving.get( type );
@@ -361,7 +354,7 @@ final class ApiAnalyser
             if ( type.isArray() )
             {
                 // eventually this will resolve the simple element type
-                describeTypeSchema( endpoint, type.getComponentType(), resolving );
+                analyseTypeSchema( endpoint, type.getComponentType(), resolving );
                 return schema;
             }
             String moduleName = type.getModule().getName();
@@ -377,7 +370,7 @@ final class ApiAnalyser
                 if ( isSchemaField( m ) && !fieldsAdded.contains( getName( m ) ) )
                 {
                     Type t = m.getParameterCount() == 1 ? m.getGenericParameterTypes()[0] : m.getGenericReturnType();
-                    Api.Schema ms = describeSchema( endpoint, t, true, resolving );
+                    Api.Schema ms = analyseSchema( endpoint, t, true, resolving );
                     if ( ms != null )
                     {
                         String name = getName( m );
@@ -390,7 +383,7 @@ final class ApiAnalyser
             {
                 if ( isSchemaField( f ) && !fieldsAdded.contains( getName( f ) ) )
                 {
-                    Api.Schema fs = describeSchema( endpoint, f.getGenericType(), true, resolving );
+                    Api.Schema fs = analyseSchema( endpoint, f.getGenericType(), true, resolving );
                     if ( fs != null )
                     {
                         String name = getName( f );
@@ -403,14 +396,14 @@ final class ApiAnalyser
         } );
     }
 
-    private static Api.Schema describeSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
+    private static Api.Schema analyseSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
         Map<Class<?>, Api.Schema> resolving )
     {
         if ( source instanceof Class<?> )
         {
             Class<?> type = (Class<?>) source;
             // make sure the type schema itself exists even if a ref is used
-            Api.Schema forType = describeTypeSchema( endpoint, type, resolving );
+            Api.Schema forType = analyseTypeSchema( endpoint, type, resolving );
             if ( useRefs && IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
                 return Api.ref( type );
             if ( useRefs && IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
@@ -427,25 +420,25 @@ final class ApiAnalyser
             if ( Collection.class.isAssignableFrom( rawType ) && rawType.isInterface() || rawType == Iterable.class )
             {
                 if ( typeArg0 instanceof Class<?> )
-                    return describeSchema( endpoint, Array.newInstance( (Class<?>) typeArg0, 0 ).getClass(),
+                    return analyseSchema( endpoint, Array.newInstance( (Class<?>) typeArg0, 0 ).getClass(),
                         useRefs, resolving );
                 Api.Schema colSchema = new Api.Schema( Collection.class, source );
                 colSchema.getFields()
-                    .add( new Api.Field( "", describeSchema( endpoint, typeArg0, useRefs, resolving ), true ) );
+                    .add( new Api.Field( "", analyseSchema( endpoint, typeArg0, useRefs, resolving ), true ) );
                 return colSchema;
             }
             if ( Map.class.isAssignableFrom( rawType ) && rawType.isInterface() )
             {
                 Api.Schema mapSchema = new Api.Schema( Map.class, source );
                 mapSchema.getFields().add( new Api.Field( "key",
-                    describeSchema( endpoint, typeArg0, false, resolving ), true ) );
+                    analyseSchema( endpoint, typeArg0, false, resolving ), true ) );
                 mapSchema.getFields().add( new Api.Field( "value",
-                    describeSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ), true ) );
+                    analyseSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ), true ) );
                 return mapSchema;
             }
             if ( rawType == ResponseEntity.class )
             {
-                return describeSchema( endpoint, typeArg0, false, resolving );
+                return analyseSchema( endpoint, typeArg0, false, resolving );
             }
             return Api.unknown( source );
         }
@@ -456,10 +449,14 @@ final class ApiAnalyser
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
                 return new Api.Schema( Object.class, false, wt );
             // simplification: <? extends X> => <X>
-            return describeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
+            return analyseSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }
         return Api.unknown( source );
     }
+
+    /*
+     * OpenAPI "business" helper methods
+     */
 
     private static Boolean getFieldRequired( AnnotatedElement source )
     {
@@ -539,7 +536,7 @@ final class ApiAnalyser
             && (!requireJsonProperty || source.isAnnotationPresent( JsonProperty.class ));
     }
 
-    private static boolean isRoot( Class<?> controller, Set<String> included )
+    private static boolean isRootPath( Class<?> controller, Set<String> included )
     {
         RequestMapping a = controller.getAnnotation( RequestMapping.class );
         return a != null && stream( firstNonEmpty( a.value(), a.path() ) ).anyMatch( included::contains );
@@ -589,6 +586,10 @@ final class ApiAnalyser
         }
         return null;
     }
+
+    /*
+     * Basic helper methods
+     */
 
     private static String[] firstNonEmpty( String[] a, String[] b, String[] c )
     {

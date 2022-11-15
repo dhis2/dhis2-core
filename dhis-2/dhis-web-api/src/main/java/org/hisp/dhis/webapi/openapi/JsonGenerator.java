@@ -92,6 +92,14 @@ public class JsonGenerator
         }
     }
 
+    final <E> void addObjectMember( String name, Collection<E> members, Consumer<E> forEach )
+    {
+        if ( !members.isEmpty() )
+        {
+            addObjectMember( name, () -> members.forEach( forEach ) );
+        }
+    }
+
     final void addObjectMember( String name, Runnable addMembers )
     {
         appendMemberName( name );

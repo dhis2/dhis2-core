@@ -85,7 +85,8 @@ final class Descriptions
 
     static Descriptions of( Class<?> target )
     {
-        if ( Modifier.isAbstract( target.getModifiers() ) )
+        if ( Modifier.isAbstract( target.getModifiers() )
+            || !AbstractCrudController.class.isAssignableFrom( target ) )
         {
             return SHARED_DESCRIPTIONS.computeIfAbsent( target, Descriptions::ofNew );
         }

@@ -20,3 +20,11 @@ Deletes the {entityType} provided by ID.
 
 ### Response: `200`
 A message envelop containing the report detailing the deletion outcome.
+
+## Any Endpoint `*`
+
+### Parameter: `filter`
+All about filters...
+
+### Parameter: `fields`
+All about fields...

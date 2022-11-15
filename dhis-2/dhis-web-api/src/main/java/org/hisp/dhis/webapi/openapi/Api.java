@@ -41,6 +41,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
@@ -62,6 +63,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * Simple fields in the model are "immutable" while collections are used
  * "mutable" to aggregate the results during the analysis process.
  *
+ * Descriptions that are added later use a {@link Maybe} box, so they can be
+ * used "mutable" too.
+ *
  * @author Jan Bernitt
  */
 @Value
@@ -78,10 +82,12 @@ class Api
      */
     Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
 
+    Map<String, Tag> tags = new LinkedHashMap<>();
+
     /**
      * @return all tags used in the {@link Api}
      */
-    Set<String> getTags()
+    Set<String> getUsedTags()
     {
         Set<String> used = new TreeSet<>();
         controllers.forEach( controller -> {
@@ -132,6 +138,21 @@ class Api
     }
 
     @Value
+    static class Tag
+    {
+
+        String name;
+
+        @EqualsAndHashCode.Exclude
+        Maybe<String> description = new Maybe<>();
+
+        @EqualsAndHashCode.Exclude
+        Maybe<String> externalDocsUrl = new Maybe<>();
+
+        Maybe<String> externalDocsDescription = new Maybe<>();
+    }
+
+    @Value
     static class Field
     {
 
@@ -158,10 +179,6 @@ class Api
         Class<?> entityClass;
 
         String name;
-
-        @ToString.Exclude
-        @EqualsAndHashCode.Include
-        Descriptions descriptions;
 
         List<String> paths = new ArrayList<>();
 
@@ -198,10 +215,9 @@ class Api
         @EqualsAndHashCode.Include
         Set<String> paths = new LinkedHashSet<>();
 
-        @EqualsAndHashCode.Include
         Maybe<RequestBody> requestBody = new Maybe<>();
 
-        Map<String, Parameter> parameters = new LinkedHashMap<>();
+        Map<String, Parameter> parameters = new TreeMap<>();
 
         Map<HttpStatus, Response> responses = new EnumMap<>( HttpStatus.class );
 
@@ -224,7 +240,6 @@ class Api
     @Value
     static class RequestBody
     {
-
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         AnnotatedElement source;
@@ -233,7 +248,7 @@ class Api
 
         String description = "dummy";
 
-        Map<MediaType, Schema> consumes = new LinkedHashMap<>();
+        Map<MediaType, Schema> consumes = new TreeMap<>();
 
     }
 
@@ -250,15 +265,29 @@ class Api
         @EqualsAndHashCode.Exclude
         AnnotatedElement source;
 
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
+        Class<?> group;
+
         String name;
 
         In in;
 
         boolean required;
 
-        String description = "dummy";
+        Maybe<String> description = new Maybe<>();
 
         Schema type;
+
+        /**
+         * @return true, if this parameter is one or many in a complex parameter
+         *         object, false, if this parameter directly occurred
+         *         individually in the endpoint method signature.
+         */
+        boolean isGrouped()
+        {
+            return group != null;
+        }
     }
 
     @Value
@@ -266,11 +295,11 @@ class Api
     {
         HttpStatus status;
 
-        Map<String, Header> headers = new LinkedHashMap<>();
+        Map<String, Header> headers = new TreeMap<>();
 
         Maybe<String> description = new Maybe<>();
 
-        Map<MediaType, Schema> content = new LinkedHashMap<>();
+        Map<MediaType, Schema> content = new TreeMap<>();
 
         Response add( Set<MediaType> produces, Schema body )
         {
@@ -293,7 +322,6 @@ class Api
     @AllArgsConstructor
     static class Schema
     {
-
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
         Class<?> source;
@@ -315,7 +343,7 @@ class Api
 
         public Schema( Class<?> source, Type hint )
         {
-            this( source, Api.schemaName( source ), hint );
+            this( source, Api.isNamed( source ), hint );
         }
 
         List<String> getRequiredFields()
@@ -344,7 +372,7 @@ class Api
         return new Schema( Unknown.class, false, hint );
     }
 
-    static boolean schemaName( Class<?> source )
+    static boolean isNamed( Class<?> source )
     {
         String name = source.getName();
         return !source.isPrimitive()

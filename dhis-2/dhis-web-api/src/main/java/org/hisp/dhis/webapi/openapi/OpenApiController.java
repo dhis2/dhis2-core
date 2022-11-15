@@ -60,7 +60,8 @@ public class OpenApiController
         HttpServletResponse response )
         throws IOException
     {
-        Api api = ApiAnalyser.describeApi( getAllControllerClasses(), path, tag );
+        Api api = ApiAnalyse.analyseApi( getAllControllerClasses(), path, tag );
+        ApiDescribe.describeApi( api );
         response.setContentType( APPLICATION_JSON_VALUE );
         response.getWriter().write( OpenApiGenerator.generate( api ) );
     }
