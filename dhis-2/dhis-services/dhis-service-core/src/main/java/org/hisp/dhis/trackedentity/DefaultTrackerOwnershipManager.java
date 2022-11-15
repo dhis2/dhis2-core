@@ -258,12 +258,24 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         if ( program.isOpen() || program.isAudited() )
         {
+            if ( ou.getCode() == null )
+            {
+                ou = entityInstance.getOrganisationUnit();
+            }
             return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
         }
         else
         {
-            return organisationUnitService.isInUserHierarchyCached( user, ou )
-                || hasTemporaryAccess( entityInstance, program, user );
+            if ( ou.getCode() == null )
+            {
+                return organisationUnitService.isInUserSearchHierarchyCached( user,
+                    entityInstance.getOrganisationUnit() );
+            }
+            else
+            {
+                return organisationUnitService.isInUserHierarchyCached( user, ou )
+                    || hasTemporaryAccess( entityInstance, program, user );
+            }
         }
     }
 
@@ -361,7 +373,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 .map( tepo -> {
                     return recursivelyInitializeOrgUnit( tepo.getOrganisationUnit() );
                 } )
-                .orElseGet( orgUnitIfMissingSupplier );
+                .orElseGet( OrganisationUnit::new );
 
         } );
     }
