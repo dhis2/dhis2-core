@@ -34,7 +34,6 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -125,13 +124,12 @@ public class TeiFullQuery extends BaseRenderable
 
     private Select getSelect()
     {
-        Stream<Field> staticFields = TeiFields.getStaticFields();
+        Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
 
         Stream<Field> fields = Stream.of(
-            staticFields,
-            enrollmentField(),
+            teiFields,
             dimensionsFields,
             orderingFields )
             .flatMap( identity() );
@@ -142,24 +140,6 @@ public class TeiFullQuery extends BaseRenderable
         }
 
         return Select.of( fields.collect( toList() ) );
-    }
-
-    private static Stream<Field> enrollmentField()
-    {
-        return Stream.of( Field.of( "",
-            () -> "(select JSON_AGG(JSON_BUILD_OBJECT('programUid', p_0.uid," +
-                " 'programInstanceUid', pi_0.uid, 'enrollmentDate', pi_0.enrollmentdate," +
-                " 'incidentDate', pi_0.incidentdate,'endDate', pi_0.enddate, 'events'," +
-                " (select JSON_AGG(JSON_BUILD_OBJECT('programStageUid', ps_0.uid," +
-                " 'programStageInstanceUid', psi_0.uid, 'executionDate', psi_0.executiondate," +
-                " 'dueDate', psi_0.duedate, 'eventDataValues', psi_0.eventdatavalues))" +
-                " from programstageinstance psi_0, programstage ps_0" +
-                " where psi_0.programinstanceid = pi_0.programinstanceid" +
-                " and ps_0.programstageid = psi_0.programstageid)))" +
-                " from programinstance pi_0, program p_0" +
-                " where pi_0.trackedentityinstanceid = " + TEI_ALIAS + ".trackedentityinstanceid" +
-                " and p_0.programid = pi_0.programid)",
-            "enrollments" ) );
     }
 
     private From getFrom()
