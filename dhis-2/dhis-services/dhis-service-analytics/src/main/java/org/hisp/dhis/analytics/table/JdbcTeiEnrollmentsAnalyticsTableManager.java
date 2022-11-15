@@ -50,7 +50,6 @@ import static org.springframework.util.Assert.notNull;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -146,10 +145,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
     private List<AnalyticsTableColumn> getTableColumns()
     {
-        return Stream.concat(
-            getFixedColumns().stream(),
-            addPeriodTypeColumns( "dps" ).stream() )
-            .collect( Collectors.toList() );
+        return getFixedColumns();
     }
 
     /**
@@ -227,15 +223,14 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
         removeLastComma( sql )
             .append( " from programinstance pi" )
-            .append(
-                " inner join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
+            .append( " inner join trackedentityinstance tei " +
+                "on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
             .append( " and tei.deleted is false " )
             .append( " and tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
             .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
             .append( " left join program p on p.programid = pi.programid" )
             .append( " left join organisationunit ou on pi.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append( " inner join _dateperiodstructure dps on cast(pi.incidentdate as date)=dps.dateperiod " )
             .append( " where exists ( select 1 from programstageinstance psi where psi.deleted is false" +
                 " and psi.programinstanceid = pi.programinstanceid" +
                 " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + "))" )

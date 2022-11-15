@@ -239,8 +239,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
                 "\"" + tea.getUid() + "\".value" ) )
             .collect( toList() ) );
 
-        columns.addAll( addPeriodTypeColumns( "dps" ) );
-
         return columns;
     }
 
@@ -338,8 +336,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         removeLastComma( sql )
             .append( " from trackedentityinstance tei" )
             .append( " left join organisationunit ou on tei.organisationunitid = ou.organisationunitid" )
-            .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append( " inner join _dateperiodstructure dps on cast(tei.created as date)=dps.dateperiod " );
+            .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" );
 
         ((List<TrackedEntityAttribute>) params.getExtraParam( trackedEntityType.getUid(), ALL_TET_ATTRIBUTES ))
             .forEach(
@@ -350,10 +347,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         sql.append( " where tei.trackedentitytypeid = " + trackedEntityType.getId() )
             .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
             .append(
-                " and exists ( select 1 from programinstance pi where pi.trackedentityinstanceid = tei.trackedentityinstanceid"
-                    +
-                    " and exists ( select 1 from programstageinstance psi where psi.programinstanceid = pi.programinstanceid"
-                    +
+                " and exists ( select 1 from programinstance pi" +
+                    " where pi.trackedentityinstanceid = tei.trackedentityinstanceid" +
+                    " and exists ( select 1 from programstageinstance psi" +
+                    " where psi.programinstanceid = pi.programinstanceid" +
                     " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
                     " and psi.deleted is false  ) )" )
             .append( " and tei.created is not null " )

@@ -57,8 +57,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -209,10 +207,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
     private List<AnalyticsTableColumn> getTableColumns()
     {
-        return Stream.concat(
-            getFixedColumns().stream(),
-            addPeriodTypeColumns( "dps" ).stream() )
-            .collect( Collectors.toList() );
+        return getFixedColumns();
     }
 
     /**
@@ -307,8 +302,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " left join program p on p.programid = ps.programid" )
             .append( " left join organisationunit ou on psi.organisationunitid = ou.organisationunitid" )
             .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append( " inner join _dateperiodstructure dps on cast(" + getDateLinkedToStatus()
-                + " as date)=dps.dateperiod " )
             .append( " where psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" )
             .append( " and " + partitionClause )
             .append( " and psi.deleted is false " );
