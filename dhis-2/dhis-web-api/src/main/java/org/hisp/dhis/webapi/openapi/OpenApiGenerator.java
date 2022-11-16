@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -519,6 +520,10 @@ public class OpenApiGenerator extends JsonGenerator
         }
         // clash => use full name
         name = type.getCanonicalName().replace( "org.hisp.dhis.", "" );
+        // replace dots (stoplight does not like it in names)
+        String[] segments = name.split( "\\." );
+        name = stream( segments ).limit( segments.length - 1L )
+            .collect( joining( "-" ) ) + ":" + segments[segments.length - 1];
         typeByName.put( name, type );
         return name;
     }
