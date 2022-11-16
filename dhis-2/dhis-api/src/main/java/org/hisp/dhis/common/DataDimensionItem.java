@@ -74,7 +74,7 @@ public class DataDimensionItem
             DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class,
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
             DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class,
-            DataDimensionItemType.EXPRESSION, ExpressionDimensionItem.class,
+            DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
             DataDimensionItemType.VALIDATION_RULE, ValidationRule.class );
 
     private int id;
@@ -259,7 +259,7 @@ public class DataDimensionItem
         }
         else if ( expressionDimensionItem != null )
         {
-            return DataDimensionItemType.EXPRESSION;
+            return DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
         }
 
         return null;

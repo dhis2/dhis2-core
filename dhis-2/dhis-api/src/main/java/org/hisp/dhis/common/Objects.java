@@ -91,7 +91,6 @@ public enum Objects
     PROGRAMINSTANCE( "programInstance", ProgramInstance.class ),
     TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntityInstance.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
-
     EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );
     private String value;
 

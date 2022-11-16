@@ -35,7 +35,6 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -114,13 +113,6 @@ public class StoreConfig
     {
         return new HibernateGenericStore<>( sessionFactory, jdbcTemplate, publisher,
             Expression.class, true );
-    }
-
-    @Bean( "org.hisp.dhis.expression.ExpressionDimensionItemStore" )
-    public HibernateGenericStore<ExpressionDimensionItem> expressionDimensionItemStore()
-    {
-        return new HibernateGenericStore<>( sessionFactory, jdbcTemplate, publisher,
-            ExpressionDimensionItem.class, true );
     }
 
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )
