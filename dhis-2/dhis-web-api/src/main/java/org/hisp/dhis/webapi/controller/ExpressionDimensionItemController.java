@@ -25,20 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller;
+
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Lars Helge Overland
+ * CRUD Controller for ExpressionDimensionItem entity
  */
-public enum DataDimensionItemType
+@Controller
+@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
 {
-    INDICATOR,
-    DATA_ELEMENT,
-    DATA_ELEMENT_OPERAND,
-    REPORTING_RATE,
-    PROGRAM_INDICATOR,
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    EXPRESSION_DIMENSION_ITEM,
-    VALIDATION_RULE
 }
