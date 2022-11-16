@@ -61,8 +61,9 @@ public interface TrackerOwnershipManager
         boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
-     * Check whether the user has access (as owner or has temporarily broken the
-     * glass) for the tracked entity instance - program combination.
+     * Check whether the user has access (as owner, has temporarily broken the
+     * glass or has search scope access) for the tracked entity instance -
+     * program combination.
      *
      * @param user The user with which access has to be checked for.
      * @param entityInstance The tracked entity instance.
