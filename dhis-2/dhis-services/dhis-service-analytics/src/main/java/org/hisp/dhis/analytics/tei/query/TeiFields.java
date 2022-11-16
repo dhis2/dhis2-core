@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static java.util.Arrays.stream;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
-import static org.hisp.dhis.analytics.tei.query.TeiFields.Static.values;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -39,6 +38,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -50,19 +52,32 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 
 public class TeiFields
 {
-    public enum Static
+    private interface HeaderProvider
     {
-        TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
-        TRACKER_ENTITY_TYPE( "trackedentitytypeuid", "Tracked Entity Type", TEXT ),
-        LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
-        CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by (display name)", TEXT ),
-        LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by (display name)", TEXT ),
-        GEOMETRY( "geometry", "Geometry", TEXT ),
-        LONGITUDE( "longitude", "Longitude", NUMBER ),
-        LATITUDE( "latitude", "Latitude", NUMBER ),
-        ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
-        ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT ),
-        ENROLLMENTS( "enrollments", "Enrollments", TEXT );
+        String getAlias();
+
+        String getFullName();
+
+        ValueType getType();
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    private enum Dynamic implements HeaderProvider
+    {
+        ENROLLMENTS( "(select JSON_AGG(JSON_BUILD_OBJECT('programUid', p_0.uid," +
+            " 'programInstanceUid', pi_0.uid, 'enrollmentDate', pi_0.enrollmentdate," +
+            " 'incidentDate', pi_0.incidentdate,'endDate', pi_0.enddate, 'events'," +
+            " (select JSON_AGG(JSON_BUILD_OBJECT('programStageUid', ps_0.uid," +
+            " 'programStageInstanceUid', psi_0.uid, 'executionDate', psi_0.executiondate," +
+            " 'dueDate', psi_0.duedate, 'eventDataValues', psi_0.eventdatavalues))" +
+            " from programstageinstance psi_0, programstage ps_0" +
+            " where psi_0.programinstanceid = pi_0.programinstanceid" +
+            " and ps_0.programstageid = psi_0.programstageid)))" +
+            " from programinstance pi_0, program p_0" +
+            " where pi_0.trackedentityinstanceid = " + TEI_ALIAS + ".trackedentityinstanceid" +
+            " and p_0.programid = pi_0.programid)", "enrollments", "Enrollments", TEXT );
+        private final String query;
 
         private final String alias;
 
@@ -70,27 +85,26 @@ public class TeiFields
 
         private final ValueType type;
 
-        Static( final String alias, final String fullName, final ValueType type )
-        {
-            this.alias = alias;
-            this.fullName = fullName;
-            this.type = type;
-        }
+    }
 
-        public String alias()
-        {
-            return alias;
-        }
+    @Getter
+    @RequiredArgsConstructor
+    private enum Static implements HeaderProvider
+    {
+        TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked Entity Instance", TEXT ),
+        LAST_UPDATED( "lastupdated", "Last Updated", DATETIME ),
+        CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by (display name)", TEXT ),
+        LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by (display name)", TEXT ),
+        GEOMETRY( "geometry", "Geometry", TEXT ),
+        LONGITUDE( "longitude", "Longitude", NUMBER ),
+        LATITUDE( "latitude", "Latitude", NUMBER ),
+        ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
+        ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
+        private final String alias;
 
-        public String fullName()
-        {
-            return fullName;
-        }
+        private final String fullName;
 
-        public ValueType type()
-        {
-            return type;
-        }
+        private final ValueType type;
     }
 
     public static Stream<Field> getDimensionFields( final TeiQueryParams teiQueryParams )
@@ -116,18 +130,29 @@ public class TeiFields
             .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
     }
 
-    public static Stream<Field> getStaticFields()
+    private static Stream<Field> getStaticFields()
     {
         return Stream.of( Static.values() ).map( v -> v.alias ).map( a -> Field.of( TEI_ALIAS, () -> a, a ) );
+    }
+
+    private static Stream<Field> getDynamicFields()
+    {
+        return Stream.of( Dynamic.values() )
+            .map( dynamic -> Field.of( "", () -> dynamic.query, dynamic.alias ) );
+    }
+
+    public static Stream<Field> getTeiFields()
+    {
+        return Stream.concat( getStaticFields(), getDynamicFields() );
     }
 
     public static Set<GridHeader> getGridHeaders( final TeiQueryParams teiQueryParams )
     {
         final Set<GridHeader> headers = new LinkedHashSet<>();
 
-        // Adding static headers.
-        stream( values() )
-            .forEach( f -> headers.add( new GridHeader( f.alias(), f.fullName(), f.type(), false, true ) ) );
+        // Adding static and dynamic headers.
+        Stream.concat( stream( Static.values() ), stream( Dynamic.values() ) )
+            .forEach( f -> headers.add( new GridHeader( f.getAlias(), f.getFullName(), f.getType(), false, true ) ) );
 
         // TODO: Map the correct columns alias, names and types.
         getDimensionFields( teiQueryParams ).forEach(
