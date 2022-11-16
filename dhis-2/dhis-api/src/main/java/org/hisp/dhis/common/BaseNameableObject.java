@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
+import java.util.Objects;
+
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 
@@ -129,42 +133,18 @@ public class BaseNameableObject
      * objects.
      */
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof BaseNameableObject
+            && getRealClass( this ) == getRealClass( obj )
+            && super.equals( obj )
+            && objectEquals( (BaseNameableObject) obj );
+    }
 
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( o.getClass() ) )
-        {
-            return false;
-        }
-
-        if ( !super.equals( o ) )
-        {
-            return false;
-        }
-
-        final BaseNameableObject other = (BaseNameableObject) o;
-
-        if ( getShortName() != null ? !getShortName().equals( other.getShortName() ) : other.getShortName() != null )
-        {
-            return false;
-        }
-
-        if ( getDescription() != null ? !getDescription().equals( other.getDescription() )
-            : other.getDescription() != null )
-        {
-            return false;
-        }
-
-        return true;
+    private boolean objectEquals( BaseNameableObject other )
+    {
+        return Objects.equals( getShortName(), other.getShortName() )
+            && Objects.equals( getDescription(), other.getDescription() );
     }
 
     @Override

@@ -41,7 +41,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
@@ -89,15 +88,15 @@ public class DataIntegrityJob implements Job
     {
         Timer timer = new SystemTimer().start();
         notifier.notify(
-            config, NotificationLevel.INFO,
-            "Starting data integrity job", false );
+            config,
+            "Starting data integrity job" );
 
         FlattenedDataIntegrityReport report = dataIntegrityService.getReport( checks, progress );
 
         timer.stop();
 
         notifier.notify(
-            config, NotificationLevel.INFO,
+            config,
             "Data integrity checks completed in " + timer + ".", true )
             .addJobSummary( config, report, FlattenedDataIntegrityReport.class );
     }

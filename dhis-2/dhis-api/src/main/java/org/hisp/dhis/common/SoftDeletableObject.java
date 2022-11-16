@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
 import java.util.Objects;
 
 import org.hisp.dhis.audit.AuditAttribute;
@@ -77,21 +79,16 @@ public class SoftDeletableObject extends BaseIdentifiableObject
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object obj )
     {
-        if ( this == o )
-        {
-            return true;
-        }
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-        if ( !super.equals( o ) )
-        {
-            return false;
-        }
-        SoftDeletableObject that = (SoftDeletableObject) o;
+        return this == obj || obj instanceof SoftDeletableObject &&
+            getRealClass( this ) == getRealClass( obj )
+            && super.equals( obj )
+            && objectEquals( (SoftDeletableObject) obj );
+    }
+
+    private boolean objectEquals( SoftDeletableObject that )
+    {
         return deleted == that.deleted;
     }
 

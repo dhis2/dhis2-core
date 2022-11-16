@@ -143,7 +143,7 @@ public class DefaultSystemSettingManager
         {
             throw new IllegalStateException( "No entry found for key: " + key.getName() );
         }
-        else if ( setting != null )
+        if ( setting != null )
         {
             if ( translation.isEmpty() )
             {
@@ -216,15 +216,9 @@ public class DefaultSystemSettingManager
                     return SerializableOptional.empty();
                 }
             }
-            else
-            {
-                return SerializableOptional.of( displayValue );
-            }
+            return SerializableOptional.of( displayValue );
         }
-        else
-        {
-            return SerializableOptional.of( defaultValue );
-        }
+        return SerializableOptional.of( defaultValue );
     }
 
     private Serializable getSettingDisplayValue( String name )
@@ -336,12 +330,14 @@ public class DefaultSystemSettingManager
     @Override
     public boolean isConfidential( String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+        SettingKey key = NAME_KEY_MAP.get( name );
+        return key != null && key.isConfidential();
     }
 
     @Override
     public boolean isTranslatable( final String name )
     {
-        return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isTranslatable();
+        SettingKey key = NAME_KEY_MAP.get( name );
+        return key != null && key.isTranslatable();
     }
 }
