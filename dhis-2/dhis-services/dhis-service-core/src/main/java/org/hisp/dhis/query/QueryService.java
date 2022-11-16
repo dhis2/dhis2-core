@@ -50,17 +50,6 @@ public interface QueryService
      * implementation.
      *
      * @param query Query instance to use
-     * @param ignoreSharingSettings ignore the sharing settings/permissions
-     *
-     * @return Matching objects
-     */
-    List<? extends IdentifiableObject> query( Query query, boolean ignoreSharingSettings );
-
-    /**
-     * Return objects matching given query, T typed according to QueryEngine
-     * implementation.
-     *
-     * @param query Query instance to use
      * @param transformer ResultTransformer to use for mutating the result
      * @return Matching objects
      */

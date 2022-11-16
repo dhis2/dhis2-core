@@ -30,7 +30,6 @@ package org.hisp.dhis.query;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
@@ -88,7 +87,7 @@ class DefaultQueryServiceTest
 
         // Here we make sure that the pagination info are actually passed to the
         // Hibernate query engine
-        when( criteriaQueryEngine.query( argThat( new QueryWithPagination( query ) ), anyBoolean() ) )
+        when( criteriaQueryEngine.query( argThat( new QueryWithPagination( query ) ) ) )
             .thenReturn( createOrgUnits( 20 ) );
 
         List<? extends IdentifiableObject> orgUnits = subject.query( query );

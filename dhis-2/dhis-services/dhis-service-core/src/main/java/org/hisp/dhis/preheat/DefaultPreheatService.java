@@ -189,9 +189,9 @@ public class DefaultPreheatService implements PreheatService
                         Query query = Query.from( schemaService.getDynamicSchema( klass ) );
                         query.setUser( preheat.getUser() );
                         query.add( Restrictions.in( "id", ids ) );
+                        query.setIgnoreSharingSettings( containsAll( dashboardItemsUid, ids ) );
 
-                        boolean ignoreSharingSettings = containsAll( dashboardItemsUid, ids );
-                        List<? extends IdentifiableObject> objects = queryService.query( query, ignoreSharingSettings );
+                        List<? extends IdentifiableObject> objects = queryService.query( query );
 
                         preheat.put( PreheatIdentifier.UID, objects );
                     }

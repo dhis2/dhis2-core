@@ -60,6 +60,11 @@ public class Query extends Criteria
 
     private boolean skipPaging;
 
+    /**
+     * Ignores or not the sharing settings/permissions.
+     */
+    private boolean ignoreSharingSettings;
+
     private Integer firstResult = 0;
 
     private Integer maxResults = Integer.MAX_VALUE;

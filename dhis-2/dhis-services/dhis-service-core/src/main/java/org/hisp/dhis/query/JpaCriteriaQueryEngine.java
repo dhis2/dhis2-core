@@ -91,12 +91,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     @Override
     public List<T> query( Query query )
     {
-        return query( query, false );
-    }
-
-    @Override
-    public List<T> query( Query query, boolean ignoreSharingSettings )
-    {
         Schema schema = query.getSchema();
 
         Class<T> klass = (Class<T>) schema.getKlass();
@@ -128,7 +122,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         {
             Predicate predicate = builder.conjunction();
 
-            if ( !ignoreSharingSettings )
+            if ( !query.isIgnoreSharingSettings() )
             {
                 predicate.getExpressions().addAll( store
                     .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
@@ -147,7 +141,7 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         Predicate predicate = buildPredicates( builder, root, query );
 
-        if ( !ignoreSharingSettings )
+        if ( !query.isIgnoreSharingSettings() )
         {
             predicate.getExpressions().addAll( store
                 .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
