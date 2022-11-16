@@ -82,7 +82,7 @@ public class EnrollmentAggregate extends AbstractAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeEvents(),
+            ctx.getParams().getEnrollmentParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
@@ -100,7 +100,7 @@ public class EnrollmentAggregate extends AbstractAggregate
 
             for ( Enrollment enrollment : enrollments.values() )
             {
-                if ( ctx.getParams().isIncludeEvents() )
+                if ( ctx.getParams().getEnrollmentParams().isIncludeEvents() )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
