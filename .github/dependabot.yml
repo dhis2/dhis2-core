@@ -26,7 +26,6 @@ updates:
     labels:
       - "dependencies"
       - "java"
-      - "run-api-tests"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
@@ -58,7 +57,6 @@ updates:
     labels:
       - "dependencies"
       - "java"
-      - "run-api-tests"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
