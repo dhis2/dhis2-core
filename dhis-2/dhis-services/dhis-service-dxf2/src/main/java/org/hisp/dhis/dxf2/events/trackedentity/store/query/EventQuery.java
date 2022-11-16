@@ -66,7 +66,10 @@ public class EventQuery
         ORGUNIT_UID,
         ORGUNIT_NAME,
         COC_UID,
-        CAT_OPTIONS
+        CAT_OPTIONS,
+        ASSIGNED_USER,
+        ASSIGNED_USER_FIRST_NAME,
+        ASSIGNED_USER_SURNAME
     }
 
     public static Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
@@ -99,6 +102,10 @@ public class EventQuery
             "join categoryoptioncombos_categoryoptions ccc " +
             "on opt.categoryoptionid = ccc.categoryoptionid " +
             "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) )
+
+        .put( COLUMNS.ASSIGNED_USER, new TableColumn( "ui", "uid", "userid" ) )
+        .put( COLUMNS.ASSIGNED_USER_FIRST_NAME, new TableColumn( "ui", "firstname" ) )
+        .put( COLUMNS.ASSIGNED_USER_SURNAME, new TableColumn( "ui", "surname" ) )
         .build();
 
     public static String getQuery()
@@ -111,6 +118,7 @@ public class EventQuery
             "join programstage ps on psi.programstageid = ps.programstageid " +
             "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
             "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
+            "left join userinfo ui on psi.assigneduserid = ui.userinfoid " +
             "where pi.programinstanceid in (:ids)";
     }
 
