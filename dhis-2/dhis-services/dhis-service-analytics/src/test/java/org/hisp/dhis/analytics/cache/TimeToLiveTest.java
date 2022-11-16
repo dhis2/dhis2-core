@@ -123,6 +123,23 @@ public class TimeToLiveTest
     }
 
     @Test
+    public void testComputeWhenDateObjectIsOfTypeSqlDate()
+    {
+        // Given
+        int oneDayDiff = 1;
+        int aPositiveCachingFactor = 2;
+        java.sql.Date endingDate = new java.sql.Date(
+            calculateDateFrom( new Date(), minus( oneDayDiff ), DATE ).getTime() );
+        long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+
+        // When
+        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+
+        // Then
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
+    }
+
+    @Test
     public void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
     {
         // Given
