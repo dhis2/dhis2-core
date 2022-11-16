@@ -118,8 +118,6 @@ public class DefaultInterpretationService
     {
         User user = currentUserService.getCurrentUser();
 
-        Set<User> users = new HashSet<>();
-
         if ( user != null )
         {
             interpretation.setCreatedBy( user );
@@ -130,7 +128,7 @@ public class DefaultInterpretationService
             interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
         }
 
-        users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+        Set<User> users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
         interpretation.setMentionsFromUsers( users );
         updateSharingForMentions( interpretation, users );
 

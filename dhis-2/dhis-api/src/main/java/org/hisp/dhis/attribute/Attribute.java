@@ -228,23 +228,11 @@ public class Attribute
     @Override
     public boolean equals( Object obj )
     {
-        if ( this == obj )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof Attribute && super.equals( obj ) && objectEquals( (Attribute) obj );
+    }
 
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        if ( !super.equals( obj ) )
-        {
-            return false;
-        }
-
-        final Attribute other = (Attribute) obj;
-
+    private boolean objectEquals( Attribute other )
+    {
         return Objects.equals( this.valueType, other.valueType )
             && Objects.equals( this.objectTypes, other.objectTypes )
             && Objects.equals( this.mandatory, other.mandatory )

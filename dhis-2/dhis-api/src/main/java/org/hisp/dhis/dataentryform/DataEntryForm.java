@@ -119,23 +119,16 @@ public class DataEntryForm
     @Override
     public boolean equals( Object obj )
     {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-        if ( !super.equals( obj ) )
-        {
-            return false;
-        }
-        final DataEntryForm other = (DataEntryForm) obj;
-        return Objects.equals( this.name, other.name )
-            && Objects.equals( this.style, other.style )
-            && Objects.equals( this.htmlCode, other.htmlCode )
-            && Objects.equals( this.format, other.format );
+        return this == obj
+            || obj instanceof DataEntryForm && super.equals( obj ) && objectEquals( (DataEntryForm) obj );
+    }
+
+    private boolean objectEquals( DataEntryForm other )
+    {
+        return Objects.equals( name, other.name )
+            && Objects.equals( style, other.style )
+            && Objects.equals( htmlCode, other.htmlCode )
+            && Objects.equals( format, other.format );
     }
 
     // -------------------------------------------------------------------------

@@ -54,6 +54,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -74,7 +76,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
@@ -521,7 +522,7 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
-            final Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
+            Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
 
             if ( trackedEntityDimension.isPresent() )
             {
@@ -547,10 +548,10 @@ public abstract class BaseAnalyticalObject
      * @return the dimensional object related to the given dimension and
      *         attribute.
      */
-    protected DimensionalObject getDimensionalObject( final EventAnalyticalObject eventAnalyticalObject,
-        final String dimension, final Attribute parent )
+    protected DimensionalObject getDimensionalObject( EventAnalyticalObject eventAnalyticalObject, String dimension,
+        Attribute parent )
     {
-        final Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject( dimension );
+        Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject( dimension );
 
         if ( optionalDimensionalObject.isPresent() )
         {
@@ -558,7 +559,7 @@ public abstract class BaseAnalyticalObject
         }
         else if ( Type.contains( dimension ) )
         {
-            final DimensionalObject dimensionalObject = new SimpleDimensionHandler( eventAnalyticalObject )
+            DimensionalObject dimensionalObject = new SimpleDimensionHandler( eventAnalyticalObject )
                 .getDimensionalObject( dimension, parent );
 
             return linkAssociations( eventAnalyticalObject, dimensionalObject, parent );
@@ -580,15 +581,15 @@ public abstract class BaseAnalyticalObject
      *        be appended to
      * @return the dimensional object containing the correct associations.
      */
-    private DimensionalObject linkAssociations( final EventAnalyticalObject eventAnalyticalObject,
-        final DimensionalObject dimensionalObject, final Attribute parent )
+    private DimensionalObject linkAssociations( EventAnalyticalObject eventAnalyticalObject,
+        DimensionalObject dimensionalObject, Attribute parent )
     {
         // Associating event repetitions.
-        final List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
+        List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
 
         if ( isNotEmpty( repetitions ) )
         {
-            for ( final EventRepetition eventRepetition : repetitions )
+            for ( EventRepetition eventRepetition : repetitions )
             {
                 if ( eventRepetition.getDimension() != null
                     && eventRepetition.getDimension().equals( dimensionalObject.getDimension() )
@@ -609,15 +610,15 @@ public abstract class BaseAnalyticalObject
      * @param dimensions
      * @param dimensionalObjects
      */
-    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects )
+    protected void populateDimensions( List<String> dimensions, List<DimensionalObject> dimensionalObjects )
     {
         if ( isNotEmpty( dimensions ) )
         {
-            for ( final String dimension : dimensions )
+            for ( String dimension : dimensions )
             {
                 if ( isNotBlank( dimension ) )
                 {
-                    final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+                    Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
                     if ( dimensionalObject.isPresent() )
                     {
                         dimensionalObjects.add( dimensionalObject.get() );
@@ -635,12 +636,12 @@ public abstract class BaseAnalyticalObject
      * @param dimensions
      * @param dimensionalObjects
      */
-    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects,
-        final Attribute attribute, final EventAnalyticalObject eventAnalyticalObject )
+    protected void populateDimensions( List<String> dimensions, List<DimensionalObject> dimensionalObjects,
+        Attribute attribute, EventAnalyticalObject eventAnalyticalObject )
     {
         if ( isNotEmpty( dimensions ) )
         {
-            for ( final String dimension : dimensions )
+            for ( String dimension : dimensions )
             {
                 if ( isNotBlank( dimension ) )
                 {
@@ -682,7 +683,7 @@ public abstract class BaseAnalyticalObject
 
                 for ( RelativePeriodEnum periodEnum : list )
                 {
-                    periodList.add( new ConfigurablePeriod( periodEnum.toString() ) );
+                    periodList.add( new Period( periodEnum ) );
                 }
             }
 
@@ -775,7 +776,7 @@ public abstract class BaseAnalyticalObject
                 return Optional.of( object.get() );
             }
 
-            final Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
+            Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
 
             if ( trackedEntityDimension.isPresent() )
             {
@@ -786,22 +787,22 @@ public abstract class BaseAnalyticalObject
         return Optional.empty();
     }
 
-    private Optional<DimensionalObject> getTrackedEntityDimension( final String dimension )
+    private Optional<DimensionalObject> getTrackedEntityDimension( String dimension )
     {
         // Tracked entity attribute
 
-        final Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions,
+        Map<String, TrackedEntityAttributeDimension> attributes = Maps.uniqueIndex( attributeDimensions,
             TrackedEntityAttributeDimension::getUid );
 
         if ( attributes.containsKey( dimension ) )
         {
-            final TrackedEntityAttributeDimension tead = attributes.get( dimension );
+            TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
             if ( tead != null )
             {
-                final ValueType valueType = tead.getAttribute() != null ? tead.getAttribute().getValueType()
+                ValueType valueType = tead.getAttribute() != null ? tead.getAttribute().getValueType()
                     : null;
-                final OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
+                OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
                     : null;
 
                 return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
@@ -811,19 +812,19 @@ public abstract class BaseAnalyticalObject
 
         // Tracked entity data element
 
-        final Map<String, TrackedEntityDataElementDimension> dataElements = Maps.uniqueIndex( dataElementDimensions,
+        Map<String, TrackedEntityDataElementDimension> dataElements = Maps.uniqueIndex( dataElementDimensions,
             TrackedEntityDataElementDimension::getUid );
 
         if ( dataElements.containsKey( dimension ) )
         {
-            final TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
+            TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
             if ( tedd != null )
             {
-                final ValueType valueType = tedd.getDataElement() != null
+                ValueType valueType = tedd.getDataElement() != null
                     ? tedd.getDataElement().getValueType()
                     : null;
-                final OptionSet optionSet = tedd.getDataElement() != null
+                OptionSet optionSet = tedd.getDataElement() != null
                     ? tedd.getDataElement().getOptionSet()
                     : null;
 
@@ -835,12 +836,12 @@ public abstract class BaseAnalyticalObject
 
         // Tracked entity program indicator
 
-        final Map<String, TrackedEntityProgramIndicatorDimension> programIndicators = Maps
+        Map<String, TrackedEntityProgramIndicatorDimension> programIndicators = Maps
             .uniqueIndex( programIndicatorDimensions, TrackedEntityProgramIndicatorDimension::getUid );
 
         if ( programIndicators.containsKey( dimension ) )
         {
-            final TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
+            TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
             return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
                 teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() ) );
@@ -862,11 +863,11 @@ public abstract class BaseAnalyticalObject
     private <T extends DimensionalEmbeddedObject> Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
         String dimension, DimensionType dimensionType, List<T> embeddedObjects )
     {
-        final Map<String, T> dimensions = Maps.uniqueIndex( embeddedObjects, d -> d.getDimension().getDimension() );
+        Map<String, T> dimensions = Maps.uniqueIndex( embeddedObjects, d -> d.getDimension().getDimension() );
 
         if ( dimensions.containsKey( dimension ) )
         {
-            final DimensionalEmbeddedObject object = dimensions.get( dimension );
+            DimensionalEmbeddedObject object = dimensions.get( dimension );
 
             if ( object != null )
             {
@@ -892,7 +893,7 @@ public abstract class BaseAnalyticalObject
      */
     public Map<String, String> getMetaData()
     {
-        final Map<String, String> meta = new HashMap<>();
+        Map<String, String> meta = new HashMap<>();
 
         // TODO use getDimension() instead of getUid() ?
         dataElementGroupSetDimensions
@@ -1432,9 +1433,16 @@ public abstract class BaseAnalyticalObject
         return subscribers;
     }
 
-    public void setSubscribers( Set<String> subscribers )
+    public void setSubscribers( @CheckForNull Set<String> subscribers )
     {
-        this.subscribers = subscribers;
+        if ( subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+        else
+        {
+            this.subscribers = subscribers;
+        }
     }
 
     @Override

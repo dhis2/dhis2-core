@@ -164,8 +164,7 @@ public class DefaultFieldParser implements FieldParser
 
         for ( String p : path.split( "\\." ) )
         {
-            fieldMap.putIfAbsent( p, new FieldMap() );
-            fieldMap = fieldMap.get( p );
+            fieldMap = fieldMap.computeIfAbsent( p, key -> new FieldMap() );
         }
     }
 }
