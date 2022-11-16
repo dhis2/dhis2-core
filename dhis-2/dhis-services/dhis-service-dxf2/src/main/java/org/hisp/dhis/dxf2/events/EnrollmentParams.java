@@ -32,30 +32,20 @@ import lombok.With;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @With
 @Value
-public class TrackedEntityInstanceParams
+public class EnrollmentParams
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, EnrollmentParams.TRUE,
-        true,
-        true, false, false );
+    public static final EnrollmentParams TRUE = new EnrollmentParams( true, true, true, true, false, false );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
-        EnrollmentParams.FALSE, false,
-        false, false, false );
+    public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false, false );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
-        EnrollmentParams.TRUE,
-        true, true, true, true );
+    // Root is only relevant if it is a nested Param
+    boolean includeRoot;
+
+    boolean includeEvents;
 
     boolean includeRelationships;
-
-    EnrollmentParams enrollmentParams;
-
-    boolean includeProgramOwners;
 
     boolean includeAttributes;
 
@@ -70,15 +60,9 @@ public class TrackedEntityInstanceParams
     }
 
     @JsonProperty
-    public boolean isIncludeEnrollments()
+    public boolean isIncludeEvents()
     {
-        return enrollmentParams.isIncludeRoot();
-    }
-
-    @JsonProperty
-    public boolean isIncludeProgramOwners()
-    {
-        return includeProgramOwners;
+        return includeEvents;
     }
 
     @JsonProperty
@@ -97,5 +81,17 @@ public class TrackedEntityInstanceParams
     public boolean isDataSynchronizationQuery()
     {
         return dataSynchronizationQuery;
+    }
+
+    @JsonProperty
+    public boolean isIncludeEnrollments()
+    {
+        return includeRoot;
+    }
+
+    @JsonProperty
+    public boolean isIncludeProgramOwners()
+    {
+        return false;
     }
 }
