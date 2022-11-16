@@ -165,7 +165,8 @@ final class Descriptions
 
     private static String toKey( String line )
     {
-        return stream( line.split( "\\s*:\\s+" ) )
+        return stream( line.split( ":" ) )
+            .map( String::trim )
             .map( Descriptions::toKeySegment )
             .collect( Collectors.joining( "." ) );
     }
