@@ -25,20 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema.descriptors;
+
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
- * @author Lars Helge Overland
+ * @author Dusan Bernat
  */
-public enum DataDimensionItemType
+public class ExpressionDimensionItemSchemaDescriptor
+    implements SchemaDescriptor
 {
-    INDICATOR,
-    DATA_ELEMENT,
-    DATA_ELEMENT_OPERAND,
-    REPORTING_RATE,
-    PROGRAM_INDICATOR,
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    EXPRESSION_DIMENSION_ITEM,
-    VALIDATION_RULE
+    public static final String SINGULAR = "expressionDimensionItem";
+
+    public static final String PLURAL = "expressionDimensionItems";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+        schema.setOrder( 1000 );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
+            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
+            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_DELETE" ) ) );
+
+        return schema;
+    }
 }
