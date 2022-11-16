@@ -72,6 +72,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
 
     private Program programA;
 
+    private Program programB;
+
     private User userA;
 
     private User userB;
@@ -92,9 +94,14 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
         entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+
         programA = createProgram( 'A' );
         programA.setAccessLevel( AccessLevel.PROTECTED );
         programService.addProgram( programA );
+
+        programB = createProgram( 'B' );
+        programB.setAccessLevel( AccessLevel.CLOSED );
+        programService.addProgram( programB );
 
         userA = createUserWithAuth( "userA" );
         userA.addOrganisationUnit( organisationUnitA );
@@ -123,7 +130,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
         trackerOwnershipAccessManager.grantTemporaryOwnership( entityInstanceA1, programA, userB, "testing reason" );
         assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
         assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
-        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
     }
 
     @Test
@@ -135,5 +142,21 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
         trackerOwnershipAccessManager.transferOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
         assertFalse( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
         assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
+    }
+
+    @Test
+    void testAccessToClosedProgramWithoutOwnershipOnlyIfUserInSearchScope()
+    {
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programB ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programB ) );
+    }
+
+    @Test
+    void testAccessToClosedProgramWithOwnershipOnlyIfUserInCaptureScope()
+    {
+        trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programB, organisationUnitA, false, true );
+
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programB ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programB ) );
     }
 }

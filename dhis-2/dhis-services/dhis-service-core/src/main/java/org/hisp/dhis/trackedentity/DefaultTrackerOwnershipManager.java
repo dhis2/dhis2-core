@@ -32,7 +32,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Optional;
 import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -254,28 +253,21 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return true;
         }
 
-        OrganisationUnit ou = getOwner( entityInstance.getId(), program, entityInstance::getOrganisationUnit );
+        OrganisationUnit ownerOrgUnit = getOwner( entityInstance.getId(), program );
+        boolean hasOwner = ownerOrgUnit != null;
 
-        if ( program.isOpen() || program.isAudited() )
+        if ( program.isOpen() || program.isAudited() || !hasOwner )
         {
-            if ( ou.getCode() == null )
+            if ( !hasOwner )
             {
-                ou = entityInstance.getOrganisationUnit();
+                ownerOrgUnit = entityInstance.getOrganisationUnit();
             }
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ownerOrgUnit );
         }
         else
         {
-            if ( ou.getCode() == null )
-            {
-                return organisationUnitService.isInUserSearchHierarchyCached( user,
-                    entityInstance.getOrganisationUnit() );
-            }
-            else
-            {
-                return organisationUnitService.isInUserHierarchyCached( user, ou )
-                    || hasTemporaryAccess( entityInstance, program, user );
-            }
+            return organisationUnitService.isInUserHierarchyCached( user, ownerOrgUnit )
+                || hasTemporaryAccess( entityInstance, program, user );
         }
     }
 
@@ -352,16 +344,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
 
     /**
-     * Get the current owner of this TEI-program combination. Falls back to the
-     * registered organisation unit if no owner explicitly exists for the
-     * program.
+     * Get the current owner of this TEI-program combination.
      *
      * @param entityInstanceId the TEI.
      * @param program The program
-     * @return The owning organisation unit.
+     * @return The owning organisation unit if found, null otherwise.
      */
-    private OrganisationUnit getOwner( Long entityInstanceId, Program program,
-        Supplier<OrganisationUnit> orgUnitIfMissingSupplier )
+    private OrganisationUnit getOwner( Long entityInstanceId, Program program )
     {
         return ownerCache.get( getOwnershipCacheKey( () -> entityInstanceId, program ), s -> {
 
@@ -369,12 +358,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 .getTrackedEntityProgramOwner(
                     entityInstanceId, program.getId() );
 
-            return Optional.ofNullable( trackedEntityProgramOwner )
-                .map( tepo -> {
-                    return recursivelyInitializeOrgUnit( tepo.getOrganisationUnit() );
-                } )
-                .orElseGet( OrganisationUnit::new );
-
+            return trackedEntityProgramOwner == null ? null
+                : recursivelyInitializeOrgUnit( trackedEntityProgramOwner.getOrganisationUnit() );
         } );
     }
 
