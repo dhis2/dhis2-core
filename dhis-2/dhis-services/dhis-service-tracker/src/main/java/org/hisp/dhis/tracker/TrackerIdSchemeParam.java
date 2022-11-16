@@ -92,10 +92,4 @@ public class TrackerIdSchemeParam
 
         throw new RuntimeException( "Unhandled identifier type." );
     }
-
-    public <T extends IdentifiableObject> String getIdAndName( T object )
-    {
-        String identifier = getIdentifier( object );
-        return object.getClass().getSimpleName() + " (" + identifier + ")";
-    }
 }
