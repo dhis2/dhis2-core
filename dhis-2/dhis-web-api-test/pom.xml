@@ -29,6 +29,11 @@
             // in ApiTokenControllerTest.testListApiTokens()
             // in ApiTokenControllerTest.testListApiTokensNotYours()
             <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
+            // Removing jsonassert dependency is causing
+            // java.lang.NoClassDefFoundError: org/skyscreamer/jsonassert/JSONAssert
+            // in StaticContentControllerTest.verifyErrorWhenStoringInvalidMimeType()
+            // in StaticContentControllerTest.verifyErrorWhenStoringInvalidKey()
+            <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-hibernate</ignoredNonTestScopedDependency>
@@ -407,6 +412,11 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
