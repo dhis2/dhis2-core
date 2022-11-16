@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -41,7 +42,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.webdomain.user.UserLookup;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.web.bind.annotation.GetMapping;

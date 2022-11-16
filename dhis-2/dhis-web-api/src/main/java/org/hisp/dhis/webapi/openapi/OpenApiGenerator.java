@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,6 +53,8 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -94,9 +97,22 @@ public class OpenApiGenerator extends JsonGenerator
         Document document;
 
         @Value
-        @Builder
+        @Builder( toBuilder = true )
         static class Document
         {
+            public static final Document DEFAULT = Config.Document.builder()
+                .title( "DHIS2 API - user" )
+                .version( "2.40" )
+                .serverUrl( "https://play.dhis2.org/dev/api" )
+                .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
+                .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
+                .syntheticSummary( true )
+                .syntheticDescription( true )
+                .missingDescription( "(missing)" )
+                .build();
+
+            String title;
+
             String version;
 
             String serverUrl;
@@ -110,6 +126,8 @@ public class OpenApiGenerator extends JsonGenerator
             String contactUrl;
 
             String contactEmail;
+
+            String missingDescription;
 
             boolean syntheticSummary;
 
@@ -139,11 +157,6 @@ public class OpenApiGenerator extends JsonGenerator
 
         String[] enums;
     }
-
-    /**
-     * Text used when the description is missing
-     */
-    private static final String NO_DESCRIPTION = "_No description yet :(_";
 
     private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
 
@@ -196,16 +209,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     public static String generate( Api api )
     {
-        // "2.40", , true, true )
-        Config.Document doc = Config.Document.builder()
-            .version( "2.40" )
-            .serverUrl( "https://play.dhis2.org/dev/api" )
-            .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
-            .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
-            .syntheticSummary( true )
-            .syntheticDescription( true )
-            .build();
-        return generate( api, new Config( Format.PRETTY_PRINT, doc ) );
+        return generate( api, new Config( Format.PRETTY_PRINT, Config.Document.DEFAULT ) );
     }
 
     public static String generate( Api api, Config config )
@@ -241,7 +245,7 @@ public class OpenApiGenerator extends JsonGenerator
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
-                addStringMember( "title", "DHIS2 API" );
+                addStringMember( "title", document.title );
                 addStringMember( "version", document.version );
                 addObjectMember( "license", () -> {
                     addStringMember( "name", document.licenseName );
@@ -255,7 +259,7 @@ public class OpenApiGenerator extends JsonGenerator
             } );
             addArrayMember( "tags", api.getTags().values().stream(), tag -> addObjectMember( null, () -> {
                 addStringMember( "name", tag.getName() );
-                addStringMember( "description", tag.getDescription().orElse( NO_DESCRIPTION ) );
+                addStringMember( "description", tag.getDescription().orElse( document.missingDescription ) );
                 addObjectMember( "externalDocs", tag.getExternalDocsUrl().isPresent(), () -> {
                     addStringMember( "url", tag.getExternalDocsUrl().getValue() );
                     addStringMember( "description", tag.getExternalDocsDescription().getValue() );
@@ -290,7 +294,7 @@ public class OpenApiGenerator extends JsonGenerator
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
-            addStringMember( "description", endpoint.getDescription().orElse( NO_DESCRIPTION ) );
+            addStringMember( "description", endpoint.getDescription().orElse( document.missingDescription ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
             {
@@ -319,7 +323,7 @@ public class OpenApiGenerator extends JsonGenerator
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
-            addStringMember( "description", parameter.getDescription().orElse( NO_DESCRIPTION ) );
+            addStringMember( "description", parameter.getDescription().orElse( document.missingDescription ) );
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
@@ -337,7 +341,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", response.getDescription().orElse( NO_DESCRIPTION ) );
+            addStringMember( "description", response.getDescription().orElse( document.missingDescription ) );
             addObjectMember( "headers", response.getHeaders().values(),
                 header -> addObjectMember( header.getName(), () -> {
                     addStringMember( "description", header.getDescription() );
@@ -354,12 +358,15 @@ public class OpenApiGenerator extends JsonGenerator
     {
         // make sure all types have a unique name
         api.getSchemas().entrySet().stream()
-            .filter( e -> e.getValue().isNamed() )
+            .filter( e -> isReferencableSchema( e.getValue() ) )
             .forEach( e -> getUniqueSchemaName( e.getKey() ) );
-        // write normal schemas
-        typeByName
+        // write normal schemas:
+        // we still need a copy due to Ref name being based on the referenced
+        // target
+        // name we might add to the map while generating a schema
+        new TreeMap<>( typeByName )
             .forEach( ( name, type ) -> addObjectMember( name, () -> generateSchema( api.getSchemas().get( type ) ) ) );
-        // write ref schemas
+        // write ref schemas:
         refTypeByName.forEach( ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
     }
 
@@ -474,8 +481,14 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateRefType( Api.Schema schema )
     {
+        Type to = schema.getHint();
+        String name = to == BaseIdentifiableObject.class || to == IdentifiableObject.class
+            ? "any type of object"
+            : getUniqueSchemaName( (Class<?>) to );
+
         addStringMember( "type", "object" );
-        addStringMember( "description", "A UID reference to a " + ((Class<?>) schema.getHint()).getSimpleName() );
+        addStringMember( "description",
+            "A UID reference to a " + name + "  \\n(Java name `" + to.getTypeName() + "`)" );
         addArrayMember( "required", List.of( "id" ) );
         addObjectMember( "properties", () -> addObjectMember( "id", () -> {
             addStringMember( "type", "string" );

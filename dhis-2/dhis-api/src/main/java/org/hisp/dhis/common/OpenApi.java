@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.openapi;
+package org.hisp.dhis.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -34,7 +34,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.http.HttpStatus;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * All annotations used to adjust the generation of OpenAPI document(s).
@@ -139,7 +140,7 @@ public @interface OpenApi
     }
 
     /**
-     * Used to add or override the response for a specific {@link HttpStatus}.
+     * Used to add or override the response for a specific {@link Status}.
      *
      * If the {@link #status()} is the same as the success status of the method
      * this effectively overrides the return type of the method as present in
@@ -152,6 +153,23 @@ public @interface OpenApi
     @interface Response
     {
         /**
+         * The HTTP status (actually used in DHIS2 APIs).
+         *
+         * Needed to be independent of existing enums for module reasons.
+         */
+        @Getter
+        @RequiredArgsConstructor
+        enum Status
+        {
+            BAD_REQUEST( 400 ),
+            FORBIDDEN( 403 ),
+            NOT_FOUND( 404 ),
+            CONFLICT( 409 );
+
+            private final int code;
+        }
+
+        /**
          * @return body type of the response
          */
         Class<?> value();
@@ -163,7 +181,7 @@ public @interface OpenApi
          * @return the statuses resulting in a response described by the
          *         {@link #value()} type
          */
-        HttpStatus[] status() default {};
+        Status[] status() default {};
 
         String description() default "";
 

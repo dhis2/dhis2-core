@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
+import static org.hisp.dhis.common.OpenApi.Response.Status.FORBIDDEN;
+import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
@@ -55,6 +58,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -83,7 +87,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -194,7 +197,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Response( EntityType[].class )
-    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -261,9 +264,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
-    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
-    @OpenApi.Response( status = HttpStatus.CONFLICT, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = CONFLICT, value = WebMessage.class )
     @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -415,8 +418,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Response( EntityType.class )
-    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
-    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
@@ -473,8 +476,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( status = HttpStatus.FORBIDDEN, value = WebMessage.class )
-    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,

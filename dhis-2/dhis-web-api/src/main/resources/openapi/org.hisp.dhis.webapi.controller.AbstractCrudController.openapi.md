@@ -8,7 +8,7 @@ List all {entityType}s
 The _list_ of {entityType}s
 
 ### Parameter: `fields`
-Bla bla
+`<field-name>[,<field-name>...]` 
 
 ## Endpoint `getObject`
 
@@ -24,7 +24,14 @@ A message envelop containing the report detailing the deletion outcome.
 ## Any Endpoint `*`
 
 ### Parameter: `filter`
-All about filters...
+Format: 
+
+* unary: `<field>:<operator>`
+* binary: `<field>:<operator>:<value>`
+
 
 ### Parameter: `fields`
-All about fields...
+e.g. 
+* `<field-name>` 
+* `<object>[<field-name>, ...]`
+* `*, <object>[*]`

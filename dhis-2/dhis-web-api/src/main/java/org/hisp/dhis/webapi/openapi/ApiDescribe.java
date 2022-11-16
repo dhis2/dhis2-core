@@ -32,6 +32,8 @@ import java.util.function.UnaryOperator;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * Uses {@link Descriptions} to supply CommonMark description texts to an
  * {@link Api} model.

@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
+import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
+import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -44,6 +46,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.gist.GistAutoType;
@@ -62,11 +65,9 @@ import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,7 +99,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // GET Gist
     // --------------------------------------------------------------------------
 
-    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
@@ -137,8 +138,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .toBuilder().typedAttributeValues( false ).build() );
     }
 
-    @OpenApi.Response( status = HttpStatus.BAD_REQUEST, value = WebMessage.class )
-    @OpenApi.Response( status = HttpStatus.NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,

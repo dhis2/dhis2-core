@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;

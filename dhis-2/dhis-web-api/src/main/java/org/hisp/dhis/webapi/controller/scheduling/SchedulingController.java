@@ -40,12 +40,12 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.scheduling.JobProgress.Stage;
 import org.hisp.dhis.scheduling.JobProgress.Status;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.webapi.openapi.OpenApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

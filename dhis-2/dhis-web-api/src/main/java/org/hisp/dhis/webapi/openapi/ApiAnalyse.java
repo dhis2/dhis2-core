@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.annotation.Annotation;
@@ -62,6 +63,7 @@ import lombok.Value;
 
 import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -211,9 +213,11 @@ final class ApiAnalyse
         Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
         // response(s) declared via annotation(s)
         getAnnotations( source, OpenApi.Response.class )
-            .forEach( a -> (a.status().length == 0 ? List.of( signatureStatus ) : List.of( a.status() ))
-                .forEach( status -> res.put( status,
-                    analyseResponse( endpoint, produces, status, getSubstitutedType( endpoint, a.value() ) ) ) ) );
+            .forEach( a -> (a.status().length == 0
+                ? List.of( signatureStatus )
+                : stream( a.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() ))
+                    .forEach( status -> res.put( status,
+                        analyseResponse( endpoint, produces, status, getSubstitutedType( endpoint, a.value() ) ) ) ) );
         // response from method signature
         res.computeIfAbsent( signatureStatus,
             status -> analyseResponse( endpoint, produces, status, source.getGenericReturnType() ) );
@@ -402,13 +406,15 @@ final class ApiAnalyse
         if ( source instanceof Class<?> )
         {
             Class<?> type = (Class<?>) source;
-            // make sure the type schema itself exists even if a ref is used
-            Api.Schema forType = analyseTypeSchema( endpoint, type, resolving );
             if ( useRefs && IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
+            {
                 return Api.ref( type );
+            }
             if ( useRefs && IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
+            {
                 return Api.refs( type.getComponentType() );
-            return forType;
+            }
+            return analyseTypeSchema( endpoint, type, resolving );
         }
         if ( source instanceof ParameterizedType )
         {

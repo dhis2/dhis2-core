@@ -154,10 +154,8 @@ final class Descriptions
                     }
                     else
                     {
-                        value.append( line ).append( "  " ); // in CommonMark 2
-                                                             // spaces at the
-                                                             // end mean new
-                                                             // line
+                        // in CommonMark 2 spaces at the end mean new line
+                        value.append( line ).append( "  \\n" );
                     }
                 }
             }
