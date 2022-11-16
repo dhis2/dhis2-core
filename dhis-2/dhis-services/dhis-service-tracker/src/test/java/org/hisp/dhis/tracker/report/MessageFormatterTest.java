@@ -28,13 +28,13 @@
 package org.hisp.dhis.tracker.report;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.DateFormat;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -113,14 +113,15 @@ class MessageFormatterTest
         List<String> args = MessageFormatter.formatArguments( idSchemes, relationshipType, program, programStage,
             orgUnit, dataElement, coc, co );
 
-        assertThat( args,
-            contains( "RelationshipType (WTTYiPQDqh1)",
-                "Program (friendship)",
-                "ProgramStage (meet)",
-                "OrganisationUnit (sunshine)",
-                "DataElement (ice)",
-                "CategoryOptionCombo (wheat)",
-                "CategoryOption (red)" ) );
+        assertContainsOnly(
+            List.of( "WTTYiPQDqh1",
+                "friendship",
+                "meet",
+                "sunshine",
+                "ice",
+                "wheat",
+                "red" ),
+            args );
     }
 
     private Set<AttributeValue> attributeValues( String uid, String value )
@@ -162,7 +163,7 @@ class MessageFormatterTest
     {
         List<String> args = MessageFormatter.formatArguments( idSchemes, "foo", "faa" );
 
-        assertThat( args, contains( "foo", "faa" ) );
+        assertContainsOnly( List.of( "foo", "faa" ), args );
     }
 
     @Test
@@ -171,7 +172,7 @@ class MessageFormatterTest
         List<String> args = MessageFormatter.formatArguments( idSchemes,
             MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) );
 
-        assertThat( args, contains( "iB8AZpf681V", "GREEN" ) );
+        assertContainsOnly( List.of( "iB8AZpf681V", "GREEN" ), args );
     }
 
     @Test
@@ -180,7 +181,7 @@ class MessageFormatterTest
         List<String> args = MessageFormatter.formatArguments( idSchemes,
             TrackedEntity.builder().trackedEntity( "zwccdzhk5zc" ).build() );
 
-        assertThat( args, contains( "TrackedEntity (zwccdzhk5zc)" ) );
+        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
     }
 
     @Test
@@ -189,7 +190,7 @@ class MessageFormatterTest
         List<String> args = MessageFormatter.formatArguments( idSchemes,
             Enrollment.builder().enrollment( "zwccdzhk5zc" ).build() );
 
-        assertThat( args, contains( "Enrollment (zwccdzhk5zc)" ) );
+        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
     }
 
     @Test
@@ -198,7 +199,7 @@ class MessageFormatterTest
         List<String> args = MessageFormatter.formatArguments( idSchemes,
             Event.builder().event( "zwccdzhk5zc" ).build() );
 
-        assertThat( args, contains( "Event (zwccdzhk5zc)" ) );
+        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
     }
 
     @Test
@@ -210,6 +211,6 @@ class MessageFormatterTest
     @Test
     void formatArgumentsWithoutArgument()
     {
-        assertEquals( Collections.emptyList(), MessageFormatter.formatArguments( idSchemes ) );
+        assertIsEmpty( MessageFormatter.formatArguments( idSchemes ) );
     }
 }
