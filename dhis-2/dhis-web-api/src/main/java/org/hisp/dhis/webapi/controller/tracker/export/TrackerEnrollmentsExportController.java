@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackerEnrollmentFieldsParamMapper.map;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collections;
@@ -40,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -90,6 +92,8 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
+        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
             ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( trackerEnrollmentCriteria );
@@ -110,7 +114,8 @@ public class TrackerEnrollmentsExportController
             Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )
+                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, trackedEntityInstanceParams ) )
+                    .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
 
@@ -126,7 +131,10 @@ public class TrackerEnrollmentsExportController
         throws NotFoundException
     {
 
-        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( id ) );
+        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+
+        Enrollment enrollment = ENROLLMENT_MAPPER
+            .from( enrollmentService.getEnrollment( id, trackedEntityInstanceParams ) );
         if ( enrollment == null )
         {
             throw new NotFoundException( "Enrollment", id );
