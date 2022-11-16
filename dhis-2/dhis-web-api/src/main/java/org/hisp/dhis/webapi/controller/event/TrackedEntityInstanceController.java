@@ -564,12 +564,12 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withIncludeEnrollments( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRoot( true ) );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withIncludeEvents( true );
+            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( true ) );
         }
 
         if ( joined.contains( "programOwners" ) )
