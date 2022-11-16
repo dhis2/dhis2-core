@@ -288,17 +288,10 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id )
+    public Enrollment getEnrollment( String id, TrackedEntityInstanceParams params )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-        return programInstance != null ? getEnrollment( programInstance ) : null;
-    }
-
-    @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance )
-    {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE,
-            false );
+        return programInstance != null ? getEnrollment( programInstance, params ) : null;
     }
 
     @Override
@@ -355,7 +348,7 @@ public abstract class AbstractEnrollmentService
 
         enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
 
-        if ( params.isIncludeEvents() )
+        if ( params.getEnrollmentParams().isIncludeEvents() )
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
@@ -369,7 +362,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        if ( params.isIncludeRelationships() )
+        if ( params.getEnrollmentParams().isIncludeRelationships() )
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
@@ -384,6 +377,35 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        if ( params.getEnrollmentParams().isIncludeAttributes() )
+        {
+            Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+                .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+
+            for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+                .getTrackedEntityAttributeValues() )
+            {
+                if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.setCreated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getCreated() ) );
+                    attribute
+                        .setLastUpdated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getLastUpdated() ) );
+                    attribute.setDisplayName( trackedEntityAttributeValue.getAttribute()
+                        .getDisplayName() );
+                    attribute.setAttribute( trackedEntityAttributeValue.getAttribute()
+                        .getUid() );
+                    attribute.setValueType( trackedEntityAttributeValue.getAttribute()
+                        .getValueType() );
+                    attribute.setCode( trackedEntityAttributeValue.getAttribute()
+                        .getCode() );
+                    attribute.setValue( trackedEntityAttributeValue.getValue() );
+                    attribute.setStoredBy( trackedEntityAttributeValue.getStoredBy() );
+
+                    enrollment.getAttributes().add( attribute );
+                }
+            }
+        }
         return enrollment;
     }
 
