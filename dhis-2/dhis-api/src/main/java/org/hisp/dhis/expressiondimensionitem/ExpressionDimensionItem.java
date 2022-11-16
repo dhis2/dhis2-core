@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.expressiondimensionitem;
 
-import java.io.Serializable;
-
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
-import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -58,7 +55,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class ExpressionDimensionItem
     extends BaseDataDimensionalItemObject
-    implements Serializable, MetadataObject
+    implements MetadataObject
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -67,19 +64,10 @@ public class ExpressionDimensionItem
 
     public static final String SEPARATOR = ".";
 
-    public static final String EXP_OPEN = "#{";
-
-    public static final String EXP_CLOSE = "}";
-
     /**
      * The Expression.
      */
     private String expression;
-
-    /**
-     * A description of the Expression.
-     */
-    private String description;
 
     /**
      * This expression should be given sliding window based data
@@ -167,17 +155,12 @@ public class ExpressionDimensionItem
 
         if ( expression == null )
         {
-            if ( other.expression != null )
-            {
-                return false;
-            }
+            return other.expression == null;
         }
-        else if ( !expression.equals( other.expression ) )
+        else
         {
-            return false;
+            return expression.equals( other.expression );
         }
-
-        return true;
     }
 
     @Override
@@ -212,26 +195,6 @@ public class ExpressionDimensionItem
     public void setExpression( String expression )
     {
         this.expression = expression;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "description", key = "DESCRIPTION" )
-    public String getDisplayDescription()
-    {
-        return getTranslation( "DESCRIPTION", getDescription() );
     }
 
     @JsonProperty
