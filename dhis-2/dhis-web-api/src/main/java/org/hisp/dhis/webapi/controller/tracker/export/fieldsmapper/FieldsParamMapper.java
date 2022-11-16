@@ -25,77 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import lombok.Value;
-import lombok.With;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@With
-@Value
-public class TrackedEntityInstanceParams
+public class FieldsParamMapper
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, EnrollmentParams.TRUE,
-        true,
-        true, false, false );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
-        EnrollmentParams.FALSE, false,
-        false, false, false );
+    static final String FIELD_RELATIONSHIPS = "relationships";
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
-        EnrollmentParams.TRUE,
-        true, true, true, true );
+    static final String FIELD_EVENTS = "events";
 
-    boolean includeRelationships;
+    static final String FIELD_ATTRIBUTES = "attributes";
 
-    EnrollmentParams enrollmentParams;
-
-    boolean includeProgramOwners;
-
-    boolean includeAttributes;
-
-    boolean includeDeleted;
-
-    boolean dataSynchronizationQuery;
-
-    @JsonProperty
-    public boolean isIncludeRelationships()
+    static Map<String, FieldPath> getRoots( List<String> fields )
     {
-        return includeRelationships;
+        return rootFields( getFieldPaths( fields ) );
     }
 
-    @JsonProperty
-    public boolean isIncludeEnrollments()
+    static List<FieldPath> getFieldPaths( List<String> fields )
     {
-        return enrollmentParams.isIncludeRoot();
+        return FieldFilterParser
+            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
     }
 
-    @JsonProperty
-    public boolean isIncludeProgramOwners()
+    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
     {
-        return includeProgramOwners;
-    }
-
-    @JsonProperty
-    public boolean isIncludeAttributes()
-    {
-        return includeAttributes;
-    }
-
-    @JsonProperty
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
-
-    @JsonProperty
-    public boolean isDataSynchronizationQuery()
-    {
-        return dataSynchronizationQuery;
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
     }
 }
