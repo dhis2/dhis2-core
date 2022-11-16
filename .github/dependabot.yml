@@ -23,9 +23,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
@@ -54,9 +51,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
@@ -86,9 +80,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
@@ -118,9 +109,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
