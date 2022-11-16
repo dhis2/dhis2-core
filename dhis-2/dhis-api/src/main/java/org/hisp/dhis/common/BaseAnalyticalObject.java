@@ -280,7 +280,6 @@ public abstract class BaseAnalyticalObject
      */
     public List<DimensionalItemObject> getDataDimensionNameableObjects()
     {
-        List<DimensionalItemObject> list = new ArrayList<>();
         return dataDimensionItems.stream()
             .filter( Objects::nonNull )
             .map( DataDimensionItem::getDimensionalItemObject )
