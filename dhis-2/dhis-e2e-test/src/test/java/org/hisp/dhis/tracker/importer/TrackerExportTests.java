@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -61,6 +62,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -124,6 +128,88 @@ public class TrackerExportTests
                 response.validate()
                     .body( p, allOf( not( nullValue() ), not( contains( nullValue() ) ), not( emptyIterable() ) ) );
             } );
+    }
+
+    private Stream<Arguments> shouldReturnRequestedTeiEnrollmentsFields()
+    {
+        return Stream.of( Arguments.of( "enrollments[events, relationships, attributes]", not( emptyIterable() ),
+            not( emptyIterable() ), not( emptyIterable() ),
+            Arguments.of( "enrollments[events, !relationships, attributes]", not( emptyIterable() ), emptyIterable(),
+                not( emptyIterable() ) ),
+            Arguments.of( "enrollments[events, relationships, !attributes]", not( emptyIterable() ),
+                not( emptyIterable() ), emptyIterable() ),
+            Arguments.of( "enrollments[!events, relationships, attributes]", emptyIterable(), not( emptyIterable() ),
+                not( emptyIterable() ) ),
+            Arguments.of( "enrollments[!events, !relationships, !attributes]", emptyIterable(), emptyIterable(),
+                emptyIterable() ),
+            Arguments.of( "enrollments[!events, !relationships, attributes]", emptyIterable(), emptyIterable(),
+                not( emptyIterable() ) ),
+            Arguments.of( "enrollments[events, !relationships, !attributes]", not( emptyIterable() ), emptyIterable(),
+                emptyIterable() ),
+            Arguments.of( "enrollments[!events, relationships, !attributes]", emptyIterable(), not( emptyIterable() ),
+                emptyIterable() ) ) );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    public void shouldReturnRequestedTeiEnrollmentsFields( String fields, Matcher<JsonArray> eventExists,
+        Matcher<JsonArray> relationshipsExists, Matcher<JsonArray> attributesExists )
+    {
+        ApiResponse response = trackerActions.get(
+            "/trackedEntities/?program=f1AyMswryyQ&orgUnit=O6uvpzGd5pu&trackedEntity=" + teiId + "&fields=" + fields );
+
+        response.validate()
+            .statusCode( 200 );
+
+        JsonArray instances = response.getBody().getAsJsonArray( "instances" );
+
+        instances.getAsJsonArray().forEach(
+            tei -> {
+                tei.getAsJsonObject().getAsJsonArray( "enrollments" ).forEach(
+                    e -> {
+                        assertThat( e.getAsJsonObject().getAsJsonArray( "events" ), eventExists );
+                        assertThat( e.getAsJsonObject().getAsJsonArray( "relationships" ), relationshipsExists );
+                        assertThat( e.getAsJsonObject().getAsJsonArray( "attributes" ), attributesExists );
+                    } );
+            } );
+    }
+
+    private Stream<Arguments> shouldReturnRequestedEnrollmentFields()
+    {
+        return Stream.of(
+            Arguments.of( "events, relationships, attributes", not( emptyIterable() ), not( emptyIterable() ),
+                not( emptyIterable() ),
+                Arguments.of( "events, !relationships, attributes", not( emptyIterable() ), emptyIterable(),
+                    not( emptyIterable() ) ),
+                Arguments.of( "events, relationships, !attributes", not( emptyIterable() ), not( emptyIterable() ),
+                    emptyIterable() ),
+                Arguments.of( "!events, relationships, attributes", emptyIterable(), not( emptyIterable() ),
+                    not( emptyIterable() ) ),
+                Arguments.of( "!events, !relationships, !attributes", emptyIterable(), emptyIterable(),
+                    emptyIterable() ),
+                Arguments.of( "!events, !relationships, attributes", emptyIterable(), emptyIterable(),
+                    not( emptyIterable() ) ),
+                Arguments.of( "events, !relationships, !attributes", not( emptyIterable() ), emptyIterable(),
+                    emptyIterable() ),
+                Arguments.of( "!events, relationships, !attributes", emptyIterable(), not( emptyIterable() ),
+                    emptyIterable() ) ) );
+    }
+
+    @MethodSource
+    @ParameterizedTest
+    public void shouldReturnRequestedEnrollmentFields( String fields, Matcher<JsonArray> eventExists,
+        Matcher<JsonArray> relationshipsExists, Matcher<JsonArray> attributesExists )
+    {
+        ApiResponse response = trackerActions.get( "/enrollments/PuBvJxDB73z/?fields=" + fields );
+
+        response.validate()
+            .statusCode( 200 );
+
+        JsonObject enrollment = response.getBody();
+
+        assertThat( enrollment.getAsJsonArray( "events" ), eventExists );
+        assertThat( enrollment.getAsJsonArray( "relationships" ), relationshipsExists );
+        assertThat( enrollment.getAsJsonArray( "attributes" ), attributesExists );
     }
 
     @Test

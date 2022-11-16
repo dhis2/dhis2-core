@@ -108,6 +108,16 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
             .build();
     }
 
+    public JsonObject buildEnrollmentToTeiRelationship( String enrollment, String trackedEntity,
+        String relationshipType )
+    {
+        return new JsonObjectBuilder()
+            .addProperty( "relationshipType", relationshipType )
+            .addObject( "from", relationshipItem( "enrollment", enrollment ) )
+            .addObject( "to", relationshipItem( "trackedEntity", trackedEntity ) )
+            .build();
+    }
+
     public JsonObject build()
     {
         return jsonBuilder.build();
