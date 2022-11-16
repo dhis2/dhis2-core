@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -109,6 +109,7 @@ public class WorkContextLoader
     @Transactional( readOnly = true )
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
+
         sessionFactory.getCurrentSession().flush();
 
         ImportOptions localImportOptions = importOptions;
@@ -164,16 +165,20 @@ public class WorkContextLoader
     {
         if ( importOptions.getUser() == null )
         {
-            final User currentUser = this.serviceDelegatorSupplier.get().getEventImporterUserService().getCurrentUser();
-
-            //
-            // This should never really happen!
-            //
-            if ( currentUser != null )
+            if ( importOptions.getUser() == null )
             {
-                UserCredentials userCredentials = currentUser.getUserCredentials();
-                initUserCredentials( userCredentials );
-                importOptions.setUser( currentUser );
+                final User currentUser = this.serviceDelegatorSupplier.get().getEventImporterUserService()
+                    .getCurrentUser();
+
+                //
+                // This should never really happen!
+                //
+                if ( currentUser != null )
+                {
+                    UserCredentials userCredentials = currentUser.getUserCredentials();
+                    initUserCredentials( userCredentials );
+                    importOptions.setUser( currentUser );
+                }
             }
         }
         else
@@ -192,8 +197,8 @@ public class WorkContextLoader
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {
-        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
-
-        userCredentials.isSuper();
+        Hibernate.initialize( userCredentials.getUserAuthorityGroups() );
+        Hibernate.initialize( userCredentials.getUser().getGroups() );
+        Hibernate.initialize( userCredentials.getUser().getOrganisationUnits() );
     }
 }
