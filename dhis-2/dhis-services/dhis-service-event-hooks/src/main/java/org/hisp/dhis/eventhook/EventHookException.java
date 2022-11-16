@@ -27,44 +27,10 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.eventhook.targets.WebhookEventHookDestination;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.client.RestTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-/**
- * @author Morten Olav Hansen
- */
-@Component
-@RequiredArgsConstructor
-public class EventHookListener
+public class EventHookException extends Exception
 {
-    private final ObjectMapper objectMapper;
-
-    private final RestTemplate restTemplate;
-
-    @TransactionalEventListener( classes = EventHook.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
-    public void eventListener( EventHook<?> eventHook )
-        throws EventHookException
+    public EventHookException( String message )
     {
-        EventHookContext ctx = EventHookContext.builder()
-            .objectMapper( objectMapper )
-            .restTemplate( restTemplate ).build();
-
-        List<EventHookDestination> destinations = new ArrayList<>();
-        destinations.add( new WebhookEventHookDestination( ctx ) );
-
-        for ( EventHookDestination destination : destinations )
-        {
-            destination.run( eventHook );
-        }
+        super( message );
     }
 }

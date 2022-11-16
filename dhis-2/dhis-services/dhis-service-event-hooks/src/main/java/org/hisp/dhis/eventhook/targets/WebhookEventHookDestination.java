@@ -25,46 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.eventhook.targets;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.eventhook.targets.WebhookEventHookDestination;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.client.RestTemplate;
+import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.EventHookContext;
+import org.hisp.dhis.eventhook.EventHookDestination;
+import org.hisp.dhis.eventhook.EventHookException;
+import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Morten Olav Hansen
  */
-@Component
 @RequiredArgsConstructor
-public class EventHookListener
+public class WebhookEventHookDestination implements EventHookDestination
 {
-    private final ObjectMapper objectMapper;
+    private final EventHookContext ctx;
 
-    private final RestTemplate restTemplate;
-
-    @TransactionalEventListener( classes = EventHook.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
-    public void eventListener( EventHook<?> eventHook )
+    @Override
+    public void run( EventHook<?> hook )
         throws EventHookException
     {
-        EventHookContext ctx = EventHookContext.builder()
-            .objectMapper( objectMapper )
-            .restTemplate( restTemplate ).build();
-
-        List<EventHookDestination> destinations = new ArrayList<>();
-        destinations.add( new WebhookEventHookDestination( ctx ) );
-
-        for ( EventHookDestination destination : destinations )
+        try
         {
-            destination.run( eventHook );
+            String value = ctx.getObjectMapper().writeValueAsString( hook );
+            System.err.println( value );
+
+            ResponseEntity<String> response = ctx.getRestTemplate().postForEntity( "https://postman-echo.com/post",
+                value, String.class );
+
+            System.err.println( response.getStatusCode() );
+            System.err.println( response.getBody() );
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new EventHookException( e.getMessage() );
         }
     }
 }
