@@ -23,7 +23,11 @@
           <failOnWarning>true</failOnWarning>
           <ignoredUnusedDeclaredDependencies>
             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
-            <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
+            // Removing cron-utils dependency is causing
+            // javax.persistence.PersistenceException: org.hibernate.PropertyValueException: not-null property references a null or transient value
+            // in MapControllerTest.testPutJsonObject()
+            // in ApiTokenControllerTest.testListApiTokens()
+            // in ApiTokenControllerTest.testListApiTokensNotYours()
             <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
           <ignoredNonTestScopedDependencies>
@@ -403,11 +407,6 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.skyscreamer</groupId>
-      <artifactId>jsonassert</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
