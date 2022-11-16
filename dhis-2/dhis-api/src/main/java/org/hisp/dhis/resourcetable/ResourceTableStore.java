@@ -63,4 +63,10 @@ public interface ResourceTableStore
      * @param batchArgs the arguments to use for the update statement.
      */
     void batchUpdate( int columns, String tableName, List<Object[]> batchArgs );
+
+    /**
+     * Returns all data years available in the system (both from aggregate and
+     * tracker).
+     */
+    List<Integer> getAvailableDataYears();
 }

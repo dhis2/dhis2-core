@@ -168,7 +168,8 @@ public class DefaultResourceTableService
     @Override
     public void generateDatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( null ) );
+        resourceTableStore
+            .generateResourceTable( new DatePeriodResourceTable( resourceTableStore.getAvailableDataYears() ) );
     }
 
     @Override
@@ -239,5 +240,12 @@ public class DefaultResourceTableService
             .collect( toList() );
         progress.startingStage( "Drop SQL views", nonQueryViews.size(), SKIP_ITEM );
         progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable );
+    }
+
+    @Override
+    @Transactional
+    public List<Integer> getAvailableDataYears()
+    {
+        return resourceTableStore.getAvailableDataYears();
     }
 }

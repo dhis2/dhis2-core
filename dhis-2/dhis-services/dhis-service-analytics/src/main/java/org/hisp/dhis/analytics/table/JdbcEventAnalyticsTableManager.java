@@ -43,8 +43,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.resourcetable.ResourceTable.FIRST_YEAR_SUPPORTED;
-import static org.hisp.dhis.resourcetable.ResourceTable.LATEST_YEAR_SUPPORTED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -181,7 +179,10 @@ public class JdbcEventAnalyticsTableManager
         log.info( format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
             databaseInfo.isSpatialSupport() ) );
 
-        return params.isLatestUpdate() ? getLatestAnalyticsTables( params ) : getRegularAnalyticsTables( params );
+        List<Integer> availableDataYears = resourceTableService.getAvailableDataYears();
+
+        return params.isLatestUpdate() ? getLatestAnalyticsTables( params )
+            : getRegularAnalyticsTables( params, availableDataYears );
     }
 
     /**
@@ -203,9 +204,11 @@ public class JdbcEventAnalyticsTableManager
      * contain a partition for each year for which events exist.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param availableDataYears
      * @return a list of {@link AnalyticsTableUpdateParams}.
      */
-    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params )
+    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params,
+        List<Integer> availableDataYears )
     {
         List<AnalyticsTable> tables = new ArrayList<>();
 
@@ -217,9 +220,12 @@ public class JdbcEventAnalyticsTableManager
                 .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( toList() );
 
+        Integer firstDataYear = availableDataYears.get( 0 );
+        Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
+
         for ( Program program : programs )
         {
-            List<Integer> dataYears = getDataYears( params, program );
+            List<Integer> dataYears = getDataYears( params, program, firstDataYear, latestDataYear );
 
             Collections.sort( dataYears );
 
@@ -354,6 +360,10 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
+        List<Integer> availableDataYears = resourceTableService.getAvailableDataYears();
+        Integer firstDataYear = availableDataYears.get( 0 );
+        Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
+
         Program program = partition.getMasterTable().getProgram();
         String start = DateUtils.getLongDateString( partition.getStartDate() );
         String end = DateUtils.getLongDateString( partition.getEndDate() );
@@ -381,8 +391,8 @@ public class JdbcEventAnalyticsTableManager
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and (" + getDateLinkedToStatus() + ") is not null " +
-            "and dps.year >= " + FIRST_YEAR_SUPPORTED + " " +
-            "and dps.year <= " + LATEST_YEAR_SUPPORTED + " " +
+            "and dps.year >= " + firstDataYear + " " +
+            "and dps.year <= " + latestDataYear + " " +
             "and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
             "and psi.deleted is false ";
 
@@ -606,7 +616,8 @@ public class JdbcEventAnalyticsTableManager
         return "";
     }
 
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program, Integer firstDataYear,
+        Integer latestDataYear )
     {
         String sql = "select temp.supportedyear from " +
             "(select distinct extract(year from " + getDateLinkedToStatus() + ") as supportedyear " +
@@ -624,8 +635,8 @@ public class JdbcEventAnalyticsTableManager
                 DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
-        sql += ") as temp where temp.supportedyear >= " + FIRST_YEAR_SUPPORTED +
-            " and temp.supportedyear <= " + LATEST_YEAR_SUPPORTED;
+        sql += ") as temp where temp.supportedyear >= " + firstDataYear +
+            " and temp.supportedyear <= " + latestDataYear;
 
         return jdbcTemplate.queryForList( sql, Integer.class );
     }

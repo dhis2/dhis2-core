@@ -48,9 +48,9 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
  * @author Lars Helge Overland
  */
 public class DatePeriodResourceTable
-    extends ResourceTable<Period>
+    extends ResourceTable<Integer>
 {
-    public DatePeriodResourceTable( List<Period> objects )
+    public DatePeriodResourceTable( List<Integer> objects )
     {
         super( objects );
     }
@@ -90,10 +90,8 @@ public class DatePeriodResourceTable
 
         List<Object[]> batchArgs = new ArrayList<>();
 
-        // TODO Create a dynamic solution instead of having fixed dates
-
-        Date startDate = new Cal( FIRST_YEAR_SUPPORTED, 1, 1, true ).time();
-        Date endDate = new Cal( LATEST_YEAR_SUPPORTED + 1, 1, 1, true ).time();
+        Date startDate = new Cal( objects.get( 0 ), 1, 1, true ).time();
+        Date endDate = new Cal( objects.get( objects.size() - 1 ), 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
