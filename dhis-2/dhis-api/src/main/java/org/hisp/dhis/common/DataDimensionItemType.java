@@ -39,5 +39,6 @@ public enum DataDimensionItemType
     PROGRAM_INDICATOR,
     PROGRAM_DATA_ELEMENT,
     PROGRAM_ATTRIBUTE,
+    EXPRESSION,
     VALIDATION_RULE
 }

@@ -78,7 +78,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -234,11 +233,6 @@ public class Visualization
      * bars.
      */
     private String colorSet;
-
-    /**
-     * Expression dimension item
-     */
-    private ExpressionDimensionItem expressionDimensionItem;
 
     // -------------------------------------------------------------------------
     // Display items for graphics/charts
@@ -802,18 +796,6 @@ public class Visualization
     public void setSkipRounding( boolean skipRounding )
     {
         this.skipRounding = skipRounding;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public ExpressionDimensionItem getExpressionDimensionItem()
-    {
-        return expressionDimensionItem;
-    }
-
-    public void setExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
-    {
-        this.expressionDimensionItem = expressionDimensionItem;
     }
 
     @JsonIgnore

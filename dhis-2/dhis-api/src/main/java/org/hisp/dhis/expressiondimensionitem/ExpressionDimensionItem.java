@@ -29,12 +29,11 @@ package org.hisp.dhis.expressiondimensionitem;
 
 import java.io.Serializable;
 
-import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.translation.Translatable;
-import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -58,7 +57,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "expressionDimensionItem", namespace = DxfNamespaces.DXF_2_0 )
 public class ExpressionDimensionItem
-    extends BaseNameableObject
+    extends BaseDataDimensionalItemObject
     implements Serializable, MetadataObject
 {
     /**
@@ -92,8 +91,6 @@ public class ExpressionDimensionItem
      * data values are missing in the expression.
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-
-    private Visualization visualization;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -259,17 +256,5 @@ public class ExpressionDimensionItem
     public void setSlidingWindow( Boolean slidingWindow )
     {
         this.slidingWindow = slidingWindow;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Visualization getVisualization()
-    {
-        return visualization;
-    }
-
-    public void setVisualization( Visualization visualization )
-    {
-        this.visualization = visualization;
     }
 }

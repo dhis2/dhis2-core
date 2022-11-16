@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
+CREATE TABLE IF NOT EXISTS expressiondimensionitem
 (
-    expressionid bigint NOT NULL,
+    expressiondimensionitemid bigint NOT NULL,
     code character varying(50),
     name character varying(230) NOT NULL,
     shortname character varying(50),
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
     translations jsonb DEFAULT '[]'::jsonb,
     attributevalues jsonb DEFAULT '{}'::jsonb,
     sharing jsonb DEFAULT '{}'::jsonb,
-    CONSTRAINT expressiondimensionitem_pkey PRIMARY KEY (expressionid),
+    CONSTRAINT expressiondimensionitem_pkey PRIMARY KEY (expressiondimensionitemid),
     CONSTRAINT expressiondimensionitem_code_key UNIQUE (code),
     CONSTRAINT expressiondimensionitem_uid_key UNIQUE (uid),
     CONSTRAINT expressiondimensionitem_shortname_key UNIQUE (shortname),
@@ -32,5 +32,5 @@ CREATE TABLE IF NOT EXISTS public.expressiondimensionitem
                           ON DELETE NO ACTION
     );
 
-ALTER TABLE IF EXISTS public.expressiondimensionitem
+ALTER TABLE IF EXISTS expressiondimensionitem
     OWNER to postgres;

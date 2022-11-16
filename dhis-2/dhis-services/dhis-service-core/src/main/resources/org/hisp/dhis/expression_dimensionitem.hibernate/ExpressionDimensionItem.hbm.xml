@@ -10,7 +10,7 @@
 
         <cache usage="read-write"/>
 
-        <id name="id" column="expressionid">
+        <id name="id" column="expressiondimensionitemid">
             <generator class="native"/>
         </id>
 

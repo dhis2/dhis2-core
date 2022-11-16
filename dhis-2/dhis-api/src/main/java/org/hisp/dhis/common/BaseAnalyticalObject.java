@@ -278,8 +278,16 @@ public abstract class BaseAnalyticalObject
      */
     public List<DimensionalItemObject> getDataDimensionNameableObjects()
     {
-        return dataDimensionItems.stream().map( DataDimensionItem::getDimensionalItemObject )
-            .collect( Collectors.toList() );
+        List<DimensionalItemObject> list = new ArrayList<>();
+        for ( DataDimensionItem dataDimensionItem : dataDimensionItems )
+        {
+            if ( dataDimensionItem != null )
+            {
+                DimensionalItemObject dimensionalItemObject = dataDimensionItem.getDimensionalItemObject();
+                list.add( dimensionalItemObject );
+            }
+        }
+        return list;
     }
 
     /**
