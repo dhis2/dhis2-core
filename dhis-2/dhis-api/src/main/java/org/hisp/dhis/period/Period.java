@@ -94,6 +94,21 @@ public class Period
     {
     }
 
+    /**
+     * Creates a period that is not bound to the persistent layer. It represents
+     * a detached Period that is mainly used for displaying purposes.
+     *
+     * @param isoRelativePeriod the ISO relative period
+     */
+    public Period( RelativePeriodEnum isoRelativePeriod )
+    {
+        this.isoPeriod = isoRelativePeriod.toString();
+        this.name = isoRelativePeriod.toString();
+        this.code = isoRelativePeriod.toString();
+        this.setStartDate( new Date() );
+        this.setEndDate( new Date() );
+    }
+
     public Period( Period period )
     {
         this.id = period.getId();
