@@ -155,12 +155,11 @@ class Api
     @Value
     static class Field
     {
-
         String name;
 
-        Schema type;
-
         Boolean required;
+
+        Schema type;
     }
 
     @Value

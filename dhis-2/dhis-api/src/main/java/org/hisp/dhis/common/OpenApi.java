@@ -76,6 +76,18 @@ public @interface OpenApi
         // marker annotation
     }
 
+    @Inherited
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER } )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Property
+    {
+        String name() default "";
+
+        Class<?> type() default Object.class;
+
+        boolean required() default false;
+    }
+
     /**
      * Used to add a single named parameter or request body parameter that is
      * not present (or ignored) in the method signature.

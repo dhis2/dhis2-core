@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -44,7 +44,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -65,6 +64,7 @@ import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.period.Period;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +81,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -278,16 +279,7 @@ final class ApiAnalyse
             }
             else if ( isParams( p ) )
             {
-                boolean requireJsonProperty = stream( p.getType().getMethods() )
-                    .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
-                for ( Method m : p.getType().getMethods() )
-                {
-                    if ( isEndpointParameter( m, 1, List.of( "set" ), requireJsonProperty ) )
-                    {
-                        Api.Parameter parameter = analyseParameter( endpoint, m );
-                        endpoint.getParameters().putIfAbsent( parameter.getName(), parameter );
-                    }
-                }
+                analyseParams( endpoint, p.getType() );
             }
         }
     }
@@ -312,23 +304,21 @@ final class ApiAnalyse
 
     private static void analyseParams( Api.Endpoint endpoint, OpenApi.Params params )
     {
-        Class<?> value = params.value();
-        boolean requireJsonProperty = stream( value.getMethods() )
-            .anyMatch( m -> m.isAnnotationPresent( JsonProperty.class ) );
-        stream( value.getMethods() )
-            .filter( m -> isEndpointParameter( m, 0, List.of( "has", "is", "get" ), requireJsonProperty ) )
-            .map( m -> analyseParameter( endpoint, m ) )
-            .forEach( p -> endpoint.getParameters().putIfAbsent( p.getName(), p ) );
+        analyseParams( endpoint, params.value() );
     }
 
-    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Method source )
+    private static void analyseParams( Api.Endpoint endpoint, Class<?> paramsObject )
     {
-        String name = getName( source );
-        Type type = source.getParameterCount() == 0
-            ? source.getGenericReturnType()
-            : source.getGenericParameterTypes()[0];
-        return new Api.Parameter( source, source.getDeclaringClass(), name, Api.Parameter.In.QUERY, false,
-            analyseInputSchema( endpoint, type ) );
+        getProperties( paramsObject )
+            .forEach( property -> endpoint.getParameters()
+                .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property ) ) );
+    }
+
+    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property )
+    {
+        return new Api.Parameter( (AnnotatedElement) property.getSource(), property.getSource().getDeclaringClass(),
+            property.getName(), Api.Parameter.In.QUERY, false,
+            analyseInputSchema( endpoint, property.getType() ) );
     }
 
     private static Api.Schema analyseInputSchema( Api.Endpoint endpoint, Type source )
@@ -353,7 +343,7 @@ final class ApiAnalyse
         return endpoint.getIn().getIn().getSchemas().computeIfAbsent( type, key -> {
             Api.Schema schema = new Api.Schema( type, null );
             resolving.put( type, schema );
-            if ( type.isEnum() || type.isInterface() )
+            if ( type.isEnum() || type == MultipartFile.class || type == Geometry.class )
                 return schema;
             if ( type.isArray() )
             {
@@ -368,34 +358,9 @@ final class ApiAnalyse
                 // no fields
                 return schema;
             }
-            Set<String> fieldsAdded = new HashSet<>();
-            for ( Method m : type.getMethods() )
-            {
-                if ( isSchemaField( m ) && !fieldsAdded.contains( getName( m ) ) )
-                {
-                    Type t = m.getParameterCount() == 1 ? m.getGenericParameterTypes()[0] : m.getGenericReturnType();
-                    Api.Schema ms = analyseSchema( endpoint, t, true, resolving );
-                    if ( ms != null )
-                    {
-                        String name = getName( m );
-                        fieldsAdded.add( name );
-                        schema.getFields().add( new Api.Field( name, ms, getFieldRequired( m ) ) );
-                    }
-                }
-            }
-            for ( Field f : type.getDeclaredFields() )
-            {
-                if ( isSchemaField( f ) && !fieldsAdded.contains( getName( f ) ) )
-                {
-                    Api.Schema fs = analyseSchema( endpoint, f.getGenericType(), true, resolving );
-                    if ( fs != null )
-                    {
-                        String name = getName( f );
-                        fieldsAdded.add( name );
-                        schema.getFields().add( new Api.Field( name, fs, getFieldRequired( f ) ) );
-                    }
-                }
-            }
+            getProperties( type ).forEach( property -> schema.getFields().add(
+                new Api.Field( property.getName(), property.getRequired(),
+                    analyseSchema( endpoint, property.getType(), true, resolving ) ) ) );
             return schema;
         } );
     }
@@ -430,16 +395,16 @@ final class ApiAnalyse
                         useRefs, resolving );
                 Api.Schema colSchema = new Api.Schema( Collection.class, source );
                 colSchema.getFields()
-                    .add( new Api.Field( "", analyseSchema( endpoint, typeArg0, useRefs, resolving ), true ) );
+                    .add( new Api.Field( "", true, analyseSchema( endpoint, typeArg0, useRefs, resolving ) ) );
                 return colSchema;
             }
             if ( Map.class.isAssignableFrom( rawType ) && rawType.isInterface() )
             {
                 Api.Schema mapSchema = new Api.Schema( Map.class, source );
-                mapSchema.getFields().add( new Api.Field( "key",
-                    analyseSchema( endpoint, typeArg0, false, resolving ), true ) );
-                mapSchema.getFields().add( new Api.Field( "value",
-                    analyseSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ), true ) );
+                mapSchema.getFields().add( new Api.Field( "key", true,
+                    analyseSchema( endpoint, typeArg0, false, resolving ) ) );
+                mapSchema.getFields().add( new Api.Field( "value", true,
+                    analyseSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ) ) );
                 return mapSchema;
             }
             if ( rawType == ResponseEntity.class )
@@ -464,31 +429,6 @@ final class ApiAnalyse
      * OpenAPI "business" helper methods
      */
 
-    private static Boolean getFieldRequired( AnnotatedElement source )
-    {
-        JsonProperty a = source.getAnnotation( JsonProperty.class );
-        if ( a.required() )
-            return true;
-        if ( !a.defaultValue().isEmpty() )
-            return false;
-        return null;
-    }
-
-    private static String getPropertyName( Method method )
-    {
-        String name = method.getName();
-        String prop = name.substring( name.startsWith( "is" ) ? 2 : 3 );
-        return Character.toLowerCase( prop.charAt( 0 ) ) + prop.substring( 1 );
-    }
-
-    private static <T extends Member & AnnotatedElement> String getName( T member )
-    {
-        String name = member instanceof Field ? member.getName() : getPropertyName( (Method) member );
-        JsonProperty property = member.getAnnotation( JsonProperty.class );
-        String customName = property == null ? "" : property.value();
-        return customName.isEmpty() ? name : customName;
-    }
-
     /**
      * @return the type referred to by the type found in an annotation.
      */
@@ -505,7 +445,7 @@ final class ApiAnalyse
         return type;
     }
 
-    private static <T extends AnnotatedElement & Member> boolean isSchemaField( T member )
+    private static <T extends AnnotatedElement & Member> boolean isProperty( T member )
     {
         return member.isAnnotationPresent( JsonProperty.class ) && !Modifier.isStatic( member.getModifiers() );
     }
@@ -527,7 +467,8 @@ final class ApiAnalyse
             || type.isEnum()
             || IdentifiableObject.class.isAssignableFrom( type )
             || source.getAnnotations().length > 0
-            || source.isAnnotationPresent( OpenApi.Ignore.class ) )
+            || source.isAnnotationPresent( OpenApi.Ignore.class )
+            || !(source.getParameterizedType() instanceof Class) )
             return false;
         return stream( type.getDeclaredConstructors() ).anyMatch( c -> c.getParameterCount() == 0 );
     }

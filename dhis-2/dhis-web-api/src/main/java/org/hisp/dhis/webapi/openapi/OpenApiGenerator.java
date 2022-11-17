@@ -35,6 +35,8 @@ import static java.util.stream.Collectors.toSet;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -56,14 +59,17 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -150,6 +156,8 @@ public class OpenApiGenerator extends JsonGenerator
 
         String format;
 
+        String pattern;
+
         Boolean nullable;
 
         Integer minLength;
@@ -172,6 +180,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     static
     {
+        addSimpleType( byte.class, schema -> schema.type( "integer" ).format( "int8" ).nullable( false ) );
         addSimpleType( int.class, schema -> schema.type( "integer" ).format( "int32" ).nullable( false ) );
         addSimpleType( long.class, schema -> schema.type( "integer" ).format( "int64" ).nullable( false ) );
         addSimpleType( float.class, schema -> schema.type( "number" ).format( "float" ).nullable( false ) );
@@ -187,6 +196,10 @@ public class OpenApiGenerator extends JsonGenerator
             schema -> schema.type( "string" ).nullable( true ).minLength( 1 ).maxLength( 1 ) );
         addSimpleType( String.class, schema -> schema.type( "string" ).nullable( true ) );
         addSimpleType( Date.class, schema -> schema.type( "string" ).format( "date-time" ).nullable( true ) );
+        addSimpleType( URI.class, schema -> schema.type( "string" ).format( "uri" ).nullable( true ) );
+        addSimpleType( URL.class, schema -> schema.type( "string" ).format( "url" ).nullable( true ) );
+        addSimpleType( UUID.class, schema -> schema.type( "string" ).format( "uuid" ).nullable( true )
+            .pattern( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" ) );
         addSimpleType( Locale.class, schema -> schema.type( "string" ).nullable( true ) );
         addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
         addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );
@@ -197,15 +210,19 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( Period.class, schema -> schema.type( "string" ) );
         addSimpleType( PeriodType.class, schema -> schema.type( "string" )
             .enums( stream( PeriodTypeEnum.values() ).map( PeriodTypeEnum::getName ).toArray( String[]::new ) ) );
+        addSimpleType( InclusionStrategy.class, schema -> schema.type( "string" )
+            .enums( stream( InclusionStrategy.Include.values() ).map( Enum::name ).toArray( String[]::new ) ) );
+        addSimpleType( MultipartFile.class, schema -> schema.type( "string" ).format( "binary" ) );
 
         addSimpleType( JsonNode.class, schema -> schema.type( "object" ) );
         addSimpleType( ObjectNode.class, schema -> schema.type( "object" ) );
         addSimpleType( ArrayNode.class, schema -> schema.type( "array" ) );
         addSimpleType( RootNode.class, schema -> schema.type( "object" ) );
         addSimpleType( JsonPointer.class, schema -> schema.type( "string" ) );
-        // not quite
+
         addSimpleType( Geometry.class, schema -> schema.type( "object" ) );
         addSimpleType( WebMessageResponse.class, schema -> schema.type( "object" ) );
+        addSimpleType( JobParameters.class, schema -> schema.type( "object" ) );
     }
 
     public static String generate( Api api )
@@ -425,7 +442,7 @@ public class OpenApiGenerator extends JsonGenerator
         if ( type == Api.Unknown.class )
         {
             addStringMember( "description",
-                "The exact type is unknown, Java type was: " + schema.getHint().getTypeName() );
+                "The exact type is unknown.  \\n(Java type was: `" + schema.getHint().getTypeName() + "`)" );
             return;
         }
         if ( type.isEnum() )
@@ -462,8 +479,13 @@ public class OpenApiGenerator extends JsonGenerator
         }
         else
         {
-            System.out.println( schema + " " + schema.getSource() + " " + schema.getHint() );
-            log.warn( schema.toString() );
+            addStringMember( "description", "The actual type is unknown.  \\n(Java type was: `" + type + "`)" );
+            if ( type != Object.class )
+            {
+                System.out.println( schema + " " + schema.getSource() + " " + schema.getHint() + " "
+                    + System.identityHashCode( schema ) );
+                log.warn( schema.toString() );
+            }
         }
     }
 
@@ -474,6 +496,7 @@ public class OpenApiGenerator extends JsonGenerator
         // addBooleanMember( "nullable", simpleType.getNullable() );
         addNumberMember( "minLength", simpleType.getMinLength() );
         addNumberMember( "maxLength", simpleType.getMaxLength() );
+        addStringMember( "pattern", simpleType.getPattern() );
         if ( simpleType.getEnums() != null )
         {
             addArrayMember( "enum", List.of( simpleType.getEnums() ) );
