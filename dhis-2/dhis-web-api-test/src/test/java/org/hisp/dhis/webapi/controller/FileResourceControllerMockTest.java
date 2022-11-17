@@ -76,7 +76,7 @@ class FileResourceControllerMockTest
         controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
             currentUserService.getCurrentUser() );
 
-        verify( fileResourceService ).copyFileResourceContent( any(), any() );
+        verify( fileResourceService ).copyFileResourceContent( any() );
     }
 
     @Test
