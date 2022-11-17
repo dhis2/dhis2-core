@@ -114,6 +114,9 @@ public class TrackerImportController
             .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
         trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -136,6 +139,9 @@ public class TrackerImportController
             .trackerBundleReportMode( TrackerBundleReportMode.getTrackerBundleReportMode( reportMode ) )
             .uid( CodeGenerator.generateUid() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
         TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
@@ -169,6 +175,9 @@ public class TrackerImportController
             .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
+
         trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -200,6 +209,8 @@ public class TrackerImportController
             .trackerBundleReportMode( TrackerBundleReportMode.getTrackerBundleReportMode( reportMode ) )
             .uid( CodeGenerator.generateUid() )
             .build();
+
+        TrackerImportParamsValidator.validateRequest( trackerImportRequest );
 
         TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
 

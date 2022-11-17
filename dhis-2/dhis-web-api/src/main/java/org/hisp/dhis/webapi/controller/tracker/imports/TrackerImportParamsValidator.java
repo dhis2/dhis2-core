@@ -25,41 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ID_SCHEME_KEY;
 
-/**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
- * using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
+
+import com.google.common.base.Enums;
+
+public class TrackerImportParamsValidator
 {
-
-    @Test
-    void testSyncPostJsonTrackerInvalidReportMode()
+    public static void validateRequest( TrackerImportRequest request )
+        throws InvalidEnumValueException
     {
-        assertWebMessage( "Bad Request", 400, "ERROR", "400 Value INVALID is not a valid report mode",
-            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
+        Map<String, List<String>> parameters = request.getContextService().getParameterValuesMap();
+
+        validateEnum( TrackerIdScheme.class, parameters, ID_SCHEME_KEY );
     }
 
-    @Test
-    void testSyncPostJsonTrackerInvalidIdScheme()
+    private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
+        TrackerImportParamKey trackerImportParamKey )
     {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Allowed values are: [UID, CODE, NAME, ATTRIBUTE]",
-            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
+            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
+        {
+            return;
+        }
 
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        String value = String.valueOf( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+
+        Enums.getIfPresent( enumKlass, value ).toJavaUtil().orElseThrow(
+            () -> new InvalidEnumValueException(
+                value, trackerImportParamKey.getKey(),
+                Arrays.stream( enumKlass.getEnumConstants() ).map( Objects::toString )
+                    .collect( Collectors.toList() ) ) );
     }
 }

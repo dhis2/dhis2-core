@@ -25,41 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import lombok.Getter;
 
-/**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
- * using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+enum TrackerImportParamKey
 {
+    VALIDATION_MODE_KEY( "validationMode" ),
+    IMPORT_MODE_KEY( "importMode" ),
+    IMPORT_STRATEGY_KEY( "importStrategy" ),
+    ATOMIC_MODE_KEY( "atomicMode" ),
+    FLUSH_MODE_KEY( "flushMode" ),
+    SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
+    SKIP_SIDE_EFFECTS( "skipSideEffects" ),
+    ID_SCHEME_KEY( "idScheme" ),
+    ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
+    PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
+    PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
+    DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
+    CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
+    CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
 
-    @Test
-    void testSyncPostJsonTrackerInvalidReportMode()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR", "400 Value INVALID is not a valid report mode",
-            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
+    @Getter
+    private final String key;
 
-    @Test
-    void testSyncPostJsonTrackerInvalidIdScheme()
+    TrackerImportParamKey( String key )
     {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Allowed values are: [UID, CODE, NAME, ATTRIBUTE]",
-            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
-
-    @Test
-    void testAsyncPostJsonTracker()
-    {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        this.key = key;
     }
 }

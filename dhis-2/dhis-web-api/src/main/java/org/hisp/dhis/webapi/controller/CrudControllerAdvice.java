@@ -37,11 +37,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.function.Function;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -68,6 +70,7 @@ import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
+import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -129,6 +132,15 @@ public class CrudControllerAdvice
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( InvalidEnumValueException.class )
+    @ResponseBody
+    public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
+    {
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Allowed values are: [{2}]",
+            ex.getWrongValue(), ex.getField(), StringUtils.join( ex.getAllowedValues(), ", " ) );
+        return badRequest( errorMessage );
     }
 
     @ExceptionHandler( Dhis2ClientException.class )

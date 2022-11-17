@@ -33,25 +33,23 @@ import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_COMBO_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ORG_UNIT_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
-import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.CATEGORY_OPTION_COMBO_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.CATEGORY_OPTION_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ORG_UNIT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.PROGRAM_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
 import java.util.List;
 import java.util.Map;
-
-import lombok.Getter;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
@@ -202,31 +200,5 @@ public class TrackerImportParamsBuilder
             parameterKey, defaultIdSchemeParam.getIdScheme() );
 
         return TrackerIdSchemeParam.of( trackerIdScheme, getAttributeUidOrNull( parameters, parameterKey ) );
-    }
-
-    enum TrackerImportParamKey
-    {
-        VALIDATION_MODE_KEY( "validationMode" ),
-        IMPORT_MODE_KEY( "importMode" ),
-        IMPORT_STRATEGY_KEY( "importStrategy" ),
-        ATOMIC_MODE_KEY( "atomicMode" ),
-        FLUSH_MODE_KEY( "flushMode" ),
-        SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
-        SKIP_SIDE_EFFECTS( "skipSideEffects" ),
-        ID_SCHEME_KEY( "idScheme" ),
-        ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
-        PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
-        PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
-        DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
-        CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
-        CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
-
-        @Getter
-        private final String key;
-
-        TrackerImportParamKey( String key )
-        {
-            this.key = key;
-        }
     }
 }

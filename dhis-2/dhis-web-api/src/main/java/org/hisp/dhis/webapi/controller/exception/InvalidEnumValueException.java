@@ -25,41 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.exception;
 
-import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
-/**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController}
- * using (mocked) REST requests.
- *
- * @author Jan Bernitt
- */
-class TrackerImportControllerTest extends DhisControllerConvenienceTest
+import lombok.Getter;
+
+@Getter
+public class InvalidEnumValueException extends RuntimeException
 {
 
-    @Test
-    void testSyncPostJsonTrackerInvalidReportMode()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR", "400 Value INVALID is not a valid report mode",
-            POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
+    private final String wrongValue;
 
-    @Test
-    void testSyncPostJsonTrackerInvalidIdScheme()
-    {
-        assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Allowed values are: [UID, CODE, NAME, ATTRIBUTE]",
-            POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
-    }
+    private final String field;
 
-    @Test
-    void testAsyncPostJsonTracker()
+    private final List<String> allowedValues;
+
+    public InvalidEnumValueException( String wrongValue, String field, List<String> allowedValues )
     {
-        assertWebMessage( "OK", 200, "OK", "Tracker job added",
-            POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );
+        super();
+        this.wrongValue = wrongValue;
+        this.field = field;
+        this.allowedValues = allowedValues;
     }
 }
