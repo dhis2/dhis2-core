@@ -481,6 +481,11 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.isDeleted(), is( false ) );
         assertThat( event.getStoredBy(), is( "admin_test" ) );
         assertThat( event.getFollowup(), is( nullValue() ) );
+        assertThat( event.getAssignedUserFirstName(), is( FIRST_NAME + TEST_USER ) );
+        assertThat( event.getAssignedUserSurname(), is( SURNAME + TEST_USER ) );
+        assertThat( event.getAssignedUserUsername(), is( TEST_USER ) );
+        assertThat( event.getAssignedUserDisplayName(),
+            is( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() ) );
         // Dates
         checkDate( currentTime, event.getCreated(), 500L );
         checkDate( currentTime, event.getLastUpdated(), 500L );
