@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 
@@ -61,6 +62,12 @@ public class TrackerImportParamsValidator
     {
         if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
             || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
+        {
+            return;
+        }
+
+        if ( TrackerIdScheme.class.equals( enumKlass )
+            && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
         {
             return;
         }

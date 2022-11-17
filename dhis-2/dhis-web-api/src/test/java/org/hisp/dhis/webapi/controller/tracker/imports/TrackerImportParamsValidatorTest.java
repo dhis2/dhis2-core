@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
@@ -62,10 +61,49 @@ class TrackerImportParamsValidatorTest
     }
 
     @Test
-    void testRequestIsValidWhenIdSchemeIsValid()
+    void testRequestIsValidWhenIdSchemeIsAttribute()
     {
         Mockito.when( contextService.getParameterValuesMap() )
-            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( TrackerIdScheme.ATTRIBUTE.name() ) ) );
+            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( "ATTRIBUTE:f3JrwRTeSSz" ) ) );
+
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
+            .contextService( contextService )
+            .build();
+
+        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
+    }
+
+    @Test
+    void testRequestIsValidWhenIdSchemeIsUid()
+    {
+        Mockito.when( contextService.getParameterValuesMap() )
+            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( "UID" ) ) );
+
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
+            .contextService( contextService )
+            .build();
+
+        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
+    }
+
+    @Test
+    void testRequestIsValidWhenIdSchemeIsCode()
+    {
+        Mockito.when( contextService.getParameterValuesMap() )
+            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( "CODE" ) ) );
+
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
+            .contextService( contextService )
+            .build();
+
+        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
+    }
+
+    @Test
+    void testRequestIsValidWhenIdSchemeIsName()
+    {
+        Mockito.when( contextService.getParameterValuesMap() )
+            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( "NAME" ) ) );
 
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
             .contextService( contextService )
