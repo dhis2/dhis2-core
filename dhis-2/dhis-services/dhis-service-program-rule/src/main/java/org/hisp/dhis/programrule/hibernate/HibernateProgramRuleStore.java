@@ -66,7 +66,7 @@ public class HibernateProgramRuleStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+            .addPredicate( root -> builder.equal( root.get( "program" ).get( "uid" ), program.getUid() ) ) );
     }
 
     @Override
