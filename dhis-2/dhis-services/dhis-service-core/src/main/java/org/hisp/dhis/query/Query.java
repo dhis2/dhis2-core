@@ -97,6 +97,7 @@ public class Query extends Criteria
         clone.addOrders( query.getOrders() );
         clone.setFirstResult( query.getFirstResult() );
         clone.setMaxResults( query.getMaxResults() );
+        clone.setIgnoreSharingSettings( query.isIgnoreSharingSettings() );
         clone.add( query.getCriterions() );
         clone.setObjects( query.getObjects() );
 

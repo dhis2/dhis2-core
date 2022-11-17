@@ -257,6 +257,8 @@ public class DefaultQueryPlanner implements QueryPlanner
             query.clearOrders();
         }
 
+        pQuery.setIgnoreSharingSettings( query.isIgnoreSharingSettings() );
+
         return pQuery;
     }
 

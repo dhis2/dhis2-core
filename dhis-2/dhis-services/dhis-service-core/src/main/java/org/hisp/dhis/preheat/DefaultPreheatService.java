@@ -28,9 +28,12 @@
 package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.containsAll;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -443,7 +446,7 @@ public class DefaultPreheatService implements PreheatService
     }
 
     /**
-     * Extracts and returns all uids from all dashboard items found in the given
+     * Collects and returns all uids from all dashboard items found in the given
      * "objects".
      *
      * @param objects the map that contains lists of {@link IdentifiableObject}
@@ -459,25 +462,14 @@ public class DefaultPreheatService implements PreheatService
 
         Set<String> itemsUid = new HashSet<>();
 
-        for ( Map.Entry<Class<? extends IdentifiableObject>, List<IdentifiableObject>> entry : objects.entrySet() )
-        {
-            List<IdentifiableObject> identifiableObjects = entry.getValue();
-            Class<? extends IdentifiableObject> type = entry.getKey();
-
-            if ( type.isAssignableFrom( Dashboard.class ) )
-            {
-                for ( IdentifiableObject obj : identifiableObjects )
-                {
-                    itemsUid.addAll( collectDashboardItemsUid( (Dashboard) obj ) );
-                }
-            }
-        }
+        defaultIfNull( objects.get( Dashboard.class ), emptyList() )
+            .forEach( obj -> itemsUid.addAll( collectDashboardItemsUid( (Dashboard) obj ) ) );
 
         return itemsUid;
     }
 
     /**
-     * Extracts and returns all uids from all dashboard items found in the given
+     * Collects and returns all uids from all dashboard items found in the given
      * "objects".
      *
      * @param dashboard the {@link Dashboard}
@@ -491,10 +483,46 @@ public class DefaultPreheatService implements PreheatService
         {
             for ( DashboardItem item : dashboard.getItems() )
             {
-                if ( item != null && item.getEmbeddedItem() != null )
-                {
-                    itemsUid.add( item.getEmbeddedItem().getUid() );
-                }
+                itemsUid.addAll( extractAllDashboardItemsUids( item ) );
+            }
+        }
+
+        return itemsUid;
+    }
+
+    /**
+     * Extracts all uids from all objects associated with the given item.
+     *
+     * @param item the {@link DashboardItem}
+     * @return the set of dashboard items uid
+     */
+    private Set<String> extractAllDashboardItemsUids( DashboardItem item )
+    {
+        Set<String> itemsUid = new HashSet<>();
+
+        if ( item != null )
+        {
+            if ( item.getEmbeddedItem() != null )
+            {
+                itemsUid.add( item.getEmbeddedItem().getUid() );
+            }
+
+            if ( isNotEmpty( item.getResources() ) )
+            {
+                itemsUid.addAll(
+                    item.getResources().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
+            }
+
+            if ( isNotEmpty( item.getReports() ) )
+            {
+                itemsUid
+                    .addAll( item.getReports().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
+            }
+
+            if ( isNotEmpty( item.getUsers() ) )
+            {
+                itemsUid
+                    .addAll( item.getUsers().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
             }
         }
 
