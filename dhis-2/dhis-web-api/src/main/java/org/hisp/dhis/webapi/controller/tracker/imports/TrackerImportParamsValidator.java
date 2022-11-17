@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -66,10 +67,15 @@ public class TrackerImportParamsValidator
 
         String value = String.valueOf( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
 
-        Enums.getIfPresent( enumKlass, value ).toJavaUtil().orElseThrow(
-            () -> new InvalidEnumValueException(
-                value, trackerImportParamKey.getKey(),
-                Arrays.stream( enumKlass.getEnumConstants() ).map( Objects::toString )
-                    .collect( Collectors.toList() ) ) );
+        Optional<T> optionalEnumValue = Enums.getIfPresent( enumKlass, value ).toJavaUtil();
+        if ( optionalEnumValue.isPresent() )
+        {
+            return;
+        }
+
+        throw new InvalidEnumValueException(
+            value, trackerImportParamKey.getKey(),
+            Arrays.stream( enumKlass.getEnumConstants() ).map( Objects::toString )
+                .collect( Collectors.toList() ) );
     }
 }
