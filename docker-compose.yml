@@ -4,9 +4,18 @@ services:
   web:
     image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
     ports:
-      - "8080:8080"
+      - 127.0.0.1:8080:8080 # DHIS2
+      - 127.0.0.1:8081:8081 # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
+      - 127.0.0.1:9010:9010 # JMX port (for example for VisualVM)
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
+              -Dcom.sun.management.jmxremote \
+              -Dcom.sun.management.jmxremote.port=9010 \
+              -Dcom.sun.management.jmxremote.local.only=false \
+              -Dcom.sun.management.jmxremote.authenticate=false \
+              -Dcom.sun.management.jmxremote.ssl=false"
     depends_on:
       db:
         condition: service_healthy
