@@ -25,20 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-/**
- * @author Lars Helge Overland
- */
-public enum DataDimensionItemType
+import java.util.List;
+import java.util.function.Consumer;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook<ProgramRule>
 {
-    INDICATOR,
-    DATA_ELEMENT,
-    DATA_ELEMENT_OPERAND,
-    REPORTING_RATE,
-    PROGRAM_INDICATOR,
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    EXPRESSION_DIMENSION_ITEM,
-    VALIDATION_RULE
+    private final ProgramRuleService programRuleService;
+
+    @Override
+    public void validate( ProgramRule programRule, ObjectBundle bundle, Consumer<ErrorReport> addReports )
+    {
+        Program program = programRule.getProgram();
+
+        if ( program == null )
+        {
+            return;
+        }
+
+        program = bundle.getPreheat().get( bundle.getPreheatIdentifier(), program );
+
+        List<ProgramRule> rules = programRuleService.getProgramRule( program );
+        for ( ProgramRule rule : rules )
+        {
+            if ( !rule.getUid().equalsIgnoreCase( programRule.getUid() )
+                && rule.getName().equalsIgnoreCase( programRule.getName() ) )
+            {
+                addReports.accept(
+                    new ErrorReport( ProgramRule.class, ErrorCode.E4057, programRule.getName(), program.getName() ) );
+                break;
+            }
+        }
+    }
 }
