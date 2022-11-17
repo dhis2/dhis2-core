@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -53,7 +54,8 @@ public class ServiceConfig
     private PBEStringEncryptor pbeStringEncryptor;
 
     @Bean( "org.hisp.dhis.setting.SystemSettingManager" )
-    public DefaultSystemSettingManager defaultSystemSettingManager( CacheProvider cacheProvider )
+    public DefaultSystemSettingManager defaultSystemSettingManager( CacheProvider cacheProvider,
+        TransactionTemplate transactionTemplate )
     {
 
         List<String> flags = new ArrayList<>();
@@ -356,6 +358,7 @@ public class ServiceConfig
         flags.add( "zimbabwe" );
         flags.add( "who" );
 
-        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheProvider, flags );
+        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheProvider, flags,
+            transactionTemplate );
     }
 }
