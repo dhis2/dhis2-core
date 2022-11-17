@@ -67,7 +67,7 @@ class TrackerReportUtils
         }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {
-            return identifier.getIdAndName( (IdentifiableObject) argument );
+            return identifier.getIdentifier( (IdentifiableObject) argument );
         }
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
@@ -79,18 +79,15 @@ class TrackerReportUtils
         }
         else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
         {
-            Enrollment enrollment = (Enrollment) argument;
-            return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
+            return ((Enrollment) argument).getEnrollment();
         }
         else if ( Event.class.isAssignableFrom( argument.getClass() ) )
         {
-            Event event = (Event) argument;
-            return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
+            return ((Event) argument).getEvent();
         }
         else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
         {
-            TrackedEntity entity = (TrackedEntity) argument;
-            return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
+            return ((TrackedEntity) argument).getTrackedEntity();
         }
 
         return StringUtils.EMPTY;
