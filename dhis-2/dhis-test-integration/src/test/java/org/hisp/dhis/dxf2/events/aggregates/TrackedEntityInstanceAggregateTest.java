@@ -33,10 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -481,11 +478,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.isDeleted(), is( false ) );
         assertThat( event.getStoredBy(), is( "admin_test" ) );
         assertThat( event.getFollowup(), is( nullValue() ) );
-        assertThat( event.getAssignedUserFirstName(), is( FIRST_NAME + TEST_USER ) );
-        assertThat( event.getAssignedUserSurname(), is( SURNAME + TEST_USER ) );
-        assertThat( event.getAssignedUserUsername(), is( TEST_USER ) );
-        assertThat( event.getAssignedUserDisplayName(),
-            is( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() ) );
+        assertUserProperties( event );
         // Dates
         checkDate( currentTime, event.getCreated(), 500L );
         checkDate( currentTime, event.getLastUpdated(), 500L );
@@ -495,6 +488,15 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         checkDate( currentTime, event.getLastUpdatedAtClient(), 500L );
         checkDate( currentTime, event.getCompletedDate(), 500L );
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
+    }
+
+    private void assertUserProperties( Event event )
+    {
+        assertThat( event.getAssignedUserFirstName(), is( FIRST_NAME + TEST_USER ) );
+        assertThat( event.getAssignedUserSurname(), is( SURNAME + TEST_USER ) );
+        assertThat( event.getAssignedUserUsername(), is( TEST_USER ) );
+        assertThat( event.getAssignedUserDisplayName(),
+            is( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() ) );
     }
 
     @Test
