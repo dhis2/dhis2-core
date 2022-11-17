@@ -25,69 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Date;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Lars Helge Overland
+ * CRUD Controller for ExpressionDimensionItem entity
  */
-public class ConfigurablePeriod
-    extends Period
+@Controller
+@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
 {
-    private String value;
-
-    public ConfigurablePeriod( String value )
-    {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
-    }
-
-    @Override
-    public String getIsoDate()
-    {
-        return value;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null )
-        {
-            return false;
-        }
-
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
-        return value.equals( other.getIsoDate() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + value + "]";
-    }
 }
