@@ -183,7 +183,7 @@
     <commons-text.version>1.10.0</commons-text.version>
     <commons-fileupload.version>1.4</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <commons-validator.version>1.6</commons-validator.version>
+    <commons-validator.version>1.7</commons-validator.version>
     <commons-io.version>2.7</commons-io.version>
     <commons-codec.version>1.14</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
