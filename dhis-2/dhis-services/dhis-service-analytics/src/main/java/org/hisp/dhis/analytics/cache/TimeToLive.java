@@ -46,7 +46,6 @@ public class TimeToLive
     implements
     Computable
 {
-
     static final long DEFAULT_MULTIPLIER = 1;
 
     private final Date dateBeforeToday;
@@ -58,7 +57,9 @@ public class TimeToLive
         notNull( dateBeforeToday, "Param dateBeforeToday must not be null" );
         isTrue( ttlFactor > 0, "Param ttlFactor must be greater than zero" );
 
-        this.dateBeforeToday = dateBeforeToday;
+        // This ensures we always work with java.util.Date type, avoiding issues
+        // with java.sql.Date.
+        this.dateBeforeToday = new Date( dateBeforeToday.getTime() );
         this.ttlFactor = ttlFactor;
     }
 
