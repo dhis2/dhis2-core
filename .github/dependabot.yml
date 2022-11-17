@@ -23,9 +23,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
@@ -54,11 +51,66 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "java"
     ignore:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
     target-branch: "2.39"
+  # 2.38
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    target-branch: "2.38"
+  - package-ecosystem: "maven"
+    directory: "/dhis-2"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
+        versions:
+          - ">= 11.0"
+    target-branch: "2.38"
+  # 2.37
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    target-branch: "2.37"
+  - package-ecosystem: "maven"
+    directory: "/dhis-2"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    ignore:
+      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
+        versions:
+          - ">= 11.0"
+    target-branch: "2.37"
