@@ -129,14 +129,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .expiredUrl( "/dhis-web-commons-security/logout.action" )
                 .sessionRegistry( sessionRegistry() );
         }
-
-        @Bean
-        public DefaultCookieSerializer defaultCookieSerializer()
-        {
-            DefaultCookieSerializer defaultCookieSerializer = new DefaultCookieSerializer();
-            defaultCookieSerializer.setCookieName( "mySessionId" );
-            return defaultCookieSerializer;
-        }
     }
 
     /**
