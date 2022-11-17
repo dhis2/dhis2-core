@@ -71,6 +71,9 @@ import com.google.common.base.Enums;
  */
 public class TrackerImportParamsBuilder
 {
+    private TrackerImportParamsBuilder()
+    {
+    }
 
     public static TrackerImportParams build( Map<String, List<String>> parameters )
     {

@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -103,6 +104,7 @@ public class TrackerImportController
     public WebMessage asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response,
         @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
+        throws InvalidEnumValueException
     {
 
         String jobId = CodeGenerator.generateUid();
@@ -130,6 +132,7 @@ public class TrackerImportController
     public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
+        throws InvalidEnumValueException
     {
 
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
@@ -157,7 +160,8 @@ public class TrackerImportController
         @CurrentUser User currentUser,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst )
         throws IOException,
-        ParseException
+        ParseException,
+        InvalidEnumValueException
     {
         String jobId = CodeGenerator.generateUid();
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
@@ -194,7 +198,8 @@ public class TrackerImportController
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser )
         throws IOException,
-        ParseException
+        ParseException,
+        InvalidEnumValueException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 

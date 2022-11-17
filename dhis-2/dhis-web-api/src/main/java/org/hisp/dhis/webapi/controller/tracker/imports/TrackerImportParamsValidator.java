@@ -42,6 +42,10 @@ import com.google.common.base.Enums;
 
 public class TrackerImportParamsValidator
 {
+    private TrackerImportParamsValidator()
+    {
+    }
+
     public static void validateRequest( TrackerImportRequest request )
         throws InvalidEnumValueException
     {
@@ -52,6 +56,7 @@ public class TrackerImportParamsValidator
 
     private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
         TrackerImportParamKey trackerImportParamKey )
+        throws InvalidEnumValueException
     {
         if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
             || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )

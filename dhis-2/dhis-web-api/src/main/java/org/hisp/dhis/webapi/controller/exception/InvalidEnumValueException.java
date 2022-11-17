@@ -32,7 +32,7 @@ import java.util.List;
 import lombok.Getter;
 
 @Getter
-public class InvalidEnumValueException extends RuntimeException
+public class InvalidEnumValueException extends Exception
 {
 
     private final String wrongValue;
