@@ -120,6 +120,7 @@ public class DefaultSchemaService
         register( new EventReportSchemaDescriptor() );
         register( new EventVisualizationSchemaDescriptor() );
         register( new ExpressionSchemaDescriptor() );
+        register( new ExpressionDimensionItemSchemaDescriptor() );
         register( new FileResourceSchemaDescriptor() );
         register( new IconSchemaDescriptor() );
         register( new IndicatorGroupSchemaDescriptor() );

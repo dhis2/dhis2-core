@@ -25,56 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Date;
+import java.util.List;
+import java.util.function.Consumer;
 
-/**
- * @author Lars Helge Overland
- */
-public class ConfigurablePeriod extends Period
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class ProgramRuleObjectBundleHook extends AbstractObjectBundleHook<ProgramRule>
 {
-    private final String value;
-
-    public ConfigurablePeriod( String value )
-    {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
-    }
+    private final ProgramRuleService programRuleService;
 
     @Override
-    public String getIsoDate()
+    public void validate( ProgramRule programRule, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        return value;
-    }
+        Program program = programRule.getProgram();
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
+        if ( program == null )
+        {
+            return;
+        }
 
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
-    }
+        program = bundle.getPreheat().get( bundle.getPreheatIdentifier(), program );
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || obj instanceof Period && objectEquals( (Period) obj );
-    }
-
-    private boolean objectEquals( Period other )
-    {
-        return value.equals( other.getIsoDate() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + value + "]";
+        List<ProgramRule> rules = programRuleService.getProgramRule( program );
+        for ( ProgramRule rule : rules )
+        {
+            if ( !rule.getUid().equalsIgnoreCase( programRule.getUid() )
+                && rule.getName().equalsIgnoreCase( programRule.getName() ) )
+            {
+                addReports.accept(
+                    new ErrorReport( ProgramRule.class, ErrorCode.E4057, programRule.getName(), program.getName() ) );
+                break;
+            }
+        }
     }
 }

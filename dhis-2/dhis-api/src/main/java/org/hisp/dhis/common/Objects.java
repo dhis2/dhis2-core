@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -89,8 +90,8 @@ public enum Objects
     PROGRAMSTAGEINSTANCE( "programStageInstance", ProgramStageInstance.class ),
     PROGRAMINSTANCE( "programInstance", ProgramInstance.class ),
     TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntityInstance.class ),
-    TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class );
-
+    TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
+    EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );
     private String value;
 
     private Class<?> clazz;
