@@ -176,6 +176,10 @@ public class DefaultSystemService
 
         setSystemMetadataVersionInfo( info );
 
+
+        info.setVersion( "2.40-SNAPSHOT" );
+        info.setRevision( "7dda3c9" );
+
         return info;
     }
 
