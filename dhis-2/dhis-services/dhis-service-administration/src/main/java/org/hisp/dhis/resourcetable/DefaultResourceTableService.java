@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static java.time.LocalDate.now;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -166,14 +168,14 @@ public class DefaultResourceTableService
     }
 
     @Override
+    @Transactional
     public void generateDatePeriodTable()
     {
         resourceTableStore
-            .generateResourceTable( new DatePeriodResourceTable( resourceTableStore.getAvailableDataYears() ) );
+            .generateResourceTable( new DatePeriodResourceTable( generateDataYears() ) );
     }
 
     @Override
-    @Transactional
     public void generatePeriodTable()
     {
         resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
@@ -243,9 +245,27 @@ public class DefaultResourceTableService
     }
 
     @Override
-    @Transactional
-    public List<Integer> getAvailableDataYears()
+    public List<Integer> generateDataYears()
     {
-        return resourceTableStore.getAvailableDataYears();
+        List<Integer> availableDataYears = resourceTableStore.getAvailableDataYears();
+
+        if ( availableDataYears.isEmpty() )
+        {
+            availableDataYears = new ArrayList<>();
+            availableDataYears.add( now().getYear() );
+        }
+
+        int firstYear = availableDataYears.get( 0 );
+        int lastYear = availableDataYears.get( availableDataYears.size() - 1 );
+
+        for ( int i = 0; i < 5; i++ )
+        {
+            availableDataYears.add( --firstYear );
+            availableDataYears.add( ++lastYear );
+        }
+
+        Collections.sort( availableDataYears );
+
+        return availableDataYears;
     }
 }

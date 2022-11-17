@@ -121,7 +121,8 @@ public interface ResourceTableService
 
     /**
      * Returns all data years available in the system (both from aggregate and
-     * tracker).
+     * tracker) with 5 years previous and future additions.
+     * [extra_5_previous_years, data_years, extra_5_future_year]
      */
-    List<Integer> getAvailableDataYears();
+    List<Integer> generateDataYears();
 }

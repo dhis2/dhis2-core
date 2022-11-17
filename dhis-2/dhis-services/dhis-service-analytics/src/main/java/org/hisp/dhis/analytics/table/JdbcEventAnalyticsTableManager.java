@@ -179,7 +179,7 @@ public class JdbcEventAnalyticsTableManager
         log.info( format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
             databaseInfo.isSpatialSupport() ) );
 
-        List<Integer> availableDataYears = resourceTableService.getAvailableDataYears();
+        List<Integer> availableDataYears = resourceTableService.generateDataYears();
 
         return params.isLatestUpdate() ? getLatestAnalyticsTables( params )
             : getRegularAnalyticsTables( params, availableDataYears );
@@ -360,7 +360,7 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        List<Integer> availableDataYears = resourceTableService.getAvailableDataYears();
+        List<Integer> availableDataYears = resourceTableService.generateDataYears();
         Integer firstDataYear = availableDataYears.get( 0 );
         Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
 

@@ -28,9 +28,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.time.LocalDate.now;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -229,13 +227,6 @@ public class JdbcResourceTableStore
             "and psi.deleted is false ) " +
             " order by datayear asc";
 
-        List<Integer> dataYears = jdbcTemplate.queryForList( sql, Integer.class );
-
-        if ( dataYears.isEmpty() )
-        {
-            dataYears = new ArrayList<>( now().getYear() );
-        }
-
-        return dataYears;
+        return jdbcTemplate.queryForList( sql, Integer.class );
     }
 }
