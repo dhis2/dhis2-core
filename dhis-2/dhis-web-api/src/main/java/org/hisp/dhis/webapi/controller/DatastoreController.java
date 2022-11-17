@@ -45,8 +45,8 @@ import lombok.AllArgsConstructor;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreParams;
 import org.hisp.dhis.datastore.DatastoreQuery;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -118,14 +118,14 @@ public class DatastoreController
     public void getEntries( @PathVariable String namespace,
         @RequestParam( required = true ) String fields,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
-        HttpServletRequest request, HttpServletResponse response )
+        DatastoreParams params, HttpServletResponse response )
         throws Exception
     {
         DatastoreQuery query = service.plan( DatastoreQuery.builder()
             .namespace( namespace )
             .fields( parseFields( fields ) )
             .includeAll( includeAll )
-            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) ) );
+            .build().with( params ) );
 
         response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );

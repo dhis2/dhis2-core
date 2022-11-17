@@ -91,6 +91,11 @@ public @interface OpenApi
     /**
      * Used to add a single named parameter or request body parameter that is
      * not present (or ignored) in the method signature.
+     *
+     * Can also be used on a parameter to explicitly mark a parameter that
+     * should be considered and to override or extend information about the
+     * parameter. If this annotation is present on a method parameter no other
+     * annotation will be considered.
      */
     @Inherited
     @Target( { ElementType.METHOD, ElementType.PARAMETER } )
@@ -119,9 +124,12 @@ public @interface OpenApi
     /**
      * Used to add a parameter object that is not present (or ignored) in the
      * method signature. Each property of the object becomes a parameter.
+     *
+     * Can also be used on a type to explicitly mark it as a parameter object
+     * type that should be considered.
      */
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE } )
     @Retention( RetentionPolicy.RUNTIME )
     @Repeatable( ParamsRepeat.class )
     @interface Params

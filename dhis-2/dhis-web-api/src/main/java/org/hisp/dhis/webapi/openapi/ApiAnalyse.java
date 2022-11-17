@@ -475,6 +475,10 @@ final class ApiAnalyse
     private static boolean isParams( Parameter source )
     {
         Class<?> type = source.getType();
+        if ( type.isAnnotationPresent( OpenApi.Params.class ) )
+        {
+            return true;
+        }
         if ( type.isInterface()
             || type.isEnum()
             || IdentifiableObject.class.isAssignableFrom( type )
