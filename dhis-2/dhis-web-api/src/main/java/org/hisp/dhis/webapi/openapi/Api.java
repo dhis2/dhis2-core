@@ -352,6 +352,12 @@ class Api
                 .map( Api.Field::getName )
                 .collect( toList() );
         }
+
+        Api.Schema add( Field f )
+        {
+            fields.add( f );
+            return this;
+        }
     }
 
     public static final Schema STRING = new Schema( String.class, null );

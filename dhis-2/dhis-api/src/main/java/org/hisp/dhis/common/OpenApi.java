@@ -93,7 +93,7 @@ public @interface OpenApi
      * not present (or ignored) in the method signature.
      */
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.PARAMETER } )
     @Retention( RetentionPolicy.RUNTIME )
     @Repeatable( ParamRepeat.class )
     @interface Param
@@ -111,19 +111,9 @@ public @interface OpenApi
          */
         Class<?> value();
 
-        /**
-         * @return set of property names to include from the {@link #value()}
-         *         type, all other properties are implicitly excluded.
-         */
-        String[] includes() default {};
-
-        /**
-         * @return set of property names to exclude from the {@link #value()}
-         *         type
-         */
-        String[] excludes() default {};
-
         boolean required() default false;
+
+        String wrapper() default "";
     }
 
     /**
@@ -137,18 +127,6 @@ public @interface OpenApi
     @interface Params
     {
         Class<?> value();
-
-        /**
-         * @return set of property names to include from the {@link #value()}
-         *         type, all other properties are implicitly excluded.
-         */
-        String[] includes() default {};
-
-        /**
-         * @return set of property names to exclude from the {@link #value()}
-         *         type
-         */
-        String[] excludes() default {};
     }
 
     /**

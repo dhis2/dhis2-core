@@ -258,7 +258,16 @@ final class ApiAnalyse
                     key -> new Api.Parameter( p, null, key, Api.Parameter.In.PATH, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
-            if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
+            else if ( p.isAnnotationPresent( OpenApi.Param.class ) )
+            {
+                OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
+                String name = firstNonEmpty( a.name(), p.getName() );
+                Type type = a.value() != Object.class ? a.value() : p.getParameterizedType();
+                endpoint.getParameters().computeIfAbsent( name,
+                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, a.required(),
+                        analyseInputSchema( endpoint, type ) ) );
+            }
+            else if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
             {
                 RequestParam a = p.getAnnotation( RequestParam.class );
                 boolean required = a.required()
@@ -288,18 +297,21 @@ final class ApiAnalyse
     {
         String name = param.name();
         Api.Schema type = analyseInputSchema( endpoint, getSubstitutedType( endpoint, param.value() ) );
+        Api.Schema wrapped = param.wrapper().isEmpty()
+            ? type
+            : new Api.Schema( Object.class, false, null )
+                .add( new Api.Field( param.wrapper(), true, type ) );
         boolean required = param.required();
-        if ( !name.isEmpty() )
-        {
-            endpoint.getParameters().put( name,
-                new Api.Parameter( endpoint.getSource(), null, name, Api.Parameter.In.QUERY, required, type ) );
-        }
-        else
+        if ( name.isEmpty() )
         {
             Api.RequestBody requestBody = new Api.RequestBody( endpoint.getSource(), required );
-            consumes.forEach( mediaType -> requestBody.getConsumes().put( mediaType, type ) );
+            consumes.forEach( mediaType -> requestBody.getConsumes().put( mediaType, wrapped ) );
             endpoint.getRequestBody().setValue( requestBody );
+            return;
         }
+        endpoint.getParameters().put( name,
+            new Api.Parameter( endpoint.getSource(), null, name, Api.Parameter.In.QUERY, required, wrapped ) );
+
     }
 
     private static void analyseParams( Api.Endpoint endpoint, OpenApi.Params params )

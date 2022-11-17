@@ -85,7 +85,7 @@ public class UserLookupController
 
     @GetMapping
     public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( required = false ) String orgUnitBoundary )
+        @RequestParam( required = false ) @OpenApi.Param( UserOrgUnitType.class ) String orgUnitBoundary )
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
