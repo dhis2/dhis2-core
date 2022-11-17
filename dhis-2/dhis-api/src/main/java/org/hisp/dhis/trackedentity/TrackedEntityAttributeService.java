@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -96,7 +98,7 @@ public interface TrackedEntityAttributeService
      * @param uids list of UIDs.
      * @return all the TrackedEntityAttribute with the given UIDs.
      */
-    List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids );
+    List<TrackedEntityAttribute> getTrackedEntityAttributes( @Nonnull List<String> uids );
 
     /**
      * Returns the {@link TrackedEntityAttribute}s with the given UIDs.

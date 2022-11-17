@@ -29,6 +29,8 @@ package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -56,12 +58,14 @@ public class HibernateDataElementOperandStore
         transientIdentifiableProperties = true;
     }
 
+    @Nonnull
     @Override
     public List<DataElementOperand> getAllOrderedName()
     {
         return getQuery( "from DataElementOperand d" ).list();
     }
 
+    @Nonnull
     @Override
     public List<DataElementOperand> getAllOrderedName( int first, int max )
     {

@@ -41,7 +41,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -79,19 +80,19 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TrackerTrackedEntityCriteriaMapper
 {
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final OrganisationUnitService organisationUnitService;
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityAttributeService attributeService;
 
     @Transactional( readOnly = true )

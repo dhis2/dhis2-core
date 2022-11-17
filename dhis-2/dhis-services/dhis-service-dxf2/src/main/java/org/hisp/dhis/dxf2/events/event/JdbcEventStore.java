@@ -2282,6 +2282,10 @@ public class JdbcEventStore implements EventStore
             {
                 String boundOuPath = "ouPath_" + ++count;
                 OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
+                if ( unit == null )
+                {
+                    continue;
+                }
                 mapSqlParameterSource.addValue( boundOuPath, unit.getPath() + "%" );
 
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )

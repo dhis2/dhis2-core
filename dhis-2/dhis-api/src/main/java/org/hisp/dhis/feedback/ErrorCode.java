@@ -236,6 +236,7 @@ public enum ErrorCode
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program" ),
+    E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
@@ -430,7 +431,7 @@ public enum ErrorCode
     E7616( "Attribute option combo: `{0}` option not accessible: `{1}`" ),
     E7617( "Organisation unit: `{0}` not in hierarchy of current user: `{1}`" ),
     E7618( "Data value or comment not specified for data element: `{0}`" ),
-    E7619( "Value must match data element''s `{0}` type constraints: {1}" ),
+    E7619( "Value must match value type of data element `{0}`: `{1}`" ),
     E7620( "Invalid comment: {0}" ),
     E7621( "Data value is not a valid option of the data element option set: `{0}`" ),
     // Data Value constraints

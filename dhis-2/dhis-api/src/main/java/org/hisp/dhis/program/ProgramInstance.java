@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.hisp.dhis.audit.AuditAttribute;
@@ -240,74 +241,17 @@ public class ProgramInstance
     }
 
     @Override
-    public boolean equals( Object object )
+    public boolean equals( Object obj )
     {
-        if ( this == object )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof ProgramInstance && objectEquals( (ProgramInstance) obj );
+    }
 
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !getClass().isAssignableFrom( object.getClass() ) )
-        {
-            return false;
-        }
-
-        final ProgramInstance other = (ProgramInstance) object;
-
-        if ( incidentDate == null )
-        {
-            if ( other.incidentDate != null )
-            {
-                return false;
-            }
-        }
-        else if ( !incidentDate.equals( other.incidentDate ) )
-        {
-            return false;
-        }
-
-        if ( enrollmentDate == null )
-        {
-            if ( other.enrollmentDate != null )
-            {
-                return false;
-            }
-        }
-        else if ( !enrollmentDate.equals( other.enrollmentDate ) )
-        {
-            return false;
-        }
-
-        if ( entityInstance == null )
-        {
-            if ( other.entityInstance != null )
-            {
-                return false;
-            }
-        }
-        else if ( !entityInstance.equals( other.entityInstance ) )
-        {
-            return false;
-        }
-
-        if ( program == null )
-        {
-            if ( other.program != null )
-            {
-                return false;
-            }
-        }
-        else if ( !program.equals( other.program ) )
-        {
-            return false;
-        }
-
-        return true;
+    private boolean objectEquals( ProgramInstance other )
+    {
+        return Objects.equals( incidentDate, other.incidentDate )
+            && Objects.equals( enrollmentDate, other.enrollmentDate )
+            && Objects.equals( entityInstance, other.entityInstance )
+            && Objects.equals( program, other.program );
     }
 
     // -------------------------------------------------------------------------

@@ -32,7 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.beans.Introspector;
 import java.util.List;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class DefaultTrackerPreheatService implements TrackerPreheatService, ApplicationContextAware
 {
-    @NonNull
+    @Nonnull
     private final IdentifiableObjectManager manager;
 
     private ApplicationContext ctx;

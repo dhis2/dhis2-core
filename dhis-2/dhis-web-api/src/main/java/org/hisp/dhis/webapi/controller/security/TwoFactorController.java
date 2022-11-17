@@ -98,7 +98,8 @@ public class TwoFactorController
             throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
         }
 
-        defaultUserService.generateTwoFactorSecret( currentUser );
+        // TODO: This needs to be reversed when DHIS2-13333 gets merged.
+        // defaultUserService.generateTwoFactorSecret( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
@@ -142,12 +143,11 @@ public class TwoFactorController
             throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
         }
 
-        if ( currentUser.getTwoFA() )
+        // TODO: This needs to be reversed when DHIS2-13333 gets merged.
+        if ( !currentUser.getTwoFA() && currentUser.getSecret() == null )
         {
-            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
+            defaultUserService.generateTwoFactorSecret( currentUser );
         }
-
-        defaultUserService.generateTwoFactorSecret( currentUser );
 
         String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );

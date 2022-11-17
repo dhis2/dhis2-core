@@ -325,6 +325,16 @@ public class HibernateTrackedEntityInstanceStore
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
+    @Override
+    public int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityInstanceQueryParams params )
+    {
+        String sql = getCountQueryWithMaxTeiLimit( params );
+
+        log.debug( "Tracked entity instance count SQL: " + sql );
+
+        return jdbcTemplate.queryForObject( sql, Integer.class );
+    }
+
     /**
      * Generates SQL based on "params". The purpose of the SQL is to retrieve a
      * list of tracked entity instances, and additionally any requested
@@ -392,6 +402,12 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
+        if ( params.isOrQuery() && params.getAttributesAndFilters().isEmpty() )
+        {
+            throw new IllegalArgumentException(
+                "A query parameter is used in the request but there aren't filterable attributes" );
+        }
+
         return new StringBuilder()
             .append( getQuerySelect( params, isGridQuery ) )
             .append( "FROM " )
@@ -411,6 +427,19 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getCountQuery( TrackedEntityInstanceQueryParams params )
     {
+        return getCountQuery( params );
+    }
+
+    /**
+     * Uses the same basis as the getQuery method, but replaces the projection
+     * with a count, ignores order but uses the TEI limit set on the program if
+     * higher than 0
+     *
+     * @param params params defining the query
+     * @return a count SQL query
+     */
+    private String getCountQueryWithMaxTeiLimit( TrackedEntityInstanceQueryParams params )
+    {
         return new StringBuilder()
             .append( getQueryCountSelect( params ) )
             .append( getQuerySelect( params, true ) )
@@ -418,6 +447,9 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQuery( params, true, true ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
+            .append( params.getProgram().getMaxTeiCountToReturn() > 0
+                ? getLimitClause( params.getProgram().getMaxTeiCountToReturn() + 1 )
+                : "" )
             .append( " ) teicount" )
             .toString();
     }
@@ -487,7 +519,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( " FROM trackedentityinstance TEI " )
 
             // INNER JOIN on constraints
-            .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
+            .append( getFromSubQueryJoinAttributeConditions( params ) )
             .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
             .append( getFromSubQueryJoinOrgUnitConditions( params ) )
 
@@ -639,27 +671,17 @@ public class HibernateTrackedEntityInstanceStore
      * @return a series of 1 or more SQL INNER JOINs, or empty string if no
      *         query or attribute filters exists.
      */
-    private String getFromSubQueryJoinAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinAttributeConditions( TrackedEntityInstanceQueryParams params )
     {
-        StringBuilder attributes = new StringBuilder();
-
-        List<QueryItem> filterItems = params.getAttributesAndFilters().stream()
-            .filter( QueryItem::hasFilter )
-            .collect( Collectors.toList() );
-
-        if ( !filterItems.isEmpty() || params.isOrQuery() )
+        if ( !params.isOrQuery() )
         {
-            if ( !params.isOrQuery() )
-            {
-                joinAttributeValueWithoutQueryParameter( attributes, filterItems );
-            }
-            else
-            {
-                joinAttributeValueWithQueryParameter( params, attributes );
-            }
+            return joinAttributeValueWithoutQueryParameter( params );
         }
+        else
+        {
+            return joinAttributeValueWithQueryParameter( params );
 
-        return attributes.toString();
+        }
     }
 
     /**
@@ -671,11 +693,11 @@ public class HibernateTrackedEntityInstanceStore
      * search, allowing both exact match and with wildcards (EQ or LIKE).
      *
      * @param params
-     * @param attributes
      */
-    private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
-        StringBuilder attributes )
+    private String joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params )
     {
+        StringBuilder attributes = new StringBuilder();
+
         final String regexp = statementBuilder.getRegexpMatch();
         final String wordStart = statementBuilder.getRegexpWordStart();
         final String wordEnd = statementBuilder.getRegexpWordEnd();
@@ -711,7 +733,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( SINGLE_QUOTE );
         }
 
-        attributes.append( ")" );
+        return attributes.append( ")" ).toString();
     }
 
     /**
@@ -719,11 +741,16 @@ public class HibernateTrackedEntityInstanceStore
      * can search by a range of operators. All searching is using lower() since
      * attribute values are case insensitive.
      *
-     * @param attributes
-     * @param filterItems
+     * @param params
      */
-    private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
+    private String joinAttributeValueWithoutQueryParameter( TrackedEntityInstanceQueryParams params )
     {
+        StringBuilder attributes = new StringBuilder();
+
+        List<QueryItem> filterItems = params.getAttributesAndFilters().stream()
+            .filter( QueryItem::hasFilter )
+            .collect( Collectors.toList() );
+
         for ( QueryItem queryItem : filterItems )
         {
             String col = statementBuilder.columnQuote( queryItem.getItemId() );
@@ -756,6 +783,8 @@ public class HibernateTrackedEntityInstanceStore
                         .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
             }
         }
+
+        return attributes.toString();
     }
 
     /**
@@ -854,14 +883,16 @@ public class HibernateTrackedEntityInstanceStore
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
 
-                OrganisationUnit byUid = organisationUnitStore
+                OrganisationUnit ou = organisationUnitStore
                     .getByUid( organisationUnit.getUid() );
-
-                orgUnits
-                    .append( orHlp.or() )
-                    .append( "OU.path LIKE '" )
-                    .append( byUid.getPath() )
-                    .append( "%'" );
+                if ( ou != null )
+                {
+                    orgUnits
+                        .append( orHlp.or() )
+                        .append( "OU.path LIKE '" )
+                        .append( ou.getPath() )
+                        .append( "%'" );
+                }
             }
 
             orgUnits.append( ") " );
@@ -1214,6 +1245,11 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return groupBy.toString();
+    }
+
+    private String getLimitClause( int limit )
+    {
+        return "LIMIT " + limit;
     }
 
     /**

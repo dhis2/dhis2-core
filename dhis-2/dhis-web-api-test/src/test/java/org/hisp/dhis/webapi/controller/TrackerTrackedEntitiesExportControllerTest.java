@@ -54,6 +54,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -287,9 +288,35 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertEquals( HttpStatus.OK, response.status() );
 
-        assertAll( () -> response.header( "content-type" ).contains( "application/csv" ),
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_TEXT_CSV ),
             () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ),
             () -> response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvZipFormat()
+    {
+        WebClient.HttpResponse response = GET(
+            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_ZIP ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.zip\"" ) );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvGZipFormat()
+    {
+        WebClient.HttpResponse response = GET(
+            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_GZIP ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.gz\"" ) );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()
