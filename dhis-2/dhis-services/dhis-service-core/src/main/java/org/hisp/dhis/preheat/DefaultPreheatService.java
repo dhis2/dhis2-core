@@ -28,12 +28,9 @@
 package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.containsAll;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.preheat.DashboardPreheatHelper.collectDashboardItemsUid;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,8 +59,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -171,7 +166,9 @@ public class DefaultPreheatService implements PreheatService
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> references = collectReferences(
             params.getObjects() );
 
-        Set<String> dashboardItemsUid = collectDashboardItemsUid( params.getObjects() );
+        // THIS SHOULD BE REMOVED ONCE THE DashboardObjectBundleHook IS IN
+        // PLACE.
+        Set<String> dashboardItemsUid = collectDashboardItemsUid( klasses, params.getObjects() );
 
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = references.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = references.get( PreheatIdentifier.CODE );
@@ -192,7 +189,7 @@ public class DefaultPreheatService implements PreheatService
                         Query query = Query.from( schemaService.getDynamicSchema( klass ) );
                         query.setUser( preheat.getUser() );
                         query.add( Restrictions.in( "id", ids ) );
-                        query.setIgnoreSharingSettings( containsAll( dashboardItemsUid, ids ) );
+                        setSharingSettingForDashboardItems( dashboardItemsUid, ids, query );
 
                         List<? extends IdentifiableObject> objects = queryService.query( query );
 
@@ -304,6 +301,26 @@ public class DefaultPreheatService implements PreheatService
             + timer.toString() );
 
         return preheat;
+    }
+
+    /**
+     * This method is specific for dashboard items, and will ignore or not the
+     * sharing settings for the given query based on the dashboardItemsUid and
+     * ids provided.
+     *
+     * THIS METHOD SHOULD BE REMOVED ONCE THE DashboardObjectBundleHook IS IN
+     * PLACE.
+     *
+     * @param dashboardItemsUid the dashboard items
+     * @param ids the current objects ids
+     * @param query the query
+     */
+    private void setSharingSettingForDashboardItems( Set<String> dashboardItemsUid, List<String> ids, Query query )
+    {
+        if ( isNotEmpty( dashboardItemsUid ) )
+        {
+            query.setIgnoreSharingSettings( containsAll( dashboardItemsUid, ids ) );
+        }
     }
 
     private void handleSharing( PreheatParams params, Preheat preheat )
@@ -443,90 +460,6 @@ public class DefaultPreheatService implements PreheatService
         {
             throw new PreheatException( "PreheatMode.REFERENCE, but no objects were provided." );
         }
-    }
-
-    /**
-     * Collects and returns all uids from all dashboard items found in the given
-     * "objects".
-     *
-     * @param objects the map that contains lists of {@link IdentifiableObject}
-     * @return the set of dashboard items uid
-     */
-    private Set<String> collectDashboardItemsUid(
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
-    {
-        if ( MapUtils.isEmpty( objects ) )
-        {
-            return emptySet();
-        }
-
-        Set<String> itemsUid = new HashSet<>();
-
-        defaultIfNull( objects.get( Dashboard.class ), emptyList() )
-            .forEach( obj -> itemsUid.addAll( collectDashboardItemsUid( (Dashboard) obj ) ) );
-
-        return itemsUid;
-    }
-
-    /**
-     * Collects and returns all uids from all dashboard items found in the given
-     * "objects".
-     *
-     * @param dashboard the {@link Dashboard}
-     * @return the set of dashboard items uid
-     */
-    private Set<String> collectDashboardItemsUid( Dashboard dashboard )
-    {
-        Set<String> itemsUid = new HashSet<>();
-
-        if ( isNotEmpty( dashboard.getItems() ) )
-        {
-            for ( DashboardItem item : dashboard.getItems() )
-            {
-                itemsUid.addAll( extractAllDashboardItemsUids( item ) );
-            }
-        }
-
-        return itemsUid;
-    }
-
-    /**
-     * Extracts all uids from all objects associated with the given item.
-     *
-     * @param item the {@link DashboardItem}
-     * @return the set of dashboard items uid
-     */
-    private Set<String> extractAllDashboardItemsUids( DashboardItem item )
-    {
-        Set<String> itemsUid = new HashSet<>();
-
-        if ( item != null )
-        {
-            if ( item.getEmbeddedItem() != null )
-            {
-                itemsUid.add( item.getEmbeddedItem().getUid() );
-            }
-
-            if ( isNotEmpty( item.getResources() ) )
-            {
-                itemsUid.addAll(
-                    item.getResources().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
-            }
-
-            if ( isNotEmpty( item.getReports() ) )
-            {
-                itemsUid
-                    .addAll( item.getReports().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
-            }
-
-            if ( isNotEmpty( item.getUsers() ) )
-            {
-                itemsUid
-                    .addAll( item.getUsers().stream().map( BaseIdentifiableObject::getUid ).collect( toSet() ) );
-            }
-        }
-
-        return itemsUid;
     }
 
     @Override
