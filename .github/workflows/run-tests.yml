@@ -23,9 +23,9 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Test core
-        run: mvn --threads 2C clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn --threads 2C clean install -Pdefault -Pjdk8 --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Test dhis-web
-        run: mvn --threads 2C clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        run: mvn --threads 2C clean install -Pdefault -Pjdk8 --update-snapshots -f ./dhis-2/dhis-web/pom.xml
       - name: Generate surefire aggregate report
         run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
@@ -55,7 +55,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
       - name: Run integration tests
-        run: mvn --threads 2C clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn --threads 2C clean install -Pintegration -Pjdk8 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Generate surefire aggregate report
         run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
