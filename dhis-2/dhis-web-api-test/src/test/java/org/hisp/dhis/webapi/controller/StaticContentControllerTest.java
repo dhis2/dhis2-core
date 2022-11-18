@@ -206,7 +206,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
         final String error = buildResponse( "Unsupported Media Type", 415, "WARNING", null );
         mvc.perform( multipart( URL + LOGO_BANNER )
             .file( new MockMultipartFile( "file", "testlogo.png", IMAGE_JPEG.toString(), "image".getBytes() ) )
-            .session( session ) ).andExpect( content().json( error ) )
+            .session( session ) ).andExpect( content().string( error ) )
             .andExpect( status().isUnsupportedMediaType() );
     }
 
@@ -216,7 +216,7 @@ class StaticContentControllerTest extends DhisWebSpringTest
     {
         final String error = buildResponse( "Bad Request", 400, "ERROR", "This key is not supported." );
         mvc.perform( multipart( URL + "idontexist" ).file( mockMultipartFile ).session( session ) )
-            .andExpect( content().json( error ) ).andExpect( status().isBadRequest() );
+            .andExpect( content().string( error ) ).andExpect( status().isBadRequest() );
     }
 
     private String buildResponse( String httpStatus, int code, String status, String message )
