@@ -44,7 +44,8 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testSyncPostJsonTrackerInvalidReportMode()
     {
-        assertWebMessage( "Bad Request", 400, "ERROR", "400 Value INVALID is not a valid report mode",
+        assertWebMessage( "Bad Request", 400, "ERROR",
+            "Value INVALID is not a valid reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
             POST( "/tracker?async=false&reportMode=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
@@ -52,7 +53,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void testSyncPostJsonTrackerInvalidIdScheme()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value INVALID is not a valid idScheme. Allowed values are: [UID, CODE, NAME, ATTRIBUTE]",
+            "Value INVALID is not a valid idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE]",
             POST( "/tracker?async=false&idScheme=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 

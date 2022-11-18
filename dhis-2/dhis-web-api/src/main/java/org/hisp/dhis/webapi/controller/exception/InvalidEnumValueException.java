@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class InvalidEnumValueException extends Exception
 {
-
     private final String invalidValue;
 
     private final String fieldName;

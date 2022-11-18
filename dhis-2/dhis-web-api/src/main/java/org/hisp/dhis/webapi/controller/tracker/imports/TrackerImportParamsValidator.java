@@ -28,12 +28,15 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.REPORT_MODE;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 
@@ -50,7 +53,8 @@ public class TrackerImportParamsValidator
     {
         Map<String, List<String>> parameters = request.getContextService().getParameterValuesMap();
 
-        validateEnum( TrackerIdScheme.class, parameters, ID_SCHEME_KEY );
+        validateEnum( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, IdScheme::isAttribute );
+        validateEnum( TrackerBundleReportMode.class, parameters, REPORT_MODE );
     }
 
     private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
@@ -63,14 +67,34 @@ public class TrackerImportParamsValidator
             return;
         }
 
-        if ( TrackerIdScheme.class.equals( enumKlass )
-            && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
+        validateEnumValue( enumKlass, trackerImportParamKey,
+            parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+    }
+
+    private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
+        TrackerImportParamKey trackerImportParamKey, Predicate<String> predicate )
+        throws InvalidEnumValueException
+    {
+        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
+            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
         {
             return;
         }
 
-        String value = String.valueOf( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+        String value = parameters.get( trackerImportParamKey.getKey() ).get( 0 );
 
+        if ( predicate.test( value ) )
+        {
+            return;
+        }
+
+        validateEnumValue( enumKlass, trackerImportParamKey, value );
+    }
+
+    private static <T extends Enum<T>> void validateEnumValue( Class<T> enumKlass,
+        TrackerImportParamKey trackerImportParamKey, String value )
+        throws InvalidEnumValueException
+    {
         Optional<T> optionalEnumValue = Enums.getIfPresent( enumKlass, value ).toJavaUtil();
         if ( optionalEnumValue.isPresent() )
         {

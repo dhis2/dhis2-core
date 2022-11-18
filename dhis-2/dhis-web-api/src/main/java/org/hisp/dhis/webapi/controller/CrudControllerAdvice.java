@@ -144,7 +144,7 @@ public class CrudControllerAdvice
         String validValues = StringUtils
             .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
                 .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Allowed values are: [{2}]",
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
             ex.getInvalidValue(), ex.getFieldName(), validValues );
         return badRequest( errorMessage );
     }

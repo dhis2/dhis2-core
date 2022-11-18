@@ -31,6 +31,7 @@ import lombok.Getter;
 
 enum TrackerImportParamKey
 {
+    REPORT_MODE( "reportMode" ),
     VALIDATION_MODE_KEY( "validationMode" ),
     IMPORT_MODE_KEY( "importMode" ),
     IMPORT_STRATEGY_KEY( "importStrategy" ),
