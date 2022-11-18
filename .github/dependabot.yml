@@ -121,5 +121,8 @@ updates:
         versions:
           - ">= 11.0"
       - dependency-name: "org.antlr:antlr4-runtime" # Automatically upgrade ANTLR version can cause issues in rule-engine and antlr-parser libraries
+      - dependency-name: "org.jboss.logging:jboss-logging"
+        versions:
+          - ">= 3.5" # Requires Java 11 as a minimum for the runtime while 2.37 still supports Java 8
     target-branch: "2.37"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
