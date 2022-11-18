@@ -36,7 +36,7 @@ import com.google.gson.JsonObject;
  */
 public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 {
-    private JsonObjectBuilder jsonBuilder;
+    private final JsonObjectBuilder jsonBuilder;
 
     public RelationshipDataBuilder()
     {
@@ -105,16 +105,6 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
             .addProperty( "relationshipType", relationshipType )
             .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ) )
             .addObject( "to", relationshipItem( "trackedEntity", trackedEntity_2 ) )
-            .build();
-    }
-
-    public JsonObject buildEnrollmentToTeiRelationship( String enrollment, String trackedEntity,
-        String relationshipType )
-    {
-        return new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", relationshipItem( "enrollment", enrollment ) )
-            .addObject( "to", relationshipItem( "trackedEntity", trackedEntity ) )
             .build();
     }
 

@@ -41,7 +41,6 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 public class TrackerEnrollmentFieldsParamMapper
 {
-
     private TrackerEnrollmentFieldsParamMapper()
     {
     }

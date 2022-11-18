@@ -115,21 +115,7 @@
                 }
               ],
               "notes": [],
-              "relationships": [
-                {
-                  "relationshipType": "fdc6uOvgoji",
-                  "to": {
-                    "trackedEntity": {
-                      "trackedEntity": "Nav6inZRw1u"
-                    }
-                  },
-                  "from": {
-                    "enrollment": {
-                      "enrollment": "PuBvJxDB73z"
-                    }
-                  }
-                }
-              ]
+              "relationships": []
             }
           ]
         }

@@ -39,7 +39,6 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -61,24 +60,26 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerExportTests
+public class TrackerTrackedEntitiesExportTests
     extends TrackerNtiApiTest
 {
-    private static String teiId;
+    private static String teiA;
+
+    private static String teiB;
 
     private static String enrollmentId;
 
     private static String eventId;
 
-    private static String relationshipId;
+    private static String teiToTeiRelationship;
+
+    private static String enrollmentToTeiRelationship;
 
     @BeforeAll
     public void beforeAll()
@@ -89,27 +90,35 @@ public class TrackerExportTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
             new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
-        teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
+        teiA = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
+        teiB = response.validateSuccessfulImport().extractImportedTeis().get( 1 );
+
         enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) )
+
+        teiToTeiRelationship = importRelationshipBetweenTeis( teiA, teiB )
             .extractImportedRelationships().get( 0 );
+        enrollmentToTeiRelationship = importRelationshipEnrollmentToTei( enrollmentId, teiB )
+            .extractImportedRelationships().get( 0 );
+
         eventId = response.extractImportedEvents().get( 0 );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
-            Arguments.of( "/trackedEntities/" + teiId,
+            Arguments.of( "/trackedEntities/" + teiA,
                 "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]",
                 "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity" ),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
+            Arguments.of( "/trackedEntities/" + teiA, "trackedEntity,enrollments", null ),
             Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
-            Arguments.of( "/trackedEntities/" + teiId, "*",
+            Arguments.of( "/trackedEntities/" + teiA, "*",
                 "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes",
                 null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]",
-                "from,to.trackedEntity.trackedEntity" ) );
+            Arguments.of( "/relationships/" + teiToTeiRelationship, "from,to[trackedEntity[trackedEntity]]",
+                "from,to.trackedEntity.trackedEntity" ),
+            Arguments.of( "/relationships/" + enrollmentToTeiRelationship, "from,from[enrollment[enrollment]]",
+                "from,from.enrollment.enrollment" ) );
     }
 
     @MethodSource
@@ -156,7 +165,7 @@ public class TrackerExportTests
         Matcher<JsonArray> relationshipsExists, Matcher<JsonArray> attributesExists )
     {
         ApiResponse response = trackerActions.get(
-            "/trackedEntities/?program=f1AyMswryyQ&orgUnit=O6uvpzGd5pu&trackedEntity=" + teiId + "&fields=" + fields );
+            "/trackedEntities/?program=f1AyMswryyQ&orgUnit=O6uvpzGd5pu&trackedEntity=" + teiB + "&fields=" + fields );
 
         response.validate()
             .statusCode( 200 );
@@ -172,66 +181,6 @@ public class TrackerExportTests
                         assertThat( e.getAsJsonObject().getAsJsonArray( "attributes" ), attributesExists );
                     } );
             } );
-    }
-
-    private Stream<Arguments> shouldReturnRequestedEnrollmentFields()
-    {
-        return Stream.of(
-            Arguments.of( "events, relationships, attributes", not( emptyIterable() ), not( emptyIterable() ),
-                not( emptyIterable() ),
-                Arguments.of( "events, !relationships, attributes", not( emptyIterable() ), emptyIterable(),
-                    not( emptyIterable() ) ),
-                Arguments.of( "events, relationships, !attributes", not( emptyIterable() ), not( emptyIterable() ),
-                    emptyIterable() ),
-                Arguments.of( "!events, relationships, attributes", emptyIterable(), not( emptyIterable() ),
-                    not( emptyIterable() ) ),
-                Arguments.of( "!events, !relationships, !attributes", emptyIterable(), emptyIterable(),
-                    emptyIterable() ),
-                Arguments.of( "!events, !relationships, attributes", emptyIterable(), emptyIterable(),
-                    not( emptyIterable() ) ),
-                Arguments.of( "events, !relationships, !attributes", not( emptyIterable() ), emptyIterable(),
-                    emptyIterable() ),
-                Arguments.of( "!events, relationships, !attributes", emptyIterable(), not( emptyIterable() ),
-                    emptyIterable() ) ) );
-    }
-
-    @MethodSource
-    @ParameterizedTest
-    public void shouldReturnRequestedEnrollmentFields( String fields, Matcher<JsonArray> eventExists,
-        Matcher<JsonArray> relationshipsExists, Matcher<JsonArray> attributesExists )
-    {
-        ApiResponse response = trackerActions.get( "/enrollments/PuBvJxDB73z/?fields=" + fields );
-
-        response.validate()
-            .statusCode( 200 );
-
-        JsonObject enrollment = response.getBody();
-
-        assertThat( enrollment.getAsJsonArray( "events" ), eventExists );
-        assertThat( enrollment.getAsJsonArray( "relationships" ), relationshipsExists );
-        assertThat( enrollment.getAsJsonArray( "attributes" ), attributesExists );
-    }
-
-    @Test
-    public void singleTeiAndCollectionTeiShouldReturnSameResult()
-        throws Exception
-    {
-
-        TrackerApiResponse trackedEntity = trackerActions.getTrackedEntity( "Kj6vYde4LHh",
-            new QueryParamsBuilder()
-                .add( "fields", "*" )
-                .add( "includeAllAttributes", "true" ) );
-
-        TrackerApiResponse trackedEntities = trackerActions.getTrackedEntities( new QueryParamsBuilder()
-            .add( "fields", "*" )
-            .add( "includeAllAttributes", "true" )
-            .add( "trackedEntity", "Kj6vYde4LHh" )
-            .add( "orgUnit", "O6uvpzGd5pu" ) );
-
-        JSONAssert.assertEquals( trackedEntity.getBody().toString(),
-            trackedEntities.extractJsonObject( "instances[0]" ).toString(),
-            false );
-
     }
 
     private List<String> splitFields( String fields )
@@ -286,7 +235,7 @@ public class TrackerExportTests
     @MethodSource( )
     @ParameterizedTest
     public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria,
-        Matcher everyItemMatcher )
+        Matcher<?> everyItemMatcher )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "orgUnit", "O6uvpzGd5pu" )
@@ -303,7 +252,6 @@ public class TrackerExportTests
     @Test
     public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
     {
-
         trackerActions
             .get(
                 "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
@@ -312,19 +260,6 @@ public class TrackerExportTests
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
             .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
                 everyItem( is( "Bravo" ) ) );
-    }
-
-    @Test
-    public void shouldReturnRelationshipsByTei()
-    {
-        trackerActions.getRelationship( "?trackedEntity=" + teiId )
-            .validate()
-            .statusCode( 200 )
-            .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .rootPath( "instances[0]" )
-            .body( "relationship", equalTo( relationshipId ) )
-            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
-            .body( "to.trackedEntity.trackedEntity", notNullValue() );
     }
 
     @Test

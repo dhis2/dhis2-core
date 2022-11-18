@@ -40,7 +40,6 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 
 public class TrackerTrackedEntityFieldsParamMapper
 {
-
     private TrackerTrackedEntityFieldsParamMapper()
     {
     }

@@ -36,8 +36,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
+/**
+ * Provides basic methods to transform input fields into {@link FieldPath }
+ * based on {@link FieldFilterParser }. It follows the principles of
+ * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ */
 public class FieldsParamMapper
 {
+    private FieldsParamMapper()
+    {
+
+    }
 
     static final String FIELD_RELATIONSHIPS = "relationships";
 
