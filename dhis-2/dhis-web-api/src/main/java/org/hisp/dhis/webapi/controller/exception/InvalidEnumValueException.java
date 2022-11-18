@@ -27,25 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.exception;
 
-import java.util.List;
-
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Getter
 public class InvalidEnumValueException extends Exception
 {
 
-    private final String wrongValue;
+    private final String invalidValue;
 
-    private final String field;
+    private final String fieldName;
 
-    private final List<String> allowedValues;
-
-    public InvalidEnumValueException( String wrongValue, String field, List<String> allowedValues )
-    {
-        super();
-        this.wrongValue = wrongValue;
-        this.field = field;
-        this.allowedValues = allowedValues;
-    }
+    private final Class<? extends Enum> enumKlass;
 }

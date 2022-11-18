@@ -38,8 +38,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 
@@ -138,8 +141,11 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
     {
+        String validValues = StringUtils
+            .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
+                .collect( Collectors.toList() ), ", " );
         String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Allowed values are: [{2}]",
-            ex.getWrongValue(), ex.getField(), StringUtils.join( ex.getAllowedValues(), ", " ) );
+            ex.getInvalidValue(), ex.getFieldName(), validValues );
         return badRequest( errorMessage );
     }
 

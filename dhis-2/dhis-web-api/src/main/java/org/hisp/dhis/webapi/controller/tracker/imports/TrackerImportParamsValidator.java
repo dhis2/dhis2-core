@@ -29,12 +29,9 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.ID_SCHEME_KEY;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -80,9 +77,6 @@ public class TrackerImportParamsValidator
             return;
         }
 
-        throw new InvalidEnumValueException(
-            value, trackerImportParamKey.getKey(),
-            Arrays.stream( enumKlass.getEnumConstants() ).map( Objects::toString )
-                .collect( Collectors.toList() ) );
+        throw new InvalidEnumValueException( value, trackerImportParamKey.getKey(), enumKlass );
     }
 }
