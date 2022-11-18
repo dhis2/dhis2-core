@@ -118,5 +118,8 @@ updates:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
+      - dependency-name: "org.jboss.logging:jboss-logging"
+        versions:
+          - ">= 3.5" # Requires Java 11 as a minimum for the runtime while 2.37 still supports Java 8
     target-branch: "2.37"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
