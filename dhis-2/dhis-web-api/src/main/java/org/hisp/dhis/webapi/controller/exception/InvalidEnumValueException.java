@@ -25,43 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller.exception;
 
-import java.util.stream.Stream;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerBundleReportMode
+@RequiredArgsConstructor
+@Getter
+public class InvalidEnumValueException extends Exception
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
+    private final String invalidValue;
 
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
+    private final String fieldName;
 
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
-
-    private static Stream<TrackerBundleReportMode> stream()
-    {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
-
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
-    }
+    private final Class<? extends Enum> enumKlass;
 }
