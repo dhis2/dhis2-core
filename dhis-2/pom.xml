@@ -114,7 +114,7 @@
     <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
     <jaxb-impl.version>2.4.0-b180830.0438</jaxb-impl.version>
     <jaxb-osgi.version>2.4.0-b180830.0438</jaxb-osgi.version>
-    <jaxws-ri.version>2.3.2</jaxws-ri.version>
+    <jaxws-ri.version>4.0.0</jaxws-ri.version>
     <jakarta.xml.ws-api.version>2.3.3</jakarta.xml.ws-api.version>
     <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
     <xercesImpl.version>2.12.0</xercesImpl.version>
