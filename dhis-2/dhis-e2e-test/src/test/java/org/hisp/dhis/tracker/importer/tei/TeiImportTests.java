@@ -152,12 +152,12 @@ public class TeiImportTests
 
         response.validateSuccessfulImport()
             .validate()
-            .body( "stats.created", equalTo( 8 ) )
+            .body( "stats.created", equalTo( 7 ) )
             .rootPath( "bundleReport.typeReportMap" )
             .body( "TRACKED_ENTITY.objectReports", hasSize( 2 ) )
             .body( "ENROLLMENT.objectReports", hasSize( 2 ) )
             .body( "EVENT.objectReports", hasSize( 2 ) )
-            .body( "RELATIONSHIP.objectReports", hasSize( 2 ) );
+            .body( "RELATIONSHIP.objectReports", hasSize( 1 ) );
 
         JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject();
 
