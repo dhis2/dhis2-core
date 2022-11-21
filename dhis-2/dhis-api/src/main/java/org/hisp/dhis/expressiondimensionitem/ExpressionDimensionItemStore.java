@@ -25,43 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.expressiondimensionitem;
 
-import java.util.stream.Stream;
+import static java.util.Arrays.stream;
+
+import java.util.List;
+
+import org.hisp.dhis.attribute.Attribute.ObjectType;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Dusan Bernat
  */
-public enum TrackerBundleReportMode
+public interface ExpressionDimensionItemStore
+    extends IdentifiableObjectStore<ExpressionDimensionItem>
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
+    String ID = ExpressionDimensionItemStore.class.getName();
+
+    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
+        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
 
     /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
+     * Get all metadata attributes for a given class, returns empty list for
+     * un-supported types.
+     *
+     * @param klass Class to get metadata attributes for
+     * @return List of attributes for this class
      */
-    ERRORS,
+    List<ExpressionDimensionItem> getAttributes( Class<?> klass );
 
     /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
+     * Get all mandatory metadata attributes for a given class, returns empty
+     * list for un-supported types.
+     *
+     * @param klass Class to get metadata attributes for
+     * @return List of mandatory metadata attributes for this class
      */
-    WARNINGS;
+    List<ExpressionDimensionItem> getMandatoryAttributes( Class<?> klass );
 
-    private static Stream<TrackerBundleReportMode> stream()
-    {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
-
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
-    }
+    /**
+     * Get all unique metadata attributes for a given class, returns empty list
+     * for un-supported types.
+     *
+     * @param klass Class to get metadata attributes for
+     * @return List of unique metadata attributes for this class
+     */
+    List<ExpressionDimensionItem> getUniqueAttributes( Class<?> klass );
 }
