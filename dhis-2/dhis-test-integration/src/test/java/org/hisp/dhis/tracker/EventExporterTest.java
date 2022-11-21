@@ -444,6 +444,29 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
+    @ParameterizedTest
+    @MethodSource( "getEventsFunctions" )
+    void testExportEventsWhenFilteringByNumericDataElements(
+        Function<EventSearchParams, List<String>> eventFunction )
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setProgramStage( programStage );
+
+        DataElement dataElement = dataElement( "DATAEL00006" );
+
+        QueryItem queryItem = new QueryItem( dataElement, null, dataElement.getValueType(), null,
+            dataElement.getOptionSet() );
+        queryItem.addFilter( new QueryFilter( QueryOperator.LT, "77" ) );
+        queryItem.addFilter( new QueryFilter( QueryOperator.GT, "8" ) );
+        params.setDataElements( Set.of( queryItem ) );
+
+        List<String> events = eventFunction.apply( params );
+
+        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+    }
+
     @Test
     void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
     {
@@ -588,18 +611,32 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
+    void testEnrollmentFilterNumericAttributes()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        QueryItem queryItem = numericQueryItem( "numericAttr" );
+        QueryFilter lessThan = new QueryFilter( QueryOperator.LT, "77" );
+        QueryFilter greaterThan = new QueryFilter( QueryOperator.GT, "8" );
+        queryItem.setFilters( List.of( lessThan, greaterThan ) );
+
+        params.addFilterAttributes( queryItem );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
     void testEnrollmentFilterAttributes()
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        TrackedEntityAttribute at = new TrackedEntityAttribute();
-        at.setUid( "toUpdate000" );
-        at.setValueType( ValueType.TEXT );
-        at.setAggregationType( AggregationType.NONE );
-        QueryItem item = new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(),
-            at.isUnique() );
-        item.addFilter( new QueryFilter( QueryOperator.EQ, "summer day" ) );
-        params.setFilterAttributes( List.of( item ) );
+
+        params.addFilterAttributes( queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -614,23 +651,9 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
-        at1.setUid( "toUpdate000" );
-        at1.setValueType( ValueType.TEXT );
-        at1.setAggregationType( AggregationType.NONE );
-        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
-            at1.isUnique() );
-        item1.addFilter( new QueryFilter( QueryOperator.EQ, "rainy day" ) );
-
-        TrackedEntityAttribute at2 = new TrackedEntityAttribute();
-        at2.setUid( "notUpdated0" );
-        at2.setValueType( ValueType.TEXT );
-        at2.setAggregationType( AggregationType.NONE );
-        QueryItem item2 = new QueryItem( at2, null, at2.getValueType(), at2.getAggregationType(), at2.getOptionSet(),
-            at2.isUnique() );
-        item2.addFilter( new QueryFilter( QueryOperator.EQ, "winter day" ) );
-
-        params.setFilterAttributes( List.of( item1, item2 ) );
+        params.addFilterAttributes( List.of(
+            queryItem( "toUpdate000", QueryOperator.EQ, "rainy day" ),
+            queryItem( "notUpdated0", QueryOperator.EQ, "winter day" ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -645,16 +668,9 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
-        at1.setUid( "toUpdate000" );
-        at1.setValueType( ValueType.TEXT );
-        at1.setAggregationType( AggregationType.NONE );
-        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
-            at1.isUnique() );
-        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "day" ) );
-        item1.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
-
-        params.setFilterAttributes( List.of( item1 ) );
+        QueryItem item = queryItem( "toUpdate000", QueryOperator.LIKE, "day" );
+        item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
+        params.addFilterAttributes( item );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -669,14 +685,8 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
-        at1.setUid( "toUpdate000" );
-        at1.setValueType( ValueType.TEXT );
-        at1.setAggregationType( AggregationType.NONE );
-        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
-            at1.isUnique() );
-        params.setFilterAttributes( List.of( item1 ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+        params.addFilterAttributes( queryItem( "toUpdate000" ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
@@ -691,20 +701,48 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
 
-        TrackedEntityAttribute at1 = new TrackedEntityAttribute();
-        at1.setUid( "toUpdate000" );
-        at1.setValueType( ValueType.TEXT );
-        at1.setAggregationType( AggregationType.NONE );
-        QueryItem item1 = new QueryItem( at1, null, at1.getValueType(), at1.getAggregationType(), at1.getOptionSet(),
-            at1.isUnique() );
-        params.setFilterAttributes( List.of( item1 ) );
-        params.setAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+        params.addFilterAttributes( queryItem( "toUpdate000" ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( Event::getTrackedEntityInstance )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void testOrderEventsOnMultipleAttributesDesc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+            new OrderParam( "toUpdate000", OrderParam.SortDirection.DESC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
+    }
+
+    @Test
+    void testOrderEventsOnMultipleAttributesAsc()
+    {
+        EventSearchParams params = new EventSearchParams();
+        params.setOrgUnit( orgUnit );
+
+        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
+        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", OrderParam.SortDirection.DESC ),
+            new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
+
+        List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
+            .map( Event::getTrackedEntityInstance )
+            .collect( Collectors.toList() );
+
+        assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
     @Test
@@ -725,7 +763,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -738,7 +776,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
+        params.addOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -751,7 +789,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -764,7 +802,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.ASC ) ) );
+        params.addOrders( List.of( new OrderParam( "occurredAt", OrderParam.SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream().map( Event::getEnrollment )
             .collect( Collectors.toList() );
@@ -775,6 +813,33 @@ class EventExporterTest extends TrackerTest
     private DataElement dataElement( String uid )
     {
         return dataElementService.getDataElement( uid );
+    }
+
+    private static QueryItem queryItem( String teaUid, QueryOperator operator, String filter )
+    {
+        QueryItem item = queryItem( teaUid );
+        item.addFilter( new QueryFilter( operator, filter ) );
+        return item;
+    }
+
+    private static QueryItem queryItem( String teaUid )
+    {
+        return queryItem( teaUid, ValueType.TEXT );
+    }
+
+    private static QueryItem numericQueryItem( String teaUid )
+    {
+        return queryItem( teaUid, ValueType.INTEGER );
+    }
+
+    private static QueryItem queryItem( String teaUid, ValueType valueType )
+    {
+        TrackedEntityAttribute at = new TrackedEntityAttribute();
+        at.setUid( teaUid );
+        at.setValueType( valueType );
+        at.setAggregationType( AggregationType.NONE );
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(),
+            at.isUnique() );
     }
 
 }

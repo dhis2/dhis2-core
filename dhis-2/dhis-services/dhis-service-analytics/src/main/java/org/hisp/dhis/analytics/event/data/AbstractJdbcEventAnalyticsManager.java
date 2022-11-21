@@ -96,10 +96,12 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -222,18 +224,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.hasRepeatableStageParams() )
-                {
-                    sql += quote( item.getRepeatableStageParams().getDimension() );
-                }
-                else if ( item.getProgramStage() != null )
-                {
-                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
-                }
-                else
-                {
-                    sql += quote( item.getItem().getUid() );
-                }
+                sql += getSortColumnForDataElementDimensionType( item );
             }
             else
             {
@@ -252,6 +243,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    private String getSortColumnForDataElementDimensionType( QueryItem item )
+    {
+        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        {
+            return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+        }
+
+        if ( item.hasRepeatableStageParams() )
+        {
+            return quote( item.getRepeatableStageParams().getDimension() );
+        }
+
+        if ( item.getProgramStage() != null )
+        {
+            return quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+        }
+
+        return quote( item.getItem().getUid() );
     }
 
     /**
@@ -418,7 +429,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
         {
-            if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+            if ( params.getCoordinateFields().stream().anyMatch( f -> queryItem.getItem().getUid().equals( f ) ) )
             {
                 return getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX );
             }
@@ -653,7 +664,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() ) // TODO && isNumeric
+        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
@@ -717,9 +728,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param item the {@link QueryItem}
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item )
     {
-        final String colName = item.getItemName();
+        String colName = item.getItemName();
 
         return ColumnAndAlias
             .ofColumnAndAlias(
@@ -736,9 +747,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param suffix the suffix to append to the item id
      * @return the column select statement for the given item
      */
-    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( QueryItem item, String suffix )
     {
-        final String colName = item.getItemId() + suffix;
+        String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 
@@ -816,6 +827,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
+     * Checks if the ValueType, in the given params, is of type NUMERIC.
+     *
+     * @param params the {@link EventQueryParams}
+     * @return true if params ValueType is NUMERIC, false otherwise
+     */
+    private boolean isParamsValueTypeNumeric( EventQueryParams params )
+    {
+        return params != null &&
+            params.getValue() instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) params.getValue()).getValueType() == ValueType.NUMBER;
+    }
+
+    /**
      * Returns a filter string.
      *
      * @param filter the filter string.
@@ -855,7 +879,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String filter = getFilter( queryFilter.getFilter(), item );
         String encodedFilter = statementBuilder.encode( filter, false );
 
-        return item.getSqlFilter( queryFilter, encodedFilter );
+        return item.getSqlFilter( queryFilter, encodedFilter, true );
     }
 
     /**
@@ -939,15 +963,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
         {
             Object value = sqlRowSet.getObject( index );
+
             boolean isDouble = value instanceof Double;
 
             if ( value == null || (isDouble && Double.isNaN( (Double) value )) )
             {
                 grid.addValue( EMPTY );
             }
+            else if ( isDouble && !Double.isNaN( (Double) value ) )
+            {
+                addGridDoubleTypeValue( (Double) value, grid, header, params );
+            }
             else
             {
-                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+                grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
             }
         }
         else if ( header.getValueType() == ValueType.REFERENCE )
@@ -976,6 +1005,53 @@ public abstract class AbstractJdbcEventAnalyticsManager
         else
         {
             grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
+        }
+    }
+
+    /**
+     * Double value type will be added into the grid. There is special handling
+     * for Option Set (Type numeric)/Option. The code in grid/meta info and
+     * related value in row has to be the same (FE request) if possible. The
+     * string interpretation of code coming from Option/Code can vary from
+     * Option/value (double) fetched from database ("1" vs "1.0") By the
+     * equality (both are converted to double) of both the Option/Code is used
+     * as a value
+     *
+     * @param value
+     * @param grid
+     * @param header
+     * @param params
+     */
+    private void addGridDoubleTypeValue( Double value, Grid grid, GridHeader header, EventQueryParams params )
+    {
+        if ( header.hasOptionSet() )
+        {
+            Optional<Option> option = header.getOptionSetObject()
+                .getOptions()
+                .stream()
+                .filter( o -> {
+                    try
+                    {
+                        return Double.parseDouble( o.getCode() ) == value;
+                    }
+                    catch ( Exception ignored )
+                    {
+                        return false;
+                    }
+                } )
+                .findFirst();
+            if ( option.isPresent() )
+            {
+                grid.addValue( option.get().getCode() );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
+            }
+        }
+        else
+        {
+            grid.addValue( params.isSkipRounding() ? value : MathUtils.getRoundedObject( value ) );
         }
     }
 
@@ -1160,7 +1236,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
             }
 
-            return field + SPACE + filter.getSqlOperator() + SPACE + getSqlFilter( filter, item ) + SPACE;
+            return field + SPACE + filter.getSqlOperator( true ) + SPACE + getSqlFilter( filter, item ) + SPACE;
         }
     }
 
@@ -1176,12 +1252,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( item.getValueType() != null && item.getValueType().isText() )
         {
-            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator() + SPACE
+            return "(coalesce(" + field + ", '') = '' or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
         else
         {
-            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator() + SPACE
+            return "(" + field + " is null or " + field + SPACE + filter.getSqlOperator( true ) + SPACE
                 + getSqlFilter( filter, item ) + ") ";
         }
     }

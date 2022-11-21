@@ -29,7 +29,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.function.Supplier;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -54,35 +55,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 {
-    @NonNull
+    @Nonnull
     private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
+    @Nonnull
     private final TrackerAccessManager trackerAccessManager;
 
-    @NonNull
+    @Nonnull
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @NonNull
+    @Nonnull
     private final ProgramRuleVariableService programRuleVariableService;
 
-    @NonNull
+    @Nonnull
     private final EventImporterUserService eventImporterUserService;
 
-    @NonNull
+    @Nonnull
     private final ObjectMapper jsonMapper;
 
-    @NonNull
+    @Nonnull
     @Qualifier( "readOnlyJdbcTemplate" )
     private final JdbcTemplate jdbcTemplate;
 
-    @NonNull
+    @Nonnull
     private final AuditManager auditManager;
 
-    @NonNull
+    @Nonnull
     private final FileResourceService fileResourceService;
 
-    @NonNull
+    @Nonnull
     private final OrganisationUnitService organisationUnitService;
 
     @Override

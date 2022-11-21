@@ -40,6 +40,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +50,6 @@ import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 
 /**
  * Template formats supported: A{uid-of-attribute} V{name-of-variable}
@@ -112,12 +111,12 @@ public abstract class BaseNotificationMessageRenderer<T>
                                                                                                              // for
                                                                                                              // DataElement
 
-    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS = new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
-        .put( ExpressionType.VARIABLE, ( entity, keys ) -> resolveVariableValues( keys, entity ) )
-        .put( ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
-            ( entity, keys ) -> resolveTrackedEntityAttributeValues( keys, entity ) )
-        .put( ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) )
-        .build();
+    private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> expressionToValueResolvers = Map
+        .of(
+            ExpressionType.VARIABLE, ( entity, keys ) -> resolveVariableValues( keys, entity ),
+            ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
+            ( entity, keys ) -> resolveTrackedEntityAttributeValues( keys, entity ),
+            ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) );
 
     protected enum ExpressionType
     {
@@ -165,9 +164,9 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Overrideable logic
     // -------------------------------------------------------------------------
 
-    protected boolean isValidExpressionContent( String content, ExpressionType type )
+    private boolean isValidExpressionContent( String content, ExpressionType type )
     {
-        return content != null && getSupportedExpressionTypes().contains( type )
+        return getSupportedExpressionTypes().contains( type )
             && type.isValidExpressionContent( content );
     }
 
@@ -213,9 +212,10 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Internal methods
     // -------------------------------------------------------------------------
 
-    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
+    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, @Nonnull ExpressionType type,
+        T entity )
     {
-        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, ( e, s ) -> Maps.newHashMap() ).apply( entity,
+        return expressionToValueResolvers.getOrDefault( type, ( e, s ) -> Map.of() ).apply( entity,
             expressions );
     }
 
@@ -286,7 +286,7 @@ public abstract class BaseNotificationMessageRenderer<T>
             .reduce(
                 input,
                 ( str, pattern ) -> {
-                    StringBuffer sb = new StringBuffer( str.length() );
+                    StringBuilder sb = new StringBuilder( str.length() );
                     Matcher matcher = pattern.matcher( str );
 
                     while ( matcher.find() )

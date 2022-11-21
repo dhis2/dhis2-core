@@ -31,9 +31,7 @@ import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assert
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
@@ -54,7 +52,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -278,6 +278,45 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             GET( "/tracker/trackedEntities/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvFormat()
+    {
+        WebClient.HttpResponse response = GET( "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_TEXT_CSV ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv\"" ),
+            () -> response.content().toString().contains( "trackedEntity,trackedEntityType" ) );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvZipFormat()
+    {
+        WebClient.HttpResponse response = GET(
+            "/tracker/trackedEntities.csv.zip?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_ZIP ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.zip\"" ) );
+    }
+
+    @Test
+    void getTrackedEntityReturnsCsvGZipFormat()
+    {
+        WebClient.HttpResponse response = GET(
+            "/tracker/trackedEntities.csv.gz?program={programId}&orgUnit={orgUnitId}",
+            program.getUid(), orgUnit.getUid() );
+
+        assertEquals( HttpStatus.OK, response.status() );
+
+        assertAll( () -> response.header( "content-type" ).contains( ContextUtils.CONTENT_TYPE_CSV_GZIP ),
+            () -> response.header( "content-disposition" ).contains( "filename=\"trackedEntities.csv.gz\"" ) );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

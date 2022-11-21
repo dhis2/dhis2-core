@@ -104,50 +104,15 @@ public class CategoryOptionCombo
     }
 
     @Override
-    public boolean equals( Object object )
+    public boolean equals( Object obj )
     {
-        if ( this == object )
-        {
-            return true;
-        }
+        return this == obj || obj instanceof CategoryOptionCombo && objectEquals( (CategoryOptionCombo) obj );
+    }
 
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( !(object instanceof CategoryOptionCombo) )
-        {
-            return false;
-        }
-
-        final CategoryOptionCombo other = (CategoryOptionCombo) object;
-
-        if ( categoryCombo == null )
-        {
-            if ( other.categoryCombo != null )
-            {
-                return false;
-            }
-        }
-        else if ( !categoryCombo.equals( other.categoryCombo ) )
-        {
-            return false;
-        }
-
-        if ( categoryOptions == null )
-        {
-            if ( other.categoryOptions != null )
-            {
-                return false;
-            }
-        }
-        else if ( !categoryOptions.equals( other.categoryOptions ) )
-        {
-            return false;
-        }
-
-        return true;
+    private boolean objectEquals( CategoryOptionCombo other )
+    {
+        return Objects.equals( categoryCombo, other.categoryCombo )
+            && Objects.equals( categoryOptions, other.categoryOptions );
     }
 
     @Override

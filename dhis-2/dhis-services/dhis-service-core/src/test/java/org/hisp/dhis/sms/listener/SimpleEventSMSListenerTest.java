@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,12 +73,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class SimpleEventSMSListenerTest extends
     CompressionSMSListenerTest
@@ -129,7 +127,7 @@ class SimpleEventSMSListenerTest extends
     @Mock
     private ProgramInstanceService programInstanceService;
 
-    SimpleEventSMSListener subject;
+    private SimpleEventSMSListener subject;
 
     private IncomingSms incomingSmsSimpleEvent;
 
@@ -144,8 +142,6 @@ class SimpleEventSMSListenerTest extends
     private DataElement dataElement;
 
     private Program program;
-
-    private ProgramStage programStage;
 
     private ProgramStageInstance programStageInstance;
 
@@ -168,7 +164,7 @@ class SimpleEventSMSListenerTest extends
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        lenient().when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
 
         doAnswer( invocation -> {
@@ -233,7 +229,7 @@ class SimpleEventSMSListenerTest extends
     {
         organisationUnit = createOrganisationUnit( 'O' );
         program = createProgram( 'P' );
-        programStage = createProgramStage( 'S', program );
+        ProgramStage programStage = createProgramStage( 'S', program );
 
         user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );

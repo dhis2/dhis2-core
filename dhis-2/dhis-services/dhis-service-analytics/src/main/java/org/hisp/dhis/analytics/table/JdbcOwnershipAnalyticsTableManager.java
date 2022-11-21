@@ -36,10 +36,13 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +67,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,8 +99,10 @@ public class JdbcOwnershipAnalyticsTableManager
 
     private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.ownatstart" ),
-        new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
+        new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
+        // Repeating the same alias "o.owndate" is not a typo. This column is
+        // not read.
+        new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
     @Override
@@ -167,22 +171,14 @@ public class JdbcOwnershipAnalyticsTableManager
         batchHandler.init();
 
         JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
+        AtomicInteger queryRowCount = new AtomicInteger();
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        int queryRowCount = 0;
-
-        while ( rowSet.next() )
-        {
-            Map<String, Object> row = getRowMap( columnNames, rowSet );
-
-            writer.write( row );
-
-            queryRowCount++;
-        }
+        jdbcTemplate.query( sql, resultSet -> {
+            writer.write( getRowMap( columnNames, resultSet ) );
+            queryRowCount.getAndIncrement();
+        } );
 
         log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
-
         writer.flush();
     }
 
@@ -199,47 +195,42 @@ public class JdbcOwnershipAnalyticsTableManager
 
         sb.deleteCharAt( sb.length() - 1 ); // Remove the final ','.
 
-        // FROM clausetestImportEventInProgramStageSuccessWithWarningRaised
+        // FROM clause
 
         // Gets no more than one row per ownership start day. If there are
         // multiple enrollments and/or owner changes, gets the last change
         // before midnight that starts the ownership day.
 
-        return sb.append( " from ( " +
-            "select trackedentityinstanceid, owndate+1 as ownatstart, " +
-            "right(max(owns),-23)::bigint as organisationunitid " +
-            "from ( " +
-            "select pi.trackedentityinstanceid, pi.enrollmentdate::date as owndate, " +
-            "rpad(pi.enrollmentdate::text,23) || pi.organisationunitid::text as owns " +
+        return sb.append( " from (" +
+            "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
             "from programinstance pi " +
             "where pi.programid=" + program.getId() + " " +
             "and pi.trackedentityinstanceid is not null " +
             "and pi.organisationunitid is not null " +
             "and pi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "union " +
-            "select poh.trackedentityinstanceid, poh.startdate::date as owndate, " +
-            "rpad(poh.startdate::text,23) || poh.organisationunitid::text as owns " +
+            "select poh.trackedentityinstanceid, poh.startdate as owndate, poh.organisationunitid " +
             "from programownershiphistory poh " +
             "where poh.programid=" + program.getId() + " " +
             "and poh.trackedentityinstanceid is not null " +
             "and poh.organisationunitid is not null " +
-            ") o2 group by trackedentityinstanceid, owndate " +
             ") o " +
             "inner join trackedentityinstance tei on o.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart" ).toString();
+            "order by tei.uid, o.owndate" ).toString();
     }
 
-    private Map<String, Object> getRowMap( List<String> columnNames, SqlRowSet rowSet )
+    private Map<String, Object> getRowMap( List<String> columnNames, ResultSet resultSet )
+        throws SQLException
     {
         Map<String, Object> rowMap = new HashMap<>();
 
         for ( int i = 0; i < columnNames.size(); i++ )
         {
-            rowMap.put( columnNames.get( i ), rowSet.getObject( i + 1 ) );
+            rowMap.put( columnNames.get( i ), resultSet.getObject( i + 1 ) );
         }
 
         return rowMap;

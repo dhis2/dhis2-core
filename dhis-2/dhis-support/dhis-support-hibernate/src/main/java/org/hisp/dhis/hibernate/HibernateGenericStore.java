@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -466,12 +467,18 @@ public class HibernateGenericStore<T>
         getSession().delete( object );
     }
 
+    @CheckForNull
     @Override
     public T get( long id )
     {
-        T object = getSession().get( getClazz(), id );
-
+        T object = getNoPostProcess( id );
         return postProcessObject( object );
+    }
+
+    @CheckForNull
+    protected final T getNoPostProcess( long id )
+    {
+        return getSession().get( getClazz(), id );
     }
 
     /**

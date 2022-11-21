@@ -34,12 +34,9 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.PI_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
-import static org.hisp.dhis.common.FallbackCoordinateFieldType.TEI_GEOMETRY;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,7 +69,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -94,7 +90,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Class representing query parameters for retrieving event data from the event
@@ -120,8 +115,7 @@ public class EventQueryParams
 
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
-    public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
-        OU_GEOMETRY, PSI_GEOMETRY, PI_GEOMETRY, TEI_GEOMETRY );
+    public static final String TRACKER_COORDINATE_FIELD = "TRACKER";
 
     /**
      * The query items.
@@ -227,12 +221,6 @@ public class EventQueryParams
     private boolean geometryOnly;
 
     /**
-     * Indicates whether request is intended to fetch events with alternative
-     * coordinates.
-     */
-    private boolean coordinateOuFallback;
-
-    /**
      * Indicates whether the query originates from an aggregate data query.
      */
     private boolean aggregateData;
@@ -243,15 +231,11 @@ public class EventQueryParams
     private Long clusterSize;
 
     /**
-     * The coordinate field to use as basis for spatial event analytics.
+     * The coordinate fields to use as basis for spatial event analytics. The
+     * list is built as collection of coordinate field and fallback fields. The
+     * order defines priority of geometry fields.
      */
-    private String coordinateField;
-
-    /**
-     * The fallback coordinate field to use as basis for spatial event
-     * analytics, SQL COALESCE applied on coordinate fields.
-     */
-    private String fallbackCoordinateField;
+    private List<String> coordinateFields;
 
     /**
      * Bounding box for events to include in clustering.
@@ -318,6 +302,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.dateRangeList = this.dateRangeList;
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
@@ -348,12 +333,10 @@ public class EventQueryParams
         params.eventStatus = new LinkedHashSet<>( this.eventStatus );
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
-        params.coordinateOuFallback = this.coordinateOuFallback;
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
-        params.coordinateField = this.coordinateField;
-        params.fallbackCoordinateField = this.fallbackCoordinateField;
+        params.coordinateFields = this.coordinateFields;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = new LinkedHashSet<>( this.programStatus );
@@ -461,12 +444,10 @@ public class EventQueryParams
             .addIgnoreNull( "outputIdScheme", outputIdScheme )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
-            .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
             .addIgnoreNull( "geometryOnly", geometryOnly )
             .addIgnoreNull( "aggregateData", aggregateData )
             .addIgnoreNull( "clusterSize", clusterSize )
-            .addIgnoreNull( "coordinateField", coordinateField )
-            .addIgnoreNull( "fallbackCoordinateField", fallbackCoordinateField )
+            .addIgnoreNull( "coordinateFields", coordinateFields )
             .addIgnoreNull( "bbox", bbox )
             .addIgnoreNull( "includeClusterPoints", includeClusterPoints )
             .addIgnoreNull( "programStatus", programStatus )
@@ -482,20 +463,27 @@ public class EventQueryParams
     /**
      * Replaces periods with start and end dates, using the earliest start date
      * from the periods as start date and the latest end date from the periods
-     * as end date. Remove the period dimension or filter.
+     * as end date. Before removing the period dimension or filter, DateRange
+     * list is created. This saves the complete date information from PE
+     * Dimension prior removal of dimension
      *
      * When heterogeneous date fields are specified, set a specific start/date
      * pair for each of them
      */
-    private void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
         for ( Period period : periods )
         {
+            DateRange dateRange = new DateRange( period.getStartDate(), period.getEndDate() );
+
+            dateRangeList.add( dateRange );
+
             if ( Objects.isNull( period.getDateField() ) )
             {
                 Date start = period.getStartDate();
+
                 Date end = period.getEndDate();
 
                 if ( startDate == null || (start != null && start.before( startDate )) )
@@ -518,6 +506,8 @@ public class EventQueryParams
                 }
             }
         }
+        // Sorting the date range list
+        dateRangeList.sort( Comparator.comparing( DateRange::getStartDate ) );
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
     }
@@ -689,19 +679,6 @@ public class EventQueryParams
         return false;
     }
 
-    /**
-     * Indicates whether the given fallbackCoordinateField is valid, i.e.
-     * whether it matches to the query geometry.
-     */
-    public boolean fallbackCoordinateFieldIsValid()
-    {
-        List<String> fcFields = fallbackCoordinateField == null ? new ArrayList<>()
-            : List.of( fallbackCoordinateField.split( "," ) );
-
-        return EventQueryParams.FALLBACK_COORDINATE_FIELD_TYPES.stream()
-            .anyMatch( t -> fcFields.contains( t.getValue() ) );
-    }
-
     private boolean validateProgramHasOrgUnitField( Program program )
     {
         String orgUnitColumn = orgUnitField.getField();
@@ -763,7 +740,7 @@ public class EventQueryParams
 
     /**
      * Indicates whether this object is of the given aggregation type. Based on
-     * {@link getAggregationTypeFallback}.
+     * getAggregationTypeFallback
      */
     @Override
     public boolean isAggregationType( AggregationType type )
@@ -1100,11 +1077,6 @@ public class EventQueryParams
         return coordinatesOnly;
     }
 
-    public boolean isCoordinateOuFallback()
-    {
-        return coordinateOuFallback;
-    }
-
     public boolean isGeometryOnly()
     {
         return geometryOnly;
@@ -1120,14 +1092,9 @@ public class EventQueryParams
         return clusterSize;
     }
 
-    public String getCoordinateField()
+    public List<String> getCoordinateFields()
     {
-        return coordinateField;
-    }
-
-    public String getFallbackCoordinateField()
-    {
-        return fallbackCoordinateField;
+        return coordinateFields;
     }
 
     public String getBbox()
@@ -1335,12 +1302,6 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withCoordinateOuFallback( boolean coordinateOuFallback )
-        {
-            this.params.coordinateOuFallback = coordinateOuFallback;
-            return this;
-        }
-
         public Builder withGeometryOnly( boolean geometryOnly )
         {
             this.params.geometryOnly = geometryOnly;
@@ -1477,15 +1438,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withCoordinateField( String coordinateField )
+        public Builder withCoordinateFields( List<String> coordinateFields )
         {
-            this.params.coordinateField = coordinateField;
-            return this;
-        }
-
-        public Builder withFallbackCoordinateField( String fallbackCoordinateField )
-        {
-            this.params.fallbackCoordinateField = fallbackCoordinateField;
+            this.params.coordinateFields = coordinateFields;
             return this;
         }
 
@@ -1513,7 +1468,7 @@ public class EventQueryParams
 
         public Builder withStartEndDatesForPeriods()
         {
-            this.params.replacePeriodsWithStartEndDates();
+            this.params.replacePeriodsWithDates();
             return this;
         }
 

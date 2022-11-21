@@ -74,7 +74,6 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class AbstractAnalyticsServiceTest
 {
-
     private Period peA;
 
     private OrganisationUnit ouA;
@@ -128,7 +127,7 @@ class AbstractAnalyticsServiceTest
             .addDimension( periods )
             .addDimension( orgUnits )
             .addItem( qiA ).addItem( qiB ).addItem( qiC )
-            .withCoordinateField( deB.getUid() )
+            .withCoordinateFields( List.of( deB.getUid() ) )
             .withSkipData( true )
             .withSkipMeta( false )
             .withApiVersion( DhisApiVersion.V33 )
@@ -140,7 +139,7 @@ class AbstractAnalyticsServiceTest
         Grid grid = dummyAnalyticsService.getGrid( params );
 
         // Then
-        final List<GridHeader> headers = grid.getHeaders();
+        List<GridHeader> headers = grid.getHeaders();
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );
 

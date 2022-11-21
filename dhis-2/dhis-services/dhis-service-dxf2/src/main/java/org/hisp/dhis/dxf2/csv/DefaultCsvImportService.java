@@ -75,8 +75,8 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
@@ -456,7 +456,7 @@ public class DefaultCsvImportService
                 // model
                 object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
                 object.setPeriodType(
-                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
+                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, PeriodTypeEnum.MONTHLY.getName(), 255 ) ) );
 
                 leftSide.setExpression( getSafe( values, 9, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, 255 ) );

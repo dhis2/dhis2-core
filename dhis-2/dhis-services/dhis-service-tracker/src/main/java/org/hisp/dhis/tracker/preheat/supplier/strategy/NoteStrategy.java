@@ -29,7 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -48,7 +49,7 @@ import org.springframework.stereotype.Component;
 @StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
 public class NoteStrategy implements ClassBasedSupplierStrategy
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityCommentStore trackedEntityCommentStore;
 
     @Override

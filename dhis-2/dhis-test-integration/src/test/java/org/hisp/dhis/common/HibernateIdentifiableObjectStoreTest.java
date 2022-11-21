@@ -38,15 +38,16 @@ import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
@@ -77,6 +78,9 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @BeforeEach
     void init()
@@ -172,9 +176,10 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setValueType( ValueType.TEXT );
         CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'D' );
+        defaultCategoryOptionCombo.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
         Period period = createPeriod( new Date(), new Date() );
-        period.setPeriodType( PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME ) );
+        period.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ) );
         manager.save( dataElement );
         manager.save( organisationUnitA );
         manager.save( period );

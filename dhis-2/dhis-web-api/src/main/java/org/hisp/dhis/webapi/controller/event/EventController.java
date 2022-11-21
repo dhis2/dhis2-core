@@ -35,6 +35,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.scheduling.JobType.EVENT_IMPORT;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -52,6 +54,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -272,7 +276,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -346,7 +350,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -419,7 +423,7 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -428,7 +432,7 @@ public class EventController
 
     }
 
-    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_CSV )
+    @GetMapping( value = "/query", produces = ContextUtils.CONTENT_TYPE_TEXT_CSV )
     public void queryEventsCsv(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -493,10 +497,10 @@ public class EventController
         EventSearchParams params = requestToSearchParamsMapper.map( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
+            totalPages, skipPaging, getOrderParams( null ), getGridOrderParams( order ), false, eventIds, false,
             assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
         GridUtils.toCsv( grid, response.getWriter() );
 
@@ -518,7 +522,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add(
-                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
+                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
@@ -631,7 +635,7 @@ public class EventController
         }
     }
 
-    @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    @GetMapping( produces = { "application/csv", "application/csv+gzip", "application/csv+zip", "text/csv" } )
     public void getCsvEvents(
         EventCriteria eventCriteria,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
@@ -650,7 +654,15 @@ public class EventController
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
-            response.setContentType( "application/csv+gzip" );
+            response.setContentType( CONTENT_TYPE_CSV_GZIP );
+        }
+        else if ( ContextUtils.isAcceptCsvZip( request ) )
+        {
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            response.setContentType( CONTENT_TYPE_CSV_ZIP );
+            ZipOutputStream zos = new ZipOutputStream( outputStream );
+            zos.putNextEntry( new ZipEntry( "events.csv" ) );
+            outputStream = zos;
         }
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
@@ -696,7 +708,7 @@ public class EventController
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
-            null, true, null, skipEventId, null, null, null,
+            getGridOrderParams( order ), true, null, skipEventId, null, null, null,
             null, false, includeDeleted );
 
         return eventRowService.getEventRows( params );

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataexchange.client;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 import org.hisp.dhis.common.ErrorCodeException;
@@ -42,6 +44,7 @@ import org.springframework.http.HttpStatus;
 public class Dhis2ClientException
     extends ErrorCodeException
 {
+    @Nonnull
     private final HttpStatus httpStatus;
 
     public Dhis2ClientException( HttpStatus httpStatus )

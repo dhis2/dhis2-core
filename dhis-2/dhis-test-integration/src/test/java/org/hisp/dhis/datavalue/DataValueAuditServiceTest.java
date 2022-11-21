@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -246,5 +247,125 @@ class DataValueAuditServiceTest extends SingleSetupIntegrationTestBase
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
+    }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreate()
+    {
+        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
+            .setDataElements( List.of( dataElementA ) )
+            .setPeriods( List.of( periodD ) )
+            .setOrgUnits( List.of( orgUnitA ) )
+            .setCategoryOptionCombo( optionCombo )
+            .setAuditTypes( List.of( AuditType.UPDATE ) );
+
+        assertEquals( 0, dataValueAuditService.getDataValueAudits( params ).size() );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 1, audits.size() );
+        assertEquals( AuditType.CREATE, audits.get( 0 ).getAuditType() );
+    }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreate2()
+    {
+        dataValueA.setValue( "10" );
+        dataValueService.updateDataValue( dataValueA );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 2, audits.size() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 1 ).getAuditType() );
+    }
+
+    @Test
+    void testGetDataValueAuditWithFakeCreateDeleteAndCreate()
+    {
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "10",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "20",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "30",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 4, audits.size() );
+        assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+    }
+
+    @Test
+    @Disabled
+    void testGetDataValueAuditWithFakeCreateDelete2()
+    {
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "10",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "20",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValueA, "30",
+            dataValueA.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueService.deleteDataValue( dataValueA );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElementA, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 4, audits.size() );
+        assertEquals( AuditType.CREATE, audits.get( 3 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.DELETE, audits.get( 0 ).getAuditType() );
+    }
+
+    @Test
+    @Disabled
+    void testGetDataValueAuditWithFakeCreateDeleteAndUndelete()
+    {
+        DataElement dataElement = createDataElement( 'F' );
+        DataValue dataValue = createDataValue( dataElement, periodA, orgUnitA, optionCombo, optionCombo, "1" );
+
+        dataElementService.addDataElement( dataElement );
+        dataValueService.addDataValue( dataValue );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "10",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "20",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueAuditService.addDataValueAudit( new DataValueAudit( dataValue, "30",
+            dataValue.getStoredBy(), AuditType.UPDATE ) );
+
+        dataValueService.deleteDataValue( dataValue );
+
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataElement, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertContainsOnly( List.of(), audits );
+
+        dataValueService.addDataValue( dataValue );
+
+        audits = dataValueAuditService.getDataValueAudits(
+            dataElement, periodA, orgUnitA, optionCombo, optionCombo );
+
+        assertEquals( 6, audits.size() );
+        assertEquals( AuditType.UPDATE, audits.get( 0 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 1 ).getAuditType() );
+        assertEquals( AuditType.DELETE, audits.get( 2 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 3 ).getAuditType() );
+        assertEquals( AuditType.UPDATE, audits.get( 4 ).getAuditType() );
+        assertEquals( AuditType.CREATE, audits.get( 5 ).getAuditType() );
     }
 }

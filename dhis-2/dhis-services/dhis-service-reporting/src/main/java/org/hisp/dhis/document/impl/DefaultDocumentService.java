@@ -29,6 +29,8 @@ package org.hisp.dhis.document.impl;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
@@ -41,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Transactional
 @Service( "org.hisp.dhis.document.DocumentService" )
@@ -117,7 +118,7 @@ public class DefaultDocumentService
     }
 
     @Override
-    public List<Document> getDocumentsByUid( List<String> uids )
+    public List<Document> getDocumentsByUid( @Nonnull List<String> uids )
     {
         return documentStore.getByUid( uids );
     }

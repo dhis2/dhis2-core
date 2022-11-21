@@ -102,7 +102,7 @@ public class DefaultQueryPlanner
 
         partitionManager.filterNonExistingPartitions( params.getPartitions(), plannerParams.getTableName() );
 
-        final List<DataQueryParams> queries = Lists.newArrayList( params );
+        List<DataQueryParams> queries = Lists.newArrayList( params );
 
         List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
             .add( q -> groupByOrgUnitLevel( q ) )

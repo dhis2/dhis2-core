@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -43,15 +44,15 @@ import org.springframework.stereotype.Service;
 @Getter
 public class CommitService
 {
-    @NonNull
+    @Nonnull
     private TrackedEntityPersister trackerPersister;
 
-    @NonNull
+    @Nonnull
     private EnrollmentPersister enrollmentPersister;
 
-    @NonNull
+    @Nonnull
     private EventPersister eventPersister;
 
-    @NonNull
+    @Nonnull
     private RelationshipPersister relationshipPersister;
 }

@@ -75,7 +75,7 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -116,7 +116,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,"
         + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-        + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
+        + ",lastupdated,duedate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,"
         + "oucode,pistatus,psistatus";
 
     @BeforeEach
@@ -147,7 +147,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expected = "select psi,ps,executiondate,storedby,"
             + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-            + ",lastupdated,duedate,ST_AsGeoJSON(psigeometry, 6) as geometry,"
+            + ",lastupdated,duedate,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -171,7 +171,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         String expected = "select psi,ps,executiondate,storedby,"
             + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
             + ",lastupdated,duedate,enrollmentdate,"
-            + "incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
+            + "incidentdate,tei,pi,ST_AsGeoJSON(coalesce(ax.\"psigeometry\",ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\"), 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
             + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " + "from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
@@ -479,7 +479,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         deA.setUid( "ZE4cgllb2P" );
 
         DataQueryParams params = DataQueryParams.newBuilder().withDataType( DataType.NUMERIC )
-            .withTableName( "analytics" ).withPeriodType( QuarterlyPeriodType.NAME )
+            .withTableName( "analytics" ).withPeriodType( PeriodTypeEnum.QUARTERLY.getName() )
             .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.DEFAULT ) )
             .addDimension(
                 new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
@@ -487,13 +487,13 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
 
-        final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
+        EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
             .addAscSortItem( new QueryItem( piA ) )
             .addDescSortItem( new QueryItem( piB ) )
             .addAscSortItem( new QueryItem( deA ) );
 
-        final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
+        String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 
         assertThat( sql, containsString(
             "order by \"" + piA.getUid() + "\" asc,\"" + deA.getUid() + "\" asc,\"" + piB.getUid() + "\"" ) );

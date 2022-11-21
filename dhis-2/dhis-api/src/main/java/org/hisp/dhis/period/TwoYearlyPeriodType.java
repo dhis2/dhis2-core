@@ -40,7 +40,6 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  * to the last day of the next year.
  *
  * @author Torgeir Lorange Ostby
- * @version $Id: TwoYearlyPeriodType.java 2975 2007-03-03 22:24:36Z torgeilo $
  */
 public class TwoYearlyPeriodType
     extends CalendarPeriodType
@@ -49,11 +48,6 @@ public class TwoYearlyPeriodType
      * Determines if a de-serialized file is compatible with this class.
      */
     private static final long serialVersionUID = 5813755542990991810L;
-
-    /**
-     * The name of the TwoYearlyPeriodType, which is "TwoYearly".
-     */
-    public static final String NAME = "TwoYearly";
 
     private static final String ISO8601_DURATION = "P2Y";
 
@@ -66,9 +60,9 @@ public class TwoYearlyPeriodType
     // -------------------------------------------------------------------------
 
     @Override
-    public String getName()
+    public PeriodTypeEnum getPeriodTypeEnum()
     {
-        return NAME;
+        return PeriodTypeEnum.TWO_YEARLY;
     }
 
     @Override

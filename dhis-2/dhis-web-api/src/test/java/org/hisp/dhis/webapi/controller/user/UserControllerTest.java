@@ -34,9 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -70,15 +70,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link UserController}.
  *
  * @author Volker Schmidt
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class UserControllerTest
 {
@@ -97,10 +94,6 @@ class UserControllerTest
     @InjectMocks
     private UserController userController;
 
-    private UserGroup userGroup1;
-
-    private UserGroup userGroup2;
-
     private User currentUser;
 
     private User user;
@@ -110,10 +103,10 @@ class UserControllerTest
     @BeforeEach
     public void setUp()
     {
-        userGroup1 = new UserGroup();
+        UserGroup userGroup1 = new UserGroup();
         userGroup1.setUid( "abc1" );
 
-        userGroup2 = new UserGroup();
+        UserGroup userGroup2 = new UserGroup();
         userGroup2.setUid( "abc2" );
 
         currentUser = new User();
@@ -131,7 +124,7 @@ class UserControllerTest
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void updateUserGroups()
+    void updateUserGroups()
     {
         when( userService.getUser( "def2" ) ).thenReturn( user );
 
@@ -173,7 +166,7 @@ class UserControllerTest
     }
 
     @Test
-    public void updateUserGroupsSameUser()
+    void updateUserGroupsSameUser()
     {
         currentUser.setId( 1001 );
         currentUser.setUid( "def2" );
@@ -219,9 +212,9 @@ class UserControllerTest
         setUpUserAuthority( currentUser, UserRole.AUTHORITY_ALL );
         // allow any change
         when( aclService.canUpdate( any(), any() ) ).thenReturn( true );
-        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
+        lenient().when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
         // link user and current user to service methods
-        when( userService.getUser( eq( user.getUid() ) ) ).thenReturn( user );
+        when( userService.getUser( user.getUid() ) ).thenReturn( user );
         when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
     }
 

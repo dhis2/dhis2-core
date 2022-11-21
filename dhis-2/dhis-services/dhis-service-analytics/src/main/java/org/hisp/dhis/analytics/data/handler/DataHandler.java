@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -295,7 +296,7 @@ public class DataHandler
     {
         String permKey = asItemKey( dimensionItems );
 
-        final List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
+        List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
@@ -380,10 +381,10 @@ public class DataHandler
      * @param grid the current/actual grid
      * @param eventGrid the event grid
      */
-    private void replaceGridIfNeeded( final Grid grid, final Grid eventGrid )
+    private void replaceGridIfNeeded( Grid grid, Grid eventGrid )
     {
-        final boolean eventGridHasAdditionalHeaders = grid.getHeaderWidth() < eventGrid.getHeaderWidth();
-        final boolean eventHeaderSizeIsSameAsGridColumns = eventGrid.getHeaderWidth() == eventGrid.getWidth();
+        boolean eventGridHasAdditionalHeaders = grid.getHeaderWidth() < eventGrid.getHeaderWidth();
+        boolean eventHeaderSizeIsSameAsGridColumns = eventGrid.getHeaderWidth() == eventGrid.getWidth();
 
         // Replacing the current grid headers by the actual event grid headers.
         if ( eventGridHasAdditionalHeaders && eventHeaderSizeIsSameAsGridColumns )
@@ -882,9 +883,9 @@ public class DataHandler
     }
 
     /**
-     * Generates a mapping between the the organisation unit dimension key and
-     * the count of organisation units inside the subtree of the given
-     * organisation units and members of the given organisation unit groups.
+     * Generates a mapping between the organisation unit dimension key and the
+     * count of organisation units inside the subtree of the given organisation
+     * units and members of the given organisation unit groups.
      *
      * @param params the {@link DataQueryParams}.
      * @return a mapping between the the data set dimension key and the count of
@@ -974,11 +975,11 @@ public class DataHandler
         // Derive the Grid indexes for data, value and period based on the first
         // row of the Grid
 
-        final int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
-        final int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
-        final int valueIndex = grid.getWidth() - 1;
+        int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
+        int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
+        int valueIndex = grid.getWidth() - 1;
 
-        final List<DimensionalItemObject> basePeriods = params.getPeriods();
+        List<DimensionalItemObject> basePeriods = params.getPeriods();
 
         MultiValuedMap<String, DimensionItemObjectValue> valueMap = new ArrayListValuedHashMap<>();
 
@@ -987,19 +988,27 @@ public class DataHandler
         // Process the grid rows. If yearToDate, build any yearToDate rows for
         // adding later. Otherwise, add the row to the result.
 
+        List<DimensionalItemObject> nonYearToDateItems = items.stream()
+            .filter( i -> !isYearToDate( i ) )
+            .collect( toList() );
+
+        Map<String, List<DimensionalItemObject>> yearToDateItemsById = items.stream()
+            .filter( PeriodOffsetUtils::isYearToDate )
+            .collect( groupingBy( DimensionalItemObject::getDimensionItemWithQueryModsId ) );
+
         for ( List<Object> row : grid.getRows() )
         {
             for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
-                (String) row.get( dataIndex ), items ) )
+                (String) row.get( dataIndex ), nonYearToDateItems ) )
             {
-                if ( isYearToDate( dimensionalItem ) )
-                {
-                    buildYearToDateRows( periodIndex, valueIndex, row, dimensionalItem, basePeriods, yearToDateRows );
-                }
-                else
-                {
-                    addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
-                }
+                addRowToValueMap( periodIndex, valueIndex, row, dimensionalItem, basePeriods, valueMap );
+            }
+
+            List<DimensionalItemObject> yearToDateItems = yearToDateItemsById.get( row.get( dataIndex ) );
+
+            if ( yearToDateItems != null )
+            {
+                buildYearToDateRows( periodIndex, valueIndex, row, yearToDateItems, basePeriods, yearToDateRows );
             }
         }
 
@@ -1104,7 +1113,7 @@ public class DataHandler
             ? 0
             : dimensionalItemObject.getQueryMods().getPeriodOffset();
 
-        final List<Object> adjustedRow = (periodOffset != 0)
+        List<Object> adjustedRow = (periodOffset != 0)
             ? getPeriodOffsetRow( row, periodIndex, periodOffset )
             : row;
 

@@ -38,9 +38,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -58,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelationshipCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -86,19 +85,19 @@ public class TrackerRelationshipsExportController
     private static final org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper RELATIONSHIP_MAPPER = Mappers
         .getMapper( org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper.class );
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
+    @Nonnull
     private final ProgramInstanceService programInstanceService;
 
-    @NonNull
+    @Nonnull
     private final ProgramStageInstanceService programStageInstanceService;
 
-    @NonNull
+    @Nonnull
     private final RelationshipService relationshipService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
     private Map<Class<?>, Function<String, ?>> objectRetrievers;

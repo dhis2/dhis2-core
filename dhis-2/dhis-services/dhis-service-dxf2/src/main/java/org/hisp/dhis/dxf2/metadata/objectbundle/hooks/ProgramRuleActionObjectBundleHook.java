@@ -32,8 +32,6 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
-import lombok.NonNull;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -50,14 +48,14 @@ import org.springframework.stereotype.Component;
 @Component( "programRuleActionObjectBundle" )
 public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction>
 {
-    @NonNull
+    @Nonnull
     private final Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap;
 
     @Nonnull
     private final ProgramRuleActionValidationContextLoader contextLoader;
 
     public ProgramRuleActionObjectBundleHook(
-        @NonNull Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap,
+        @Nonnull Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap,
         @Nonnull ProgramRuleActionValidationContextLoader contextLoader )
     {
         this.programRuleActionValidatorMap = programRuleActionValidatorMap;

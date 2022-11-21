@@ -59,7 +59,7 @@ public class DefaultVisualizationService
 
     @Override
     @Transactional
-    public long save( final Visualization visualization )
+    public long save( Visualization visualization )
     {
         visualizationStore.save( visualization );
 

@@ -42,11 +42,14 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -84,7 +87,7 @@ import org.mockito.MockedStatic;
 import org.mockito.invocation.Invocation;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * {@see JdbcOwnershipAnalyticsTableManager} Tester.
@@ -139,9 +142,6 @@ class JdbcOwnershipAnalyticsTableManagerTest
 
     @Mock
     private Statement statement;
-
-    @Mock
-    private SqlRowSet rowSet;
 
     @Mock
     private JdbcOwnershipWriter writer;
@@ -225,22 +225,40 @@ class JdbcOwnershipAnalyticsTableManagerTest
         when( dataSource.getConnection() ).thenReturn( connection );
         when( connection.createStatement() ).thenReturn( statement );
 
-        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( rowSet );
+        // Mock the jdbcTemplate callback handler to return the mocked ResultSet
+        // object:
 
-        // Mock RowSet will return 5 successive rows:
-        when( rowSet.next() ).thenReturn( true, true, true, true, true, false );
+        ResultSet resultSet1 = mock( ResultSet.class );
+        ResultSet resultSet2 = mock( ResultSet.class );
+        ResultSet resultSet3 = mock( ResultSet.class );
+
+        doAnswer( invocation -> {
+            RowCallbackHandler callbackHandler = invocation.getArgument( 1 );
+            callbackHandler.processRow( resultSet1 );
+            callbackHandler.processRow( resultSet2 );
+            callbackHandler.processRow( resultSet3 );
+            return null;
+        } ).when( jdbcTemplate ).query( anyString(), any( RowCallbackHandler.class ) );
 
         // TEI uid:
-        when( rowSet.getObject( 1 ) ).thenReturn( tei1, tei1, tei1, tei2, tei2 );
+        when( resultSet1.getObject( 1 ) ).thenReturn( tei1 );
+        when( resultSet2.getObject( 1 ) ).thenReturn( tei2 );
+        when( resultSet3.getObject( 1 ) ).thenReturn( tei2 );
 
         // Start date:
-        when( rowSet.getObject( 2 ) ).thenReturn( start1, start2, start3, start1, start2 );
+        when( resultSet1.getObject( 2 ) ).thenReturn( start1 );
+        when( resultSet2.getObject( 2 ) ).thenReturn( start2 );
+        when( resultSet3.getObject( 2 ) ).thenReturn( start3 );
 
         // End date (always null):
-        when( rowSet.getObject( 3 ) ).thenReturn( end1, end2, end3, end1, end2 );
+        when( resultSet1.getObject( 3 ) ).thenReturn( end1 );
+        when( resultSet2.getObject( 3 ) ).thenReturn( end2 );
+        when( resultSet3.getObject( 3 ) ).thenReturn( end3 );
 
         // OrgUnit:
-        when( rowSet.getObject( 4 ) ).thenReturn( ou1, ou2, ou1, ou1, ou2 );
+        when( resultSet1.getObject( 4 ) ).thenReturn( ou1 );
+        when( resultSet2.getObject( 4 ) ).thenReturn( ou2 );
+        when( resultSet3.getObject( 4 ) ).thenReturn( ou2 );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .build();
@@ -255,54 +273,43 @@ class JdbcOwnershipAnalyticsTableManagerTest
 
         List<Invocation> jdbcInvocations = getInvocations( jdbcTemplate );
         assertEquals( 1, jdbcInvocations.size() );
-        assertEquals( "queryForRowSet", jdbcInvocations.get( 0 ).getMethod().getName() );
+        assertEquals( "query", jdbcInvocations.get( 0 ).getMethod().getName() );
 
-        String sql = (String) jdbcInvocations.get( 0 ).getArgument( 0 );
+        String sql = jdbcInvocations.get( 0 ).getArgument( 0 );
         String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
             "lastupdated <= 'yyyy-mm-ddThh:mm:ss'" );
-        assertEquals( "select tei.uid,o.ownatstart,null,ou.uid from ( " +
-            "select trackedentityinstanceid, owndate+1 as ownatstart, right(max(owns),-23)::bigint " +
-            "as organisationunitid from ( " +
-            "select pi.trackedentityinstanceid, pi.enrollmentdate::date as owndate, " +
-            "rpad(pi.enrollmentdate::text,23) || pi.organisationunitid::text as owns " +
+        assertEquals( "select tei.uid,o.owndate,o.owndate,ou.uid from (" +
+            "select pi.trackedentityinstanceid, pi.enrollmentDate as owndate, pi.organisationunitid " +
             "from programinstance pi " +
             "where pi.programid=0 and pi.trackedentityinstanceid is not null " +
             "and pi.organisationunitid is not null " +
             "and pi.lastupdated <= 'yyyy-mm-ddThh:mm:ss' " +
-            "union select poh.trackedentityinstanceid, poh.startdate::date as owndate, " +
-            "rpad(poh.startdate::text,23) || poh.organisationunitid::text as owns " +
+            "union select poh.trackedentityinstanceid, poh.startdate as owndate, poh.organisationunitid " +
             "from programownershiphistory poh where poh.programid=0 and poh.trackedentityinstanceid is not null " +
-            "and poh.organisationunitid is not null ) o2 " +
-            "group by trackedentityinstanceid, owndate ) o " +
+            "and poh.organisationunitid is not null ) o " +
             "inner join trackedentityinstance tei on o.trackedentityinstanceid=tei.trackedentityinstanceid " +
             "and tei.deleted is false " +
             "inner join organisationunit ou on o.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on o.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on o.organisationunitid=ougs.organisationunitid " +
-            "order by tei.uid, o.ownatstart",
+            "order by tei.uid, o.owndate",
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 6, writerInvocations.size() );
+        assertEquals( 4, writerInvocations.size() );
 
         assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 3 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 4 ).getMethod().getName() );
-        assertEquals( "flush", writerInvocations.get( 5 ).getMethod().getName() );
+        assertEquals( "flush", writerInvocations.get( 3 ).getMethod().getName() );
 
         Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
         Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
         Map<String, Object> map2 = writerInvocations.get( 2 ).getArgument( 0 );
-        Map<String, Object> map3 = writerInvocations.get( 3 ).getArgument( 0 );
-        Map<String, Object> map4 = writerInvocations.get( 4 ).getArgument( 0 );
 
         assertEquals( Map.of( TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map0 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start3, ENDDATE, end3, OU, ou1 ), map2 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map3 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map4 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
+        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start3, ENDDATE, end3, OU, ou2 ), map2 );
     }
 
     @Test
@@ -310,8 +317,8 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         List<AnalyticsTableColumn> expected = List.of(
             new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-            new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.ownatstart" ),
-            new AnalyticsTableColumn( quote( "enddate" ), DATE, "null" ),
+            new AnalyticsTableColumn( quote( "startdate" ), DATE, "o.owndate" ),
+            new AnalyticsTableColumn( quote( "enddate" ), DATE, "o.owndate" ),
             new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
 
         assertEquals( expected, target.getFixedColumns() );

@@ -31,10 +31,11 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.Value;
 
 /**
@@ -109,7 +110,7 @@ public class AuditQuery
         /**
          * From date to fetch audits from.
          */
-        private @NonNull LocalDateTime from;
+        private @Nonnull LocalDateTime from;
 
         /**
          * To date to fetch audits from.

@@ -28,29 +28,35 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -66,17 +72,20 @@ public class TrackerTrackedEntitiesExportController
 
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
-    @NonNull
-    private final TrackedEntityCriteriaMapper criteriaMapper;
+    @Nonnull
+    private final TrackerTrackedEntityCriteriaMapper criteriaMapper;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntitiesSupportService trackedEntitiesSupportService;
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
+
+    @Nonnull
+    private final CsvEventService<TrackedEntity> csvEventService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
@@ -109,6 +118,47 @@ public class TrackerTrackedEntitiesExportController
         return pagingWrapper.withInstances( objectNodes );
     }
 
+    @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_CSV_ZIP, CONTENT_TYPE_TEXT_CSV } )
+    public void getCsvTrackedEntities( TrackerTrackedEntityCriteria criteria,
+        HttpServletResponse response,
+        HttpServletRequest request,
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        throws IOException
+    {
+        TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+
+        List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
+            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                TrackedEntitiesSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+
+        OutputStream outputStream = response.getOutputStream();
+
+        if ( ContextUtils.isAcceptCsvGzip( request ) )
+        {
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            outputStream = new GZIPOutputStream( outputStream );
+            response.setContentType( CONTENT_TYPE_CSV_GZIP );
+            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.gz\"" );
+        }
+        else if ( ContextUtils.isAcceptCsvZip( request ) )
+        {
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            response.setContentType( CONTENT_TYPE_CSV_ZIP );
+            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv.zip\"" );
+            ZipOutputStream zos = new ZipOutputStream( outputStream );
+            zos.putNextEntry( new ZipEntry( "trackedEntities.csv" ) );
+            outputStream = zos;
+        }
+        else
+        {
+            response.setContentType( CONTENT_TYPE_CSV );
+            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"" );
+        }
+
+        csvEventService.writeEvents( outputStream, trackedEntityInstances, !skipHeader );
+    }
+
     @GetMapping( value = "{id}" )
     public ResponseEntity<ObjectNode> getTrackedEntityInstanceById( @PathVariable String id,
         @RequestParam( required = false ) String program,
@@ -118,5 +168,23 @@ public class TrackerTrackedEntitiesExportController
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
+    }
+
+    @GetMapping( value = "{id}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
+    public void getCsvTrackedEntityInstanceById( @PathVariable String id,
+        HttpServletResponse response,
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
+        @RequestParam( required = false ) String program,
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
+        throws IOException
+    {
+
+        TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
+            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
+
+        OutputStream outputStream = response.getOutputStream();
+        response.setContentType( CONTENT_TYPE_CSV );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"" );
+        csvEventService.writeEvents( outputStream, List.of( trackedEntity ), !skipHeader );
     }
 }

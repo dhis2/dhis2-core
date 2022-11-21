@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
@@ -36,15 +37,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -55,6 +61,9 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -70,6 +79,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private SecurityService securityService;
 
+    @Autowired
+    private UserGroupService userGroupService;
+
     private User peter;
 
     @BeforeEach
@@ -81,6 +93,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         switchToSuperuser();
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( "peter@pan.net", user.getEmail() );
     }
 
     @Test
@@ -98,6 +113,115 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
         assertEquals( "User account does not have a valid email address",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
+    }
+
+    @Test
+    void testUpdateValueInLegacyUserCredentials()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/openId', 'value': 'mapping value'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( "mapping value", user.getOpenId() );
+    }
+
+    @Test
+    void testUpdateOpenIdInLegacyFormat()
+    {
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'add', 'path': '/userCredentials/openId', 'value': 'mapping value'}]" ) ) );
+
+        User user = userService.getUser( peter.getUid() );
+        assertEquals( "mapping value", user.getOpenId() );
+        assertEquals( "mapping value", user.getUserCredentials().getOpenId() );
+    }
+
+    @Test
+    void testUpdateRoles()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userRoles','value':[{'id':'" + newRoleUid + "'},{'id':'" + mainRoleUid
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
+    void testUpdateRolesLegacy()
+    {
+        UserRole userRole = createUserRole( "ROLE_B", "ALL" );
+        userService.addUserRole( userRole );
+        String newRoleUid = userService.getUserRoleByName( "ROLE_B" ).getUid();
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+        String mainRoleUid = peterBefore.getUserRoles().iterator().next().getUid();
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userCredentials/userRoles','value':[{'id':'" + newRoleUid
+                + "'},{'id':'" + mainRoleUid + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserRole> userRoles = peterAfter.getUserRoles();
+
+        assertEquals( 2, userRoles.size() );
+    }
+
+    @Test
+    void testAddGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', emptySet() );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', emptySet() );
+        manager.save( userGroupB );
+
+        User peterBefore = userService.getUser( this.peter.getUid() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[{'id':'" + userGroupA.getUid() + "'},{'id':'"
+                + userGroupB.getUid()
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserGroup> userGroups = peterAfter.getGroups();
+
+        assertEquals( 2, userGroups.size() );
+    }
+
+    @Test
+    void testAddThenRemoveGroups()
+    {
+        UserGroup userGroupA = createUserGroup( 'A', emptySet() );
+        manager.save( userGroupA );
+
+        UserGroup userGroupB = createUserGroup( 'B', emptySet() );
+        manager.save( userGroupB );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[{'id':'" + userGroupA.getUid() + "'},{'id':'"
+                + userGroupB.getUid()
+                + "'}]}]" ) ) );
+
+        User peterAfter = userService.getUser( this.peter.getUid() );
+        Set<UserGroup> userGroups = peterAfter.getGroups();
+        assertEquals( 2, userGroups.size() );
+
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", this.peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op':'add','path':'/userGroups','value':[]}]" ) ) );
+
+        peterAfter = userService.getUser( this.peter.getUid() );
+        userGroups = peterAfter.getGroups();
+        assertEquals( 0, userGroups.size() );
     }
 
     @Test
@@ -164,6 +288,15 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testGetUserLegacyUserCredentialsIdPresent()
+    {
+        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject userCredentials = response.getObject( "userCredentials" );
+        JsonValue id = userCredentials.get( "id" );
+        assertTrue( id.exists() );
+    }
+
+    @Test
     void testPutJsonObject()
     {
         JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
@@ -216,7 +349,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPostJsonObjectInvalidUsername()
+    void testPostJsonObjectInvalidUsernameLegacyFormat()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One or more errors occurred, please see full details in import report.",
@@ -225,6 +358,51 @@ class UserControllerTest extends DhisControllerConvenienceTest
         JsonErrorReport report = msg.getResponse()
             .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
         assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPostJsonObjectInvalidUsername()
+    {
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','username':'_Harrys'}" )
+                .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
+        assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPutLegacyFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        String jsonString = "{'openId':'test'}";
+        JsonElement jsonElement = new Gson().fromJson( jsonString, JsonElement.class );
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.add( "userCredentials", jsonElement );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( "test", userAfter.getOpenId() );
+    }
+
+    @Test
+    void testPutNewFormat()
+    {
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        com.google.gson.JsonObject asJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+        asJsonObject.addProperty( "openId", "test" );
+
+        PUT( "/37/users/" + peter.getUid(), asJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        assertEquals( "test", userAfter.getOpenId() );
     }
 
     @Test
@@ -271,11 +449,20 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testDisable2FAIllegalSameUser()
+    void testDisable2FAIllegalSameUserLegacy()
     {
         switchContextToUser( this.peter );
         assertEquals( "You don't have the proper permissions to update this user.",
             PUT( "/37/users/" + peter.getUid(), "{\"userCredentials\":{\"twoFA\":true}}" ).error( HttpStatus.FORBIDDEN )
+                .getMessage() );
+    }
+
+    @Test
+    void testDisable2FAIllegalSameUser()
+    {
+        switchContextToUser( this.peter );
+        assertEquals( "You don't have the proper permissions to update this user.",
+            PUT( "/37/users/" + peter.getUid(), "{\"twoFA\":true}" ).error( HttpStatus.FORBIDDEN )
                 .getMessage() );
     }
 

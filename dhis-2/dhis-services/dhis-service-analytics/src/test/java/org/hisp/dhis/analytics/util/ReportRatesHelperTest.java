@@ -48,21 +48,20 @@ import org.junit.jupiter.api.Test;
  */
 class ReportRatesHelperTest
 {
-
     @Test
     void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension()
     {
         // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        Double theTarget = 10d;
+        List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
+        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
         // Relates to "aDailyDataPeriodRow" objects
-        final int anyPositivePeriodInDimensionIndex = 1;
-        final List<String> aDailyDataPeriodRow = asList( "TuL8IOPzpHh", "20210415" );
-        final int anyTimeUnits = 2;
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        int anyPositivePeriodInDimensionIndex = 1;
+        List<String> aDailyDataPeriodRow = asList( "TuL8IOPzpHh", "20210415" );
+        int anyTimeUnits = 2;
+        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
         // When
-        final Double actualResult = getCalculatedTarget( anyPositivePeriodInDimensionIndex, anyTimeUnits,
+        Double actualResult = getCalculatedTarget( anyPositivePeriodInDimensionIndex, anyTimeUnits,
             aDailyDataPeriodRow, theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
         // Then
         assertThat( actualResult, is( 20.0d ) );
@@ -72,15 +71,15 @@ class ReportRatesHelperTest
     void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilter()
     {
         // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        final int anyNegativePeriodInDimensionIndex = -1;
-        final int anyTimeUnits = 1;
-        final List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        Double theTarget = 10d;
+        List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
+        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        int anyNegativePeriodInDimensionIndex = -1;
+        int anyTimeUnits = 1;
+        List<String> anyDataRow = asList( "TuL8IOPzpHh" );
+        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
         // When
-        final Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
+        Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
             theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
         // Then
         assertThat( actualResult, is( 10.0d ) );
@@ -90,15 +89,15 @@ class ReportRatesHelperTest
     void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilterAndMultiplePeriods()
     {
         // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> multipleFilterPeriods = asList( stubPeriod(), stubPeriod(), stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        final int anyNegativePeriodInDimensionIndex = -1;
-        final int anyTimeUnits = 2;
-        final List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        Double theTarget = 10d;
+        List<DimensionalItemObject> multipleFilterPeriods = asList( stubPeriod(), stubPeriod(), stubPeriod() );
+        PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
+        int anyNegativePeriodInDimensionIndex = -1;
+        int anyTimeUnits = 2;
+        List<String> anyDataRow = asList( "TuL8IOPzpHh" );
+        PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
         // When
-        final Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
+        Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
             theTarget, theDailyPeriodType, aDataSetDailyPeriodType, multipleFilterPeriods );
         // Then
         assertThat( actualResult, is( 60.0d ) );
@@ -106,7 +105,7 @@ class ReportRatesHelperTest
 
     public Period stubPeriod()
     {
-        final Period p = new Period();
+        Period p = new Period();
         p.setStartDate( new Date() );
         p.setEndDate( new Date() );
         p.setPeriodType( DailyPeriodType.getByNameIgnoreCase( "daily" ) );

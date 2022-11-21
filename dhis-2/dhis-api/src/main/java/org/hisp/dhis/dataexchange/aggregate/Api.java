@@ -39,6 +39,11 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * See {@link ApiSerializer} for JSON serialization.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -52,7 +57,7 @@ public class Api
     /**
      * Access token. For Personal Access Token (PAT) authentication. The access
      * token is encrypted and must be decrypted before used to authenticate with
-     * external systems.
+     * external systems. Sensitive, do not expose in API output.
      */
     @JsonProperty
     private String accessToken;
@@ -65,7 +70,8 @@ public class Api
 
     /**
      * Password. For basic authentication. The password is encrypted and must be
-     * decrypted before used to authenticate with external systems.
+     * decrypted before used to authenticate with external systems. Sensitive,
+     * do not expose in API output.
      */
     @JsonProperty
     private String password;
@@ -90,23 +96,5 @@ public class Api
     public boolean isBasicAuth()
     {
         return StringUtils.isNoneBlank( username, password );
-    }
-
-    /**
-     * Do not expose access token.
-     */
-    @JsonIgnore
-    public String getAccessToken()
-    {
-        return accessToken;
-    }
-
-    /**
-     * Do not expose password.
-     */
-    @JsonIgnore
-    public String getPassword()
-    {
-        return password;
     }
 }

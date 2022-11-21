@@ -42,9 +42,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.cache.Cache;
@@ -79,22 +79,22 @@ public class TrackedEntityInstanceAggregate
     extends
     AbstractAggregate
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @NonNull
+    @Nonnull
     private final EnrollmentAggregate enrollmentAggregate;
 
-    @NonNull
+    @Nonnull
     private final CurrentUserService currentUserService;
 
-    @NonNull
+    @Nonnull
     private final AclStore aclStore;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @NonNull
+    @Nonnull
     private final CacheProvider cacheProvider;
 
     private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
@@ -147,6 +147,9 @@ public class TrackedEntityInstanceAggregate
                 .orElse( Lists.newArrayList() ) ) )
             .toBuilder()
             .userId( u.getId() )
+            .userUid( u.getUid() )
+            .userGroups( userGroupUIDCache.get( u.getUid() )
+                .orElse( Collections.emptyList() ) )
             .superUser( u.isSuper() ) )
             .orElse( new AggregateContext.AggregateContextBuilder()
                 .superUser( true )

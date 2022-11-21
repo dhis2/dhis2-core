@@ -37,6 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
@@ -225,11 +227,11 @@ class MeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testEnable2FAOnMeControllerNotAllowed()
+    void testLegacyUserCredentialsIdPresent()
     {
-        assertFalse( userA.isTwoFA() );
-
-        assertStatus( HttpStatus.BAD_REQUEST,
-            PUT( "/me", "{'userCredentials':{'twoFA':true}}" ) );
+        JsonResponse response = GET( "/me?fields=id,userCredentials" ).content();
+        JsonObject userCredentials = response.getObject( "userCredentials" );
+        JsonValue id = userCredentials.get( "id" );
+        assertTrue( id.exists() );
     }
 }

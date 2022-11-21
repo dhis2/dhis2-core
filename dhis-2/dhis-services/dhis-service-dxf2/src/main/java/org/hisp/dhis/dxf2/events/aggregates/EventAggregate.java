@@ -38,7 +38,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -59,7 +60,7 @@ public class EventAggregate
     extends
     AbstractAggregate
 {
-    @NonNull
+    @Nonnull
     private final EventStore eventStore;
 
     /**

@@ -57,6 +57,13 @@ class FinancialAprilPeriodTypeTest
     }
 
     @Test
+    void testGetPeriodTypeEnum()
+    {
+        assertEquals( PeriodTypeEnum.FINANCIAL_APRIL, periodType.getPeriodTypeEnum() );
+        assertEquals( PeriodTypeEnum.FINANCIAL_APRIL.getName(), periodType.getName() );
+    }
+
+    @Test
     void testCreatePeriod()
     {
         testDate = new LocalDateTime( 2009, 2, 15, 0, 0 );

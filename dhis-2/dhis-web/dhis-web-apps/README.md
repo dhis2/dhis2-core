@@ -4,6 +4,7 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 
 |app repository|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|2.37|2.38|2.39|
 |---|---|---|---|---|---|---|---|---|---|---|---|
+|git@github.com:dhis2/aggregate-data-entry-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|master|
 |git@github.com:dhis2/approval-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|master|master|master|
 |git@github.com:dhis2/app-management-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|master|master|master|
 |git@github.com:dhis2/cache-cleaner-app.git|n/a|n/a|2.31|2.32|2.33|2.34|master|master|master|master|master|

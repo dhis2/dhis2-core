@@ -50,9 +50,7 @@ public class IndicatorGroupSetDeletionHandler extends DeletionHandler
 
     private void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
-        IndicatorGroupSet groupSet = indicatorGroup.getGroupSet();
-
-        if ( groupSet != null )
+        for ( IndicatorGroupSet groupSet : indicatorGroup.getGroupSets() )
         {
             groupSet.getMembers().remove( indicatorGroup );
             idObjectManager.updateNoAcl( groupSet );

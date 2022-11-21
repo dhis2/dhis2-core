@@ -29,6 +29,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -38,13 +39,17 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.ObjectUtils;
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -58,6 +63,7 @@ import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * Main service class for aggregate data exchange.
@@ -65,6 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Service
+@RequiredArgsConstructor
 public class AggregateDataExchangeService
 {
     private final AnalyticsService analyticsService;
@@ -75,23 +82,21 @@ public class AggregateDataExchangeService
 
     private final DataValueSetService dataValueSetService;
 
+    @Qualifier( AES_128_STRING_ENCRYPTOR )
     private final PBEStringCleanablePasswordEncryptor encryptor;
 
-    public AggregateDataExchangeService( AnalyticsService analyticsService,
-        AggregateDataExchangeStore aggregateDataExchangeStore,
-        DataQueryService dataQueryService,
-        DataValueSetService dataValueSetService,
-        @Qualifier( AES_128_STRING_ENCRYPTOR ) PBEStringCleanablePasswordEncryptor encryptor )
-    {
-        this.analyticsService = analyticsService;
-        this.aggregateDataExchangeStore = aggregateDataExchangeStore;
-        this.dataQueryService = dataQueryService;
-        this.dataValueSetService = dataValueSetService;
-        this.encryptor = encryptor;
-    }
-
+    /**
+     * Retrieves an {@link AggregateDataExchange} by identifier. Throws an
+     * exception if no object with the given identifier exists.
+     *
+     * @param uid the UID.
+     * @return an {@link AggregateDataExchange}.
+     * @throws IllegalQueryException if no object with the given identifier
+     *         exists.
+     */
+    @Nonnull
     @Transactional( readOnly = true )
-    public AggregateDataExchange getById( String uid )
+    public AggregateDataExchange loadByUid( String uid )
     {
         return aggregateDataExchangeStore.loadByUid( uid );
     }
@@ -172,6 +177,12 @@ public class AggregateDataExchangeService
             return exchange.getTarget().getType() == TargetType.INTERNAL ? pushToInternal( exchange, dataValueSet )
                 : pushToExternal( exchange, dataValueSet );
         }
+        catch ( HttpClientErrorException ex )
+        {
+            String message = format( "Data import to target instance failed with status: '%s'", ex.getStatusCode() );
+
+            return new ImportSummary( ImportStatus.ERROR, message );
+        }
         catch ( Exception ex )
         {
             return new ImportSummary( ImportStatus.ERROR, ex.getMessage() );
@@ -208,6 +219,9 @@ public class AggregateDataExchangeService
     /**
      * Converts the {@link TargetRequest} of the given
      * {@link AggregateDataExchange} to an {@link ImportOptions}.
+     * <p>
+     * Note that the data value set service does not using {@code null} values
+     * as specific ID schemes. When it does, this method can be simplified.
      *
      * @param exchange the {@link AggregateDataExchange}.
      * @return an {@link ImportOptions}.
@@ -216,11 +230,26 @@ public class AggregateDataExchangeService
     {
         TargetRequest request = exchange.getTarget().getRequest();
 
-        return new ImportOptions()
-            .setDataElementIdScheme( getOrDefault( request.getDataElementIdScheme() ) )
-            .setOrgUnitIdScheme( getOrDefault( request.getOrgUnitIdScheme() ) )
-            .setCategoryOptionComboIdScheme( getOrDefault( request.getCategoryOptionComboIdScheme() ) )
-            .setIdScheme( getOrDefault( request.getIdScheme() ) );
+        ImportOptions options = new ImportOptions();
+
+        if ( isNotBlank( request.getDataElementIdScheme() ) )
+        {
+            options.setDataElementIdScheme( request.getDataElementIdScheme() );
+        }
+        if ( isNotBlank( request.getOrgUnitIdScheme() ) )
+        {
+            options.setOrgUnitIdScheme( request.getOrgUnitIdScheme() );
+        }
+        if ( isNotBlank( request.getCategoryOptionComboIdScheme() ) )
+        {
+            options.setCategoryOptionComboIdScheme( request.getCategoryOptionComboIdScheme() );
+        }
+        if ( isNotBlank( request.getIdScheme() ) )
+        {
+            options.setIdScheme( request.getIdScheme() );
+        }
+
+        return options;
     }
 
     /**
@@ -233,6 +262,9 @@ public class AggregateDataExchangeService
     DataQueryParams toDataQueryParams( SourceRequest request )
     {
         IdScheme inputIdScheme = toIdSchemeOrDefault( request.getInputIdScheme() );
+        IdScheme outputDataElementIdScheme = toIdScheme( request.getOutputDataElementIdScheme() );
+        IdScheme outputOrgUnitIdScheme = toIdScheme( request.getOutputOrgUnitIdScheme() );
+        IdScheme outputIdScheme = toIdScheme( request.getOutputIdScheme() );
 
         List<DimensionalObject> filters = mapToList(
             request.getFilters(), f -> toDimensionalObject( f, inputIdScheme ) );
@@ -242,6 +274,9 @@ public class AggregateDataExchangeService
             .addDimension( toDimensionalObject( PERIOD_DIM_ID, request.getPe(), inputIdScheme ) )
             .addDimension( toDimensionalObject( ORGUNIT_DIM_ID, request.getOu(), inputIdScheme ) )
             .addFilters( filters )
+            .withOutputDataElementIdScheme( outputDataElementIdScheme )
+            .withOutputOrgUnitIdScheme( outputOrgUnitIdScheme )
+            .withOutputIdScheme( outputIdScheme )
             .build();
     }
 
@@ -256,8 +291,7 @@ public class AggregateDataExchangeService
      */
     private DimensionalObject toDimensionalObject( String dimension, List<String> items, IdScheme inputIdScheme )
     {
-        return dataQueryService.getDimension(
-            dimension, items, new Date(), null, null, false, inputIdScheme );
+        return dataQueryService.getDimension( dimension, items, new Date(), null, false, inputIdScheme );
     }
 
     /**
@@ -270,19 +304,19 @@ public class AggregateDataExchangeService
     private DimensionalObject toDimensionalObject( Filter filter, IdScheme inputIdScheme )
     {
         return dataQueryService.getDimension(
-            filter.getDimension(), filter.getItems(), new Date(), null, null, false, inputIdScheme );
+            filter.getDimension(), filter.getItems(), new Date(), null, false, inputIdScheme );
     }
 
     /**
-     * Returns the ID scheme string or the the default ID scheme if the given ID
-     * scheme string is null.
+     * Returns the {@link IdScheme} based on the given ID scheme string, or null
+     * if the given ID scheme string is null.
      *
      * @param idScheme the ID scheme string.
-     * @return the given ID scheme, or the default ID scheme string if null.
+     * @return the given ID scheme, or null if null.
      */
-    String getOrDefault( String idScheme )
+    IdScheme toIdScheme( String idScheme )
     {
-        return ObjectUtils.firstNonNull( idScheme, IdScheme.UID.name() );
+        return idScheme != null ? IdScheme.from( idScheme ) : null;
     }
 
     /**
@@ -380,7 +414,7 @@ public class AggregateDataExchangeService
     /**
      * Returns an item summary.
      *
-     * @param summary the {@link ItemSummary}.
+     * @param summary the {@link ImportSummary}.
      * @return an item summary.
      */
     private static String toItemSummary( ImportSummary summary )
