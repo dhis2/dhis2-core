@@ -36,6 +36,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -442,5 +443,28 @@ public class IdentifiableObjectUtils
         }
 
         return null;
+    }
+
+    /**
+     * Compare two {@link IdentifiableObject} using UID property.
+     *
+     * @param object object to compare.
+     * @param target object to compare with.
+     * @return TRUE if both objects are null or have same UID or both UIDs are
+     *         null. Otherwise, return FALSE.
+     */
+    public static boolean equalByUID( IdentifiableObject object, IdentifiableObject target )
+    {
+        if ( ObjectUtils.allNotNull( object, target ) )
+        {
+            if ( ObjectUtils.allNotNull( object.getUid(), target.getUid() ) )
+            {
+                return object.getUid().equals( target.getUid() );
+            }
+
+            return ObjectUtils.allNull( object.getUid(), target.getUid() );
+        }
+
+        return ObjectUtils.allNull( object, target );
     }
 }
