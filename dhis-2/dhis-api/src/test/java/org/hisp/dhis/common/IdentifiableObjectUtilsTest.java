@@ -29,7 +29,9 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR_JOIN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -187,5 +189,57 @@ class IdentifiableObjectUtilsTest
         List<DataElement> list = IdentifiableObjectUtils.sortById( set );
 
         assertEquals( List.of( deA, deB, deC ), list );
+    }
+
+    @Test
+    void testEqualByUid()
+    {
+        DataElement deA = new DataElement();
+        deA.setUid( "UIDA" );
+        DataElement deA1 = new DataElement();
+        deA1.setUid( "UIDA" );
+        DataElement deB = new DataElement();
+        deB.setUid( "UIDB" );
+        DataElement deC = new DataElement();
+        deC.setUid( null );
+        DataElement deD = null;
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deB ) ); // both
+                                                                       // objects
+                                                                       // not
+                                                                       // null
+                                                                       // and
+                                                                       // not
+                                                                       // equal
+        assertTrue( IdentifiableObjectUtils.equalByUID( deA, deA1 ) ); // both
+                                                                       // objects
+                                                                       // not
+                                                                       // null
+                                                                       // and
+                                                                       // equal
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deC ) ); // object
+                                                                       // not
+                                                                       // null,
+                                                                       // UID
+                                                                       // null
+        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deA ) ); // UID
+                                                                       // null,
+                                                                       // object
+                                                                       // not
+                                                                       // null
+        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deD ) ); // UID
+                                                                       // null,
+                                                                       // object
+                                                                       // null
+        assertTrue( IdentifiableObjectUtils.equalByUID( deD, deD ) );  // both
+                                                                       // objects
+                                                                       // null
+        assertTrue( IdentifiableObjectUtils.equalByUID( deC, deC ) );  // both
+                                                                       // UIDs
+                                                                       // null
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deD ) ); // object
+                                                                       // not
+                                                                       // null,
+                                                                       // object
+                                                                       // null
     }
 }
