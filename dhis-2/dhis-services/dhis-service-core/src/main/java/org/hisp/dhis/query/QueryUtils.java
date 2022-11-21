@@ -484,7 +484,7 @@ public final class QueryUtils
 
     private static boolean validProperty( Property property )
     {
-        return property.isSimple() || property.getPropertyType().isSimple();
+        return property.isSimple() || (property.getPropertyType() != null && property.getPropertyType().isSimple());
     }
 
     private static boolean validDirection( String direction )
