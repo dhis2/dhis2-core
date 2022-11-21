@@ -200,6 +200,10 @@ public class HibernateEventVisualizationStore extends
             params.addPredicate( root -> builder.or( builder.equal( root.get( "type" ), PIVOT_TABLE ),
                 builder.equal( root.get( "type" ), LINE_LIST ) ) );
         }
+        else
+        {
+            params.addPredicate( root -> builder.equal( root.get( "type" ), LINE_LIST ) );
+        }
 
         params.addPredicate( root -> builder.equal( root.get( "legacy" ), legacy ) );
     }
