@@ -826,7 +826,7 @@ public class HibernateTrackedEntityInstanceStore
 
     /**
      * Generates an INNER JOIN for program owner. This segment is only included
-     * if program is specified.
+     * if program is specified or user is not super.
      *
      * @param params
      * @return a SQL INNER JOIN for program owner, or empty string if no program
@@ -834,7 +834,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
     {
-        if ( !params.hasProgram() )
+        if ( !params.hasProgram() || params.getUser().isSuper() )
         {
             return "";
         }
