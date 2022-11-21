@@ -114,7 +114,7 @@ public @interface OpenApi
          * @return type of the parameter, should be a simple type for a path
          *         parameter.
          */
-        Class<?> value();
+        Class<?>[] value();
 
         boolean required() default false;
 
@@ -159,6 +159,9 @@ public @interface OpenApi
         @RequiredArgsConstructor
         enum Status
         {
+            OK( 200 ),
+            CREATED( 201 ),
+            NO_CONTENT( 204 ),
             BAD_REQUEST( 400 ),
             FORBIDDEN( 403 ),
             NOT_FOUND( 404 ),
@@ -170,7 +173,7 @@ public @interface OpenApi
         /**
          * @return body type of the response
          */
-        Class<?> value();
+        Class<?>[] value();
 
         /**
          * If status is left empty the {@link #value()} applies to the status

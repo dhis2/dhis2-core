@@ -195,6 +195,7 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( Character.class,
             schema -> schema.type( "string" ).nullable( true ).minLength( 1 ).maxLength( 1 ) );
         addSimpleType( String.class, schema -> schema.type( "string" ).nullable( true ) );
+        addSimpleType( Class.class, schema -> schema.type( "string" ).format( "class" ).nullable( false ) );
         addSimpleType( Date.class, schema -> schema.type( "string" ).format( "date-time" ).nullable( true ) );
         addSimpleType( URI.class, schema -> schema.type( "string" ).format( "uri" ).nullable( true ) );
         addSimpleType( URL.class, schema -> schema.type( "string" ).format( "url" ).nullable( true ) );
@@ -207,7 +208,7 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( Serializable.class, schema -> schema.type( "number" ) );
         addSimpleType( Serializable.class, schema -> schema.type( "boolean" ) );
 
-        addSimpleType( Period.class, schema -> schema.type( "string" ) );
+        addSimpleType( Period.class, schema -> schema.type( "string" ).format( "period" ) );
         addSimpleType( PeriodType.class, schema -> schema.type( "string" )
             .enums( stream( PeriodTypeEnum.values() ).map( PeriodTypeEnum::getName ).toArray( String[]::new ) ) );
         addSimpleType( InclusionStrategy.class, schema -> schema.type( "string" )
@@ -391,17 +392,17 @@ public class OpenApiGenerator extends JsonGenerator
     private static boolean isReferencableSchema( Api.Schema schema )
     {
         return schema.isNamed()
-            && !schema.getFields().isEmpty()
-            && !SIMPLE_TYPES.containsKey( schema.getSource() );
+            && !schema.getProperties().isEmpty()
+            && !SIMPLE_TYPES.containsKey( schema.getRawType() );
     }
 
     private void generateSchemaOrRef( Api.Schema schema )
     {
         if ( schema == null )
             return;
-        if ( schema.getSource() == Api.Ref.class )
+        if ( schema.getType() == Api.Schema.Type.REF )
         {
-            Class<?> to = (Class<?>) schema.getHint();
+            Class<?> to = schema.getRawType();
             String name = "Ref:" + getUniqueSchemaName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
             refTypeByName.putIfAbsent( name, schema );
@@ -413,13 +414,13 @@ public class OpenApiGenerator extends JsonGenerator
         }
         else
         {
-            addStringMember( "$ref", "#/components/schemas/" + getUniqueSchemaName( schema.getSource() ) );
+            addStringMember( "$ref", "#/components/schemas/" + getUniqueSchemaName( schema.getRawType() ) );
         }
     }
 
     private void generateSchema( Api.Schema schema )
     {
-        Class<?> type = schema.getSource();
+        Class<?> type = schema.getRawType();
         List<SimpleType> types = SIMPLE_TYPES.get( type );
         if ( types != null )
         {
@@ -434,15 +435,21 @@ public class OpenApiGenerator extends JsonGenerator
             }
             return;
         }
-        if ( type == Api.Ref.class )
+        if ( schema.getType() == Api.Schema.Type.REF )
         {
             generateRefType( schema );
             return;
         }
-        if ( type == Api.Unknown.class )
+        if ( schema.getType() == Api.Schema.Type.UNKNOWN )
         {
             addStringMember( "description",
-                "The exact type is unknown.  \\n(Java type was: `" + schema.getHint().getTypeName() + "`)" );
+                "The exact type is unknown.  \\n(Java type was: `" + schema.getSource().getTypeName() + "`)" );
+            return;
+        }
+        if ( schema.getType() == Api.Schema.Type.ONE_OF )
+        {
+            addArrayMember( "oneOf", () -> schema.getProperties()
+                .forEach( property -> addObjectMember( null, () -> generateSchemaOrRef( property.getType() ) ) ) );
             return;
         }
         if ( type.isEnum() )
@@ -452,38 +459,39 @@ public class OpenApiGenerator extends JsonGenerator
                 .map( e -> ((Enum<?>) e).name() ).collect( toList() ) );
             return;
         }
-        if ( type.isArray() )
+        if ( type.isArray() || schema.getType() == Api.Schema.Type.ARRAY )
         {
-            Api.Schema elements = schema.getSource() == Api.Ref[].class
-                ? Api.ref( (Class<?>) schema.getHint() )
-                : api.getSchemas().get( type.getComponentType() );
+            Api.Schema elements = schema.getProperties().isEmpty()
+                ? api.getSchemas().get( type.getComponentType() )
+                : schema.getProperties().get( 0 ).getType();
             addStringMember( "type", "array" );
             addObjectMember( "items", () -> generateSchemaOrRef( elements ) );
             return;
         }
         // best guess: it is an object type
         addStringMember( "type", "object" );
-        if ( !schema.getFields().isEmpty() )
+        if ( !schema.getProperties().isEmpty() )
         {
-            if ( type == Map.class )
+            if ( Map.class.isAssignableFrom( type ) )
             {
                 addObjectMember( "additionalProperties",
-                    () -> generateSchemaOrRef( schema.getFields().get( 1 ).getType() ) );
-                if ( schema.getFields().get( 0 ).getType().getSource() != String.class )
-                    addStringMember( "description", "keys are " + schema.getFields().get( 0 ).getType().getSource() );
+                    () -> generateSchemaOrRef( schema.getProperties().get( 1 ).getType() ) );
+                if ( schema.getProperties().get( 0 ).getType().getRawType() != String.class )
+                    addStringMember( "description",
+                        "keys are " + schema.getProperties().get( 0 ).getType().getRawType() );
                 return;
             }
-            addArrayMember( "required", schema.getRequiredFields() );
-            addObjectMember( "properties", () -> schema.getFields()
-                .forEach( field -> addObjectMember( field.getName(), () -> generateSchemaOrRef( field.getType() ) ) ) );
+            addArrayMember( "required", schema.getRequiredProperties() );
+            addObjectMember( "properties", () -> schema.getProperties()
+                .forEach( property -> addObjectMember( property.getName(),
+                    () -> generateSchemaOrRef( property.getType() ) ) ) );
         }
         else
         {
             addStringMember( "description", "The actual type is unknown.  \\n(Java type was: `" + type + "`)" );
             if ( type != Object.class )
             {
-                System.out.println( schema + " " + schema.getSource() + " " + schema.getHint() + " "
-                    + System.identityHashCode( schema ) );
+                System.out.println( schema + " " + schema.getSource() + " " );
                 log.warn( schema.toString() );
             }
         }
@@ -505,7 +513,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateRefType( Api.Schema schema )
     {
-        Type to = schema.getHint();
+        Type to = schema.getSource();
         String name = to == BaseIdentifiableObject.class || to == IdentifiableObject.class
             ? "any type of object"
             : getUniqueSchemaName( (Class<?>) to );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.lang.Character.isUpperCase;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 
@@ -82,9 +83,9 @@ class Property
         this( getName( m ), getType( m, m.getGenericReturnType() ), m, isRequired( m, m.getReturnType() ) );
     }
 
-    static Stream<Property> getProperties( Class<?> in )
+    static Collection<Property> getProperties( Class<?> in )
     {
-        return PROPERTIES.computeIfAbsent( in, Property::propertiesIn ).stream();
+        return PROPERTIES.computeIfAbsent( in, Property::propertiesIn );
     }
 
     private static Collection<Property> propertiesIn( Class<?> object )
@@ -111,10 +112,14 @@ class Property
 
     private static boolean isProperty( Method source )
     {
+        String name = source.getName();
         return !isExcluded( source )
             && source.getParameterCount() == 0
             && source.getReturnType() != void.class
-            && Stream.of( "is", "has", "get" ).anyMatch( prefix -> source.getName().startsWith( prefix ) );
+            && Stream.of( "is", "has", "get" )
+                .anyMatch( prefix -> name.startsWith( prefix )
+                    && name.length() > prefix.length()
+                    && isUpperCase( name.charAt( prefix.length() ) ) );
     }
 
     private static <T extends Member & AnnotatedElement> boolean isExcluded( T source )
@@ -184,6 +189,6 @@ class Property
 
     private static Stream<Method> methodsIn( Class<?> type )
     {
-        return stream( type.getMethods() );
+        return stream( type.getMethods() ).filter( m -> m.getDeclaringClass() != Object.class );
     }
 }

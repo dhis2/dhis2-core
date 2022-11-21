@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -52,7 +51,6 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -98,29 +96,6 @@ class Api
         return used;
     }
 
-    /**
-     * A {@link Ref} is used for all {@link IdentifiableObject} fields and
-     * collections within other objects. This reflects the pattern used in DHIS2
-     * that UID references to {@link IdentifiableObject}s are expected in this
-     * form:
-     *
-     * <pre>
-     *     {"id": "[uid]"}
-     * </pre>
-     *
-     * while in the database model the full object will occur.
-     */
-    @Value
-    static class Ref
-    {
-    }
-
-    @Value
-    static class Unknown
-    {
-
-    }
-
     @Data
     static final class Maybe<T>
     {
@@ -150,16 +125,6 @@ class Api
         Maybe<String> externalDocsUrl = new Maybe<>();
 
         Maybe<String> externalDocsDescription = new Maybe<>();
-    }
-
-    @Value
-    static class Field
-    {
-        String name;
-
-        Boolean required;
-
-        Schema type;
     }
 
     @Value
@@ -318,72 +283,111 @@ class Api
     }
 
     @Value
+    static class Property
+    {
+        String name;
+
+        Boolean required;
+
+        Schema type;
+    }
+
+    @Value
     @AllArgsConstructor
     static class Schema
     {
-        @ToString.Exclude
-        @EqualsAndHashCode.Exclude
-        Class<?> source;
+        public static Schema ref( Class<?> to )
+        {
+            return new Schema( Type.REF, false, to, to );
+        }
+
+        public static Schema unknown( java.lang.reflect.Type source )
+        {
+            return new Schema( Type.UNKNOWN, false, source, Object.class );
+        }
+
+        public static Schema oneOf( List<Class<?>> types, Function<Class<?>, Schema> toSchema )
+        {
+            if ( types.size() == 1 )
+            {
+                return toSchema.apply( types.get( 0 ) );
+            }
+            Schema oneOf = new Schema( Type.ONE_OF, false, Object.class, Object.class );
+            types.forEach( type -> oneOf.add(
+                new Property( oneOf.properties.size() + "", null, toSchema.apply( type ) ) ) );
+            return oneOf;
+        }
+
+        private static boolean isNamed( Class<?> source )
+        {
+            String name = source.getName();
+            return !source.isPrimitive()
+                && !source.isEnum()
+                && !source.isArray()
+                && !name.startsWith( "java.lang" )
+                && !name.startsWith( "java.util" );
+        }
+
+        public enum Type
+        {
+            SIMPLE,
+            ARRAY,
+            OBJECT,
+            REF,
+            UNKNOWN,
+            ONE_OF
+        }
+
+        Type type;
 
         /**
-         * Empty unless this is a named "record" type that should be referenced
+         * False, unless this is a named "record" type that should be referenced
          * as a named schema in the generated OpenAPI document.
          */
         boolean named;
 
         @ToString.Exclude
         @EqualsAndHashCode.Exclude
-        Type hint;
+        java.lang.reflect.Type source;
+
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
+        Class<?> rawType;
 
         /**
          * Is empty for primitive types
          */
-        List<Field> fields = new ArrayList<>();
+        List<Property> properties = new ArrayList<>();
 
-        public Schema( Class<?> source, Type hint )
+        public Schema( Type type, java.lang.reflect.Type source, Class<?> rawType )
         {
-            this( source, Api.isNamed( source ), hint );
+            this( type, isNamed( rawType ), source, rawType );
         }
 
-        List<String> getRequiredFields()
+        Set<String> getRequiredProperties()
         {
-            return getFields().stream()
-                .filter( f -> Boolean.TRUE.equals( f.getRequired() ) )
-                .map( Api.Field::getName )
-                .collect( toList() );
+            return getProperties().stream()
+                .filter( property -> Boolean.TRUE.equals( property.getRequired() ) )
+                .map( Property::getName )
+                .collect( toSet() );
         }
 
-        Api.Schema add( Field f )
+        Api.Schema add( Property property )
         {
-            fields.add( f );
+            properties.add( property );
             return this;
         }
+
+        Api.Schema withElements( Schema componentType )
+        {
+            return add( new Property( "components", true, componentType ) );
+        }
+
+        Api.Schema withEntries( Schema keyType, Schema valueType )
+        {
+            return add( new Api.Property( "keys", true, keyType ) )
+                .add( new Api.Property( "values", true, valueType ) );
+        }
     }
 
-    public static final Schema STRING = new Schema( String.class, null );
-
-    public static Schema ref( Class<?> to )
-    {
-        return new Schema( Ref.class, false, to );
-    }
-
-    public static Schema refs( Class<?> to )
-    {
-        return new Schema( Ref[].class, to );
-    }
-
-    public static Schema unknown( Type hint )
-    {
-        return new Schema( Unknown.class, false, hint );
-    }
-
-    static boolean isNamed( Class<?> source )
-    {
-        String name = source.getName();
-        return !source.isPrimitive()
-            && !source.isEnum()
-            && !source.isArray()
-            && !name.startsWith( "java.lang" )
-            && !name.startsWith( "java.util" );
-    }
 }

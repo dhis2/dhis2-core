@@ -93,7 +93,13 @@ final class ApiDescribe
             } );
             endpoint.getResponses().values().forEach( response -> {
                 String key = name + ".response." + response.getStatus().value() + ".description";
-                response.getDescription().setValue( descriptions.get( key, subst ) );
+                Api.Maybe<String> description = response.getDescription();
+                description.setValue( descriptions.get( key, subst ) );
+                if ( !description.isPresent() )
+                {
+                    key = "*" + key.substring( key.indexOf( '.' ) );
+                    description.setValue( descriptions.get( key, subst ) );
+                }
             } );
         } );
     }
