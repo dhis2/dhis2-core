@@ -36,7 +36,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.Category;
@@ -45,6 +45,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -442,5 +443,28 @@ public class IdentifiableObjectUtils
         }
 
         return null;
+    }
+
+    /**
+     * Compare two {@link IdentifiableObject} using UID property.
+     *
+     * @param object object to compare.
+     * @param target object to compare with.
+     * @return TRUE if both objects are null or have same UID or both UIDs are
+     *         null. Otherwise, return FALSE.
+     */
+    public static boolean equalByUID( IdentifiableObject object, IdentifiableObject target )
+    {
+        if ( ObjectUtils.allNonNull( object, target ) )
+        {
+            if ( ObjectUtils.allNonNull( object.getUid(), target.getUid() ) )
+            {
+                return object.getUid().equals( target.getUid() );
+            }
+
+            return ObjectUtils.allNull( object.getUid(), target.getUid() );
+        }
+
+        return ObjectUtils.allNull( object, target );
     }
 }
