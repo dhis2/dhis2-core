@@ -34,6 +34,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -62,6 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Henning Håkonsen
  */
+@OpenApi.Tags( "scheduling" )
 @RestController
 @RequestMapping( value = JobConfigurationSchemaDescriptor.API_ENDPOINT )
 public class JobConfigurationController

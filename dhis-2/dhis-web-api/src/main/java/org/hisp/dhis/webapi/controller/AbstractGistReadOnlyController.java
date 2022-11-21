@@ -42,6 +42,8 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.Value;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,6 +51,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.gist.GistAutoType;
+import org.hisp.dhis.gist.GistPager;
 import org.hisp.dhis.gist.GistParams;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -75,6 +78,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Base controller for APIs that only want to offer read-only access though Gist
@@ -100,6 +105,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     // --------------------------------------------------------------------------
 
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( value = ObjectNode.class )
     @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
@@ -121,6 +127,16 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .toBuilder().typedAttributeValues( false ).build() );
     }
 
+    @Value
+    private static class GistListResponse
+    {
+        GistPager pager;
+
+        @SuppressWarnings( "java:S116" )
+        ObjectNode[] path$ = null;
+    }
+
+    @OpenApi.Response( { GistListResponse.class, ObjectNode[].class } )
     @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         GistParams params, HttpServletRequest request )
@@ -140,6 +156,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
     @OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( { ObjectNode.class, ArrayNode.class } )
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,

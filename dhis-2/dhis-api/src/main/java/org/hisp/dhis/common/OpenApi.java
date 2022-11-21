@@ -111,6 +111,9 @@ public @interface OpenApi
         /**
          * For complex parameter objects use {@link Params} instead.
          *
+         * None (length zero) uses the actual type of the parameter. More than
+         * one use a {@code oneOf} union type of all the type schemas.
+         *
          * @return type of the parameter, should be a simple type for a path
          *         parameter.
          */
@@ -171,7 +174,10 @@ public @interface OpenApi
         }
 
         /**
-         * @return body type of the response
+         * None (length zero) uses the actual type of the method. More than one
+         * use a {@code oneOf} union type of all the type schemas.
+         *
+         * @return body type of the response.
          */
         Class<?>[] value();
 

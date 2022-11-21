@@ -81,6 +81,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 /**
  * Given a set of controller {@link Class}es this creates a {@link Api} model
@@ -215,24 +218,19 @@ final class ApiAnalyse
                 ? List.of( signatureStatus )
                 : stream( a.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() ))
                     .forEach( status -> res.put( status, new Api.Response( status )
-                        .add( produces, analyseResponseSchema( endpoint, null, a.value() ) ) ) ) );
+                        .add( produces,
+                            analyseResponseSchema( endpoint, source.getGenericReturnType(), a.value() ) ) ) ) );
         // response from method signature
-        if ( source.getReturnType() != void.class && source.getReturnType() != Void.class )
-        {
-            res.computeIfAbsent( signatureStatus, status -> new Api.Response( status )
-                .add( produces, analyseResponseSchema( endpoint, source.getGenericReturnType() ) ) );
-        }
+        Class<?> type = source.getReturnType();
+        res.computeIfAbsent( signatureStatus, status -> {
+            Api.Response response = new Api.Response( status );
+            if ( type != void.class && type != Void.class && type != ModelAndView.class )
+            {
+                response.add( produces, analyseResponseSchema( endpoint, source.getGenericReturnType() ) );
+            }
+            return response;
+        } );
         return res;
-    }
-
-    private static Api.Schema analyseResponseSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
-    {
-        if ( oneOf.length == 0 && source != null )
-        {
-            return analyseOutputSchema( endpoint, source );
-        }
-        return Api.Schema.oneOf( List.of( oneOf ),
-            type -> analyseOutputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
     }
 
     private static void analyseParameters( Api.Endpoint endpoint, Set<MediaType> consumes )
@@ -311,16 +309,6 @@ final class ApiAnalyse
             new Api.Parameter( endpoint.getSource(), null, name, Api.Parameter.In.QUERY, required, wrapped ) );
     }
 
-    private static Api.Schema analyseParamSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
-    {
-        if ( oneOf.length == 0 && source != null )
-        {
-            return analyseInputSchema( endpoint, source );
-        }
-        return Api.Schema.oneOf( List.of( oneOf ),
-            type -> analyseInputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
-    }
-
     private static void analyseParams( Api.Endpoint endpoint, OpenApi.Params params )
     {
         analyseParams( endpoint, params.value() );
@@ -338,6 +326,26 @@ final class ApiAnalyse
         return new Api.Parameter( (AnnotatedElement) property.getSource(), property.getSource().getDeclaringClass(),
             property.getName(), Api.Parameter.In.QUERY, false,
             analyseInputSchema( endpoint, property.getType() ) );
+    }
+
+    private static Api.Schema analyseParamSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
+    {
+        if ( oneOf.length == 0 && source != null )
+        {
+            return analyseInputSchema( endpoint, source );
+        }
+        return Api.Schema.oneOf( List.of( oneOf ),
+            type -> analyseInputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
+    }
+
+    private static Api.Schema analyseResponseSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
+    {
+        if ( oneOf.length == 0 && source != null )
+        {
+            return analyseOutputSchema( endpoint, source );
+        }
+        return Api.Schema.oneOf( List.of( oneOf ),
+            type -> analyseOutputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
     }
 
     private static Api.Schema analyseInputSchema( Api.Endpoint endpoint, Type source )
@@ -372,6 +380,10 @@ final class ApiAnalyse
                 analyseTypeSchema( endpoint, type.getComponentType(), resolving );
                 return resolvedTo.apply( new Api.Schema( Api.Schema.Type.ARRAY, false, type, type ) );
             }
+            if ( rawType.isAnnotationPresent( JsonSubTypes.class ) )
+            {
+                return analyseSubTypeSchema( endpoint, rawType, resolving );
+            }
             boolean alwaysSimple = isSimpleType( type );
             Collection<Property> properties = alwaysSimple ? List.of() : getProperties( type );
             if ( alwaysSimple || properties.isEmpty() )
@@ -380,10 +392,34 @@ final class ApiAnalyse
             }
             Api.Schema schema = resolvedTo.apply( new Api.Schema( Api.Schema.Type.OBJECT, type, type ) );
             properties.forEach( property -> schema.getProperties().add(
-                new Api.Property( property.getName(), property.getRequired(),
-                    analyseSchema( endpoint, property.getType(), true, resolving ) ) ) );
+                new Api.Property( getPropertyName( endpoint, property ), property.getRequired(),
+                    getPropertySchema( endpoint, property, resolving ) ) ) );
             return schema;
         } );
+    }
+
+    private static Api.Schema getPropertySchema( Api.Endpoint endpoint, Property property,
+        Map<Class<?>, Api.Schema> resolving )
+    {
+        return property.getSource() instanceof AnnotatedElement
+            && ((AnnotatedElement) property.getSource()).isAnnotationPresent( JsonSubTypes.class )
+                ? analyseSubTypeSchema( endpoint, (AnnotatedElement) property.getSource(), resolving )
+                : analyseSchema( endpoint, property.getType(), true, resolving );
+    }
+
+    private static String getPropertyName( Api.Endpoint endpoint, Property property )
+    {
+        return "path$".equals( property.getName() ) ? endpoint.getIn().getPaths().get( 0 ).replace( "/", "" )
+            : property.getName();
+    }
+
+    private static Api.Schema analyseSubTypeSchema( Api.Endpoint endpoint, AnnotatedElement baseType,
+        Map<Class<?>, Api.Schema> resolving )
+    {
+        List<Class<?>> types = Stream.of( baseType.getAnnotation( JsonSubTypes.class ).value() )
+            .map( JsonSubTypes.Type::value )
+            .collect( toList() );
+        return Api.Schema.oneOf( types, subType -> analyseTypeSchema( endpoint, subType, resolving ) );
     }
 
     private static Api.Schema analyseSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
