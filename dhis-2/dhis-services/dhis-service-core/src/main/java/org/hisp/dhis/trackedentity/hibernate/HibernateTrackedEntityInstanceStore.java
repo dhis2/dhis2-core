@@ -867,7 +867,8 @@ public class HibernateTrackedEntityInstanceStore
         orgUnits
             .append( " INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
-            .append( params.hasProgram() && !skipOwnershipCheck( params ) ? "PO.organisationunitid " : "TEI.organisationunitid " );
+            .append( params.hasProgram() && !skipOwnershipCheck( params ) ? "PO.organisationunitid "
+                : "TEI.organisationunitid " );
 
         if ( !params.hasOrganisationUnits() )
         {
