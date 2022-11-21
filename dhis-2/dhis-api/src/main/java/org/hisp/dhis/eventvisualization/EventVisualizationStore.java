@@ -118,7 +118,6 @@ public interface EventVisualizationStore extends
 
     /**
      * Counts the number of EventVisualization created since the given date.
-     * Only the non-legacy ones should be considered.
      *
      * @param startingAt
      * @return the total of EventVisualization found.
