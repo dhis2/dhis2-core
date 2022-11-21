@@ -25,43 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.stream.Stream;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * CRUD Controller for ExpressionDimensionItem entity
  */
-public enum TrackerBundleReportMode
+@Controller
+@RequestMapping( value = ExpressionDimensionItemSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
-
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
-
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
-
-    private static Stream<TrackerBundleReportMode> stream()
-    {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
-
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
-    }
 }
