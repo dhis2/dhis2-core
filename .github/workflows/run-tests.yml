@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
-        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml
         timeout-minutes: 30
 
       - name: Test dhis-web
@@ -40,7 +40,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml
         timeout-minutes: 30
 
   integration-h2-test:
@@ -54,5 +54,5 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml
         timeout-minutes: 30
