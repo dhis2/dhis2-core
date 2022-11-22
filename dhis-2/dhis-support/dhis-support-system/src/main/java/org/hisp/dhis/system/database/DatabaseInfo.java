@@ -37,6 +37,7 @@ import lombok.Setter;
 
 import org.apache.commons.beanutils.BeanUtils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -53,7 +54,7 @@ public class DatabaseInfo
     @JsonProperty
     private String user;
 
-    @JsonProperty
+    @JsonIgnore
     private String password;
 
     @JsonProperty
