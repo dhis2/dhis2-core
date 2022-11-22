@@ -55,7 +55,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
@@ -170,7 +169,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @OpenApi.Ignore
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
@@ -207,7 +206,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @OpenApi.Params( WebOptions.class )
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
@@ -446,7 +445,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -457,7 +456,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
@@ -569,7 +568,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
@@ -624,7 +623,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( EntityType.class )
+    @OpenApi.Param( OpenApi.EntityType.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )

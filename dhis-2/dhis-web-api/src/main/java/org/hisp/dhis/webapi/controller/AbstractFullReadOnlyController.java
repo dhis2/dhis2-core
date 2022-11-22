@@ -57,7 +57,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -202,7 +201,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         Pager pager;
 
         @SuppressWarnings( "java:S116" )
-        EntityType[] path$;
+        OpenApi.EntityType[] path$;
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
@@ -429,7 +428,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( EntityType.class )
+    @OpenApi.Response( OpenApi.EntityType.class )
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping( "/{uid}" )

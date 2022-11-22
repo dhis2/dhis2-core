@@ -45,6 +45,94 @@ import lombok.RequiredArgsConstructor;
 public @interface OpenApi
 {
     /**
+     * Annotation to use as part of the OpenAPI generation to work around lack
+     * of generic types when using annotations.
+     *
+     * The annotation has different semantics depending on the annotated
+     * element. See {@link #value()} for details.
+     *
+     * Generally speaking the annotation builds a type substitution mechanism.
+     * On one set of target locations it defines the actual type that
+     * substitution should use. On another set of target location it marks the
+     * place where the substitution should be used.
+     *
+     * Substitution is scoped per controller and method. By default, methods
+     * inherit the type defined for substitution from the controller level, but
+     * it can be overridden per method by again annotating the method with a
+     * different type given by {@link EntityType#value()}.
+     *
+     * A {@link java.lang.reflect.Field} or getter
+     * {@link java.lang.reflect.Method} on a complex request/response object
+     * annotated with {@link EntityType} marks the annotated member for
+     * substitution. The {@link #value()} then either should use
+     * {@code EntityType.class} for a simple value, or
+     * {@code EntityType[].class} for any array or collection.
+     *
+     * @author Jan Bernitt
+     */
+    @Inherited
+    @Retention( RetentionPolicy.RUNTIME )
+    @Target( { ElementType.TYPE, ElementType.METHOD, ElementType.FIELD } )
+    @interface EntityType
+    {
+        /**
+         * <ul>
+         * <li>When annotated on a controller {@link Class} type the value type
+         * refers the actual type to use within the scope of this controller. If
+         * the value given is {@code EntityType.class} itself this means the
+         * actual type is extracted from the of the controller type's direct
+         * superclass first type parameter.</li>
+         * <li>When annotated on a controller {@link java.lang.reflect.Method}
+         * the value type refers to the actual type within the scope of this
+         * method only.</li>
+         * <li>When used in an OpenAPI annotation field the target of the
+         * annotation uses the actual type from the scope instead of the type
+         * present in the signature.</li>
+         * <li>When used on a {@link java.lang.reflect.Field} or
+         * {@link java.lang.reflect.Method} in a complex request or response
+         * object the annotated member's target type uses the actual type from
+         * the current scope instead of the type present in the signature.</li>
+         * </ul>
+         *
+         * @return dependent on the target the type to use for substitution, or
+         *         where to substitute the type.
+         */
+        Class<?> value();
+
+        /**
+         * When the entire annotated type is substituted the path is empty.
+         *
+         * If e.g. the {@code T} in a type like {@code Map<String,List<T>>}
+         * should be substituted to {@code Map<String,List<MyObject>>} (assuming
+         * that {@code MyObject} is the current actual type) the path has to be:
+         *
+         * <pre>
+         * { Map.class, List.class }
+         * </pre>
+         *
+         * Since here the target is an array like type the annotation for this
+         * substitution would be:
+         *
+         * <pre>
+         *  &#064;EntityType( value = EntityType[].class, path = 1 )
+         * </pre>
+         *
+         * {@code Map} as root is exclusive, the target is at the {@code 1}
+         * index of the root type.
+         *
+         * Arguably this could also be given by pointing at the {@code T} in
+         * {@code List}:
+         *
+         * <pre>
+         *  &#064;EntityType( value = EntityType.class, path = {1, 0} )
+         * </pre>
+         *
+         * @return type parameter index path to target type for substitution
+         */
+        int[] path() default {};
+    }
+
+    /**
      * When annotated on type level the tags are added to all endpoints of the
      * controller.
      *

@@ -45,7 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrimaryKeyObject;
@@ -87,7 +86,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author Jan Bernitt
  */
-@EntityType( EntityType.class )
+@OpenApi.EntityType( OpenApi.EntityType.class )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 {

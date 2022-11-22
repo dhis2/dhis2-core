@@ -59,7 +59,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 
-import org.hisp.dhis.common.EntityType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.period.Period;
@@ -134,10 +133,10 @@ final class ApiAnalyse
     {
         String name = getAnnotated( source, RequestMapping.class, RequestMapping::name, n -> !n.isEmpty(),
             () -> source.getSimpleName().replace( "Controller", "" ) );
-        Class<?> entityClass = source.isAnnotationPresent( EntityType.class )
-            ? source.getAnnotation( EntityType.class ).value()
+        Class<?> entityClass = source.isAnnotationPresent( OpenApi.EntityType.class )
+            ? source.getAnnotation( OpenApi.EntityType.class ).value()
             : null;
-        if ( entityClass == EntityType.class )
+        if ( entityClass == OpenApi.EntityType.class )
         {
             entityClass = (Class<?>) (((ParameterizedType) source.getGenericSuperclass()).getActualTypeArguments()[0]);
         }
@@ -158,7 +157,8 @@ final class ApiAnalyse
     {
         Method source = mapping.getSource();
         String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
-        Class<?> entityClass = getAnnotated( source, EntityType.class, EntityType::value, c -> c != EntityType.class,
+        Class<?> entityClass = getAnnotated( source, OpenApi.EntityType.class, OpenApi.EntityType::value,
+            c -> c != OpenApi.EntityType.class,
             controller::getEntityClass );
 
         // request media types
@@ -533,9 +533,9 @@ final class ApiAnalyse
     private static Type getSubstitutedType( Api.Endpoint endpoint, Property property, AnnotatedElement member )
     {
         Type type = property.getType();
-        if ( member.isAnnotationPresent( EntityType.class ) )
+        if ( member.isAnnotationPresent( OpenApi.EntityType.class ) )
         {
-            return getSubstitutedType( endpoint, member.getAnnotation( EntityType.class ).value() );
+            return getSubstitutedType( endpoint, member.getAnnotation( OpenApi.EntityType.class ).value() );
         }
         if ( type instanceof Class<?> )
         {
@@ -549,11 +549,11 @@ final class ApiAnalyse
      */
     private static Class<?> getSubstitutedType( Api.Endpoint endpoint, Class<?> type )
     {
-        if ( type == EntityType.class && endpoint.getEntityType() != null )
+        if ( type == OpenApi.EntityType.class && endpoint.getEntityType() != null )
         {
             return endpoint.getEntityType();
         }
-        if ( type == EntityType[].class && endpoint.getEntityType() != null )
+        if ( type == OpenApi.EntityType[].class && endpoint.getEntityType() != null )
         {
             return Array.newInstance( endpoint.getEntityType(), 0 ).getClass();
         }
