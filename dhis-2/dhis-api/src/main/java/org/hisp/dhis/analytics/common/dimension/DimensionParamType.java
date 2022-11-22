@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.dimension;
 
+import static org.hisp.dhis.analytics.SortOrder.ASC;
+import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifierConverterSupport.fromFullDimensionId;
 import static org.hisp.dhis.common.AnalyticsDateFilter.ENROLLMENT_DATE;
 import static org.hisp.dhis.common.AnalyticsDateFilter.EVENT_DATE;
@@ -47,7 +49,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 
@@ -57,9 +58,7 @@ public enum DimensionParamType
 {
     DIMENSIONS( CommonQueryRequest::getDimension ),
     FILTERS( CommonQueryRequest::getFilter ),
-
     HEADERS( CommonQueryRequest::getHeaders ),
-
     DATE_FILTERS( commonQueryRequest -> Stream.of(
         EVENT_DATE,
         ENROLLMENT_DATE,
@@ -71,14 +70,14 @@ public enum DimensionParamType
         .flatMap( Collection::stream )
         .collect( Collectors.toList() ) ),
 
-    // uidsGetter invoked on this enum, will return a collection made of:
+    // The uidsGetter invoked on this enum, will return a collection made of:
     // - commonQueryRequest.getAsc(), suffixed by ":asc"
     // - commonQueryRequest.getDesc(), suffixed by ":desc"
     SORTING( commonQueryRequest -> Stream.concat(
         commonQueryRequest.getAsc().stream()
-            .map( s -> s + ":" + SortOrder.ASC.getValue() ),
+            .map( s -> s + ":" + ASC.getValue() ),
         commonQueryRequest.getDesc().stream()
-            .map( s -> s + ":" + SortOrder.DESC.getValue() ) )
+            .map( s -> s + ":" + DESC.getValue() ) )
         .collect( Collectors.toList() ) );
 
     private static List<String> parseDate( CommonQueryRequest commonQueryRequest,
@@ -97,10 +96,9 @@ public enum DimensionParamType
 
     private static String toDimensionParam( String dateFilterItem, AnalyticsDateFilter analyticsDateFilter )
     {
-        // here dateItem filter is in the form of
-        // programUid.programStageUid.period
-        // we need to return
-        // programUid.programStageUid.pe:period:analyticsDateFilter
+        // Here, dateItem filter is in the form of
+        // programUid.programStageUid.period we need to return
+        // programUid.programStageUid.pe:period:analyticsDateFilter.
         DimensionIdentifier<StringUid, StringUid, StringUid> parsedItem = fromFullDimensionId( dateFilterItem );
 
         String period = parsedItem.getDimension().getUid();
@@ -116,7 +114,7 @@ public enum DimensionParamType
             analyticsDateFilter.name() );
     }
 
-    // the getter method to invoke to retrieve the dimensions or filters from
-    // the CommonQueryRequest
+    // Getter method to retrieve the dimensions or filters from the
+    // CommonQueryRequest.
     private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }

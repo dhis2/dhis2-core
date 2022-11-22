@@ -95,7 +95,6 @@ public class CommonQueryRequestMapper
     public CommonParams map( CommonQueryRequest request )
     {
         List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
-
         List<Program> programs = getPrograms( request );
 
         return CommonParams.builder()
@@ -112,6 +111,12 @@ public class CommonQueryRequestMapper
             .build();
     }
 
+    /**
+     * Returns the headers specified in the given request.
+     *
+     * @param request
+     * @return the set of headers
+     */
     private Set<String> getHeaders( CommonQueryRequest request )
     {
         return HEADERS.getUidsGetter().apply( request )
@@ -119,16 +124,36 @@ public class CommonQueryRequestMapper
             .collect( toSet() );
     }
 
+    /**
+     * Based on the given arguments, it will extract a list of sorting objects
+     * params, if any.
+     *
+     * @param request the {@link CommonQueryRequest}
+     * @param programs the list of {@link Program}
+     * @param userOrgUnits the list of {@link OrganisationUnit}
+     * @return the {@link List} of sorting {@link AnalyticsSortingParams}
+     */
     private List<AnalyticsSortingParams> getSortingParams( CommonQueryRequest request, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
-        // for example: {a}.{b}.{c}:ASC
+        // For example: uid1.uid2.uid3OrAttribute:ASC
         return SORTING.getUidsGetter().apply( request )
             .stream()
-            .map( dimId -> toSortParam( dimId, request, programs, userOrgUnits ) )
+            .map( sortParam -> toSortParam( sortParam, request, programs, userOrgUnits ) )
             .collect( toList() );
     }
 
+    /**
+     * Based on the given arguments, it extracts the sort param object
+     * {@link AnalyticsSortingParams}.
+     *
+     * @param sortParam the representation in the format
+     *        uid1.uid2.uid3OrAttribute:ASC
+     * @param request the {@link CommonQueryRequest}
+     * @param programs the list of {@link Program}
+     * @param userOrgUnits the list of {@link OrganisationUnit}
+     * @return the built {@link AnalyticsSortingParams}
+     */
     private AnalyticsSortingParams toSortParam( String sortParam, CommonQueryRequest request, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
@@ -139,6 +164,14 @@ public class CommonQueryRequestMapper
             .build();
     }
 
+    /**
+     * Returns a {@link List} of {@link Program} objects based on the given
+     * {@link CommonQueryRequest}.
+     *
+     * @param queryRequest the {@link CommonQueryRequest}
+     * @return the {@link List} of {@link Program} found
+     * @throws IllegalArgumentException if the program cannot be found
+     */
     private List<Program> getPrograms( CommonQueryRequest queryRequest )
     {
         List<Program> programs = ImmutableList.copyOf( programService.getPrograms( queryRequest.getProgram() ) );
@@ -162,35 +195,66 @@ public class CommonQueryRequestMapper
         return programs;
     }
 
+    /**
+     * Returns a {@link List} of {@link DimensionIdentifier} built from given
+     * arguments, params and filter. This list is encapsulated into another
+     * {@link List}.
+     *
+     * @param queryRequest the {@link CommonQueryRequest}
+     * @param programs the list of {@link Program}
+     * @param userOrgUnits the list of {@link OrganisationUnit}
+     * @return a {@link List} containing a {@link List} of
+     *         {@link DimensionIdentifier}
+     */
     private List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> retrieveDimensionParams(
-        CommonQueryRequest request, List<Program> programs, List<OrganisationUnit> userOrgUnits )
+        CommonQueryRequest queryRequest, List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
         List<List<DimensionIdentifier<Program, ProgramStage, DimensionParam>>> dimensionParams = new ArrayList<>();
 
         Stream.of( DIMENSIONS, FILTERS, DATE_FILTERS )
             .forEach( dimensionParamType -> {
                 // A Collection of dimensions or filters coming from the request
-                Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( request );
+                Collection<String> dimensionsOrFilter = dimensionParamType.getUidsGetter().apply( queryRequest );
                 dimensionParams.addAll(
                     ImmutableList.copyOf( dimensionsOrFilter.stream()
                         .map( this::splitOnOrIfNecessary )
-                        .map( dof -> toDimensionIdentifier( dof, dimensionParamType, request, programs, userOrgUnits ) )
+                        .map( dof -> toDimensionIdentifier( dof, dimensionParamType, queryRequest, programs,
+                            userOrgUnits ) )
                         .collect( toList() ) ) );
             } );
 
         return ImmutableList.copyOf( dimensionParams );
     }
 
+    /**
+     * Returns a {@link List} of {@link DimensionIdentifier} built from given
+     * arguments, params and filter.
+     *
+     * @param dimensions the {@link List} of dimensions
+     * @param dimensionParamType the {@link DimensionParamType}
+     * @param queryRequest the {@link CommonQueryRequest}
+     * @param programs the list of {@link Program}
+     * @param userOrgUnits the list of {@link OrganisationUnit}
+     * @return a {@link List} of {@link DimensionIdentifier}
+     * @throws IllegalArgumentException if "dimensionOrFilter" is not
+     *         well-formed
+     */
     private List<DimensionIdentifier<Program, ProgramStage, DimensionParam>> toDimensionIdentifier(
-        Collection<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest request,
+        List<String> dimensions, DimensionParamType dimensionParamType, CommonQueryRequest queryRequest,
         List<Program> programs, List<OrganisationUnit> userOrgUnits )
     {
         return dimensions.stream()
-            .map( dimensionAsString -> toDimensionIdentifier( dimensionAsString, dimensionParamType, request, programs,
-                userOrgUnits ) )
+            .map( dimensionAsString -> toDimensionIdentifier( dimensionAsString, dimensionParamType, queryRequest,
+                programs, userOrgUnits ) )
             .collect( toList() );
     }
 
+    /**
+     * Splits the dimensions grouped by _OR_ into a {@link List} of String.
+     *
+     * @param dimensionAsString, in the format dim_OR_anotherDim
+     * @return the {@link List} of String.
+     */
     private List<String> splitOnOrIfNecessary( String dimensionAsString )
     {
         return Arrays.stream( dimensionAsString.split( DIMENSION_OR_SEPARATOR ) )
@@ -198,11 +262,20 @@ public class CommonQueryRequestMapper
     }
 
     /**
-     * Return a collection of DimensionParams built from request
-     * dimension/filter parameter
+     * Returns a {@link DimensionIdentifier} built from given arguments, params
+     * and filter.
+     *
+     * @param dimensionOrFilter the uid of a dimension or filter
+     * @param dimensionParamType the {@link DimensionParamType}
+     * @param queryRequest the {@link CommonQueryRequest}
+     * @param programs the list of {@link Program}
+     * @param userOrgUnits the list of {@link OrganisationUnit}
+     * @return the {@link DimensionIdentifier}
+     * @throws IllegalArgumentException if "dimensionOrFilter" is not
+     *         well-formed
      */
     private DimensionIdentifier<Program, ProgramStage, DimensionParam> toDimensionIdentifier( String dimensionOrFilter,
-        DimensionParamType dimensionParamType, CommonQueryRequest request, List<Program> programs,
+        DimensionParamType dimensionParamType, CommonQueryRequest queryRequest, List<Program> programs,
         List<OrganisationUnit> userOrgUnits )
     {
         String dimensionId = getDimensionFromParam( dimensionOrFilter );
@@ -213,7 +286,7 @@ public class CommonQueryRequestMapper
             .fromString( programs, dimensionId );
         List<String> items = getDimensionItemsFromParam( dimensionOrFilter );
 
-        // first we check if it's a static dimension
+        // Then we check if it's a static dimension.
         if ( isStaticDimensionIdentifier( dimensionIdentifier.getDimension().getUid() ) )
         {
             return DimensionIdentifier.of(
@@ -222,10 +295,10 @@ public class CommonQueryRequestMapper
                 DimensionParam.ofObject( dimensionIdentifier.getDimension().getUid(), dimensionParamType, items ) );
         }
 
-        // then we check if it's a DimensionalObject
+        // Then we check if it's a DimensionalObject.
         DimensionalObject dimensionalObject = dataQueryService.getDimension(
-            dimensionIdentifier.getDimension().getUid(), items, request.getRelativePeriodDate(), userOrgUnits, true,
-            UID );
+            dimensionIdentifier.getDimension().getUid(), items, queryRequest.getRelativePeriodDate(), userOrgUnits,
+            true, UID );
 
         if ( Objects.nonNull( dimensionalObject ) )
         {
@@ -236,15 +309,15 @@ public class CommonQueryRequestMapper
                 dimensionParam );
         }
 
-        // then it should be a queryItem: queryItems needs to be prefixed by
-        // programUid (program attributes, program indicators)
-        // and optionally by a programStageUid (Data Element)
+        // If we reach here, it should be a queryItem. Objects of type queryItem
+        // need to be prefixed by programUid (program attributes, program
+        // indicators) and optionally by a programStageUid (Data Element).
         if ( dimensionIdentifier.hasProgram() )
         {
             QueryItem queryItem = eventDataQueryService.getQueryItem( dimensionIdentifier.getDimension().getUid(),
                 dimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE );
 
-            // The fully qualified dimension identification is required here
+            // The fully qualified dimension identification is required here.
             DimensionParam dimensionParam = DimensionParam.ofObject(
                 queryItem,
                 dimensionParamType, items );
