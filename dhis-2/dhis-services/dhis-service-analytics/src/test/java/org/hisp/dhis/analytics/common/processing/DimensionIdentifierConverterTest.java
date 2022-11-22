@@ -49,20 +49,20 @@ class DimensionIdentifierConverterTest
     void fromStringWithSuccessUsingOffset()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
-        final ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
+        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
         programStage1.setUid( "RaMbOrTys0n" );
         program1.setProgramStages( Set.of( programStage1 ) );
 
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -81,20 +81,20 @@ class DimensionIdentifierConverterTest
     void fromStringWithSuccessNoOffset()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
-        final ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
+        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
         programStage1.setUid( "RaMbOrTys0n" );
         program1.setProgramStages( Set.of( programStage1 ) );
 
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "lxAQ7Zs9VYR.RaMbOrTys0n.jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "lxAQ7Zs9VYR.RaMbOrTys0n.jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -113,17 +113,17 @@ class DimensionIdentifierConverterTest
     void fromStringWithSuccessOnlyProgram()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
 
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "lxAQ7Zs9VYR.jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "lxAQ7Zs9VYR.jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -139,17 +139,17 @@ class DimensionIdentifierConverterTest
     void fromStringWithSuccessOnlyDimension()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
 
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "jklm";
 
         // When
-        final DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
+        DimensionIdentifier<Program, ProgramStage, StringUid> dimensionIdentifier = new DimensionIdentifierConverter()
             .fromString( programs, fullDimensionId );
 
         // Then
@@ -162,17 +162,17 @@ class DimensionIdentifierConverterTest
     void fromStringWithOnlyProgramWhenItDoesNotExist()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
 
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "non-existing-program.jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "non-existing-program.jklm";
 
         // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
 
         // Then
@@ -184,16 +184,16 @@ class DimensionIdentifierConverterTest
     void fromStringWhenProgramStageIsNotValidForProgram()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "lxAQ7Zs9VYR[1].invalid-stage[4].jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "lxAQ7Zs9VYR[1].invalid-stage[4].jklm";
 
         // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
 
         // Then
@@ -205,16 +205,16 @@ class DimensionIdentifierConverterTest
     void fromStringWhenProgramDoesNotExistInList()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
-        final String fullDimensionId = "non-existing-program[1].fghi[4].jklm";
+        List<Program> programs = List.of( program1, program2 );
+        String fullDimensionId = "non-existing-program[1].fghi[4].jklm";
 
         // When
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new DimensionIdentifierConverter().fromString( programs, fullDimensionId ) );
 
         // Then
@@ -226,19 +226,19 @@ class DimensionIdentifierConverterTest
     void fromStringWhenOffsetIsPutInTheWrongPlace()
     {
         // Given
-        final Program program1 = new Program( "prg-1" );
+        Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
-        final Program program2 = new Program( "prg-2" );
+        Program program2 = new Program( "prg-2" );
         program2.setUid( "ur1Edk5Oe2n" );
 
-        final List<Program> programs = List.of( program1, program2 );
+        List<Program> programs = List.of( program1, program2 );
 
         // When
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "lxAQ7Zs9VYR[1].fghi[4].jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
@@ -246,7 +246,7 @@ class DimensionIdentifierConverterTest
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "lxAQ7Zs9VYR[1].jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
@@ -254,7 +254,7 @@ class DimensionIdentifierConverterTest
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
     }
 }

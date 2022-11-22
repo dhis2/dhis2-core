@@ -72,7 +72,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequestMapping( TeiQueryController.TRACKED_ENTITIES )
 class TeiQueryController
 {
-
     static final String TRACKED_ENTITIES = "analytics/trackedEntities";
 
     @Nonnull
@@ -107,13 +106,12 @@ class TeiQueryController
 
     @GetMapping( "query/{trackedEntityType}" )
     Grid getGrid(
-        @PathVariable
-        final String trackedEntityType,
-        final TeiQueryRequest teiQueryRequest,
-        final CommonQueryRequest commonQueryRequest,
-        final HttpServletResponse response )
+        @PathVariable String trackedEntityType,
+        TeiQueryRequest teiQueryRequest,
+        CommonQueryRequest commonQueryRequest,
+        HttpServletResponse response )
     {
-        final QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
+        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
             .request( teiQueryRequestProcessor.process(
                 teiQueryRequest.withTrackedEntityType( trackedEntityType ) ) )
             .commonQueryRequest( commonQueryRequestProcessor.process( commonQueryRequest ) )

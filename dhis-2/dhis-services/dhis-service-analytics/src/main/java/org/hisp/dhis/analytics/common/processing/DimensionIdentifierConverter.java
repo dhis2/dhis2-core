@@ -47,7 +47,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DimensionIdentifierConverter
 {
-
     /**
      *
      * @param programs list of programs that are permitted

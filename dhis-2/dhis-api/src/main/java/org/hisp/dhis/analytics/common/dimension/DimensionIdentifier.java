@@ -28,6 +28,9 @@
 package org.hisp.dhis.analytics.common.dimension;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.ENROLLMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.EVENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.DimensionIdentifierType.TEI;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 
 import java.util.Objects;
@@ -39,8 +42,9 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UidObject;
 
 /**
- * Class to identify a Dimension in analytics In TEI CPL, a dimension can be
- * composed by up to 3 coordinates: Program, Stage and dimensionId
+ * Class to identify a dimension in analytics TEI cross program. A dimension can
+ * be composed by up to 3 elements: Program, Stage and dimension (the dimension
+ * uid).
  */
 @Data
 @AllArgsConstructor( staticName = "of" )
@@ -56,13 +60,13 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
     {
         if ( isEventDimension() )
         {
-            return DimensionIdentifierType.EVENT;
+            return EVENT;
         }
         if ( isEnrollmentDimension() )
         {
-            return DimensionIdentifierType.ENROLLMENT;
+            return ENROLLMENT;
         }
-        return DimensionIdentifierType.TEI;
+        return TEI;
     }
 
     public boolean isEnrollmentDimension()
@@ -100,6 +104,11 @@ public class DimensionIdentifier<P extends UidObject, S extends UidObject, D ext
         return string + dimension.getUid();
     }
 
+    /**
+     * Encapsulates and element T with its offset.
+     *
+     * @param <T> the dimension type
+     */
     @Data
     @RequiredArgsConstructor( staticName = "of" )
     public static class ElementWithOffset<T extends UidObject>

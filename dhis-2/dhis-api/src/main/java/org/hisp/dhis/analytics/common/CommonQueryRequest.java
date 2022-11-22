@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -38,7 +42,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.With;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -57,9 +60,14 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 @AllArgsConstructor
 public class CommonQueryRequest
 {
-
+    /**
+     * The list of program uids.
+     */
     private Set<String> program = new LinkedHashSet<>();
 
+    /**
+     * The user's organization unit.
+     */
     private String userOrgUnit;
 
     /**
@@ -79,14 +87,24 @@ public class CommonQueryRequest
      */
     private Set<String> headers = new LinkedHashSet<>();
 
-    private OrganisationUnitSelectionMode ouMode;
+    /**
+     * The mode of selecting organisation units. Default is DESCENDANTS, meaning
+     * all sub units in the hierarchy. CHILDREN refers to immediate children in
+     * the hierarchy; SELECTED refers to the selected organisation units only.
+     */
+    private OrganisationUnitSelectionMode ouMode = DESCENDANTS;
 
-    private Set<String> asc = new LinkedHashSet<>();
+    /**
+     * Id scheme to be used for data, more specifically data elements and
+     * attributes which have an option set or legend set, e.g. return the name
+     * of the option instead of the code, or the name of the legend instead of
+     * the legend ID, in the data response.
+     */
+    private IdScheme dataIdScheme = UID;
 
-    private Set<String> desc = new LinkedHashSet<>();
-
-    private IdScheme dataIdScheme = IdScheme.UID;
-
+    /**
+     * Overrides the start date of the relative period. e.g: "2016-01-01".
+     */
     private Date relativePeriodDate;
 
     /**
@@ -125,19 +143,6 @@ public class CommonQueryRequest
     private boolean showHierarchy;
 
     /**
-     * Custom date filters
-     */
-    private String eventDate;
-
-    private String enrollmentDate;
-
-    private String scheduledDate;
-
-    private String incidentDate;
-
-    private String lastUpdated;
-
-    /**
      * The page number. Default page is 1.
      */
     private Integer page = 1;
@@ -159,9 +164,39 @@ public class CommonQueryRequest
      */
     private boolean totalPages = false;
 
+    /**
+     * Dimensions identifier to be sorted ascending, can reference event date,
+     * org unit name and code and any item identifiers.
+     */
+    private Set<String> asc = new LinkedHashSet<>();
+
+    /**
+     * Dimensions identifier to be sorted descending, can reference event date,
+     * org unit name and code and any item identifiers.
+     */
+    private Set<String> desc = new LinkedHashSet<>();
+
+    /**
+     * Custom date filters
+     */
+    private String eventDate;
+
+    private String enrollmentDate;
+
+    private String scheduledDate;
+
+    private String incidentDate;
+
+    private String lastUpdated;
+
+    /**
+     * Checks if there is a program uid in the internal list of programs.
+     *
+     * @return true if at least one program is found, false otherwise
+     */
     public boolean hasPrograms()
     {
-        return CollectionUtils.emptyIfNull( program )
+        return emptyIfNull( program )
             .stream()
             .anyMatch( StringUtils::isNotBlank );
     }

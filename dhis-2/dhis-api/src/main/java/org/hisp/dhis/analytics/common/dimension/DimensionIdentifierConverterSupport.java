@@ -29,25 +29,39 @@ package org.hisp.dhis.analytics.common.dimension;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 
 import java.util.List;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
+import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset;
+
+@NoArgsConstructor( access = PRIVATE )
 public class DimensionIdentifierConverterSupport
 {
-
     private static final Character DIMENSION_SEPARATOR = '.';
 
+    /**
+     * Will parse the given argument into a {@link DimensionIdentifier} object.
+     *
+     * @param fullDimensionId in the format
+     *        "PROGRAM_UID[1].PSTAGE_UID[4].DIM_UID"
+     * @throws IllegalArgumentException when the format of the given argument is
+     *         not supported
+     * @return the {@link DimensionIdentifier} object
+     */
     public static DimensionIdentifier<StringUid, StringUid, StringUid> fromFullDimensionId( String fullDimensionId )
     {
-        // will parse correctly only if uidWiothOffset is not empty and size is
-        // less than or equals to 3
-        List<DimensionIdentifier.ElementWithOffset<StringUid>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
+        List<ElementWithOffset<StringUid>> uidWithOffsets = parseFullDimensionId( fullDimensionId );
+        boolean nonSupportedFormat = uidWithOffsets.size() > 3 || uidWithOffsets.isEmpty();
+
+        if ( nonSupportedFormat )
+        {
+            throw new IllegalArgumentException( "Invalid dimension identifier: " + fullDimensionId );
+        }
 
         return DimensionIdentifier.of(
             getProgram( uidWithOffsets ),
@@ -55,20 +69,23 @@ public class DimensionIdentifierConverterSupport
             getDimension( uidWithOffsets ) );
     }
 
-    private static DimensionIdentifier.ElementWithOffset<StringUid> getProgram(
-        List<DimensionIdentifier.ElementWithOffset<StringUid>> uidWithOffsets )
+    private static ElementWithOffset<StringUid> getProgram( List<ElementWithOffset<StringUid>> uidWithOffsets )
     {
-        if ( uidWithOffsets.size() == 1 )
+        boolean hasOnlySingleDimension = uidWithOffsets.size() == 1;
+
+        if ( hasOnlySingleDimension )
         {
             return emptyElementWithOffset();
         }
+
         return uidWithOffsets.get( 0 );
     }
 
-    private static DimensionIdentifier.ElementWithOffset<StringUid> getProgramStage(
-        List<DimensionIdentifier.ElementWithOffset<StringUid>> uidWithOffsets )
+    private static ElementWithOffset<StringUid> getProgramStage( List<ElementWithOffset<StringUid>> uidWithOffsets )
     {
-        if ( uidWithOffsets.size() == 2 || uidWithOffsets.size() == 1 )
+        boolean hasOnlyProgramAndDimension = uidWithOffsets.size() == 2 || uidWithOffsets.size() == 1;
+
+        if ( hasOnlyProgramAndDimension )
         {
             return emptyElementWithOffset();
         }
@@ -78,46 +95,47 @@ public class DimensionIdentifierConverterSupport
         }
     }
 
-    private static StringUid getDimension( List<DimensionIdentifier.ElementWithOffset<StringUid>> uidWithOffsets )
+    private static StringUid getDimension( List<ElementWithOffset<StringUid>> uidWithOffsets )
     {
-        DimensionIdentifier.ElementWithOffset<StringUid> dimension = uidWithOffsets.get( uidWithOffsets.size() - 1 );
+        int dimensionIndex = uidWithOffsets.size() - 1;
+
+        ElementWithOffset<StringUid> dimension = uidWithOffsets.get( dimensionIndex );
         assertDimensionIdHasNoOffset( dimension );
+
         return dimension.getElement();
     }
 
-    private static List<DimensionIdentifier.ElementWithOffset<StringUid>> parseFullDimensionId( String fullDimensionId )
+    private static List<ElementWithOffset<StringUid>> parseFullDimensionId( String fullDimensionId )
     {
-        List<DimensionIdentifier.ElementWithOffset<StringUid>> elements = stream(
+        return stream(
             split( fullDimensionId, DIMENSION_SEPARATOR ) )
                 .map( DimensionIdentifierConverterSupport::elementWithOffsetByString )
                 .collect( toList() );
-        if ( elements.size() > 3 || elements.isEmpty() )
-        {
-            throw new IllegalArgumentException( "Invalid dimension identifier: " + fullDimensionId );
-        }
-        return elements;
     }
 
-    private static void assertDimensionIdHasNoOffset(
-        DimensionIdentifier.ElementWithOffset<StringUid> dimensionIdWithOffset )
+    private static void assertDimensionIdHasNoOffset( ElementWithOffset<StringUid> dimensionIdWithOffset )
     {
         if ( dimensionIdWithOffset.hasOffset() )
         {
-            throw new IllegalArgumentException( "Only program and program stage can have offsets" );
+            throw new IllegalArgumentException( "Only program and program stage can have offset" );
         }
     }
 
-    private static DimensionIdentifier.ElementWithOffset<StringUid> elementWithOffsetByString(
-        String elementWithOffset )
+    private static ElementWithOffset<StringUid> elementWithOffsetByString( String elementWithOffset )
     {
         String[] split = split( elementWithOffset, "[]" );
-        if ( split.length == 2 )
+        boolean hasOffset = split.length == 2;
+
+        if ( hasOffset )
         {
-            return DimensionIdentifier.ElementWithOffset.of( StringUid.of( split[0] ), split[1] );
+            String elementUid = split[0];
+            String offset = split[1];
+
+            return ElementWithOffset.of( StringUid.of( elementUid ), offset );
         }
         else
         {
-            return DimensionIdentifier.ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
+            return ElementWithOffset.of( StringUid.of( elementWithOffset ), null );
         }
     }
 }
