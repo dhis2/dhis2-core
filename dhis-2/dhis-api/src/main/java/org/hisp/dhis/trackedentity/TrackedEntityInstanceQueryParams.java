@@ -278,6 +278,12 @@ public class TrackedEntityInstanceQueryParams
     private Date skipChangedBefore;
 
     /**
+     * Indicates whether tracked entity instance is marked as a Potential
+     * Duplicate
+     */
+    private Boolean potentialDuplicate;
+
+    /**
      * TEI order params
      */
     private List<OrderParam> orders;
@@ -735,6 +741,15 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicates whether this parameters specifies if tei is a potential
+     * duplicate. It can be true or false.
+     */
+    public boolean hasPotentialDuplicate()
+    {
+        return potentialDuplicate != null;
+    }
+
+    /**
      * Checks if there is atleast one unique filter in the params. In attributes
      * or filters.
      *
@@ -868,7 +883,9 @@ public class TrackedEntityInstanceQueryParams
             .add( "synchronizationQuery", synchronizationQuery )
             .add( "skipChangedBefore", skipChangedBefore )
             .add( "orders", orders )
-            .add( "user", user ).toString();
+            .add( "user", user )
+            .add( "potentialDuplicate", potentialDuplicate )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -966,6 +983,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
+    }
+
+    public Boolean getPotentialDuplicate()
+    {
+        return this.potentialDuplicate;
+    }
+
+    public TrackedEntityInstanceQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
+    {
+        this.potentialDuplicate = potentialDuplicate;
         return this;
     }
 
