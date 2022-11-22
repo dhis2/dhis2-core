@@ -350,18 +350,36 @@ final class ApiAnalyse
 
     private static Api.Schema analyseInputSchema( Api.Endpoint endpoint, Type source )
     {
-        return analyseSchema( endpoint, source, false, new IdentityHashMap<>() );
+        return analyseTypeSchema( endpoint, source, false, new IdentityHashMap<>() );
     }
 
     private static Api.Schema analyseOutputSchema( Api.Endpoint endpoint, Type source )
     {
-        return analyseSchema( endpoint, source, false, new IdentityHashMap<>() );
+        return analyseTypeSchema( endpoint, source, false, new IdentityHashMap<>() );
     }
 
     /**
+     * The centerpiece of the type analysis.
+     *
+     * Some important aspects to understand:
+     * <ul>
+     * <li>Only {@link Class} types (named types in Java) that never transform
+     * to different schemas depending on their context may end up in
+     * {@link Api#getSchemas()}. Otherwise one (the first) transformation would
+     * wrongly be used for all possible transformations.</li>
+     * <li>While resolving the schema of a {@link Class} type the resulting
+     * {@link Api.Schema} is added to the resolving context map before any
+     * properties of that schema are recursively resolved. This is necessary so
+     * that recursive type structures do not end up in endless loops or stack
+     * overflows. Instead the context already knows the {@link Api.Schema}
+     * instance for the type (even if some of its properties might still be
+     * missing) and the instance can be returned from the resolving
+     * context.</li>
+     * </ul>
+     *
      * @return a schema describing a complex "record-like" or "bean" object
      */
-    private static Api.Schema analyseTypeSchema( Api.Endpoint endpoint, Class<?> rawType,
+    private static Api.Schema analyseClassSchema( Api.Endpoint endpoint, Class<?> rawType,
         Map<Class<?>, Api.Schema> resolving )
     {
         Api.Schema s = resolving.get( rawType );
@@ -369,48 +387,48 @@ final class ApiAnalyse
         {
             return s;
         }
-        return endpoint.getIn().getIn().getSchemas().computeIfAbsent( rawType, type -> {
-            UnaryOperator<Api.Schema> resolvedTo = schema -> {
-                resolving.put( type, schema );
-                return schema;
-            };
+        boolean unnamed = rawType.isAnnotationPresent( OpenApi.Anonymous.class );
+        UnaryOperator<Api.Schema> resolvedTo = schema -> {
+            resolving.put( rawType, schema );
+            return schema;
+        };
+        Function<Class<?>, Api.Schema> createSchema = type -> {
             if ( type.isArray() )
             {
+                Api.Schema schema = resolvedTo.apply( new Api.Schema( Api.Schema.Type.ARRAY, false, type, type ) );
                 // eventually this will resolve the simple element type
-                analyseTypeSchema( endpoint, type.getComponentType(), resolving );
-                return resolvedTo.apply( new Api.Schema( Api.Schema.Type.ARRAY, false, type, type ) );
+                schema.withElements( analyseClassSchema( endpoint, type.getComponentType(), resolving ) );
+                return schema;
             }
-            if ( rawType.isAnnotationPresent( JsonSubTypes.class ) )
+            if ( type.isAnnotationPresent( JsonSubTypes.class ) )
             {
-                return analyseSubTypeSchema( endpoint, rawType, resolving );
+                return analyseSubTypeSchema( endpoint, type, resolving );
             }
             boolean alwaysSimple = isSimpleType( type );
             Collection<Property> properties = alwaysSimple ? List.of() : getProperties( type );
+            boolean named = Api.Schema.isNamed( type ) && !unnamed;
             if ( alwaysSimple || properties.isEmpty() )
             {
-                return resolvedTo.apply( new Api.Schema( Api.Schema.Type.SIMPLE, type, type ) );
+                return resolvedTo.apply( new Api.Schema( Api.Schema.Type.SIMPLE, named, type, type ) );
             }
-            Api.Schema schema = resolvedTo.apply( new Api.Schema( Api.Schema.Type.OBJECT, type, type ) );
+            Api.Schema schema = resolvedTo.apply( new Api.Schema( Api.Schema.Type.OBJECT, named, type, type ) );
             properties.forEach( property -> schema.getProperties().add(
                 new Api.Property( getPropertyName( endpoint, property ), property.getRequired(),
-                    getPropertySchema( endpoint, property, resolving ) ) ) );
+                    analysePropertySchema( endpoint, property, resolving ) ) ) );
             return schema;
-        } );
+        };
+        return unnamed
+            ? createSchema.apply( rawType )
+            : endpoint.getIn().getIn().getSchemas().computeIfAbsent( rawType, createSchema );
     }
 
-    private static Api.Schema getPropertySchema( Api.Endpoint endpoint, Property property,
+    private static Api.Schema analysePropertySchema( Api.Endpoint endpoint, Property property,
         Map<Class<?>, Api.Schema> resolving )
     {
         return property.getSource() instanceof AnnotatedElement
             && ((AnnotatedElement) property.getSource()).isAnnotationPresent( JsonSubTypes.class )
                 ? analyseSubTypeSchema( endpoint, (AnnotatedElement) property.getSource(), resolving )
-                : analyseSchema( endpoint, property.getType(), true, resolving );
-    }
-
-    private static String getPropertyName( Api.Endpoint endpoint, Property property )
-    {
-        return "path$".equals( property.getName() ) ? endpoint.getIn().getPaths().get( 0 ).replace( "/", "" )
-            : property.getName();
+                : analyseTypeSchema( endpoint, property.getType(), true, resolving );
     }
 
     private static Api.Schema analyseSubTypeSchema( Api.Endpoint endpoint, AnnotatedElement baseType,
@@ -419,10 +437,10 @@ final class ApiAnalyse
         List<Class<?>> types = Stream.of( baseType.getAnnotation( JsonSubTypes.class ).value() )
             .map( JsonSubTypes.Type::value )
             .collect( toList() );
-        return Api.Schema.oneOf( types, subType -> analyseTypeSchema( endpoint, subType, resolving ) );
+        return Api.Schema.oneOf( types, subType -> analyseClassSchema( endpoint, subType, resolving ) );
     }
 
-    private static Api.Schema analyseSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
+    private static Api.Schema analyseTypeSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
         Map<Class<?>, Api.Schema> resolving )
     {
         if ( source instanceof Class<?> )
@@ -437,7 +455,7 @@ final class ApiAnalyse
                 return new Api.Schema( Api.Schema.Type.ARRAY, type, type )
                     .withElements( Api.Schema.ref( type.getComponentType() ) );
             }
-            return analyseTypeSchema( endpoint, type, resolving );
+            return analyseClassSchema( endpoint, type, resolving );
         }
         if ( source instanceof ParameterizedType )
         {
@@ -451,21 +469,21 @@ final class ApiAnalyse
             if ( Collection.class.isAssignableFrom( rawType ) && rawType.isInterface() || rawType == Iterable.class )
             {
                 if ( typeArg0 instanceof Class<?> )
-                    return analyseSchema( endpoint, Array.newInstance( (Class<?>) typeArg0, 0 ).getClass(),
+                    return analyseTypeSchema( endpoint, Array.newInstance( (Class<?>) typeArg0, 0 ).getClass(),
                         useRefs, resolving );
                 return new Api.Schema( Api.Schema.Type.ARRAY, false, source, rawType )
-                    .withElements( analyseSchema( endpoint, typeArg0, useRefs, resolving ) );
+                    .withElements( analyseTypeSchema( endpoint, typeArg0, useRefs, resolving ) );
             }
             if ( Map.class.isAssignableFrom( rawType ) && rawType.isInterface() )
             {
                 return new Api.Schema( Api.Schema.Type.OBJECT, source, rawType ).withEntries(
-                    analyseSchema( endpoint, typeArg0, false, resolving ),
-                    analyseSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ) );
+                    analyseTypeSchema( endpoint, typeArg0, false, resolving ),
+                    analyseTypeSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ) );
             }
             if ( rawType == ResponseEntity.class )
             {
                 // just unpack, present of ResponseEntity is hidden
-                return analyseSchema( endpoint, typeArg0, false, resolving );
+                return analyseTypeSchema( endpoint, typeArg0, false, resolving );
             }
             return Api.Schema.unknown( source );
         }
@@ -476,7 +494,7 @@ final class ApiAnalyse
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
                 return Api.Schema.unknown( wt );
             // simplification: <? extends X> => <X>
-            return analyseSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
+            return analyseTypeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }
         return Api.Schema.unknown( source );
     }
@@ -484,6 +502,13 @@ final class ApiAnalyse
     /*
      * OpenAPI "business" helper methods
      */
+
+    private static String getPropertyName( Api.Endpoint endpoint, Property property )
+    {
+        return "path$".equals( property.getName() )
+            ? endpoint.getIn().getPaths().get( 0 ).replace( "/", "" )
+            : property.getName();
+    }
 
     private static boolean isSimpleType( Class<?> type )
     {

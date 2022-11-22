@@ -212,6 +212,20 @@ public @interface OpenApi
         String description() default "";
     }
 
+    /**
+     * Marks a class type as one that should never become a named schema.
+     */
+    @Target( ElementType.TYPE )
+    @Retention( RetentionPolicy.RUNTIME )
+    @interface Anonymous
+    {
+        // marker
+    }
+
+    /*
+     * Repeater annotations (not for direct use)
+     */
+
     @Inherited
     @Target( ElementType.METHOD )
     @Retention( RetentionPolicy.RUNTIME )

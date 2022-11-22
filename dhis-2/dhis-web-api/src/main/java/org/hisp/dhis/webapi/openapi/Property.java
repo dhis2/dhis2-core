@@ -50,6 +50,7 @@ import lombok.Value;
 
 import org.hisp.dhis.common.OpenApi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -126,7 +127,8 @@ class Property
     {
         return source.isSynthetic()
             || isStatic( source.getModifiers() )
-            || source.isAnnotationPresent( OpenApi.Ignore.class );
+            || source.isAnnotationPresent( OpenApi.Ignore.class )
+            || source.isAnnotationPresent( JsonIgnore.class );
     }
 
     private static boolean isIncluded( AnnotatedElement source )

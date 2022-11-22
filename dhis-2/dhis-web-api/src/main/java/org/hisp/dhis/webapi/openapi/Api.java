@@ -318,7 +318,7 @@ class Api
             return oneOf;
         }
 
-        private static boolean isNamed( Class<?> source )
+        static boolean isNamed( Class<?> source )
         {
             String name = source.getName();
             return !source.isPrimitive()
