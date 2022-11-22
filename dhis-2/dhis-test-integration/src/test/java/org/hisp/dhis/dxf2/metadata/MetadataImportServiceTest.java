@@ -1049,6 +1049,44 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( aeC.getTarget().getApi().getAccessToken() ); // Encrypted
     }
 
+    @Test
+    void testImportDashboardWithoutSharing()
+        throws IOException
+    {
+        User userA = makeUser( "A" );
+        userA.setUid( "yqJHNnkF3SJ" );
+        userService.addUser( userA );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/create_dashboard.json" ).getInputStream(), RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+
+        Dashboard dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
+        assertNotNull( dashboard );
+        // UserA has permission to update Dashboard
+        assertTrue( aclService.canUpdate( userA, dashboard ) );
+        assertEquals( 1, dashboard.getItems().size() );
+
+        Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        // UserA can't access Visualization of the DashboardItem
+        assertFalse( aclService.canRead( userA, visualization ) );
+
+        // UserA try to add new DashboardItem to existing Dashboard
+        injectSecurityContext( userA );
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/update_dashboard.json" ).getInputStream(), RenderFormat.JSON );
+        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
+        params.setUser( userA );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+        dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
+        assertEquals( 2, dashboard.getItems().size() );
+        // The Visualization is still attached to DashboardItem
+        assertNotNull( dashboard.getItems().stream().filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) ).findFirst()
+            .get().getVisualization() );
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
