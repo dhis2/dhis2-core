@@ -103,37 +103,31 @@ class MessageFormatter
         }
         else if ( CategoryOptionCombo.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOptionCombo) argument ),
-                (CategoryOptionCombo) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOptionCombo) argument ) );
         }
         else if ( CategoryOption.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOption) argument ),
-                (CategoryOption) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (CategoryOption) argument ) );
         }
         else if ( DataElement.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (DataElement) argument ),
-                (DataElement) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (DataElement) argument ) );
         }
         else if ( OrganisationUnit.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (OrganisationUnit) argument ),
-                (OrganisationUnit) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (OrganisationUnit) argument ) );
         }
         else if ( Program.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (Program) argument ), (Program) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (Program) argument ) );
         }
         else if ( ProgramStage.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (ProgramStage) argument ),
-                (ProgramStage) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (ProgramStage) argument ) );
         }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {
-            return getIdAndName( idSchemes.toMetadataIdentifier( (IdentifiableObject) argument ),
-                (IdentifiableObject) argument );
+            return getIdAndName( idSchemes.toMetadataIdentifier( (IdentifiableObject) argument ) );
         }
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
@@ -145,26 +139,22 @@ class MessageFormatter
         }
         else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
         {
-            Enrollment enrollment = (Enrollment) argument;
-            return enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")";
+            return ((Enrollment) argument).getEnrollment();
         }
         else if ( Event.class.isAssignableFrom( argument.getClass() ) )
         {
-            Event event = (Event) argument;
-            return event.getClass().getSimpleName() + " (" + event.getEvent() + ")";
+            return ((Event) argument).getEvent();
         }
         else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
         {
-            TrackedEntity entity = (TrackedEntity) argument;
-            return entity.getClass().getSimpleName() + " (" + entity.getTrackedEntity() + ")";
+            return ((TrackedEntity) argument).getTrackedEntity();
         }
 
         return StringUtils.EMPTY;
     }
 
-    private static <T extends IdentifiableObject> String getIdAndName( MetadataIdentifier identifier, T object )
+    private static String getIdAndName( MetadataIdentifier identifier )
     {
-        return object.getClass().getSimpleName() + " (" + identifier.getIdentifierOrAttributeValue() + ")";
+        return identifier.getIdentifierOrAttributeValue();
     }
-
 }

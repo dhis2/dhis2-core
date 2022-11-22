@@ -124,11 +124,14 @@ public class TeiFullQuery extends BaseRenderable
 
     private Select getSelect()
     {
-        Stream<Field> staticFields = TeiFields.getStaticFields();
+        Stream<Field> teiFields = TeiFields.getTeiFields();
         Stream<Field> dimensionsFields = TeiFields.getDimensionFields( teiQueryParams );
         Stream<Field> orderingFields = queryContext.getSortingContext().getFields().stream();
 
-        Stream<Field> fields = Stream.of( staticFields, dimensionsFields, orderingFields )
+        Stream<Field> fields = Stream.of(
+            teiFields,
+            dimensionsFields,
+            orderingFields )
             .flatMap( identity() );
 
         if ( isNotEmpty( teiQueryParams.getCommonParams().getHeaders() ) )

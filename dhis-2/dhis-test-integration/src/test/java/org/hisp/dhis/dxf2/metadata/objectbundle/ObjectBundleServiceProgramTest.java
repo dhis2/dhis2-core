@@ -214,8 +214,8 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         params1.setObjects( metadata1 );
         ObjectBundle bundle1 = objectBundleService.create( params1 );
         ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
-        assertFalse( validate1.hasErrorReports() );
-        assertEquals( 0, validate1.getErrorReportsCount() );
+        assertTrue( validate1.hasErrorReports() );
+        assertEquals( 1, validate1.getErrorReportsCount( ErrorCode.E4057 ) );
     }
 
     @Test

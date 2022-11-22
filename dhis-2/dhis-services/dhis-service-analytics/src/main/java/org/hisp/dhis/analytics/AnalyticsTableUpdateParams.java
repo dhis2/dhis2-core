@@ -30,7 +30,9 @@ package org.hisp.dhis.analytics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -89,6 +91,18 @@ public class AnalyticsTableUpdateParams
      * Current date, only used for testing
      */
     private Date today;
+
+    private final Map<String, Object> extraParameters = new HashMap<>();
+
+    public void addExtraParam( String prefix, String key, Object value )
+    {
+        extraParameters.put( prefix + key, value );
+    }
+
+    public Object getExtraParam( String prefix, String key )
+    {
+        return extraParameters.get( prefix + key );
+    }
 
     private AnalyticsTableUpdateParams()
     {

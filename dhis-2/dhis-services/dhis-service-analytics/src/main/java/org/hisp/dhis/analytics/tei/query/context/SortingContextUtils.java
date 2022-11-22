@@ -61,7 +61,7 @@ class SortingContextUtils
     {
         return "select innermost_evt.*" +
             " from (select *," +
-            " row_number() over (partition by programinstanceuid order by incidentdate desc) as rn" +
+            " row_number() over (partition by programinstanceuid order by executiondate desc) as rn" +
             " from " + ANALYTICS_TEI_EVT + trackedEntityType.getUid().toLowerCase() +
             " where programuid = " + parameterManager.bindParamAndGetIndex( program.getElement().getUid() ) +
             " and programstageuid = " + parameterManager.bindParamAndGetIndex( programStage.getElement().getUid() )
