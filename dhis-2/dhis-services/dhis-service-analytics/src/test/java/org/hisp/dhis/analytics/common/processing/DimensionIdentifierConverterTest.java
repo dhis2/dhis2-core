@@ -238,7 +238,7 @@ class DimensionIdentifierConverterTest
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "lxAQ7Zs9VYR[1].fghi[4].jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
@@ -246,7 +246,7 @@ class DimensionIdentifierConverterTest
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "lxAQ7Zs9VYR[1].jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
 
         // When
@@ -254,7 +254,7 @@ class DimensionIdentifierConverterTest
             () -> new DimensionIdentifierConverter().fromString( programs,
                 "jklm[2]" ) );
         // Then
-        assertEquals( "Only program and program stage can have offsets", thrown.getMessage(),
+        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
             "Exception message does not match." );
     }
 }
