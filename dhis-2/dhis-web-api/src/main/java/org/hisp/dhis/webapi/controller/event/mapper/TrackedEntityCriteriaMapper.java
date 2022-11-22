@@ -207,6 +207,7 @@ public class TrackedEntityCriteriaMapper
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setUser( user )
+            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
             .setOrders( orderParams );
 
         return params;
