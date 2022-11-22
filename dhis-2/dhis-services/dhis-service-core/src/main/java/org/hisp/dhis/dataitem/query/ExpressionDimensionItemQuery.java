@@ -71,19 +71,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpressionDimensionItemQuery implements DataItemQuery
 {
-    private static final List<String> COMMON_COLUMNS;
+    private static final List<String> COMMON_COLUMNS = new ArrayList<>();
 
     static
     {
-        COMMON_COLUMNS = new ArrayList<>()
-        {
-            {
-                add( "cast (null as text) as program_name, cast (null as text) as program_uid" );
-                add( "cast (null as text) as program_shortname, expressiondimensionitem.uid as item_uid, expressiondimensionitem.name as item_name" );
-                add( "expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code" );
-                add( "expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type" );
-            }
-        };
+        COMMON_COLUMNS.add( "cast (null as text) as program_name, cast (null as text) as program_uid" );
+        COMMON_COLUMNS.add(
+            "cast (null as text) as program_shortname, expressiondimensionitem.uid as item_uid, expressiondimensionitem.name as item_name" );
+        COMMON_COLUMNS.add(
+            "expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code" );
+        COMMON_COLUMNS.add(
+            "expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type" );
     }
 
     /**
