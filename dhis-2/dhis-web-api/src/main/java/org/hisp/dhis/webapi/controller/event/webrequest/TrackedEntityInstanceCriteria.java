@@ -187,6 +187,12 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
     private boolean includeAllAttributes;
 
     /**
+     * Indicates whether the Tracked Entity Instance is marked as a Potential
+     * Duplicate.
+     */
+    private Boolean potentialDuplicate;
+
+    /**
      * The file name in case of exporting as file
      */
     private String attachment;

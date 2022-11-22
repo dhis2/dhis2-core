@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.tracker.teis;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 import java.io.File;
 
-import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
@@ -103,24 +100,24 @@ public class TEIimportTest
             .statusCode( 200 )
             .body( "response", notNullValue() )
             .rootPath( "response" )
-            .body( "updated", Matchers.greaterThanOrEqualTo( 2 ) )
+            .body( "updated", greaterThanOrEqualTo( 2 ) )
             .appendRootPath( "importSummaries[0]" )
             .body( "importCount.updated", greaterThanOrEqualTo( 1 ) )
             .appendRootPath( "enrollments.importSummaries[0].events.importSummaries[0]" )
             .body(
-                "status", Matchers.equalTo( "SUCCESS" ),
+                "status", equalTo( "SUCCESS" ),
                 "reference", notNullValue(),
-                "importCount.deleted", Matchers.equalTo( 1 ),
-                "description", Matchers.stringContainsInOrder( "Deletion of event", "was successful" ) )
+                "importCount.deleted", equalTo( 1 ),
+                "description", stringContainsInOrder( "Deletion of event", "was successful" ) )
             .extract()
             .path( "response.importSummaries[0].enrollments.importSummaries[0].events.importSummaries[0].reference" );
 
         String enrollmentId = response.validate()
             .rootPath( "response.importSummaries[1].enrollments.importSummaries[0]" )
             .body(
-                "status", Matchers.equalTo( "SUCCESS" ),
+                "status", equalTo( "SUCCESS" ),
                 "reference", notNullValue(),
-                "importCount.updated", Matchers.equalTo( 1 ) )
+                "importCount.updated", equalTo( 1 ) )
             .extract().path( "response.importSummaries[1].enrollments.importSummaries[0].reference" );
 
         // check if updates on event and enrollment were done.
@@ -128,11 +125,48 @@ public class TEIimportTest
         response = enrollmentActions.get( enrollmentId );
 
         response.validate().statusCode( 200 )
-            .body( "status", Matchers.equalTo( "COMPLETED" ) );
+            .body( "status", equalTo( "COMPLETED" ) );
 
         response = eventActions.get( eventId );
 
         response.validate().statusCode( 404 );
 
+    }
+
+    @Test
+    public void shouldGetTeiByPotentialDuplicateParam()
+    {
+        JsonObject tei = object.getAsJsonArray( "trackedEntityInstances" ).get( 0 ).getAsJsonObject();
+
+        updatePotentialDuplicateAndFindTei( tei, true );
+        updatePotentialDuplicateAndFindTei( tei, false );
+    }
+
+    private void updatePotentialDuplicateAndFindTei( JsonObject tei, boolean potentialDuplicate )
+    {
+        // given potential duplicate update
+        tei.addProperty( "potentialDuplicate", potentialDuplicate );
+        teiActions.update( tei.get( "trackedEntityInstance" ).getAsString(), tei ).validateStatus( 200 );
+
+        // then search a tei
+        QueryParamsBuilder teiParamsBuilder = new QueryParamsBuilder().addAll(
+            "trackedEntityInstance=" + tei.get( "trackedEntityInstance" ).getAsString(),
+            "trackedEntityType=" + tei.get( "trackedEntityType" ).getAsString(),
+            "ou=" + tei.get( "orgUnit" ).getAsString() );
+
+        // inverse state should retrieve no tei
+        ApiResponse response = teiActions.get( teiParamsBuilder.add( "potentialDuplicate=" + !potentialDuplicate ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 0 ) );
+
+        // set state should find the tei
+        response = teiActions.get( teiParamsBuilder.add( "potentialDuplicate=" + potentialDuplicate ) );
+
+        response.validate().statusCode( 200 )
+            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
+            .body( "trackedEntityInstances[0].trackedEntityInstance",
+                equalTo( tei.get( "trackedEntityInstance" ).getAsString() ) )
+            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( potentialDuplicate ) );
     }
 }
