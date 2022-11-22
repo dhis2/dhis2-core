@@ -323,9 +323,10 @@ final class ApiAnalyse
 
     private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property )
     {
-        return new Api.Parameter( (AnnotatedElement) property.getSource(), property.getSource().getDeclaringClass(),
+        AnnotatedElement member = (AnnotatedElement) property.getSource();
+        return new Api.Parameter( member, property.getSource().getDeclaringClass(),
             property.getName(), Api.Parameter.In.QUERY, false,
-            analyseInputSchema( endpoint, property.getType() ) );
+            analyseInputSchema( endpoint, getSubstitutedType( endpoint, property, member ) ) );
     }
 
     private static Api.Schema analyseParamSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
@@ -425,10 +426,13 @@ final class ApiAnalyse
     private static Api.Schema analysePropertySchema( Api.Endpoint endpoint, Property property,
         Map<Class<?>, Api.Schema> resolving )
     {
-        return property.getSource() instanceof AnnotatedElement
-            && ((AnnotatedElement) property.getSource()).isAnnotationPresent( JsonSubTypes.class )
-                ? analyseSubTypeSchema( endpoint, (AnnotatedElement) property.getSource(), resolving )
-                : analyseTypeSchema( endpoint, property.getType(), true, resolving );
+        AnnotatedElement member = (AnnotatedElement) property.getSource();
+        if ( member.isAnnotationPresent( JsonSubTypes.class ) )
+        {
+            return analyseSubTypeSchema( endpoint, member, resolving );
+        }
+        Type type = getSubstitutedType( endpoint, property, member );
+        return analyseTypeSchema( endpoint, type, type == property.getType(), resolving );
     }
 
     private static Api.Schema analyseSubTypeSchema( Api.Endpoint endpoint, AnnotatedElement baseType,
@@ -524,6 +528,20 @@ final class ApiAnalyse
             return false;
         }
         return moduleName.startsWith( "java." ) || moduleName.startsWith( "jdk." );
+    }
+
+    private static Type getSubstitutedType( Api.Endpoint endpoint, Property property, AnnotatedElement member )
+    {
+        Type type = property.getType();
+        if ( member.isAnnotationPresent( EntityType.class ) )
+        {
+            return getSubstitutedType( endpoint, member.getAnnotation( EntityType.class ).value() );
+        }
+        if ( type instanceof Class<?> )
+        {
+            return getSubstitutedType( endpoint, (Class<?>) type );
+        }
+        return type;
     }
 
     /**

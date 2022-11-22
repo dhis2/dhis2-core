@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.Value;
+
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -193,10 +195,20 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
+    @Value
+    @OpenApi.Anonymous
+    private static class ObjectListResponse
+    {
+        Pager pager;
+
+        @SuppressWarnings( "java:S116" )
+        EntityType[] path$;
+    }
+
     @OpenApi.Param( name = "fields", value = String[].class )
     @OpenApi.Param( name = "filter", value = String[].class )
     @OpenApi.Params( WebOptions.class )
-    @OpenApi.Response( EntityType[].class )
+    @OpenApi.Response( ObjectListResponse.class )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
