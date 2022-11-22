@@ -25,31 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import lombok.Getter;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.junit.jupiter.api.Test;
-import org.springframework.web.client.HttpClientErrorException;
-
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-class TrackerBundleReportModeTest
+enum TrackerImportParamKey
 {
+    REPORT_MODE( "reportMode" ),
+    VALIDATION_MODE_KEY( "validationMode" ),
+    IMPORT_MODE_KEY( "importMode" ),
+    IMPORT_STRATEGY_KEY( "importStrategy" ),
+    ATOMIC_MODE_KEY( "atomicMode" ),
+    FLUSH_MODE_KEY( "flushMode" ),
+    SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
+    SKIP_SIDE_EFFECTS( "skipSideEffects" ),
+    ID_SCHEME_KEY( "idScheme" ),
+    ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
+    PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
+    PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
+    DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
+    CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
+    CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
 
-    @Test
-    void shouldFindReportMode()
-    {
-        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
-    }
+    @Getter
+    private final String key;
 
-    @Test
-    void shouldThrowWhenReportModeNotFound()
+    TrackerImportParamKey( String key )
     {
-        assertThrows( HttpClientErrorException.class,
-            () -> TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" ) );
+        this.key = key;
     }
 }
