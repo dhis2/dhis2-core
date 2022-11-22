@@ -48,7 +48,9 @@ public class EventUpdateTests
     private String eventId;
 
     @BeforeAll
-    public void beforeAll() throws Exception {
+    public void beforeAll()
+        throws Exception
+    {
         loginActions.loginAsSuperUser();
         eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
     }
@@ -80,13 +82,13 @@ public class EventUpdateTests
         JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
 
         object = JsonObjectBuilder.jsonObject( object )
-                .addProperty( "enrollment", null )
-                .wrapIntoArray( "events" );
+            .addProperty( "enrollment", null )
+            .wrapIntoArray( "events" );
 
         trackerActions.postAndGetJobReport( object )
-                .validateErrorReport()
-                .body( "", hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
-                .body( "errorCode", hasItems( "E1033" ) )
-                .body( "message", Matchers.hasItem( Matchers.containsString( "Enrollment" ) ) );
+            .validateErrorReport()
+            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
+            .body( "errorCode", hasItems( "E1033" ) )
+            .body( "message", Matchers.hasItem( Matchers.containsString( "Enrollment" ) ) );
     }
 }

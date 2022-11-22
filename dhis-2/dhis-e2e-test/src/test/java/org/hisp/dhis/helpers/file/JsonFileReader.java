@@ -27,20 +27,21 @@
  */
 package org.hisp.dhis.helpers.file;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.JsonParserUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import org.hisp.dhis.actions.IdGenerator;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.JsonParserUtils;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -74,6 +75,7 @@ public class JsonFileReader
 
     /***
      * Replaces all occurrences of a string with unique generated id
+     *
      * @param strToReplace
      * @return
      */

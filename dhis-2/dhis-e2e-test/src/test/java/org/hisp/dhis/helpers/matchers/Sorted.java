@@ -25,12 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.helpers.matchers;
 
-import com.google.common.collect.Ordering;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+
+import com.google.common.collect.Ordering;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

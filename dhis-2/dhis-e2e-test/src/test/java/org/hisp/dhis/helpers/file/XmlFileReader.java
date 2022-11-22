@@ -111,7 +111,8 @@ public class XmlFileReader
         return this;
     }
 
-    @Override public FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
+    @Override
+    public FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
     {
         return null;
     }

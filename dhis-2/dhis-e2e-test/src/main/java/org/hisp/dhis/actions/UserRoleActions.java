@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.actions;
 
-import com.google.gson.JsonArray;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
+
+import com.google.gson.JsonArray;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

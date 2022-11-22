@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.helpers.matchers;
 
-import com.google.gson.JsonObject;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.hisp.dhis.helpers.JsonParserUtils;
@@ -35,6 +34,8 @@ import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -27,6 +27,15 @@
  */
 package org.hisp.dhis.helpers.extensions;
 
+import java.io.PrintStream;
+import java.util.Arrays;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hisp.dhis.helpers.config.TestConfiguration;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.FailureConfig;
@@ -39,14 +48,6 @@ import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.specification.RequestSpecification;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.helpers.config.TestConfiguration;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
-import java.io.PrintStream;
-import java.util.Arrays;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -91,8 +92,7 @@ public class ConfigurationExtension
         requestSpecification.addFilters( Arrays.asList(
             new CookieFilter(),
             new SessionFilter(),
-            new AuthFilter()
-        ) )
+            new AuthFilter() ) )
             .setContentType( ContentType.JSON );
 
         return requestSpecification.build();

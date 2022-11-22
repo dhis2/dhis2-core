@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

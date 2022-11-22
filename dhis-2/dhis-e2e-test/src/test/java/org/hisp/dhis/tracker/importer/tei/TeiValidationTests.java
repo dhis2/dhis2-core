@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
@@ -42,7 +43,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -236,8 +237,9 @@ public class TeiValidationTests
     private TeiDataBuilder buildTeiWithEnrollmentAndMandatoryAttributes()
     {
         return buildTeiWithMandatoryAttribute()
-            .addEnrollment( new EnrollmentDataBuilder().addAttribute( mandatoryProgramAttribute, DataGenerator.randomString() )
-                .setProgram( program ).setOu( Constants.ORG_UNIT_IDS[0] ) );
+            .addEnrollment(
+                new EnrollmentDataBuilder().addAttribute( mandatoryProgramAttribute, DataGenerator.randomString() )
+                    .setProgram( program ).setOu( Constants.ORG_UNIT_IDS[0] ) );
     }
 
     private void setupData()

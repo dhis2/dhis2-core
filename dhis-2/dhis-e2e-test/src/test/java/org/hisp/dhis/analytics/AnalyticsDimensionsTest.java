@@ -25,8 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.analytics;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
@@ -50,14 +57,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -98,8 +97,7 @@ public class AnalyticsDimensionsTest
             Arguments.of( "created", "asc" ),
             Arguments.of( "displayName", "desc" ),
             Arguments.of( "displayName", "asc" ),
-            Arguments.of( "dimensionType", "desc" )
-        );
+            Arguments.of( "dimensionType", "desc" ) );
     }
 
     @MethodSource
@@ -137,7 +135,8 @@ public class AnalyticsDimensionsTest
             .validate()
             .body( "dimensions.uid", not( hasItem( equalTo( teaNotAssignedToProgram ) ) ) );
 
-        analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
+        analyticsEnrollmentsActions.aggregate()
+            .getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
             .validate()
             .body( "dimensions.uid", not( hasItem( equalTo( teaNotAssignedToProgram ) ) ) );
 
@@ -156,7 +155,8 @@ public class AnalyticsDimensionsTest
             .validate()
             .body( "dimensions.uid", not( CoreMatchers.hasItem( confidentialAttribute ) ) );
 
-        analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
+        analyticsEnrollmentsActions.aggregate()
+            .getDimensionsByDimensionType( trackerProgram.getUid(), "PROGRAM_ATTRIBUTE" )
             .validate()
             .body( "dimensions.uid", CoreMatchers.hasItem( confidentialAttribute ) );
     }
@@ -176,8 +176,10 @@ public class AnalyticsDimensionsTest
         };
 
         validate.accept(
-            analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(), dimensionType ) );
-        validate.accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
+            analyticsEnrollmentsActions.aggregate().getDimensionsByDimensionType( trackerProgram.getUid(),
+                dimensionType ) );
+        validate
+            .accept( analyticsEventActions.aggregate().getDimensions( trackerProgram.getProgramStages().get( 0 ) ) );
     }
 
     @Test

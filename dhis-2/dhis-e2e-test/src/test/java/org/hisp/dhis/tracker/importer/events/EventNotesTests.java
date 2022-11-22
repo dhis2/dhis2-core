@@ -27,20 +27,19 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
-import org.hamcrest.CoreMatchers;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.*;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -59,7 +58,7 @@ public class EventNotesTests
     {
         // arrange
         String id = new IdGenerator().generateUniqueId();
-        JsonObject payload = buildEventWithNote(id);
+        JsonObject payload = buildEventWithNote( id );
 
         trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
@@ -77,7 +76,7 @@ public class EventNotesTests
             .body( "notes", hasSize( 2 ) )
             .rootPath( "notes.createdBy" )
             .body( "username", everyItem( equalTo( "taadmin" ) ) )
-            .body( "uid", everyItem( notNullValue() ))
+            .body( "uid", everyItem( notNullValue() ) )
             .body( "firstName", everyItem( notNullValue() ) )
             .body( "surname", everyItem( notNullValue() ) );
     }
@@ -93,7 +92,7 @@ public class EventNotesTests
         trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
 
-        payload = trackerActions.getEvent( eventId ).getBodyAsJsonBuilder().wrapIntoArray("events");
+        payload = trackerActions.getEvent( eventId ).getBodyAsJsonBuilder().wrapIntoArray( "events" );
 
         // act
 

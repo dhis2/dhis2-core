@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer.databuilder;
 
-import com.google.gson.JsonObject;
+import java.time.Instant;
+import java.util.List;
+
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -45,7 +45,7 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
     {
         this.builder = new JsonObjectBuilder();
         setEventDate( Instant.now().toString() );
-        //setStatus( "ACTIVE" );
+        // setStatus( "ACTIVE" );
     }
 
     public EventDataBuilder setId( String id )
@@ -61,7 +61,8 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
         return this;
     }
 
-    public EventDataBuilder setAssignedUser( String assignedUserId ) {
+    public EventDataBuilder setAssignedUser( String assignedUserId )
+    {
         JsonObject assignedUser = new JsonObjectBuilder().addProperty( "uid", assignedUserId ).build();
         this.builder.addObject( "assignedUser", assignedUser );
 
@@ -75,7 +76,8 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
         return this;
     }
 
-    public EventDataBuilder setAttributeCategoryOptions( List<String> categoryOptions ) {
+    public EventDataBuilder setAttributeCategoryOptions( List<String> categoryOptions )
+    {
         this.builder.addProperty( "attributeCategoryOptions", String.join( ";", categoryOptions ) );
 
         return this;

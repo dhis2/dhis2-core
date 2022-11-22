@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.importer.databuilder;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,7 +68,7 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder
     public TeiDataBuilder addEnrollment( EnrollmentDataBuilder enrollmentDataBuilder )
     {
         jsonObjectBuilder.addOrAppendToArray( "enrollments",
-            enrollmentDataBuilder.single());
+            enrollmentDataBuilder.single() );
         return this;
     }
 
@@ -122,7 +123,8 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder
      * @param programStage
      * @return
      */
-    public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program, String programStage )
+    public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program,
+        String programStage )
     {
         this.setOu( ou ).setTeiType( trackedEntityType ).addEnrollment( new EnrollmentDataBuilder()
             .setProgram( program ).setOu( ou ).addEvent( programStage, ou ) );
@@ -130,7 +132,8 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder
         return array();
     }
 
-    public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program, String programStage,
+    public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program,
+        String programStage,
         String eventStatus )
     {
         this.setOu( ou ).setTeiType( trackedEntityType ).addEnrollment( new EnrollmentDataBuilder()

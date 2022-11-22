@@ -25,10 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.enrollments;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+import java.util.function.Function;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
@@ -40,14 +44,9 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.function.Function;
-
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -79,7 +78,8 @@ public class EnrollmentAttributeTests
 
         loginActions.loginAsAdmin();
 
-        programId = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS ).extractUid();
+        programId = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
+            .extractUid();
 
         setupAttributes();
     }
@@ -118,7 +118,8 @@ public class EnrollmentAttributeTests
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
-        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", "9" ).build();
+        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", "9" )
+            .build();
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
@@ -142,7 +143,8 @@ public class EnrollmentAttributeTests
             .addAttribute( optionSetAttributeId, "TA_YES" )
             .array( programId, Constants.ORG_UNIT_IDS[1] );
 
-        trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
+        trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) )
+            .validateSuccessfulImport();
 
         trackerActions.getTrackedEntity( tei + "?program=" + programId )
             .validateStatus( 200 )
@@ -166,7 +168,8 @@ public class EnrollmentAttributeTests
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
-        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", null ).build();
+        payload = new JsonObjectBuilder( payload ).addPropertyByJsonPath( "enrollments[0].attributes[0].value", null )
+            .build();
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 

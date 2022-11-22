@@ -108,8 +108,8 @@ public class MetadataImportBasedOnSchemasTest
             "programRuleVariables",
             "eventCharts",
             "programStages" ); // blacklisted because contains
-                                    // conditionally required properties, which
-                                    // are not marked as required
+                               // conditionally required properties, which
+                               // are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

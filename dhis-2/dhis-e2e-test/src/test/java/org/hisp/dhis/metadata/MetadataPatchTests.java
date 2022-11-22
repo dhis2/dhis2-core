@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -43,10 +46,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -100,7 +101,8 @@ public class MetadataPatchTests
             .addProperty( "id", Constants.SUPER_USER_ID )
             .wrapIntoArray();
 
-        dataElementActions.patch( dataElementId, Arrays.asList( buildOperation( "replace", "/userAccesses", userAccesses ) ) )
+        dataElementActions
+            .patch( dataElementId, Arrays.asList( buildOperation( "replace", "/userAccesses", userAccesses ) ) )
             .validate().statusCode( 200 );
 
         dataElementActions.get( dataElementId )
@@ -120,7 +122,8 @@ public class MetadataPatchTests
             .build();
 
         dataElementActions
-            .patch( dataElementId, Arrays.asList( object ), new QueryParamsBuilder().add( "importReportMode", "ERRORS_NOT_OWNER" ) )
+            .patch( dataElementId, Arrays.asList( object ),
+                new QueryParamsBuilder().add( "importReportMode", "ERRORS_NOT_OWNER" ) )
             .validate().statusCode( 200 )
             .body( "response.errorReports", hasSize( 1 ) );
 
@@ -157,8 +160,7 @@ public class MetadataPatchTests
         List<JsonObject> object = Arrays
             .asList(
                 buildOperation( "replace", "/shortName", replacedProp ),
-                buildOperation( "add", "/code", replacedProp )
-            );
+                buildOperation( "add", "/code", replacedProp ) );
 
         dataElementActions.patch( dataElementId, object ).validate().statusCode( 200 );
 
