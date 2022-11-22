@@ -27,24 +27,33 @@
  */
 package org.hisp.dhis.dashboard;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.IntStream.range;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.dashboard.DashboardItemType.EVENT_REPORT;
+import static org.hisp.dhis.dashboard.DashboardItemType.EVENT_VISUALIZATION;
+import static org.hisp.dhis.dashboard.DashboardItemType.VISUALIZATION;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.COLUMN;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.Set;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
-import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
@@ -52,12 +61,8 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 class DashboardServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private DashboardService dashboardService;
 
@@ -72,6 +77,9 @@ class DashboardServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private EventChartService eventChartService;
+
+    @Autowired
+    private EventReportService eventReportService;
 
     @Autowired
     private IdentifiableObjectManager objectManager;
@@ -117,7 +125,7 @@ class DashboardServiceTest extends TransactionalIntegrationTest
         documentService.saveDocument( dcB );
         documentService.saveDocument( dcC );
         documentService.saveDocument( dcD );
-        List<String> allowedFilters = Lists.newArrayList( "kJuHtg2gkh3", "yH7Yh2jGfFs" );
+        List<String> allowedFilters = new ArrayList<>( asList( "kJuHtg2gkh3", "yH7Yh2jGfFs" ) );
         diA = new DashboardItem();
         diA.setAutoFields();
         diA.setVisualization( vzA );
@@ -175,15 +183,15 @@ class DashboardServiceTest extends TransactionalIntegrationTest
     {
         // ## Ensuring the preparation for deletion
         // When saved
-        final long dAId = dashboardService.saveDashboard( dbA );
-        final long dBId = dashboardService.saveDashboard( dbB );
+        long dAId = dashboardService.saveDashboard( dbA );
+        long dBId = dashboardService.saveDashboard( dbB );
         // Then confirm that they were saved
         assertThatDashboardAndItemsArePersisted( dAId );
         assertThatDashboardAndItemsArePersisted( dBId );
         // ## Testing deletion
         // Given
-        final List<DashboardItem> itemsOfDashA = dashboardService.getDashboard( dAId ).getItems();
-        final List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
+        List<DashboardItem> itemsOfDashA = dashboardService.getDashboard( dAId ).getItems();
+        List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
         // When deleted
         dashboardService.deleteDashboard( dbA );
         dashboardService.deleteDashboard( dbB );
@@ -192,22 +200,22 @@ class DashboardServiceTest extends TransactionalIntegrationTest
         assertDashboardAndItemsAreDeleted( dBId, itemsOfDashB );
     }
 
-    private void assertThatDashboardAndItemsArePersisted( final long dashboardId )
+    private void assertThatDashboardAndItemsArePersisted( long dashboardId )
     {
-        final Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
         assertNotNull( dashboard );
-        final List<DashboardItem> itemsA = dashboard.getItems();
+        List<DashboardItem> itemsA = dashboard.getItems();
         for ( final DashboardItem dAItem : itemsA )
         {
             assertNotNull( dashboardService.getDashboardItem( dAItem.getUid() ), "DashboardItem should exist" );
         }
     }
 
-    private void assertDashboardAndItemsAreDeleted( final long dashboardId, final List<DashboardItem> dashboardItems )
+    private void assertDashboardAndItemsAreDeleted( long dashboardId, List<DashboardItem> dashboardItems )
     {
         assertNull( dashboardService.getDashboard( dashboardId ) );
         // Assert that there are not items related to the given Dashboard
-        for ( final DashboardItem item : dashboardItems )
+        for ( DashboardItem item : dashboardItems )
         {
             assertNull( dashboardService.getDashboardItem( item.getUid() ), "DashboardItem should not exist" );
         }
@@ -218,7 +226,7 @@ class DashboardServiceTest extends TransactionalIntegrationTest
     {
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
-        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), VISUALIZATION,
             vzA.getUid() );
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
@@ -245,32 +253,38 @@ class DashboardServiceTest extends TransactionalIntegrationTest
     {
         Program prA = createProgram( 'A', null, null );
         objectManager.save( prA );
-        IntStream.range( 1, 30 ).forEach( i -> {
+
+        range( 1, 30 ).forEach( i -> {
             Visualization visualization = createVisualization( 'A' );
-            visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+            visualization.setName( randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
         } );
-        IntStream.range( 1, 30 ).forEach( i -> {
+        range( 1, 30 ).forEach( i -> {
             EventVisualization eventVisualization = createEventVisualization( "A", prA );
-            eventVisualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+            eventVisualization.setName( randomAlphabetic( 5 ) );
             eventVisualizationService.save( eventVisualization );
         } );
-        IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
-        DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
+        range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
+        range( 1, 20 ).forEach( i -> eventReportService.saveEventReport( createEventReport( prA ) ) );
+
+        DashboardSearchResult result = dashboardService.search( Set.of( VISUALIZATION ) );
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 6 ) );
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, null );
+        result = dashboardService.search( Set.of( VISUALIZATION ), 3, null );
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, 29 );
+        result = dashboardService.search( Set.of( VISUALIZATION ), 3, 29 );
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 29 );
+        result = dashboardService.search( Set.of( EVENT_VISUALIZATION ), 3, 29 );
         assertThat( result.getEventVisualizationCount(), is( 29 ) );
         assertThat( result.getEventReportCount(), is( 3 ) );
-        result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 30 );
+        result = dashboardService.search( Set.of( EVENT_VISUALIZATION ), 3, 30 );
         assertThat( result.getEventVisualizationCount(), is( 30 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
+        result = dashboardService.search( Set.of( EVENT_REPORT ), 3, 29 );
+        assertThat( result.getEventVisualizationCount(), is( 3 ) );
+        assertThat( result.getEventReportCount(), is( 19 ) );
     }
 
     private Visualization createVisualization( String name )
@@ -289,9 +303,17 @@ class DashboardServiceTest extends TransactionalIntegrationTest
 
     private EventChart createEventChart( Program program )
     {
-        EventChart eventChart = new EventChart( RandomStringUtils.randomAlphabetic( 5 ) );
+        EventChart eventChart = new EventChart( randomAlphabetic( 5 ) );
         eventChart.setProgram( program );
-        eventChart.setType( EventVisualizationType.COLUMN );
+        eventChart.setType( COLUMN );
         return eventChart;
+    }
+
+    private EventReport createEventReport( Program program )
+    {
+        EventReport eventReport = new EventReport( randomAlphabetic( 5 ) );
+        eventReport.setProgram( program );
+        eventReport.setType( PIVOT_TABLE );
+        return eventReport;
     }
 }
