@@ -52,6 +52,9 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -68,10 +71,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpressionDimensionItemQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
-        + " cast (null as text) as program_shortname, expressiondimensionitem.uid as item_uid, expressiondimensionitem.name as item_name,"
-        + " expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code,"
-        + " expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type";
+    private static final List<String> COMMON_COLUMNS = new ArrayList<>()
+    {
+        {
+            add( "cast (null as text) as program_name, cast (null as text) as program_uid" );
+            add( "cast (null as text) as program_shortname, expressiondimensionitem.uid as item_uid, expressiondimensionitem.name as item_name" );
+            add( "expressiondimensionitem.shortname as item_shortname, cast (null as text) as item_valuetype, expressiondimensionitem.code as item_code" );
+            add( "expressiondimensionitem.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type" );
+        }
+    };
 
     /**
      * Builds and returns the SQL statement required by the implementation.
@@ -116,7 +124,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
         sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
-        final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
         optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", paramsMap ) ) );
         optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_first_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.item_name", paramsMap ) ) );
@@ -124,7 +132,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
         optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+        String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
             "t.i18n_first_name",
             null, paramsMap );
 
@@ -149,7 +157,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
 
     /**
      * Checks if the query rules match the required conditions so the query can
-     * be executed.
+     * be executed. This implementation must return always true.
      *
      * @param paramsMap
      * @return true if matches, false otherwise
@@ -174,9 +182,10 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
 
     private String selectRowsContainingTranslatedName()
     {
-        final StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + COMMON_COLUMNS )
+        sql.append( SPACED_SELECT )
+            .append( String.join( ", ", COMMON_COLUMNS ) )
             .append( translationNamesColumnsFor( "expressiondimensionitem" ) );
 
         sql.append( " from expressiondimensionitem " )
@@ -188,7 +197,7 @@ public class ExpressionDimensionItemQuery implements DataItemQuery
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
-            .append( SPACED_SELECT + COMMON_COLUMNS )
+            .append( SPACED_SELECT + String.join( ", ", COMMON_COLUMNS ) )
             .append( ", expressiondimensionitem.name as i18n_first_name, cast (null as text) as i18n_second_name" )
             .append(
                 ", expressiondimensionitem.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
