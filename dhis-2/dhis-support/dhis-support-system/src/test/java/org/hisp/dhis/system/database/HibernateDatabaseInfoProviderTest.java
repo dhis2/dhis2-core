@@ -80,15 +80,15 @@ class HibernateDatabaseInfoProviderTest
         throws SQLException
     {
         Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select 'checking db connection';" ),
-            Mockito.eq( String.class ) ) ).thenReturn( "" );
+            Mockito.eq( String.class ) ) )
+            .thenReturn( "" );
 
-        Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject(
+            Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
             .thenReturn( "2" );
 
-        Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ),
-                Mockito.eq( String.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject(
+            Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ), Mockito.eq( String.class ) ) )
             .thenReturn( "pg_trgm" );
 
         Mockito.when(
@@ -99,16 +99,16 @@ class HibernateDatabaseInfoProviderTest
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
             .thenReturn( "jdbc:postgresql:dhisx" );
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_USERNAME ) ) ).thenReturn( "dhisy" );
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_PASSWORD ) ) ).thenReturn( "dhisz" );
 
         Mockito.when( resultSet.getString( Mockito.eq( 1 ) ) )
             .thenReturn( "PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit" );
-        Mockito.when( resultSet.getString( Mockito.eq( 2 ) ) ).thenReturn( "dhis2" );
-        Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) ).thenReturn( "dhis" );
+        Mockito.when( resultSet.getString( Mockito.eq( 2 ) ) )
+            .thenReturn( "dhis2" );
+        Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) )
+            .thenReturn( "dhis" );
 
-        Mockito
-            .when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ),
-                Mockito.isA( RowMapper.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ),
+            Mockito.isA( RowMapper.class ) ) )
             .thenAnswer( invocation -> ((RowMapper<?>) invocation.getArgument( 1 )).mapRow( resultSet, 1 ) );
 
         provider.init();
