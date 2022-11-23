@@ -42,7 +42,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -152,7 +151,7 @@ public class DefaultDataStatisticsService
             () -> eventVisualizationStore.countChartsCreated( startDate ) );
         progress.startingStage( "Counting event visualisations", SKIP_STAGE );
         Integer savedEventVisualizations = progress.runStage( errorValue,
-            () -> idObjectManager.getCountByCreated( EventVisualization.class, startDate ) );
+            () -> eventVisualizationStore.countEventVisualizationsCreated( startDate ) );
         progress.startingStage( "Counting dashboards", SKIP_STAGE );
         Integer savedDashboards = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( Dashboard.class, startDate ) );

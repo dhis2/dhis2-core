@@ -52,6 +52,8 @@ public interface TrackedEntityInstanceStore
 
     int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );
 
+    int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityInstanceQueryParams params );
+
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into
      * account.
