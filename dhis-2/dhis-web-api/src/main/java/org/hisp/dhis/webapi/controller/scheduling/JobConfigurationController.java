@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Henning Håkonsen
  */
-@OpenApi.Tags( "scheduling" )
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = JobConfigurationSchemaDescriptor.API_ENDPOINT )
 public class JobConfigurationController

@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -55,6 +56,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = "/filledOrganisationUnitLevels" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

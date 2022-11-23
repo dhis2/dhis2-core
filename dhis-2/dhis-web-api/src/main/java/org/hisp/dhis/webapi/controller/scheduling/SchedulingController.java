@@ -63,7 +63,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags( "scheduling" )
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = "/scheduling" )
 @AllArgsConstructor

@@ -181,6 +181,7 @@ public class OpenApiGenerator extends JsonGenerator
     static
     {
         addSimpleType( byte.class, schema -> schema.type( "integer" ).format( "int8" ).nullable( false ) );
+        addSimpleType( byte[].class, schema -> schema.type( "string" ).format( "binary" ).nullable( false ) );
         addSimpleType( int.class, schema -> schema.type( "integer" ).format( "int32" ).nullable( false ) );
         addSimpleType( long.class, schema -> schema.type( "integer" ).format( "int64" ).nullable( false ) );
         addSimpleType( float.class, schema -> schema.type( "number" ).format( "float" ).nullable( false ) );

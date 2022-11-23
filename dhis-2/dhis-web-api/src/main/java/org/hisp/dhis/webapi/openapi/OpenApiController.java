@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( "/openapi" )
 @AllArgsConstructor

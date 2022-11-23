@@ -87,6 +87,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( value = SystemController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

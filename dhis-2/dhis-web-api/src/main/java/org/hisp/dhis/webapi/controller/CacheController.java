@@ -59,6 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "system" )
 @OpenApi.Ignore
 @Controller
 @RequestMapping( value = "/caches" )
