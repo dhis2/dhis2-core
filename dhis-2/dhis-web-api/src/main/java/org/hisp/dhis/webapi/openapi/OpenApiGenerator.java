@@ -81,9 +81,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * "https://github.com/OAI/OpenAPI-Specification/blob/main/versions/">OpenAPI
  * 3.x</a> version JSON document from an {@link Api} model.
  *
- * The generation offers a dozen {@link Config} options which concern both the
+ * The generation offers a dozen configuration options which concern both the
  * {@link org.hisp.dhis.webapi.openapi.JsonGenerator.Format} of the generated
- * JSON as well as the semantic {@link Config.Document} content.
+ * JSON as well as the semantic {@link Configuration} content.
  *
  * Alongside the input {@link Api} model there is a pool of known
  * {@link SimpleType}s. This is the core translation of primitives, wrapper,
@@ -97,49 +97,41 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class OpenApiGenerator extends JsonGenerator
 {
     @Value
-    static class Config
+    @Builder( toBuilder = true )
+    static class Configuration
     {
-        Format format;
+        public static final Configuration DEFAULT = Configuration.builder()
+            .title( "DHIS2 API" )
+            .version( "2.40" )
+            .serverUrl( "https://play.dhis2.org/dev/api" )
+            .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
+            .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
+            .syntheticSummary( true )
+            .syntheticDescription( true )
+            .missingDescription( "[no description yet]" )
+            .build();
 
-        Document document;
+        String title;
 
-        @Value
-        @Builder( toBuilder = true )
-        static class Document
-        {
-            public static final Document DEFAULT = Config.Document.builder()
-                .title( "DHIS2 API - user" )
-                .version( "2.40" )
-                .serverUrl( "https://play.dhis2.org/dev/api" )
-                .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
-                .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
-                .syntheticSummary( true )
-                .syntheticDescription( true )
-                .missingDescription( "[no description yet]" )
-                .build();
+        String version;
 
-            String title;
+        String serverUrl;
 
-            String version;
+        String licenseName;
 
-            String serverUrl;
+        String licenseUrl;
 
-            String licenseName;
+        String contactName;
 
-            String licenseUrl;
+        String contactUrl;
 
-            String contactName;
+        String contactEmail;
 
-            String contactUrl;
+        String missingDescription;
 
-            String contactEmail;
+        boolean syntheticSummary;
 
-            String missingDescription;
-
-            boolean syntheticSummary;
-
-            boolean syntheticDescription;
-        }
+        boolean syntheticDescription;
     }
 
     @Value
@@ -229,29 +221,29 @@ public class OpenApiGenerator extends JsonGenerator
 
     public static String generate( Api api )
     {
-        return generate( api, new Config( Format.PRETTY_PRINT, Config.Document.DEFAULT ) );
+        return generate( api, Format.PRETTY_PRINT, Configuration.DEFAULT );
     }
 
-    public static String generate( Api api, Config config )
+    public static String generate( Api api, Format format, Configuration configuration )
     {
         int endpoints = 0;
         for ( Api.Controller c : api.getControllers() )
             endpoints += c.getEndpoints().size();
         int capacity = endpoints * 256 + api.getSchemas().size() * 512;
-        OpenApiGenerator gen = new OpenApiGenerator( api, config, new StringBuilder( capacity ) );
+        OpenApiGenerator gen = new OpenApiGenerator( api, format, configuration, new StringBuilder( capacity ) );
         gen.generateDocument();
         return gen.toString();
     }
 
     private final Api api;
 
-    private final Config.Document document;
+    private final Configuration configuration;
 
-    private OpenApiGenerator( Api api, Config config, StringBuilder out )
+    private OpenApiGenerator( Api api, Format format, Configuration configuration, StringBuilder out )
     {
-        super( out, config.format );
+        super( out, format );
         this.api = api;
-        this.document = config.document;
+        this.configuration = configuration;
     }
 
     private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
@@ -265,28 +257,28 @@ public class OpenApiGenerator extends JsonGenerator
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
-                addStringMember( "title", document.title );
-                addStringMember( "version", document.version );
+                addStringMember( "title", configuration.title );
+                addStringMember( "version", configuration.version );
                 addObjectMember( "license", () -> {
-                    addStringMember( "name", document.licenseName );
-                    addStringMember( "url", document.licenseUrl );
+                    addStringMember( "name", configuration.licenseName );
+                    addStringMember( "url", configuration.licenseUrl );
                 } );
                 addObjectMember( "contact", () -> {
-                    addStringMember( "name", document.contactName );
-                    addStringMember( "url", document.contactUrl );
-                    addStringMember( "email", document.contactEmail );
+                    addStringMember( "name", configuration.contactName );
+                    addStringMember( "url", configuration.contactUrl );
+                    addStringMember( "email", configuration.contactEmail );
                 } );
             } );
             addArrayMember( "tags", api.getTags().values().stream(), tag -> addObjectMember( null, () -> {
                 addStringMember( "name", tag.getName() );
-                addStringMember( "description", tag.getDescription().orElse( document.missingDescription ) );
+                addStringMember( "description", tag.getDescription().orElse( configuration.missingDescription ) );
                 addObjectMember( "externalDocs", tag.getExternalDocsUrl().isPresent(), () -> {
                     addStringMember( "url", tag.getExternalDocsUrl().getValue() );
                     addStringMember( "description", tag.getExternalDocsDescription().getValue() );
                 } );
             } ) );
             addArrayMember( "servers",
-                () -> addObjectMember( null, () -> addStringMember( "url", document.serverUrl ) ) );
+                () -> addObjectMember( null, () -> addStringMember( "url", configuration.serverUrl ) ) );
             addObjectMember( "paths", this::generatePaths );
             addObjectMember( "components", () -> addObjectMember( "schemas", this::generateSchemas ) );
         } );
@@ -314,7 +306,7 @@ public class OpenApiGenerator extends JsonGenerator
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
-            addStringMember( "description", endpoint.getDescription().orElse( document.missingDescription ) );
+            addStringMember( "description", endpoint.getDescription().orElse( configuration.missingDescription ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             if ( !tags.isEmpty() )
             {
@@ -343,7 +335,7 @@ public class OpenApiGenerator extends JsonGenerator
         addObjectMember( null, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
-            addStringMember( "description", parameter.getDescription().orElse( document.missingDescription ) );
+            addStringMember( "description", parameter.getDescription().orElse( configuration.missingDescription ) );
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
@@ -361,7 +353,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateResponse( Api.Response response )
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
-            addStringMember( "description", response.getDescription().orElse( document.missingDescription ) );
+            addStringMember( "description", response.getDescription().orElse( configuration.missingDescription ) );
             addObjectMember( "headers", response.getHeaders().values(),
                 header -> addObjectMember( header.getName(), () -> {
                     addStringMember( "description", header.getDescription() );

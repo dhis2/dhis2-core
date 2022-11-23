@@ -1,6 +1,6 @@
 # Global Tags Descriptions
-This document is used to add descriptions to `@Tags` values.
-These are included as a `tags` array in the root of an OpenAPI document.
+This configuration is used to add descriptions to `@Tags` values.
+These are included as a `tags` array in the root of an OpenAPI configuration.
 Tag usages in the endpoints only refer to these description details by the tag name.
 
 ## Tag `synthetic`

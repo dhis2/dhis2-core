@@ -63,7 +63,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
         assertTrue(
             doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
         assertLessOrEqual( 25, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 30, doc.getObject( "components.schemas" ).size() );
+        assertLessOrEqual( 35, doc.getObject( "components.schemas" ).size() );
     }
 
     @Test
@@ -73,8 +73,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
         assertTrue( doc.isObject() );
         assertTrue(
             doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
-        assertLessOrEqual( 80, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 40, doc.getObject( "components.schemas" ).size() );
+        assertLessOrEqual( 130, doc.getObject( "paths" ).size() );
+        assertLessOrEqual( 50, doc.getObject( "components.schemas" ).size() );
     }
 
 }

@@ -94,6 +94,32 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 final class ApiAnalyse
 {
     /**
+     * The included classes can be filtered based on REST API resource path or
+     * {@link OpenApi.Tags} present on the controller class level. Method level
+     * path and tags will not be considered for this filter.
+     */
+    @Value
+    static class Scope
+    {
+
+        /**
+         * controllers all potential controllers
+         *
+         */
+        Set<Class<?>> controllers;
+
+        /**
+         * filter based on resource path (empty includes all)
+         */
+        Set<String> paths;
+
+        /**
+         * filter based on tags (empty includes all)
+         */
+        Set<String> tags;
+    }
+
+    /**
      * A mapping annotation might have an empty array for the paths which is
      * identical to just the root path o the controller. This array is used to
      * reflect the presence of this root path as the path mapped.
@@ -103,29 +129,25 @@ final class ApiAnalyse
     /**
      * Create an {@link Api} model from controller {@link Class}.
      *
-     * The included classes can be filtered based on REST API resource path or
-     * {@link OpenApi.Tags} present on the controller class level. Method level
-     * path and tags will not be considered for this filter.
      *
-     * @param controllers all potential controllers
-     * @param paths filter based on resource path (empty includes all)
-     * @param tags filter based on tags (empty includes all)
      * @return the {@link Api} for all controllers matching both of the filters
      */
-    public static Api analyseApi( List<Class<?>> controllers, Set<String> paths, Set<String> tags )
+    public static Api analyseApi( Scope scope )
     {
         Api api = new Api();
-        Stream<Class<?>> scope = controllers.stream().filter( ApiAnalyse::isControllerType );
+        Stream<Class<?>> inScope = scope.controllers.stream().filter( ApiAnalyse::isControllerType );
+        Set<String> paths = scope.paths;
         if ( paths != null && !paths.isEmpty() )
         {
-            scope = scope.filter( c -> isRootPath( c, paths ) );
+            inScope = inScope.filter( c -> isRootPath( c, paths ) );
         }
+        Set<String> tags = scope.tags;
         if ( tags != null && !tags.isEmpty() )
         {
-            scope = scope.filter( c -> c.isAnnotationPresent( OpenApi.Tags.class )
+            inScope = inScope.filter( c -> c.isAnnotationPresent( OpenApi.Tags.class )
                 && Stream.of( c.getAnnotation( OpenApi.Tags.class ).value() ).anyMatch( tags::contains ) );
         }
-        scope.forEach( source -> api.getControllers().add( analyseController( api, source ) ) );
+        inScope.forEach( source -> api.getControllers().add( analyseController( api, source ) ) );
         return api;
     }
 

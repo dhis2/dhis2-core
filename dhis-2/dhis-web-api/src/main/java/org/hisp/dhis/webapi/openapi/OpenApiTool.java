@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -35,11 +35,14 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 
 /**
@@ -71,19 +74,23 @@ public class OpenApiTool implements ToolProvider
     {
         if ( args.length == 0 )
         {
-            out.println( "Usage: [<path or tag>...] <output-file>" );
+            out.println( "Usage: [<options>] [<path or tag>...] <output-file-or-dir>" );
+            out.println( "--group (flag)" );
+            out.println( "  generate multiple files where controllers are grouped by tag" );
             return -1;
         }
         String root = AbstractCrudController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        List<Class<?>> classes;
+        Set<Class<?>> classes;
         try ( Stream<Path> files = Files.walk( Path.of( root ) ) )
         {
             classes = files
                 .filter( f -> f.getFileName().toString().endsWith( "Controller.class" ) )
                 .map( OpenApiTool::toClassName )
                 .map( OpenApiTool::toClass )
-                .filter( c -> !Modifier.isAbstract( c.getModifiers() ) )
-                .collect( toList() );
+                .filter( c -> !Modifier.isAbstract( c.getModifiers() )
+                    && !c.isMemberClass()
+                    && !c.isLocalClass() )
+                .collect( toSet() );
         }
         catch ( IOException ex )
         {
@@ -97,10 +104,22 @@ public class OpenApiTool implements ToolProvider
         }
         Set<String> paths = new HashSet<>();
         Set<String> tags = new HashSet<>();
+        boolean group = false;
         for ( int i = 0; i < args.length - 1; i++ )
         {
             String arg = args[i];
-            if ( arg.startsWith( "/" ) )
+            if ( arg.startsWith( "--" ) )
+            {
+                switch ( arg )
+                {
+                case "--group":
+                    group = true;
+                    break;
+                default:
+                    err.println( "Unknown option: " + arg );
+                }
+            }
+            else if ( arg.startsWith( "/" ) )
             {
                 paths.add( arg );
             }
@@ -109,21 +128,65 @@ public class OpenApiTool implements ToolProvider
                 tags.add( arg );
             }
         }
-        Api api = ApiAnalyse.analyseApi( classes, paths, tags );
-        ApiDescribe.describeApi( api );
-        String doc = OpenApiGenerator.generate( api );
+        out.println( "Generated Documents" );
+        String filename = args[args.length - 1];
+        ApiAnalyse.Scope scope = new ApiAnalyse.Scope( classes, paths, tags );
+        if ( !group )
+        {
+            return generateDocument( filename, out, err, scope );
+        }
+        AtomicInteger errorCode = generateGroupedDocuments( filename, out, err, scope );
+        return errorCode.get() < 0 ? -1 : 0;
+    }
+
+    private AtomicInteger generateGroupedDocuments( String to, PrintWriter out, PrintWriter err,
+        ApiAnalyse.Scope scope )
+    {
+        String dir = to.endsWith( "/" )
+            ? to.substring( 0, to.length() - 1 )
+            : to.replace( ".json", "" );
+        AtomicInteger errorCode = new AtomicInteger( 0 );
+        Map<String, Set<Class<?>>> byTag = new TreeMap<>();
+        scope.getControllers().stream()
+            .filter( cls -> !cls.isAnnotationPresent( OpenApi.Ignore.class ) )
+            .forEach( cls -> byTag.computeIfAbsent( getMainTag( cls ), key -> new HashSet<>() )
+                .add( cls ) );
+        byTag.forEach( ( tag, classes ) -> errorCode.addAndGet(
+            generateDocument( dir + "/openapi-" + tag + ".json", out, err,
+                new ApiAnalyse.Scope( classes, scope.getPaths(), scope.getTags() ) ) ) );
+        return errorCode;
+    }
+
+    private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope )
+    {
         try
         {
-            Path output = Files.writeString( Path.of( args[args.length - 1] ), doc );
-            out.printf( "Generated OpenAPI document %s with %d controllers, %d schemas %n",
-                output, api.getControllers().size(), api.getSchemas().size() );
+            Api api = ApiAnalyse.analyseApi( scope );
+            ApiDescribe.describeApi( api );
+            String title = filename
+                .replace( "openapi-", "" )
+                .replace( '_', ' ' )
+                .replace( ".json", "" );
+            OpenApiGenerator.Configuration config = OpenApiGenerator.Configuration.DEFAULT.toBuilder()
+                .title( "DHIS2 API - " + title )
+                .build();
+            String doc = OpenApiGenerator.generate( api, JsonGenerator.Format.PRETTY_PRINT, config );
+            Path output = Files.writeString( Path.of( filename ), doc );
+            out.printf( "  %-30s [%3d controllers, %3d schemas]%n",
+                output.getFileName(), api.getControllers().size(), api.getSchemas().size() );
         }
-        catch ( IOException ex )
+        catch ( Exception ex )
         {
             ex.printStackTrace( err );
             return -1;
         }
         return 0;
+    }
+
+    private static String getMainTag( Class<?> cls )
+    {
+        return cls.isAnnotationPresent( OpenApi.Tags.class ) ? cls.getAnnotation( OpenApi.Tags.class ).value()[0]
+            : "misc";
     }
 
     private static String toClassName( Path f )

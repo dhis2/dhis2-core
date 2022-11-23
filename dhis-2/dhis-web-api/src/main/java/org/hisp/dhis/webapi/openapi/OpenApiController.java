@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -62,20 +61,20 @@ public class OpenApiController
         HttpServletResponse response )
         throws IOException
     {
-        Api api = ApiAnalyse.analyseApi( getAllControllerClasses(), path, tag );
+        Api api = ApiAnalyse.analyseApi( new ApiAnalyse.Scope( getAllControllerClasses(), path, tag ) );
         ApiDescribe.describeApi( api );
         response.setContentType( APPLICATION_JSON_VALUE );
         response.getWriter().write( OpenApiGenerator.generate( api ) );
     }
 
-    private List<Class<?>> getAllControllerClasses()
+    private Set<Class<?>> getAllControllerClasses()
     {
         return Stream.concat(
             context.getBeansWithAnnotation( RestController.class ).values().stream(),
             context.getBeansWithAnnotation( Controller.class ).values().stream() )
             .map( Object::getClass )
             .map( OpenApiController::deProxyClass )
-            .collect( toList() );
+            .collect( toSet() );
     }
 
     /**
