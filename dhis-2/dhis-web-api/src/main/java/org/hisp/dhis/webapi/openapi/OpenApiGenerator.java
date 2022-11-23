@@ -280,7 +280,10 @@ public class OpenApiGenerator extends JsonGenerator
             addArrayMember( "servers",
                 () -> addObjectMember( null, () -> addStringMember( "url", configuration.serverUrl ) ) );
             addObjectMember( "paths", this::generatePaths );
-            addObjectMember( "components", () -> addObjectMember( "schemas", this::generateSchemas ) );
+            addObjectMember( "components", () -> {
+                addObjectMember( "schemas", this::generateSchemas );
+                addObjectMember( "parameters", this::generateParameters );
+            } );
         } );
         log.info( format( "OpenAPI document generated for %d controllers with %d named schemas",
             api.getControllers().size(), api.getSchemas().size() ) );
@@ -330,9 +333,28 @@ public class OpenApiGenerator extends JsonGenerator
         } );
     }
 
+    private void generateParameters()
+    {
+        api.getParameters().forEach( this::generateParameter );
+    }
+
     private void generateParameter( Api.Parameter parameter )
     {
-        addObjectMember( null, () -> {
+        // used as array element
+        generateParameter( null, parameter );
+    }
+
+    private void generateParameter( String name, Api.Parameter parameter )
+    {
+        if ( name == null && parameter.isShared() )
+        {
+            // shared parameter usage: => reference object
+            addObjectMember( null,
+                () -> addStringMember( "$ref", "#/components/parameters/" + parameter.getGlobalName() ) );
+            return;
+        }
+        // parameter definition (both shared and non-shared):
+        addObjectMember( name, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
             addStringMember( "description", parameter.getDescription().orElse( configuration.missingDescription ) );

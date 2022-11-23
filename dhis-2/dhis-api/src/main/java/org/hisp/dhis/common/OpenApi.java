@@ -157,7 +157,7 @@ public @interface OpenApi
      * Annotate a controller endpoint method parameter to ignore that parameter.
      */
     @Inherited
-    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER } )
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER, ElementType.FIELD } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface Ignore
     {
@@ -315,13 +315,17 @@ public @interface OpenApi
     }
 
     /**
-     * Marks a class type as one that should never become a named schema.
+     * Used to make explicit statement about a type being used as shared (named)
+     * component in the resulting OpenAPI document.
+     *
+     * By default, schema types are shared (opt-out), parameters object types a
+     * not shared (opt-in).
      */
     @Target( ElementType.TYPE )
     @Retention( RetentionPolicy.RUNTIME )
-    @interface Anonymous
+    @interface Shared
     {
-        // marker
+        boolean value() default true;
     }
 
     /*

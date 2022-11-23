@@ -195,7 +195,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // --------------------------------------------------------------------------
 
     @Value
-    @OpenApi.Anonymous
+    @OpenApi.Shared( value = false )
     private static class ObjectListResponse
     {
         Pager pager;

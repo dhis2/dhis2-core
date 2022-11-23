@@ -74,21 +74,13 @@ final class ApiDescribe
             endpoint.getDescription().setValue( descriptions.get( name + ".description", subst ) );
             endpoint.getParameters().values().forEach( parameter -> {
                 Api.Maybe<String> description = parameter.getDescription();
-                if ( parameter.isGrouped() )
+                String paramName = parameter.isShared() ? parameter.getGlobalName() : parameter.getName();
+                String key = name + ".parameter." + paramName + ".description";
+                description.setValue( descriptions.get( key, subst ) );
+                if ( !description.isPresent() )
                 {
-                    Descriptions groupDescriptions = Descriptions.of( parameter.getGroup() );
-                    String key = parameter.getName() + ".description";
-                    description.setValue( groupDescriptions.get( key, subst ) );
-                }
-                else
-                {
-                    String key = name + ".parameter." + parameter.getName() + ".description";
+                    key = "*" + key.substring( key.indexOf( '.' ) );
                     description.setValue( descriptions.get( key, subst ) );
-                    if ( !description.isPresent() )
-                    {
-                        key = "*" + key.substring( key.indexOf( '.' ) );
-                        description.setValue( descriptions.get( key, subst ) );
-                    }
                 }
             } );
             endpoint.getResponses().values().forEach( response -> {

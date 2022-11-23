@@ -35,3 +35,27 @@ e.g.
 * `<field-name>` 
 * `<object>[<field-name>, ...]`
 * `*, <object>[*]`
+
+### Parameter: `WebOptions.paging`
+Set `true` (default) to enable paging, `false` to disable paging of results
+
+### Parameter: `WebOptions.page`
+The current page of the result list
+
+### Parameter: `WebOptions.pageSize`
+The size of the result list
+
+### Parameter: `WebOptions.viewClass`
+Good question...
+
+### Parameter: `WebOptions.rootJunction`
+Combine filters with `AND` (default) or `OR`
+
+### Parameter: `WebOptions.manage`
+Good question...
+
+### Parameter: `WebOptions.assumeTrue`
+Good question...
+
+### Parameter: `WebOptions.lastUpdated`
+Good question...

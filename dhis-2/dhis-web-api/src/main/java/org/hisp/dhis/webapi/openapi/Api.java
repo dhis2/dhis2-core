@@ -80,6 +80,13 @@ class Api
     Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
 
     /**
+     * "Global" or shared parameters originating from parameter object classes.
+     * These are reused purely for sake of removing duplication from the
+     * resulting OpenAPI document.
+     */
+    Map<String, Parameter> parameters = new TreeMap<>();
+
+    /**
      * "Global" tag descriptions
      */
     Map<String, Tag> tags = new TreeMap<>();
@@ -232,8 +239,7 @@ class Api
         @ToString.Exclude
         AnnotatedElement source;
 
-        @ToString.Exclude
-        Class<?> group;
+        String globalName;
 
         @EqualsAndHashCode.Include
         String name;
@@ -252,9 +258,9 @@ class Api
          *         object, false, if this parameter directly occurred
          *         individually in the endpoint method signature.
          */
-        boolean isGrouped()
+        boolean isShared()
         {
-            return group != null;
+            return globalName != null;
         }
     }
 

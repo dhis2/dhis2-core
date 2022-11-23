@@ -343,15 +343,27 @@ final class ApiAnalyse
 
     private static void analyseParams( Api.Endpoint endpoint, Class<?> paramsObject )
     {
-        getProperties( paramsObject )
-            .forEach( property -> endpoint.getParameters()
-                .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property ) ) );
+        Collection<Property> properties = getProperties( paramsObject );
+        if ( isSharable( paramsObject ) )
+        {
+            Map<String, Api.Parameter> globalParameters = endpoint.getIn().getIn().getParameters();
+            Function<Property, String> toName = property -> paramsObject.getSimpleName() + "." + property.getName();
+            properties.forEach( property -> globalParameters
+                .computeIfAbsent( toName.apply( property ), name -> analyseParameter( endpoint, property, name ) ) );
+            properties.forEach( property -> endpoint.getParameters()
+                .computeIfAbsent( toName.apply( property ), globalParameters::get ) );
+        }
+        else
+        {
+            properties.forEach( property -> endpoint.getParameters()
+                .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property, null ) ) );
+        }
     }
 
-    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property )
+    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property, String globalName )
     {
         AnnotatedElement member = (AnnotatedElement) property.getSource();
-        return new Api.Parameter( member, property.getSource().getDeclaringClass(),
+        return new Api.Parameter( member, globalName,
             property.getName(), Api.Parameter.In.QUERY, false,
             analyseInputSchema( endpoint, getSubstitutedType( endpoint, property, member ) ) );
     }
@@ -415,7 +427,7 @@ final class ApiAnalyse
         {
             return s;
         }
-        boolean unnamed = rawType.isAnnotationPresent( OpenApi.Anonymous.class );
+        boolean sharable = isSharable( rawType );
         UnaryOperator<Api.Schema> resolvedTo = schema -> {
             resolving.put( rawType, schema );
             return schema;
@@ -434,7 +446,7 @@ final class ApiAnalyse
             }
             boolean alwaysSimple = isSimpleType( type );
             Collection<Property> properties = alwaysSimple ? List.of() : getProperties( type );
-            boolean named = Api.Schema.isNamed( type ) && !unnamed;
+            boolean named = sharable && Api.Schema.isNamed( type );
             if ( alwaysSimple || properties.isEmpty() )
             {
                 return resolvedTo.apply( new Api.Schema( Api.Schema.Type.SIMPLE, named, type, type ) );
@@ -445,7 +457,7 @@ final class ApiAnalyse
                     analysePropertySchema( endpoint, property, resolving ) ) ) );
             return schema;
         };
-        return unnamed
+        return !sharable
             ? createSchema.apply( rawType )
             : endpoint.getIn().getIn().getSchemas().computeIfAbsent( rawType, createSchema );
     }
@@ -533,6 +545,12 @@ final class ApiAnalyse
     /*
      * OpenAPI "business" helper methods
      */
+
+    private static boolean isSharable( Class<?> rawType )
+    {
+        return !rawType.isAnnotationPresent( OpenApi.Shared.class )
+            || rawType.getAnnotation( OpenApi.Shared.class ).value();
+    }
 
     private static String getPropertyName( Api.Endpoint endpoint, Property property )
     {

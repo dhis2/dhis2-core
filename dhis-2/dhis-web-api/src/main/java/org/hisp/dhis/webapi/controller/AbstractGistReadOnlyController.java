@@ -127,7 +127,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     }
 
     @Value
-    @OpenApi.Anonymous
+    @OpenApi.Shared( value = false )
     private static class GistListResponse
     {
         GistPager pager;
