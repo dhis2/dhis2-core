@@ -25,26 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.exception;
 
-/**
- * @author Lars Helge Overland
- */
-public enum DimensionItemType
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@Getter
+public class InvalidEnumValueException extends Exception
 {
-    DATA_ELEMENT,
-    DATA_ELEMENT_OPERAND,
-    INDICATOR,
-    REPORTING_RATE,
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    PROGRAM_INDICATOR,
-    PERIOD,
-    ORGANISATION_UNIT,
-    CATEGORY_OPTION,
-    OPTION_GROUP,
-    DATA_ELEMENT_GROUP,
-    ORGANISATION_UNIT_GROUP,
-    CATEGORY_OPTION_GROUP,
-    EXPRESSION_DIMENSION_ITEM
+    private final String invalidValue;
+
+    private final String fieldName;
+
+    private final Class<? extends Enum> enumKlass;
 }
