@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,7 +59,7 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
 {
     private final Map<String, List<ExecutionPlan>> executionPlanMap = new HashMap<>();
 
-    @NotNull
+    @Nonnull
     private final JdbcTemplate jdbcTemplate;
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool( 10 );

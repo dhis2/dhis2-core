@@ -31,7 +31,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.relationship.RelationshipStore;
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final RelationshipStore relationshipStore;
 
     @Override

@@ -74,7 +74,7 @@ public class CurrentUserService
     {
         String username = CurrentUserUtil.getCurrentUsername();
 
-        return userStore.getUserByUsername( username );
+        return userStore.getUserByUsername( username, false );
     }
 
     @Transactional( readOnly = true )

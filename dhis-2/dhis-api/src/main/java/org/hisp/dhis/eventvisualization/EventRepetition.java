@@ -33,7 +33,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -62,7 +62,7 @@ public class EventRepetition implements Serializable, EmbeddedObject
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private Attribute parent;
 
     /**
@@ -70,7 +70,7 @@ public class EventRepetition implements Serializable, EmbeddedObject
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private String dimension;
 
     /**
@@ -91,6 +91,6 @@ public class EventRepetition implements Serializable, EmbeddedObject
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
+    @Nonnull
     private List<Integer> indexes = new ArrayList<>();
 }

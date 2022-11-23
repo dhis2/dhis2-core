@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,9 +50,9 @@ public class InMemoryNotifier implements Notifier
     private final NotificationMap notificationMap = new NotificationMap( MAX_POOL_TYPE_SIZE );
 
     @Override
-    public Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
     {
-        if ( id != null && !(level != null && level.isOff()) )
+        if ( id != null && !level.isOff() )
         {
             Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed );
 

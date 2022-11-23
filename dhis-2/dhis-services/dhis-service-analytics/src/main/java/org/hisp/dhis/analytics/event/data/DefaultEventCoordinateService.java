@@ -32,7 +32,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
@@ -68,13 +69,13 @@ public class DefaultEventCoordinateService implements EventCoordinateService
     public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST = List.of( COL_NAME_PSI_GEOMETRY,
         COL_NAME_PI_GEOMETRY, COL_NAME_OU_GEOMETRY );
 
-    @NonNull
+    @Nonnull
     private final ProgramService programService;
 
-    @NonNull
+    @Nonnull
     private final DataElementService dataElementService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityAttributeService attributeService;
 
     /**

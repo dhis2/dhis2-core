@@ -46,6 +46,11 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
+/**
+ * Job implementation for aggregate data exchange.
+ *
+ * @author Jan Bernitt
+ */
 @Component
 @AllArgsConstructor
 public class AggregateDataExchangeJob implements Job
@@ -75,7 +80,7 @@ public class AggregateDataExchangeJob implements Job
             AggregateDataExchange exchange;
             try
             {
-                exchange = dataExchangeService.getById( dataExchangeId );
+                exchange = dataExchangeService.loadByUid( dataExchangeId );
             }
             catch ( IllegalQueryException ex )
             {

@@ -29,14 +29,15 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.mapstruct.BeanMapping;
+import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     AttributeValueMapper.class
 } )
+@DecoratedWith( OrgUnitDecorator.class )
 public interface OrganisationUnitMapper
     extends PreheatMapper<OrganisationUnit>
 {
@@ -54,16 +55,5 @@ public interface OrganisationUnitMapper
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses" )
     @Mapping( target = "userAccesses" )
-    @Mapping( target = "parent", qualifiedByName = "parentMapper" )
     OrganisationUnit map( OrganisationUnit organisationUnit );
-
-    /**
-     * Makes sure that the parent OU is only mapped by fetching the UID
-     *
-     */
-    @Named( "parentMapper" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    @Mapping( target = "parent", qualifiedByName = "parentMapper" )
-    OrganisationUnit fetchParent( OrganisationUnit organisationUnit );
 }

@@ -228,17 +228,11 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public boolean equals( Object obj )
     {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
+        return this == obj || obj instanceof AnalyticsPeriodBoundary && objectEquals( (AnalyticsPeriodBoundary) obj );
+    }
 
-        final AnalyticsPeriodBoundary other = (AnalyticsPeriodBoundary) obj;
-
+    private boolean objectEquals( AnalyticsPeriodBoundary other )
+    {
         return Objects.equals( this.boundaryTarget, other.boundaryTarget )
             && Objects.equals( this.analyticsPeriodBoundaryType, other.analyticsPeriodBoundaryType )
             && Objects.equals( this.offsetPeriodType, other.offsetPeriodType )

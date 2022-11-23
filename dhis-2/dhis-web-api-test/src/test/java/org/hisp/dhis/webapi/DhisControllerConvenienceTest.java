@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
-import static org.hisp.dhis.web.WebClientUtils.failOnException;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-
 import java.util.Collections;
 
 import org.hisp.dhis.IntegrationH2Test;
@@ -44,21 +39,13 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -76,7 +63,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles( "test-h2" )
 @IntegrationH2Test
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
+public abstract class DhisControllerConvenienceTest extends DhisControllerTestBase
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -92,14 +79,6 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
     @Autowired
     protected DbmsManager dbmsManager;
-
-    private MockMvc mvc;
-
-    private MockHttpSession session;
-
-    private User superUser;
-
-    private User currentUser;
 
     @BeforeEach
     final void setup()
@@ -119,78 +98,6 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
         dbmsManager.flushSession();
         dbmsManager.clearSession();
-    }
-
-    protected final String getSuperuserUid()
-    {
-        return superUser.getUid();
-    }
-
-    protected final User getCurrentUser()
-    {
-        return currentUser;
-    }
-
-    public User getSuperUser()
-    {
-        return superUser;
-    }
-
-    protected final User switchToSuperuser()
-    {
-        switchContextToUser( userService.getUser( superUser.getUid() ) );
-        return superUser;
-    }
-
-    protected final User switchToNewUser( String username, String... authorities )
-    {
-        if ( superUser != null )
-        {
-            // we need to be an admin to be allowed to create user groups
-            switchContextToUser( superUser );
-        }
-
-        currentUser = createUserWithAuth( username, authorities );
-        switchContextToUser( currentUser );
-        return currentUser;
-    }
-
-    protected final User switchToNewUser( User user )
-    {
-        currentUser = user;
-        switchContextToUser( currentUser );
-        return currentUser;
-    }
-
-    protected void switchContextToUser( User user )
-    {
-        injectSecurityContext( user );
-
-        session = new MockHttpSession();
-        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            SecurityContextHolder.getContext() );
-    }
-
-    protected final HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
-    {
-        return webRequest( multipart( url ).file( part ) );
-    }
-
-    @Override
-    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> new HttpResponse(
-            toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
-    }
-
-    protected final MvcResult webRequestWithMvcResult( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> mvc.perform( request.session( session ) ).andReturn() );
-    }
-
-    protected final void assertJson( String expected, HttpResponse actual )
-    {
-        assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
     }
 
     protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )

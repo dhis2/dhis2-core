@@ -363,18 +363,66 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship );
-
-        daoRelationship.setRelationshipType( _relationship.getRelationshipType() );
-        daoRelationship.setTo( _relationship.getTo() );
-        daoRelationship.setFrom( _relationship.getFrom() );
-
-        relationshipService.updateRelationship( daoRelationship );
+        relationshipService.updateRelationship( updatedDAORelationship( daoRelationship, relationship ) );
 
         importSummary.setReference( daoRelationship.getUid() );
         importSummary.getImportCount().incrementUpdated();
 
         return importSummary;
+    }
+
+    /**
+     * Update the relationship object fetched from the db only setting
+     * relationshipItem instance type. Using the same relationship and
+     * relationshipItem objects maintains hibernate session reference
+     *
+     * @param relationshipDb relationship fetched from db
+     * @param relationshipInput relationship in the payload
+     * @return relationshipDb with updated relationshipItems
+     */
+    private org.hisp.dhis.relationship.Relationship updatedDAORelationship(
+        org.hisp.dhis.relationship.Relationship relationshipDb, Relationship relationshipInput )
+    {
+        RelationshipType relationshipType = relationshipTypeCache.get( relationshipInput.getRelationshipType() );
+        relationshipDb.setRelationshipType( relationshipType );
+
+        RelationshipItem fromItem = relationshipDb.getFrom();
+
+        // FROM
+        updateRelationshipItem( relationshipType.getFromConstraint(), fromItem, relationshipInput.getFrom() );
+
+        RelationshipItem toItem = relationshipDb.getTo();
+
+        // TO
+        updateRelationshipItem( relationshipType.getToConstraint(), toItem, relationshipInput.getTo() );
+
+        return relationshipDb;
+    }
+
+    private void updateRelationshipItem( RelationshipConstraint relationshipConstraint,
+        RelationshipItem relationshipItem,
+        org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipInput )
+    {
+        relationshipItem.setTrackedEntityInstance( null );
+        relationshipItem.setProgramStageInstance( null );
+        relationshipItem.setProgramInstance( null );
+
+        if ( relationshipConstraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
+        {
+            relationshipItem.setTrackedEntityInstance(
+                trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
+        else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
+        {
+            relationshipItem
+                .setProgramInstance(
+                    programInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
+        else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
+        {
+            relationshipItem.setProgramStageInstance(
+                programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
+        }
     }
 
     @Override

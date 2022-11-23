@@ -40,7 +40,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -58,7 +59,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DimensionFilteringAndPagingService
 {
 
-    @NonNull
+    @Nonnull
     private final FieldFilterService fieldFilterService;
 
     private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = comparing( DimensionResponse::getCreated,

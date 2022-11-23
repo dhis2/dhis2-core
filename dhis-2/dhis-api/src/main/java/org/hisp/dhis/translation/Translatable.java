@@ -32,7 +32,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
@@ -48,7 +48,7 @@ public @interface Translatable
     /**
      * Property name for enabling translation
      */
-    @NotNull
+    @Nonnull
     String propertyName();
 
     /**

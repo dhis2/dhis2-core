@@ -43,7 +43,8 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import lombok.NonNull;
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -74,10 +75,10 @@ import com.google.common.collect.Sets;
 @Component
 public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 {
-    @NonNull
+    @Nonnull
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @NonNull
+    @Nonnull
     private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Override

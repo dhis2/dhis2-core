@@ -30,6 +30,8 @@ package org.hisp.dhis.dataelement;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -216,7 +218,7 @@ public interface DataElementService
      * @param uids the uid collection.
      * @return the data element groups with the given uids.
      */
-    List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids );
+    List<DataElementGroup> getDataElementGroupsByUid( @Nonnull Collection<String> uids );
 
     /**
      * Returns the DataElementGroup with the given UID.

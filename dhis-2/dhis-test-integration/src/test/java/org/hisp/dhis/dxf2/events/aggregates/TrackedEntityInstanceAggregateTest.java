@@ -496,11 +496,11 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
 
     private void assertAssignedUserProperties( Event event )
     {
-        assertEquals( event.getAssignedUserFirstName(), FIRST_NAME + TEST_USER );
-        assertEquals( event.getAssignedUserSurname(), SURNAME + TEST_USER );
-        assertEquals( event.getAssignedUserUsername(), TEST_USER );
-        assertEquals( event.getAssignedUserDisplayName(),
-            event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() );
+        assertEquals( FIRST_NAME + TEST_USER, event.getAssignedUserFirstName() );
+        assertEquals( SURNAME + TEST_USER, event.getAssignedUserSurname() );
+        assertEquals( TEST_USER, event.getAssignedUserUsername() );
+        assertEquals( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname(),
+            event.getAssignedUserDisplayName() );
     }
 
     @Test

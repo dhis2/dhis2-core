@@ -80,8 +80,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
         // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
-            .filter( e -> StringUtils.isNotEmpty( e.getEnrollment() ) )
-            .map( Event::getEnrollment ).collect( Collectors.toSet() );
+            .map( Event::getEnrollment )
+            .filter( StringUtils::isNotEmpty ).collect( Collectors.toSet() );
 
         Map<String, ProgramInstance> programInstances = new HashMap<>();
 

@@ -38,6 +38,7 @@ import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -77,6 +78,9 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @BeforeEach
     void init()
@@ -172,6 +176,7 @@ class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrationTest
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setValueType( ValueType.TEXT );
         CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'D' );
+        defaultCategoryOptionCombo.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
         Period period = createPeriod( new Date(), new Date() );
         period.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ) );

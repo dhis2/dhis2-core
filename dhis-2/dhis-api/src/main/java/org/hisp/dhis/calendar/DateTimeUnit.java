@@ -30,7 +30,7 @@ package org.hisp.dhis.calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
 
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
@@ -53,19 +53,19 @@ public class DateTimeUnit
     /**
      * Year of date. Required.
      */
-    @NotNull
+    @Nonnull
     private int year;
 
     /**
      * Month of date. Required.
      */
-    @NotNull
+    @Nonnull
     private int month;
 
     /**
      * Day of date. Required.
      */
-    @NotNull
+    @Nonnull
     private int day;
 
     /**

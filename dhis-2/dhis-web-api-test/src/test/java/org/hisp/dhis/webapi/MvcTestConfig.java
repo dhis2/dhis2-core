@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
+import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -258,6 +259,8 @@ public class MvcTestConfig implements WebMvcConfigurer
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
+        Arrays.stream( Compression.values() )
+            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
 
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters
