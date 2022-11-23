@@ -213,13 +213,18 @@ final class ApiAnalyse
 
         Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
         // response(s) declared via annotation(s)
-        getAnnotations( source, OpenApi.Response.class )
-            .forEach( a -> (a.status().length == 0
+        getAnnotations( source, OpenApi.Response.class ).forEach( a -> {
+            List<HttpStatus> statuses = a.status().length == 0
                 ? List.of( signatureStatus )
-                : stream( a.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() ))
-                    .forEach( status -> res.put( status, new Api.Response( status )
-                        .add( produces,
-                            analyseResponseSchema( endpoint, source.getGenericReturnType(), a.value() ) ) ) ) );
+                : stream( a.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() );
+            Set<Api.Header> headers = stream( a.headers() )
+                .map( header -> new Api.Header( header.name(), header.description(),
+                    analyseParamSchema( endpoint, null, a.value() ) ) )
+                .collect( toSet() );
+            statuses.forEach( status -> res.put( status, new Api.Response( status )
+                .add( produces, analyseResponseSchema( endpoint, source.getGenericReturnType(), a.value() ) )
+                .add( headers ) ) );
+        } );
         // response from method signature
         Class<?> type = source.getReturnType();
         res.computeIfAbsent( signatureStatus, status -> {
@@ -293,10 +298,10 @@ final class ApiAnalyse
     {
         String name = param.name();
         Api.Schema type = analyseParamSchema( endpoint, null, param.value() );
-        Api.Schema wrapped = param.wrapper().isEmpty()
+        Api.Schema wrapped = param.asProperty().isEmpty()
             ? type
             : new Api.Schema( Api.Schema.Type.OBJECT, false, Object.class, Object.class )
-                .add( new Api.Property( param.wrapper(), true, type ) );
+                .add( new Api.Property( param.asProperty(), true, type ) );
         boolean required = param.required();
         if ( name.isEmpty() )
         {

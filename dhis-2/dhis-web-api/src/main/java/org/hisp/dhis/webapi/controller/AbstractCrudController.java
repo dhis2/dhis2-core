@@ -672,7 +672,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return webMessage;
     }
 
-    @OpenApi.Param( value = Translation[].class, wrapper = "translations" )
+    @OpenApi.Param( value = Translation[].class, asProperty = "translations" )
     @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}/translations" )

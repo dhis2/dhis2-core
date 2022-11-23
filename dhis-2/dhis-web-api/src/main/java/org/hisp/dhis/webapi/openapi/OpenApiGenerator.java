@@ -115,7 +115,7 @@ public class OpenApiGenerator extends JsonGenerator
                 .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
                 .syntheticSummary( true )
                 .syntheticDescription( true )
-                .missingDescription( "(missing)" )
+                .missingDescription( "[no description yet]" )
                 .build();
 
             String title;

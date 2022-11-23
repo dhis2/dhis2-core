@@ -171,6 +171,12 @@ public @interface OpenApi
     {
         String name() default "";
 
+        /**
+         * When left the default value {@link Object} the type is inferred from
+         * the annotated element.
+         *
+         * @return the type to use for the property
+         */
         Class<?> type() default Object.class;
 
         boolean required() default false;
@@ -209,7 +215,13 @@ public @interface OpenApi
 
         boolean required() default false;
 
-        String wrapper() default "";
+        /**
+         * When not empty the parameter is wrapped in an object having a single
+         * member with the provided property name.
+         *
+         * @return name of the property to use
+         */
+        String asProperty() default "";
     }
 
     /**
@@ -225,6 +237,10 @@ public @interface OpenApi
     @Repeatable( ParamsRepeat.class )
     @interface Params
     {
+        /**
+         * @return a complex parameter object type. All properties of that type
+         *         become individual parameters.
+         */
         Class<?> value();
     }
 
@@ -277,8 +293,6 @@ public @interface OpenApi
          *         {@link #value()} type
          */
         Status[] status() default {};
-
-        String description() default "";
 
         Header[] headers() default {};
 

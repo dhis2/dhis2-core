@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +79,10 @@ class Api
      */
     Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
 
-    Map<String, Tag> tags = new LinkedHashMap<>();
+    /**
+     * "Global" tag descriptions
+     */
+    Map<String, Tag> tags = new TreeMap<>();
 
     /**
      * @return all tags used in the {@link Api}
@@ -113,9 +115,10 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Tag
     {
-
+        @EqualsAndHashCode.Include
         String name;
 
         @EqualsAndHashCode.Exclude
@@ -148,7 +151,7 @@ class Api
 
         List<Endpoint> endpoints = new ArrayList<>();
 
-        Set<String> tags = new TreeSet<>();
+        Set<String> tags = new LinkedHashSet<>();
     }
 
     @Value
@@ -169,7 +172,7 @@ class Api
 
         Maybe<String> description = new Maybe<>();
 
-        Set<String> tags = new TreeSet<>();
+        Set<String> tags = new LinkedHashSet<>();
 
         Boolean deprecated;
 
@@ -202,21 +205,22 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class RequestBody
     {
         @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         AnnotatedElement source;
 
         boolean required;
 
         String description = "dummy";
 
+        @EqualsAndHashCode.Include
         Map<MediaType, Schema> consumes = new TreeMap<>();
-
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Parameter
     {
         public enum In
@@ -226,15 +230,15 @@ class Api
         }
 
         @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         AnnotatedElement source;
 
         @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         Class<?> group;
 
+        @EqualsAndHashCode.Include
         String name;
 
+        @EqualsAndHashCode.Include
         In in;
 
         boolean required;
@@ -255,14 +259,17 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Response
     {
+        @EqualsAndHashCode.Include
         HttpStatus status;
 
         Map<String, Header> headers = new TreeMap<>();
 
         Maybe<String> description = new Maybe<>();
 
+        @EqualsAndHashCode.Include
         Map<MediaType, Schema> content = new TreeMap<>();
 
         Response add( Set<MediaType> produces, Schema body )
@@ -270,11 +277,19 @@ class Api
             produces.forEach( mediaType -> content.put( mediaType, body ) );
             return this;
         }
+
+        Response add( Set<Header> headers )
+        {
+            headers.forEach( header -> this.headers.put( header.getName(), header ) );
+            return this;
+        }
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Header
     {
+        @EqualsAndHashCode.Include
         String name;
 
         String description;
@@ -283,8 +298,10 @@ class Api
     }
 
     @Value
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Property
     {
+        @EqualsAndHashCode.Include
         String name;
 
         Boolean required;
@@ -294,6 +311,7 @@ class Api
 
     @Value
     @AllArgsConstructor
+    @EqualsAndHashCode( onlyExplicitlyIncluded = true )
     static class Schema
     {
         public static Schema ref( Class<?> to )
@@ -338,25 +356,27 @@ class Api
             ONE_OF
         }
 
+        @EqualsAndHashCode.Include
         Type type;
 
         /**
          * False, unless this is a named "record" type that should be referenced
          * as a named schema in the generated OpenAPI document.
          */
+        @EqualsAndHashCode.Include
         boolean named;
 
         @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         java.lang.reflect.Type source;
 
         @ToString.Exclude
-        @EqualsAndHashCode.Exclude
+        @EqualsAndHashCode.Include
         Class<?> rawType;
 
         /**
          * Is empty for primitive types
          */
+        @EqualsAndHashCode.Include
         List<Property> properties = new ArrayList<>();
 
         public Schema( Type type, java.lang.reflect.Type source, Class<?> rawType )
