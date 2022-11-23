@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "system" )
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = "/expressions" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
