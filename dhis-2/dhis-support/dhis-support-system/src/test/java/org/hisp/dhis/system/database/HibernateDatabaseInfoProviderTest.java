@@ -79,26 +79,23 @@ class HibernateDatabaseInfoProviderTest
     void init()
         throws SQLException
     {
-        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select 'checking db connection';" ),
-            Mockito.eq( String.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject( "select 'checking db connection';", String.class ) )
             .thenReturn( "" );
 
-        Mockito.when( jdbcTemplate.queryForObject(
-            Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject( "select postgis_full_version();", String.class ) )
             .thenReturn( "2" );
 
-        Mockito.when( jdbcTemplate.queryForObject(
-            Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ), Mockito.eq( String.class ) ) )
+        Mockito.when( jdbcTemplate.queryForObject( "SELECT extname from pg_extension where extname='pg_trgm';",
+            String.class ) )
             .thenReturn( "pg_trgm" );
 
         Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='btree_gin';" ),
-                Mockito.eq( String.class ) ) )
+            jdbcTemplate.queryForObject( "SELECT extname from pg_extension where extname='btree_gin';", String.class ) )
             .thenReturn( "btree_gin" );
 
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
+        Mockito.when( config.getProperty( ConfigurationKey.CONNECTION_URL ) )
             .thenReturn( "jdbc:postgresql:dhisx" );
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_USERNAME ) ) ).thenReturn( "dhisy" );
+        Mockito.when( config.getProperty( ConfigurationKey.CONNECTION_USERNAME ) ).thenReturn( "dhisy" );
 
         Mockito.when( resultSet.getString( Mockito.eq( 1 ) ) )
             .thenReturn( "PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit" );
