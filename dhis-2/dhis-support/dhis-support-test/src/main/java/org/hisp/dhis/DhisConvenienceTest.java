@@ -253,6 +253,10 @@ public abstract class DhisConvenienceTest
 
     private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
 
+    protected static final String FIRST_NAME = "FirstName";
+
+    protected static final String SURNAME = "Surname";
+
     private static Date date;
 
     protected static final double DELTA = 0.01;
@@ -2769,8 +2773,8 @@ public abstract class DhisConvenienceTest
     {
         User user = new User();
         user.setCode( "Code" + uniquePart );
-        user.setFirstName( "FirstName" + uniquePart );
-        user.setSurname( "Surname" + uniquePart );
+        user.setFirstName( FIRST_NAME + uniquePart );
+        user.setSurname( SURNAME + uniquePart );
         return user;
     }
 
