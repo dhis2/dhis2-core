@@ -88,7 +88,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
 
     private DataElement dataElement;
 
-    private static final String attributeValue = "value";
+    private static final String ATTRIBUTE_VALUE = "value";
 
     @BeforeEach
     void setUp()
@@ -207,7 +207,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
         trackedEntityAttributeValue.setEntityInstance( tei );
         trackedEntityAttributeValue.setStoredBy( "user" );
-        trackedEntityAttributeValue.setValue( attributeValue );
+        trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
         tei.setTrackedEntityAttributeValues( Set.of( trackedEntityAttributeValue ) );
         manager.update( tei );
     }

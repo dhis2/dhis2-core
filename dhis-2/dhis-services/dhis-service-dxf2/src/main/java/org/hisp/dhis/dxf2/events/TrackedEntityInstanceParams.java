@@ -51,17 +51,17 @@ public class TrackedEntityInstanceParams
         EnrollmentParams.TRUE,
         true, true, true, true );
 
-    boolean includeRelationships;
+    private final boolean includeRelationships;
 
-    EnrollmentParams enrollmentParams;
+    private final EnrollmentParams enrollmentParams;
 
-    boolean includeProgramOwners;
+    private final boolean includeProgramOwners;
 
-    boolean includeAttributes;
+    private final boolean includeAttributes;
 
-    boolean includeDeleted;
+    private final boolean includeDeleted;
 
-    boolean dataSynchronizationQuery;
+    private final boolean dataSynchronizationQuery;
 
     @JsonProperty
     public boolean isIncludeRelationships()

@@ -39,9 +39,9 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 
-public class TrackerEnrollmentFieldsParamMapper
+public class EnrollmentFieldsParamMapper
 {
-    private TrackerEnrollmentFieldsParamMapper()
+    private EnrollmentFieldsParamMapper()
     {
     }
 

@@ -38,9 +38,9 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 
-public class TrackerTrackedEntityFieldsParamMapper
+public class TrackedEntityFieldsParamMapper
 {
-    private TrackerTrackedEntityFieldsParamMapper()
+    private TrackedEntityFieldsParamMapper()
     {
     }
 

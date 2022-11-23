@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackerEnrollmentFieldsParamMapper.map;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -39,7 +39,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class TrackerEnrollmentFieldsMapperTest
+class EnrollmentFieldsMapperTest
 {
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {
