@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -481,11 +482,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.isDeleted(), is( false ) );
         assertThat( event.getStoredBy(), is( "admin_test" ) );
         assertThat( event.getFollowup(), is( nullValue() ) );
-        assertThat( event.getAssignedUserFirstName(), is( FIRST_NAME + TEST_USER ) );
-        assertThat( event.getAssignedUserSurname(), is( SURNAME + TEST_USER ) );
-        assertThat( event.getAssignedUserUsername(), is( TEST_USER ) );
-        assertThat( event.getAssignedUserDisplayName(),
-            is( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() ) );
+        assertAssignedUserProperties( event );
         // Dates
         checkDate( currentTime, event.getCreated(), 500L );
         checkDate( currentTime, event.getLastUpdated(), 500L );
@@ -495,6 +492,15 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         checkDate( currentTime, event.getLastUpdatedAtClient(), 500L );
         checkDate( currentTime, event.getCompletedDate(), 500L );
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
+    }
+
+    private void assertAssignedUserProperties( Event event )
+    {
+        assertEquals( event.getAssignedUserFirstName(), FIRST_NAME + TEST_USER );
+        assertEquals( event.getAssignedUserSurname(), SURNAME + TEST_USER );
+        assertEquals( event.getAssignedUserUsername(), TEST_USER );
+        assertEquals( event.getAssignedUserDisplayName(),
+            event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname() );
     }
 
     @Test
