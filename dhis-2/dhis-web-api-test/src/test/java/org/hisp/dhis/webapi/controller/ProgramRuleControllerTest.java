@@ -28,9 +28,14 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -56,5 +61,21 @@ class ProgramRuleControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
             POST( "/programRules/condition/description?programId=xyz", "1 != 1" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testDuplicateNameInProgram()
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        assertStatus( HttpStatus.OK, GET( "/programs/{id}", program.getUid() ) );
+        assertStatus( HttpStatus.OK,
+            POST( "/metadata/", "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}" ) );
+
+        JsonImportSummary response = POST( "/metadata/",
+            "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}" )
+                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
+        assertEquals( "The Program Rule name test already exist in Program ProgramA",
+            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4057 ).getMessage() );
     }
 }
