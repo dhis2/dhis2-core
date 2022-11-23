@@ -145,18 +145,28 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
     }
 
     @Test
-    void testAccessToClosedProgramWithoutOwnershipOnlyIfUserInSearchScope()
+    void testAccessToClosedProgramWithoutOwnershipWhenUserInSearchScope()
     {
         assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programB ) );
+    }
+
+    @Test
+    void testAccessToClosedProgramWithoutOwnershipWhenUserNotInSearchScope()
+    {
         assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programB ) );
     }
 
     @Test
-    void testAccessToClosedProgramWithOwnershipOnlyIfUserInCaptureScope()
+    void testAccessToClosedProgramWithOwnershipWhenUserInCaptureScope()
     {
         trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programB, organisationUnitA, false, true );
-
         assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programB ) );
+    }
+
+    @Test
+    void testAccessToClosedProgramWithOwnershipWhenUserNotInCaptureScope()
+    {
+        trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programB, organisationUnitA, false, true );
         assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programB ) );
     }
 }

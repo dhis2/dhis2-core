@@ -258,8 +258,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         if ( !hasOwner )
         {
-            ownerOrgUnit = entityInstance.getOrganisationUnit();
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ownerOrgUnit );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, entityInstance.getOrganisationUnit() );
         }
         else if ( program.isOpen() || program.isAudited() )
         {
