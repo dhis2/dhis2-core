@@ -524,7 +524,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add(
-                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
+                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
