@@ -13,9 +13,10 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
         #set( $categoryComboIds = "null" )
     #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-    #foreach( $categoryComboId in $categoryComboIds )
-        #set( $seCbId = "${section.id}-${categoryComboId}" )
+    #foreach( $catComboId in $categoryComboIds )
+        #set( $seCbId = "${section.id}-${catComboId}" )
         #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
+        #set( $categoryComboId = $orderedSectionCategoryCombos.get( $catComboId ) )
     
         #if( $marker == 1 )
           #set( $marker = 0 )

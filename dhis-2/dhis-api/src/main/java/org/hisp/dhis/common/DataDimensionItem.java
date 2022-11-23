@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -61,6 +62,7 @@ public class DataDimensionItem
         ProgramIndicator.class,
         ProgramDataElementDimensionItem.class,
         ProgramTrackedEntityAttributeDimensionItem.class,
+        ExpressionDimensionItem.class,
         ValidationRule.class );
 
     public static final Map<DataDimensionItemType, Class<? extends NameableObject>> DATA_DIMENSION_TYPE_CLASS_MAP = Map
@@ -72,6 +74,7 @@ public class DataDimensionItem
             DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class,
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
             DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class,
+            DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
             DataDimensionItemType.VALIDATION_RULE, ValidationRule.class );
 
     private int id;
@@ -93,6 +96,8 @@ public class DataDimensionItem
     private ProgramDataElementDimensionItem programDataElement;
 
     private ProgramTrackedEntityAttributeDimensionItem programAttribute;
+
+    private ExpressionDimensionItem expressionDimensionItem;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -165,6 +170,10 @@ public class DataDimensionItem
         {
             dimension.setProgramAttribute( (ProgramTrackedEntityAttributeDimensionItem) object );
         }
+        else if ( ExpressionDimensionItem.class.isAssignableFrom( object.getClass() ) )
+        {
+            dimension.setExpressionDimensionItem( (ExpressionDimensionItem) object );
+        }
         else
         {
             throw new IllegalArgumentException(
@@ -208,6 +217,10 @@ public class DataDimensionItem
         {
             return programAttribute;
         }
+        else if ( expressionDimensionItem != null )
+        {
+            return expressionDimensionItem;
+        }
 
         return null;
     }
@@ -243,6 +256,10 @@ public class DataDimensionItem
         else if ( programAttribute != null )
         {
             return DataDimensionItemType.PROGRAM_ATTRIBUTE;
+        }
+        else if ( expressionDimensionItem != null )
+        {
+            return DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
         }
 
         return null;
@@ -402,5 +419,18 @@ public class DataDimensionItem
     public void setProgramAttribute( ProgramTrackedEntityAttributeDimensionItem programAttribute )
     {
         this.programAttribute = programAttribute;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseNameableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ExpressionDimensionItem getExpressionDimensionItem()
+    {
+        return expressionDimensionItem;
+    }
+
+    public void setExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
+    {
+        this.expressionDimensionItem = expressionDimensionItem;
     }
 }
