@@ -95,6 +95,8 @@ import com.google.common.collect.Sets;
  */
 public abstract class TrackerTest extends IntegrationTestBase
 {
+    protected static final String TEST_USER = "testUser";
+
     @Autowired
     protected IdentifiableObjectManager manager;
 
@@ -135,6 +137,8 @@ public abstract class TrackerTest extends IntegrationTestBase
     protected CategoryCombo categoryComboA;
 
     protected RelationshipType relationshipType;
+
+    private User user;
 
     /**
      * Default COC created in DefaultCategoryService
@@ -189,7 +193,7 @@ public abstract class TrackerTest extends IntegrationTestBase
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
 
-        User user = createUserWithAuth( "testUser" );
+        user = createUserWithAuth( TEST_USER );
         injectSecurityContext( user );
     }
 
@@ -347,6 +351,7 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setLastUpdatedAtClient( now );
                 event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
+                event1.setAssignedUser( user.getUid() );
                 eventList.add( event1 );
             }
             enrollment.setEvents( eventList );
@@ -380,6 +385,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         ProgramStage programStage = createProgramStage( '1', program );
         programStage.setUid( CodeGenerator.generateUid() );
         programStage.setRepeatable( true );
+        programStage.setEnableUserAssignment( true );
         if ( publicAccess )
         {
             programStage.setPublicAccess( AccessStringHelper.FULL );
