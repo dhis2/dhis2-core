@@ -37,6 +37,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -103,6 +105,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,9 +121,13 @@ public class CrudControllerAdvice
 
     @InitBinder
     protected void initBinder( WebDataBinder binder )
+        throws IOException
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+        new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses()
+            .forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -465,6 +472,25 @@ public class CrudControllerAdvice
             throws IllegalArgumentException
         {
             setValue( fromText.apply( text ) );
+        }
+    }
+
+    private static final class ConvertEnum extends PropertyEditorSupport
+    {
+        private Class enumKlass;
+
+        private ConvertEnum( Class enumKlass )
+        {
+            this.enumKlass = enumKlass;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            Enum enumValue = EnumUtils.getEnum( enumKlass, text.toUpperCase() );
+
+            setValue( enumValue != null ? enumValue : text );
         }
     }
 }
