@@ -714,18 +714,6 @@ class EventImportTest extends TransactionalIntegrationTest
         return eventJsonPayload;
     }
 
-    private JsonObject createScheduledEventJsonObject( Event event )
-    {
-        JsonObject eventJsonPayload = new JsonObject();
-        eventJsonPayload.addProperty( "program", event.getProgram() );
-        eventJsonPayload.addProperty( "programStage", event.getProgramStage() );
-        eventJsonPayload.addProperty( "orgUnit", event.getOrgUnit() );
-        eventJsonPayload.addProperty( "status", event.getStatus().toString() );
-        eventJsonPayload.addProperty( "dueDate", "2022-12-12" );
-        eventJsonPayload.addProperty( "trackedEntityInstance", event.getTrackedEntityInstance() );
-        return eventJsonPayload;
-    }
-
     private Enrollment createEnrollment( String program, String person )
     {
         Enrollment enrollment = new Enrollment();
