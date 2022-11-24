@@ -212,7 +212,6 @@ public class MeController
     }
 
     @GetMapping( "/dataApprovalWorkflows" )
-    // TODO @OpenApi.Response( array of object with id+name )
     public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
         throws Exception

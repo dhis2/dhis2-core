@@ -507,8 +507,7 @@ public class OpenApiGenerator extends JsonGenerator
             addStringMember( "description", "The actual type is unknown.  \\n(Java type was: `" + type + "`)" );
             if ( type != Object.class )
             {
-                System.out.println( schema + " " + schema.getSource() + " " );
-                log.warn( schema.toString() );
+                log.warn( schema + " " + schema.getSource() );
             }
         }
     }
