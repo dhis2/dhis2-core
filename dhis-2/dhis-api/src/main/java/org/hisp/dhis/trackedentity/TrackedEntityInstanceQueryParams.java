@@ -45,6 +45,7 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -397,19 +398,6 @@ public class TrackedEntityInstanceQueryParams
         }
     }
 
-    /**
-     * Prepares the assignedUsers list to the current user id, if the selection
-     * mode is CURRENT.
-     */
-    public void handleCurrentUserSelectionMode()
-    {
-        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && this.user != null )
-        {
-            this.assignedUsers = Collections.singleton( this.user.getUid() );
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-        }
-    }
-
     public boolean hasTrackedEntityInstances()
     {
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
@@ -422,12 +410,12 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean isIncludeOnlyUnassignedEvents()
     {
-        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
+        return AssignedUserSelectionMode.NONE == this.assignedUserSelectionMode;
     }
 
     public boolean isIncludeOnlyAssignedEvents()
     {
-        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
+        return AssignedUserSelectionMode.ANY == this.assignedUserSelectionMode;
     }
 
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
@@ -1250,12 +1238,6 @@ public class TrackedEntityInstanceQueryParams
         return assignedUserSelectionMode;
     }
 
-    public TrackedEntityInstanceQueryParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserMode )
-    {
-        this.assignedUserSelectionMode = assignedUserMode;
-        return this;
-    }
-
     public Set<String> getTrackedEntityInstanceUids()
     {
         return trackedEntityInstanceUids;
@@ -1272,9 +1254,56 @@ public class TrackedEntityInstanceQueryParams
         return assignedUsers;
     }
 
-    public TrackedEntityInstanceQueryParams setAssignedUsers( Set<String> assignedUsers )
+    /**
+     * Set assigned user selection mode, assigned users and the current user for
+     * the query. Non-empty assigned users are only allowed with mode PROVIDED
+     * (or null).
+     *
+     * @param mode assigned user mode
+     * @param current current user with which query is made
+     * @param assignedUsers assigned user uids
+     * @return this
+     */
+    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+        Set<String> assignedUsers )
     {
-        this.assignedUsers = assignedUsers;
+        if ( mode == AssignedUserSelectionMode.CURRENT && current == null )
+        {
+            throw new IllegalQueryException(
+                "Current user must be specified if selectionMode is CURRENT" );
+        }
+        if ( mode == AssignedUserSelectionMode.PROVIDED && (assignedUsers == null || assignedUsers.isEmpty()) )
+        {
+            throw new IllegalQueryException(
+                "Assigned User uid(s) must be specified if selectionMode is PROVIDED" );
+        }
+        // we default the mode to PROVIDED in case mode is null but users are
+        // given
+        if ( mode != null && mode != AssignedUserSelectionMode.PROVIDED
+            && (assignedUsers != null && !assignedUsers.isEmpty()) )
+        {
+            throw new IllegalQueryException(
+                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
+
+        this.user = current;
+
+        if ( mode == AssignedUserSelectionMode.CURRENT )
+        {
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+            this.assignedUsers = Collections.singleton( current.getUid() );
+        }
+        else if ( (mode == null || mode == AssignedUserSelectionMode.PROVIDED)
+            && (assignedUsers != null && !assignedUsers.isEmpty()) )
+        {
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+            this.assignedUsers = assignedUsers;
+        }
+        else
+        {
+            this.assignedUserSelectionMode = mode;
+        }
+
         return this;
     }
 
