@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
@@ -60,6 +61,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -71,6 +73,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -137,6 +140,8 @@ class EventImportTest extends TransactionalIntegrationTest
     JdbcTemplate jdbcTemplate;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
+
+    private TrackedEntityInstance trackedEntityInstance;
 
     private OrganisationUnit organisationUnitA;
 
@@ -274,6 +279,40 @@ class EventImportTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
+    @Test
+    void testAddEventWithDueDateForProgramWithoutRegistration()
+        throws IOException
+    {
+        String eventUid = CodeGenerator.generateUid();
+
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        Event event = createScheduledTrackerEvent( eventUid, programA, programStageA, EventStatus.SCHEDULE,
+            organisationUnitA );
+
+        ImportSummary summary = eventService.addEvent( event, null, false );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( "10" );
+        dataValue.setDataElement( dataElementA.getUid() );
+        event.setDataValues( Set.of( dataValue ) );
+        event.setStatus( EventStatus.COMPLETED );
+
+        summary = eventService.updateEvent( event, true, null, false );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
+
+        final SimpleDateFormat format = new SimpleDateFormat();
+        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+
+        assertEquals( "2022-12-12", format.format( psi.getDueDate() ) );
+    }
+
     /**
      * TODO: LUCIANO: this test has been ignored because the Importer should not
      * import an event linked to a Program with 2 or more Program Instances
@@ -325,7 +364,7 @@ class EventImportTest extends TransactionalIntegrationTest
         throws IOException,
         ParseException
     {
-        String lastupdateDateBefore = trackedEntityInstanceService
+        String lastUpdateDateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated();
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -339,15 +378,15 @@ class EventImportTest extends TransactionalIntegrationTest
 
         // We use JDBC to get the timestamp, since it's stored using JDBC not
         // hibernate.
-        String lastupdateDateNew = DateUtils.getIso8601NoTz( this.jdbcTemplate.queryForObject(
+        String lastUpdateDateNew = DateUtils.getIso8601NoTz( this.jdbcTemplate.queryForObject(
             "SELECT lastupdated FROM trackedentityinstance WHERE uid IN ('"
                 + trackedEntityInstanceMaleA.getTrackedEntityInstance() + "')",
             Timestamp.class ) );
 
         assertTrue( simpleDateFormat
-            .parse( lastupdateDateNew )
+            .parse( lastUpdateDateNew )
             .getTime() > simpleDateFormat
-                .parse( lastupdateDateBefore )
+                .parse( lastUpdateDateBefore )
                 .getTime() );
     }
 
@@ -675,6 +714,18 @@ class EventImportTest extends TransactionalIntegrationTest
         return eventJsonPayload;
     }
 
+    private JsonObject createScheduledEventJsonObject( Event event )
+    {
+        JsonObject eventJsonPayload = new JsonObject();
+        eventJsonPayload.addProperty( "program", event.getProgram() );
+        eventJsonPayload.addProperty( "programStage", event.getProgramStage() );
+        eventJsonPayload.addProperty( "orgUnit", event.getOrgUnit() );
+        eventJsonPayload.addProperty( "status", event.getStatus().toString() );
+        eventJsonPayload.addProperty( "dueDate", "2022-12-12" );
+        eventJsonPayload.addProperty( "trackedEntityInstance", event.getTrackedEntityInstance() );
+        return eventJsonPayload;
+    }
+
     private Enrollment createEnrollment( String program, String person )
     {
         Enrollment enrollment = new Enrollment();
@@ -698,6 +749,23 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setOrgUnit( organisationUnitB.getUid() );
         event.setEnrollment( pi.getUid() );
         event.setEventDate( "2019-10-24" );
+        event.setDeleted( false );
+        return event;
+    }
+
+    private Event createScheduledTrackerEvent( String uid, Program program, ProgramStage ps, EventStatus eventStatus,
+        OrganisationUnit organisationUnit )
+    {
+        Event event = new Event();
+        event.setUid( uid );
+        event.setEvent( uid );
+        event.setStatus( eventStatus );
+        event.setProgram( program.getUid() );
+        event.setProgramStage( ps.getUid() );
+        event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.setOrgUnit( organisationUnit.getUid() );
+        event.setEnrollment( pi.getUid() );
+        event.setDueDate( "2022-12-12" );
         event.setDeleted( false );
         return event;
     }
