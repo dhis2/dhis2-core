@@ -136,7 +136,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( { "user" } )
+@OpenApi.Tags( { "user", "management" } )
 @Slf4j
 @Controller
 @RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )

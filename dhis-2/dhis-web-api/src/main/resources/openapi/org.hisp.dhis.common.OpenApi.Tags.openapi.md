@@ -9,10 +9,37 @@ This means there is no 1:1 relation between the REST endpoint described by OpenA
 and the Java controller methods that implement them. 
 
 ## Tag `metadata`
-Endpoint is part of the metadata API
+Groups endpoints about metadata.
 
 ## Tag `user`
-Endpoint is part of the user API
+Groups endpoints about users.
+
+## Tag `analytics`
+Groups endpoints that are analytics related.
+
+## Tag `data`
+Groups endpoints about data values.
+
+## Tag `messaging`
+Groups endpoints about messages such as email and SMS.
+
+## Tag `system`
+Groups endpoints about general system administration.
+
+## Tag `tracker`
+Groups endpoints that are tracker related.
+
+## Tag `ui`
+Groups endpoints that are UI related.
+
+## Tag `management`
+Groups endpoints used to manage system objects.
+
+## Tag `login`
+Groups endpoints that are user login related.
+
+## Tag `query`
+Groups endpoints used to query information about system object or system state.
 
 ## Tag `scheduling`
 Endpoint is part of the scheduling API

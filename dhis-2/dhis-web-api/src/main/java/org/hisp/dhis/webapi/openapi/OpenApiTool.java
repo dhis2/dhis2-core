@@ -163,7 +163,8 @@ public class OpenApiTool implements ToolProvider
         {
             Api api = ApiAnalyse.analyseApi( scope );
             ApiDescribe.describeApi( api );
-            String title = filename
+            Path file = Path.of( filename );
+            String title = file.getFileName().toString()
                 .replace( "openapi-", "" )
                 .replace( '_', ' ' )
                 .replace( ".json", "" );
@@ -171,7 +172,7 @@ public class OpenApiTool implements ToolProvider
                 .title( "DHIS2 API - " + title )
                 .build();
             String doc = OpenApiGenerator.generate( api, JsonGenerator.Format.PRETTY_PRINT, config );
-            Path output = Files.writeString( Path.of( filename ), doc );
+            Path output = Files.writeString( file, doc );
             out.printf( "  %-30s [%3d controllers, %3d schemas]%n",
                 output.getFileName(), api.getControllers().size(), api.getSchemas().size() );
         }

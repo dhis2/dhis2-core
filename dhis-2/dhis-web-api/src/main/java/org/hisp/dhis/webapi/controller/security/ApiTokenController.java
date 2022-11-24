@@ -69,7 +69,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
 @RequiredArgsConstructor

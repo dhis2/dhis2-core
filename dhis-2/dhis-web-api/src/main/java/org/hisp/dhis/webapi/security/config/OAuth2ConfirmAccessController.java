@@ -46,7 +46,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.util.HtmlUtils;
 
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @SessionAttributes( "authorizationRequest" )
 public class OAuth2ConfirmAccessController

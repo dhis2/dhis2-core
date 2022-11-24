@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Jan Bernitt
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "query" } )
 @RestController
 @RequestMapping( value = "/authorities" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

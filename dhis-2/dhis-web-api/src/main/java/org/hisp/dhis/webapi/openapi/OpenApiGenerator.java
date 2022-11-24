@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
@@ -44,6 +44,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -304,7 +305,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
     {
-        Set<String> tags = union( endpoint.getIn().getTags(), endpoint.getTags() );
+        Set<String> tags = mergeTags( endpoint.getIn().getTags(), endpoint.getTags() );
         if ( endpoint.isSynthetic() )
             tags.add( "synthetic" );
         addObjectMember( method.name().toLowerCase(), () -> {
@@ -569,7 +570,8 @@ public class OpenApiGenerator extends JsonGenerator
         // replace dots (stoplight does not like it in names)
         String[] segments = name.split( "\\." );
         name = stream( segments ).limit( segments.length - 1L )
-            .collect( joining( "-" ) ) + ":" + segments[segments.length - 1];
+            .map( word -> Character.toUpperCase( word.charAt( 0 ) ) + word.substring( 1 ) )
+            .collect( joining( "" ) ) + ":" + segments[segments.length - 1];
         typeByName.put( name, type );
         return name;
     }
@@ -606,14 +608,23 @@ public class OpenApiGenerator extends JsonGenerator
         return endpointsByAbsolutePath;
     }
 
-    private static <E> Set<E> union( Set<E> a, Set<E> b )
+    /**
+     * The first controller level tag is used to split controllers into OpenAPI
+     * documents so it is added last since tools might give priority to the
+     * order of tags.
+     */
+    private static <E> Set<E> mergeTags( Set<E> controller, Set<E> endpoint )
     {
-        if ( a.isEmpty() && b.isEmpty() )
+        if ( controller.isEmpty() && endpoint.isEmpty() )
             return new HashSet<>();
-        if ( a.isEmpty() )
-            return b;
-        if ( b.isEmpty() )
-            return a;
-        return Stream.concat( a.stream(), b.stream() ).collect( toSet() );
+        if ( controller.isEmpty() )
+            return endpoint;
+        Set<E> merged = Stream.concat( controller.stream().skip( 1 ), endpoint.stream() )
+            .collect( toCollection( LinkedHashSet::new ) );
+        if ( !controller.isEmpty() )
+        {
+            merged.add( controller.iterator().next() );
+        }
+        return merged;
     }
 }

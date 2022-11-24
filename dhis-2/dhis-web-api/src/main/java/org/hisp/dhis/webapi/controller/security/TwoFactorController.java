@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "login" } )
 @RestController
 @RequestMapping( value = "/2fa" )
 @ApiVersion( { DhisApiVersion.DEFAULT,

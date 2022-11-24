@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "query" } )
 @Controller
 @RequestMapping( "/userDataStore" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

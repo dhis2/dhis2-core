@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "management" } )
 @Controller
 @RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
 public class UserRoleController

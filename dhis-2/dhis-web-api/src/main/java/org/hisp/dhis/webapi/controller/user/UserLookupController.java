@@ -57,7 +57,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "query" } )
 @RestController
 @RequestMapping( value = UserLookupController.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = TokenController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

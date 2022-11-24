@@ -73,7 +73,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "management" } )
 @RestController
 @RequestMapping( "/userSettings" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

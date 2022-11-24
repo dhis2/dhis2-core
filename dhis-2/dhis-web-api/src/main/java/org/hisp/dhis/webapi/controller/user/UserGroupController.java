@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "management" } )
 @Controller
 @RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
 public class UserGroupController

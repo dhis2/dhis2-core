@@ -95,7 +95,7 @@ import com.google.common.base.Strings;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "user" )
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = "/account" )
 @Slf4j
