@@ -128,7 +128,7 @@
     <poi.version>4.1.1</poi.version>
     <jacoco.version>0.8.2</jacoco.version>
     <itext.version>2.1.7</itext.version>
-    <jclouds.version>2.2.0</jclouds.version>
+    <jclouds.version>2.5.0</jclouds.version>
     <antlr.version>4.7.2</antlr.version>
 
     <!-- GIS -->
