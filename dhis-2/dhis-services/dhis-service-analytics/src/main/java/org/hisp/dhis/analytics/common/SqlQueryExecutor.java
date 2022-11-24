@@ -37,6 +37,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
+ * @see org.hisp.dhis.analytics.common.QueryExecutor
  * @author maikel arabori
  */
 @Component

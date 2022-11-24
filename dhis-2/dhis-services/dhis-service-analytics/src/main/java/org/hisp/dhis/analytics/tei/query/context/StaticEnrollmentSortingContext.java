@@ -29,7 +29,8 @@ package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.*;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
@@ -66,10 +67,9 @@ class StaticEnrollmentSortingContext
         return SortingContext.builder()
             .field( Field.of( uniqueAlias, sortingDimension::getUid, render ) )
             .order( () -> render + SPACE + param.getSortDirection().name() )
-            .leftJoin(
-                Pair.of(
-                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
-                        + uniqueAlias,
-                    fieldsEqual( TEI_ALIAS, TEI_UID, uniqueAlias, TEI_UID ) ) );
+            .leftJoin( Pair.of(
+                () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
+                    + uniqueAlias,
+                fieldsEqual( TEI_ALIAS, TEI_UID, uniqueAlias, TEI_UID ) ) );
     }
 }

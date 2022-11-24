@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.QueryOperator;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class InConditionRenderer extends BaseRenderable
@@ -43,7 +42,6 @@ public class InConditionRenderer extends BaseRenderable
     @Override
     public String render()
     {
-        return field.render() + SPACE + QueryOperator.IN.getValue() + " ("
-            + values.render() + ")";
+        return field.render() + SPACE + IN.getValue() + " (" + values.render() + ")";
     }
 }

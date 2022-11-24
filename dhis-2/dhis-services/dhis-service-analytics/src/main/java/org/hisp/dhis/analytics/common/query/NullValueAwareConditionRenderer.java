@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor( staticName = "of" )
 public class NullValueAwareConditionRenderer extends BaseRenderable
 {
-
     private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
     private final Renderable field;
@@ -55,10 +54,12 @@ public class NullValueAwareConditionRenderer extends BaseRenderable
         {
             return realCondition.render();
         }
+
         if ( !hasMultipleValues( values ) )
         {
             return fieldIsNullCondition.render();
         }
+
         return OrCondition.of(
             List.of(
                 fieldIsNullCondition,

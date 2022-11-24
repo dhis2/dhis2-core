@@ -36,6 +36,7 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * @see org.hisp.dhis.analytics.common.Query
  * @author maikel arabori
  */
 @EqualsAndHashCode
@@ -46,6 +47,10 @@ public class SqlQuery implements Query
 
     private final Map<String, Object> params;
 
+    /**
+     * @throws IllegalArgumentException if statement or params are
+     *         null/empty/blank
+     */
     public SqlQuery( final String statement, final Map<String, Object> params )
     {
         hasText( statement, "The 'statement' must not be null/empty/blank" );
@@ -58,15 +63,13 @@ public class SqlQuery implements Query
         log.debug( "PARAMS: " + params );
     }
 
-    /**
-     * @throws IllegalArgumentException if statement is null/empty/blank
-     */
     @Override
     public String statement()
     {
         return statement;
     }
 
+    @Override
     public Map<String, Object> params()
     {
         return params;

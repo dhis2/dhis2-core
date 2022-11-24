@@ -49,7 +49,7 @@ public class InOrEqConditionRenderer extends BaseRenderable
         {
             return NullValueAwareConditionRenderer.of( InConditionRenderer::of, field, values ).render();
         }
+
         return NullValueAwareConditionRenderer.of( EqConditionRenderer::of, field, values ).render();
     }
-
 }

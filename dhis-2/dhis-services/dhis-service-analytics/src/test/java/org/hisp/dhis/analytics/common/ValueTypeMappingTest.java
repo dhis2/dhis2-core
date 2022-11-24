@@ -30,20 +30,26 @@ package org.hisp.dhis.analytics.common;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.DECIMAL;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.NUMERIC;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.STRING;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.TEXT;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for {@link ValueTypeMapping}.
+ */
 class ValueTypeMappingTest
 {
     @Test
     void testConvertSingleNumeric()
     {
-        Object o = ValueTypeMapping.NUMERIC.convertSingle( "1" );
+        Object o = NUMERIC.convertSingle( "1" );
         assertThat( o, is( instanceOf( BigInteger.class ) ) );
     }
 
@@ -51,15 +57,15 @@ class ValueTypeMappingTest
     @Test
     void testConvertMultipleNumeric()
     {
-        Object o = ValueTypeMapping.NUMERIC.convertMany( List.of( "1", "2", "3" ) );
-        assertThat( o, is( instanceOf( Collection.class ) ) );
-        ((Collection) o).forEach( e -> assertThat( e, is( instanceOf( BigInteger.class ) ) ) );
+        Object o = NUMERIC.convertMany( List.of( "1", "2", "3" ) );
+        assertThat( o, is( instanceOf( List.class ) ) );
+        ((List) o).forEach( e -> assertThat( e, is( instanceOf( BigInteger.class ) ) ) );
     }
 
     @Test
     void testConvertSingleDecimal()
     {
-        Object o = ValueTypeMapping.DECIMAL.convertSingle( "1.1" );
+        Object o = DECIMAL.convertSingle( "1.1" );
         assertThat( o, is( instanceOf( BigDecimal.class ) ) );
     }
 
@@ -67,15 +73,15 @@ class ValueTypeMappingTest
     @Test
     void testConvertMultipleDecimal()
     {
-        Object o = ValueTypeMapping.DECIMAL.convertMany( List.of( "1", "2", "3" ) );
-        assertThat( o, is( instanceOf( Collection.class ) ) );
-        ((Collection) o).forEach( e -> assertThat( e, is( instanceOf( BigDecimal.class ) ) ) );
+        Object o = DECIMAL.convertMany( List.of( "1", "2", "3" ) );
+        assertThat( o, is( instanceOf( List.class ) ) );
+        ((List) o).forEach( e -> assertThat( e, is( instanceOf( BigDecimal.class ) ) ) );
     }
 
     @Test
     void testConvertSingleString()
     {
-        Object o = ValueTypeMapping.STRING.convertSingle( "1" );
+        Object o = STRING.convertSingle( "1" );
         assertThat( o, is( instanceOf( String.class ) ) );
     }
 
@@ -83,8 +89,24 @@ class ValueTypeMappingTest
     @Test
     void testConvertMultipleString()
     {
-        Object o = ValueTypeMapping.STRING.convertMany( List.of( "1", "2", "3" ) );
-        assertThat( o, is( instanceOf( Collection.class ) ) );
-        ((Collection) o).forEach( e -> assertThat( e, is( instanceOf( String.class ) ) ) );
+        Object o = STRING.convertMany( List.of( "1", "2", "3" ) );
+        assertThat( o, is( instanceOf( List.class ) ) );
+        ((List) o).forEach( e -> assertThat( e, is( instanceOf( String.class ) ) ) );
+    }
+
+    @Test
+    void testConvertSingleText()
+    {
+        Object o = TEXT.convertSingle( "1" );
+        assertThat( o, is( instanceOf( String.class ) ) );
+    }
+
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    @Test
+    void testConvertMultipleText()
+    {
+        Object o = TEXT.convertMany( List.of( "1", "2", "3" ) );
+        assertThat( o, is( instanceOf( List.class ) ) );
+        ((List) o).forEach( e -> assertThat( e, is( instanceOf( String.class ) ) ) );
     }
 }

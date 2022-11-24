@@ -32,6 +32,9 @@ import java.util.Set;
 
 import org.hisp.dhis.common.PrefixedDimension;
 
+/**
+ * Provides service methods that operate on top of TEIs dimensions and types.
+ */
 public interface TeiAnalyticsDimensionsService
 {
     /**

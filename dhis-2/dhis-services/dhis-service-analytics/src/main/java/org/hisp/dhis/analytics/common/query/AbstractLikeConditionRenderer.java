@@ -36,7 +36,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public abstract class AbstractLikeConditionRenderer extends BaseRenderable
 {
-
     private final Renderable field;
 
     private final String sqlOperator;
@@ -62,7 +61,7 @@ public abstract class AbstractLikeConditionRenderer extends BaseRenderable
         ConstantValuesRenderer constantValuesRenderer = (ConstantValuesRenderer) value;
         ConstantValuesRenderer transformedArgument = constantValuesRenderer.withArgumentTransformer(
             argument -> "%" + valueTransformer.apply( argument ) + "%" );
+
         return fieldTransformer.apply( field.render() ) + SPACE + sqlOperator + SPACE + transformedArgument.render();
     }
-
 }

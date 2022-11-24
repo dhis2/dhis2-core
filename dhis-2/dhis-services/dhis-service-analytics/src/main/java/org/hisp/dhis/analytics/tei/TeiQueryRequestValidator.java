@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
 import org.hisp.dhis.analytics.common.processing.Validator;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +45,14 @@ public class TeiQueryRequestValidator implements Validator<QueryRequest<TeiQuery
 {
     private final CommonQueryRequestValidator commonQueryRequestValidator;
 
+    /**
+     * Runs a validation on the given query request object {@link QueryRequest},
+     * preventing basic syntax and consistency issues.
+     *
+     * @param queryRequest the {@link QueryRequest} of type
+     *        {@link TeiQueryRequest}
+     * @throws IllegalQueryException is some invalid state is found
+     */
     @Override
     public void validate( QueryRequest<TeiQueryRequest> queryRequest )
     {

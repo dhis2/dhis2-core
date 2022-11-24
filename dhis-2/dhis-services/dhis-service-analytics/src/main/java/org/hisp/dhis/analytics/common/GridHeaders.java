@@ -45,6 +45,7 @@ public class GridHeaders
 {
     private GridHeaders()
     {
+        throw new UnsupportedOperationException( "utility class" );
     }
 
     /**

@@ -48,13 +48,19 @@ import org.springframework.stereotype.Component;
 public class DimensionIdentifierConverter
 {
     /**
+     * Based on the given list of {@link Program} and the "fullDimensionId",
+     * this method will apply some conversions in order to build a
+     * {@link DimensionIdentifier}.
      *
-     * @param programs list of programs that are permitted
-     * @param fullDimensionId string representation of a dimension: example ->
-     *        abcde[1].fghi[4].jklm
-     * @return a DimensionIdentifier
+     * @param programsAllowed list of programs allowed to be present in
+     *        "fullDimensionId"
+     * @param fullDimensionId string representation of a dimension. Examples:
+     *        abcde[1].fghi[4].jklm, abcde.fghi.jklm, abcde.jklm or jklm
+     * @return the built {@link DimensionIdentifier}
+     * @throws IllegalArgumentException if the programUid in the
+     *         "fullDimensionId" does not belong the list of "programsAllowed"
      */
-    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> programs,
+    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> programsAllowed,
         String fullDimensionId )
     {
         DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
@@ -63,7 +69,7 @@ public class DimensionIdentifierConverter
         Optional<Program> programOptional = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getProgram )
             .map( ElementWithOffset::getElement )
-            .flatMap( programUid -> programs.stream()
+            .flatMap( programUid -> programsAllowed.stream()
                 .filter( program -> program.getUid().equals( programUid.getUid() ) )
                 .findFirst() );
 
@@ -72,7 +78,8 @@ public class DimensionIdentifierConverter
         StringUid dimensionId = dimensionIdentifier.getDimension();
 
         if ( dimensionIdentifier.hasProgramStage() )
-        { // fully qualified DE/PI. ie.: {programUid}.{programStageUid}.DE
+        { // Contains a fully qualified dimension. ie.:
+          // {programUid}.{programStageUid}.DataElementUid.
             if ( programOptional.isPresent() )
             {
                 Program program = programOptional.get();
@@ -92,7 +99,7 @@ public class DimensionIdentifierConverter
             }
         }
         else if ( dimensionIdentifier.hasProgram() )
-        { // example: {programUid}.PE
+        { // Contains only program + dimension. ie.: {programUid}.dimensionUid.
             Program program = programOptional
                 .orElseThrow( () -> new IllegalArgumentException(
                     ("Specified program " + programWithOffset + " does not exist") ) );
@@ -103,11 +110,19 @@ public class DimensionIdentifierConverter
                 dimensionId );
         }
         else
-        {
+        { // Contains only a dimension.
             return DimensionIdentifier.of( emptyElementWithOffset(), emptyElementWithOffset(), dimensionId );
         }
     }
 
+    /**
+     * Extracts the {@link ProgramStage} object from the given {@link Program},
+     * if any.
+     *
+     * @param program
+     * @param programStageUid
+     * @return the {@link ProgramStage} found or empty
+     */
     private Optional<ProgramStage> extractProgramStageIfExists( Program program, StringUid programStageUid )
     {
         return program.getProgramStages().stream()

@@ -71,7 +71,7 @@ public class LimitOffset extends BaseRenderable
         catch ( Exception e )
         {
             // safely
+            return null;
         }
-        return null;
     }
 }
