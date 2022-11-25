@@ -73,7 +73,7 @@ class TrackedEntityInstanceQueryParamsTest
     void testUserWithAssignedUsersGivenUsersAndModeProvided()
     {
 
-        params.setUserWithAssignedUsers( PROVIDED, null, NON_CURRENT_USER_UIDS );
+        params.setUserWithAssignedUsers( null, PROVIDED, NON_CURRENT_USER_UIDS );
 
         assertNull( params.getUser() );
         assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
@@ -84,7 +84,7 @@ class TrackedEntityInstanceQueryParamsTest
     void testUserWithAssignedUsersGivenUsersAndNoMode()
     {
 
-        params.setUserWithAssignedUsers( null, current, NON_CURRENT_USER_UIDS );
+        params.setUserWithAssignedUsers( current, null, NON_CURRENT_USER_UIDS );
 
         assertEquals( current, params.getUser() );
         assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
@@ -96,7 +96,7 @@ class TrackedEntityInstanceQueryParamsTest
     void testUserWithAssignedUsersGivenNoModeAndNoUsers( Set<String> users )
     {
 
-        params.setUserWithAssignedUsers( null, current, users );
+        params.setUserWithAssignedUsers( current, null, users );
 
         assertEquals( current, params.getUser() );
         assertNull( params.getAssignedUserSelectionMode() );
@@ -109,7 +109,7 @@ class TrackedEntityInstanceQueryParamsTest
     {
 
         assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( PROVIDED, current, users ) );
+            () -> params.setUserWithAssignedUsers( current, PROVIDED, users ) );
     }
 
     @ParameterizedTest
@@ -117,7 +117,7 @@ class TrackedEntityInstanceQueryParamsTest
     void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull( Set<String> users )
     {
 
-        params.setUserWithAssignedUsers( CURRENT, current, users );
+        params.setUserWithAssignedUsers( current, CURRENT, users );
 
         assertEquals( current, params.getUser() );
         assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
@@ -128,7 +128,7 @@ class TrackedEntityInstanceQueryParamsTest
     void testUserWithAssignedUsersFailsGivenNoCurrentUserAndModeCurrent()
     {
 
-        assertThrows( IllegalQueryException.class, () -> params.setUserWithAssignedUsers( CURRENT, null, null ) );
+        assertThrows( IllegalQueryException.class, () -> params.setUserWithAssignedUsers( null, CURRENT, null ) );
     }
 
     @Test
@@ -136,7 +136,7 @@ class TrackedEntityInstanceQueryParamsTest
     {
 
         assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( CURRENT, current, NON_CURRENT_USER_UIDS ) );
+            () -> params.setUserWithAssignedUsers( current, CURRENT, NON_CURRENT_USER_UIDS ) );
     }
 
     @ParameterizedTest
@@ -145,7 +145,7 @@ class TrackedEntityInstanceQueryParamsTest
     {
 
         assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( mode, null, NON_CURRENT_USER_UIDS ) );
+            () -> params.setUserWithAssignedUsers( null, mode, NON_CURRENT_USER_UIDS ) );
     }
 
     @ParameterizedTest
@@ -153,7 +153,7 @@ class TrackedEntityInstanceQueryParamsTest
         "CURRENT" } )
     void testUserWithAssignedUsersGivenNullUsersAndModeOtherThanProvided( AssignedUserSelectionMode mode )
     {
-        params.setUserWithAssignedUsers( mode, current, null );
+        params.setUserWithAssignedUsers( current, mode, null );
 
         assertEquals( current, params.getUser() );
         assertEquals( mode, params.getAssignedUserSelectionMode() );

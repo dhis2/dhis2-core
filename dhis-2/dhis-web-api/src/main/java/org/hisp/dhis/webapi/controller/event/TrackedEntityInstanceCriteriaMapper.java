@@ -186,7 +186,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventStartDate() )
             .setEventEndDate( criteria.getEventEndDate() )
-            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, criteria.getAssignedUsers() )
+            .setUserWithAssignedUsers(user, criteria.getAssignedUserMode(), criteria.getAssignedUsers() )
             .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )

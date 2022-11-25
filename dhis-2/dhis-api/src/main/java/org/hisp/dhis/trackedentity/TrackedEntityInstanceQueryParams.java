@@ -1259,12 +1259,12 @@ public class TrackedEntityInstanceQueryParams
      * the query. Non-empty assigned users are only allowed with mode PROVIDED
      * (or null).
      *
-     * @param mode assigned user mode
      * @param current current user with which query is made
+     * @param mode assigned user mode
      * @param assignedUsers assigned user uids
      * @return this
      */
-    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( User current, AssignedUserSelectionMode mode,
         Set<String> assignedUsers )
     {
         if ( mode == AssignedUserSelectionMode.CURRENT && current == null )
