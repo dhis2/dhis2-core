@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -45,12 +46,16 @@ import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvid
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
+import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
+import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
+import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
@@ -375,6 +380,12 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
 
+        @Autowired
+        private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
+        @Autowired
+        private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -440,6 +451,8 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+                .antMatchers(   "/index.html" ).permitAll()
+                .antMatchers(   apiContextPath+"/authentication/login" ).permitAll()
                 .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
@@ -487,10 +500,15 @@ public class DhisWebApiWebSecurityConfig
                 // This config will redirect unauthorized requests to standard
                 // http basic (pop-up login form) Using the default based
                 // "EmbeddedJettyBasicAuthenticationEntryPoint"
+//                http.antMatcher( "/**" )
+//                    .authorizeRequests( this::configureAccessRestrictions )
+//                    .httpBasic()
+//                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
+
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
-                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
 
                 /*
                  * Setup session handling, this is configured normally in
@@ -505,6 +523,27 @@ public class DhisWebApiWebSecurityConfig
                     .maximumSessions(
                         Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
                     .sessionRegistry( sessionRegistry );
+
+                http
+                    .formLogin()
+                    .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
+                    .loginPage( "/index.html" )
+                    .usernameParameter( "j_username" )
+                    .passwordParameter( "j_password" )
+                    .loginProcessingUrl( "/api/authentication/login" )
+                    .defaultSuccessUrl("/dhis-web-dashboard", true)
+                    .failureUrl("/index.html?error=true")
+//                    .failureHandler( authenticationFailureHandler() )
+//                    .successHandler( authenticationSuccessHandler() )
+                    .permitAll()
+                    .and()
+
+                    .logout()
+                    .logoutUrl( "/dhis-web-commons-security/logout.action" )
+                    .logoutSuccessUrl( "/" )
+                    .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
+                    .deleteCookies( "JSESSIONID" );
+
             }
             else
             {
@@ -516,6 +555,39 @@ public class DhisWebApiWebSecurityConfig
                     .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }
+
+//        @Bean
+//        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
+//        {
+//            CustomExceptionMappingAuthenticationFailureHandler handler =
+//                new CustomExceptionMappingAuthenticationFailureHandler(
+//                i18nManager );
+//
+//            // Handles the special case when a user failed to login because it
+//            // has expired...
+//            handler.setExceptionMappings(
+//                ImmutableMap.of(
+//                    "org.springframework.security.authentication.CredentialsExpiredException",
+//                    "/dhis-web-commons/security/expired.action" ) );
+//
+//            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
+//
+//            return handler;
+//        }
+//
+//        @Bean
+//        public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
+//        {
+//            DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
+//            successHandler.setRedirectStrategy( mappedRedirectStrategy() );
+//            if ( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
+//            {
+//                successHandler.setSessionTimeout(
+//                    Integer.parseInt( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
+//            }
+//
+//            return successHandler;
+//        }
 
         private void configureOAuthAuthorizationServer( HttpSecurity http )
             throws Exception
@@ -641,7 +713,7 @@ public class DhisWebApiWebSecurityConfig
         @Bean
         public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
-            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+            return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
         /**

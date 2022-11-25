@@ -29,6 +29,10 @@ package org.hisp.dhis.web.embeddedjetty;
 
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.RedirectHandler;
+import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.RewritePatternRule;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -36,6 +40,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.context.request.RequestContextListener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -71,20 +76,23 @@ public abstract class EmbeddedJettyBase
 
         Server server = new Server( threadPool );
         server.addBean( new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler() );
-//        server.setHandler( getServletContextHandler() );
 
         ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setDirectoriesListed( true );
-        resourceHandler.setWelcomeFiles( new String[] { "index.html" } );
-//        resourceHandler.setResourceBase( "src/main/webapp" );
+        resourceHandler.setDirectoriesListed( false );
         resourceHandler.setResourceBase( "./dhis-web/dhis-web-portal/target/dhis" );
 
+
+        RewriteHandler rewrite = new RewriteHandler();
+        rewrite.setHandler(resourceHandler);
+        RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
+        rewritePatternRule.setPattern( "" );
+        rewritePatternRule.setLocation( "/index.html" );
+        rewrite.addRule( rewritePatternRule );
+
+
         HandlerList handlers = new HandlerList();
-        handlers.setHandlers( new Handler[] { resourceHandler,
+        handlers.setHandlers( new Handler[] { rewrite,
             getServletContextHandler(), new DefaultHandler() } );
-//        handlers.addHandler( resourceHandler );
-//        handlers.addHandler( getServletContextHandler() );
-//        handlers.addHandler( new DefaultHandler() );
         server.setHandler( handlers );
 
         final HttpConfiguration http_config = getHttpConfiguration();

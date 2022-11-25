@@ -42,6 +42,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -71,7 +72,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         setDefaultPropertyValue( "jetty.host", SERVER_HOSTNAME_OR_IP );
         setDefaultPropertyValue( "jetty.http.port", String.valueOf( DEFAULT_HTTP_PORT ) );
 
-        /**
+        /*
          * This property is very import, this will instruct Spring to use
          * special Spring config classes adapted to running in embedded Jetty.
          *
@@ -93,6 +94,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
     {
         ServletContextHandler contextHandler = new ServletContextHandler( ServletContextHandler.SESSIONS );
         contextHandler.setErrorHandler( null );
+
+        RequestContextListener requestContextListener = new RequestContextListener();
+        contextHandler.addEventListener( requestContextListener );
 
         AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
         contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
@@ -136,6 +140,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
         context.addServlet( "GetModulesServlet", GetModulesServlet.class )
             .addMapping( "/dhis-web-commons/menu/getModules.action" );
+
+        context.addServlet( "RootPageServlet", RootPageServlet.class )
+            .addMapping( "/index.html");
 
         return contextHandler;
     }

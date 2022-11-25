@@ -1,0 +1,132 @@
+<!DOCTYPE HTML>
+<html class="loginPage" dir="ltr">
+<head>
+    <title>DHIS 2 Demo</title>
+    <meta name="description" content="DHIS 2">
+    <meta name="keywords" content="DHIS 2">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="shortcut icon" href="../dhis-web-commons/favicon.ico"/>
+    <script type="text/javascript" src="./dhis-web-commons/javascripts/jQuery/jquery-3.6.1.min.js"></script>
+    <script>
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(
+                    'X-Requested-With',
+                    {
+                        toString: function () {
+                            return '';
+                        }
+                    }
+                );
+            }
+        });
+    </script>
+    <script type="text/javascript" src="./dhis-web-commons/javascripts/login.js"></script>
+    <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/widgets.css">
+    <link type="text/css" rel="stylesheet" href="./dhis-web-commons/css/login.css">
+</head>
+
+<body class="loginPage">
+<h1 style="display:none">DHIS 2</h1>
+<div style="display:none">DHIS 2</div>
+<div>
+<!--    <img id="flagArea" src="">-->
+    <span id="titleArea">DHIS 2</span>
+    <span id="introArea">Welcome to the DHIS 2</span>
+</div>
+<div id="accountArea">
+    <a id="createAccountButton" class="greenButtonLink" href="account.action">Create an account</a>
+</div>
+<div id="loginField">
+    <div id="loginArea">
+        <div id="bannerArea">
+            <a href="http://www.dhis2.org"><img src="./api/staticContent/logo_front" style="border:none"></a>
+        </div>
+
+        <form id="loginForm" action="/api/authentication/login" method="post">
+            <div>
+                <div id="signInLabel">Sign in</div>
+                <div><input type="text" id="j_username" name="j_username" placeholder="Username" required></div>
+                <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password"
+                            required></div>
+                <div>
+                    <input type="checkbox" name="2fa" value="2fa" id="2fa"/><label id="2FaLabel">Login using two factor
+                    authentication</label>
+                    <input type="code" id="2fa_code" name="2fa_code"
+                           placeholder="Two factor authentication code" hidden readonly>
+                </div>
+            </div>
+            <div id="submitDiv">
+                <input id="submit" class="button" type="submit" value="Sign in">
+            </div>
+            <div style="padding-bottom: 10px">
+                <a id="forgotPasswordLink" href="recovery.action">Forgot password?</a>
+            </div>
+            <div style="padding-bottom: 10px">
+                <a id="createAccountLink" href="account.action">Create an account</a>
+            </div>
+        </form>
+
+
+        <div id="notificationArea">
+            Log in with admin / district and feel free to do changes as system is reset every night.
+        </div>
+        <!--[if lte IE 8]>
+        <div id="notificationArea" style="color: white; background-color: red;">Please upgrade your browser. Internet
+            Explorer version 8 and earlier is not supported.
+        </div>
+        <![endif]-->
+    </div>
+</div>
+<div id="footerArea">
+    <div id="leftFooterArea" class="innerFooterArea">
+        <span id="poweredByLabel">Powered by </span><a href="http://www.dhis2.org">DHIS 2</a>&nbsp; <span
+            id="applicationFooter">Learn more at <a href="http://www.dhis2.org">dhis2.org</a></span>
+    </div>
+    <div id="rightFooterArea" class="innerFooterArea">
+        <span id="applicationRightFooter"></span>
+        <select id="localeSelect" onchange="login.localeChanged()" style="margin-left: 30px">
+            <option value="">[ Change language ]</option>
+            <option value="ar">Arabic</option>
+            <option value="ar">Arabic (Egypt)</option>
+            <option value="ar">Arabic (Iraq)</option>
+            <option value="ar">Arabic (Sudan)</option>
+            <option value="bn">Bangla</option>
+            <option value="bi">Bislama</option>
+            <option value="my">Burmese</option>
+            <option value="ckb">Central Kurdish</option>
+            <option value="zh">Chinese</option>
+            <option value="zh">Chinese (China)</option>
+            <option value="cs">Czech</option>
+            <option value="da">Danish</option>
+            <option value="nl">Dutch</option>
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="in">Indonesian</option>
+            <option value="in">Indonesian (Indonesia)</option>
+            <option value="km">Khmer</option>
+            <option value="rw">Kinyarwanda</option>
+            <option value="lo">Lao</option>
+            <option value="mn">Mongolian</option>
+            <option value="ne">Nepali</option>
+            <option value="nb">Norwegian Bokmål</option>
+            <option value="or">Odia</option>
+            <option value="ps">Pashto</option>
+            <option value="pt">Portuguese</option>
+            <option value="pt">Portuguese (Brazil)</option>
+            <option value="ro">Romanian</option>
+            <option value="ru">Russian</option>
+            <option value="es">Spanish</option>
+            <option value="sv">Swedish</option>
+            <option value="tg">Tajik</option>
+            <option value="tet">Tetum</option>
+            <option value="uk">Ukrainian</option>
+            <option value="ur">Urdu</option>
+            <option value="uz">Uzbek</option>
+            <option value="vi">Vietnamese</option>
+            <option value="prs">prs</option>
+        </select>
+    </div>
+</div>
+</body>
+</html>
