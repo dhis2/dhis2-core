@@ -105,6 +105,7 @@ import com.google.gson.JsonObject;
  */
 class EventImportTest extends TransactionalIntegrationTest
 {
+    private static final String DUE_DATE = "2022-12-12";
 
     @Autowired
     private EventService eventService;
@@ -140,8 +141,6 @@ class EventImportTest extends TransactionalIntegrationTest
     JdbcTemplate jdbcTemplate;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
-
-    private TrackedEntityInstance trackedEntityInstance;
 
     private OrganisationUnit organisationUnitA;
 
@@ -310,7 +309,7 @@ class EventImportTest extends TransactionalIntegrationTest
         final SimpleDateFormat format = new SimpleDateFormat();
         format.applyPattern( Period.DEFAULT_DATE_FORMAT );
 
-        assertEquals( "2022-12-12", format.format( psi.getDueDate() ) );
+        assertEquals( DUE_DATE, format.format( psi.getDueDate() ) );
     }
 
     /**
@@ -753,7 +752,7 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.setOrgUnit( organisationUnit.getUid() );
         event.setEnrollment( pi.getUid() );
-        event.setDueDate( "2022-12-12" );
+        event.setDueDate( DUE_DATE );
         event.setDeleted( false );
         return event;
     }
