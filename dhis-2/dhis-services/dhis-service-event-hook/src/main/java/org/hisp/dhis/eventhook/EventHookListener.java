@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventhook;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventHookListener
@@ -55,6 +57,6 @@ public class EventHookListener
             .objectMapper( objectMapper )
             .restTemplate( restTemplate ).build();
 
-        System.err.println( event );
+        log.info( event.toString() );
     }
 }

@@ -41,7 +41,7 @@ public class EventHookPublisher
 {
     private final ApplicationEventPublisher publisher;
 
-    public <T> void publishEvent( Event event )
+    public void publishEvent( Event event )
     {
         publisher.publishEvent( event );
     }
