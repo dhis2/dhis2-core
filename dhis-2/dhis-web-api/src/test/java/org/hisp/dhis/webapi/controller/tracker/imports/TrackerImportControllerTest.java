@@ -81,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class TrackerImportControllerTest
 {
 
-    private final static String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;
+    private final static String ENDPOINT = TrackerControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
 

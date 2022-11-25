@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.descriptors.ValidationNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Halvdan Hoem Grelland
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( value = ValidationNotificationTemplateSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
