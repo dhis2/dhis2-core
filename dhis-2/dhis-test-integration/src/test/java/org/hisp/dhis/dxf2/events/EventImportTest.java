@@ -280,7 +280,6 @@ class EventImportTest extends TransactionalIntegrationTest
 
     @Test
     void testAddEventWithDueDateForProgramWithoutRegistration()
-        throws IOException
     {
         String eventUid = CodeGenerator.generateUid();
 
