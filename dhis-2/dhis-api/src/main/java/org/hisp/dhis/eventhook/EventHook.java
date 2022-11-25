@@ -32,6 +32,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 
 /**
  * @author Morten Olav Hansen
@@ -39,6 +40,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 @Getter
 @Setter
 @Accessors( chain = true )
-public class EventHook extends BaseIdentifiableObject
+public class EventHook
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
 }

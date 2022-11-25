@@ -123,10 +123,8 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         postCreateBundle( bundle, bundleParams );
-        System.err.println( bundle );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        System.err.println( validationReport );
         importReport.addTypeReports( validationReport );
 
         if ( !validationReport.hasErrorReports() || AtomicMode.NONE == bundle.getAtomicMode() )

@@ -11,9 +11,9 @@ create table eventhook (
     userid int8 null,
     lastupdated timestamp null,
     lastupdatedby int8 null,
-    translations jsonb null,
-    sharing jsonb null default '{}'::jsonb,
-    attributevalues jsonb null default '{}'::jsonb,
+    translations jsonb default '[]'::jsonb,
+    attributevalues jsonb default '{}'::jsonb,
+    sharing jsonb default '{}'::jsonb,
     name varchar(230) not null,
     constraint eventhook_uid_key unique (uid),
     constraint eventhook_code_key unique (code),
@@ -25,5 +25,5 @@ create table eventhook (
 
 alter table eventhook add constraint fk_eventhook_userid_userinfoid
     foreign key (userid) references userinfo(userinfoid);
-alter table eventhook add constraint fk_lastupdateby_userid
+alter table eventhook add constraint fk_eventhook_lastupdateby_userinfoid
     foreign key (lastupdatedby) references userinfo(userinfoid);

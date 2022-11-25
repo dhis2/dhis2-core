@@ -159,15 +159,12 @@ public class DefaultPreheatService implements PreheatService
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap = new HashMap<>();
         Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>( params.getObjects().keySet() );
-        System.err.println("klasses: " + klasses);
 
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> references = collectReferences(
             params.getObjects() );
 
         Map<Class<? extends IdentifiableObject>, Set<String>> uidMap = references.get( PreheatIdentifier.UID );
         Map<Class<? extends IdentifiableObject>, Set<String>> codeMap = references.get( PreheatIdentifier.CODE );
-
-        System.err.println("uidMap: " + uidMap);
 
         boolean hasOnlyUIDClasses = uidMap.keySet().stream().anyMatch( this::isOnlyUID );
 
