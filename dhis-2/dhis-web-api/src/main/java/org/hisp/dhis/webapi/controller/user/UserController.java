@@ -328,7 +328,7 @@ public class UserController
         return postObject( renderService.fromJson( request.getInputStream(), getEntityClass() ) );
     }
 
-    private WebMessage postObject( User user )
+    protected WebMessage postObject( User user )
         throws WebMessageException
     {
         // TODO: To remove when we remove old UserCredentials compatibility
