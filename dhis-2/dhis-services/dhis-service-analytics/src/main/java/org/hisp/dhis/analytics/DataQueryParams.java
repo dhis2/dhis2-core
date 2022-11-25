@@ -2689,6 +2689,16 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all expression dimension items part of the data dimension.
+     */
+    public List<DimensionalItemObject> getExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
      * Returns all periods part of the period dimension.
      */
     public List<DimensionalItemObject> getPeriods()
@@ -2805,6 +2815,16 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE,
             getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all expression dimension items part of the data filter.
+     */
+    public List<DimensionalItemObject> getFilterExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**

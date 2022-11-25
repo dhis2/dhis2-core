@@ -125,6 +125,7 @@ import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.expression.function.FunctionOrgUnitProgram;
 import org.hisp.dhis.expression.function.FunctionSubExpression;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -358,11 +359,22 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
-        Collection<Indicator> indicators )
+    public <T> Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
+        Collection<T> indicators )
     {
         Set<DimensionalItemId> itemIds = indicators.stream()
-            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
+            .flatMap( i -> {
+                if ( i instanceof Indicator )
+                {
+                    return Stream.of( ((Indicator) i).getNumerator(), ((Indicator) i).getDenominator() );
+                }
+                else if ( i instanceof ExpressionDimensionItem )
+                {
+                    return Stream.of( ((ExpressionDimensionItem) i).getExpression() );
+                }
+
+                return Stream.empty();
+            } )
             .map( e -> getExpressionDimensionalItemIds( e, INDICATOR_EXPRESSION ) )
             .flatMap( Set::stream )
             .collect( Collectors.toSet() );
@@ -371,19 +383,26 @@ public class DefaultExpressionService
     }
 
     @Override
-    public List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators )
+    public <T> List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<T> items )
     {
-        if ( indicators == null )
+        if ( items == null )
         {
             return Collections.emptyList();
         }
 
         Set<String> uids = new HashSet<>();
 
-        for ( Indicator indicator : indicators )
+        for ( T item : items )
         {
-            uids.addAll( getOrgUnitGroupCountIds( indicator.getNumerator() ) );
-            uids.addAll( getOrgUnitGroupCountIds( indicator.getDenominator() ) );
+            if ( item instanceof Indicator )
+            {
+                uids.addAll( getOrgUnitGroupCountIds( ((Indicator) item).getNumerator() ) );
+                uids.addAll( getOrgUnitGroupCountIds( ((Indicator) item).getDenominator() ) );
+            }
+            else if ( item instanceof ExpressionDimensionItem )
+            {
+                uids.addAll( getOrgUnitGroupCountIds( ((ExpressionDimensionItem) item).getExpression() ) );
+            }
         }
 
         return idObjectManager.getByUid( OrganisationUnitGroup.class, uids );
