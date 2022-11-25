@@ -25,5 +25,5 @@ create table eventhook (
 
 alter table eventhook add constraint fk_eventhook_userid_userinfoid
     foreign key (userid) references userinfo(userinfoid);
-alter table eventhook add constraint fk_eventhook_lastupdateby_userinfoid
+alter table eventhook add constraint fk_lastupdateby_userid
     foreign key (lastupdatedby) references userinfo(userinfoid);
