@@ -76,8 +76,8 @@ public class IdSchemeTests
     private static Stream<Arguments> provideIdSchemeArguments()
     {
         return Stream.of(
-            Arguments.arguments( "cOdE" ),
-            Arguments.arguments( "name" ),
+            Arguments.arguments( "CODE" ),
+            Arguments.arguments( "NAME" ),
             Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID ) );
     }
 

@@ -37,7 +37,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -130,7 +129,6 @@ public class CrudControllerAdvice
 
     @InitBinder
     protected void initBinder( WebDataBinder binder )
-        throws IOException
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
@@ -482,11 +480,11 @@ public class CrudControllerAdvice
         }
     }
 
-    private static final class ConvertEnum extends PropertyEditorSupport
+    private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
     {
-        private Class enumKlass;
+        private Class<T> enumKlass;
 
-        private ConvertEnum( Class enumKlass )
+        private ConvertEnum( Class<T> enumKlass )
         {
             this.enumKlass = enumKlass;
         }
@@ -495,7 +493,7 @@ public class CrudControllerAdvice
         public void setAsText( String text )
             throws IllegalArgumentException
         {
-            Enum enumValue = EnumUtils.getEnum( enumKlass, text.toUpperCase() );
+            Enum<T> enumValue = EnumUtils.getEnum( enumKlass, text.toUpperCase() );
 
             setValue( enumValue != null ? enumValue : text );
         }

@@ -141,9 +141,9 @@ public class EventExportTests
     Stream<Arguments> shouldUseCorrectScopeWhenOuIsProvided()
     {
         return Stream.of(
-            Arguments.of( "OU: root", "SELECTED", rootOu, false, null ),
-            Arguments.of( "OU: capture", "SELECTED", captureOu, true, Arrays.asList( captureOu ) ),
-            Arguments.of( "OU: search", "SELECTED", searchOu, false, null ),
+            Arguments.of( "OU: root", "selected", rootOu, false, null ),
+            Arguments.of( "OU: capture", "SeLeCTeD", captureOu, true, Arrays.asList( captureOu ) ),
+            Arguments.of( "OU: search", "SELEcted", searchOu, false, null ),
             Arguments.of( "OU: data read", "SELECTED", dataReadOu, false, null ),
             Arguments.of( "OU: data read ( DESCENDANTS ) ", "DESCENDANTS", captureOu, true,
                 Arrays.asList( captureOu ) ) );
