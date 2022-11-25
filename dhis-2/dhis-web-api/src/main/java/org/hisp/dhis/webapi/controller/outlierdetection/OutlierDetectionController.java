@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @AllArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

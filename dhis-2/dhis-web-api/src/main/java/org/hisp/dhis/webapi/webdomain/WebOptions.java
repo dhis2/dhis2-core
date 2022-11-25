@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.webdomain;
 
 import java.util.Map;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.Options;
 import org.hisp.dhis.query.Junction;
@@ -36,6 +37,7 @@ import org.hisp.dhis.query.Junction;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 public class WebOptions
     extends Options
 {

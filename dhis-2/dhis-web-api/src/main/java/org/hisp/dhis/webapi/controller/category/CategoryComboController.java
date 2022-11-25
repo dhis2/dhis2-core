@@ -34,6 +34,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
 public class CategoryComboController

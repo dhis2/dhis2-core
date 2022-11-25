@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -74,6 +75,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

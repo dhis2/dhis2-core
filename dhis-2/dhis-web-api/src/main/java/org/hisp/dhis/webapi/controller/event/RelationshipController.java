@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
@@ -76,6 +77,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Stian Sandvold
  */
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RelationshipSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
