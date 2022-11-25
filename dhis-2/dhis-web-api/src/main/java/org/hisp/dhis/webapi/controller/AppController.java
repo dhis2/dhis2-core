@@ -47,6 +47,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -79,6 +80,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( AppController.RESOURCE_PATH )
 @Slf4j

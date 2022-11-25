@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataset.DataSetService;
@@ -70,6 +71,7 @@ import com.lowagie.text.pdf.PdfWriter;
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = "/pdfForm" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

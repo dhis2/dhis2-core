@@ -40,6 +40,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -74,6 +75,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( "/configuration" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
