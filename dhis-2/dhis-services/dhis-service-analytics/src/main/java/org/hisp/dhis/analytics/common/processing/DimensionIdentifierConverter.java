@@ -52,7 +52,7 @@ public class DimensionIdentifierConverter
      * this method will apply some conversions in order to build a
      * {@link DimensionIdentifier}.
      *
-     * @param programsAllowed list of programs allowed to be present in
+     * @param allowedPrograms list of programs allowed to be present in
      *        "fullDimensionId"
      * @param fullDimensionId string representation of a dimension. Examples:
      *        abcde[1].fghi[4].jklm, abcde.fghi.jklm, abcde.jklm or jklm
@@ -60,7 +60,7 @@ public class DimensionIdentifierConverter
      * @throws IllegalArgumentException if the programUid in the
      *         "fullDimensionId" does not belong the list of "programsAllowed"
      */
-    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> programsAllowed,
+    public DimensionIdentifier<Program, ProgramStage, StringUid> fromString( List<Program> allowedPrograms,
         String fullDimensionId )
     {
         DimensionIdentifier<StringUid, StringUid, StringUid> dimensionIdentifier = fromFullDimensionId(
@@ -69,7 +69,7 @@ public class DimensionIdentifierConverter
         Optional<Program> programOptional = Optional.of( dimensionIdentifier )
             .map( DimensionIdentifier::getProgram )
             .map( ElementWithOffset::getElement )
-            .flatMap( programUid -> programsAllowed.stream()
+            .flatMap( programUid -> allowedPrograms.stream()
                 .filter( program -> program.getUid().equals( programUid.getUid() ) )
                 .findFirst() );
 

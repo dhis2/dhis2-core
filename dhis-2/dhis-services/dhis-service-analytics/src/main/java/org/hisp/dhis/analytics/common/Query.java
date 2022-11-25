@@ -44,12 +44,12 @@ public interface Query
      *
      * @return the full query statement
      */
-    String statement();
+    String getStatement();
 
     /**
      * Returns the parameters used by the current statement.
      *
      * @return a map of params
      */
-    Map<String, Object> params();
+    Map<String, Object> getParams();
 }

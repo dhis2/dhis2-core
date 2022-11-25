@@ -33,6 +33,7 @@ import static org.springframework.util.Assert.notNull;
 import java.util.Map;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @EqualsAndHashCode
 @Slf4j
+@Getter
 public class SqlQuery implements Query
 {
     private final String statement;
@@ -61,17 +63,5 @@ public class SqlQuery implements Query
 
         log.debug( "STATEMENT: " + statement );
         log.debug( "PARAMS: " + params );
-    }
-
-    @Override
-    public String statement()
-    {
-        return statement;
-    }
-
-    @Override
-    public Map<String, Object> params()
-    {
-        return params;
     }
 }
