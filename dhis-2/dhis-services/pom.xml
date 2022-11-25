@@ -27,6 +27,7 @@
     <module>dhis-service-acl</module>
     <module>dhis-service-audit-consumer</module>
     <!-- Level 4 -->
+    <module>dhis-service-event-hook</module>
     <module>dhis-service-node</module>
     <!-- Level 5 -->
     <module>dhis-service-core</module>

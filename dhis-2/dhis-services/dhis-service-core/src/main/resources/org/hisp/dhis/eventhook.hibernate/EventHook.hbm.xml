@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.eventhook.EventHook" table="eventhook">
+
+        <cache usage="read-write" />
+
+        <id name="id" column="eventhookid">
+            <generator class="native" />
+        </id>
+        &identifiableProperties;
+
+        <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                     foreign-key="fk_eventhook_userid_userinfoid" />
+
+        <property name="translations" column="translations" type="jblTranslations"/>
+
+        <property name="sharing" column="sharing" type="jsbObjectSharing"/>
+
+        <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
+
+    </class>
+
+</hibernate-mapping>
