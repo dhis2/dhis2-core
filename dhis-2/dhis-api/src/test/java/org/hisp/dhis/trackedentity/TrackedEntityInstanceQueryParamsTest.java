@@ -27,34 +27,17 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.common.AssignedUserSelectionMode.CURRENT;
 import static org.hisp.dhis.common.AssignedUserSelectionMode.PROVIDED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collection;
 import java.util.Set;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 class TrackedEntityInstanceQueryParamsTest
 {
-
-    public static final String CURRENT_USER_UID = "Kj6vYde4LHh";
-
-    public static final String NON_CURRENT_USER_UID = "f1AyMswryyX";
-
-    public static final Set<String> NON_CURRENT_USER_UIDS = Set.of( NON_CURRENT_USER_UID );
 
     private TrackedEntityInstanceQueryParams params;
 
@@ -64,106 +47,19 @@ class TrackedEntityInstanceQueryParamsTest
     void setUp()
     {
         current = new User();
-        current.setUid( CURRENT_USER_UID );
+        current.setUid( "Kj6vYde4LHh" );
 
         params = new TrackedEntityInstanceQueryParams();
     }
 
     @Test
-    void testUserWithAssignedUsersGivenUsersAndModeProvided()
+    void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers()
     {
 
-        params.setUserWithAssignedUsers( null, PROVIDED, NON_CURRENT_USER_UIDS );
-
-        assertNull( params.getUser() );
-        assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
-        assertEquals( NON_CURRENT_USER_UIDS, params.getAssignedUsers() );
-    }
-
-    @Test
-    void testUserWithAssignedUsersGivenUsersAndNoMode()
-    {
-
-        params.setUserWithAssignedUsers( current, null, NON_CURRENT_USER_UIDS );
+        params.setUserWithAssignedUsers( current, PROVIDED, Set.of( "f1AyMswryyX" ) );
 
         assertEquals( current, params.getUser() );
-        assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
-        assertEquals( NON_CURRENT_USER_UIDS, params.getAssignedUsers() );
+        assertEquals( PROVIDED, params.getAssignedUserQueryParam().getMode() );
+        assertEquals( Set.of( "f1AyMswryyX" ), params.getAssignedUserQueryParam().getAssignedUsers() );
     }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersGivenNoModeAndNoUsers( Set<String> users )
-    {
-
-        params.setUserWithAssignedUsers( current, null, users );
-
-        assertEquals( current, params.getUser() );
-        assertNull( params.getAssignedUserSelectionMode() );
-        assertIsEmpty( params.getAssignedUsers() );
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersFailsGivenNoUsersAndProvided( Set<String> users )
-    {
-
-        assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( current, PROVIDED, users ) );
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    void testUserWithAssignedUsersGivenCurrentUserAndModeCurrentAndUsersNull( Set<String> users )
-    {
-
-        params.setUserWithAssignedUsers( current, CURRENT, users );
-
-        assertEquals( current, params.getUser() );
-        assertEquals( PROVIDED, params.getAssignedUserSelectionMode() );
-        assertEquals( Set.of( CURRENT_USER_UID ), params.getAssignedUsers() );
-    }
-
-    @Test
-    void testUserWithAssignedUsersFailsGivenNoCurrentUserAndModeCurrent()
-    {
-
-        assertThrows( IllegalQueryException.class, () -> params.setUserWithAssignedUsers( null, CURRENT, null ) );
-    }
-
-    @Test
-    void testUserWithAssignedUsersFailsGivenCurrentUserAndModeCurrentAndNonEmptyUsers()
-    {
-
-        assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( current, CURRENT, NON_CURRENT_USER_UIDS ) );
-    }
-
-    @ParameterizedTest
-    @EnumSource( value = AssignedUserSelectionMode.class, mode = EnumSource.Mode.EXCLUDE, names = "PROVIDED" )
-    void testUserWithAssignedUsersFailsGivenUsersAndModeOtherThanProvided( AssignedUserSelectionMode mode )
-    {
-
-        assertThrows( IllegalQueryException.class,
-            () -> params.setUserWithAssignedUsers( null, mode, NON_CURRENT_USER_UIDS ) );
-    }
-
-    @ParameterizedTest
-    @EnumSource( value = AssignedUserSelectionMode.class, mode = EnumSource.Mode.EXCLUDE, names = { "PROVIDED",
-        "CURRENT" } )
-    void testUserWithAssignedUsersGivenNullUsersAndModeOtherThanProvided( AssignedUserSelectionMode mode )
-    {
-        params.setUserWithAssignedUsers( current, mode, null );
-
-        assertEquals( current, params.getUser() );
-        assertEquals( mode, params.getAssignedUserSelectionMode() );
-        assertIsEmpty( params.getAssignedUsers() );
-    }
-
-    private static void assertIsEmpty( Collection<?> actual )
-    {
-        assertNotNull( actual );
-        assertTrue( actual.isEmpty(), actual.toString() );
-    }
-
 }

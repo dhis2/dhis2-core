@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,8 +43,8 @@ import lombok.Getter;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -187,12 +186,8 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Selection mode for user assignment of events.
      */
-    private AssignedUserSelectionMode assignedUserSelectionMode;
-
-    /**
-     * Set of user ids to filter based on events assigned to the users.
-     */
-    private Set<String> assignedUsers = new HashSet<>();
+    @Getter
+    private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
     /**
      * Set of tei uids to explicitly select.
@@ -403,21 +398,6 @@ public class TrackedEntityInstanceQueryParams
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
 
-    public boolean hasAssignedUsers()
-    {
-        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
-    }
-
-    public boolean isIncludeOnlyUnassignedEvents()
-    {
-        return AssignedUserSelectionMode.NONE == this.assignedUserSelectionMode;
-    }
-
-    public boolean isIncludeOnlyAssignedEvents()
-    {
-        return AssignedUserSelectionMode.ANY == this.assignedUserSelectionMode;
-    }
-
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
@@ -426,7 +406,9 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasFilterForEvents()
     {
-        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents()
+        return this.getAssignedUserQueryParam().hasAssignedUsers()
+            || AssignedUserSelectionMode.ANY == this.getAssignedUserQueryParam().getMode()
+            || AssignedUserSelectionMode.NONE == this.getAssignedUserQueryParam().getMode()
             || hasEventStatus();
     }
 
@@ -840,8 +822,7 @@ public class TrackedEntityInstanceQueryParams
             .add( "programIncidentEndDate", programIncidentEndDate )
             .add( "trackedEntityType", trackedEntityType )
             .add( "organisationUnitMode", organisationUnitMode )
-            .add( "assignedUserSelectionMode", assignedUserSelectionMode )
-            .add( "assignedUsers", assignedUsers )
+            .add( "assignedUserQueryParam", assignedUserQueryParam )
             .add( "eventStatus", eventStatus )
             .add( "eventStartDate", eventStartDate )
             .add( "eventEndDate", eventEndDate )
@@ -1217,12 +1198,6 @@ public class TrackedEntityInstanceQueryParams
         return user;
     }
 
-    public TrackedEntityInstanceQueryParams setUser( User user )
-    {
-        this.user = user;
-        return this;
-    }
-
     public List<OrderParam> getOrders()
     {
         return orders;
@@ -1231,11 +1206,6 @@ public class TrackedEntityInstanceQueryParams
     public void setOrders( List<OrderParam> orders )
     {
         this.orders = orders;
-    }
-
-    public AssignedUserSelectionMode getAssignedUserSelectionMode()
-    {
-        return assignedUserSelectionMode;
     }
 
     public Set<String> getTrackedEntityInstanceUids()
@@ -1247,11 +1217,6 @@ public class TrackedEntityInstanceQueryParams
     {
         this.trackedEntityInstanceUids = trackedEntityInstanceUids;
         return this;
-    }
-
-    public Set<String> getAssignedUsers()
-    {
-        return assignedUsers;
     }
 
     /**
@@ -1267,43 +1232,8 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( User current, AssignedUserSelectionMode mode,
         Set<String> assignedUsers )
     {
-        if ( mode == AssignedUserSelectionMode.CURRENT && current == null )
-        {
-            throw new IllegalQueryException(
-                "Current user must be specified if selectionMode is CURRENT" );
-        }
-        if ( mode == AssignedUserSelectionMode.PROVIDED && (assignedUsers == null || assignedUsers.isEmpty()) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) must be specified if selectionMode is PROVIDED" );
-        }
-        // we default the mode to PROVIDED in case mode is null but users are
-        // given
-        if ( mode != null && mode != AssignedUserSelectionMode.PROVIDED
-            && (assignedUsers != null && !assignedUsers.isEmpty()) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-
+        this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );
         this.user = current;
-
-        if ( mode == AssignedUserSelectionMode.CURRENT )
-        {
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-            this.assignedUsers = Collections.singleton( current.getUid() );
-        }
-        else if ( (mode == null || mode == AssignedUserSelectionMode.PROVIDED)
-            && (assignedUsers != null && !assignedUsers.isEmpty()) )
-        {
-            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
-            this.assignedUsers = assignedUsers;
-        }
-        else
-        {
-            this.assignedUserSelectionMode = mode;
-        }
-
         return this;
     }
 
@@ -1315,12 +1245,6 @@ public class TrackedEntityInstanceQueryParams
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
-    }
-
-    public boolean hasFilterForPrograms()
-    {
-        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
-            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
     }
 
     @Getter

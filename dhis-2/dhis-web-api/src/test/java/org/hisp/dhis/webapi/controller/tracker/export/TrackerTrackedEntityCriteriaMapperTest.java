@@ -222,7 +222,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertThat( params.getEventStatus(), is( EventStatus.COMPLETED ) );
         assertThat( params.getEventStartDate(), is( criteria.getEventOccurredAfter() ) );
         assertThat( params.getEventEndDate(), is( criteria.getEventOccurredBefore() ) );
-        assertThat( params.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
+        assertThat( params.getAssignedUserQueryParam().getMode(), is( AssignedUserSelectionMode.PROVIDED ) );
         assertThat( params.isIncludeDeleted(), is( true ) );
         assertThat( params.isIncludeAllAttributes(), is( true ) );
         assertTrue( params.getOrders().stream().anyMatch( orderParam -> orderParam
@@ -460,8 +460,9 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
-        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ), params.getAssignedUsers() );
-        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserSelectionMode() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
