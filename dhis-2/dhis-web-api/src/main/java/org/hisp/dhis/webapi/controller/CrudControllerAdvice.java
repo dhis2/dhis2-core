@@ -119,11 +119,11 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
-    private final List<Class<?>> enumKlasses;
+    private final List<Class<?>> enumClasses;
 
     public CrudControllerAdvice()
     {
-        this.enumKlasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+        this.enumClasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
             .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
     }
 
@@ -132,7 +132,7 @@ public class CrudControllerAdvice
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
-        this.enumKlasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+        this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -482,18 +482,18 @@ public class CrudControllerAdvice
 
     private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
     {
-        private Class<T> enumKlass;
+        private Class<T> enumClass;
 
-        private ConvertEnum( Class<T> enumKlass )
+        private ConvertEnum( Class<T> enumClass )
         {
-            this.enumKlass = enumKlass;
+            this.enumClass = enumClass;
         }
 
         @Override
         public void setAsText( String text )
             throws IllegalArgumentException
         {
-            Enum<T> enumValue = EnumUtils.getEnum( enumKlass, text.toUpperCase() );
+            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
 
             setValue( enumValue != null ? enumValue : text );
         }
