@@ -90,7 +90,7 @@ public class DefaultSecurityService
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
-    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 24;
+    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 16;
 
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
