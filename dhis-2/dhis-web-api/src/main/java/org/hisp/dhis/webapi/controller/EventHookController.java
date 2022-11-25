@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.EventHookService;
 import org.hisp.dhis.schema.descriptors.EventHookSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,4 +47,5 @@ import org.springframework.web.bind.annotation.RestController;
 public class EventHookController
     extends AbstractCrudController<EventHook>
 {
+    private final EventHookService eventHookService;
 }
