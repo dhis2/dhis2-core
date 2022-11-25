@@ -20,10 +20,16 @@
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_eventhook_userid_userinfoid"/>
 
+        <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby"
+                     foreign-key="fk_eventhook_lastupdateby_userinfoid" />
+
+        <!-- Translations -->
         <property name="translations" column="translations" type="jblTranslations"/>
 
+        <!-- Sharing -->
         <property name="sharing" column="sharing" type="jsbObjectSharing"/>
 
+        <!-- Dynamic attribute values -->
         <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
 
     </class>
