@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -66,7 +65,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping( "/metadata/sync" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataSyncController
-    extends CrudControllerAdvice
 {
     @Autowired
     private ContextService contextService;

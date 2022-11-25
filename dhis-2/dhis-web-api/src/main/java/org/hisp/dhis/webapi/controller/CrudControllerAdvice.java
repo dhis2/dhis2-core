@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -119,15 +120,21 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
+    private final List<Class<?>> enumKlasses;
+
+    public CrudControllerAdvice()
+    {
+        this.enumKlasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
+    }
+
     @InitBinder
     protected void initBinder( WebDataBinder binder )
         throws IOException
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
-        new ClassGraph().acceptPackages( "org.hisp.dhis" )
-            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses()
-            .forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+        this.enumKlasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
     @ExceptionHandler( RestClientException.class )
