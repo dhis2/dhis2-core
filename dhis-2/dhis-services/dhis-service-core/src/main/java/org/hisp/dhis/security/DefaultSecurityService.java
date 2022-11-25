@@ -252,7 +252,7 @@ public class DefaultSecurityService
             user.setUsername( username );
         }
 
-        String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
+        String rawPassword = "Inv!t3#" + CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
