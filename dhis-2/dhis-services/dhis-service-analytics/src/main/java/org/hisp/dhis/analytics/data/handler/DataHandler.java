@@ -1155,15 +1155,11 @@ public class DataHandler
     private void addIndicatorValuesToGrid( DataQueryParams params, Grid grid, DataQueryParams dataSourceParams,
         Indicator indicator, List<DimensionItem> dimensionItems, IndicatorValue value )
     {
-        if ( value == null )
-        {
-            return;
-        }
 
-        List<DimensionItem> row = new ArrayList<>( dimensionItems );
-
-        if ( satisfiesMeasureCriteria( params, value, indicator ) )
+        if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
         {
+            List<DimensionItem> row = new ArrayList<>( dimensionItems );
+
             row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
             grid.addRow()
