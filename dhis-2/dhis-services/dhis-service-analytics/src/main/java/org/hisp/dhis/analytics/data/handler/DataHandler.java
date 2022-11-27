@@ -234,6 +234,7 @@ public class DataHandler
                 .withIncludeNumDen( false ).build();
 
             List<Indicator> indicators = resolveIndicatorExpressions( dataSourceParams );
+
             addIndicatorValues( params, dataSourceParams, indicators, grid );
         }
     }
@@ -256,27 +257,41 @@ public class DataHandler
             List<ExpressionDimensionItem> expressionDimensionItems = resolveExpressionDimensionItemExpressions(
                 dataSourceParams );
 
-            List<Indicator> indicators = expressionDimensionItems.stream()
-                .map( edi -> {
-                    IndicatorType indicatorType = new IndicatorType();
-                    indicatorType.setNumber( true );
-                    indicatorType.setFactor( 1 );
-                    Indicator indicator = new Indicator();
-                    indicator.setUid( edi.getUid() );
-                    indicator.setName( edi.getName() );
-                    indicator.setCode( edi.getCode() );
-                    indicator.setIndicatorType( indicatorType );
-                    indicator.setNumerator( edi.getExpression() );
-                    indicator.setNumeratorDescription( edi.getDescription() );
-                    indicator.setDenominator( "1" );
-                    indicator.setDecimals( 0 );
-                    indicator.setAnnualized( false );
-
-                    return indicator;
-                } ).collect( toList() );
+            List<Indicator> indicators = expressionDimensionItemsToIndicators( expressionDimensionItems );
 
             addIndicatorValues( params, dataSourceParams, indicators, grid );
         }
+    }
+
+    /**
+     * Transform expression dimension item object in the indicator object with
+     * some default values missing in expression dimension item
+     *
+     * @param expressionDimensionItems
+     * @return
+     */
+    private List<Indicator> expressionDimensionItemsToIndicators(
+        List<ExpressionDimensionItem> expressionDimensionItems )
+    {
+        return expressionDimensionItems.stream()
+            .map( edi -> {
+                IndicatorType indicatorType = new IndicatorType();
+                indicatorType.setNumber( true );
+                indicatorType.setFactor( 1 );
+
+                Indicator indicator = new Indicator();
+                indicator.setUid( edi.getUid() );
+                indicator.setName( edi.getName() );
+                indicator.setCode( edi.getCode() );
+                indicator.setIndicatorType( indicatorType );
+                indicator.setNumerator( edi.getExpression() );
+                indicator.setNumeratorDescription( edi.getDescription() );
+                indicator.setDenominator( "1" );
+                indicator.setDecimals( 0 );
+                indicator.setAnnualized( false );
+
+                return indicator;
+            } ).collect( toList() );
     }
 
     private void addIndicatorValues( DataQueryParams dataQueryParams, DataQueryParams dataSourceParams,
