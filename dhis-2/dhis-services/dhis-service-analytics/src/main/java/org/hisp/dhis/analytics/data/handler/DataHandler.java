@@ -972,7 +972,7 @@ public class DataHandler
      * Resolves expressions of expression dimension items in the data query.
      *
      * @param params the {@link DataQueryParams}.
-     * @return the resolved list of indicators.
+     * @return the resolved list of expression dimension items.
      */
     private List<ExpressionDimensionItem> resolveExpressionDimensionItemExpressions( DataQueryParams params )
     {
