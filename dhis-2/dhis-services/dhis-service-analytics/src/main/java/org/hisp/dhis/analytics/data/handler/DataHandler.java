@@ -151,6 +151,7 @@ import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -254,45 +255,30 @@ public class DataHandler
 
             List<ExpressionDimensionItem> expressionDimensionItems = resolveExpressionDimensionItemExpressions(
                 dataSourceParams );
-            addExpressionDimensionItemValues( params, dataSourceParams, expressionDimensionItems, grid );
+
+            List<Indicator> indicators = expressionDimensionItems.stream()
+                .map( edi -> {
+                    IndicatorType indicatorType = new IndicatorType();
+                    indicatorType.setNumber( true );
+                    indicatorType.setFactor( 1 );
+                    Indicator indicator = new Indicator();
+                    indicator.setUid( edi.getUid() );
+                    indicator.setName( edi.getName() );
+                    indicator.setCode( edi.getCode() );
+                    indicator.setIndicatorType( indicatorType );
+                    indicator.setNumerator( edi.getExpression() );
+                    indicator.setNumeratorDescription( edi.getDescription() );
+                    indicator.setDenominator( "1" );
+                    indicator.setDecimals( 0 );
+                    indicator.setAnnualized( false );
+
+                    return indicator;
+                } ).collect( toList() );
+
+            // addIndicatorValues( params, dataSourceParams,
+            // expressionDimensionItems, grid );
+            addIndicatorValues( params, dataSourceParams, indicators, grid );
         }
-    }
-
-    private void addExpressionDimensionItemValues( DataQueryParams params, DataQueryParams dataSourceParams,
-        List<ExpressionDimensionItem> expressionDimensionItems, Grid grid )
-    {
-        List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
-            ? dataSourceParams.getTypedFilterPeriods()
-            : dataSourceParams.getStartEndDatesToSingleList();
-
-        Map<String, Map<String, Integer>> permutationOrgUnitTargetMap = getOrgUnitTargetMap( dataSourceParams,
-            expressionDimensionItems );
-
-        List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
-
-        Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
-            .getIndicatorDimensionalItemMap( expressionDimensionItems );
-
-        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap(
-            params, new ArrayList<>( itemMap.values() ) );
-
-        handleEmptyDimensionItemPermutations( dimensionItemPermutations );
-
-        for ( ExpressionDimensionItem item : expressionDimensionItems )
-        {
-            for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
-            {
-                // IndicatorValue value = getIndicatorValue( filterPeriods,
-                // itemMap,
-                // permutationOrgUnitTargetMap,
-                // permutationDimensionItemValueMap, indicator, dimensionItems
-                // );
-                //
-                // addIndicatorValuesToGrid( params, grid, dataSourceParams,
-                // indicator, dimensionItems, value );
-            }
-        }
-        return;
     }
 
     private void addIndicatorValues( DataQueryParams dataQueryParams, DataQueryParams dataSourceParams,
@@ -1156,10 +1142,15 @@ public class DataHandler
     private void addIndicatorValuesToGrid( DataQueryParams params, Grid grid, DataQueryParams dataSourceParams,
         Indicator indicator, List<DimensionItem> dimensionItems, IndicatorValue value )
     {
-        if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
+        if ( value == null )
         {
-            List<DimensionItem> row = new ArrayList<>( dimensionItems );
+            return;
+        }
 
+        List<DimensionItem> row = new ArrayList<>( dimensionItems );
+
+        if ( satisfiesMeasureCriteria( params, value, indicator ) )
+        {
             row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
             grid.addRow()
