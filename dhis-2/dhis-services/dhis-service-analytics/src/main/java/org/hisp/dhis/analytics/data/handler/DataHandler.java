@@ -275,8 +275,6 @@ public class DataHandler
                     return indicator;
                 } ).collect( toList() );
 
-            // addIndicatorValues( params, dataSourceParams,
-            // expressionDimensionItems, grid );
             addIndicatorValues( params, dataSourceParams, indicators, grid );
         }
     }
@@ -905,14 +903,14 @@ public class DataHandler
      * unit group and counts.
      *
      * @param params the {@link DataQueryParams}.
-     * @param items the indicators for which formulas to scan for organisation
-     *        unit groups.
+     * @param indicators the indicators for which formulas to scan for
+     *        organisation unit groups.
      * @return a map of maps.
      */
-    private <T> Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params,
-        Collection<T> items )
+    private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params,
+        Collection<Indicator> indicators )
     {
-        List<OrganisationUnitGroup> orgUnitGroups = expressionService.getOrgUnitGroupCountGroups( items );
+        List<OrganisationUnitGroup> orgUnitGroups = expressionService.getOrgUnitGroupCountGroups( indicators );
 
         if ( orgUnitGroups.isEmpty() )
         {

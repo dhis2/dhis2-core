@@ -115,7 +115,7 @@ public interface ExpressionService
      * @param indicators the collection of indicators.
      * @return a map from dimensional item id to object.
      */
-    <T> Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap( Collection<T> items );
+    Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap( Collection<Indicator> indicators );
 
     /**
      * Returns all OrganisationUnitGroups in the numerator and denominator
@@ -125,7 +125,7 @@ public interface ExpressionService
      * @param indicators the set of indicators.
      * @return a Set of OrganisationUnitGroups.
      */
-    <T> List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<T> indicators );
+    List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators );
 
     /**
      * Generates the calculated value for the given parameters based on the
