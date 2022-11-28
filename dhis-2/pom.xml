@@ -125,7 +125,7 @@
     <jfreechart.version>1.5.0</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>4.1.1</poi.version>
+    <poi.version>5.2.3</poi.version>
     <jacoco.version>0.8.2</jacoco.version>
     <itext.version>2.1.7</itext.version>
     <jclouds.version>2.5.0</jclouds.version>
