@@ -240,7 +240,7 @@ public class DataHandler
     }
 
     /**
-     * Adds indicator values to the given grid based on the given data query
+     * Adds expressions values to the given grid based on the given data query
      * parameters.
      *
      * @param params the {@link DataQueryParams}.
@@ -287,7 +287,7 @@ public class DataHandler
                 indicator.setNumerator( edi.getExpression() );
                 indicator.setNumeratorDescription( edi.getDescription() );
                 indicator.setDenominator( "1" );
-                indicator.setDecimals( 0 );
+                indicator.setDecimals( 1 );
                 indicator.setAnnualized( false );
 
                 return indicator;
