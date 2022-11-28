@@ -44,6 +44,14 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 {
     private final SystemSettingManager systemSettingManager;
 
+    /**
+     * Based on the given query request object {@link CommonQueryRequest}, this
+     * method will process/compute existing values in the request object, and
+     * populated all necessary attributes of this same object.
+     *
+     * @param commonQueryRequest
+     * @return the processed {@link CommonQueryRequest}
+     */
     @Override
     public CommonQueryRequest process( final CommonQueryRequest commonQueryRequest )
     {
@@ -57,8 +65,9 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
         if ( commonQueryRequest.isPaging() )
         {
-            if ( commonQueryRequest.getPageSize() != null && maxLimit > 0 &&
-                commonQueryRequest.getPageSize() > maxLimit )
+            boolean hasMaxLimit = commonQueryRequest.getPageSize() != null && maxLimit > 0;
+
+            if ( hasMaxLimit && commonQueryRequest.getPageSize() > maxLimit )
             {
                 return maxLimit;
             }

@@ -29,7 +29,10 @@ package org.hisp.dhis.analytics.tei.query.context;
 
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
-import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.*;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.PI_UID;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
+import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_UID;
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enrollmentSelect;
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.eventSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
@@ -69,17 +72,15 @@ class StaticEventSortingContext
         return SortingContext.builder()
             .field( Field.of( uniqueAlias, sortingDimension::getUid, render ) )
             .order( () -> render + SPACE + param.getSortDirection().name() )
-            .leftJoin(
-                Pair.of(
-                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
-                        + enrollmentAlias,
-                    fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
-            .leftJoin(
-                Pair.of(
-                    () -> "("
-                        + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
-                        + ") "
-                        + uniqueAlias,
-                    fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
+            .leftJoin( Pair.of(
+                () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
+                    + enrollmentAlias,
+                fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
+            .leftJoin( Pair.of(
+                () -> "("
+                    + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
+                    + ") "
+                    + uniqueAlias,
+                fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
     }
 }

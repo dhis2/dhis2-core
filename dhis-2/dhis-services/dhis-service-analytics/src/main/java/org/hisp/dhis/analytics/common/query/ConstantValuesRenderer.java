@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static java.util.Collections.singleton;
 import static java.util.function.Predicate.isEqual;
 import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,7 @@ public class ConstantValuesRenderer extends BaseRenderable
 
     private String renderSingleValue( Object value )
     {
-        return renderCollection( Collections.singleton( value ) );
+        return renderCollection( singleton( value ) );
     }
 
     private String renderCollection( Collection<?> values )
@@ -86,11 +87,11 @@ public class ConstantValuesRenderer extends BaseRenderable
             .map( Object::toString )
             .filter( not( isEqual( NV ) ) )
             .map( argumentTransformer )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( valuesAsStringList.isEmpty() )
         {
-            return "";
+            return EMPTY;
         }
 
         if ( valuesAsStringList.size() > 1 )

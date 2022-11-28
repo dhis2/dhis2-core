@@ -27,31 +27,36 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static lombok.AccessLevel.PACKAGE;
 import static org.hisp.dhis.analytics.common.dimension.DimensionIdentifier.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.feedback.ErrorCode.E2037;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Singular;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType;
-import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.JoinsWithConditions;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-@Builder( access = AccessLevel.PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
+@Builder( access = PACKAGE, builderClassName = "PrivateBuilder", toBuilder = true )
 public class SortingContext
 {
-
     @Getter
     @Singular
     private final List<Field> fields;
@@ -134,7 +139,7 @@ public class SortingContext
             }
             else
             {
-                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2037, param.getOrderBy().getDimension()
+                throw new IllegalQueryException( new ErrorMessage( E2037, param.getOrderBy().getDimension()
                     .getDimensionParamObjectType() ) );
             }
         }
@@ -165,12 +170,10 @@ public class SortingContext
             // desc=pUid.dimension)
             String column = doubleQuote( param.getOrderBy().getDimension().getUid() );
             return builder
-                .order(
-                    () -> Field.of(
-                        TEI_ALIAS,
-                        () -> column + SPACE + param.getSortDirection().name(),
-                        EMPTY )
-                        .render() );
+                .order( () -> Field.of( TEI_ALIAS,
+                    () -> column + SPACE + param.getSortDirection().name(),
+                    EMPTY )
+                    .render() );
         }
     }
 }

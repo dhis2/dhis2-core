@@ -27,15 +27,23 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
-import static org.hisp.dhis.common.QueryOperator.*;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.LE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
+import static org.hisp.dhis.feedback.ErrorCode.E2035;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,7 +51,6 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.feedback.ErrorCode;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class BinaryConditionRenderer extends BaseRenderable
@@ -83,6 +90,7 @@ public class BinaryConditionRenderer extends BaseRenderable
         {
             return InOrEqConditionRenderer.of( left, right ).render();
         }
+
         // NE / NEQ
         if ( NEQ == queryOperator )
         {
@@ -96,12 +104,14 @@ public class BinaryConditionRenderer extends BaseRenderable
                     NotEqConditionRenderer.of( left, right ) ) )
                 .render();
         }
+
         // LIKE / ILIKE
         if ( LikeOperatorMapper.likeOperators().contains( queryOperator ) )
         {
             return NullValueAwareConditionRenderer.of(
                 LikeOperatorMapper.of( queryOperator ), left, right ).render();
         }
+
         // NLIKE / NILIKE
         if ( NLIKE == queryOperator || NILIKE == queryOperator )
         {
@@ -113,7 +123,8 @@ public class BinaryConditionRenderer extends BaseRenderable
             return OrCondition.of(
                 List.of(
                     IsNullConditionRenderer.of( left, true ),
-                    NLIKE == queryOperator ? NotLikeConditionRenderer.of( left, right )
+                    NLIKE == queryOperator
+                        ? NotLikeConditionRenderer.of( left, right )
                         : NotILikeConditionRenderer.of( left, right ) ) )
                 .render();
         }
@@ -122,7 +133,8 @@ public class BinaryConditionRenderer extends BaseRenderable
         {
             return left.render() + SPACE + queryOperator.getValue() + SPACE + right.render();
         }
-        throw new IllegalQueryException( ErrorCode.E2035, queryOperator );
+
+        throw new IllegalQueryException( E2035, queryOperator );
     }
 
     @RequiredArgsConstructor
@@ -148,7 +160,7 @@ public class BinaryConditionRenderer extends BaseRenderable
         {
             return Arrays.stream( values() )
                 .map( likeOperatorMapper -> likeOperatorMapper.queryOperator )
-                .collect( Collectors.toList() );
+                .collect( toList() );
         }
     }
 }

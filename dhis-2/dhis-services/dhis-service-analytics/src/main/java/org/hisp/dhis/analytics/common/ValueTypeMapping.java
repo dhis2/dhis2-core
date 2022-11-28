@@ -28,46 +28,62 @@
 package org.hisp.dhis.analytics.common;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TIME;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.util.DateUtils;
 
+/**
+ * This enum helps with the mapping between the existing value types defined in
+ * {@link ValueType} and the database types.
+ *
+ * It represents the database types associated with all possible
+ * {@link ValueType}, and provides a function where it can be converted into
+ * Java types.
+ */
 public enum ValueTypeMapping
 {
     NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
-    DECIMAL( BigDecimal::new, ValueType.NUMBER ),
+    DECIMAL( BigDecimal::new, NUMBER ),
     STRING( s -> s ),
     TEXT( s -> s ),
-    DATE( ValueTypeMapping::dateConverter, ValueType.DATE, ValueType.DATETIME, ValueType.TIME );
+    DATE( ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME );
 
     private static Date dateConverter( String dateAsString )
     {
-        return DateUtils.getMediumDate( dateAsString );
+        return getMediumDate( dateAsString );
     }
 
     private final Function<String, Object> converter;
 
     private final ValueType[] valueTypes;
 
-    ValueTypeMapping(
-        Function<String, Object> converter,
-        ValueType... valueTypes )
+    ValueTypeMapping( Function<String, Object> converter, ValueType... valueTypes )
     {
         this.converter = converter;
         this.valueTypes = valueTypes;
     }
 
+    /**
+     * Finds the associated {@link ValueTypeMapping} for the given
+     * {@link ValueType},
+     *
+     * @param valueType the {@link ValueType}
+     * @return the respective ValueTypeMapping, or default to TEXT
+     */
     public static ValueTypeMapping fromValueType( ValueType valueType )
     {
         return stream( values() )
@@ -82,15 +98,29 @@ public enum ValueTypeMapping
             .anyMatch( vt -> vt == valueType );
     }
 
-    public Object convertSingle( String s )
+    /**
+     * Converts the "value" into a Java representation, based on the internal
+     * converter function.
+     *
+     * @param value the value to be converted
+     * @return the respective Java object
+     */
+    public Object convertSingle( String value )
     {
-        return converter.apply( s );
+        return converter.apply( value );
     }
 
-    public Object convertMany( List<String> values )
+    /**
+     * Converts all "values" into a Java representation, based on the internal
+     * converter function.
+     *
+     * @param values the {@link List} of values to be converted
+     * @return the respective Java object
+     */
+    public List<Object> convertMany( List<String> values )
     {
         return values.stream()
             .map( converter )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 }

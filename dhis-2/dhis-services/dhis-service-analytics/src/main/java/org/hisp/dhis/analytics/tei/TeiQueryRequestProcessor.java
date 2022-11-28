@@ -33,14 +33,17 @@ import org.hisp.dhis.analytics.common.processing.Processor;
 import org.springframework.stereotype.Component;
 
 /**
- * Processor class for TeiQueryRequest objects.
+ * Processor class for {@link TeiQueryRequest} objects.
+ *
+ * @see org.hisp.dhis.analytics.common.processing.Processor
  */
 @Component
 @RequiredArgsConstructor
 public class TeiQueryRequestProcessor implements Processor<TeiQueryRequest>
 {
     /**
-     * A hook to transform a QueryRequest before mapping it into parameters.
+     * A hook to transform a {@link TeiQueryRequest} before mapping it into
+     * parameters.
      *
      * @param queryRequest the {@link TeiQueryRequest}.
      * @return a queryRequestHolder where inner components might have changed.

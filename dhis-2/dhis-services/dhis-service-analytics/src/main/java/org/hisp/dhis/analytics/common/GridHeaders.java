@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.ArrayList;
 import java.util.Set;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.Grid;
 
@@ -41,12 +44,9 @@ import org.hisp.dhis.common.Grid;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class GridHeaders
 {
-    private GridHeaders()
-    {
-    }
-
     /**
      * This method will retain the given headers in the give Grid. If the set of
      * headers provided is null or empty, no changes will be made to the Grid.

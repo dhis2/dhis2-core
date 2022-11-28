@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.query.BinaryConditionRenderer.fieldsEqual;
 import static org.hisp.dhis.analytics.common.query.QuotingUtils.doubleQuote;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
@@ -37,13 +39,10 @@ import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.enro
 import static org.hisp.dhis.analytics.tei.query.context.SortingContextUtils.eventSelect;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
-import java.util.Collections;
-
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.common.AnalyticsSortingParams;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Renderable;
@@ -66,30 +65,25 @@ public class EventDataValuesSortingContext
     public SortingContext.PrivateBuilder getSortingContextBuilder()
     {
         DimensionIdentifier<Program, ProgramStage, DimensionParam> di = param.getOrderBy();
-
         DimensionParam sortingDimension = di.getDimension();
-
         String uniqueAlias = doubleQuote( sortingDimension.getUid() + "_" + sequence );
-
         String enrollmentAlias = ENR_ALIAS + "_" + sequence;
 
         Renderable renderable = RenderableDataValue.of( uniqueAlias, sortingDimension.getUid(),
-            ValueTypeMapping.fromValueType( sortingDimension.getValueType() ) );
+            fromValueType( sortingDimension.getValueType() ) );
 
         return SortingContext.builder()
-            .fields( Collections.emptyList() )
+            .fields( emptyList() )
             .order( () -> renderable.render() + SPACE + param.getSortDirection().name() )
-            .leftJoin(
-                Pair.of(
-                    () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
-                        + enrollmentAlias,
-                    fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
-            .leftJoin(
-                Pair.of(
-                    () -> "("
-                        + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
-                        + ") "
-                        + uniqueAlias,
-                    fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
+            .leftJoin( Pair.of(
+                () -> "(" + enrollmentSelect( di.getProgram(), trackedEntityType, parameterManager ) + ") "
+                    + enrollmentAlias,
+                fieldsEqual( TEI_ALIAS, TEI_UID, enrollmentAlias, TEI_UID ) ) )
+            .leftJoin( Pair.of(
+                () -> "("
+                    + eventSelect( di.getProgram(), di.getProgramStage(), trackedEntityType, parameterManager )
+                    + ") "
+                    + uniqueAlias,
+                fieldsEqual( enrollmentAlias, PI_UID, uniqueAlias, PI_UID ) ) );
     }
 }

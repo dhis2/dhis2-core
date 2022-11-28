@@ -77,6 +77,7 @@ public class TeiFields
             " from programinstance pi_0, program p_0" +
             " where pi_0.trackedentityinstanceid = " + TEI_ALIAS + ".trackedentityinstanceid" +
             " and p_0.programid = pi_0.programid)", "enrollments", "Enrollments", TEXT );
+
         private final String query;
 
         private final String alias;
@@ -100,6 +101,7 @@ public class TeiFields
         LATITUDE( "latitude", "Latitude", NUMBER ),
         ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
         ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT );
+
         private final String alias;
 
         private final String fullName;
@@ -109,7 +111,7 @@ public class TeiFields
 
     public static Stream<Field> getDimensionFields( final TeiQueryParams teiQueryParams )
     {
-        // TODO remove next line when attributes match those in the table.
+        // TODO: remove next line when attributes match those in the table.
         final List<String> notGeneratedColumns = List.of( "Jdd8hMStmvF", "EGn5VqU7pHv", "JBJ3AWsrg9P" );
 
         // TET and program attribute fields
@@ -124,7 +126,7 @@ public class TeiFields
             .map( BaseIdentifiableObject::getUid )
             // distinct to remove overlapping attributes
             .distinct()
-            // TODO remove next line when attributes match those in the table.
+            // TODO: remove next line when attributes match those in the table.
             .filter( uid -> !notGeneratedColumns.contains( uid ) )
             .map( attributeUid -> "\"" + attributeUid + "\"" )
             .map( a -> Field.of( TEI_ALIAS, () -> a, a ) );

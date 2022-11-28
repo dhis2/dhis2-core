@@ -38,7 +38,10 @@ import java.util.List;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.dimension.DimensionParamItem;
-import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -61,7 +64,6 @@ public class OrganisationUnitCondition extends AbstractCondition
         super( dimensionIdentifier, queryContext );
         this.queryContext = queryContext;
         this.dimensionIdentifier = dimensionIdentifier;
-
     }
 
     public static OrganisationUnitCondition of(
@@ -78,7 +80,6 @@ public class OrganisationUnitCondition extends AbstractCondition
      *
      * @return the SQL statement
      */
-
     @Override
     protected Renderable getTeiCondition()
     {
@@ -94,6 +95,7 @@ public class OrganisationUnitCondition extends AbstractCondition
                 queryContext );
             orgUnitConditions.add( condition );
         }
+
         return AndCondition.of( orgUnitConditions );
     }
 
@@ -156,6 +158,7 @@ public class OrganisationUnitCondition extends AbstractCondition
                 queryContext );
             orgUnitConditions.add( condition );
         }
+
         return AndCondition.of( orgUnitConditions );
     }
 }

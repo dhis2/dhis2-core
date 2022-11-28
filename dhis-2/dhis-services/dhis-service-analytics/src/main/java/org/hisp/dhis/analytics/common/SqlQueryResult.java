@@ -33,6 +33,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
+ * @see org.hisp.dhis.analytics.common.QueryResult
  * @author maikel arabori
  */
 @RequiredArgsConstructor

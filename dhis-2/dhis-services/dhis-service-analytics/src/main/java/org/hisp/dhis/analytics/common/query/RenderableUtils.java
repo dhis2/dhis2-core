@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common.query;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -36,7 +37,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import lombok.NoArgsConstructor;
 
@@ -60,12 +60,13 @@ public class RenderableUtils
             .stream()
             .filter( Objects::nonNull )
             .map( Renderable::render )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( isNotEmpty( renderableList ) )
         {
             return renderableList.stream().collect( joining( delimiter, prefix, suffix ) );
         }
+
         return EMPTY;
     }
 }
