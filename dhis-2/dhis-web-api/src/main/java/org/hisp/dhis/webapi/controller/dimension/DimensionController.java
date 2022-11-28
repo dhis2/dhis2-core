@@ -46,6 +46,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -78,6 +79,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = DimensionController.RESOURCE_PATH )
 public class DimensionController

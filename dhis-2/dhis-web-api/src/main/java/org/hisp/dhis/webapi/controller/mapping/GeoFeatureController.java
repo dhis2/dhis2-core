@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.GeoFeatureService;
@@ -57,6 +58,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = GeoFeatureController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

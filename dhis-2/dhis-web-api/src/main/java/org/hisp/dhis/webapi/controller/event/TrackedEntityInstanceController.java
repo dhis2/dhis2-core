@@ -58,6 +58,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -124,6 +125,7 @@ import com.google.common.collect.Lists;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
