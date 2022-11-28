@@ -1,53 +1,58 @@
 name: Test
-
-on: [ pull_request ]
-
+env:
+  # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+concurrency:
+  group: ${{ github.workflow}}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  cleanup-runs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: rokroskar/workflow-run-cleanup-action@035a48f84b47e111d72cf492a513179c92cd29ed
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
-
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: netroms/checkout@main
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: netroms/setup-java@main
         with:
           java-version: 11
-
-      - name: Cache maven artifacts
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
-      - name: Test core
-        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/pom.xml
+          distribution: temurin
+          cache: maven
+      - name: Test core # NOTE: dhis-2/pom.xml needs to be installed as built artifacts are needed by dhis-web
+        run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml
+        timeout-minutes: 30
 
       - name: Test dhis-web
-        run: mvn clean install -Pdefault -Pjdk11 --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        timeout-minutes: 30
 
   integration-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: netroms/checkout@main
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: netroms/setup-java@main
         with:
           java-version: 11
-
-      - name: Cache maven artifacts
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-
+          distribution: temurin
+          cache: maven
       - name: Run integration tests
-        run: mvn clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -Pintegration -f ./dhis-2/pom.xml
+        timeout-minutes: 30
+
+  integration-h2-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: netroms/checkout@main
+      - name: Set up JDK 11
+        uses: netroms/setup-java@main
+        with:
+          java-version: 11
+          distribution: temurin
+          cache: maven
+      - name: Run integration h2 tests
+        run: mvn clean verify --threads 2C --batch-mode --no-transfer-progress -PintegrationH2 -f ./dhis-2/pom.xml
+        timeout-minutes: 30

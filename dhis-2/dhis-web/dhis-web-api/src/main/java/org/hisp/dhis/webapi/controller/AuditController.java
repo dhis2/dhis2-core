@@ -57,6 +57,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -82,6 +84,7 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -120,6 +123,8 @@ public class AuditController
 
     private final FileResourceService fileResourceService;
 
+    private final DhisConfigurationProvider dhisConfig;
+
     public AuditController( IdentifiableObjectManager manager, ProgramStageInstanceService programStageInstanceService,
         DataValueAuditService dataValueAuditService,
         TrackedEntityDataValueAuditService trackedEntityDataValueAuditService,
@@ -127,7 +132,8 @@ public class AuditController
         DataApprovalAuditService dataApprovalAuditService,
         TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
         FieldFilterService fieldFilterService,
-        ContextService contextService, FileResourceService fileResourceService )
+        ContextService contextService, FileResourceService fileResourceService,
+        DhisConfigurationProvider dhisConfig )
     {
         checkNotNull( manager );
         checkNotNull( programStageInstanceService );
@@ -138,6 +144,7 @@ public class AuditController
         checkNotNull( fieldFilterService );
         checkNotNull( contextService );
         checkNotNull( fileResourceService );
+        checkNotNull( dhisConfig );
 
         this.manager = manager;
         this.programStageInstanceService = programStageInstanceService;
@@ -149,6 +156,7 @@ public class AuditController
         this.fieldFilterService = fieldFilterService;
         this.contextService = contextService;
         this.fileResourceService = fileResourceService;
+        this.dhisConfig = dhisConfig;
     }
 
     /**
@@ -183,6 +191,7 @@ public class AuditController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
         try
         {
