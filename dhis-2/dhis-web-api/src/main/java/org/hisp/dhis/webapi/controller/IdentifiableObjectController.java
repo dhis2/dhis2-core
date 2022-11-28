@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,9 +54,12 @@ public class IdentifiableObjectController
     public static final String RESOURCE_PATH = "/identifiableObjects";
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<IdentifiableObject> getEntity( String uid, WebOptions options )
     {
-        return manager.find( uid ).map( List::of ).orElseGet( List::of );
+        Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find( uid );
+
+        return object.isPresent() ? List.of( object.get() ) : List.of();
     }
 
     @Override
