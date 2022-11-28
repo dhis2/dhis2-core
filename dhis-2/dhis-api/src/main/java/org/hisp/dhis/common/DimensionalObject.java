@@ -168,7 +168,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has any dimension items.
      */
-    boolean hasItems();
+    default boolean hasItems()
+    {
+        return !getItems().isEmpty();
+    }
 
     /**
      * Gets the legend set.
@@ -178,7 +181,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has a legend set.
      */
-    boolean hasLegendSet();
+    default boolean hasLegendSet()
+    {
+        return getLegendSet() != null;
+    }
 
     /**
      * Gets the program stage (not persisted).
@@ -188,7 +194,10 @@ public interface DimensionalObject
     /**
      * Indicates whether this dimension has a program stage (not persisted).
      */
-    boolean hasProgramStage();
+    default boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
+    }
 
     /**
      * Gets the aggregation type.
