@@ -408,7 +408,7 @@ public class JdbcAnalyticsManager
 
             return PartitionUtils.getPartitionName( params.getTableName(), partition );
         }
-        else if ( (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple()) )
+        else if ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple() )
         {
             String sql = "(";
 
