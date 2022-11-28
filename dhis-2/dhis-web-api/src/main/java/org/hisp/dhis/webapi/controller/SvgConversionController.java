@@ -42,6 +42,7 @@ import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.fop.svg.PDFTranscoder;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -60,6 +62,7 @@ public class SvgConversionController
     @Autowired
     private ContextUtils contextUtils;
 
+    @OpenApi.Response( byte[].class )
     @PostMapping( value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
     public void toPng( @RequestParam String svg, @RequestParam( required = false ) String filename,
         HttpServletResponse response )
@@ -72,6 +75,7 @@ public class SvgConversionController
         convertToPng( svg, response.getOutputStream() );
     }
 
+    @OpenApi.Response( byte[].class )
     @PostMapping( value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED )
     public void toPdf( @RequestParam String svg, @RequestParam( required = false ) String filename,
         HttpServletResponse response )

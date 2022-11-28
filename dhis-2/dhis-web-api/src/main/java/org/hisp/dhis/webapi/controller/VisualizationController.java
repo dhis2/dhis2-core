@@ -38,6 +38,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
@@ -48,6 +49,7 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = API_ENDPOINT )
 public class VisualizationController

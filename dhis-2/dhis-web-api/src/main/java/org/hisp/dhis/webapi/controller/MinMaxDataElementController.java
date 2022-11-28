@@ -42,6 +42,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -73,6 +74,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

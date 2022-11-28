@@ -50,6 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -79,6 +80,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author maikel arabori
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = API_ENDPOINT )
 @ApiVersion( { DEFAULT, ALL } )

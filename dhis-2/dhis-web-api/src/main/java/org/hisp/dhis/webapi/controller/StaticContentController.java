@@ -60,6 +60,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
@@ -91,6 +92,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Stian Sandvold
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( RESOURCE_PATH )
 @Slf4j
