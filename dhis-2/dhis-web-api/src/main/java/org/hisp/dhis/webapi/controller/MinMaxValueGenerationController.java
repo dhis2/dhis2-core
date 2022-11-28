@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataanalysis.MinMaxDataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -64,6 +65,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Joao Antunes
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = MinMaxValueGenerationController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
