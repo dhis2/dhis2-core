@@ -294,7 +294,7 @@ public abstract class BaseAnalyticalObject
     @Override
     public boolean addDataDimensionItem( DimensionalItemObject object )
     {
-        if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
+        if ( object != null && DataDimensionItem.DATA_DIM_CLASSES.contains( object.getClass() ) )
         {
             return dataDimensionItems.add( DataDimensionItem.create( object ) );
         }
@@ -310,7 +310,7 @@ public abstract class BaseAnalyticalObject
     @Override
     public boolean removeDataDimensionItem( DimensionalItemObject object )
     {
-        if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
+        if ( object != null && DataDimensionItem.DATA_DIM_CLASSES.contains( object.getClass() ) )
         {
             return dataDimensionItems
                 .removeAll( DataDimensionItem.createWithDependencies( object, dataDimensionItems ) );
