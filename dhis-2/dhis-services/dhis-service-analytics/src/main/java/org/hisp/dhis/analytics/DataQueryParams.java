@@ -92,6 +92,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -2677,6 +2678,27 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType(
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all data elements, data elements of of data element operands and
+     * data elements of program data elements part of the data dimension.
+     */
+    public List<DimensionalItemObject> getDataElementsOperandsProgramDataElements()
+    {
+        final Set<DimensionalItemObject> dataElements = new HashSet<>();
+
+        dataElements.addAll( getDataElements() );
+        dataElements.addAll( getDataElementOperands().stream()
+            .map( DataElementOperand.class::cast )
+            .map( DataElementOperand::getDataElement )
+            .collect( Collectors.toList() ) );
+        dataElements.addAll( getProgramDataElements().stream()
+            .map( ProgramDataElementDimensionItem.class::cast )
+            .map( ProgramDataElementDimensionItem::getDataElement )
+            .collect( Collectors.toList() ) );
+
+        return ImmutableList.copyOf( dataElements );
     }
 
     /**

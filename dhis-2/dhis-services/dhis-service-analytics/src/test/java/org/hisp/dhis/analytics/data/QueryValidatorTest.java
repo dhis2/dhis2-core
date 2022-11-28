@@ -128,9 +128,13 @@ class QueryValidatorTest
 
     private DataElement deC;
 
+    private DataElement deD;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
+
+    private ProgramDataElementDimensionItem pdeD;
 
     private DataElementOperand doC;
 
@@ -181,13 +185,16 @@ class QueryValidatorTest
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
+        deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );
         deC.setCategoryCombo( ccB );
+        deA.setCategoryCombo( ccA );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
+        pdeD = new ProgramDataElementDimensionItem( prA, deD );
 
         doC = new DataElementOperand( deC, cocC );
         doD = new DataElementOperand( deC, cocD );
@@ -419,6 +426,34 @@ class QueryValidatorTest
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
+    void validateFailureDataElementOperandAggregationType()
+    {
+        DataElementOperand deoA = new DataElementOperand( deD, cocC );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deoA ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
+    void validateFailureProgramDataElementAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, pdeD ) ) )
             .addDimension(
                 new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
