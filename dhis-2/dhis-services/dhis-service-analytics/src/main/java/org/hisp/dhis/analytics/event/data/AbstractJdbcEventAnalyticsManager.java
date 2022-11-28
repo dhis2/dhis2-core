@@ -228,10 +228,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                /*
-                 * Query returns UIDs but we want sorting on name or shortName
-                 * (depending on DisplayProperty) for OUGS/COGS
-                 */
+                // Query returns UIDs but we want sorting on name or shortName
+                // depending on DisplayProperty) for OUGS and COGS
+
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( this::hasItems )
@@ -266,8 +265,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * builds a CASE statement to use in sorting, mapping each OUGS/COGS uid
-     * into its name/shortName
+     * Builds a CASE statement to use in sorting, mapping each OUGS/COGS
+     * identifier into its name or short name.
      */
     private String toCase( DimensionalObject dimension, String quotedAlias, DisplayProperty displayProperty )
     {
@@ -277,7 +276,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * given an DimensionalItemObject, builds a WHEN statement
+     * Builds a WHEN statement based on the given DimensionalItemObject.
      */
     private String toWhenEntry( DimensionalItemObject dio, String quotedAlias, DisplayProperty dp )
     {
@@ -462,10 +461,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String column = getColumn( queryItem );
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
     }
@@ -921,7 +917,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getEventsOrEnrollmentsSql( EventQueryParams params, int maxLimit )
     {
-
         String sql = getSelectClause( params );
 
         sql += getFromClause( params );
