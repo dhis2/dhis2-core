@@ -130,11 +130,15 @@ class QueryValidatorTest
 
     private DataElement deD;
 
+    private DataElement deE;
+
     private ProgramDataElementDimensionItem pdeA;
 
     private ProgramDataElementDimensionItem pdeB;
 
     private ProgramDataElementDimensionItem pdeD;
+
+    private ProgramDataElementDimensionItem pdeE;
 
     private DataElementOperand doC;
 
@@ -186,15 +190,17 @@ class QueryValidatorTest
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
         deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
+        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.FIRST );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );
         deC.setCategoryCombo( ccB );
-        deA.setCategoryCombo( ccA );
+        deD.setCategoryCombo( ccA );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
         pdeD = new ProgramDataElementDimensionItem( prA, deD );
+        pdeE = new ProgramDataElementDimensionItem( prA, deE );
 
         doC = new DataElementOperand( deC, cocC );
         doD = new DataElementOperand( deC, cocD );
@@ -220,10 +226,9 @@ class QueryValidatorTest
     void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
+            .withOrganisationUnits( getList( ouA, ouB ) )
+            .withPeriods( getList( peA, peB ) )
+            .withDataDimensionItems( getList( deA, deB ) )
             .build();
 
         queryValidator.validate( params );
@@ -233,11 +238,9 @@ class QueryValidatorTest
     void validateSuccessB()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension(
-                new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB, pdeA, pdeB ) ) )
-            .addFilter(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .withFilterOrganisationUnits( getList( ouA, ouB ) )
+            .withPeriods( getList( peA, peB ) )
+            .withDataDimensionItems( getList( deA, deB, pdeA, pdeB, pdeE ) )
             .build();
 
         queryValidator.validate( params );
@@ -247,10 +250,9 @@ class QueryValidatorTest
     void validateSuccessSingleIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA ) ) ).build();
+            .withOrganisationUnits( getList( ouA, ouB ) )
+            .withPeriods( getList( peA, peB ) )
+            .withDataDimensionItems( getList( inA ) ).build();
 
         queryValidator.validate( params );
     }
@@ -259,10 +261,9 @@ class QueryValidatorTest
     void validateSuccessSingleProgramIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
-            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( inA ) ) )
+            .withOrganisationUnits( getList( ouA, ouB ) )
+            .withPeriods( getList( peA, peB ) )
+            .withDataDimensionItems( getList( inA ) )
             .build();
 
         queryValidator.validate( params );
@@ -467,9 +468,6 @@ class QueryValidatorTest
     {
         DataElement deM = createDataElement( 'M', ValueType.TEXT, AggregationType.CUSTOM );
         ProgramDataElementDimensionItem pdeM = new ProgramDataElementDimensionItem( prA, deM );
-
-        assertEquals( ValueType.TEXT, deM.getValueType() );
-        assertEquals( AggregationType.AVERAGE, deM.getAggregationType() );
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, pdeM ) ) )

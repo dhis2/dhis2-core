@@ -222,9 +222,10 @@ public enum ValueType
         {
             return false;
         }
+
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE;
+            return aggregationType == AggregationType.NONE || aggregationType.isFirstOrLast();
         }
 
         return aggregationType != AggregationType.NONE;

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
@@ -70,14 +72,15 @@ public enum AggregationType
         return value;
     }
 
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-
     public boolean isAggregatable()
     {
         return aggregatable;
+    }
+
+    public boolean isFirstOrLast()
+    {
+        return Set.of( FIRST, FIRST_AVERAGE_ORG_UNIT, LAST, LAST_AVERAGE_ORG_UNIT,
+            LAST_IN_PERIOD, LAST_IN_PERIOD_AVERAGE_ORG_UNIT ).contains( this );
     }
 
     public static AggregationType fromValue( String value )

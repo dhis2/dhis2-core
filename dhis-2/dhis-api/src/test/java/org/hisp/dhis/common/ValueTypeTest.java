@@ -49,6 +49,8 @@ class ValueTypeTest
     void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
     {
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.FIRST ) );
+        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.LAST ) );
         assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
         assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
     }
