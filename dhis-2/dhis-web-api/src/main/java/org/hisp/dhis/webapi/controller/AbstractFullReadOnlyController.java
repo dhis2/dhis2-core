@@ -88,6 +88,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
 import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -493,7 +494,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
         @CurrentUser User currentUser,

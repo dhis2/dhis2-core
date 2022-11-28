@@ -67,6 +67,7 @@ import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
 import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,7 +163,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String property,
         GistParams params, HttpServletRequest request )
         throws Exception
     {
@@ -187,7 +188,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @GetMapping( value = { "/{uid}/{property}/gist", "/{uid}/{property}/gist.csv" }, produces = "text/csv" )
     public void getObjectPropertyGistAsCsv(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String property,
         GistParams params, HttpServletResponse response )
         throws Exception
     {

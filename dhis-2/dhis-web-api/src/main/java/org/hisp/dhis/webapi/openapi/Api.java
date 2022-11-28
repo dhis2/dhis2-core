@@ -362,6 +362,13 @@ class Api
             return oneOf;
         }
 
+        public static Schema enumeration( Class<?> source, Class<?> of, List<String> values )
+        {
+            Schema schema = new Schema( Type.ENUM, false, source, of );
+            schema.getValues().addAll( values );
+            return schema;
+        }
+
         static boolean isNamed( Class<?> source )
         {
             String name = source.getName();
@@ -380,7 +387,8 @@ class Api
             UID,
             REF,
             UNKNOWN,
-            ONE_OF
+            ONE_OF,
+            ENUM
         }
 
         @EqualsAndHashCode.Include
@@ -405,6 +413,11 @@ class Api
          */
         @EqualsAndHashCode.Include
         List<Property> properties = new ArrayList<>();
+
+        /**
+         * Enum values in case this is an enum schema.
+         */
+        List<String> values = new ArrayList<>();
 
         public Schema( Type type, java.lang.reflect.Type source, Class<?> rawType )
         {

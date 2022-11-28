@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.webapi.openapi.Property.getProperties;
+
 import java.lang.reflect.Type;
 
 import lombok.AccessLevel;
@@ -56,7 +59,29 @@ public class SchemaGenerators
         @Override
         public Api.Schema generate( Api.Endpoint endpoint, Type source, Class<?>... args )
         {
-            return Api.Schema.uid( endpoint.getEntityType() );
+            Class<?> uidOf = args.length == 0 ? endpoint.getEntityType() : args[0];
+            return Api.Schema.uid( uidOf );
+        }
+    }
+
+    /**
+     * A "virtual" property name enumeration type. It creates an OpenAPI
+     * {@code enum} string schema containing all valid property names for the
+     * target type. The target type is either the actual type substitute for the
+     * {@link org.hisp.dhis.common.OpenApi.EntityType} or the first argument
+     * type.
+     */
+    @NoArgsConstructor
+    public static final class PropertyNames implements Api.SchemaGenerator
+    {
+
+        @Override
+        public Api.Schema generate( Api.Endpoint endpoint, Type source, Class<?>... args )
+        {
+            Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
+            return Api.Schema.enumeration( PropertyNames.class, ofType, getProperties( ofType ).stream()
+                .map( Property::getName )
+                .collect( toList() ) );
         }
     }
 }

@@ -97,6 +97,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
 import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -211,7 +212,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request )
@@ -827,7 +829,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage addCollectionItemsJson(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -841,7 +843,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage addCollectionItemsXml(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -865,7 +867,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage replaceCollectionItemsJson(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -879,7 +881,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage replaceCollectionItemsXml(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -904,7 +906,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage addCollectionItem(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
         throws Exception
@@ -932,7 +934,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage deleteCollectionItemsJson(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -946,7 +948,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage deleteCollectionItemsXml(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -970,7 +972,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage deleteCollectionItem(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
         throws Exception

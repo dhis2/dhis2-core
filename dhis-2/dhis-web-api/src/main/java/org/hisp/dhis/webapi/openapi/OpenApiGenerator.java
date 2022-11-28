@@ -408,10 +408,14 @@ public class OpenApiGenerator extends JsonGenerator
         if ( schema == null )
             return;
         Api.Schema.Type type = schema.getType();
-        if ( type == Api.Schema.Type.REF || type == Api.Schema.Type.UID )
+        if ( type == Api.Schema.Type.REF || type == Api.Schema.Type.UID || type == Api.Schema.Type.ENUM )
         {
             Class<?> to = schema.getRawType();
-            String prefix = type == Api.Schema.Type.REF ? "Ref" : "UID";
+            Map<Api.Schema.Type, String> prefixes = Map.of(
+                Api.Schema.Type.REF, "Ref",
+                Api.Schema.Type.UID, "UID",
+                Api.Schema.Type.ENUM, ((Class<?>) schema.getSource()).getSimpleName() );
+            String prefix = prefixes.get( type );
             String name = prefix + ":" + getUniqueSchemaName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
             syntheticTypesByName.putIfAbsent( name, schema );
@@ -444,26 +448,33 @@ public class OpenApiGenerator extends JsonGenerator
             }
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.REF )
+        Api.Schema.Type schemaType = schema.getType();
+        if ( schemaType == Api.Schema.Type.REF )
         {
             generateRefTypeSchema( schema );
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.UID )
+        if ( schemaType == Api.Schema.Type.UID )
         {
             generateUidSchema( schema );
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.UNKNOWN )
+        if ( schemaType == Api.Schema.Type.UNKNOWN )
         {
             addStringMember( "description",
                 "The exact type is unknown.  \\n(Java type was: `" + schema.getSource().getTypeName() + "`)" );
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.ONE_OF )
+        if ( schemaType == Api.Schema.Type.ONE_OF )
         {
             addArrayMember( "oneOf", schema.getProperties(),
                 property -> addObjectMember( null, () -> generateSchemaOrRef( property.getType() ) ) );
+            return;
+        }
+        if ( schemaType == Api.Schema.Type.ENUM )
+        {
+            addStringMember( "type", "string" );
+            addArrayMember( "enum", schema.getValues() );
             return;
         }
         if ( type.isEnum() )
@@ -473,7 +484,7 @@ public class OpenApiGenerator extends JsonGenerator
                 .map( e -> ((Enum<?>) e).name() ).collect( toList() ) );
             return;
         }
-        if ( type.isArray() || schema.getType() == Api.Schema.Type.ARRAY )
+        if ( type.isArray() || schemaType == Api.Schema.Type.ARRAY )
         {
             Api.Schema elements = schema.getProperties().isEmpty()
                 ? api.getSchemas().get( type.getComponentType() )
