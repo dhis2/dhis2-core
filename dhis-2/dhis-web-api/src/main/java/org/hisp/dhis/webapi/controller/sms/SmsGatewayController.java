@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -68,7 +69,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
-
+@OpenApi.Tags( "messaging" )
 @RestController
 @RequestMapping( value = "/gateways" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

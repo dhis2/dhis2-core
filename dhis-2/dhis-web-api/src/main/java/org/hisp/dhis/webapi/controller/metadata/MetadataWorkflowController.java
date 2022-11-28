@@ -35,15 +35,16 @@ import static org.hisp.dhis.webapi.controller.exception.NotFoundException.notFou
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.gist.GistParams;
 import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
@@ -76,6 +77,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( "/metadata/proposals" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -87,18 +89,17 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
 
     @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposal( @PathVariable( "uid" ) String uid,
-        HttpServletRequest request,
-        HttpServletResponse response )
+        GistParams params )
         throws NotFoundException
     {
-        return getObjectGist( uid, request, response );
+        return getObjectGist( uid, params );
     }
 
     @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposals(
-        HttpServletRequest request, HttpServletResponse response )
+        GistParams params, HttpServletRequest request )
     {
-        return getObjectListGist( request, response );
+        return getObjectListGist( params, request );
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )

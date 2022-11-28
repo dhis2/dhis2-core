@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
