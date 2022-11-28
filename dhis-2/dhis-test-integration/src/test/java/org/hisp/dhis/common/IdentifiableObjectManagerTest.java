@@ -100,9 +100,9 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         DataElement dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.CODE, dataElementA.getCode() ) );
-        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES,
+        assertEquals( dataElementA, idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES,
             IdScheme.UID, dataElementA.getUid() ) );
     }
 

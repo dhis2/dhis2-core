@@ -44,6 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.user.CurrentUserService;
@@ -72,6 +73,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( { "user", "management" } )
 @RestController
 @RequestMapping( "/userSettings" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

@@ -24,6 +24,9 @@ updates:
       prefix: "chore"
       include: "scope"
     ignore:
+      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
@@ -71,6 +74,9 @@ updates:
       prefix: "chore"
       include: "scope"
     ignore:
+      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
@@ -121,6 +127,9 @@ updates:
       prefix: "chore"
       include: "scope"
     ignore:
+      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
@@ -171,6 +180,9 @@ updates:
       prefix: "chore"
       include: "scope"
     ignore:
+      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
+        versions:
+          - ">= 3.0"
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"

@@ -47,6 +47,7 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SettingKey;
@@ -69,6 +70,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Markus Bekken
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( "/analytics/enrollments" )
