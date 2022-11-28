@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -274,21 +275,32 @@ final class ApiAnalyse
             {
                 continue;
             }
-            if ( p.isAnnotationPresent( PathVariable.class ) )
+            if ( p.isAnnotationPresent( OpenApi.Param.class ) )
+            {
+                OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
+                PathVariable pv = p.getAnnotation( PathVariable.class );
+                RequestParam rp = p.getAnnotation( RequestParam.class );
+                boolean isPathVariable = pv != null;
+                boolean isRequestParam = rp != null;
+                String fallbackName = isPathVariable
+                    ? firstNonEmpty( pv.name(), pv.value() )
+                    : isRequestParam ? firstNonEmpty( rp.name(), rp.value() ) : "";
+                String name = firstNonEmpty( a.name(), fallbackName, p.getName() );
+                Api.Parameter.In in = isPathVariable
+                    ? Api.Parameter.In.PATH
+                    : Api.Parameter.In.QUERY;
+                boolean required = isPathVariable || (isRequestParam ? rp.required() : a.required());
+                endpoint.getParameters().computeIfAbsent( name,
+                    key -> new Api.Parameter( p, null, key, in, required,
+                        analyseParamSchema( endpoint, p.getParameterizedType(), a.value() ) ) );
+            }
+            else if ( p.isAnnotationPresent( PathVariable.class ) )
             {
                 PathVariable a = p.getAnnotation( PathVariable.class );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
                     key -> new Api.Parameter( p, null, key, Api.Parameter.In.PATH, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
-            }
-            else if ( p.isAnnotationPresent( OpenApi.Param.class ) )
-            {
-                OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
-                String name = firstNonEmpty( a.name(), p.getName() );
-                endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, a.required(),
-                        analyseParamSchema( endpoint, p.getParameterizedType(), a.value() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
             {
@@ -373,6 +385,10 @@ final class ApiAnalyse
         if ( oneOf.length == 0 && source != null )
         {
             return analyseInputSchema( endpoint, source );
+        }
+        if ( Api.SchemaGenerator.class.isAssignableFrom( oneOf[0] ) )
+        {
+            return newGenerator( oneOf[0] ).generate( endpoint, source, copyOfRange( oneOf, 1, oneOf.length ) );
         }
         return Api.Schema.oneOf( List.of( oneOf ),
             type -> analyseInputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
@@ -686,6 +702,18 @@ final class ApiAnalyse
     /*
      * Basic helper methods
      */
+
+    private static Api.SchemaGenerator newGenerator( Class<?> type )
+    {
+        try
+        {
+            return (Api.SchemaGenerator) type.getConstructor().newInstance();
+        }
+        catch ( Exception ex )
+        {
+            throw new RuntimeException( ex );
+        }
+    }
 
     private static String[] firstNonEmpty( String[] a, String[] b, String[] c )
     {

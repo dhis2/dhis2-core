@@ -142,7 +142,7 @@ class Property
         if ( source.isAnnotationPresent( OpenApi.Property.class ) )
         {
             OpenApi.Property a = source.getAnnotation( OpenApi.Property.class );
-            return a.type() != Object.class ? a.type() : type;
+            return a.value() != Object.class ? a.value() : type;
         }
         return type;
     }

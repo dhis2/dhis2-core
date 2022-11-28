@@ -165,7 +165,7 @@ public @interface OpenApi
     }
 
     @Inherited
-    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER } )
+    @Target( { ElementType.METHOD, ElementType.FIELD } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface Property
     {
@@ -177,7 +177,7 @@ public @interface OpenApi
          *
          * @return the type to use for the property
          */
-        Class<?> type() default Object.class;
+        Class<?> value() default Object.class;
 
         boolean required() default false;
     }
