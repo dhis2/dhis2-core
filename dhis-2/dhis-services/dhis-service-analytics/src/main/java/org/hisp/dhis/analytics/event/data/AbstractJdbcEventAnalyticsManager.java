@@ -229,7 +229,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else
             {
                 // Query returns UIDs but we want sorting on name or shortName
-                // depending on DisplayProperty) for OUGS and COGS
+                // depending on DisplayProperty for OUGS and COGS
 
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
@@ -549,7 +549,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Event analytics aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
