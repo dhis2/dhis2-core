@@ -226,6 +226,7 @@ public enum ValueType
         {
             return aggregationType == AggregationType.NONE;
         }
+
         return aggregationType != AggregationType.NONE;
     }
 

@@ -463,6 +463,25 @@ class QueryValidatorTest
     }
 
     @Test
+    void validateFailureProgramDataElementAverageAggregationTypeTextValueType()
+    {
+        DataElement deM = createDataElement( 'M', ValueType.TEXT, AggregationType.CUSTOM );
+        ProgramDataElementDimensionItem pdeM = new ProgramDataElementDimensionItem( prA, deM );
+
+        assertEquals( ValueType.TEXT, deM.getValueType() );
+        assertEquals( AggregationType.AVERAGE, deM.getAggregationType() );
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, pdeM ) ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7115, params );
+    }
+
+    @Test
     void validateFailureOptionCombosWithIndicators()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
