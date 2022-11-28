@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.render.RenderService;
@@ -67,6 +68,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+@OpenApi.Tags( "messaging" )
 @RestController
 @RequestMapping( value = "/sms/inbound" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

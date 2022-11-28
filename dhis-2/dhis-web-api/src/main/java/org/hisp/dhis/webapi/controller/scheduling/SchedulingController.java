@@ -40,6 +40,7 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.scheduling.JobProgress.Stage;
 import org.hisp.dhis.scheduling.JobProgress.Status;
@@ -62,6 +63,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = "/scheduling" )
 @AllArgsConstructor

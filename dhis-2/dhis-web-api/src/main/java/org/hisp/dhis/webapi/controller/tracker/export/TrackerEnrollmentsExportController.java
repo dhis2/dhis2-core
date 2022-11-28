@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
@@ -61,6 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

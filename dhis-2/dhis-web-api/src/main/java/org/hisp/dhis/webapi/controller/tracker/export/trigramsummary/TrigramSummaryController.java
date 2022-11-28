@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.security.acl.AclService;
@@ -60,6 +61,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Ameen Mohamed
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = TrigramSummaryController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
