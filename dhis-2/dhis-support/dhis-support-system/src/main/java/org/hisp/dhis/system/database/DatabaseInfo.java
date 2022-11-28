@@ -54,9 +54,6 @@ public class DatabaseInfo
     private String user;
 
     @JsonProperty
-    private String password;
-
-    @JsonProperty
     private String url;
 
     @JsonProperty
@@ -73,7 +70,6 @@ public class DatabaseInfo
     {
         this.name = null;
         this.user = null;
-        this.password = null;
         this.url = null;
         this.databaseVersion = null;
         this.spatialSupport = false;
