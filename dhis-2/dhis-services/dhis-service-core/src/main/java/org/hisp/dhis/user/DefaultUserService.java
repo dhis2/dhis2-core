@@ -737,7 +737,11 @@ public class DefaultUserService
             .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         roles.forEach( ur -> {
-            if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
+            if ( ur == null )
+            {
+                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3028, user.getUsername() ) );
+            }
+            else if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
                 errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(),
                     ur.getName() ) );
