@@ -53,9 +53,7 @@ class EnumBindingTest
     @BeforeEach
     public void setUp()
     {
-        EnumController controller = new EnumController();
-
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+        mockMvc = MockMvcBuilders.standaloneSetup( new EnumController() ).build();
     }
 
     @Test
