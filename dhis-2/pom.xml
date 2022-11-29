@@ -136,7 +136,7 @@
     <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.14</batik-transcoder.version>
+    <batik-transcoder.version>1.16</batik-transcoder.version>
     <fop.version>2.8</fop.version>
     <mapstruct.version>1.5.2.Final</mapstruct.version>
     <geotools.version>27.2</geotools.version>
