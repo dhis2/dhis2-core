@@ -86,4 +86,9 @@ public enum PreheatIdentifier
 
         return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
     }
+
+    public String getPreheatColumnName()
+    {
+        return this == UID ? "id" : "code";
+    }
 }

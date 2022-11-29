@@ -47,6 +47,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -132,6 +133,12 @@ public class MetadataImportParams
     private boolean skipValidation;
 
     /**
+     * Skip METADATA_READ permission check for all preheat queries (not
+     * recommended).
+     */
+    private boolean skipPreheatSharingCheck;
+
+    /**
      * Is this import request from Metadata Sync service.
      */
     private boolean metadataSyncImport;
@@ -206,9 +213,10 @@ public class MetadataImportParams
         return overrideUser;
     }
 
-    public void setOverrideUser( User overrideUser )
+    public MetadataImportParams setOverrideUser( User overrideUser )
     {
         this.overrideUser = overrideUser;
+        return this;
     }
 
     @JsonProperty
@@ -391,6 +399,18 @@ public class MetadataImportParams
         this.csvImportClass = csvImportClass;
     }
 
+    @JsonIgnore
+    public boolean isSkipPreheatSharingCheck()
+    {
+        return skipPreheatSharingCheck;
+    }
+
+    public MetadataImportParams setSkipPreheatSharingCheck( boolean skipPreheatSharingCheck )
+    {
+        this.skipPreheatSharingCheck = skipPreheatSharingCheck;
+        return this;
+    }
+
     public JobConfiguration getId()
     {
         return id;
@@ -508,6 +528,7 @@ public class MetadataImportParams
         params.setFlushMode( flushMode );
         params.setImportReportMode( importReportMode );
         params.setMetadataSyncImport( metadataSyncImport );
+        params.setSkipPreheatSharingCheck( skipPreheatSharingCheck );
 
         return params;
     }

@@ -40,6 +40,7 @@ import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
@@ -70,6 +71,18 @@ public class DashboardController
 
     @Autowired
     private CascadeSharingService cascadeSharingService;
+
+    /**
+     * Set skipPreheatSharingCheck=true so that currentUser can have
+     * METADATA_READ access to all DashboardItem's objects as long as user has
+     * permission to update current Dashboard.
+     */
+    @Override
+    protected MetadataImportParams getParamsFromContext()
+    {
+        return importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setSkipPreheatSharingCheck( true );
+    }
 
     // -------------------------------------------------------------------------
     // Search

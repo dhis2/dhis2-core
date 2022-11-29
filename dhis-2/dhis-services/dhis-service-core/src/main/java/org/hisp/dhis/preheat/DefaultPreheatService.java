@@ -56,6 +56,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -282,6 +284,7 @@ public class DefaultPreheatService implements PreheatService
 
         handleAttributes( params.getObjects(), preheat );
         handleSharing( params, preheat );
+        handleDashboard( params, preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
@@ -291,6 +294,33 @@ public class DefaultPreheatService implements PreheatService
             + timer.toString() );
 
         return preheat;
+    }
+
+    private void handleDashboard( PreheatParams params, Preheat preheat )
+    {
+        List<IdentifiableObject> dashboards = params.getObjects().get( Dashboard.class );
+
+        if ( CollectionUtils.isEmpty( dashboards ) )
+        {
+            return;
+        }
+
+        Map<Class<? extends IdentifiableObject>, List<String>> ids = new HashMap<>();
+        dashboards.forEach( dashboard -> {
+            List<DashboardItem> items = ((Dashboard) dashboard).getItems();
+            if ( !CollectionUtils.isEmpty( items ) )
+            {
+                items.forEach( item -> {
+                    if ( item.getEmbeddedItem() != null )
+                    {
+                        ids.computeIfAbsent( item.getEmbeddedItem().getClass(), key -> new ArrayList<>() )
+                            .add( item.getEmbeddedItem().getUid() );
+                    }
+                } );
+            }
+        } );
+
+        ids.forEach( ( key, value ) -> queryAndPreheat( key, preheat, params, value ) );
     }
 
     private void handleSharing( PreheatParams params, Preheat preheat )
@@ -1039,5 +1069,16 @@ public class DefaultPreheatService implements PreheatService
         }
 
         User.populateUserCredentialsDtoFields( (User) object );
+    }
+
+    private void queryAndPreheat( Class<? extends IdentifiableObject> klass, Preheat preheat, PreheatParams params,
+        List<String> ids )
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( klass ) );
+        query.setUser( preheat.getUser() );
+        query.add( Restrictions.in( params.getPreheatIdentifier().getPreheatColumnName(), ids ) );
+        query.setSkipSharing( true );
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        preheat.put( PreheatIdentifier.UID, objects );
     }
 }
