@@ -122,10 +122,7 @@ final class Descriptions
             Consumer<String> addText = prefix -> {
                 if ( prefix != null )
                 {
-                    entries.put( prefix + ".description", value.toString()
-                        .replaceFirst( "^(?: {2}\\\\n)+", "" )
-                        .replaceFirst( "(?: {2}\\\\n)+$", "" )
-                        .trim() );
+                    entries.put( prefix + ".description", trimText( value.toString() ) );
                     value.setLength( 0 );
                 }
             };
@@ -164,6 +161,20 @@ final class Descriptions
             }
             addText.accept( key );
         }
+    }
+
+    private String trimText( String value )
+    {
+        String text = value;
+        while ( text.startsWith( "  \\n" ) )
+        {
+            text = text.substring( 4 );
+        }
+        while ( text.endsWith( "  \\n" ) )
+        {
+            text = text.substring( 0, text.length() - 4 );
+        }
+        return text.trim();
     }
 
     private static String toKey( String line )
