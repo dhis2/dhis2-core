@@ -164,20 +164,25 @@ public @interface OpenApi
         // marker annotation
     }
 
+    /**
+     * Annotate on type it makes all properties being picked up unless they are
+     * annotated with {@link Ignore}. This is so some members can be annotated
+     * with this annotation to detail their type without at the same time
+     * exclude members.
+     */
     @Inherited
-    @Target( { ElementType.METHOD, ElementType.FIELD } )
+    @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.TYPE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface Property
     {
         String name() default "";
 
         /**
-         * When left the default value {@link Object} the type is inferred from
-         * the annotated element.
+         * When empty the type is inferred from the annotated element.
          *
          * @return the type to use for the property
          */
-        Class<?> value() default Object.class;
+        Class<?>[] value() default {};
 
         boolean required() default false;
     }

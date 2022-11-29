@@ -59,6 +59,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
@@ -355,7 +356,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateRequestBody( Api.RequestBody requestBody )
     {
-        addStringMember( "description", requestBody.getDescription() );
+        addStringMember( "description", requestBody.getDescription().orElse( configuration.missingDescription ) );
         addBooleanMember( "required", requestBody.isRequired() );
         addObjectMember( "content",
             () -> requestBody.getConsumes().forEach( ( key, value ) -> addObjectMember( key.toString(),
@@ -524,7 +525,6 @@ public class OpenApiGenerator extends JsonGenerator
     {
         addStringMember( "type", simpleType.getType() );
         addStringMember( "format", simpleType.getFormat() );
-        // addBooleanMember( "nullable", simpleType.getNullable() );
         addNumberMember( "minLength", simpleType.getMinLength() );
         addNumberMember( "maxLength", simpleType.getMaxLength() );
         addStringMember( "pattern", simpleType.getPattern() );
@@ -547,9 +547,9 @@ public class OpenApiGenerator extends JsonGenerator
         addStringMember( "type", "string" );
         addStringMember( "format", "uid" );
         addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
-        addBooleanMember( "readOnly", true );
         addNumberMember( "minLength", 11 );
         addNumberMember( "maxLength", 11 );
+        addStringMember( "example", generateUid( schema.getRawType() ) );
         if ( schema.getType() == Api.Schema.Type.UID )
         {
             addTypeDescriptionMember( schema.getSource(), "A UID for an %s object  \\n(Java name `%s`)" );
@@ -616,6 +616,10 @@ public class OpenApiGenerator extends JsonGenerator
                     for ( String ePath : e.getPaths() )
                     {
                         String absolutePath = cPath + ePath;
+                        if ( absolutePath.isEmpty() )
+                        {
+                            absolutePath = "/";
+                        }
                         endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
                     }
                 }
@@ -642,5 +646,27 @@ public class OpenApiGenerator extends JsonGenerator
             merged.add( controller.iterator().next() );
         }
         return merged;
+    }
+
+    /**
+     * Generates an 11 character UID based on the target type. This is so each
+     * UID type gets its unique but stable example.
+     */
+    private static String generateUid( Class<?> fromType )
+    {
+        char[] chars = CodeGenerator.ALLOWED_CHARS.toCharArray();
+        String key = fromType.getSimpleName();
+        key = key.repeat( (11 / key.length()) + 1 );
+        StringBuilder uid = new StringBuilder( 11 );
+        int offset = fromType.getSimpleName().length();
+        for ( int i = 0; i < 11; i++ )
+        {
+            int index = key.charAt( i ) + offset;
+            uid.append( chars[index % chars.length] );
+            // this is just to get more realistic character distribution
+            // 13 because it is about half the alphabet
+            offset += 13;
+        }
+        return uid.toString();
     }
 }

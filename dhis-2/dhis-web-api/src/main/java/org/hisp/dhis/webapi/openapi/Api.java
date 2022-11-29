@@ -44,6 +44,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -128,6 +129,15 @@ class Api
         boolean isPresent()
         {
             return value != null;
+        }
+
+        T init( Supplier<T> ifNotPresent )
+        {
+            if ( !isPresent() )
+            {
+                setValue( ifNotPresent.get() );
+            }
+            return getValue();
         }
 
         T orElse( T defaultValue )
@@ -235,7 +245,7 @@ class Api
 
         boolean required;
 
-        String description = "dummy";
+        Maybe<String> description = new Maybe<>();
 
         @EqualsAndHashCode.Include
         Map<MediaType, Schema> consumes = new TreeMap<>();
@@ -249,6 +259,7 @@ class Api
         {
             PATH,
             QUERY,
+            BODY
         }
 
         @ToString.Exclude

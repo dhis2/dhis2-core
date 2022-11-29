@@ -122,7 +122,10 @@ final class Descriptions
             Consumer<String> addText = prefix -> {
                 if ( prefix != null )
                 {
-                    entries.put( prefix + ".description", value.toString().trim() );
+                    entries.put( prefix + ".description", value.toString()
+                        .replaceFirst( "^(?: {2}\\\\n)+", "" )
+                        .replaceFirst( "(?: {2}\\\\n)+$", "" )
+                        .trim() );
                     value.setLength( 0 );
                 }
             };

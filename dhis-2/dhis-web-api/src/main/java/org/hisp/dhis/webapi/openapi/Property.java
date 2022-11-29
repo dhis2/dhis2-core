@@ -99,7 +99,7 @@ class Property
 
         fieldsIn( object ).filter( Property::isProperty ).filter( Property::isIncluded ).forEach( addField );
         methodsIn( object ).filter( Property::isProperty ).filter( Property::isIncluded ).forEach( addMethod );
-        if ( properties.isEmpty() )
+        if ( properties.isEmpty() || object.isAnnotationPresent( OpenApi.Property.class ) )
         {
             methodsIn( object ).filter( Property::isProperty ).forEach( addMethod );
         }
@@ -142,7 +142,7 @@ class Property
         if ( source.isAnnotationPresent( OpenApi.Property.class ) )
         {
             OpenApi.Property a = source.getAnnotation( OpenApi.Property.class );
-            return a.value() != Object.class ? a.value() : type;
+            return a.value().length > 0 ? a.value()[0] : type;
         }
         return type;
     }
