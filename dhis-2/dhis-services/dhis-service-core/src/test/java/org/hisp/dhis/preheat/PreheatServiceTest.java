@@ -27,35 +27,13 @@
  */
 package org.hisp.dhis.preheat;
 
-/*
- * Copyright (c) 2004-2021, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-import static org.junit.Assert.*;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +49,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -80,6 +60,9 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -590,6 +573,46 @@ public class PreheatServiceTest
 
         assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
         assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );
+    }
+
+    @Test
+    public void testPreheatReferenceUIDOnNonSharedDashboardItem()
+    {
+        User user = createUser( "A" );
+        manager.save( user );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        manager.save( dataElementA, false );
+
+        Visualization vzA = createVisualization( 'A' );
+        vzA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() ); // non-shared
+        vzA.addDataDimensionItem( dataElementA );
+        manager.save( vzA, false );
+
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( user, DEFAULT ) );
+        Dashboard dashboard = createDashboardWithItem( "A", sharing );
+        dashboard.getItems().get( 0 ).setVisualization( vzA );
+        manager.save( dashboard, false );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.getObjects().put( Dashboard.class, Lists.newArrayList( dashboard ) );
+        params.getObjects().put( User.class, Lists.newArrayList( user ) );
+        preheatService.validate( params );
+        Preheat preheat = preheatService.preheat( params );
+        assertFalse( preheat.isEmpty() );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, Dashboard.class ) );
+        assertTrue( preheat.isEmpty( PreheatIdentifier.UID, DataElementGroup.class ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, User.class ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Dashboard.class, dashboard.getUid() ) );
+        assertTrue(
+            preheat.containsKey( PreheatIdentifier.UID, DashboardItem.class, dashboard.getItems().get( 0 ).getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Visualization.class, vzA.getUid() ) );
     }
 
     private void defaultSetup()
