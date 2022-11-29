@@ -52,7 +52,6 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
@@ -101,9 +100,8 @@ public class DefaultQueryValidator
             throw new IllegalQueryException( ErrorCode.E7100 );
         }
 
-        List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements()
-            .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        List<DimensionalItemObject> dataElements = Lists
+            .newArrayList( params.getDataElementsOperandsProgramDataElements() );
         List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
             AggregatableDataElementFilter.INSTANCE );
 

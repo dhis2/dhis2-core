@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,6 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( value = "/validation" )

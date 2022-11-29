@@ -50,6 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
@@ -110,6 +111,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Joao Antunes
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( value = DataAnalysisController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

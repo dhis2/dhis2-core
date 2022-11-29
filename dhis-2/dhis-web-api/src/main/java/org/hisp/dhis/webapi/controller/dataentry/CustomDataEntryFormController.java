@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )

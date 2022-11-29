@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( { "user", "management" } )
 @Controller
 @RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
 public class UserRoleController

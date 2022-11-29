@@ -46,6 +46,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -85,6 +86,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = SharingController.RESOURCE_PATH )
 @Slf4j
