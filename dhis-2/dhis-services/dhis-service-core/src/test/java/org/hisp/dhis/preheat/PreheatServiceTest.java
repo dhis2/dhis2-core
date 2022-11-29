@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.preheat;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +49,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
@@ -57,6 +60,9 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -463,6 +469,46 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
         assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
         assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );
+    }
+
+    @Test
+    void testPreheatReferenceUIDOnNonSharedDashboardItem()
+    {
+        User user = createUser( "A" );
+        manager.save( user );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        manager.save( dataElementA, false );
+
+        Visualization vzA = createVisualization( 'A' );
+        vzA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() ); // non-shared
+        vzA.addDataDimensionItem( dataElementA );
+        manager.save( vzA, false );
+
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( user, DEFAULT ) );
+        Dashboard dashboard = createDashboardWithItem( "A", sharing );
+        dashboard.getItems().get( 0 ).setVisualization( vzA );
+        manager.save( dashboard, false );
+
+        PreheatParams params = new PreheatParams();
+        params.setPreheatMode( PreheatMode.REFERENCE );
+        params.getObjects().put( Dashboard.class, List.of( dashboard ) );
+        params.getObjects().put( User.class, List.of( user ) );
+        preheatService.validate( params );
+        Preheat preheat = preheatService.preheat( params );
+        assertFalse( preheat.isEmpty() );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, Dashboard.class ) );
+        assertTrue( preheat.isEmpty( PreheatIdentifier.UID, DataElementGroup.class ) );
+        assertFalse( preheat.isEmpty( PreheatIdentifier.UID, User.class ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, User.class, user.getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Dashboard.class, dashboard.getUid() ) );
+        assertTrue(
+            preheat.containsKey( PreheatIdentifier.UID, DashboardItem.class, dashboard.getItems().get( 0 ).getUid() ) );
+        assertTrue( preheat.containsKey( PreheatIdentifier.UID, Visualization.class, vzA.getUid() ) );
     }
 
     private void defaultSetup()

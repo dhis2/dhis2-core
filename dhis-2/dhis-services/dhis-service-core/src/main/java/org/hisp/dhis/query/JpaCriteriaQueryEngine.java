@@ -122,9 +122,12 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         {
             Predicate predicate = builder.conjunction();
 
-            predicate.getExpressions().addAll( store
-                .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
-                .collect( Collectors.toList() ) );
+            if ( !query.isSkipSharing() )
+            {
+                predicate.getExpressions().addAll( store
+                    .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+                    .collect( Collectors.toList() ) );
+            }
 
             criteriaQuery.where( predicate );
 
@@ -138,10 +141,12 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         Predicate predicate = buildPredicates( builder, root, query );
 
-        predicate.getExpressions().addAll( store
-            .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
-            .collect( Collectors.toList() ) );
-
+        if ( !query.isSkipSharing() )
+        {
+            predicate.getExpressions().addAll( store
+                .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+                .collect( Collectors.toList() ) );
+        }
         criteriaQuery.where( predicate );
 
         if ( !query.getOrders().isEmpty() )
