@@ -482,7 +482,7 @@ public class CrudControllerAdvice
 
     private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
     {
-        private Class<T> enumClass;
+        private final Class<T> enumClass;
 
         private ConvertEnum( Class<T> enumClass )
         {
