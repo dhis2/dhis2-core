@@ -174,7 +174,7 @@
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <jep.version>2.4.2</jep.version>
-    <istack-commons-runtime.version>3.0.8</istack-commons-runtime.version>
+    <istack-commons-runtime.version>4.1.1</istack-commons-runtime.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
