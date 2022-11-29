@@ -40,12 +40,14 @@ import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -103,6 +105,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,11 +119,20 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
+    private final List<Class<?>> enumClasses;
+
+    public CrudControllerAdvice()
+    {
+        this.enumClasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
+    }
+
     @InitBinder
     protected void initBinder( WebDataBinder binder )
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+        this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -465,6 +477,25 @@ public class CrudControllerAdvice
             throws IllegalArgumentException
         {
             setValue( fromText.apply( text ) );
+        }
+    }
+
+    private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
+    {
+        private final Class<T> enumClass;
+
+        private ConvertEnum( Class<T> enumClass )
+        {
+            this.enumClass = enumClass;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
+
+            setValue( enumValue != null ? enumValue : text );
         }
     }
 }
