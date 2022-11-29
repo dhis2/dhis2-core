@@ -230,13 +230,6 @@ class EventRequestToSearchParamsMapper
             }
         }
 
-        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
-            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
-
         if ( assignedUsers != null )
         {
             assignedUsers = assignedUsers.stream()
@@ -253,7 +246,7 @@ class EventRequestToSearchParamsMapper
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
-            .setAssignedUserSelectionMode( assignedUserSelectionMode ).setAssignedUsers( assignedUsers )
+            .setUserWithAssignedUsers( user, assignedUserSelectionMode, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
             .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
             .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )
