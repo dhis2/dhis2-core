@@ -183,9 +183,6 @@ public class TrackedEntityInstanceQueryParams
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
     @Getter
     private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
