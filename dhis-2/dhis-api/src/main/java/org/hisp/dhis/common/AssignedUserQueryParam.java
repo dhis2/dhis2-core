@@ -42,7 +42,8 @@ import org.hisp.dhis.user.User;
 public class AssignedUserQueryParam
 {
 
-    public static final AssignedUserQueryParam ALL = new AssignedUserQueryParam( null, null, null );
+    public static final AssignedUserQueryParam ALL = new AssignedUserQueryParam( AssignedUserSelectionMode.ALL, null,
+        Collections.emptySet() );
 
     private final AssignedUserSelectionMode mode;
 
@@ -87,6 +88,11 @@ public class AssignedUserQueryParam
         {
             this.mode = AssignedUserSelectionMode.PROVIDED;
             this.assignedUsers = assignedUsers;
+        }
+        else if ( mode == null )
+        {
+            this.mode = AssignedUserSelectionMode.ALL;
+            this.assignedUsers = Collections.emptySet();
         }
         else
         {
