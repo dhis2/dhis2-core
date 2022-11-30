@@ -30,6 +30,7 @@ package org.hisp.dhis.eventhook.targets;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
+@EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
 public class WebhookTarget extends Target
 {
