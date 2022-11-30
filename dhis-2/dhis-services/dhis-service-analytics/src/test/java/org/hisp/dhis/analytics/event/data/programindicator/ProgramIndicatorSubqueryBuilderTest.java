@@ -170,7 +170,7 @@ class ProgramIndicatorSubqueryBuilderTest
         String sql = subject.getAggregateClauseForProgramIndicator( pi, AnalyticsType.ENROLLMENT, startDate, endDate );
 
         assertThat( sql, is( "(SELECT avg (distinct psi) FROM analytics_event_" + program.getUid().toLowerCase()
-            + " as subax WHERE pi = ax.pi AND a = b)" ) );
+            + " as subax WHERE pi = ax.pi AND (a = b))" ) );
     }
 
 }
