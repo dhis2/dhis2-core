@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
+import java.io.Serializable;
 import java.util.Map;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -43,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 @Accessors( chain = true )
 @RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
@@ -51,9 +54,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
 } )
 public abstract class Auth
+    implements Serializable
 {
     @JsonProperty
     protected final String type;
 
-    abstract public void apply( Map<String, String> headers );
+    public abstract void apply( Map<String, String> headers );
 }

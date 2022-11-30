@@ -29,6 +29,7 @@ package org.hisp.dhis.eventhook;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 @Accessors( chain = true )
 public class Source
     implements Serializable

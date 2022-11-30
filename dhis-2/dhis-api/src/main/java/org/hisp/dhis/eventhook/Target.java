@@ -29,6 +29,7 @@ package org.hisp.dhis.eventhook;
 
 import java.io.Serializable;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -46,6 +47,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Getter
 @Setter
 @Accessors( chain = true )
+@EqualsAndHashCode
 @RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
