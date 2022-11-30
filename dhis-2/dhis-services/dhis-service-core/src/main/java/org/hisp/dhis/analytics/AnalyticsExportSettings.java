@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsExportSettings.AnalyticsTableType.REGULAR;
+import static org.hisp.dhis.analytics.AnalyticsExportSettings.AnalyticsTableType.DEFAULT;
 import static org.hisp.dhis.analytics.AnalyticsExportSettings.AnalyticsTableType.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 
@@ -53,7 +53,7 @@ public class AnalyticsExportSettings
 
     public enum AnalyticsTableType
     {
-        REGULAR( EMPTY ),
+        DEFAULT( EMPTY ),
         UNLOGGED( "unlogged" );
 
         private final String value;
@@ -89,7 +89,7 @@ public class AnalyticsExportSettings
         }
         else
         {
-            cachedTableType = REGULAR.value();
+            cachedTableType = DEFAULT.value();
         }
 
         return cachedTableType;
