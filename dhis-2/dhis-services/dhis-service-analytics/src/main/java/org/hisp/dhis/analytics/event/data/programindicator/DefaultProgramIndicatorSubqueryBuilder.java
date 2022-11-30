@@ -50,9 +50,9 @@ import com.google.common.base.Strings;
 public class DefaultProgramIndicatorSubqueryBuilder
     implements ProgramIndicatorSubqueryBuilder
 {
-    private final static String ANALYTICS_TABLE_NAME = "analytics";
+    private static final String ANALYTICS_TABLE_NAME = "analytics";
 
-    private final static String SUBQUERY_TABLE_ALIAS = "subax";
+    private static final String SUBQUERY_TABLE_ALIAS = "subax";
 
     private final ProgramIndicatorService programIndicatorService;
 
@@ -124,8 +124,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
             aggregateSql += (where.isBlank() ? " WHERE " : " AND ")
+                + "("
                 + getPrgIndSql( programIndicator.getFilter(), BOOLEAN, programIndicator, earliestStartDate,
-                    latestDate );
+                    latestDate )
+                + ")";
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
