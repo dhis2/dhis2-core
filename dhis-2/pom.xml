@@ -179,7 +179,7 @@
     <commons-codec.version>1.15</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
-    <httpcomponents-core.version>4.4.15</httpcomponents-core.version>
+    <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
     <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
 
     <!-- Monitoring -->
@@ -212,7 +212,7 @@
     <maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
-    <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
+    <maven-dependency-plugin.version>3.4.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.13.0</versions-maven-plugin.version>
     <dependency-check-maven.version>7.3.2</dependency-check-maven.version>
