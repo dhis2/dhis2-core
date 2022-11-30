@@ -45,7 +45,7 @@ public class HttpBasicWebhookAuth extends WebhookAuth
     @JsonProperty( required = true )
     private String username;
 
-    @JsonProperty( required = true )
+    @JsonProperty( required = true, access = JsonProperty.Access.WRITE_ONLY )
     private String password;
 
     @JsonCreator
