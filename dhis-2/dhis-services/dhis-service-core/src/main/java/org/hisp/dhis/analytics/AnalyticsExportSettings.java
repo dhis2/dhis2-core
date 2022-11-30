@@ -71,7 +71,7 @@ public class AnalyticsExportSettings
 
     /**
      * Returns the respective string that represents the table type to be
-     * exported. Two types are supported: UNLOGGED and REGULAR. See
+     * exported. Two types are supported: UNLOGGED and DEFAULT. See
      * {@link AnalyticsTableType}
      *
      * @return the string representation of {@link AnalyticsTableType}.
