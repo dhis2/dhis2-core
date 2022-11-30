@@ -68,6 +68,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -1022,14 +1023,14 @@ public class HibernateTrackedEntityInstanceStore
             .append( "SELECT PSI.programinstanceid " )
             .append( "FROM programstageinstance PSI " );
 
-        if ( params.hasAssignedUsers() )
+        if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {
             events
                 .append( "INNER JOIN (" )
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( encodeAndQuote( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUserQueryParam().getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
@@ -1111,14 +1112,14 @@ public class HibernateTrackedEntityInstanceStore
                 .append( SPACE );
         }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
+        if ( AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode() )
         {
             events
                 .append( whereHlp.whereAnd() )
                 .append( "PSI.assigneduserid IS NULL " );
         }
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode() )
         {
             events
                 .append( whereHlp.whereAnd() )
