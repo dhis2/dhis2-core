@@ -34,18 +34,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.eventhook.targets.webhook.WebhookTarget;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+/**
+ * @author Morten Olav Hansen
+ */
 @Getter
 @Setter
 @Accessors( chain = true )
 @RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( { @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ) } )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" )
+} )
 public abstract class Target
     implements Serializable
 {

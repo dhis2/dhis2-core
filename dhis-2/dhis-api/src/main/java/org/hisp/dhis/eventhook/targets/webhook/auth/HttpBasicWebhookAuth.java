@@ -25,29 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook.targets.webhook.auth;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.Target;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * @author Morten Olav Hansen
+ */
 @Getter
 @Setter
 @Accessors( chain = true )
-public class WebhookTarget extends Target
+public class HttpBasicWebhookAuth extends WebhookAuth
 {
     @JsonProperty( required = true )
-    private String url;
+    private String username;
+
+    @JsonProperty( required = true )
+    private String password;
 
     @JsonCreator
-    public WebhookTarget(
+    public HttpBasicWebhookAuth(
         @JsonProperty( "type" ) String type )
     {
-        super( "webhook" );
+        super( "http-basic" );
     }
 }

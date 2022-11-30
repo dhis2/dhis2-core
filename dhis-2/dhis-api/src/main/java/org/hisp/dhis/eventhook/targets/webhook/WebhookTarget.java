@@ -25,14 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.targets.webhook;
 
-import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.eventhook.targets.webhook.auth.WebhookAuth;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -41,9 +46,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @Accessors( chain = true )
-public class Source
-    implements Serializable
+public class WebhookTarget extends Target
 {
     @JsonProperty( required = true )
-    private String path;
+    private String url;
+
+    @JsonProperty( required = true )
+    private String contentType = "application/json";
+
+    @JsonProperty
+    private Map<String, String> headers = new HashMap<>();
+
+    @JsonProperty
+    private WebhookAuth auth;
+
+    @JsonCreator
+    public WebhookTarget(
+        @JsonProperty( "type" ) String type )
+    {
+        super( "webhook" );
+    }
 }

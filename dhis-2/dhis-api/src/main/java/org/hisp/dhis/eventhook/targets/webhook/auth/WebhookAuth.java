@@ -25,15 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
-
-import java.io.Serializable;
+package org.hisp.dhis.eventhook.targets.webhook.auth;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
@@ -41,9 +42,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @Accessors( chain = true )
-public class Source
-    implements Serializable
+@RequiredArgsConstructor
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = HttpBasicWebhookAuth.class, name = "http-basic" )
+} )
+public abstract class WebhookAuth
 {
-    @JsonProperty( required = true )
-    private String path;
+    @JsonProperty
+    protected final String type;
 }
