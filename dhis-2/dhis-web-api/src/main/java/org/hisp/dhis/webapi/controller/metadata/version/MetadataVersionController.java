@@ -55,7 +55,6 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -78,7 +77,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataVersionController
-    extends CrudControllerAdvice
 {
     @Autowired
     private SystemSettingManager systemSettingManager;
