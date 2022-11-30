@@ -152,7 +152,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                                                                        // VALUES
+                                                                                                                                                                                                     // VALUES
         Map<String, Object> reportingRate = new HashMap<>();
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
@@ -198,8 +198,8 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                          // TARGET
-                                                                          // RETURNED
+                                                                                                                                                                                                                // TARGET
+                                                                                                                                                                                                                // RETURNED
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 

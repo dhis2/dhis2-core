@@ -86,7 +86,7 @@ public class CombinationGenerator<T>
         for ( int i = no - 1; i >= 0; i-- )
         {
             if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
-                                                            // position in array
+                                                           // position in array
             {
                 return true;
             }
@@ -106,16 +106,16 @@ public class CombinationGenerator<T>
         for ( int i = no - 1; i >= 0; i-- )
         {
             if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
-                                                            // position in list,
-                                                            // increment index
-                                                            // and break
+                                                           // position in list,
+                                                           // increment index
+                                                           // and break
             {
                 indexes[i]++;
                 current = getCurrent();
                 break;
             }
             else // At last position in list, reset index to 0 and continue to
-                 // increment next list
+                // increment next list
             {
                 if ( hasNext() ) // Don't reset if at end
                 {

@@ -87,7 +87,7 @@ public class CronUtils
             null,
             null,
             Weekday.values()[(dayOfWeek % 7)].name // both 0 and 7 are valid as
-                                                   // Sunday in crontab patterns
+                                                                                                                                                 // Sunday in crontab patterns
         );
     }
 
