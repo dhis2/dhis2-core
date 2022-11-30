@@ -70,6 +70,7 @@ import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SlimPager;
@@ -145,6 +146,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = EventController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -522,7 +524,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add(
-                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
+                "event,uid,program,programStage,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,deleted,dataValues" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );

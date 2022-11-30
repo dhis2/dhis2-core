@@ -25,31 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.webapi.controller.exception;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.junit.jupiter.api.Test;
-import org.springframework.web.client.HttpClientErrorException;
-
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-class TrackerBundleReportModeTest
+@RequiredArgsConstructor
+@Getter
+public class InvalidEnumValueException extends Exception
 {
+    private final String invalidValue;
 
-    @Test
-    void shouldFindReportMode()
-    {
-        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
-    }
+    private final String fieldName;
 
-    @Test
-    void shouldThrowWhenReportModeNotFound()
-    {
-        assertThrows( HttpClientErrorException.class,
-            () -> TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" ) );
-    }
+    private final Class<? extends Enum> enumKlass;
 }

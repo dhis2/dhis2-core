@@ -236,6 +236,7 @@ public enum ErrorCode
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
     E4053( "Program stage `{0}` must reference a program" ),
+    E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),

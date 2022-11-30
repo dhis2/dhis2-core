@@ -32,6 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -51,6 +52,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( value = SynchronizationController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

@@ -60,13 +60,6 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
 
         if ( programStageInstance != null )
         {
-            Date dueDate = new Date();
-
-            if ( event.getDueDate() != null )
-            {
-                dueDate = parseDate( event.getDueDate() );
-            }
-
             if ( event.getEventDate() != null )
             {
                 programStageInstance.setExecutionDate( parseDate( event.getEventDate() ) );
@@ -82,7 +75,6 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
             setStatus( programStageInstance, event, ctx );
 
             programStageInstance.setStoredBy( storedBy );
-            programStageInstance.setDueDate( dueDate );
             if ( organisationUnit != null )
             {
                 programStageInstance.setOrganisationUnit( organisationUnit );

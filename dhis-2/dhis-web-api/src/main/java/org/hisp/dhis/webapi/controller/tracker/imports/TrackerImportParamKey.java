@@ -25,56 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.Date;
+import lombok.Getter;
 
-/**
- * @author Lars Helge Overland
- */
-public class ConfigurablePeriod extends Period
+enum TrackerImportParamKey
 {
-    private final String value;
+    REPORT_MODE( "reportMode" ),
+    VALIDATION_MODE_KEY( "validationMode" ),
+    IMPORT_MODE_KEY( "importMode" ),
+    IMPORT_STRATEGY_KEY( "importStrategy" ),
+    ATOMIC_MODE_KEY( "atomicMode" ),
+    FLUSH_MODE_KEY( "flushMode" ),
+    SKIP_RULE_ENGINE_KEY( "skipRuleEngine" ),
+    SKIP_SIDE_EFFECTS( "skipSideEffects" ),
+    ID_SCHEME_KEY( "idScheme" ),
+    ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
+    PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
+    PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
+    DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
+    CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
+    CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
 
-    public ConfigurablePeriod( String value )
+    @Getter
+    private final String key;
+
+    TrackerImportParamKey( String key )
     {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
-    }
-
-    @Override
-    public String getIsoDate()
-    {
-        return value;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || obj instanceof Period && objectEquals( (Period) obj );
-    }
-
-    private boolean objectEquals( Period other )
-    {
-        return value.equals( other.getIsoDate() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + value + "]";
+        this.key = key;
     }
 }

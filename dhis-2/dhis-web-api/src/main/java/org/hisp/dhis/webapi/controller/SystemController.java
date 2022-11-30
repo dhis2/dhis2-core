@@ -47,6 +47,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
@@ -86,6 +87,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( value = SystemController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -132,6 +134,7 @@ public class SystemController
         return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
     }
 
+    @OpenApi.Response( String.class )
     @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
     public void getUidCsv(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
@@ -222,6 +225,7 @@ public class SystemController
         return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
+    @OpenApi.Response( ObjectNode.class )
     @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
         @PathVariable( "jobId" ) String jobId )
@@ -243,6 +247,7 @@ public class SystemController
     // Various
     // -------------------------------------------------------------------------
 
+    @OpenApi.Response( SystemInfo.class )
     @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
         @RequestParam( defaultValue = "*" ) List<String> fields,

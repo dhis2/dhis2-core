@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = LegendSetSchemaDescriptor.API_ENDPOINT )
 public class LegendSetController

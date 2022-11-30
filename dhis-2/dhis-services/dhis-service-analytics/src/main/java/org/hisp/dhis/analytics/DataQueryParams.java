@@ -92,6 +92,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -2680,12 +2681,43 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all data elements, data elements of of data element operands and
+     * data elements of program data elements part of the data dimension.
+     */
+    public List<DimensionalItemObject> getDataElementsOperandsProgramDataElements()
+    {
+        final Set<DimensionalItemObject> dataElements = new HashSet<>();
+
+        dataElements.addAll( getDataElements() );
+        dataElements.addAll( getDataElementOperands().stream()
+            .map( DataElementOperand.class::cast )
+            .map( DataElementOperand::getDataElement )
+            .collect( Collectors.toList() ) );
+        dataElements.addAll( getProgramDataElements().stream()
+            .map( ProgramDataElementDimensionItem.class::cast )
+            .map( ProgramDataElementDimensionItem::getDataElement )
+            .collect( Collectors.toList() ) );
+
+        return ImmutableList.copyOf( dataElements );
+    }
+
+    /**
      * Returns all indicators part of the data dimension.
      */
     public List<DimensionalItemObject> getProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE,
             getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all expression dimension items part of the data dimension.
+     */
+    public List<DimensionalItemObject> getExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
@@ -2805,6 +2837,16 @@ public class DataQueryParams
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE,
             getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all expression dimension items part of the data filter.
+     */
+    public List<DimensionalItemObject> getFilterExpressionDimensionItems()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
+                getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
