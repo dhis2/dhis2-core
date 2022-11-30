@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
 public class EventHook
     extends BaseIdentifiableObject
