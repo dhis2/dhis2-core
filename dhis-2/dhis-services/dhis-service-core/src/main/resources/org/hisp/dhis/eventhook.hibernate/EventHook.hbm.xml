@@ -17,6 +17,8 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230"/>
 
+        <property name="description" type="text" />
+
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_eventhook_userid_userinfoid"/>
 
@@ -28,6 +30,10 @@
 
         <!-- Dynamic attribute values -->
         <property name="attributeValues" column="attributevalues" type="jsbAttributeValues"/>
+
+        <property name="source" type="jblEventHookSource" column="source" not-null="true" />
+
+        <property name="targets" type="jblEventHookTargets" column="target" not-null="true" />
 
     </class>
 

@@ -27,34 +27,20 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @Accessors( chain = true )
-public class EventHook
-    extends BaseIdentifiableObject
-    implements MetadataObject
+public class Source
+    implements Serializable
 {
-    @JsonProperty
-    private String description;
-
     @JsonProperty( required = true )
-    private Source source;
-
-    @JsonProperty( required = true )
-    private List<Target> targets = new ArrayList<>();
+    private String path;
 }

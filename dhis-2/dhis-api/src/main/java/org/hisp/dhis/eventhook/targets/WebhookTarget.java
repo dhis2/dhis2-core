@@ -25,36 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.hisp.dhis.eventhook.targets;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.eventhook.Target;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @Accessors( chain = true )
-public class EventHook
-    extends BaseIdentifiableObject
-    implements MetadataObject
+public class WebhookTarget extends Target
 {
-    @JsonProperty
-    private String description;
-
     @JsonProperty( required = true )
-    private Source source;
+    private String url;
 
-    @JsonProperty( required = true )
-    private List<Target> targets = new ArrayList<>();
+    @JsonCreator
+    public WebhookTarget(
+        @JsonProperty( "type" ) String type )
+    {
+        super( "webhook" );
+    }
 }

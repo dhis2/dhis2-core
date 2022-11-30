@@ -27,34 +27,28 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-/**
- * @author Morten Olav Hansen
- */
 @Getter
 @Setter
 @Accessors( chain = true )
-public class EventHook
-    extends BaseIdentifiableObject
-    implements MetadataObject
+@RequiredArgsConstructor
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
+@JsonSubTypes( { @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ) } )
+public abstract class Target
+    implements Serializable
 {
     @JsonProperty
-    private String description;
-
-    @JsonProperty( required = true )
-    private Source source;
-
-    @JsonProperty( required = true )
-    private List<Target> targets = new ArrayList<>();
+    protected final String type;
 }
