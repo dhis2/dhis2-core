@@ -25,17 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.webhook;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import java.util.HashMap;
+import java.util.Base64;
 import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.Target;
-import org.hisp.dhis.eventhook.targets.webhook.auth.WebhookAuth;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,24 +45,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @Accessors( chain = true )
-public class WebhookTarget extends Target
+public class HttpBasicAuth extends Auth
 {
     @JsonProperty( required = true )
-    private String url;
+    private String username;
 
-    @JsonProperty( required = true )
-    private String contentType = "application/json";
-
-    @JsonProperty
-    private Map<String, String> headers = new HashMap<>();
-
-    @JsonProperty
-    private WebhookAuth auth;
+    @JsonProperty( required = true, access = JsonProperty.Access.WRITE_ONLY )
+    private String password;
 
     @JsonCreator
-    public WebhookTarget(
+    public HttpBasicAuth(
         @JsonProperty( "type" ) String type )
     {
-        super( "webhook" );
+        super( "http-basic" );
+    }
+
+    @Override
+    public void apply( Map<String, String> headers )
+    {
+        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
+        {
+            return;
+        }
+
+        headers.put( "Authorization",
+            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
     }
 }

@@ -25,7 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.webhook.auth;
+package org.hisp.dhis.eventhook.targets.auth;
+
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +47,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicWebhookAuth.class, name = "http-basic" )
+    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
+    @JsonSubTypes.Type( value = Dhis2ApiTokenAuth.class, name = "dhis2-api-token" )
 } )
-public abstract class WebhookAuth
+public abstract class Auth
 {
     @JsonProperty
     protected final String type;
+
+    abstract public void apply( Map<String, String> headers );
 }

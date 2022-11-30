@@ -25,11 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.webhook.auth;
+package org.hisp.dhis.eventhook.targets.auth;
+
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,18 +44,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @Accessors( chain = true )
-public class HttpBasicWebhookAuth extends WebhookAuth
+public class Dhis2ApiTokenAuth extends Auth
 {
-    @JsonProperty( required = true )
-    private String username;
-
     @JsonProperty( required = true, access = JsonProperty.Access.WRITE_ONLY )
-    private String password;
+    private String apiToken;
 
     @JsonCreator
-    public HttpBasicWebhookAuth(
+    public Dhis2ApiTokenAuth(
         @JsonProperty( "type" ) String type )
     {
-        super( "http-basic" );
+        super( "dhis2-api-token" );
+    }
+
+    @Override
+    public void apply( Map<String, String> headers )
+    {
+        if ( !StringUtils.hasText( apiToken ) )
+        {
+            return;
+        }
+
+        headers.put( "Authorization", "ApiToken " + apiToken );
     }
 }

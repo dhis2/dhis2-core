@@ -25,20 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.targets;
 
-import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.eventhook.Target;
+import org.hisp.dhis.eventhook.targets.auth.Auth;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
@@ -46,14 +46,24 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Getter
 @Setter
 @Accessors( chain = true )
-@RequiredArgsConstructor
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" )
-} )
-public abstract class Target
-    implements Serializable
+public class WebhookTarget extends Target
 {
+    @JsonProperty( required = true )
+    private String url;
+
+    @JsonProperty( required = true )
+    private String contentType = "application/json";
+
     @JsonProperty
-    protected final String type;
+    private Map<String, String> headers = new HashMap<>();
+
+    @JsonProperty
+    private Auth auth;
+
+    @JsonCreator
+    public WebhookTarget(
+        @JsonProperty( "type" ) String type )
+    {
+        super( "webhook" );
+    }
 }
