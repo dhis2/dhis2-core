@@ -48,7 +48,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
     @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
-    @JsonSubTypes.Type( value = Dhis2ApiTokenAuth.class, name = "dhis2-api-token" )
+    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
 } )
 public abstract class Auth
 {

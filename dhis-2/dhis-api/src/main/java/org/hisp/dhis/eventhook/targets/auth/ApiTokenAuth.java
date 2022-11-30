@@ -39,21 +39,25 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
+ * for dhis2 personal access token, but can be used anywhere the format is
+ * accepted.
+ *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
 @Accessors( chain = true )
-public class Dhis2ApiTokenAuth extends Auth
+public class ApiTokenAuth extends Auth
 {
     @JsonProperty( required = true, access = JsonProperty.Access.WRITE_ONLY )
     private String apiToken;
 
     @JsonCreator
-    public Dhis2ApiTokenAuth(
+    public ApiTokenAuth(
         @JsonProperty( "type" ) String type )
     {
-        super( "dhis2-api-token" );
+        super( "api-token" );
     }
 
     @Override
