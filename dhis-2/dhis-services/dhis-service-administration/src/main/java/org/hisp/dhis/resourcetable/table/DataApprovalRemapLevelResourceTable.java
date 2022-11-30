@@ -55,9 +55,12 @@ import com.google.common.collect.Lists;
 public class DataApprovalRemapLevelResourceTable
     extends ResourceTable<DataApprovalWorkflow>
 {
-    public DataApprovalRemapLevelResourceTable( List<DataApprovalWorkflow> objects )
+    private final String tableType;
+
+    public DataApprovalRemapLevelResourceTable( List<DataApprovalWorkflow> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -69,13 +72,13 @@ public class DataApprovalRemapLevelResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + "(" +
-            "workflowid bigint not null, " +
-            "dataapprovallevelid bigint not null, " +
-            "level integer not null, " +
-            "primary key (workflowid,dataapprovallevelid))";
+        StringBuilder sql = new StringBuilder();
 
-        return sql;
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append(
+                "(workflowid bigint not null, dataapprovallevelid bigint not null, level integer not null, primary key (workflowid,dataapprovallevelid))" );
+
+        return sql.toString();
     }
 
     @Override

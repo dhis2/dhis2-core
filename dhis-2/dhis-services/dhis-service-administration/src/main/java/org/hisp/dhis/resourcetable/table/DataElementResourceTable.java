@@ -47,9 +47,12 @@ import com.google.common.collect.Lists;
 public class DataElementResourceTable
     extends ResourceTable<DataElement>
 {
-    public DataElementResourceTable( List<DataElement> objects )
+    private final String tableType;
+
+    public DataElementResourceTable( List<DataElement> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -61,19 +64,15 @@ public class DataElementResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "CREATE TABLE " + getTempTableName() + " (" +
-            "dataelementid BIGINT NOT NULL PRIMARY KEY, " +
-            "dataelementuid CHARACTER(11), " +
-            "dataelementname VARCHAR(230), " +
-            "datasetid BIGINT, " +
-            "datasetuid CHARACTER(11), " +
-            "datasetname VARCHAR(230), " +
-            "datasetapprovallevel INTEGER, " +
-            "workflowid BIGINT, " +
-            "periodtypeid INTEGER, " +
-            "periodtypename VARCHAR(230))";
+        StringBuilder sql = new StringBuilder();
 
-        return sql;
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append(
+                "(dataelementid bigint not null primary key, dataelementuid character(11), dataelementname varchar(230), datasetid bigint," )
+            .append(
+                "datasetuid character(11), datasetname varchar(230), datasetapprovallevel integer, workflowid bigint, periodtypeid integer, periodtypename varchar(230))" );
+
+        return sql.toString();
     }
 
     @Override

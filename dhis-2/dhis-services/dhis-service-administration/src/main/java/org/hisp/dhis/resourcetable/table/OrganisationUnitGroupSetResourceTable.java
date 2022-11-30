@@ -46,16 +46,19 @@ import com.google.common.collect.Lists;
 public class OrganisationUnitGroupSetResourceTable
     extends ResourceTable<OrganisationUnitGroupSet>
 {
-    private boolean supportsPartialIndexes;
+    private final boolean supportsPartialIndexes;
 
-    private int organisationUnitLevels;
+    private final int organisationUnitLevels;
+
+    private final String tableType;
 
     public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects,
-        boolean supportsPartialIndexes, int organisationUnitLevels )
+        boolean supportsPartialIndexes, int organisationUnitLevels, String tableType )
     {
         super( objects );
         this.supportsPartialIndexes = supportsPartialIndexes;
         this.organisationUnitLevels = organisationUnitLevels;
+        this.tableType = tableType;
     }
 
     @Override
@@ -67,18 +70,18 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
-            "organisationunitid bigint not null, " +
-            "organisationunitname varchar(230), " +
-            "startdate date, ";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append( "(organisationunitid bigint not null, organisationunitname varchar(230), startdate date, " );
 
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
+            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " )
+                .append( quote( groupSet.getUid() ) ).append( " character(11), " );
         }
 
-        return removeLastComma( statement ) + ")";
+        return removeLastComma( sql.toString() ) + ")";
     }
 
     @Override

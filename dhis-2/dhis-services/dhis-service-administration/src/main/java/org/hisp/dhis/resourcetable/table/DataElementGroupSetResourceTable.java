@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class DataElementGroupSetResourceTable
     extends ResourceTable<DataElementGroupSet>
 {
-    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects )
+    private final String tableType;
+
+    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -59,19 +62,20 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
-            "dataelementid bigint not null, " +
-            "dataelementname varchar(230), ";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append( "(dataelementid bigint not null, dataelementname varchar(230), " );
 
         for ( DataElementGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
+            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " );
+            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
         }
 
-        statement += "primary key (dataelementid))";
+        sql.append( "primary key (dataelementid))" );
 
-        return statement;
+        return sql.toString();
     }
 
     @Override

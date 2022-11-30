@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class IndicatorGroupSetResourceTable
     extends ResourceTable<IndicatorGroupSet>
 {
-    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
+    private final String tableType;
+
+    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -59,19 +62,20 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
-            "indicatorid bigint not null, " +
-            "indicatorname varchar(230), ";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append( "(indicatorid bigint not null, indicatorname varchar(230), " );
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
+            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " );
+            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
         }
 
-        statement += "primary key (indicatorid))";
+        sql.append( "primary key (indicatorid))" );
 
-        return statement;
+        return sql.toString();
     }
 
     @Override

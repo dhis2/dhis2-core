@@ -46,12 +46,15 @@ import com.google.common.collect.Lists;
 public class CategoryResourceTable
     extends ResourceTable<Category>
 {
-    private List<CategoryOptionGroupSet> groupSets;
+    private final List<CategoryOptionGroupSet> groupSets;
 
-    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets )
+    private final String tableType;
+
+    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets, String tableType )
     {
         super( objects );
         this.groupSets = groupSets;
+        this.tableType = tableType;
     }
 
     @Override
@@ -63,26 +66,28 @@ public class CategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String statement = "create table " + getTempTableName() + " (" +
-            "categoryoptioncomboid bigint not null, " +
-            "categoryoptioncomboname varchar(255), ";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append( "(categoryoptioncomboid bigint not null, categoryoptioncomboname varchar(255), " );
 
         UniqueNameContext nameContext = new UniqueNameContext();
+
         for ( Category category : objects )
         {
-            statement += quote( nameContext.uniqueName( category.getShortName() ) ) + " varchar(230), ";
-            statement += quote( category.getUid() ) + " character(11), ";
+            sql.append( quote( nameContext.uniqueName( category.getShortName() ) ) ).append( " varchar(230), " );
+            sql.append( quote( category.getUid() ) ).append( " character(11), " );
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            statement += quote( nameContext.uniqueName( groupSet.getShortName() ) ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
+            sql.append( quote( nameContext.uniqueName( groupSet.getShortName() ) ) ).append( " varchar(230), " );
+            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
         }
 
-        statement += "primary key (categoryoptioncomboid))";
+        sql.append( "primary key (categoryoptioncomboid))" );
 
-        return statement;
+        return sql.toString();
     }
 
     @Override
