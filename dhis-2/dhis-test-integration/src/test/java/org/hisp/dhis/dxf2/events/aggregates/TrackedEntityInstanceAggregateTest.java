@@ -236,7 +236,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
             hibernateService.flushSession();
         } );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setUser( superUser );
+        queryParams.setUserWithAssignedUsers( superUser, null, null );
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programA );
         queryParams.setEventStatus( EventStatus.COMPLETED );

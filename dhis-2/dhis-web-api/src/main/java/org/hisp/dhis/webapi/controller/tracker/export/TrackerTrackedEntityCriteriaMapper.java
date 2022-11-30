@@ -45,7 +45,6 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -107,7 +106,6 @@ public class TrackerTrackedEntityCriteriaMapper
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
-        validateAssignedUsers( criteria.getAssignedUserMode(), assignedUserIds );
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
@@ -150,8 +148,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventOccurredAfter() )
             .setEventEndDate( criteria.getEventOccurredBefore() )
-            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( assignedUserIds )
+            .setUserWithAssignedUsers( user, criteria.getAssignedUserMode(), assignedUserIds )
             .setTrackedEntityInstanceUids( trackedEntities )
             .setAttributes( attributeItems )
             .setFilters( filters )
@@ -162,7 +159,6 @@ public class TrackerTrackedEntityCriteriaMapper
             .setSkipPaging( criteria.isSkipPaging() )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setUser( user )
             .setOrders( orderParams );
         return params;
     }
@@ -261,20 +257,6 @@ public class TrackerTrackedEntityCriteriaMapper
         if ( isNotEmpty( id ) && trackedEntityType == null )
         {
             throw new IllegalQueryException( "Tracked entity type does not exist: " + id );
-        }
-    }
-
-    private static void validateAssignedUsers( AssignedUserSelectionMode mode, Set<String> assignedUserIds )
-    {
-        if ( mode == null )
-        {
-            return;
-        }
-
-        if ( !assignedUserIds.isEmpty() && AssignedUserSelectionMode.PROVIDED != mode )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
     }
 
