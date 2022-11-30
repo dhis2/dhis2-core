@@ -39,8 +39,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Component responsible for exposing analytics table export settings. Can hold
- * settings living in configuration files (ie. dhis.conf) or through system
- * settings.
+ * settings living in configuration files (ie. dhis.conf) or in system settings.
  *
  * @author maikel arabori
  */
