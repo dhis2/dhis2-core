@@ -74,7 +74,7 @@ public class AnalyticsExportSettings
      * exported. Two types are supported: UNLOGGED and REGULAR. See
      * {@link AnalyticsTableType}
      *
-     * @return the string representing of {@link AnalyticsTableType}.
+     * @return the string representation of {@link AnalyticsTableType}.
      */
     public String getTableType()
     {
