@@ -159,6 +159,7 @@ public enum SettingKey
         Boolean.class ),
     DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO( "keyDataImportRequireAttributeOptionCombo", Boolean.FALSE,
         Boolean.class ),
+    DATA_IMPORT_STRICT_DATA_SET_VALIDATION( "keyDataImportStrictDataSetValidation", Boolean.TRUE, Boolean.class ),
     CUSTOM_JS( "keyCustomJs" ),
     CUSTOM_CSS( "keyCustomCss" ),
     CALENDAR( "keyCalendar", "iso8601", String.class ),

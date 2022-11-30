@@ -646,6 +646,14 @@ public abstract class PeriodType
     // CalendarPeriodType
     // -------------------------------------------------------------------------
 
+    /**
+     * Computes future open periods.
+     *
+     * @param periodOffset number of period length shifts into the future
+     *        starting from the last period. This means the current period is at
+     *        offset 1, the one following it at 2 and so on.
+     * @return The future {@link Period} for the given offset
+     */
     public final Period getFuturePeriod( int periodOffset )
     {
         Period period = createPeriod();

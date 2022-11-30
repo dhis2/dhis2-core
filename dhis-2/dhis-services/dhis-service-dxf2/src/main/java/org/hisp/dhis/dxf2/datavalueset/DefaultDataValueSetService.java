@@ -1070,6 +1070,8 @@ public class DefaultDataValueSetService
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
             .strictOrgUnits( options.isStrictOrganisationUnits()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .strictDataSetValidation( options.isStrictDataSetValidation()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_VALIDATION ) )
             .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()

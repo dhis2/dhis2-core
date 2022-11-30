@@ -121,6 +121,8 @@ public final class ImportContext
 
     private final boolean strictOrgUnits;
 
+    private final boolean strictDataSetValidation;
+
     private final boolean requireCategoryOptionCombo;
 
     private final boolean requireAttrOptionCombo;

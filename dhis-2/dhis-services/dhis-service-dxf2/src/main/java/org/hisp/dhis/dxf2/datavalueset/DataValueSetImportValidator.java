@@ -594,6 +594,9 @@ public class DataValueSetImportValidator
             return; // if there are no data sets data input is valid as well
         }
 
+        // strict means all sets have to allow, not strict means only one has to
+        // permit
+        boolean strict = context.isStrictDataSetValidation();
         context.stageConflicts();
         for ( DataSet dataSet : dataSets )
         {
@@ -601,7 +604,7 @@ public class DataValueSetImportValidator
 
             checkDataValueExtendableDataSetExists( dataValue, context, valueContext, dataSet );
 
-            if ( conflictsBefore == context.getStagedConflictsCount() )
+            if ( !strict && conflictsBefore == context.getStagedConflictsCount() )
             {
                 context.discardConflicts();
                 return; // found a data set that had none of the above issues =>
