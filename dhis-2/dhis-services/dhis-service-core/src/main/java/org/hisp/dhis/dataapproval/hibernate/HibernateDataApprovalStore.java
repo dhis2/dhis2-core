@@ -493,8 +493,7 @@ public class HibernateDataApprovalStore
                 ") " +
                 ") " +
                 (isDefaultCombo ? ""
-                    : // Default combo options never have an
-                                                                                                                                                                                                                                                                                                                                                                                   // organisation unit mapping.
+                    : // Default combo options never have an organisation unit mapping.
                     "and not exists (" + // No AOCs without all attribute options valid for org unit.
                         "select 1 " +
                         "from categoryoptioncombos_categoryoptions cc1 " +
