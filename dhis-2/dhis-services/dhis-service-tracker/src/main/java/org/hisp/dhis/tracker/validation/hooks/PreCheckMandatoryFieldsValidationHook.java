@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,7 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckMandatoryFieldsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     private static final String ORG_UNIT = "orgUnit";
 

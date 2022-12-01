@@ -73,6 +73,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +85,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PreCheckSecurityOwnershipValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Nonnull
     private final AclService aclService;

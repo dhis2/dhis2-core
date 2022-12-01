@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,7 +64,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RelationshipsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
 
     @Override

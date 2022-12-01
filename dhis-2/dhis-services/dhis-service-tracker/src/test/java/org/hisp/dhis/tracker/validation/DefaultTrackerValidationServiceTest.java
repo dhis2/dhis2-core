@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
@@ -125,9 +124,9 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Builder
-    private static class ValidationHook extends AbstractTrackerDtoValidationHook
+    private static class ValidationHook implements TrackerValidationHook
     {
-        private Boolean removeOnError;
+        private Boolean skipOnError;
 
         private Boolean needsToRun;
 
@@ -165,13 +164,17 @@ class DefaultTrackerValidationServiceTest
             }
         }
 
+        // TODO(DHIS2-14213) test validateRelationship?
+        // TODO(DHIS2-14213) test validate bundle?
+        // TODO(DHIS2-14213) test logic I moved to DefaultTrackerValidationService
+
         @Override
         public boolean skipOnError()
         {
             // using boxed Boolean, so we can test the default removeOnError
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.removeOnError, super::skipOnError );
+            return Objects.requireNonNullElseGet( this.skipOnError, TrackerValidationHook.super::skipOnError );
         }
 
         @Override
@@ -180,7 +183,8 @@ class DefaultTrackerValidationServiceTest
             // using boxed Boolean, so we can test the default needsToRun
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.needsToRun, () -> super.needsToRun( strategy ) );
+            return Objects.requireNonNullElseGet( this.needsToRun,
+                () -> TrackerValidationHook.super.needsToRun( strategy ) );
         }
     }
 
@@ -211,7 +215,7 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         ValidationHook removeOnError = ValidationHook.builder()
-            .removeOnError( true )
+            .skipOnError( true )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
@@ -251,12 +255,12 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         ValidationHook hook1 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
         ValidationHook hook2 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E9999 ) )
             .build();
@@ -286,7 +290,7 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         ValidationHook hook1 = ValidationHook.builder()
-            .removeOnError( false )
+            .skipOnError( false )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();

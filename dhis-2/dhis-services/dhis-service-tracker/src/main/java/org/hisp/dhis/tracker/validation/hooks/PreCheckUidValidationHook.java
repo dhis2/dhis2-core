@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckUidValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
