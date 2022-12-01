@@ -51,6 +51,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -68,6 +69,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = ResourceTableController.RESOURCE_PATH )
 @ApiVersion( { DEFAULT, ALL } )

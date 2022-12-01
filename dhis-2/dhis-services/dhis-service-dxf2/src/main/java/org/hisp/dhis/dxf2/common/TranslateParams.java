@@ -30,10 +30,12 @@ package org.hisp.dhis.dxf2.common;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 public class TranslateParams
 {
     private boolean translate = true;

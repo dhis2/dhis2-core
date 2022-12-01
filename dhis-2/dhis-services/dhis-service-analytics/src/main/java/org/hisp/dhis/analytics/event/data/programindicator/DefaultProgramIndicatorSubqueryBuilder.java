@@ -53,9 +53,9 @@ import com.google.common.base.Strings;
 public class DefaultProgramIndicatorSubqueryBuilder
     implements ProgramIndicatorSubqueryBuilder
 {
-    private final static String ANALYTICS_TABLE_NAME = "analytics";
+    private static final String ANALYTICS_TABLE_NAME = "analytics";
 
-    private final static String SUBQUERY_TABLE_ALIAS = "subax";
+    private static final String SUBQUERY_TABLE_ALIAS = "subax";
 
     private final ProgramIndicatorService programIndicatorService;
 
@@ -113,8 +113,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
             aggregateSql += (where.isBlank() ? " WHERE " : " AND ")
+                + "("
                 + getProgramIndicatorSql( programIndicator.getFilter(), BOOLEAN, programIndicator, earliestStartDate,
-                    latestDate );
+                    latestDate )
+                + ")";
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
@@ -137,7 +139,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
      * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as
      * outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
      *
-     * @param outerSqlEntity the outer {@link AnayticsType}.
+     * @param outerSqlEntity the outer {@link AnalyticsType}.
      * @param programIndicator the {@link ProgramIndicator}.
      * @param relationshipType the optional {@link RelationshipType}.
      * @return a SQL where clause.

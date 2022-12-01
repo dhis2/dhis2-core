@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SettingKey;
@@ -71,6 +72,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor

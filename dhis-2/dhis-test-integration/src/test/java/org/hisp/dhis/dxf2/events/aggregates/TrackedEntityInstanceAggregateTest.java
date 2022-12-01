@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -235,7 +236,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
             hibernateService.flushSession();
         } );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setUser( superUser );
+        queryParams.setUserWithAssignedUsers( superUser, null, null );
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programA );
         queryParams.setEventStatus( EventStatus.COMPLETED );
@@ -481,6 +482,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( event.isDeleted(), is( false ) );
         assertThat( event.getStoredBy(), is( "admin_test" ) );
         assertThat( event.getFollowup(), is( nullValue() ) );
+        assertAssignedUserProperties( event );
         // Dates
         checkDate( currentTime, event.getCreated(), 500L );
         checkDate( currentTime, event.getLastUpdated(), 500L );
@@ -490,6 +492,15 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         checkDate( currentTime, event.getLastUpdatedAtClient(), 500L );
         checkDate( currentTime, event.getCompletedDate(), 500L );
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
+    }
+
+    private void assertAssignedUserProperties( Event event )
+    {
+        assertEquals( FIRST_NAME + TEST_USER, event.getAssignedUserFirstName() );
+        assertEquals( SURNAME + TEST_USER, event.getAssignedUserSurname() );
+        assertEquals( TEST_USER, event.getAssignedUserUsername() );
+        assertEquals( event.getAssignedUserFirstName() + " " + event.getAssignedUserSurname(),
+            event.getAssignedUserDisplayName() );
     }
 
     @Test

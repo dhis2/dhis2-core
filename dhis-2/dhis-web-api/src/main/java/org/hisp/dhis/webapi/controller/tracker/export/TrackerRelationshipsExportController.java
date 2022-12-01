@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -71,6 +72,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
     + TrackerRelationshipsExportController.RELATIONSHIPS )

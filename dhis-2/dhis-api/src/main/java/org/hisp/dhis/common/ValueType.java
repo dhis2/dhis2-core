@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.geotools.geojson.GeoJSON;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -79,7 +78,7 @@ public enum ValueType
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
-    GEOJSON( GeoJSON.class, false ),
+    GEOJSON( String.class, false ),
     MULTI_TEXT( String.class, true );
 
     /**

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestInfo;
 import org.hisp.dhis.common.RequestInfoService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Jan Bernitt
  */
+@OpenApi.Tags( "system" )
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( "/request" )
