@@ -117,7 +117,13 @@ public class ImportOptions
     private boolean strictOrganisationUnits;
 
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private boolean strictDataSetValidation;
+    private boolean strictDataSetApproval;
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private boolean strictDataSetLocking;
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private boolean strictDataSetInputPeriods;
 
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private boolean requireCategoryOptionCombo;

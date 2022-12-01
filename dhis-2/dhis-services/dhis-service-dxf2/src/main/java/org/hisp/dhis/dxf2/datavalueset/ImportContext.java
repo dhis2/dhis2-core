@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -121,7 +122,11 @@ public final class ImportContext
 
     private final boolean strictOrgUnits;
 
-    private final boolean strictDataSetValidation;
+    private final boolean strictDataSetApproval;
+
+    private final boolean strictDataSetLocking;
+
+    private final boolean strictDataSetInputPeriods;
 
     private final boolean requireCategoryOptionCombo;
 
@@ -147,7 +152,7 @@ public final class ImportContext
 
     private final CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
-    private final CachingMap<String, List<DataSet>> dataElementDataSetMap = new CachingMap<>();
+    private final CachingMap<String, List<DataSet>> valueContextDataSets = new CachingMap<>();
 
     private final CachingMap<String, Period> periodMap = new CachingMap<>();
 
@@ -265,12 +270,38 @@ public final class ImportContext
             : dataValue.getStoredBy();
     }
 
-    public List<DataSet> getApplicableDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
+    /**
+     * The set of {@link DataSet} that needs to be considered contains all
+     * {@link DataSet}s whose values intersect with the checked value's
+     * dimensions.
+     *
+     * These have
+     * <ul>
+     * <li>the same {@link DataElement} as the value</li>
+     * <li>include the same {@link OrganisationUnit} as the value</li>
+     * <li>the same {@link org.hisp.dhis.category.CategoryCombo} as the value's
+     * attribute option combo</li>
+     * </ul>
+     *
+     * @param dataSetContext current data set context
+     * @param valueContext current value context for the value that is imported
+     * @return list of {@link DataSet}s that needs to be considered when
+     *         checking if the value can be imported
+     */
+    public List<DataSet> getTargetDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        return dataSetContext.getDataSet() != null
-            ? List.of( dataSetContext.getDataSet() )
-            : getDataElementDataSetMap().get( valueContext.getDataElement().getUid(),
-                () -> List.copyOf( valueContext.getDataElement().getDataSets() ) );
+        if ( dataSetContext.getDataSet() != null )
+        {
+            return List.of( dataSetContext.getDataSet() );
+        }
+        OrganisationUnit orgUnit = valueContext.getOrgUnit();
+        String key = String.format( "%s-%s-%s", valueContext.getDataElement().getUid(), orgUnit.getUid(),
+            valueContext.getAttrOptionCombo().getUid() );
+        return getValueContextDataSets().get( key,
+            () -> valueContext.getDataElement().getDataSets().stream()
+                .filter( ds -> ds.getSources().contains( orgUnit ) )
+                .filter( ds -> ds.getCategoryCombo().equals( valueContext.attrOptionCombo.getCategoryCombo() ) )
+                .collect( toUnmodifiableList() ) );
     }
 
     /**

@@ -81,6 +81,7 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -572,6 +573,7 @@ class DataValueSetImportValidatorTest
     }
 
     @Test
+    @Disabled
     void testCheckDataValuePeriodIsOpenNow_MultiDataSetScenario()
     {
         Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod();
