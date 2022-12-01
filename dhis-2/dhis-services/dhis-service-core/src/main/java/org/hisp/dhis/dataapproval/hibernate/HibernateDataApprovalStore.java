@@ -518,8 +518,7 @@ public class HibernateDataApprovalStore
                         ") " +
                         ") ")
                 +
-                "and not exists (" + // Data not approved(/accepted) below where
-                                                                                                                                                                                                                                                                                                                                                                                                        // it needs to be if ready.
+                "and not exists (" + // Data not approved(/accepted) below where it needs to be if ready.
                 "select 1 from dataapproval da " +
                 "join period p on p.periodid = da.periodid " +
                 "where da.organisationunitid = dao.organisationunitid " +
