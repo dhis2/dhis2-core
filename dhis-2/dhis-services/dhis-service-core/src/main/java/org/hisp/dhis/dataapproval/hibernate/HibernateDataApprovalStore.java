@@ -553,30 +553,26 @@ public class HibernateDataApprovalStore
                 : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions + " ")
             +
             "where not exists ( " + // Exclude any attribute option combo (COC)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     // that is linked linked (1 to many) to an
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     // that is linked (1 to many) to an
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      // unwanted attribute option (CO):
             "select 1 " +
             "from categoryoptioncombos_categoryoptions cocco " +
             "join dataelementcategoryoption co on co.categoryoptionid = cocco.categoryoptionid " +
             "where cocco.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "and ( " +
-            "(co.startdate is not null and co.startdate > '" + endDate + "') " + // CO
-                                                                                                                                                                                                                                                                                                                        // start
-                                                                                                                                                                                                                                                                                                                        // date
-                                                                                                                                                                                                                                                                                                                        // too
-                                                                                                                                                                                                                                                                                                                        // late.
-            "or (co.enddate is not null and co.enddate" + coEndDateExtension + " < '" + startDate + "') " + // CO
-                                                                                                           // end
-                                                                                                           // date
-                                                                                                           // too
-                                                                                                           // early
+
+            // CO start date to late.
+            "(co.startdate is not null and co.startdate > '" + endDate + "') " +
+
+            // CO end date too early
+            "or (co.enddate is not null and co.enddate" + coEndDateExtension + " < '" + startDate + "') " +
+
             "or ( " +
             "exists ( " + // This CO has orgunit mapping
             "select 1 " +
             "from categoryoption_organisationunits coo " +
             "where coo.categoryoptionid = co.categoryoptionid " +
-            ") and not exists (" + // and not mapped to an orgunit we are
-                                                                                                                                                     // looking for
+            ") and not exists (" + // and not mapped to an orgunit we are looking for
             "select 1 " +
             "from categoryoption_organisationunits coo " +
             "join organisationunit o2 on o2.organisationunitid = coo.organisationunitid " +
