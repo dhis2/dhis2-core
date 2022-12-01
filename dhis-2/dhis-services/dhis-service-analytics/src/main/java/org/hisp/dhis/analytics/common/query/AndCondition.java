@@ -59,5 +59,4 @@ public class AndCondition extends BaseRenderable
             .filter( StringUtils::isNotBlank )
             .collect( joining( " and " ) );
     }
-
 }

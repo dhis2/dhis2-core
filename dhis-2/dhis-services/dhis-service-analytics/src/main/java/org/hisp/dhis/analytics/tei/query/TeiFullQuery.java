@@ -33,7 +33,11 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
-import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.*;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PERIOD;
+import static org.hisp.dhis.analytics.common.dimension.DimensionParamObjectType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -62,7 +66,6 @@ import org.hisp.dhis.analytics.common.query.LimitOffset;
 import org.hisp.dhis.analytics.common.query.OrCondition;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.common.query.Renderable;
-import org.hisp.dhis.analytics.common.query.RenderableUtils;
 import org.hisp.dhis.analytics.common.query.Select;
 import org.hisp.dhis.analytics.common.query.Where;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
@@ -86,10 +89,9 @@ public class TeiFullQuery extends BaseRenderable
     @Override
     public String render()
     {
-        return RenderableUtils.join(
-            Stream.of( getSelect(), getFrom(), getWhere(), getOrder(), getLimit() )
-                .filter( Objects::nonNull )
-                .collect( Collectors.toList() ),
+        return join( Stream.of( getSelect(), getFrom(), getWhere(), getOrder(), getLimit() )
+            .filter( Objects::nonNull )
+            .collect( toList() ),
             SPACE );
     }
 
@@ -156,7 +158,7 @@ public class TeiFullQuery extends BaseRenderable
             .flatMap( Collection::stream )
             .filter( d -> d.getDimension().isPeriodDimension() );
 
-        // conditions on programs (is enrolled in program)
+        // Conditions on programs (is enrolled in program)
         Stream<Renderable> programConditions = teiQueryParams
             .getCommonParams()
             .getPrograms()
@@ -164,7 +166,7 @@ public class TeiFullQuery extends BaseRenderable
             .map( BaseIdentifiableObject::getUid )
             .map( EnrolledInProgramCondition::of );
 
-        // conditions on filters/dimensions
+        // Conditions on filters/dimensions
         Stream<Renderable> dimensionConditions = teiQueryParams.getCommonParams().getDimensionIdentifiers()
             .stream()
             .filter( this::isNotPeriodDimension )
@@ -230,6 +232,7 @@ public class TeiFullQuery extends BaseRenderable
                     .map( dimensionIdentifier -> OrganisationUnitCondition.of( dimensionIdentifier, queryContext ) )
                     .collect( toList() ) );
         }
+
         if ( type == PERIOD )
         {
             return AndCondition.of(

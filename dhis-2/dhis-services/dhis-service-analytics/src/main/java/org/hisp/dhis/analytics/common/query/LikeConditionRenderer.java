@@ -40,5 +40,4 @@ public class LikeConditionRenderer extends AbstractLikeConditionRenderer
     {
         return new LikeConditionRenderer( field, value );
     }
-
 }

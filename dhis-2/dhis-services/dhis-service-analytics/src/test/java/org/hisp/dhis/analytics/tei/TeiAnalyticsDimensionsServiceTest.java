@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
@@ -37,8 +39,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.event.data.DefaultEnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,6 +51,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for {@link TeiAnalyticsDimensionsService}.
+ */
 class TeiAnalyticsDimensionsServiceTest
 {
     private TeiAnalyticsDimensionsService teiAnalyticsDimensionsService;
@@ -59,14 +62,12 @@ class TeiAnalyticsDimensionsServiceTest
     void setup()
     {
         ProgramService programService = mock( ProgramService.class );
-
         Program program = mock( Program.class );
-
         TrackedEntityTypeService trackedEntityTypeService = mock( TrackedEntityTypeService.class );
 
         when( programService.getProgram( any() ) ).thenReturn( program );
         when( program.getDataElements() ).thenReturn( allValueTypeDataElements() );
-        when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
+        when( program.getProgramIndicators() ).thenReturn( emptySet() );
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
         when( trackedEntityTypeService.getTrackedEntityType( any() ) ).thenReturn( trackedEntityType() );
 
@@ -74,16 +75,15 @@ class TeiAnalyticsDimensionsServiceTest
             trackedEntityTypeService,
             new DefaultEnrollmentAnalyticsDimensionsService( programService ),
             programService );
-
     }
 
     @Test
     void testQueryDoesNotContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = teiAnalyticsDimensionsService
-            .getQueryDimensionsByTrackedEntityTypeId( "aTeiId", Collections.emptySet() ).stream()
+            .getQueryDimensionsByTrackedEntityTypeId( "aTeiId", emptySet() ).stream()
             .map( PrefixedDimension::getItem )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         assertTrue(
             analyticsDimensions

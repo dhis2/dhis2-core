@@ -47,7 +47,6 @@ import org.hisp.dhis.program.ProgramStage;
 @RequiredArgsConstructor( staticName = "of" )
 public class ProgramAttributeCondition extends BaseRenderable
 {
-
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
@@ -62,7 +61,6 @@ public class ProgramAttributeCondition extends BaseRenderable
 
         for ( DimensionParamItem item : dimensionIdentifier.getDimension().getItems() )
         {
-
             BinaryConditionRenderer binaryConditionRenderer = BinaryConditionRenderer.of(
                 Field.ofQuotedField( dimensionIdentifier.getDimension().getUid() ),
                 item.getOperator(),
@@ -75,5 +73,4 @@ public class ProgramAttributeCondition extends BaseRenderable
 
         return OrCondition.of( renderers ).render();
     }
-
 }

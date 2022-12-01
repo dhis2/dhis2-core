@@ -59,7 +59,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -97,7 +96,6 @@ class CommonQueryRequestMapperTest
         program2.setUid( "ur1Edk5Oe2n" );
 
         ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        I18nFormat anyI18nFormat = new I18nFormat();
         String queryItem = "EQ:john";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
@@ -161,7 +159,6 @@ class CommonQueryRequestMapperTest
         ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
         String queryItem = "ur1Edk5Oe2n.OU";
         String orgUnitUid = "PEZNsGbZaVJ";
-        I18nFormat anyI18nFormat = new I18nFormat();
 
         List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
@@ -226,7 +223,6 @@ class CommonQueryRequestMapperTest
         String queryItemFilter = "PEZNsGbZaVJ";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
         String queryItemDimension = "EQ:john";
-        I18nFormat anyI18nFormat = new I18nFormat();
         List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
         List<Program> programs = List.of( program1, program2 );
@@ -296,17 +292,11 @@ class CommonQueryRequestMapperTest
         Program program1 = new Program( "prg-1" );
         program1.setUid( "lxAQ7Zs9VYR" );
 
-        ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
         String queryItem = "EQ:john";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
 
         List<OrganisationUnit> organisationUnits = List.of( new OrganisationUnit( "org-1" ),
             new OrganisationUnit( "org-2" ) );
-
-        DimensionIdentifier<Program, ProgramStage, StringUid> deDimensionIdentifier = DimensionIdentifier.of(
-            ElementWithOffset.of( program1, "1" ),
-            ElementWithOffset.of( programStage1, "2" ),
-            StringUid.of( "yLIPuJHRgey" ) );
 
         // List has only one Program, but the CommonQueryRequest, below, has
         // two.
@@ -342,7 +332,6 @@ class CommonQueryRequestMapperTest
         program2.setUid( "ur1Edk5Oe2n" );
 
         ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        I18nFormat anyI18nFormat = new I18nFormat();
         String queryItem = "EQ:john";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";
         QueryItem anyQueryItem = new QueryItem( new DataElement() );
@@ -397,7 +386,6 @@ class CommonQueryRequestMapperTest
     void mapWhenDimensionIsNotObjectAndProgramAndStageAreNotSet()
     {
         // Given
-        I18nFormat anyI18nFormat = new I18nFormat();
         String queryItem = "EQ:john";
         String nonFullyQualifiedDimension = "yLIPuJHRgey";
 
@@ -443,7 +431,6 @@ class CommonQueryRequestMapperTest
         program2.setUid( "ur1Edk5Oe2n" );
 
         ProgramStage programStage1 = new ProgramStage( "ps-1", program1 );
-        I18nFormat anyI18nFormat = new I18nFormat();
         String queryItem_1 = "EQ:john";
         String queryItem_2 = "EQ:joe";
         String dimension = "ur1Edk5Oe2n[1].jdRD35YwbRH[y].yLIPuJHRgey";

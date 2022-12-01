@@ -37,6 +37,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
+ * @see org.hisp.dhis.analytics.common.QueryExecutor
  * @author maikel arabori
  */
 @Component
@@ -60,8 +61,8 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
     {
         notNull( query, "The 'query' must not be null" );
 
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.statement(),
-            new MapSqlParameterSource().addValues( query.params() ) );
+        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.getStatement(),
+            new MapSqlParameterSource().addValues( query.getParams() ) );
 
         return new SqlQueryResult( rowSet );
     }

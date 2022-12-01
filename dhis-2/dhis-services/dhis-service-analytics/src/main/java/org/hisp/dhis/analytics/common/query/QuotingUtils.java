@@ -45,5 +45,4 @@ public class QuotingUtils
     {
         return DOUBLE_QUOTE + value + DOUBLE_QUOTE;
     }
-
 }

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_ENR;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI_EVT;
 
-import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
@@ -38,7 +38,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
+@NoArgsConstructor( access = PRIVATE )
 class SortingContextUtils
 {
     // TODO: Think about implementing this using the query builders

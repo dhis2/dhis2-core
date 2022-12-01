@@ -29,11 +29,10 @@ package org.hisp.dhis.analytics.common.query;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
-
-import org.apache.commons.lang3.StringUtils;
 
 @RequiredArgsConstructor( staticName = "of" )
 public class Where extends BaseRenderable
@@ -50,11 +49,11 @@ public class Where extends BaseRenderable
     public String render()
     {
         String renderedCondition = condition.render();
-        if ( StringUtils.isNotBlank( renderedCondition ) )
+        if ( isNotBlank( renderedCondition ) )
         {
             return "where " + renderedCondition;
         }
+
         return EMPTY;
     }
-
 }

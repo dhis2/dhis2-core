@@ -35,5 +35,11 @@ package org.hisp.dhis.analytics.common.processing;
  */
 public interface Processor<T>
 {
+    /**
+     * Processes the given object based on the implementation logic/rules.
+     *
+     * @param object to be processed
+     * @return T
+     */
     T process( T object );
 }

@@ -28,20 +28,25 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static java.time.temporal.ChronoUnit.DAYS;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.DATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ENR_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.EVT_ALIAS;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.ConstantValuesRenderer;
+import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.Period;
@@ -51,7 +56,6 @@ import org.hisp.dhis.util.DateUtils;
 
 public class PeriodCondition extends AbstractCondition
 {
-
     private final QueryContext queryContext;
 
     private final Pair<Date, Date> interval;
@@ -105,15 +109,14 @@ public class PeriodCondition extends AbstractCondition
                     Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
                     QueryOperator.GE,
                     ConstantValuesRenderer.of(
-                        DateUtils.getMediumDateString( interval.getLeft() ),
-                        ValueTypeMapping.DATE,
-                        queryContext ) ),
+                        getMediumDateString( interval.getLeft() ),
+                        DATE, queryContext ) ),
                 BinaryConditionRenderer.of(
                     Field.of( TEI_ALIAS, timeField::getField, EMPTY ),
                     QueryOperator.LT,
                     ConstantValuesRenderer.of(
-                        DateUtils.getMediumDateString( interval.getRight() ),
-                        ValueTypeMapping.DATE, queryContext ) ) ) );
+                        getMediumDateString( interval.getRight() ),
+                        DATE, queryContext ) ) ) );
     }
 
     @Override
@@ -136,16 +139,13 @@ public class PeriodCondition extends AbstractCondition
                     Field.of( alias, timeField::getField, null ),
                     QueryOperator.GE,
                     ConstantValuesRenderer.of(
-                        DateUtils.getMediumDateString( interval.getLeft() ),
-                        ValueTypeMapping.DATE,
-                        queryContext ) ),
+                        getMediumDateString( interval.getLeft() ),
+                        DATE, queryContext ) ),
                 BinaryConditionRenderer.of(
                     Field.of( alias, timeField::getField, null ),
                     QueryOperator.LT,
                     ConstantValuesRenderer.of(
-                        DateUtils.getMediumDateString( interval.getRight() ),
-                        ValueTypeMapping.DATE,
-                        queryContext ) ) ) );
+                        getMediumDateString( interval.getRight() ),
+                        DATE, queryContext ) ) ) );
     }
-
 }

@@ -37,6 +37,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component maps query request objects into query params objects. The
+ * query params objects represents the preparation of data and elements that are
+ * ready to be queried at database level.
+ */
 @Component
 @RequiredArgsConstructor
 public class TeiQueryRequestMapper
@@ -45,6 +50,16 @@ public class TeiQueryRequestMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
+    /**
+     * Maps incoming query requests into a valid and usable
+     * {@link TeiQueryParams}.
+     *
+     * @param queryRequest the {@link QueryRequest} of type
+     *        {@link TeiQueryRequest}
+     * @return the populated {@link TeiQueryParams}
+     * @throws IllegalArgumentException if the current TrackedEntityType in the
+     *         given request is invalid or non-existent
+     */
     public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest )
     {
         return TeiQueryParams.builder()

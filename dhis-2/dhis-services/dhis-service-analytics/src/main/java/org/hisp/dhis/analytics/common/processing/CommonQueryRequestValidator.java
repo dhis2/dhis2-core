@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.analytics.common.processing;
 
+import static org.hisp.dhis.feedback.ErrorCode.E7136;
+
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +41,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
 {
+    /**
+     * Runs a validation on the given query request object
+     * {@link CommonQueryRequest}, preventing basic syntax and consistency
+     * issues.
+     *
+     * @param commonQueryRequest
+     * @throws IllegalQueryException is some invalid state is found
+     */
     @Override
     public void validate( CommonQueryRequest commonQueryRequest )
     {
         if ( !commonQueryRequest.hasPrograms() )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7136 ) );
+            throw new IllegalQueryException( new ErrorMessage( E7136 ) );
         }
     }
 }

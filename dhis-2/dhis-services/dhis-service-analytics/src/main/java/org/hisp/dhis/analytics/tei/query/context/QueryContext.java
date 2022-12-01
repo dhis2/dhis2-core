@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.analytics.tei.query.context;
 
+import static java.util.Collections.emptyList;
+import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.ANALYTICS_TEI;
 import static org.hisp.dhis.analytics.tei.query.QueryContextConstants.TEI_ALIAS;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
@@ -45,7 +45,7 @@ import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.common.query.Table;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor( access = PRIVATE )
 public class QueryContext
 {
     @Getter
@@ -61,20 +61,16 @@ public class QueryContext
     {
         ParameterManager parameterManager = new ParameterManager();
 
-        return new QueryContext(
-
-            teiQueryParams,
-
+        return new QueryContext( teiQueryParams,
             SortingContext.SortingContextBuilder.of(
                 Optional.ofNullable( teiQueryParams )
                     .map( TeiQueryParams::getCommonParams )
                     .map( CommonParams::getOrderParams )
-                    .orElse( Collections.emptyList() ),
+                    .orElse( emptyList() ),
                 Optional.ofNullable( teiQueryParams )
                     .map( TeiQueryParams::getTrackedEntityType )
                     .orElse( null ),
                 parameterManager ).build(),
-
             parameterManager );
     }
 
@@ -104,6 +100,7 @@ public class QueryContext
         {
             parameterIndex++;
             parametersByPlaceHolder.put( String.valueOf( parameterIndex ), param );
+
             return ":" + parameterIndex;
         }
     }

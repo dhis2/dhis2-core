@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
+import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.analytics.common.query.RenderableUtils.join;
 
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Setter
@@ -59,10 +59,9 @@ public class Query extends BaseRenderable
     @Override
     public String render()
     {
-        return RenderableUtils.join(
-            Stream.of( select, from, where, order, limit )
-                .filter( Objects::nonNull )
-                .collect( Collectors.toList() ),
-            StringUtils.SPACE );
+        return join( Stream.of( select, from, where, order, limit )
+            .filter( Objects::nonNull )
+            .collect( toList() ),
+            SPACE );
     }
 }

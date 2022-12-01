@@ -37,7 +37,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.*;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.QueryContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -45,7 +46,6 @@ import org.hisp.dhis.program.ProgramStage;
 @RequiredArgsConstructor
 public abstract class AbstractCondition extends BaseRenderable
 {
-
     private final DimensionIdentifier<Program, ProgramStage, DimensionParam> dimensionIdentifier;
 
     private final QueryContext queryContext;
@@ -103,6 +103,7 @@ public abstract class AbstractCondition extends BaseRenderable
     {
         String programUid = dimensionIdentifier.getProgram().getElement().getUid();
         String programStageUid = dimensionIdentifier.getProgramStage().getElement().getUid();
+
         return "exists (select 1 from " +
             getEnrollmentSubQuery( programUid ) +
             " left join " +

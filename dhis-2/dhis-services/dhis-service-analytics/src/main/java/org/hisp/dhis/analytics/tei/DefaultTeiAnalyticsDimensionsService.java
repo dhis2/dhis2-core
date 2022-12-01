@@ -27,15 +27,20 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -72,7 +77,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
         if ( Objects.nonNull( trackedEntityType ) )
         {
             Stream<Program> programs;
-            if ( CollectionUtils.isEmpty( programUids ) )
+            if ( isEmpty( programUids ) )
             {
                 programs = programService.getAllPrograms().stream();
             }
@@ -86,10 +91,11 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
                 .filter( program -> isDefinedOnTrackedEntityType( program, trackedEntityTypeId ) )
                 .map( program -> enrollmentAnalyticsDimensionsService
                     .getQueryDimensionsByProgramId( program.getUid() ) )
-                .flatMap( Collection::stream )
-                .collect( Collectors.toList() );
+                .flatMap( List::stream )
+                .collect( toList() );
         }
-        return Collections.emptyList();
+
+        return emptyList();
     }
 
     private boolean isDefinedOnTrackedEntityType( Program program, String trackedEntityTypeId )
