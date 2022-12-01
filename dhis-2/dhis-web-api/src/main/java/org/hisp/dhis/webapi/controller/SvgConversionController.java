@@ -35,6 +35,7 @@ import java.io.StringReader;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.batik.transcoder.SVGAbstractTranscoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -96,6 +97,7 @@ public class SvgConversionController
         PNGTranscoder transcoder = new PNGTranscoder();
 
         transcoder.addTranscodingHint( ImageTranscoder.KEY_BACKGROUND_COLOR, Color.WHITE );
+        transcoder.addTranscodingHint( SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false );
 
         TranscoderInput input = new TranscoderInput( new StringReader( svg ) );
 
@@ -110,6 +112,7 @@ public class SvgConversionController
         svg = replaceUnsafeSvgText( svg );
 
         PDFTranscoder transcoder = new PDFTranscoder();
+        transcoder.addTranscodingHint( SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false );
 
         TranscoderInput input = new TranscoderInput( new StringReader( svg ) );
 
