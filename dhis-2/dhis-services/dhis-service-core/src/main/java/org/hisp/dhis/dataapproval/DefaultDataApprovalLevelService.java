@@ -159,7 +159,7 @@ public class DefaultDataApprovalLevelService
             else if ( level.getOrgUnitLevel() > levelAboveOrgUnitLevel )
             {
                 levelAbove = level; // Must be first matching approval level for
-                                    // this org unit level.
+                                   // this org unit level.
 
                 levelAboveOrgUnitLevel = level.getOrgUnitLevel();
             }
