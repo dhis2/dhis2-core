@@ -482,8 +482,7 @@ public class HibernateDataApprovalStore
                 "where " + statementBuilder.position( "o.uid", "dao.path" ) + " = "
                 + pathPositionAtLevel( orgUnitLevel ) + " " +
                 "and dao.hierarchylevel = " + approvalLevelBelowOrgUnit.getOrgUnitLevel() + " " +
-                "and exists ( " + // Data for this workflow is collected
-                                                                                                                                                                                                                                     // somewhere at or below DAO
+                "and exists ( " + // Data for this workflow is collected somewhere at or below DAO
                 "select 1 from organisationunit child " +
                 "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0 " +
                 "and child.organisationunitid in ( " +
@@ -496,8 +495,7 @@ public class HibernateDataApprovalStore
                 (isDefaultCombo ? ""
                     : // Default combo options never have an
                                                                                                                                                                                                                                                                                                                                                                                    // organisation unit mapping.
-                    "and not exists (" + // No AOCs without all attribute
-                                        // options valid for org unit.
+                    "and not exists (" + // No AOCs without all attribute options valid for org unit.
                         "select 1 " +
                         "from categoryoptioncombos_categoryoptions cc1 " +
                         "where cc1.categoryoptioncomboid = coc.categoryoptioncomboid " +
@@ -506,8 +504,7 @@ public class HibernateDataApprovalStore
                         "select 1 " +
                         "from categoryoption_organisationunits co1 " +
                         "where co1.categoryoptionid = cc1.categoryoptionid ) " +
-                        "and not exists (" + // then one of them should map to
-                                                                                                                                                                  // this orgUnit.
+                        "and not exists (" + // then one of them should map to this orgUnit.
                         "select 1 " +
                         "from categoryoption_organisationunits co1 " +
                         "join organisationunit o1 on o1.organisationunitid = co1.organisationunitid " +
