@@ -31,6 +31,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.schema.descriptors.ExpressionDimensionItemSchemaDescriptor;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,4 +46,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ExpressionDimensionItemController extends AbstractCrudController<ExpressionDimensionItem>
 {
+    private static final String PRIVATE_ACCESS = "--------";
+
+    /**
+     * virtual preCreateEntity method is used to set default public access to
+     * private (only creator can read and manipulate data)
+     *
+     * @param entity
+     * @throws Exception
+     */
+    @Override
+    protected void preCreateEntity( ExpressionDimensionItem entity )
+        throws Exception
+    {
+        Sharing sharing = SharingUtils.generateSharingFromIdentifiableObject( entity );
+
+        if ( sharing.getPublicAccess() == null )
+        {
+            sharing.setPublicAccess( PRIVATE_ACCESS );
+
+            entity.setSharing( sharing );
+        }
+
+        super.preCreateEntity( entity );
+    }
 }
