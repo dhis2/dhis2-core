@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -55,6 +56,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @JacksonXmlRootElement( localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0 )
 public class MetadataImportParams
 {

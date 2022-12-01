@@ -64,8 +64,8 @@ public class TrackerImportThread
 
         trackerImportService
             .importTracker( trackerImportParams ); // discard returned report,
-                                                   // it has been put on the
-                                                   // jobs endpoint
+                                                                      // it has been put on the
+                                                                      // jobs endpoint
     }
 
     public void setTrackerImportParams( TrackerImportParams trackerImportParams )

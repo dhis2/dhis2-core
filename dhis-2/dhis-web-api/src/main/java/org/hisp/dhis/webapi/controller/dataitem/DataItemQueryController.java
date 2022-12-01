@@ -48,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -73,6 +74,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author maikel arabori
  */
+@OpenApi.Tags( "metadata" )
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
 @RequiredArgsConstructor

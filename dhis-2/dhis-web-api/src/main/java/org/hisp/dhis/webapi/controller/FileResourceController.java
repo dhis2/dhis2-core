@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -67,6 +68,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Halvdan Hoem Grelland
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
 @Slf4j

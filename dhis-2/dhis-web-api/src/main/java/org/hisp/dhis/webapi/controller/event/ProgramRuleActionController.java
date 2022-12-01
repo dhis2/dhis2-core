@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author markusbekken
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramRuleActionSchemaDescriptor.API_ENDPOINT )
 public class ProgramRuleActionController

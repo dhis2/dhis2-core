@@ -333,11 +333,8 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkEventWriteAccess( reporter, bundle, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO:
-                                                // calculate
-                                                // correct
-        // isCreatableInSearchScope
-        // value
+            // TODO: Calculate correct `isCreateableInSearchScope` value
+            teiUid, isCreatableInSearchScope );
     }
 
     private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
