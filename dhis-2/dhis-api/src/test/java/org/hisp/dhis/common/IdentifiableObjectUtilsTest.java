@@ -203,43 +203,13 @@ class IdentifiableObjectUtilsTest
         DataElement deC = new DataElement();
         deC.setUid( null );
         DataElement deD = null;
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deB ) ); // both
-                                                                       // objects
-                                                                       // not
-                                                                       // null
-                                                                       // and
-                                                                       // not
-                                                                       // equal
-        assertTrue( IdentifiableObjectUtils.equalByUID( deA, deA1 ) ); // both
-                                                                       // objects
-                                                                       // not
-                                                                       // null
-                                                                       // and
-                                                                       // equal
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deC ) ); // object
-                                                                       // not
-                                                                       // null,
-                                                                       // UID
-                                                                       // null
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deA ) ); // UID
-                                                                       // null,
-                                                                       // object
-                                                                       // not
-                                                                       // null
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deD ) ); // UID
-                                                                       // null,
-                                                                       // object
-                                                                       // null
-        assertTrue( IdentifiableObjectUtils.equalByUID( deD, deD ) );  // both
-                                                                       // objects
-                                                                       // null
-        assertTrue( IdentifiableObjectUtils.equalByUID( deC, deC ) );  // both
-                                                                       // UIDs
-                                                                       // null
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deD ) ); // object
-                                                                       // not
-                                                                       // null,
-                                                                       // object
-                                                                       // null
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deB ) );
+        assertTrue( IdentifiableObjectUtils.equalByUID( deA, deA1 ) );
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deC ) );
+        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deA ) );
+        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deD ) );
+        assertTrue( IdentifiableObjectUtils.equalByUID( deD, deD ) );
+        assertTrue( IdentifiableObjectUtils.equalByUID( deC, deC ) );
+        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deD ) );
     }
 }
