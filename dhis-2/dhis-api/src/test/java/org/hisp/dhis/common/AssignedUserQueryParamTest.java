@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.AssignedUserSelectionMode.ALL;
 import static org.hisp.dhis.common.AssignedUserSelectionMode.CURRENT;
 import static org.hisp.dhis.common.AssignedUserSelectionMode.PROVIDED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -94,7 +94,7 @@ class AssignedUserQueryParamTest
 
         AssignedUserQueryParam param = new AssignedUserQueryParam( null, current, users );
 
-        assertNull( param.getMode() );
+        assertEquals( ALL, param.getMode() );
         assertIsEmpty( param.getAssignedUsers() );
         assertFalse( param.hasAssignedUsers() );
     }
