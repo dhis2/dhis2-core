@@ -166,12 +166,12 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public boolean removeOnError()
+        public boolean skipOnError()
         {
             // using boxed Boolean, so we can test the default removeOnError
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.removeOnError, super::removeOnError );
+            return Objects.requireNonNullElseGet( this.removeOnError, super::skipOnError );
         }
 
         @Override

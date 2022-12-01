@@ -73,7 +73,7 @@ public class AssignedUserValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

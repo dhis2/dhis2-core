@@ -107,7 +107,7 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

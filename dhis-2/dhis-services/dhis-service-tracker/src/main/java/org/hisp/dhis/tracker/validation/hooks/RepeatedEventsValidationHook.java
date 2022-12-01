@@ -99,7 +99,7 @@ public class RepeatedEventsValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
 /**
@@ -35,5 +40,72 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
  */
 public interface TrackerValidationHook
 {
-    void validate( ValidationErrorReporter report, TrackerBundle bundle );
+    default void validate( ValidationErrorReporter report, TrackerBundle bundle )
+    {
+    }
+
+    /**
+     * Template method Must be implemented if dtoTypeClass == Event or
+     * dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param event entity to validate
+     */
+    default void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+    }
+
+    /**
+     * Template method Must be implemented if dtoTypeClass == Enrollment or
+     * dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param enrollment entity to validate
+     */
+    default void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+    }
+
+    /**
+     * Template method Must be implemented if dtoTypeClass == Relationship or
+     * dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param relationship entity to validate
+     */
+    default void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
+    {
+    }
+
+    /**
+     * Template method Must be implemented if dtoTypeClass == TrackedEntity or
+     * dtoTypeClass == null
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     * @param tei entity to validate
+     */
+    default void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    {
+    }
+
+    default boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        // TODO double check if I need to override this for the only hook that is not an AbstractTrackerDtoValidationHook
+        return strategy != TrackerImportStrategy.DELETE;
+    }
+
+    /**
+     * Signal that subsequent {@link TrackerValidationHook}s should be skipped
+     * for an entity that is invalid according to this hook.
+     */
+    default boolean skipOnError()
+    {
+        // TODO double check if I need to override this for the only hook that is not an AbstractTrackerDtoValidationHook
+        return false;
+    }
 }

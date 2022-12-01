@@ -113,7 +113,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

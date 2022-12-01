@@ -108,7 +108,7 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return false;
     }
