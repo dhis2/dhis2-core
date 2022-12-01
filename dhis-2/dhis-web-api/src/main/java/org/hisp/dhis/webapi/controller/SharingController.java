@@ -269,9 +269,8 @@ public class SharingController
         {
             throw new AccessDeniedException( "You do not have manage access to this object." );
         }
-        String json = new String( request.getInputStream().readAllBytes() );
 
-        Sharing sharing = renderService.fromJson( json, Sharing.class );
+        Sharing sharing = renderService.fromJson( request.getInputStream(), Sharing.class );
 
         if ( !AccessStringHelper.isValid( sharing.getObject().getPublicAccess() ) )
         {
