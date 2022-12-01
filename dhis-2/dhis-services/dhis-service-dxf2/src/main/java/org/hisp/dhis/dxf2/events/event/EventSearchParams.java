@@ -411,12 +411,12 @@ public class EventSearchParams
      * the query. Non-empty assigned users are only allowed with mode PROVIDED
      * (or null).
      *
-     * @param current current user with which query is made
      * @param mode assigned user mode
+     * @param current current user with which query is made
      * @param assignedUsers assigned user uids
      * @return this
      */
-    public EventSearchParams setUserWithAssignedUsers( User current, AssignedUserSelectionMode mode,
+    public EventSearchParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
         Set<String> assignedUsers )
     {
         this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );

@@ -246,7 +246,7 @@ class EventRequestToSearchParamsMapper
 
         return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
-            .setUserWithAssignedUsers( user, assignedUserSelectionMode, assignedUsers )
+            .setUserWithAssignedUsers( assignedUserSelectionMode, user, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
             .setLastUpdatedStartDate( lastUpdatedStartDate ).setLastUpdatedEndDate( lastUpdatedEndDate )
             .setLastUpdatedDuration( lastUpdatedDuration ).setEventStatus( status )

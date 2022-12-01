@@ -191,7 +191,7 @@ class TrackerEventCriteriaMapper
             .setTrackedEntityInstance( trackedEntityInstance )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
-            .setUserWithAssignedUsers( user, criteria.getAssignedUserMode(), assignedUserIds )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
             .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
             .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
             .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
