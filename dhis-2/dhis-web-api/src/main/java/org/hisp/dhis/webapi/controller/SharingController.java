@@ -37,12 +37,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,6 +55,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -67,6 +72,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.util.SharingUtils;
+import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
@@ -263,8 +269,9 @@ public class SharingController
         {
             throw new AccessDeniedException( "You do not have manage access to this object." );
         }
+        String json = new String( request.getInputStream().readAllBytes() );
 
-        Sharing sharing = renderService.fromJson( request.getInputStream(), Sharing.class );
+        Sharing sharing = renderService.fromJson( json, Sharing.class );
 
         if ( !AccessStringHelper.isValid( sharing.getObject().getPublicAccess() ) )
         {
@@ -369,9 +376,13 @@ public class SharingController
 
         manager.updateNoAcl( object );
 
-        if ( Program.class.isInstance( object ) )
+        if ( object instanceof Program )
         {
             syncSharingForEventProgram( (Program) object );
+        }
+        else if ( object instanceof Visualization )
+        {
+            syncSharingForExpressionDimensionItems( (Visualization) object, sharing.getObject().getUserAccesses() );
         }
 
         log.info( sharingToString( object ) );
@@ -495,5 +506,23 @@ public class SharingController
 
         programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
+    }
+
+    private void syncSharingForExpressionDimensionItems( Visualization visualization,
+        List<SharingUserAccess> sharingUserAccesses )
+    {
+        List<ExpressionDimensionItem> expressionDimensionItems = visualization.getDataDimensionItems()
+            .stream()
+            .map( DataDimensionItem::getExpressionDimensionItem )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+
+        expressionDimensionItems.forEach( edi -> {
+            org.hisp.dhis.user.sharing.Sharing sharing = edi.getSharing();
+            Set<UserAccess> userAccess = sharingUserAccesses.stream()
+                .map( sua -> new UserAccess( sua.getAccess(), sua.getId() ) ).collect( Collectors.toUnmodifiableSet() );
+            sharing.setUserAccesses( userAccess );
+            manager.update( edi );
+        } );
     }
 }
