@@ -84,8 +84,7 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
             throw new FlywayException( ex );
         }
 
-        legacyRoleIds.removeAll( newRoleIds ); // in case this new role has
-                                               // already been added
+        legacyRoleIds.removeAll( newRoleIds ); // in case this new role has already been added
 
         if ( legacyRoleIds.size() > 0 )
         {

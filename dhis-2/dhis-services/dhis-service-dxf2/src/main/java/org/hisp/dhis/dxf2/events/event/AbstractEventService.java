@@ -290,8 +290,6 @@ public abstract class AbstractEventService implements EventService
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
-        params.handleCurrentUserSelectionMode( user );
-
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
@@ -379,8 +377,6 @@ public abstract class AbstractEventService implements EventService
         }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
-        params.handleCurrentUserSelectionMode( user );
 
         // ---------------------------------------------------------------------
         // If includeAllDataElements is set to true, return all data elements.

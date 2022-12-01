@@ -451,8 +451,8 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertHasNoMember( json, "trackedEntityType" );
         assertHasNoMember( json, "orgUnit" );
         assertHasNoMember( json, "relationships" ); // relationships are not
-                                                    // returned within
-                                                    // relationships
+                                                   // returned within
+                                                   // relationships
         assertTrue( jsonTEI.getArray( "attributes" ).isEmpty() );
     }
 
