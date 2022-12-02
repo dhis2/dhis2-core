@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +109,15 @@ public class DefaultTrackerValidationService
             .addErrors( reporter.getErrors() )
             .addWarnings( reporter.getWarnings() );
 
-        removeInvalidObjects( bundle, reporter );
+        PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(), bundle.getPreheat(),
+            bundle.getImportStrategy() );
+
+        bundle.setTrackedEntities( persistables.get( TrackedEntity.class ) );
+        bundle.setEnrollments( persistables.get( Enrollment.class ) );
+        bundle.setEvents( persistables.get( Event.class ) );
+        bundle.setRelationships( persistables.get( Relationship.class ) );
+
+        // TODO add errors collected during filtering to report
 
         return validationReport;
     }
@@ -230,22 +239,6 @@ public class DefaultTrackerValidationService
                 hook.getClass().getName(),
                 hookTimer.toString() ) );
         }
-    }
-
-    private void removeInvalidObjects( TrackerBundle bundle, ValidationErrorReporter reporter )
-    {
-        bundle.setEvents( bundle.getEvents().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setEnrollments( bundle.getEnrollments().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setTrackedEntities( bundle.getTrackedEntities().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setRelationships( bundle.getRelationships().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
     }
 
     private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )

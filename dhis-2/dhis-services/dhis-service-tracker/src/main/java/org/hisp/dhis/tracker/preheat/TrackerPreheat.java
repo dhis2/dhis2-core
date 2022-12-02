@@ -78,6 +78,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.user.User;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -89,7 +90,7 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerPreheat
+public class TrackerPreheat implements Finder
 {
     /**
      * User to use for import job (important for threaded imports).
@@ -867,5 +868,14 @@ public class TrackerPreheat
         return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
             .add( "map=" + map )
             .toString();
+    }
+
+    @Override
+    public <T extends TrackerDto> Optional<T> findById( Class<T> type, String uid )
+    {
+        // TODO in PersistablesFilter I am only concerned with existence checks and the tracker domain.
+        // I do not want to deal with any mapping between TrackedEntityInstance classes and TrackedEntity
+        // all I need is the UID and the tracker type.
+        return Optional.empty();
     }
 }

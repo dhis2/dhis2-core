@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -255,5 +256,29 @@ public class TrackerBundle
     public org.hisp.dhis.relationship.Relationship getRelationship( String relationship )
     {
         return getPreheat().getRelationship( relationship );
+    }
+
+    // TODO test
+    @SuppressWarnings( "unchecked" )
+    public <T extends TrackerDto> List<T> get( Class<T> type )
+    {
+        Objects.requireNonNull( type );
+        if ( type == TrackedEntity.class )
+        {
+            return (List<T>) trackedEntities;
+        }
+        else if ( type == Enrollment.class )
+        {
+            return (List<T>) enrollments;
+        }
+        else if ( type == Event.class )
+        {
+            return (List<T>) events;
+        }
+        else if ( type == Relationship.class )
+        {
+            return (List<T>) relationships;
+        }
+        return null;
     }
 }

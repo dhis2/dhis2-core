@@ -25,43 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.preheat;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Finder finds {@link TrackerDto} given a type and a UID.
  */
-@Getter
-@RequiredArgsConstructor
-public enum TrackerType
+public interface Finder
 {
-    TRACKED_ENTITY( "trackedEntity", 1, TrackedEntity.class ),
-    ENROLLMENT( "enrollment", 2, Enrollment.class ),
-    EVENT( "event", 3, Event.class ),
-    RELATIONSHIP( "relationship", 4, Relationship.class );
 
-    private final String name;
-
-    private final Integer priority;
-
-    private final Class klass;
-
-    public static List<TrackerType> getOrderedByPriority()
-    {
-        return Arrays.stream( values() )
-            .sorted( Comparator.comparing( TrackerType::getPriority ) )
-            .collect( Collectors.toList() );
-    }
+    <T extends TrackerDto> Optional<T> findById( Class<T> type, String uid );
 }
