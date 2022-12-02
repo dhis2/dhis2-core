@@ -40,13 +40,18 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
  */
 public interface TrackerValidationHook
 {
-    default void validate( ValidationErrorReporter report, TrackerBundle bundle )
+    /**
+     * Validate the tracker bundle.
+     *
+     * @param reporter ValidationErrorReporter instance
+     * @param bundle tracker bundle
+     */
+    default void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
     {
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Event or
-     * dtoTypeClass == null
+     * Called on every event in the bundle.
      *
      * @param reporter ValidationErrorReporter instance
      * @param bundle tracker bundle
@@ -57,8 +62,7 @@ public interface TrackerValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Enrollment or
-     * dtoTypeClass == null
+     * Called on every enrollment in the bundle.
      *
      * @param reporter ValidationErrorReporter instance
      * @param bundle tracker bundle
@@ -69,8 +73,7 @@ public interface TrackerValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == Relationship or
-     * dtoTypeClass == null
+     * Called on every relationship in the bundle.
      *
      * @param reporter ValidationErrorReporter instance
      * @param bundle tracker bundle
@@ -82,8 +85,7 @@ public interface TrackerValidationHook
     }
 
     /**
-     * Template method Must be implemented if dtoTypeClass == TrackedEntity or
-     * dtoTypeClass == null
+     * Called on every TEI in the bundle.
      *
      * @param reporter ValidationErrorReporter instance
      * @param bundle tracker bundle
@@ -95,7 +97,6 @@ public interface TrackerValidationHook
 
     default boolean needsToRun( TrackerImportStrategy strategy )
     {
-        // TODO double check if I need to override this for the only hook that is not an AbstractTrackerDtoValidationHook
         return strategy != TrackerImportStrategy.DELETE;
     }
 
@@ -105,7 +106,6 @@ public interface TrackerValidationHook
      */
     default boolean skipOnError()
     {
-        // TODO double check if I need to override this for the only hook that is not an AbstractTrackerDtoValidationHook
         return false;
     }
 }
