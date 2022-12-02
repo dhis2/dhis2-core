@@ -67,7 +67,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -309,13 +308,6 @@ public class PreCheckSecurityOwnershipValidationHook
                 ownerOrgUnit,
                 program, event.isCreatableInSearchScope() );
         }
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        // NOTHING TO DO HERE
     }
 
     private void validateCreateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
