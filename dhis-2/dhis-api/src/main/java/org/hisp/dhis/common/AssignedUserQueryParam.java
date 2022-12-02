@@ -45,9 +45,9 @@ public class AssignedUserQueryParam
     public static final AssignedUserQueryParam ALL = new AssignedUserQueryParam( AssignedUserSelectionMode.ALL, null,
         Collections.emptySet() );
 
-    private final AssignedUserSelectionMode mode;
+    AssignedUserSelectionMode mode;
 
-    private final Set<String> assignedUsers;
+    Set<String> assignedUsers;
 
     /**
      * Non-empty assigned users are only allowed with mode PROVIDED (or null).

@@ -69,7 +69,7 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+    private AssignedUserSelectionMode assignedUserMode = AssignedUserSelectionMode.ALL;
 
     private String assignedUser;
 

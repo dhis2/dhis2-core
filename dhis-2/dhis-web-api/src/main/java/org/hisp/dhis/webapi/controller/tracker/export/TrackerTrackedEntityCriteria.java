@@ -132,7 +132,7 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
     /**
      * Selection mode for user assignment of events.
      */
-    private AssignedUserSelectionMode assignedUserMode;
+    private AssignedUserSelectionMode assignedUserMode = AssignedUserSelectionMode.ALL;
 
     /**
      * Semicolon-delimited list of user UIDs to filter based on events assigned
