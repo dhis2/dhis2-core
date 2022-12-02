@@ -41,8 +41,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     DebugMapper.class,
-    UserGroupAccessMapper.class,
-    UserAccessMapper.class,
     TrackedEntityInstanceMapper.class,
     OrganisationUnitMapper.class,
     AttributeValueMapper.class
@@ -56,10 +54,6 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccessesPi" )
-    @Mapping( target = "userAccesses", qualifiedByName = "userAccessesPi" )
     @Mapping( target = "program", qualifiedByName = "program" )
     @Mapping( target = "entityInstance" )
     @Mapping( target = "organisationUnit" )

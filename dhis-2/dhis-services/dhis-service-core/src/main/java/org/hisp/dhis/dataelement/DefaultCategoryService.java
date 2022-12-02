@@ -500,7 +500,7 @@ public class DefaultCategoryService
 
         addCategoryOption( categoryOption );
 
-        categoryOption.setPublicAccess( AccessStringHelper.CATEGORY_OPTION_DEFAULT );
+        categoryOption.getSharing().setPublicAccess( AccessStringHelper.CATEGORY_OPTION_DEFAULT );
         updateCategoryOption( categoryOption );
 
         // ---------------------------------------------------------------------
@@ -516,7 +516,7 @@ public class DefaultCategoryService
         category.addCategoryOption( categoryOption );
         addCategory( category );
 
-        category.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        category.getSharing().setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
         updateCategory( category );
 
         // ---------------------------------------------------------------------
@@ -532,7 +532,7 @@ public class DefaultCategoryService
         categoryCombo.addCategory( category );
         addCategoryCombo( categoryCombo );
 
-        categoryCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        categoryCombo.getSharing().setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
         updateCategoryCombo( categoryCombo );
 
         // ---------------------------------------------------------------------
@@ -548,7 +548,7 @@ public class DefaultCategoryService
 
         addCategoryOptionCombo( categoryOptionCombo );
 
-        categoryOptionCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        categoryOptionCombo.getSharing().setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
         updateCategoryOptionCombo( categoryOptionCombo );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();

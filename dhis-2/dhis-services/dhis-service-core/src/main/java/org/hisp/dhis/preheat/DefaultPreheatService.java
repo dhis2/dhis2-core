@@ -79,7 +79,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.util.SharingUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -304,9 +303,6 @@ public class DefaultPreheatService implements PreheatService
                 return;
             }
 
-            ((BaseIdentifiableObject) object)
-                .setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) );
-
             preheat.put( params.getPreheatIdentifier(), object );
         } ) );
     }
@@ -512,9 +508,9 @@ public class DefaultPreheatService implements PreheatService
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                     identifiableObject.getSharing().getUserGroups().values()
-                        .forEach( uga -> addIdentifiers( map, uga.toDtoObject().getUserGroup() ) );
+                        .forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
                     identifiableObject.getSharing().getUsers().values()
-                        .forEach( ua -> addIdentifiers( map, ua.toDtoObject().getUser() ) );
+                        .forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                     if ( identifiableObject.getCreatedBy() != null )
                     {

@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.UserGroup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
@@ -43,18 +44,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class UserGroupAccess
     extends AccessObject
 {
+
+    //------------------------------------------------------------------------------------------
+    // Constructors
+    //------------------------------------------------------------------------------------------
+
     public UserGroupAccess( UserGroup userGroup, String access )
     {
         super( access, userGroup.getUid() );
-    }
-
-    /**
-     * This is for backward compatibility with legacy
-     * {@link org.hisp.dhis.user.UserGroupAccess}
-     */
-    public UserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
-    {
-        super( userGroupAccess.getAccess(), userGroupAccess.getUid() );
     }
 
     public UserGroupAccess( String access, String id )
@@ -62,23 +59,21 @@ public class UserGroupAccess
         super( access, id );
     }
 
+    //------------------------------------------------------------------------------------------
+    // Helpers
+    //------------------------------------------------------------------------------------------
+
     public void setUserGroup( UserGroup userGroup )
     {
         setId( userGroup.getUid() );
     }
 
-    public org.hisp.dhis.user.UserGroupAccess toDtoObject()
+    @JsonIgnore
+    public UserGroup getUserGroup()
     {
-        org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
-        userGroupAccess.setUid( getId() );
-        userGroupAccess.setAccess( getAccess() );
         UserGroup userGroup = new UserGroup();
-        userGroup.setUid( getId() );
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setUid( getId() );
-        userGroupAccess.setDisplayName( getDisplayName() );
-
-        return userGroupAccess;
+        userGroup.setUid( this.id );
+        return userGroup;
     }
 
     @Override

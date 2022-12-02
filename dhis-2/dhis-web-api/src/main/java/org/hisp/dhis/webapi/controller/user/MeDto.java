@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,8 @@ import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -69,13 +72,13 @@ public class MeDto
         this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
         this.favorites = user.getFavorites();
         this.sharing = user.getSharing();
-        this.userGroupAccesses = user.getUserGroupAccesses();
-        this.userAccesses = user.getUserAccesses();
+        this.userGroupAccesses = new HashSet<>( user.getSharing().getUserGroups().values() );
+        this.userAccesses = new HashSet<>( user.getSharing().getUsers().values() );
         this.userGroups = user.getGroups();
         this.translations = user.getTranslations();
         this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
         this.organisationUnits = user.getOrganisationUnits();
-        this.externalAccess = user.getExternalAccess();
+        this.externalAccess = user.getSharing().isExternal();
         this.displayName = user.getDisplayName();
         this.access = user.getAccess();
         this.name = user.getName();
@@ -145,10 +148,10 @@ public class MeDto
     protected Sharing sharing;
 
     @JsonProperty( )
-    private Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses;
+    private Set<UserGroupAccess> userGroupAccesses;
 
     @JsonProperty( )
-    private Set<org.hisp.dhis.user.UserAccess> userAccesses;
+    private Set<UserAccess> userAccesses;
 
     @JsonProperty( )
     private Set<UserGroup> userGroups;

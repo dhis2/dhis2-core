@@ -121,7 +121,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
                     {
                         IdentifiableObject identifiableObject = manager.get( externalClasses.get( type ), uid );
 
-                        if ( identifiableObject != null && identifiableObject.getExternalAccess() )
+                        if ( identifiableObject != null && identifiableObject.getSharing().isExternal() )
                         {
                             log.debug( "ACCESS_GRANTED [" + filterInvocation.toString() + "]" );
 

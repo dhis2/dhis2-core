@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.util;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.UnaryOperator;
 
-import org.apache.commons.collections4.*;
-import org.hisp.dhis.common.*;
+import org.apache.commons.collections4.MapUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.sharing.*;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.*;
-import com.google.common.collect.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.ImmutableList;
 
 public class SharingUtils
 {
@@ -51,79 +52,6 @@ public class SharingUtils
     private SharingUtils()
     {
         throw new UnsupportedOperationException( "utility" );
-    }
-
-    public static Set<UserGroupAccess> getDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> dto,
-        Sharing sharing )
-    {
-        if ( !CollectionUtils.isEmpty( dto ) )
-        {
-            return dto;
-        }
-
-        if ( !sharing.hasUserGroupAccesses() )
-        {
-            return dto;
-        }
-
-        return sharing.getUserGroups().values()
-            .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject )
-            .collect( Collectors.toSet() );
-    }
-
-    public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto,
-        Sharing sharing )
-    {
-        if ( !CollectionUtils.isEmpty( dto ) )
-        {
-            return dto;
-        }
-
-        if ( !sharing.hasUserAccesses() )
-        {
-            return dto;
-        }
-
-        return sharing.getUsers().values()
-            .stream().map( org.hisp.dhis.user.sharing.UserAccess::toDtoObject )
-            .collect( Collectors.toSet() );
-    }
-
-    public static String getDtoPublicAccess( String dto, Sharing sharing )
-    {
-        if ( dto == null )
-        {
-            dto = sharing.getPublicAccess();
-        }
-
-        return dto;
-    }
-
-    public static boolean getDtoExternalAccess( Boolean dto, Sharing sharing )
-    {
-        if ( dto == null )
-        {
-            dto = sharing.isExternal();
-        }
-
-        return dto;
-    }
-
-    public static Sharing generateSharingFromIdentifiableObject( IdentifiableObject object )
-    {
-        Sharing sharing = new Sharing();
-        sharing.setOwner( object.getCreatedBy() );
-        sharing.setExternal( object.getExternalAccess() );
-        sharing.setPublicAccess( object.getPublicAccess() );
-        sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
-        sharing.setDtoUserAccesses( object.getUserAccesses() );
-        return sharing;
-    }
-
-    public static void resetAccessCollections( BaseIdentifiableObject identifiableObject )
-    {
-        identifiableObject.setUserAccesses( Sets.newHashSet() );
-        identifiableObject.setUserGroupAccesses( Sets.newHashSet() );
     }
 
     public static String withAccess( String jsonb, UnaryOperator<String> accessTransformation )
@@ -144,5 +72,44 @@ public class SharingUtils
         mapper.configure( MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true );
         mapper.configure( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true );
         return mapper;
+    }
+
+    public static String sharingToString( BaseIdentifiableObject object, String currentUserName )
+    {
+        StringBuilder builder = new StringBuilder()
+            .append( "'" ).append( currentUserName ).append( "'" )
+            .append( " update sharing on " ).append( object.getClass().getName() )
+            .append( ", uid: " ).append( object.getUid() )
+            .append( ", name: " ).append( object.getName() )
+            .append( ", publicAccess: " ).append( object.getSharing().getPublicAccess() )
+            .append( ", externalAccess: " ).append( object.getSharing().isExternal() );
+
+        if ( !MapUtils.isEmpty( object.getSharing().getUserGroups() ) )
+        {
+            builder.append( ", userGroupAccesses: " );
+
+            for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
+            {
+                builder.append( "{uid: " ).append( userGroupAccess.getId() )
+                    .append( ", name: " ).append( userGroupAccess.getDisplayName() )
+                    .append( ", access: " ).append( userGroupAccess.getAccess() )
+                    .append( "} " );
+            }
+        }
+
+        if ( !MapUtils.isEmpty( object.getSharing().getUsers() ) )
+        {
+            builder.append( ", userAccesses: " );
+
+            for ( UserAccess userAccess : object.getSharing().getUsers().values() )
+            {
+                builder.append( "{uid: " ).append( userAccess.getId() )
+                    .append( ", name: " ).append( userAccess.getDisplayName() )
+                    .append( ", access: " ).append( userAccess.getAccess() )
+                    .append( "} " );
+            }
+        }
+
+        return builder.toString();
     }
 }

@@ -35,8 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -114,43 +112,11 @@ class SharingTest
     }
 
     @Test
-    void setDtoUserAccessesClearsExisting()
-    {
-        Sharing actual = new Sharing();
-        User user1 = new User();
-        user1.setUid( "id" );
-        actual.setDtoUserAccesses( singleton( new org.hisp.dhis.user.UserAccess( user1, "rw------" ) ) );
-        User user2 = new User();
-        user2.setUid( "uid" );
-        actual.setDtoUserAccesses( singleton( new org.hisp.dhis.user.UserAccess( user2, "r-------" ) ) );
-        assertEquals( 1, actual.getUsers().size() );
-        UserAccess userAccess = actual.getUsers().values().iterator().next();
-        assertEquals( "r-------", userAccess.getAccess() );
-        assertEquals( "uid", userAccess.getId() );
-    }
-
-    @Test
     void setUserGroupAccessClearsExisting()
     {
         Sharing actual = new Sharing();
         actual.setUserGroupAccess( singleton( new UserGroupAccess( "rw------", "id" ) ) );
         actual.setUserGroupAccess( singleton( new UserGroupAccess( "r-------", "uid" ) ) );
-        assertEquals( 1, actual.getUserGroups().size() );
-        UserGroupAccess userAccess = actual.getUserGroups().values().iterator().next();
-        assertEquals( "r-------", userAccess.getAccess() );
-        assertEquals( "uid", userAccess.getId() );
-    }
-
-    @Test
-    void setDtoUserGroupAccessClearsExisting()
-    {
-        Sharing actual = new Sharing();
-        UserGroup group1 = new UserGroup();
-        group1.setUid( "id" );
-        actual.setDtoUserGroupAccesses( singleton( new org.hisp.dhis.user.UserGroupAccess( group1, "rw------" ) ) );
-        UserGroup group2 = new UserGroup();
-        group2.setUid( "uid" );
-        actual.setDtoUserGroupAccesses( singleton( new org.hisp.dhis.user.UserGroupAccess( group2, "r-------" ) ) );
         assertEquals( 1, actual.getUserGroups().size() );
         UserGroupAccess userAccess = actual.getUserGroups().values().iterator().next();
         assertEquals( "r-------", userAccess.getAccess() );
