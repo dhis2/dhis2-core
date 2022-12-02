@@ -78,6 +78,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.user.User;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -859,6 +860,41 @@ public class TrackerPreheat
         ProgramStage ps = this.getProgramStage( programStage );
         ProgramInstance pi = this.getEnrollment( enrollmentUid );
         return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
+    }
+
+    /**
+     * Checks if an entity exists in the DB.
+     */
+    public <T extends TrackerDto> boolean exists( T entity )
+    {
+        return exists( entity.getTrackerType(), entity.getUid() );
+    }
+
+    /**
+     * Checks if an entity of given type and UID exists in the DB.
+     *
+     * @param type tracker type
+     * @param uid uid of entity to check
+     * @return true if an entity of given type and UID exists in the DB
+     */
+    public boolean exists( TrackerType type, String uid )
+    {
+        Objects.requireNonNull( type );
+
+        switch ( type )
+        {
+        case TRACKED_ENTITY:
+            return getTrackedEntity( uid ) != null;
+        case ENROLLMENT:
+            return getEnrollment( uid ) != null;
+        case EVENT:
+            return getEvent( uid ) != null;
+        case RELATIONSHIP:
+            return getRelationship( uid ) != null;
+        default:
+            // only reached if a new TrackerDto implementation is added
+            return false;
+        }
     }
 
     @Override

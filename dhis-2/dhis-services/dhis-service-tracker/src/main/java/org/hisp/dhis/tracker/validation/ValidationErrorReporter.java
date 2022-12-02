@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -89,7 +90,11 @@ public class ValidationErrorReporter
     {
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
-        this.invalidDTOs = new EnumMap<>( TrackerType.class );
+        this.invalidDTOs = new EnumMap<>( Map.of(
+            TrackerType.TRACKED_ENTITY, new HashSet<>(),
+            TrackerType.ENROLLMENT, new HashSet<>(),
+            TrackerType.EVENT, new HashSet<>(),
+            TrackerType.RELATIONSHIP, new HashSet<>() ) );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
     }

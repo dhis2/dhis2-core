@@ -35,6 +35,11 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -42,14 +47,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum TrackerType
 {
-    TRACKED_ENTITY( "trackedEntity", 1 ),
-    ENROLLMENT( "enrollment", 2 ),
-    EVENT( "event", 3 ),
-    RELATIONSHIP( "relationship", 4 );
+    TRACKED_ENTITY( "trackedEntity", 1, TrackedEntity.class ),
+    ENROLLMENT( "enrollment", 2, Enrollment.class ),
+    EVENT( "event", 3, Event.class ),
+    RELATIONSHIP( "relationship", 4, Relationship.class );
 
     private final String name;
 
     private final Integer priority;
+
+    private final Class klass;
 
     public static List<TrackerType> getOrderedByPriority()
     {

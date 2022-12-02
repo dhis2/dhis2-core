@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 public class AssertTrackerValidationReport
@@ -51,6 +55,36 @@ public class AssertTrackerValidationReport
             uid.equals( err.getUid() ) ),
             String.format( "error with code %s, type %s, uid %s not found in report with error(s) %s", code,
                 type, uid, report.getErrors() ) );
+    }
+
+    public static void assertHasError( List<TrackerErrorReport> errors, TrackerErrorCode code, TrackerType type,
+        String uid )
+    {
+        assertNotEmpty( errors );
+        assertTrue( errors.stream().anyMatch( err -> code == err.getErrorCode() &&
+            type == err.getTrackerType() &&
+            uid.equals( err.getUid() ) ),
+            String.format( "error with code %s, type %s, uid %s not found in report with error(s) %s", code,
+                type, uid, errors ) );
+    }
+
+    public static void assertHasError( List<TrackerErrorReport> errors, TrackerErrorCode code, TrackerType type,
+        String uid, String messageContains )
+    {
+        assertNotEmpty( errors );
+        assertTrue( errors.stream().anyMatch( err -> code == err.getErrorCode() &&
+            type == err.getTrackerType() &&
+            uid.equals( err.getUid() ) &&
+            err.getMessage().contains( messageContains ) ),
+            String.format( "error with code %s, type %s, uid %s and partial message '%s' not found in error(s) %s",
+                code,
+                type, uid, messageContains, errors ) );
+    }
+
+    public static void assertHasNoErrorWithCode( List<TrackerErrorReport> errors, TrackerErrorCode code )
+    {
+        assertTrue( errors.stream().noneMatch( err -> code == err.getErrorCode() ),
+            String.format( "error with code %s not expected to be in error(s) %s", code, errors ) );
     }
 
     public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
