@@ -213,7 +213,7 @@ class ReportSummaryIntegrationTest extends TrackerTest
     void testStatsCountForOneUpdateEnrollmentAndOneCreatedEnrollmentAndOneInvalidEnrollment()
         throws IOException
     {
-        TrackerImportParams params = fromJson( "tracker/one_update_tei_and_one_new_tei.json" );
+        TrackerImportParams params = fromJson( "tracker/three_teis.json" );
         params.setUserId( userA.getUid() );
 
         trackerImportService.importTracker( params );

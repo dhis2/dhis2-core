@@ -116,7 +116,7 @@ public class DefaultCsvImportService
     {
         CsvReader reader = CsvUtils.getReader( input );
         reader.setSafetySwitch( false ); // Disabled due to large geometry
-                                         // values for org units
+                                        // values for org units
 
         if ( options.isFirstRowIsHeader() )
         {

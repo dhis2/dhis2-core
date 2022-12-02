@@ -25,24 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.common.AssignedUserSelectionMode.PROVIDED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-public class EnrollmentNoteValidationHook implements TrackerValidationHook
+import java.util.Set;
+
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class TrackedEntityInstanceQueryParamsTest
 {
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+
+    private TrackedEntityInstanceQueryParams params;
+
+    private User current;
+
+    @BeforeEach
+    void setUp()
     {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), enrollment,
-            enrollment.getNotes() ) );
+        current = new User();
+        current.setUid( "Kj6vYde4LHh" );
+
+        params = new TrackedEntityInstanceQueryParams();
+    }
+
+    @Test
+    void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers()
+    {
+
+        params.setUserWithAssignedUsers( PROVIDED, current, Set.of( "f1AyMswryyX" ) );
+
+        assertEquals( current, params.getUser() );
+        assertEquals( PROVIDED, params.getAssignedUserQueryParam().getMode() );
+        assertEquals( Set.of( "f1AyMswryyX" ), params.getAssignedUserQueryParam().getAssignedUsers() );
     }
 }

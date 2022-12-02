@@ -178,7 +178,7 @@ class DataApprovalPermissionsEvaluator
             permissions.setMayReadData( true );
 
             return; // Can't find user approval level, so no approval
-                    // permissions are set.
+                   // permissions are set.
         }
 
         int userLevelIndex = getWorkflowLevelIndex( userApprovalLevel, workflow );

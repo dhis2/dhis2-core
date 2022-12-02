@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +57,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EnrollmentInExistingValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )

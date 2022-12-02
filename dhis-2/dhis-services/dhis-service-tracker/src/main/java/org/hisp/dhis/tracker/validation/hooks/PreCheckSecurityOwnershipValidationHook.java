@@ -67,12 +67,12 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +84,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PreCheckSecurityOwnershipValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Nonnull
     private final AclService aclService;
@@ -310,13 +310,6 @@ public class PreCheckSecurityOwnershipValidationHook
         }
     }
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        // NOTHING TO DO HERE
-    }
-
     private void validateCreateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
         User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
@@ -333,11 +326,8 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkEventWriteAccess( reporter, bundle, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO:
-                                                // calculate
-                                                // correct
-        // isCreatableInSearchScope
-        // value
+            // TODO: Calculate correct `isCreateableInSearchScope` value
+            teiUid, isCreatableInSearchScope );
     }
 
     private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
@@ -394,7 +384,7 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }
