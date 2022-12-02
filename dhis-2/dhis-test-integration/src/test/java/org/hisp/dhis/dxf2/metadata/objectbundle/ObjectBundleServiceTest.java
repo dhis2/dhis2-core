@@ -469,8 +469,8 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, userRoles.size() );
         assertEquals( 1, users.size() );
         assertEquals( 2, userGroups.size() );
-        assertEquals( 1, dataElements.get( 0 ).getUserGroupAccesses().size() );
-        assertEquals( 1, dataElements.get( 1 ).getUserGroupAccesses().size() );
+        assertEquals( 1, dataElements.get( 0 ).getSharing().getUserGroups().size() );
+        assertEquals( 1, dataElements.get( 1 ).getSharing().getUserGroups().size() );
     }
 
     @Test
@@ -507,8 +507,8 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, userRoles.size() );
         assertEquals( 1, users.size() );
         assertEquals( 2, userGroups.size() );
-        assertEquals( 1, dataElements.get( 0 ).getUserGroupAccesses().size() );
-        assertEquals( 1, dataElements.get( 1 ).getUserGroupAccesses().size() );
+        assertEquals( 1, dataElements.get( 0 ).getSharing().getUserGroups().size() );
+        assertEquals( 1, dataElements.get( 1 ).getSharing().getUserGroups().size() );
     }
 
     @Test

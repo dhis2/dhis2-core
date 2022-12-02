@@ -35,8 +35,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -99,28 +97,10 @@ public interface IdentifiableObject
     @Deprecated
     void setUser( User user );
 
-    /**
-     * @deprecated PublicAccess property is replaced by
-     *             {@link Sharing#getPublicAccess()}
-     */
-    @Deprecated
-    String getPublicAccess();
-
-    /**
-     * External property is replaced by {@link Sharing#isExternal()}
-     */
-    boolean getExternalAccess();
-
-    Set<UserGroupAccess> getUserGroupAccesses();
-
-    Set<UserAccess> getUserAccesses();
-
     Access getAccess();
 
     /**
      * Return all sharing settings of current object
-     *
-     * @return
      */
     Sharing getSharing();
     // -----------------------------------------------------------------------------

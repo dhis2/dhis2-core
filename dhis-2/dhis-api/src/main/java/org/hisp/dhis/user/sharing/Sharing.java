@@ -156,29 +156,6 @@ public class Sharing
         userAccesses.forEach( this::addUserAccess );
     }
 
-    public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto )
-    {
-        if ( dto == null )
-        {
-            return;
-        }
-
-        this.users = clearOrInit( this.users );
-        dto.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
-    }
-
-    public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
-    {
-        if ( userGroupAccesses == null )
-        {
-            return;
-        }
-
-        this.userGroups = clearOrInit( this.userGroups );
-        userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
-
-    }
-
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
         this.userGroups = clearOrInit( this.userGroups );
@@ -191,16 +168,6 @@ public class Sharing
         {
             getUsers().put( userAccess.getId(), userAccess );
         }
-    }
-
-    public void addDtoUserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        this.users.put( userAccess.getUid(), new UserAccess( userAccess ) );
-    }
-
-    public void addDtoUserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
-    {
-        this.userGroups.put( userGroupAccess.getUid(), new UserGroupAccess( userGroupAccess ) );
     }
 
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )

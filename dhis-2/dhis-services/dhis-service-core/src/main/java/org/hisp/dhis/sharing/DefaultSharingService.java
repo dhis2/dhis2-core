@@ -54,6 +54,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -124,7 +125,7 @@ public class DefaultSharingService implements SharingService
 
         if ( aclService.canMakePublic( user, object ) )
         {
-            object.setPublicAccess( sharing.getPublicAccess() );
+            object.getSharing().setPublicAccess( sharing.getPublicAccess() );
         }
 
         if ( !schema.isDataShareable() )
@@ -215,7 +216,7 @@ public class DefaultSharingService implements SharingService
             syncSharingForEventProgram( (Program) object );
         }
 
-        log.info( sharingToString( object ) );
+        log.info( SharingUtils.sharingToString( object, currentUserService.getCurrentUsername() ) );
 
         return objectReport;
     }
@@ -233,44 +234,5 @@ public class DefaultSharingService implements SharingService
 
         programStage.setCreatedBy( program.getCreatedBy() );
         manager.update( programStage );
-    }
-
-    private String sharingToString( BaseIdentifiableObject object )
-    {
-        StringBuilder builder = new StringBuilder()
-            .append( "'" ).append( currentUserService.getCurrentUsername() ).append( "'" )
-            .append( " update sharing on " ).append( object.getClass().getName() )
-            .append( ", uid: " ).append( object.getUid() )
-            .append( ", name: " ).append( object.getName() )
-            .append( ", publicAccess: " ).append( object.getPublicAccess() )
-            .append( ", externalAccess: " ).append( object.getExternalAccess() );
-
-        if ( !object.getUserGroupAccesses().isEmpty() )
-        {
-            builder.append( ", userGroupAccesses: " );
-
-            for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-            {
-                builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
-                    .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
-                    .append( ", access: " ).append( userGroupAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        if ( !object.getUserAccesses().isEmpty() )
-        {
-            builder.append( ", userAccesses: " );
-
-            for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
-            {
-                builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
-                    .append( ", name: " ).append( userAccess.getUser().getName() )
-                    .append( ", access: " ).append( userAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        return builder.toString();
     }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -288,22 +287,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
     private void preCreateBundleObject( BaseIdentifiableObject object, MetadataImportParams params )
     {
-        if ( object.getUserAccesses() == null )
-        {
-            object.setUserAccesses( new HashSet<>() );
-        }
-
-        if ( object.getSharing().getUsers() == null )
-        {
-            object.getSharing().setDtoUserAccesses( object.getUserAccesses() );
-        }
-
-        if ( object.getUserGroupAccesses() == null )
-        {
-            object.setUserGroupAccesses( new HashSet<>() );
-        }
-
-        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
+        if ( StringUtils.isEmpty( object.getSharing().getPublicAccess() ) )
         {
             aclService.resetSharing( object, params.getUser() );
         }

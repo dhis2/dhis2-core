@@ -66,7 +66,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.SharingUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -135,8 +134,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( clearSharing )
         {
-            object.setPublicAccess( AccessStringHelper.DEFAULT );
-            SharingUtils.resetAccessCollections( object );
+            object.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+            object.getSharing().resetUserAccesses();
+            object.getSharing().resetUserGroupAccesses();
         }
 
         if ( object.getCreatedBy() == null )
@@ -157,12 +157,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 {
                     if ( aclService.defaultPublic( (BaseIdentifiableObject) object ) )
                     {
-                        object.setPublicAccess( AccessStringHelper.READ_WRITE );
+                        object.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
                     }
                 }
                 else if ( aclService.canMakePrivate( user, (BaseIdentifiableObject) object ) )
                 {
-                    object.setPublicAccess( AccessStringHelper.newInstance().build() );
+                    object.getSharing().setPublicAccess( AccessStringHelper.newInstance().build() );
                 }
             }
 
