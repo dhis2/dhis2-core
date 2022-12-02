@@ -35,9 +35,12 @@ import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.p
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,8 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -124,6 +129,8 @@ public class TrackerTrackedEntityCriteriaMapper
 
         List<QueryItem> filters = parseAttributeQueryItems( criteria.getFilter(), attributes );
 
+        validateDuplicatedAttributeFilters( filters );
+
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
         validateOrderParams( orderParams, attributes );
 
@@ -161,6 +168,46 @@ public class TrackerTrackedEntityCriteriaMapper
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
             .setOrders( orderParams );
         return params;
+    }
+
+    private void validateDuplicatedAttributeFilters( List<QueryItem> attributeItems )
+    {
+        Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes( attributeItems );
+
+        if ( !duplicatedAttributes.isEmpty() )
+        {
+            List<String> errorMessages = new ArrayList<>();
+            for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
+            {
+                List<String> duplicateDFilters = getDuplicateDFilters( attributeItems, duplicatedAttribute );
+                String message = MessageFormat.format( "Filter for attribute {0} was specified more than once. " +
+                    "Try to define a single filter with multiple operators [{0}:{1}]",
+                    duplicatedAttribute.getUid(), StringUtils.join( duplicateDFilters, ':' ) );
+                errorMessages.add( message );
+            }
+
+            throw new IllegalQueryException( StringUtils.join( errorMessages, ", " ) );
+        }
+    }
+
+    private List<String> getDuplicateDFilters( List<QueryItem> attributeItems,
+        DimensionalItemObject duplicatedAttribute )
+    {
+        return attributeItems.stream()
+            .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
+            .flatMap( q -> q.getFilters().stream() )
+            .map( f -> f.getOperator() + ":" + f.getFilter() )
+            .collect( Collectors.toList() );
+    }
+
+    private Set<DimensionalItemObject> getDuplicatedAttributes( List<QueryItem> attributeItems )
+    {
+        return attributeItems.stream()
+            .collect( Collectors.groupingBy( QueryItem::getItem, Collectors.counting() ) )
+            .entrySet().stream()
+            .filter( m -> m.getValue() > 1 )
+            .map( Map.Entry::getKey )
+            .collect( Collectors.toSet() );
     }
 
     private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )

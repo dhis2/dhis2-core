@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
@@ -47,6 +48,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -61,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 {
+    private static final String TEA_UID = "TvjwTPToKHO";
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -101,6 +104,10 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         program.getSharing().addUserAccess( userAccess() );
         manager.save( program, false );
 
+        TrackedEntityAttribute attr = createTrackedEntityAttribute( 'A' );
+        attr.setUid( TEA_UID );
+        manager.save( attr, false );
+
         ProgramStage programStage = createProgramStage( 'A', program );
         programStage.getSharing().setOwner( owner );
         programStage.getSharing().addUserAccess( userAccess() );
@@ -134,6 +141,15 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     {
         assertEquals( "At least one organisation unit must be specified",
             GET( "/tracker/trackedEntities?program={program}", program.getUid() )
+                .error( HttpStatus.CONFLICT )
+                .getMessage() );
+    }
+
+    @Test
+    void getTrackedEntitiesCannotHaveRepeatedAttributes()
+    {
+        assertContains( "Filter for attribute " + TEA_UID + " was specified more than once.",
+            GET( "/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2" )
                 .error( HttpStatus.CONFLICT )
                 .getMessage() );
     }
