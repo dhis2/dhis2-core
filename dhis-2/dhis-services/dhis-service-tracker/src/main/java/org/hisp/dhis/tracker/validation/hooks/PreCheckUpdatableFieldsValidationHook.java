@@ -42,9 +42,9 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PreCheckUpdatableFieldsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
@@ -99,18 +99,4 @@ public class PreCheckUpdatableFieldsValidationHook
     {
         return strategy == TrackerImportStrategy.UPDATE;
     }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        // Nothing to do
-    }
-
-    @Override
-    public boolean removeOnError()
-    {
-        return false;
-    }
-
 }
