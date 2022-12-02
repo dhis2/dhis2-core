@@ -408,17 +408,6 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
-    void testMappingAssignedUser()
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setAssignedUser( "XKrcfuM4Hcw;M4pNmLabtXl" );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertContainsOnly( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getAssignedUsers() );
-    }
-
-    @Test
     void testMappingAssignedUserStripsInvalidUid()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
@@ -426,17 +415,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUsers() );
-    }
-
-    @Test
-    void testMappingAssignedUserIsNull()
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertIsEmpty( params.getAssignedUsers() );
+        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUserQueryParam().getAssignedUsers() );
     }
 
     @Test
@@ -447,7 +426,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertIsEmpty( params.getAssignedUsers() );
+        assertIsEmpty( params.getAssignedUserQueryParam().getAssignedUsers() );
     }
 
     @Test
