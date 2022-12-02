@@ -63,8 +63,9 @@ public class ValidationErrorReporter
     private final TrackerIdSchemeParams idSchemes;
 
     /*
-     * A map that keep tracks of all the invalid Tracker objects encountered
-     * during the validation process
+     * Keeps track of all the invalid Tracker objects (i.e. objects with at
+     * least one TrackerErrorReport in the ValidationErrorReporter) encountered
+     * during the validation process.
      */
     private final Map<TrackerType, List<String>> invalidDTOs;
 
@@ -146,8 +147,8 @@ public class ValidationErrorReporter
     }
 
     /**
-     * Checks if the provided uid and Tracker Type is part of the invalid
-     * entities
+     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
+     * least one TrackerErrorReport in the ValidationErrorReporter).
      */
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
