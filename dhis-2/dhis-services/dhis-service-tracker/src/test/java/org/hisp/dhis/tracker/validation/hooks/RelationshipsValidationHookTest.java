@@ -282,7 +282,7 @@ class RelationshipsValidationHookTest
     {
         TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.CODE ) // to test trackedEntityType
-                                                   // idScheme behavior
+            // idScheme behavior
             .orgUnitIdScheme( TrackerIdSchemeParam.UID )
             .programIdScheme( TrackerIdSchemeParam.UID )
             .programStageIdScheme( TrackerIdSchemeParam.UID )

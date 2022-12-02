@@ -403,9 +403,7 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasFilterForEvents()
     {
-        return this.getAssignedUserQueryParam().hasAssignedUsers()
-            || AssignedUserSelectionMode.ANY == this.getAssignedUserQueryParam().getMode()
-            || AssignedUserSelectionMode.NONE == this.getAssignedUserQueryParam().getMode()
+        return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
             || hasEventStatus();
     }
 

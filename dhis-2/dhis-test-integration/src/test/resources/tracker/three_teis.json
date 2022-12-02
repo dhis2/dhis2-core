@@ -30,78 +30,66 @@
   "skipPatternValidation": false,
   "skipSideEffects": false,
   "skipRuleEngine": false,
-  "trackedEntities": [],
-  "enrollments": [
+  "trackedEntities": [
     {
-      "enrollment": "TvctPPhpD8u",
-      "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntity": "IOR1AXXl24H",
-      "program": {
+      "trackedEntityType": {
         "idScheme": "UID",
-        "identifier": "BFcipDERJnf"
+        "identifier": "ja8NY4PW7Xm"
       },
-      "status": "COMPLETED",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-08-31T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "orgUnitName": "Mbokie CHP",
-      "enrolledAt": "2019-03-28T12:05:00.000",
-      "occurredAt": "2019-03-28T12:05:00.000",
-      "followUp": false,
+      "inactive": false,
       "deleted": false,
-      "events": [],
+      "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "enrollments": []
     },
     {
-      "enrollment": "NENROLLMENT",
-      "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntity": "Jz5CN5GfdFg",
-      "program": {
+      "trackedEntityType": {
         "idScheme": "UID",
-        "identifier": "BFcipDERJnf"
+        "identifier": "ja8NY4PW7Xm"
       },
-      "status": "ACTIVE",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "orgUnitName": "Mbokie CHP",
-      "enrolledAt": "2019-03-28T12:05:00.000",
-      "occurredAt": "2019-03-28T12:05:00.000",
-      "followUp": false,
+      "inactive": false,
       "deleted": false,
-      "events": [],
+      "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "enrollments": []
     },
     {
-      "enrollment": "INVALIDUID-TOOLONG",
-      "createdAtClient": "2017-01-26T13:48:13.363",
       "trackedEntity": "XjRvstYX689",
-      "program": {
+      "trackedEntityType": {
         "idScheme": "UID",
-        "identifier": "BFcipDERJnf"
+        "identifier": "ja8NY4PW7Xm"
       },
-      "status": "ACTIVE",
+      "createdAt": "2020-02-20T12:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "h4w96yEMlzO"
       },
-      "orgUnitName": "Mbokie CHP",
-      "enrolledAt": "2019-03-28T12:05:00.000",
-      "occurredAt": "2019-03-28T12:05:00.000",
-      "followUp": false,
+      "inactive": false,
       "deleted": false,
-      "events": [],
+      "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "enrollments": []
     }
   ],
+  "enrollments": [],
   "events": [],
   "relationships": [],
   "username": "system-process"
