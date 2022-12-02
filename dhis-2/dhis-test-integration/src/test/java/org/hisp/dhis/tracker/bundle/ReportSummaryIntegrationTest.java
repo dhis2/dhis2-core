@@ -234,12 +234,6 @@ class ReportSummaryIntegrationTest extends TrackerTest
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
         assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getErrors().size() );
-        // TODO(DHIS2-14213): investigate why we now get 2 errors. These are the 1 errors we got before
-        // before
-        // TrackerErrorReport{message=Object: `INVALIDUID-TOOLONG`, uid: `INVALIDUID-TOOLONG`, has an invalid uid format., errorCode=E1048, trackerEntityType=ENROLLMENT, uid=INVALIDUID-TOOLONG}
-        // after
-        // TrackerErrorReport{message=Object: `INVALIDUID-TOOLONG`, uid: `INVALIDUID-TOOLONG`, has an invalid uid format., errorCode=E1048, trackerEntityType=ENROLLMENT, uid=INVALIDUID-TOOLONG}
-        // TrackerErrorReport{message=TrackedEntityInstance: `CREATEDTEI1`, already has an active Enrollment in Program `BFcipDERJnf`., errorCode=E1015, trackerEntityType=ENROLLMENT, uid=NENROLLMENT}
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getCreated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getUpdated() );
         assertEquals( 1, trackerImportEnrollmentReport.getStats().getIgnored() );
