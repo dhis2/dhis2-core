@@ -39,8 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -164,14 +162,10 @@ class DefaultTrackerValidationServiceTest
             }
         }
 
-        // TODO(DHIS2-14213) test validateRelationship?
-        // TODO(DHIS2-14213) test validate bundle?
-        // TODO(DHIS2-14213) test logic I moved to DefaultTrackerValidationService
-
         @Override
         public boolean skipOnError()
         {
-            // using boxed Boolean, so we can test the default removeOnError
+            // using boxed Boolean, so we can test the default skipOnError
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
             return Objects.requireNonNullElseGet( this.skipOnError, TrackerValidationHook.super::skipOnError );
@@ -189,23 +183,12 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    void removeOnErrorHookPreventsFurtherValidationOfInvalidEntityEvenInFullValidationMode()
+    void skipOnErrorHookPreventsFurtherValidationOfInvalidEntityEvenInFullValidationMode()
     {
 
         // Test shows
-        // 1. Hooks with removeOnError==true remove invalid entities from the
-        // TrackerBundle to prevent
-        // subsequent hooks from validating it
-        // 2. the TrackerBundle is mutated to only contain valid DTOs after
-        // validation
-        //
-        // Currently, the bundle is mutated by
-        // 1. AbstractTrackerDtoValidationHook removes invalid DTOs if the hook
-        // has removeOnError == true
-        // 2. DefaultTrackerValidationService removes invalid DTOs if they were
-        // not previously removed
-        // by AbstractTrackerDtoValidationHook i.e. hooks having removeOnError
-        // == false
+        // 1. Hooks with skipOnError==true will prevent subsequent hooks from validating an invalid entity
+        // 2. DefaultValidationService removes invalid entities from the TrackerBundle
 
         Event validEvent = event();
         Event invalidEvent = event();
@@ -214,18 +197,17 @@ class DefaultTrackerValidationServiceTest
             .events( events( invalidEvent, validEvent ) )
             .build();
 
-        ValidationHook removeOnError = ValidationHook.builder()
+        ValidationHook skipOnError = ValidationHook.builder()
             .skipOnError( true )
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E1032 ) )
             .build();
-        // using default AbstractTrackerDtoValidationHook behavior of
-        // removeOnError==false
-        ValidationHook doNotRemoveOnError = ValidationHook.builder()
+        // using default TrackerValidationHook.skipOnError==false
+        ValidationHook doNotSkipOnError = ValidationHook.builder()
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
                 TrackerErrorCode.E9999 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( removeOnError, doNotRemoveOnError ),
+        service = new DefaultTrackerValidationService( List.of( skipOnError, doNotSkipOnError ),
             Collections.emptyList() );
 
         TrackerValidationReport report = service.validate( bundle );
@@ -468,29 +450,17 @@ class DefaultTrackerValidationServiceTest
 
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( trackedEntities ) );
+        return List.of( trackedEntities );
     }
 
     private List<Enrollment> enrollments( Enrollment... enrollments )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( enrollments ) );
+        return List.of( enrollments );
     }
 
     private List<Event> events( Event... events )
     {
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot simply use List.of(), Arrays.asList()
-        return new ArrayList<>( Arrays.asList( events ) );
+        return List.of( events );
     }
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
