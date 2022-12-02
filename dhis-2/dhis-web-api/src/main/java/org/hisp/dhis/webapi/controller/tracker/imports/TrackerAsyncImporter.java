@@ -61,7 +61,7 @@ public class TrackerAsyncImporter
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
 
         return null; // empty report is not
-                     // returned
-                     // in async creation
+                    // returned
+                    // in async creation
     }
 }

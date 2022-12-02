@@ -25,51 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.job;
+package org.hisp.dhis.trackedentity;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import static org.hisp.dhis.common.AssignedUserSelectionMode.PROVIDED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Component
-@Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerImportThread
-    extends SecurityContextRunnable
+import java.util.Set;
+
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class TrackedEntityInstanceQueryParamsTest
 {
-    @Autowired
-    private SessionFactory sessionFactory;
 
-    private final TrackerImportService trackerImportService;
+    private TrackedEntityInstanceQueryParams params;
 
-    private TrackerImportParams trackerImportParams;
+    private User current;
 
-    public TrackerImportThread( TrackerImportService trackerImportService )
+    @BeforeEach
+    void setUp()
     {
-        this.trackerImportService = trackerImportService;
+        current = new User();
+        current.setUid( "Kj6vYde4LHh" );
+
+        params = new TrackedEntityInstanceQueryParams();
     }
 
-    @Override
-    public void call()
+    @Test
+    void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers()
     {
-        Assert.notNull( trackerImportParams, "Field trackerImportParams can not be null. " );
 
-        trackerImportService
-            .importTracker( trackerImportParams ); // discard returned report,
-                                                                      // it has been put on the
-                                                                      // jobs endpoint
-    }
+        params.setUserWithAssignedUsers( PROVIDED, current, Set.of( "f1AyMswryyX" ) );
 
-    public void setTrackerImportParams( TrackerImportParams trackerImportParams )
-    {
-        this.trackerImportParams = trackerImportParams;
+        assertEquals( current, params.getUser() );
+        assertEquals( PROVIDED, params.getAssignedUserQueryParam().getMode() );
+        assertEquals( Set.of( "f1AyMswryyX" ), params.getAssignedUserQueryParam().getAssignedUsers() );
     }
 }

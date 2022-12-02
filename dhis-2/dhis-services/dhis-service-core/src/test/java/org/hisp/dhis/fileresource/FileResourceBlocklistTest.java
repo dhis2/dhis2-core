@@ -60,12 +60,12 @@ class FileResourceBlocklistTest
         FileResource frA = new FileResource( "Click_Me.exe", "application/x-ms-dos-executable", 451, "",
             FileResourceDomain.DATA_VALUE );
         FileResource frB = new FileResource( "evil_script.sh", "application/pdf", 125, "", // Fake
-                                                                                           // content
-                                                                                           // type
+            // content
+            // type
             FileResourceDomain.MESSAGE_ATTACHMENT );
         FileResource frC = new FileResource( "cookie_stealer", "text/javascript", 631, "", // No
-                                                                                           // file
-                                                                                           // extension
+            // file
+            // extension
             FileResourceDomain.USER_AVATAR );
         // No
         FileResource frD = new FileResource( "malicious_software.msi", null, 235, "", FileResourceDomain.USER_AVATAR );

@@ -60,8 +60,7 @@ public class DefaultAuthenticationSuccessHandler
     private static final int SESSION_MIN = DateTimeConstants.SECONDS_PER_MINUTE * 10;
 
     private static final int SESSION_DEFAULT = Integer
-        .parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600
-                                                                                // s
+        .parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ); // 3600s
 
     private static final String SESSION_MIN_MSG = "Session timeout must be greater than %d seconds";
 
