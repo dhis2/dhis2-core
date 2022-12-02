@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,11 +39,13 @@ import lombok.Value;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.validation.ValidationFailFastException;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 
 /**
- * A class that collects {@link TrackerErrorReport} during the validation
- * process.
+ * Collects {@link TrackerErrorReport}s and {@link TrackerWarningReport} during
+ * the validation process.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
