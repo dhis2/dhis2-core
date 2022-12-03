@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -970,6 +971,53 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
         assertNotNull( visualization.getLegendDefinitions().getLegendSet() );
         assertEquals( "CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid() );
+    }
+
+    /**
+     * Test to make sure createdBy field is immutable.
+     */
+    @Test
+    void testUpdateCreatedBy()
+        throws IOException
+    {
+        User createdByUser = createAndInjectAdminUser();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/update_category_without_createdBy.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+
+        Category category = manager.get( Category.class, "cX5k9anHEHa" );
+        // Created object without createdBy in payload, use currentUser.
+        assertEquals( createdByUser.getUid(), category.getCreatedBy().getUid() );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+        category = manager.get( Category.class, "cX5k9anHEHa" );
+
+        // Update object without createdBy in payload, use createdBy from
+        // existing object.
+        assertEquals( createdByUser.getUid(), category.getCreatedBy().getUid() );
+
+        User testUser = createUser( "testuser", "ALL" );
+        testUser.setUid( "jdRoHEujnZp" );
+        userService.addUser( testUser );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/update_category_with_different_createdBy.json" ).getInputStream(),
+            RenderFormat.JSON );
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setUser( testUser );
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus(), report.toString() );
+        category = manager.get( Category.class, "cX5k9anHEHa" );
+
+        // Update object with different createdBy, use createdBy from existing
+        // object.
+        assertEquals( createdByUser.getUid(), category.getCreatedBy().getUid() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
