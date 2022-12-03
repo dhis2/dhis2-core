@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,7 +51,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RepeatedEventsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
     public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
@@ -99,7 +100,7 @@ public class RepeatedEventsValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

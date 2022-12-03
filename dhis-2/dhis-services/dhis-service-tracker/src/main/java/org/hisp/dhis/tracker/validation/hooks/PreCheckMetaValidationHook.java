@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,7 +58,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PreCheckMetaValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
@@ -113,7 +114,7 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }
