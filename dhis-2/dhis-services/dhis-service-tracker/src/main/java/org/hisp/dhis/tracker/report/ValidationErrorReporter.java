@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -59,6 +61,7 @@ public class ValidationErrorReporter
 
     TrackerIdSchemeParams idSchemes;
 
+    @Getter( AccessLevel.NONE )
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
      * least one TrackerErrorReport in the ValidationErrorReporter) encountered
