@@ -48,23 +48,21 @@ import org.hisp.dhis.tracker.validation.ValidationFailFastException;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-// TODO: should this be "ValidationReporter" since it does not only report
-// errors ?
 public class ValidationErrorReporter
 {
-    private final List<TrackerErrorReport> reportList;
+    List<TrackerErrorReport> reportList;
 
-    private final List<TrackerWarningReport> warningsReportList;
+    List<TrackerWarningReport> warningsReportList;
 
-    private final boolean isFailFast;
+    boolean isFailFast;
 
-    private final TrackerIdSchemeParams idSchemes;
+    TrackerIdSchemeParams idSchemes;
 
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
      */
-    private final Map<TrackerType, List<String>> invalidDTOs;
+    Map<TrackerType, List<String>> invalidDTOs;
 
     /**
      * Create a {@link ValidationErrorReporter} reporting all errors and
