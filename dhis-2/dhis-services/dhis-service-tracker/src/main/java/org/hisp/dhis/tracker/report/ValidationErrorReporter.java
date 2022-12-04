@@ -28,10 +28,9 @@
 package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -65,7 +64,7 @@ public class ValidationErrorReporter
      * least one TrackerErrorReport in the ValidationErrorReporter) encountered
      * during the validation process.
      */
-    Map<TrackerType, Set<String>> invalidDTOs;
+    EnumMap<TrackerType, Set<String>> invalidDTOs;
 
     /**
      * Create a {@link ValidationErrorReporter} reporting all errors and
@@ -74,13 +73,13 @@ public class ValidationErrorReporter
      * {@link ValidationFailFastException} if {@code failFast} true is given.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
-     * @param failFast
+     * @param failFast reporter throws exception on first error added when true
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes, boolean failFast )
     {
         this.reportList = new ArrayList<>();
         this.warningsReportList = new ArrayList<>();
-        this.invalidDTOs = new HashMap<>();
+        this.invalidDTOs = new EnumMap<>( TrackerType.class );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
     }
@@ -97,7 +96,7 @@ public class ValidationErrorReporter
     {
         this.reportList = new ArrayList<>();
         this.warningsReportList = new ArrayList<>();
-        this.invalidDTOs = new HashMap<>();
+        this.invalidDTOs = new EnumMap<>( TrackerType.class );
         this.idSchemes = idSchemes;
         this.isFailFast = false;
     }
