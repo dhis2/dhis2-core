@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
@@ -62,7 +64,7 @@ public class ValidationErrorReporter
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
      */
-    Map<TrackerType, List<String>> invalidDTOs;
+    Map<TrackerType, Set<String>> invalidDTOs;
 
     /**
      * Create a {@link ValidationErrorReporter} reporting all errors and
@@ -128,7 +130,7 @@ public class ValidationErrorReporter
     public void addError( TrackerErrorReport error )
     {
         getReportList().add( error );
-        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
+        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new HashSet<>() ).add( error.getUid() );
 
         if ( isFailFast() )
         {
@@ -147,7 +149,7 @@ public class ValidationErrorReporter
      */
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
-        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
+        return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
     }
 
     public boolean isInvalid( TrackerDto dto )
