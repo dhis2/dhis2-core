@@ -165,7 +165,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
     }
 
     @Test
@@ -180,7 +180,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
     }
 
     @Test
@@ -208,7 +208,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
     }
 
     @Test
@@ -223,7 +223,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
     private TrackedEntity validTei()

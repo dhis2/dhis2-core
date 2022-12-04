@@ -106,8 +106,8 @@ public class DefaultTrackerValidationService
             // exit early when in FAIL_FAST validation mode
         }
         validationReport
-            .addErrors( reporter.getReportList() )
-            .addWarnings( reporter.getWarningsReportList() );
+            .addErrors( reporter.getErrors() )
+            .addWarnings( reporter.getWarnings() );
 
         removeInvalidObjects( bundle, reporter );
 
@@ -251,6 +251,6 @@ public class DefaultTrackerValidationService
 
     private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
     {
-        return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
+        return reporter.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }

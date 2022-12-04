@@ -111,7 +111,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -134,11 +134,11 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         validatorToTest.validate( errorReporter, bundle );
 
         // then
-        assertEquals( 1, errorReporter.getReportList().size() );
+        assertEquals( 1, errorReporter.getErrors().size() );
         assertTrue( errorReporter.hasErrorReport( err -> E1039.equals( err.getErrorCode() ) &&
             EVENT.equals( err.getTrackerType() ) &&
             event.getUid().equals( err.getUid() ) ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
@@ -154,17 +154,17 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertEquals( 2, errorReporter.getReportList().size() );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( E1039 ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getTrackerType(), is( EVENT ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+        assertEquals( 2, errorReporter.getErrors().size() );
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorCode(), is( E1039 ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( E1039 ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getTrackerType(), is( EVENT ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
+        assertThat( errorReporter.getErrors().get( 1 ).getErrorCode(), is( E1039 ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
@@ -180,7 +180,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -214,7 +214,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -230,7 +230,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     private ProgramStage notRepeatebleProgramStageWithRegistration()

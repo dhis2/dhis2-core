@@ -53,9 +53,9 @@ import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 @Value
 public class ValidationErrorReporter
 {
-    List<TrackerErrorReport> reportList;
+    List<TrackerErrorReport> errors;
 
-    List<TrackerWarningReport> warningsReportList;
+    List<TrackerWarningReport> warnings;
 
     boolean isFailFast;
 
@@ -80,8 +80,8 @@ public class ValidationErrorReporter
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes, boolean failFast )
     {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
         this.invalidDTOs = new EnumMap<>( TrackerType.class );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
@@ -97,8 +97,8 @@ public class ValidationErrorReporter
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes )
     {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
         this.invalidDTOs = new EnumMap<>( TrackerType.class );
         this.idSchemes = idSchemes;
         this.isFailFast = false;
@@ -106,12 +106,12 @@ public class ValidationErrorReporter
 
     public boolean hasErrors()
     {
-        return !this.reportList.isEmpty();
+        return !this.errors.isEmpty();
     }
 
     public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
     {
-        return reportList.stream().anyMatch( test );
+        return errors.stream().anyMatch( test );
     }
 
     public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
@@ -138,23 +138,23 @@ public class ValidationErrorReporter
 
     public void addError( TrackerErrorReport error )
     {
-        getReportList().add( error );
+        getErrors().add( error );
         this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new HashSet<>() ).add( error.getUid() );
 
         if ( isFailFast() )
         {
-            throw new ValidationFailFastException( getReportList() );
+            throw new ValidationFailFastException( getErrors() );
         }
     }
 
     public boolean hasWarnings()
     {
-        return !this.warningsReportList.isEmpty();
+        return !this.warnings.isEmpty();
     }
 
     public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
     {
-        return warningsReportList.stream().anyMatch( test );
+        return warnings.stream().anyMatch( test );
     }
 
     public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
@@ -173,7 +173,7 @@ public class ValidationErrorReporter
 
     public void addWarning( TrackerWarningReport warning )
     {
-        getWarningsReportList().add( warning );
+        getWarnings().add( warning );
     }
 
     /**
