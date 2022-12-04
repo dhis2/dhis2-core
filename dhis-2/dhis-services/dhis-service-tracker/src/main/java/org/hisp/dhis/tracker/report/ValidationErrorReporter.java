@@ -114,14 +114,20 @@ public class ValidationErrorReporter
         return reportList.stream().anyMatch( test );
     }
 
-    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
+    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
     {
-        return warningsReportList.stream().anyMatch( test );
+        if ( expression.getAsBoolean() )
+        {
+            addError( dto, code, args );
+        }
     }
 
-    public boolean hasWarnings()
+    public void addErrorIfNull( Object object, TrackerDto dto, TrackerErrorCode code, Object... args )
     {
-        return !this.warningsReportList.isEmpty();
+        if ( object == null )
+        {
+            addError( dto, code, args );
+        }
     }
 
     public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
@@ -141,29 +147,14 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addWarning( TrackerWarningReport warning )
+    public boolean hasWarnings()
     {
-        getWarningsReportList().add( warning );
+        return !this.warningsReportList.isEmpty();
     }
 
-    /**
-     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
-     * least one TrackerErrorReport in the ValidationErrorReporter).
-     */
-    public boolean isInvalid( TrackerType trackerType, String uid )
+    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
     {
-        return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
-    }
-
-    public boolean isInvalid( TrackerDto dto )
-    {
-        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
-    }
-
-    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
-    {
-        addWarning( new TrackerWarningReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
-            code, dto.getTrackerType(), dto.getUid() ) );
+        return warningsReportList.stream().anyMatch( test );
     }
 
     public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
@@ -174,19 +165,32 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
     {
-        if ( expression.getAsBoolean() )
-        {
-            addError( dto, code, args );
-        }
+        addWarning( new TrackerWarningReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
+            code, dto.getTrackerType(), dto.getUid() ) );
     }
 
-    public void addErrorIfNull( Object object, TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addWarning( TrackerWarningReport warning )
     {
-        if ( object == null )
-        {
-            addError( dto, code, args );
-        }
+        getWarningsReportList().add( warning );
+    }
+
+    /**
+     * Checks if a TrackerDto is invalid (i.e. has at least one
+     * TrackerErrorReport in the ValidationErrorReporter).
+     */
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
+    }
+
+    /**
+     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
+     * least one TrackerErrorReport in the ValidationErrorReporter).
+     */
+    public boolean isInvalid( TrackerType trackerType, String uid )
+    {
+        return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
     }
 }
