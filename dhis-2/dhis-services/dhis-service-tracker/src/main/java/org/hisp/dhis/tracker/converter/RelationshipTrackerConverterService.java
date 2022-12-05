@@ -87,13 +87,20 @@ public class RelationshipTrackerConverterService
 
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
-        relationshipItem
-            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
-        relationshipItem.setTrackedEntity(
-            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
-        return relationshipItem;
+        if ( from.getProgramInstance() != null )
+        {
+            return RelationshipItem.ofEnrollment( from.getProgramInstance().getUid() );
+        }
+        if ( from.getProgramStageInstance() != null )
+        {
+            return RelationshipItem.ofEvent( from.getProgramStageInstance().getUid() );
+        }
+        if ( from.getTrackedEntityInstance() != null )
+        {
+            return RelationshipItem.ofTrackedEntity( from.getTrackedEntityInstance().getUid() );
+        }
+        // TODO this should not happen; previously we returned a RelationshipItem without any field set
+        return null;
     }
 
     @Override

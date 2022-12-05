@@ -29,21 +29,32 @@ package org.hisp.dhis.tracker.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
+@EqualsAndHashCode
+@ToString
+@Getter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class RelationshipItem
 {
 
+    // TODO each field should be final
+    // TODO can we make this a Value class?
+    // TODO I don't want to make this a TrackerDto as this might have unwanted side-effects. It would be nice to just call
+    // getUid() to get the id of the entity. We could still add this method without implementing TrackerDto
+    // the interface would just fit as we want/have uid and type
+    // TODO do we allow relationship items of type relationship?
     @JsonProperty
     private String trackedEntity;
 
@@ -52,4 +63,44 @@ public class RelationshipItem
 
     @JsonProperty
     private String event;
+
+    @JsonIgnore
+    private TrackerType type;
+
+    // did NOT use TrackerDto intentionally as we do not allow RelationshipItems of type Relationship
+    public RelationshipItem( TrackedEntity trackedEntity )
+    {
+        this.trackedEntity = trackedEntity.getUid();
+        this.type = TrackerType.TRACKED_ENTITY;
+    }
+
+    public RelationshipItem( Enrollment enrollment )
+    {
+        this.enrollment = enrollment.getUid();
+        this.type = TrackerType.ENROLLMENT;
+    }
+
+    public RelationshipItem( Event event )
+    {
+        this.event = event.getUid();
+        this.type = TrackerType.ENROLLMENT;
+    }
+
+    public static RelationshipItem ofTrackedEntity( String uid )
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity( uid ).build();
+        return new RelationshipItem( trackedEntity );
+    }
+
+    public static RelationshipItem ofEnrollment( String uid )
+    {
+        Enrollment enrollment = Enrollment.builder().enrollment( uid ).build();
+        return new RelationshipItem( enrollment );
+    }
+
+    public static RelationshipItem ofEvent( String uid )
+    {
+        Event event = Event.builder().enrollment( uid ).build();
+        return new RelationshipItem( event );
+    }
 }
