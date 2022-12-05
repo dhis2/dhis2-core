@@ -108,6 +108,8 @@ class DataValueSetImportValidatorTest
 
     private OrganisationUnitService organisationUnitService;
 
+    private final CategoryCombo defaultCombo = new CategoryCombo();
+
     @BeforeEach
     void setUp()
     {
@@ -128,6 +130,9 @@ class DataValueSetImportValidatorTest
         validator.init();
         setupUserCanWriteCategoryOptions( true );
         when( i18n.getString( anyString() ) ).thenAnswer( invocation -> invocation.getArgument( 0, String.class ) );
+
+        defaultCombo.setUid( CodeGenerator.generateUid() );
+        defaultCombo.setName( "default" );
     }
 
     /*
@@ -573,7 +578,6 @@ class DataValueSetImportValidatorTest
     }
 
     @Test
-    @Disabled
     void testCheckDataValuePeriodIsOpenNow_MultiDataSetScenario()
     {
         Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod();
@@ -582,14 +586,19 @@ class DataValueSetImportValidatorTest
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataElement de = valueContext.getDataElement();
         DataSet setA = createMonthlyDataSet( CodeGenerator.generateUid() );
+        setA.setSources( Set.of(valueContext.getOrgUnit()) );
         DataSet setB = createMonthlyDataSet( CodeGenerator.generateUid() );
+        setB.setSources( Set.of(valueContext.getOrgUnit()) );
         setA.setDataInputPeriods( Set.of( createDataInputPeriod( lastMonth ) ) );
         setB.setDataInputPeriods( Set.of( createDataInputPeriod( thisMonth ) ) );
         Set<DataSetElement> dataSetElements = Set.of( new DataSetElement( setA, de ), new DataSetElement( setB, de ) );
         DataSetContext dataSetContext = createMinimalDataSetContext( new DataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .strictDataSetInputPeriods( false )
+            .build();
 
-        // last month is not open "now"
+        // last month cannot be entered any longer
         dataValue.setPeriod( lastMonth.getIsoDate() );
         valueContext = createDataValueContext( dataValue ).build();
         valueContext.getDataElement().setDataSetElements( dataSetElements );
@@ -775,6 +784,7 @@ class DataValueSetImportValidatorTest
         DataSet ds = new DataSet();
         ds.setUid( dsId );
         ds.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ) );
+        ds.setCategoryCombo( defaultCombo );
         return ds;
     }
 
@@ -839,6 +849,7 @@ class DataValueSetImportValidatorTest
         CategoryOption option = new CategoryOption( "name" );
         option.setUid( CodeGenerator.generateUid() );
         combo.setCategoryOptions( singleton( option ) );
+        combo.setCategoryCombo( defaultCombo );
         return combo;
     }
 

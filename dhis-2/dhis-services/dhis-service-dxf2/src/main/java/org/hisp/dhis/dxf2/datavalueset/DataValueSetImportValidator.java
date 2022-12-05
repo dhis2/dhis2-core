@@ -676,8 +676,7 @@ public class DataValueSetImportValidator
     {
         checkDataValueTargetDataSets( context, dataSetContext, valueContext, context.isStrictDataSetInputPeriods(),
             dataSet -> {
-                // is data input allowed now? (data of "past" periods cannot be
-                // entered any more)
+                // is data input allowed now? (data of "past" periods cannot be entered any more)
                 if ( !dataSet.isDataInputPeriodAndDateAllowed( valueContext.getPeriod(), new Date() ) )
                 {
                     context.addConflict( valueContext.getIndex(), DataValueImportConflict.PERIOD_NOT_OPEN_FOR_DATA_SET,
