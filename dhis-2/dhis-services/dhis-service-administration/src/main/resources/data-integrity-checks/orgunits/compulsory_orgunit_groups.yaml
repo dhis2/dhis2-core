@@ -1,0 +1,65 @@
+# Copyright (c) 2022, University of Oslo
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+# Neither the name of the HISP project nor the names of its contributors may
+# be used to endorse or promote products derived from this software without
+# specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+---
+summary_uid: lFkN6LopXcz
+name: orgunit_compulsory_group_count
+description: Orgunits that are not in all compulsory orgunit group sets
+section: Organisation units
+section_order: 2
+summary_sql: >-
+  with orgunit_compulsory_group_count as (select organisationunitid
+  as orgunitid,count(ogs.orgunitgroupsetid) as actual,
+  (select count(*) as expected from orgunitgroupset where compulsory = true)
+  from orgunitgroupsetmembers ogsm
+  left join orgunitgroupset ogs using(orgunitgroupsetid)
+  left join orgunitgroupmembers ogm using(orgunitgroupid)
+  where ogs.compulsory = true group by ogm.organisationunitid)
+  select  count(*) as value,
+  (100*count(*)/(select count(*) from organisationunit)) as percent,
+  from orgunit_compulsory_group_count where actual != expected;
+details_uid: HnmKIwXFWy5
+details_sql: >-
+  with orgunit_compulsory_group_count as (select organisationunitid
+  as orgunitid,count(ogs.orgunitgroupsetid) as actual,
+  (select count(*) as expected from orgunitgroupset where compulsory = true)
+  from orgunitgroupsetmembers ogsm
+  left join orgunitgroupset ogs using(orgunitgroupsetid)
+  left join orgunitgroupmembers ogm using(orgunitgroupid)
+  where ogs.compulsory = true group by ogm.organisationunitid)
+  SELECT uid, name from organisationunit
+  where organisationunitid NOT IN (SELECT organisationunitid
+  from orgunit_compulsory_group_count)
+  ORDER BY name;
+severity: SEVERE
+introduction: >
+  Any organisation unit groups which have been marked as compulsory should
+  contain all organization units in the system. If certain organization units
+  are omitted from the groups in the group set, this may cause irregularities
+  in analytical outputs, such as data being omitted.
+recommendation: >
+  Add all organization units to exactly one group within a compulsory organization unit
+  group.
