@@ -243,7 +243,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         validationHook.validateEvent( reporter, bundle, event );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, E1008, EVENT, event.getUid() );
     }
 
@@ -372,9 +372,9 @@ class PreCheckMandatoryFieldsValidationHookTest
         TrackerErrorCode errorCode )
     {
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, errorCode, type, uid );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Missing required " + entity + " property: `" + property + "`." ) );
     }
 
