@@ -41,7 +41,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -159,8 +158,6 @@ public class TrackedEntityInstanceCriteriaMapper
             params.getOrganisationUnits().add( organisationUnit );
         }
 
-        validateAssignedUser( criteria );
-
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
@@ -189,8 +186,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventStartDate() )
             .setEventEndDate( criteria.getEventEndDate() )
-            .setAssignedUserSelectionMode( criteria.getAssignedUserMode() )
-            .setAssignedUsers( criteria.getAssignedUsers() )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, criteria.getAssignedUsers() )
             .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
@@ -199,7 +195,6 @@ public class TrackedEntityInstanceCriteriaMapper
             .setSkipPaging( criteria.isSkipPaging() )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setUser( user )
             .setOrders( orderParams );
 
         return params;
@@ -331,16 +326,6 @@ public class TrackedEntityInstanceCriteriaMapper
             throw new IllegalQueryException( "Tracked entity type does not exist: " + criteria.getTrackedEntityType() );
         }
         return trackedEntityType;
-    }
-
-    private void validateAssignedUser( TrackedEntityInstanceCriteria criteria )
-    {
-        if ( criteria.getAssignedUserMode() != null && !criteria.getAssignedUsers().isEmpty()
-            && !criteria.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
-        {
-            throw new IllegalQueryException(
-                "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-        }
     }
 
     private ProgramStage getProgramStageFromProgram( Program program, String programStage )

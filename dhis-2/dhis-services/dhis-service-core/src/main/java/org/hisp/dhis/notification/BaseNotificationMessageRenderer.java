@@ -65,51 +65,51 @@ public abstract class BaseNotificationMessageRenderer<T>
     implements NotificationMessageRenderer<T>
 {
     protected static final int SMS_CHAR_LIMIT = 160 * 4; // Four concatenated
-                                                         // SMS messages
+                                                        // SMS messages
 
     protected static final int EMAIL_CHAR_LIMIT = 10000; // Somewhat arbitrarily
-                                                         // chosen limits
+                                                        // chosen limits
 
     protected static final int SUBJECT_CHAR_LIMIT = 100;
 
     protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO
-                                                                                     // reconsider
-                                                                                     // this...
+                                                                                    // reconsider
+                                                                                    // this...
 
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
 
     protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
     protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For
-                                                                                                    // Variable
+                                                                                                   // Variable
 
     protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For
-                                                                                                            // TrackedEntityAttribute
-                                                                                                            // and
-                                                                                                            // DataElement
+                                                                                                           // TrackedEntityAttribute
+                                                                                                           // and
+                                                                                                           // DataElement
 
     private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches
-                                                                                         // the
-                                                                                         // variable
-                                                                                         // in
-                                                                                         // group
-                                                                                         // 1
+                                                                                        // the
+                                                                                        // variable
+                                                                                        // in
+                                                                                        // group
+                                                                                        // 1
 
     private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
-                                                                                                                         // the
-                                                                                                                         // uid
-                                                                                                                         // in
-                                                                                                                         // group
-                                                                                                                         // 1
+                                                                                                                        // the
+                                                                                                                        // uid
+                                                                                                                        // in
+                                                                                                                        // group
+                                                                                                                        // 1
 
     private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches
-                                                                                                             // the
-                                                                                                             // uid
-                                                                                                             // in
-                                                                                                             // group
-                                                                                                             // 1
-                                                                                                             // for
-                                                                                                             // DataElement
+                                                                                                            // the
+                                                                                                            // uid
+                                                                                                            // in
+                                                                                                            // group
+                                                                                                            // 1
+                                                                                                            // for
+                                                                                                            // DataElement
 
     private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> expressionToValueResolvers = Map
         .of(

@@ -454,7 +454,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         FileResource fileResource = new FileResource(
             name,
             MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from
-                                                // PushAnalysis is PNG.
+            // PushAnalysis is PNG.
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
             FileResourceDomain.PUSH_ANALYSIS );
