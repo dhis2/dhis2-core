@@ -48,6 +48,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.eventhook.events.PathEvent;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
@@ -119,6 +121,9 @@ public class SystemController
     @Autowired
     private FieldFilterService fieldFilterService;
 
+    @Autowired
+    private EventHookPublisher eventHookPublisher;
+
     private static final CsvFactory CSV_FACTORY = new CsvMapper().getFactory();
 
     // -------------------------------------------------------------------------
@@ -131,7 +136,16 @@ public class SystemController
         HttpServletResponse response )
     {
         setNoStore( response );
-        return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
+
+        eventHookPublisher.publishEvent( PathEvent.builder()
+            .path( "system.id" )
+            .meta( Map.of(
+                "test", 123 ) )
+            .object( codeList )
+            .build() );
+
+        return codeList;
     }
 
     @OpenApi.Response( String.class )

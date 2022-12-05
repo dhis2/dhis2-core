@@ -27,14 +27,24 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.eventhook.events.PathEvent;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -49,14 +59,63 @@ public class EventHookListener
 
     private final RestTemplate restTemplate;
 
+    private final EventHookStore eventHookStore;
+
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
-        throws EventHookException
+        throws EventHookException,
+        JsonProcessingException
     {
         EventHookContext ctx = EventHookContext.builder()
             .objectMapper( objectMapper )
             .restTemplate( restTemplate ).build();
 
-        log.info( event.toString() );
+        List<EventHook> eventHooks = eventHookStore.getAll();
+
+        PathEvent pathEvent = (PathEvent) event;
+        String payload = null;
+
+        for ( EventHook eventHook : eventHooks )
+        {
+            if ( pathEvent.getPath().startsWith( eventHook.getSource().getPath() )
+                && !eventHook.getTargets().isEmpty() )
+            {
+                payload = objectMapper.writeValueAsString( pathEvent );
+
+                for ( Target target : eventHook.getTargets() )
+                {
+                    // TODO make it own class
+                    if ( target.getType().equals( "webhook" ) )
+                    {
+                        WebhookTarget webhookTarget = (WebhookTarget) target;
+
+                        HttpHeaders httpHeaders = new HttpHeaders();
+                        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
+                        httpHeaders.setAll( webhookTarget.getHeaders() );
+
+                        if ( webhookTarget.getAuth() != null )
+                        {
+                            webhookTarget.getAuth().apply( httpHeaders );
+                        }
+
+                        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
+
+                        try
+                        {
+                            ResponseEntity<String> response = ctx.getRestTemplate().postForEntity(
+                                webhookTarget.getUrl(),
+                                httpEntity, String.class );
+                            System.err.println( "responseStatusCode: " + response.getStatusCode() );
+                            System.err.println( "responseBody: " + response.getBody() );
+                        }
+                        catch ( RestClientException ex )
+                        {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+
+            }
+        }
     }
 }

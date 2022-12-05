@@ -30,6 +30,6 @@ package org.hisp.dhis.eventhook;
 /**
  * @author Morten Olav Hansen
  */
-interface Event
+public interface Event
 {
 }

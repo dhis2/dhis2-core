@@ -25,52 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.eventhook.events;
 
-import java.util.Base64;
+import java.util.Map;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.Builder;
+import lombok.Data;
 
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.hisp.dhis.eventhook.Event;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class HttpBasicAuth extends Auth
+@Data
+@Builder
+public class PathEvent implements Event
 {
-    @JsonProperty( required = true )
-    private String username;
+    @JsonProperty
+    public String path;
 
-    @JsonProperty( required = true )
-    private String password;
+    @JsonProperty
+    @Builder.Default
+    public Map<String, ?> meta = Map.of();
 
-    @JsonCreator
-    public HttpBasicAuth(
-        @JsonProperty( "type" ) String type )
-    {
-        super( "http-basic" );
-    }
-
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
-        {
-            return;
-        }
-
-        headers.add( "Authorization",
-            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
-    }
+    @JsonProperty
+    public Object object;
 }

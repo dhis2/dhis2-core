@@ -28,13 +28,14 @@
 package org.hisp.dhis.eventhook.targets.auth;
 
 import java.io.Serializable;
-import java.util.Map;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import org.springframework.util.MultiValueMap;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -59,5 +60,5 @@ public abstract class Auth
     @JsonProperty
     protected final String type;
 
-    public abstract void apply( Map<String, String> headers );
+    public abstract void apply( MultiValueMap<String, String> headers );
 }

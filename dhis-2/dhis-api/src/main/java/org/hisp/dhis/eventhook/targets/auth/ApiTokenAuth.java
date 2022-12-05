@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import java.util.Map;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -52,8 +51,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Accessors( chain = true )
 public class ApiTokenAuth extends Auth
 {
-    @JsonProperty( required = true, access = JsonProperty.Access.WRITE_ONLY )
-    private String apiToken;
+    @JsonProperty( required = true )
+    private String token;
 
     @JsonCreator
     public ApiTokenAuth(
@@ -63,13 +62,13 @@ public class ApiTokenAuth extends Auth
     }
 
     @Override
-    public void apply( Map<String, String> headers )
+    public void apply( MultiValueMap<String, String> headers )
     {
-        if ( !StringUtils.hasText( apiToken ) )
+        if ( !StringUtils.hasText( token ) )
         {
             return;
         }
 
-        headers.put( "Authorization", "ApiToken " + apiToken );
+        headers.set( "Authorization", "ApiToken " + token );
     }
 }
