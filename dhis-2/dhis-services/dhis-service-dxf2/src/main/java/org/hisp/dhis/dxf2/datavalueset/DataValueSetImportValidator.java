@@ -608,7 +608,7 @@ public class DataValueSetImportValidator
             {
                 context.discardConflicts();
                 return; // found a data set that had none of the above issues =>
-                        // OK
+                       // OK
             }
         }
         context.commitConflicts();

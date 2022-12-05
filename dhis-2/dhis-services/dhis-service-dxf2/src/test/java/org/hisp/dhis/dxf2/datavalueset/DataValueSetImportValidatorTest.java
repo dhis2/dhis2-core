@@ -81,7 +81,6 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -586,9 +585,9 @@ class DataValueSetImportValidatorTest
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataElement de = valueContext.getDataElement();
         DataSet setA = createMonthlyDataSet( CodeGenerator.generateUid() );
-        setA.setSources( Set.of(valueContext.getOrgUnit()) );
+        setA.setSources( Set.of( valueContext.getOrgUnit() ) );
         DataSet setB = createMonthlyDataSet( CodeGenerator.generateUid() );
-        setB.setSources( Set.of(valueContext.getOrgUnit()) );
+        setB.setSources( Set.of( valueContext.getOrgUnit() ) );
         setA.setDataInputPeriods( Set.of( createDataInputPeriod( lastMonth ) ) );
         setB.setDataInputPeriods( Set.of( createDataInputPeriod( thisMonth ) ) );
         Set<DataSetElement> dataSetElements = Set.of( new DataSetElement( setA, de ), new DataSetElement( setB, de ) );
