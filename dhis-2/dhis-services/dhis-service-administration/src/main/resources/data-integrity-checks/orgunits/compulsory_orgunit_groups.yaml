@@ -31,35 +31,53 @@ description: Orgunits that are not in all compulsory orgunit group sets
 section: Organisation units
 section_order: 2
 summary_sql: >-
-  with orgunit_compulsory_group_count as (select organisationunitid
-  as orgunitid,count(ogs.orgunitgroupsetid) as actual,
-  (select count(*) as expected from orgunitgroupset where compulsory = true)
-  from orgunitgroupsetmembers ogsm
-  left join orgunitgroupset ogs using(orgunitgroupsetid)
-  left join orgunitgroupmembers ogm using(orgunitgroupid)
-  where ogs.compulsory = true group by ogm.organisationunitid)
-  select  count(*) as value,
-  (100*count(*)/(select count(*) from organisationunit)) as percent,
-  from orgunit_compulsory_group_count where actual != expected;
+  WITH ougs_compulsory_members as (
+  SELECT ou.uid,ou.name,
+  array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+  array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+  SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+  FROM organisationunit ou
+  LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+  LEFT OUTER JOIN (
+  SELECT orgunitgroupsetid,orgunitgroupid from
+  orgunitgroupsetmembers where orgunitgroupsetid IN (
+  SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+  ) ougs  USING(orgunitgroupid)
+  GROUP BY ou.uid,ou.name
+  ORDER BY name
+  )
+  SELECT COUNT(*),
+  (100 * COUNT(*)/( SELECT COUNT(*) FROM organisationunit))
+  FROM ougs_compulsory_members
+  where has_compulsory IS FALSE;
 details_uid: HnmKIwXFWy5
 details_sql: >-
-  with orgunit_compulsory_group_count as (select organisationunitid
-  as orgunitid,count(ogs.orgunitgroupsetid) as actual,
-  (select count(*) as expected from orgunitgroupset where compulsory = true)
-  from orgunitgroupsetmembers ogsm
-  left join orgunitgroupset ogs using(orgunitgroupsetid)
-  left join orgunitgroupmembers ogm using(orgunitgroupid)
-  where ogs.compulsory = true group by ogm.organisationunitid)
-  SELECT uid, name from organisationunit
-  where organisationunitid NOT IN (SELECT organisationunitid
-  from orgunit_compulsory_group_count)
-  ORDER BY name;
+    WITH orgunits_not_in_compulsory_groups as (
+   SELECT ou.uid,ou.name,
+   array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+   array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+   SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+   FROM organisationunit ou
+   LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+   LEFT OUTER JOIN (
+   SELECT orgunitgroupsetid,orgunitgroupid from
+   orgunitgroupsetmembers where orgunitgroupsetid IN (
+   SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+   ) ougs  USING(orgunitgroupid)
+   GROUP BY ou.uid,ou.name
+   ORDER BY name))
+   SELECT uid, name from orgunits_not_in_compulsory_groups
+   where expected != actual
+   ORDER BY name;
 severity: SEVERE
 introduction: >
-  Any organisation unit groups which have been marked as compulsory should
-  contain all organization units in the system. If certain organization units
-  are omitted from the groups in the group set, this may cause irregularities
-  in analytical outputs, such as data being omitted.
+  Organisation unit groups which have been marked as compulsory, should have exactly one member 
+  of each organisation units in one of the group of the group set. Assume we have created a 
+  group set called "Ownership" with two groups "Public" and "Private". Each and every organisation
+  unit contained in the hierarchy must belong to either Public or Private (but not both). When organisation 
+  unit are not part of a group set, results in the analytics apps will not be correct if the organisation 
+  unit group set is used for aggregation.
 recommendation: >
-  Add all organization units to exactly one group within a compulsory organization unit
-  group.
+  For each of the organisation units identified in the details query, you should assign the appropriate
+  organisation unit group within the group set. Alternatively, if the group set should not be compulsory, 
+  you should change this attribute.
