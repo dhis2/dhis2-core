@@ -112,7 +112,7 @@ class AnalyticsCacheSettingsTest
         int aTtlFactor = 20;
         int oneDayDiff = 1;
         long theExpectedTtl = aTtlFactor * oneDayDiff; // See
-                                                       // TimeToLive.compute()
+                                                      // TimeToLive.compute()
         Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
         // When
@@ -131,7 +131,7 @@ class AnalyticsCacheSettingsTest
         int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
         int oneDayDiff = 1;
         long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
-                                                                // TimeToLive.compute()
+                                                               // TimeToLive.compute()
         Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
 
         // When

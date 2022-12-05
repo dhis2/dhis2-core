@@ -135,13 +135,11 @@ public class HibernateDatabaseInfoProvider
 
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );
         String user = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
-        String password = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
         InternalDatabaseInfo internalDatabaseInfo = getInternalDatabaseInfo();
 
         info = new DatabaseInfo();
         info.setName( internalDatabaseInfo.getDatabase() );
         info.setUser( StringUtils.defaultIfEmpty( internalDatabaseInfo.getUser(), user ) );
-        info.setPassword( password );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
         info.setDatabaseVersion( internalDatabaseInfo.getVersion() );

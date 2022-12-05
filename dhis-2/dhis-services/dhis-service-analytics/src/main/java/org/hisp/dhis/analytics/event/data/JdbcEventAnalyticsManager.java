@@ -444,8 +444,7 @@ public class JdbcEventAnalyticsManager
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets, categories and category option group
-        // set
+        // Organisation unit group sets, categories, category option group sets
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
@@ -590,12 +589,19 @@ public class JdbcEventAnalyticsManager
             .collect( joining( " and " ) );
     }
 
-    private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
+    /**
+     * Generates an in condition.
+     *
+     * @param orgUnit the org unit identifier.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @return a SQL in condition.
+     */
+    private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
     {
         return organisationUnits.stream()
             .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
             .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( joining( ",", org + OPEN_IN, ") " ) );
+            .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
 
     /**

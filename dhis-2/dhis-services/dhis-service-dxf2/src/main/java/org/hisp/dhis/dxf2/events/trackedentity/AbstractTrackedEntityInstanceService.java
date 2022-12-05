@@ -1235,10 +1235,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             if ( existingAttributeValue != null ) // value exists
             {
                 if ( !existingAttributeValue.getValue().equals( dtoAttribute.getValue() ) ) // value
-                                                                                            // is
-                                                                                            // changed,
-                                                                                            // do
-                                                                                            // update
+                                                                                           // is
+                                                                                           // changed,
+                                                                                           // do
+                                                                                           // update
                 {
                     existingAttributeValue.setStoredBy( storedBy );
                     existingAttributeValue.setValue( dtoAttribute.getValue() );

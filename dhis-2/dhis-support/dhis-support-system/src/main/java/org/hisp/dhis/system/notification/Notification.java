@@ -44,7 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Notification
 {
     private String uid; // FIXME expose as "id" externally in next API version
-                        // as "uid" is internal
+                       // as "uid" is internal
 
     private NotificationLevel level;
 
@@ -94,7 +94,7 @@ public class Notification
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getId() // expose as ID also to be future proof, we should not
-                          // expose UID fields
+                         // expose UID fields
     {
         return uid;
     }

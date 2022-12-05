@@ -108,7 +108,7 @@ public class WorkContext
 
     /**
      * Holds a Map of all {@see ProgramStageInstance} associated to the Events
-     * to import and only constains already persisted values.
+     * to import and only contains already persisted values.
      *
      * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
      */
