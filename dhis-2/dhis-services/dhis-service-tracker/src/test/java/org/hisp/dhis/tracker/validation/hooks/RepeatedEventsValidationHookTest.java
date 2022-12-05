@@ -31,7 +31,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E9999;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +111,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -131,11 +134,11 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         validatorToTest.validate( errorReporter, bundle );
 
         // then
-        assertEquals( 1, errorReporter.getReportList().size() );
+        assertEquals( 1, errorReporter.getErrors().size() );
         assertTrue( errorReporter.hasErrorReport( err -> E1039.equals( err.getErrorCode() ) &&
             EVENT.equals( err.getTrackerType() ) &&
             event.getUid().equals( err.getUid() ) ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
@@ -151,17 +154,17 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertEquals( 2, errorReporter.getReportList().size() );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( E1039 ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getTrackerType(), is( EVENT ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
+        assertEquals( 2, errorReporter.getErrors().size() );
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorCode(), is( E1039 ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
+        assertThat( errorReporter.getErrors().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( E1039 ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getTrackerType(), is( EVENT ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
+        assertThat( errorReporter.getErrors().get( 1 ).getErrorCode(), is( E1039 ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
+        assertThat( errorReporter.getErrors().get( 1 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
@@ -177,7 +180,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -189,11 +192,12 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        errorReporter.getInvalidDTOs().put( EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
+        errorReporter
+            .addError( new TrackerErrorReport( "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid() ) );
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertFalse( errorReporter.hasErrorReport( e -> E1039 == e.getErrorCode() ) );
     }
 
     @Test
@@ -210,7 +214,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     @Test
@@ -226,7 +230,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validate( errorReporter, bundle );
 
-        assertTrue( errorReporter.getReportList().isEmpty() );
+        assertTrue( errorReporter.getErrors().isEmpty() );
     }
 
     private ProgramStage notRepeatebleProgramStageWithRegistration()
