@@ -97,11 +97,7 @@ public class ValidationErrorReporter
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes )
     {
-        this.errors = new ArrayList<>();
-        this.warnings = new ArrayList<>();
-        this.invalidDTOs = new EnumMap<>( TrackerType.class );
-        this.idSchemes = idSchemes;
-        this.isFailFast = false;
+        this( idSchemes, false );
     }
 
     public boolean hasErrors()
