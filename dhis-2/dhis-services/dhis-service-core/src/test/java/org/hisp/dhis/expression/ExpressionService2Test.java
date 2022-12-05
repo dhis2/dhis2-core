@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -362,7 +363,7 @@ public class ExpressionService2Test extends DhisSpringTest
         switch ( type )
         {
         case DATA_ELEMENT:
-            return new DimensionalItemId( type, o.getUid() );
+            return new DimensionalItemId( type, o.getUid(), null, null, 0, o.getDimensionItem() );
 
         case DATA_ELEMENT_OPERAND:
             DataElementOperand deo = (DataElementOperand) o;
@@ -445,6 +446,20 @@ public class ExpressionService2Test extends DhisSpringTest
         assertTrue( itemIds.contains( getId( pdeA ) ) );
         assertTrue( itemIds.contains( getId( pteaA ) ) );
         assertTrue( itemIds.contains( getId( piA ) ) );
+    }
+
+    @Test
+    public void testGetExpressionDimensionalItemIdsWithDeGroup()
+    {
+        String deGroupUid = "deGroupUidA";
+        String expr = "#{deGroup:" + deGroupUid + "}";
+
+        DimensionalItemId itemId = new DimensionalItemId( DATA_ELEMENT, "deGroup:" + deGroupUid, null, null, 0, expr );
+
+        Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( expr, INDICATOR_EXPRESSION );
+
+        assertEquals( 1, itemIds.size() );
+        assertTrue( itemIds.contains( itemId ) );
     }
 
     @Test
