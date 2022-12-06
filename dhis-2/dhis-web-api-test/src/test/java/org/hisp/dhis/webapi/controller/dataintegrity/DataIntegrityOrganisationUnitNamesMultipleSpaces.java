@@ -85,7 +85,7 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DataIntegrity
             dbmsManager.clearSession();
         } );
 
-        this.postSummary( "orgunit_multiple_spaces" );
+        postSummary( "orgunit_multiple_spaces" );
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_multiple_spaces/summary" ).content()
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
@@ -93,7 +93,7 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DataIntegrity
         assertEquals( 2, summary.getCount() );
         assertEquals( 66, summary.getPercentage().intValue() );
 
-        this.postDetails( "orgunit_multiple_spaces" );
+        postDetails( "orgunit_multiple_spaces" );
 
         JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_multiple_spaces/details" ).content()
             .as( JsonDataIntegrityDetails.class );

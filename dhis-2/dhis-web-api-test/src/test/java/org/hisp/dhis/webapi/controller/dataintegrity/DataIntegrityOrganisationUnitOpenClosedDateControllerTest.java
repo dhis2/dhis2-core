@@ -30,36 +30,24 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.WebClient;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests for orgunits whose closed dates are after their opening dates
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends DhisControllerIntegrationTest
+class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends DataIntegrityIntegrationTest
 {
     @Autowired
     private OrganisationUnitService orgUnitService;
-
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private TransactionTemplate txTemplate;
 
     private OrganisationUnit unitA;
 
@@ -117,29 +105,4 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends DhisCont
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
 
-    protected final void postDetails( String check )
-    {
-        WebClient.HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
-
-    protected final void postSummary( String check )
-    {
-        WebClient.HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
-
-    protected void doInTransaction( Runnable operation )
-    {
-        final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
-        txTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
-        txTemplate.execute( status -> {
-            operation.run();
-            return null;
-        } );
-        // restore original propagation behaviour
-        txTemplate.setPropagationBehavior( defaultPropagationBehaviour );
-    }
 }
