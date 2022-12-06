@@ -31,11 +31,14 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -101,25 +104,36 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
 
     }
 
+    @BeforeEach
+    public void setUp()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
+
+    }
+
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/organisationUnits/" + outOfGroup ) );
         assertStatus( HttpStatus.NOT_FOUND,
             GET( "/organisationUnits/" + outOfGroup ) );
 
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/organisationUnits/" + inGroup ) );
         assertStatus( HttpStatus.NOT_FOUND,
             GET( "/organisationUnits/" + inGroup ) );
 
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/organisationUnitGroups/" + testOrgUnitGroup ) );
         assertStatus( HttpStatus.NOT_FOUND,
             GET( "/organisationUnitGroups/" + testOrgUnitGroup ) );
 
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
         assertStatus( HttpStatus.NOT_FOUND,
             GET( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );

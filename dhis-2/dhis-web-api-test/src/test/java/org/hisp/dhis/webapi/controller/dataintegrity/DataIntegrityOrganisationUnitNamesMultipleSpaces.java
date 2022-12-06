@@ -41,6 +41,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -117,6 +118,17 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
 
         assertEquals( issueUIDs, orgUnitUIDs );
         assertEquals( "orgunits", details.getIssuesIdType() );
+    }
+
+    @BeforeEach
+    public void setUp()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
+
     }
 
     @AfterEach

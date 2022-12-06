@@ -39,6 +39,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,9 +65,6 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
     void testOrgUnitOpeningDateAfterClosedDate()
     {
         doInTransaction( () -> {
-
-            superUser = preCreateInjectAdminUser();
-            injectSecurityContext( superUser );
 
             unitA = createOrganisationUnit( 'A' );
             unitA.setOpeningDate( getDate( "2022-01-01" ) );
@@ -106,6 +104,17 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
         assertEquals( unitA.getUid(), issues.get( 0 ).getId() );
         assertEquals( unitA.getName(), issues.get( 0 ).getName() );
         assertEquals( "orgunits", details.getIssuesIdType() );
+    }
+
+    @BeforeEach
+    public void setUp()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
+
     }
 
     @AfterEach

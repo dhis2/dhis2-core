@@ -32,10 +32,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
 
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
@@ -82,6 +86,27 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
         orgUnitUIDs.add( notNullIsland );
 
         assertEquals( issueUIDs, orgUnitUIDs );
+
+    }
+
+    @BeforeEach
+    public void setUp()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
+
+    }
+    @AfterEach
+    public void tearDown()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
 
     }
 }
