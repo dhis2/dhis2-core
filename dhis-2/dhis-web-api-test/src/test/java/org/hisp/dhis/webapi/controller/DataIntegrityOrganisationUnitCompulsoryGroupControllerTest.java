@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jason P. Pickering
  */
-public class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisControllerIntegrationTest
+class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisControllerIntegrationTest
 {
     @Test
     void testOrgUnitNotInCompulsoryGroup()
