@@ -19,6 +19,8 @@
 
     <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
+    <property name="description" type="text" />
+
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="categoryoptiongroupmembers">
