@@ -31,8 +31,10 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -44,32 +46,60 @@ import org.junit.jupiter.api.Test;
 public class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisControllerIntegrationTest
 {
     @Test
-    void testOrgUnitInCompulsoryGroup()
+    void testOrgUnitNotInCompulsoryGroup()
     {
+
+        String out_of_group = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+
+        String in_group_orgunit = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
         //Create an orgunit group
         String test_orgunitgroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups", "{'name': 'Type A', 'shortName': 'Type A'}" ) );
+            POST( "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + in_group_orgunit
+                    + "'}]}" ) );
+
         //Add it to a group set
         String myougs = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + test_orgunitgroup + "'}]}" ) );
 
-        JsonIdentifiableObject test_ougs = GET( "/organisationUnitGroupSets/" + myougs ).content()
+        JsonIdentifiableObject test_ougs = GET( "/organisationUnitGroups/" + test_orgunitgroup ).content()
             .as( JsonIdentifiableObject.class );
         //Create an orgunit, but do not add it to the compulsory group
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
         postSummary( "orgunit_compulsory_group_count" );
+
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_compulsory_group_count/summary" ).content()
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
-        assertEquals( 100, summary.getPercentage().intValue() );
+        assertEquals( 50, summary.getPercentage().intValue() );
+
+        postDetails( "orgunit_compulsory_group_count" );
+
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_compulsory_group_count/details" ).content()
+            .as( JsonDataIntegrityDetails.class );
+        assertTrue( details.exists() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 1, issues.size() );
+        assertEquals( out_of_group, issues.get( 0 ).getId() );
+        assertEquals( "Fish District", issues.get( 0 ).getName() );
+        assertEquals( "orgunits", details.getIssuesIdType() );
+    }
+
+    private void postDetails( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
+        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
+        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
     protected final void postSummary( String check )
