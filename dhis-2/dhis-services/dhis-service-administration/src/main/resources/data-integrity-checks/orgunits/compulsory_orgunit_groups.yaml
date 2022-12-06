@@ -65,10 +65,11 @@ details_sql: >-
     SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
     ) ougs  USING(orgunitgroupid)
     GROUP BY ou.uid,ou.name
-    ORDER BY name))
+    ORDER BY name)
     SELECT uid, name from orgunits_not_in_compulsory_groups
-    where expected != actual
+    where has_compulsory = FALSE
     ORDER BY name;
+details_id_type: orgunits
 severity: SEVERE
 introduction: >
     If any organisation unit groups have been marked as compulsory, each and every organisation unit should
