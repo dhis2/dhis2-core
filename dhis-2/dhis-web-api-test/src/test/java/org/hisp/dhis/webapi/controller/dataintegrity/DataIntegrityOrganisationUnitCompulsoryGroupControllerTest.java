@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,17 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisControllerIntegrationTest
+class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DataIntegrityIntegrationTest
 {
     @Test
     void testOrgUnitNotInCompulsoryGroup()
@@ -72,7 +70,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
         GET( "/organisationUnitGroups/" + testOrgUnitGroup ).content()
             .as( JsonIdentifiableObject.class );
         //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "orgunit_compulsory_group_count" );
+        this.postSummary( "orgunit_compulsory_group_count" );
 
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_compulsory_group_count/summary" ).content()
             .as( JsonDataIntegritySummary.class );
@@ -81,7 +79,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
 
-        postDetails( "orgunit_compulsory_group_count" );
+        this.postDetails( "orgunit_compulsory_group_count" );
 
         JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_compulsory_group_count/details" ).content()
             .as( JsonDataIntegrityDetails.class );
@@ -95,17 +93,4 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
 
-    private void postDetails( String check )
-    {
-        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
-
-    private void postSummary( String check )
-    {
-        HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
-        assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
-        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
-    }
 }
