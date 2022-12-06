@@ -31,53 +31,53 @@ description: Orgunits that are not in all compulsory orgunit group sets
 section: Organisation units
 section_order: 2
 summary_sql: >-
-  WITH ougs_compulsory_members as (
-  SELECT ou.uid,ou.name,
-  array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
-  array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
-  SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
-  FROM organisationunit ou
-  LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
-  LEFT OUTER JOIN (
-  SELECT orgunitgroupsetid,orgunitgroupid from
-  orgunitgroupsetmembers where orgunitgroupsetid IN (
-  SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
-  ) ougs  USING(orgunitgroupid)
-  GROUP BY ou.uid,ou.name
-  ORDER BY name
-  )
-  SELECT COUNT(*),
-  (100 * COUNT(*)/( SELECT COUNT(*) FROM organisationunit))
-  FROM ougs_compulsory_members
-  where has_compulsory IS FALSE;
+    WITH ougs_compulsory_members as (
+    SELECT ou.uid,ou.name,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+    SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+    FROM organisationunit ou
+    LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+    LEFT OUTER JOIN (
+    SELECT orgunitgroupsetid,orgunitgroupid from
+    orgunitgroupsetmembers where orgunitgroupsetid IN (
+    SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+    ) ougs  USING(orgunitgroupid)
+    GROUP BY ou.uid,ou.name
+    ORDER BY name
+    )
+    SELECT COUNT(*),
+    (100 * COUNT(*)/( SELECT COUNT(*) FROM organisationunit))
+    FROM ougs_compulsory_members
+    where has_compulsory IS FALSE;
 details_uid: HnmKIwXFWy5
 details_sql: >-
     WITH orgunits_not_in_compulsory_groups as (
-   SELECT ou.uid,ou.name,
-   array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
-   array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
-   SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
-   FROM organisationunit ou
-   LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
-   LEFT OUTER JOIN (
-   SELECT orgunitgroupsetid,orgunitgroupid from
-   orgunitgroupsetmembers where orgunitgroupsetid IN (
-   SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
-   ) ougs  USING(orgunitgroupid)
-   GROUP BY ou.uid,ou.name
-   ORDER BY name))
-   SELECT uid, name from orgunits_not_in_compulsory_groups
-   where expected != actual
-   ORDER BY name;
+    SELECT ou.uid,ou.name,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) as ougs_members,
+    array_agg(DISTINCT(ougs.orgunitgroupsetid)) @> (
+    SELECT array_agg(DISTINCT(orgunitgroupsetid)) from orgunitgroupset where compulsory = TRUE) as has_compulsory
+    FROM organisationunit ou
+    LEFT OUTER JOIN orgunitgroupmembers oug USING(organisationunitid)
+    LEFT OUTER JOIN (
+    SELECT orgunitgroupsetid,orgunitgroupid from
+    orgunitgroupsetmembers where orgunitgroupsetid IN (
+    SELECT orgunitgroupsetid from orgunitgroupset where compulsory = TRUE)
+    ) ougs  USING(orgunitgroupid)
+    GROUP BY ou.uid,ou.name
+    ORDER BY name))
+    SELECT uid, name from orgunits_not_in_compulsory_groups
+    where expected != actual
+    ORDER BY name;
 severity: SEVERE
 introduction: >
-  Organisation unit groups which have been marked as compulsory, should have exactly one member 
-  of each organisation units in one of the group of the group set. Assume we have created a 
-  group set called "Ownership" with two groups "Public" and "Private". Each and every organisation
-  unit contained in the hierarchy must belong to either Public or Private (but not both). When organisation 
-  unit are not part of a group set, results in the analytics apps will not be correct if the organisation 
-  unit group set is used for aggregation.
+    If any organisation unit groups have been marked as compulsory, each and every organisation unit should
+    belong to exactly one group within each compulsory organisation unit group set. Assume we have created a 
+    group set called "Ownership" with two groups "Public" and "Private". Each and every organisation
+    unit contained in the hierarchy must belong to either Public or Private (but not both). When organisation 
+    unit are not part of a group set, results in the analytics apps will not be correct if the organisation 
+    unit group set is used for aggregation.
 recommendation: >
-  For each of the organisation units identified in the details query, you should assign the appropriate
-  organisation unit group within the group set. Alternatively, if the group set should not be compulsory, 
-  you should change this attribute.
+    For each of the organisation units identified in the details query, you should assign the appropriate
+    organisation unit group within the group set. Alternatively, if the group set should not be compulsory, 
+    you should change this attribute.
