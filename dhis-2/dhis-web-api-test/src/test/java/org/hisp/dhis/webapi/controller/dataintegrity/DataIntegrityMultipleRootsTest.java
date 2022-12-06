@@ -99,6 +99,7 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
         assertEquals( 0, dimensions.size() );
 
     }
+
     @AfterEach
     public void tearDown()
     {
