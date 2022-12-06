@@ -69,7 +69,6 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
         assertEquals( 50, summary.getPercentage().intValue() );
     }
 
-
     @BeforeEach
     public void setUp()
     {
@@ -80,6 +79,7 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
         assertEquals( 0, dimensions.size() );
 
     }
+
     @AfterEach
     public void tearDown()
     {
