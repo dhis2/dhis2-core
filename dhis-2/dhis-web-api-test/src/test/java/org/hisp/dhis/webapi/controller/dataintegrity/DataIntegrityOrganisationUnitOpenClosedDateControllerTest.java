@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends DataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     @Autowired
     private OrganisationUnitService orgUnitService;

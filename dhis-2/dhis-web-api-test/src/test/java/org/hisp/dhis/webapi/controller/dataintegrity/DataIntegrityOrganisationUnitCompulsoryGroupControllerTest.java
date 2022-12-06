@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     @Test
     void testOrgUnitNotInCompulsoryGroup()

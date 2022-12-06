@@ -35,7 +35,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityOrganisationUnitNullIslandControllerTest extends DataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     @Test
     void testOrgUnitNullIsland()

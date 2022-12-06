@@ -32,9 +32,9 @@ section: Organisation units
 summary_sql: >-
   with orgunit_future_opening_date as (select uid,name,openingdate,closeddate
   from organisationunit where openingdate > closeddate )
-  select 'orgunit_openingdate_gt_closeddate' as indicator,
-  count(*),
-  (100*count(*)/(select count(*) from organisationunit))
+  select 
+  count(*) as count,
+  (100*count(*)/(select count(*) from organisationunit)) as percent
   from orgunit_future_opening_date;
 details_uid: qGXxCOoeipq
 details_sql: >-

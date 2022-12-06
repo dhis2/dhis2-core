@@ -30,32 +30,51 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.web.WebClient;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
-public class DataIntegrityIntegrationTest extends DhisControllerIntegrationTest
+class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 {
-
-    @Autowired
-    private TransactionTemplate txTemplate;
-
-    protected void postDetails( String check )
+    public final JsonDataIntegrityDetails getDetails( String check )
     {
-        WebClient.HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
+        JsonObject content = GET( "/dataIntegrity/details?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegrityDetails details = content.get( check.replace( '-', '_' ), JsonDataIntegrityDetails.class );
+        assertTrue( details.exists(), "check " + check + " did not complete in time or threw an exception" );
+        assertTrue( details.isObject() );
+        return details;
+    }
+
+    public final void postDetails( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
         assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    protected void postSummary( String check )
+    public final JsonDataIntegritySummary getSummary( String check )
     {
-        WebClient.HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
+        JsonObject content = GET( "/dataIntegrity/summary?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegritySummary summary = content.get( check.replace( '-', '_' ), JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        return summary;
+    }
+
+    public final void postSummary( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
         assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
+
+    @Autowired
+    private TransactionTemplate txTemplate;
 
     protected void doInTransaction( Runnable operation )
     {
