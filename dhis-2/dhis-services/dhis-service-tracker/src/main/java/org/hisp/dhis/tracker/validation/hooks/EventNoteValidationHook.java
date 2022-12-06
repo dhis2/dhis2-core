@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 /**
