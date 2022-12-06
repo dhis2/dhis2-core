@@ -553,7 +553,7 @@ public class DataValidationRunner
                 if ( existingPeriodInterval < periodInterval )
                 {
                     return; // Don't overwrite previous value if a shorter
-                            // interval
+                           // interval
                 }
                 if ( existingPeriodInterval > periodInterval )
                 {

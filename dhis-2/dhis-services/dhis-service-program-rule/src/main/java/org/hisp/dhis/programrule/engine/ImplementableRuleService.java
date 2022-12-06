@@ -79,7 +79,7 @@ abstract class ImplementableRuleService
         List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
 
         if ( programStageUid == null ) // To populate programHasRulesCache at
-                                       // enrollment
+                                      // enrollment
         {
             getProgramHasRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
 

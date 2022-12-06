@@ -150,10 +150,12 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         initMock( params );
 
+        // NO VALUES
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                                                                        // VALUES
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) );
+
         Map<String, Object> reportingRate = new HashMap<>();
+
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
@@ -195,11 +197,10 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( actualReports ) );
 
+        // NO TARGET RETURNED
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                          // TARGET
-                                                                          // RETURNED
+                .thenReturn( CompletableFuture.completedFuture( null ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 

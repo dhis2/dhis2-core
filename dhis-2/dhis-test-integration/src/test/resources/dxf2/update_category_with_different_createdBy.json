@@ -1,0 +1,13 @@
+{
+  "categories": [{
+  "dataDimensionType": "DISAGGREGATION",
+  "code": "TEST",
+  "id": "cX5k9anHEHa",
+  "name": "Test",
+  "dataDimension": true,
+  "shortName": "Test",
+    "createdBy" : {
+      "id": "jdRoHEujnZp"
+    }
+  }]
+}
