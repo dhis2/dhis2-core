@@ -33,20 +33,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractDataIntegrityIntegrationTest
 {
+
+    String nullIsland;
+    String notNullIsland;
+
     @Test
     void testOrgUnitNullIsland()
     {
 
-        String nullIsland = assertStatus( HttpStatus.CREATED,
+         nullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
 
-        String notNullIsland = assertStatus( HttpStatus.CREATED,
+        notNullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
@@ -58,5 +64,20 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
         assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
+    }
+
+    @AfterEach
+    public void tearDown()
+    {
+        assertStatus( HttpStatus.OK,
+            DELETE( "/organisationUnits/" + nullIsland ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            GET( "/organisationUnits/" + nullIsland ) );
+
+        assertStatus( HttpStatus.OK,
+            DELETE( "/organisationUnits/" + notNullIsland ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            GET( "/organisationUnits/" + notNullIsland ) );
+
     }
 }
