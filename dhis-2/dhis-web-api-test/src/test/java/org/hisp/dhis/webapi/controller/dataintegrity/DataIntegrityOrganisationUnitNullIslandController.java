@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,13 +40,14 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
 {
 
     String nullIsland;
+
     String notNullIsland;
 
     @Test
     void testOrgUnitNullIsland()
     {
 
-         nullIsland = assertStatus( HttpStatus.CREATED,
+        nullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );

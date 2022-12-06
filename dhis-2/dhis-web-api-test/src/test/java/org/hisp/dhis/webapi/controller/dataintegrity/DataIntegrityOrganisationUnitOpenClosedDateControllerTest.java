@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,7 +36,6 @@ import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
@@ -110,13 +108,13 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
 
-
     @AfterEach
     public void tearDown()
     {
-        GET("/organisationUnits/gist?fields=id&headless=true").content().stringValues().forEach(id -> DELETE( "/organisationUnits/" + id ));
-        JsonResponse response = GET( "/organisationUnits/").content();
-        JsonArray dimensions = response.getArray("organisationUnits");
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
         assertEquals( 0, dimensions.size() );
 
     }
