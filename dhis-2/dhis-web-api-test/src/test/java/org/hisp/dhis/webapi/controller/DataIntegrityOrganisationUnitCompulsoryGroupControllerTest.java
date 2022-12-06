@@ -49,27 +49,27 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
     void testOrgUnitNotInCompulsoryGroup()
     {
 
-        String out_of_group = assertStatus( HttpStatus.CREATED,
+        String outOfGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
 
-        String in_group_orgunit = assertStatus( HttpStatus.CREATED,
+        String inGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
 
         //Create an orgunit group
-        String test_orgunitgroup = assertStatus( HttpStatus.CREATED,
+        String testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + in_group_orgunit
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
                     + "'}]}" ) );
 
         //Add it to a group set
-        String myougs = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
-                    + test_orgunitgroup + "'}]}" ) );
+                    + testOrgUnitGroup + "'}]}" ) );
 
-        JsonIdentifiableObject test_ougs = GET( "/organisationUnitGroups/" + test_orgunitgroup ).content()
+        GET( "/organisationUnitGroups/" + testOrgUnitGroup ).content()
             .as( JsonIdentifiableObject.class );
         //Create an orgunit, but do not add it to the compulsory group
         postSummary( "orgunit_compulsory_group_count" );
@@ -90,7 +90,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
-        assertEquals( out_of_group, issues.get( 0 ).getId() );
+        assertEquals( outOfGroup, issues.get( 0 ).getId() );
         assertEquals( "Fish District", issues.get( 0 ).getName() );
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
@@ -102,7 +102,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DhisCon
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    protected final void postSummary( String check )
+    private void postSummary( String check )
     {
         HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
         assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
