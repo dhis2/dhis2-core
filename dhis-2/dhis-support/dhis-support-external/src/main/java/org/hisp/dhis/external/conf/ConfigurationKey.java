@@ -32,6 +32,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.hisp.dhis.security.utils.CspUtils;
+
 /**
  * @author Lars Helge Overland
  */
@@ -151,7 +153,22 @@ public enum ConfigurationKey
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
     TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
     ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.ON, false ),
-    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false );
+    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false ),
+
+    /**
+     * Content Security Policy feature. Enable or disable the feature.
+     */
+    CSP_ENABLED( "csp.enabled", Constants.ON, true ),
+
+    /**
+     * CSP upgrade insecure connections. Enable or disable the feature.
+     */
+    CSP_UPGRADE_INSECURE_ENABLED( "csp.upgrade.insecure.enabled", Constants.OFF, true ),
+
+    /**
+     * CSP default header value/string. Enable or disable the feature.
+     */
+    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false );
 
     private final String key;
 

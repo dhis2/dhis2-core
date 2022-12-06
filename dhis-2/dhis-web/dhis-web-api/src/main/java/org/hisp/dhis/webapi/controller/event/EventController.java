@@ -83,6 +83,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -114,6 +116,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpHeaders;
@@ -179,13 +182,15 @@ public class EventController
 
     private final ContextUtils contextUtils;
 
+    private final DhisConfigurationProvider dhisConfig;
+
     public EventController( CurrentUserService currentUserService, SchedulingManager schedulingManager,
         EventService eventService, CsvEventService csvEventService, EventRowService eventRowService,
         DataElementService dataElementService, WebMessageService webMessageService, InputUtils inputUtils,
         RenderService renderService, ProgramStageInstanceService programStageInstanceService,
         FileResourceService fileResourceService, FieldFilterService fieldFilterService, ContextService contextService,
         SchemaService schemaService, TrackedEntityInstanceService entityInstanceService, ContextUtils contextUtils,
-        RequestToSearchParamsMapper requestToSearchParamsMapper )
+        RequestToSearchParamsMapper requestToSearchParamsMapper, DhisConfigurationProvider dhisConfig )
     {
         this.currentUserService = currentUserService;
         this.schedulingManager = schedulingManager;
@@ -204,6 +209,7 @@ public class EventController
         this.entityInstanceService = entityInstanceService;
         this.contextUtils = contextUtils;
         this.requestToSearchParamsMapper = requestToSearchParamsMapper;
+        this.dhisConfig = dhisConfig;
     }
 
     private Schema schema;
@@ -796,6 +802,7 @@ public class EventController
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
         try
         {

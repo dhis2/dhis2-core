@@ -119,4 +119,14 @@ public interface FileResourceContentStore
     void copyContent( String key, OutputStream output )
         throws IOException,
         NoSuchElementException;
+
+    /**
+     * Copies the content of the resource stored under key to the byte array.
+     *
+     * @param key the key used to store a resource
+     * @return byte array of the content
+     */
+    byte[] copyContent( String key )
+        throws IOException,
+        NoSuchElementException;
 }
