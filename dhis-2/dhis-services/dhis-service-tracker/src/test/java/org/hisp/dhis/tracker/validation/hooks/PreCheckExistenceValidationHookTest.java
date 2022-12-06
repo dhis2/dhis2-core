@@ -381,7 +381,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateRelationship( reporter, bundle, rel );
 
         assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getWarningsReportList(), empty() );
+        assertThat( reporter.getWarnings(), empty() );
     }
 
     @Test

@@ -135,7 +135,7 @@ public class RelationshipsValidationHook
             () -> getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isEmpty(),
             relationship, E4009, relationship.getRelationshipType() );
 
-        return reporter.getReportList()
+        return reporter.getErrors()
             .stream()
             .noneMatch( r -> relationship.getRelationship().equals( r.getUid() ) );
     }

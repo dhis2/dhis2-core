@@ -44,6 +44,6 @@ public class AssertValidationErrorReporter
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
             String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getReportList().size() ) );
+                uid, reporter.getErrors().size() ) );
     }
 }
