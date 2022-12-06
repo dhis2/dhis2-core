@@ -8,4 +8,5 @@ checks:
   - orgunits/compulsory_orgunit_groups.yaml
   - orgunits/orgunit_open_date_gt_closed_date.yaml
   - orgunits/orgunits_multiple_spaces.yaml
+  - orgunits/orgunit_null_island.yaml
 
