@@ -180,7 +180,7 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
-    <httpcomponents-client.version>4.5.13</httpcomponents-client.version>
+    <httpcomponents-client.version>4.5.14</httpcomponents-client.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
