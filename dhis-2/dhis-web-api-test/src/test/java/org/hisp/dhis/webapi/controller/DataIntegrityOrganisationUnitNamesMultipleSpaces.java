@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,6 +65,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DhisControlle
 
     private OrganisationUnit unitA;
 
+    private OrganisationUnit unitB;
+
     private OrganisationUnit unitC;
 
     private User superUser;
@@ -80,6 +84,11 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DhisControlle
             unitA.setShortName( "Lots     of      spaces" );
             orgUnitService.addOrganisationUnit( unitA );
 
+            unitB = createOrganisationUnit( 'B' );
+            unitB.setName( "Some spaces" );
+            unitB.setShortName( "Some      spaces" );
+            orgUnitService.addOrganisationUnit( unitB );
+
             unitC = createOrganisationUnit( 'C' );
             unitC.setName( "Just enough space" );
             unitC.setShortName( "Just enough space" );
@@ -93,8 +102,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DhisControlle
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
+        assertEquals( 2, summary.getCount() );
+        assertEquals( 66, summary.getPercentage().intValue() );
 
         postDetails( "orgunit_multiple_spaces" );
 
@@ -104,9 +113,18 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends DhisControlle
         assertTrue( details.isObject() );
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( unitA.getUid(), issues.get( 0 ).getId() );
-        assertEquals( unitA.getName(), issues.get( 0 ).getName() );
+
+        assertEquals( 2, issues.size() );
+
+        HashSet<String> issueUIDs = new HashSet<String>();
+        issueUIDs.add( issues.get( 0 ).getId() );
+        issueUIDs.add( issues.get( 1 ).getId() );
+
+        HashSet<String> orgUnitUIDs = new HashSet<String>();
+        orgUnitUIDs.add( unitA.getUid() );
+        orgUnitUIDs.add( unitB.getUid() );
+
+        assertEquals( issueUIDs, orgUnitUIDs );
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
 
