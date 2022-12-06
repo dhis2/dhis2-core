@@ -27,18 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Jason P. Pickering
@@ -47,10 +45,12 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
 {
 
     String outOfGroup;
-    String inGroup;
-    String testOrgUnitGroup;
-    String testOrgUnitGroupSet;
 
+    String inGroup;
+
+    String testOrgUnitGroup;
+
+    String testOrgUnitGroupSet;
 
     @Test
     void testOrgUnitNotInCompulsoryGroup()
@@ -71,11 +71,10 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                     + "'}]}" ) );
 
         //Add it to a group set
-       testOrgUnitGroupSet =  assertStatus( HttpStatus.CREATED,
+        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroupSets",
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
-
 
         //Create an orgunit, but do not add it to the compulsory group
         postSummary( "orgunit_compulsory_group_count" );
@@ -126,4 +125,3 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
             GET( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
     }
 }
-
