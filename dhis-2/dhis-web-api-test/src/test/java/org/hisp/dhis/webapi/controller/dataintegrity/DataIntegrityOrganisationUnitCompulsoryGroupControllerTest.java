@@ -70,7 +70,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DataInt
         GET( "/organisationUnitGroups/" + testOrgUnitGroup ).content()
             .as( JsonIdentifiableObject.class );
         //Create an orgunit, but do not add it to the compulsory group
-        this.postSummary( "orgunit_compulsory_group_count" );
+        postSummary( "orgunit_compulsory_group_count" );
 
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_compulsory_group_count/summary" ).content()
             .as( JsonDataIntegritySummary.class );
@@ -79,7 +79,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends DataInt
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
 
-        this.postDetails( "orgunit_compulsory_group_count" );
+        postDetails( "orgunit_compulsory_group_count" );
 
         JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_compulsory_group_count/details" ).content()
             .as( JsonDataIntegrityDetails.class );
