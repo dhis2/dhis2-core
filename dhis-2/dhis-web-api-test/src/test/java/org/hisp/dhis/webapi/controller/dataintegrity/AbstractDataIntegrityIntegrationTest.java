@@ -36,7 +36,6 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
@@ -78,13 +77,13 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     protected void doInTransaction( Runnable operation )
     {
-        final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
-        txTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
+        //        final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
+        //        txTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
         txTemplate.execute( status -> {
             operation.run();
             return null;
         } );
         // restore original propagation behaviour
-        txTemplate.setPropagationBehavior( defaultPropagationBehaviour );
+        //        txTemplate.setPropagationBehavior( defaultPropagationBehaviour );
     }
 }

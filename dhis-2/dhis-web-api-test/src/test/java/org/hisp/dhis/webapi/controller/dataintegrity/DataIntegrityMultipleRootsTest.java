@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
@@ -77,13 +77,8 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
 
         assertEquals( 2, issues.size() );
 
-        HashSet<String> issueUIDs = new HashSet<String>();
-        issueUIDs.add( issues.get( 0 ).getId() );
-        issueUIDs.add( issues.get( 1 ).getId() );
-
-        HashSet<String> orgUnitUIDs = new HashSet<String>();
-        orgUnitUIDs.add( nullIsland );
-        orgUnitUIDs.add( notNullIsland );
+        Set issueUIDs = Set.of( issues.get( 0 ).getId(), issues.get( 1 ).getId() );
+        Set orgUnitUIDs = Set.of( nullIsland, notNullIsland );
 
         assertEquals( issueUIDs, orgUnitUIDs );
 

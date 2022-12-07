@@ -35,7 +35,6 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
@@ -59,8 +58,6 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
 
     private OrganisationUnit unitC;
 
-    private User superUser;
-
     @Test
     void testOrgUnitOpeningDateAfterClosedDate()
     {
@@ -81,7 +78,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
             unitC.setClosedDate( null );
             orgUnitService.addOrganisationUnit( unitC );
 
-            dbmsManager.flushSession();
+            dbmsManager.clearSession();
         } );
 
         postSummary( "orgunit_openingdate_gt_closeddate" );
@@ -125,6 +122,5 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
         JsonResponse response = GET( "/organisationUnits/" ).content();
         JsonArray dimensions = response.getArray( "organisationUnits" );
         assertEquals( 0, dimensions.size() );
-
     }
 }

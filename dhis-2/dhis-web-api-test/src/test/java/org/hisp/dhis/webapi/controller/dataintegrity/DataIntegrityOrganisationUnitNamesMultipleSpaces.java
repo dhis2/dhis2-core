@@ -31,7 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
@@ -93,13 +93,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
 
         assertEquals( 2, issues.size() );
 
-        HashSet<String> issueUIDs = new HashSet<String>();
-        issueUIDs.add( issues.get( 0 ).getId() );
-        issueUIDs.add( issues.get( 1 ).getId() );
-
-        HashSet<String> orgUnitUIDs = new HashSet<String>();
-        orgUnitUIDs.add( orgunitA );
-        orgUnitUIDs.add( orgunitB );
+        Set issueUIDs = Set.of( issues.get( 0 ).getId(), issues.get( 1 ).getId() );
+        Set orgUnitUIDs = Set.of( orgunitA, orgunitB );
 
         assertEquals( issueUIDs, orgUnitUIDs );
         assertEquals( "orgunits", details.getIssuesIdType() );

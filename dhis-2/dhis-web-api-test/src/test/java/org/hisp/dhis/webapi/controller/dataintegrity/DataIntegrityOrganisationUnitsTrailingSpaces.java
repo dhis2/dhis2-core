@@ -68,7 +68,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     final String unitBName = "Spaced Out District";
 
     @Test
-    void testOrgUnitOpeningDateAfterClosedDate()
+    void DataIntegrityOrganisationUnitsTrailingSpacesTest()
     {
         doInTransaction( () -> {
 
@@ -90,7 +90,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
             unitC.setOpeningDate( getDate( "2022-01-01" ) );
             orgUnitService.addOrganisationUnit( unitC );
 
-            dbmsManager.flushSession();
+            dbmsManager.clearSession();
         } );
 
         JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
