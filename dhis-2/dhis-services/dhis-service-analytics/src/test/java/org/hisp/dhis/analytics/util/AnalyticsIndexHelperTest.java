@@ -64,7 +64,7 @@ class AnalyticsIndexHelperTest
         analyticsTable.getTablePartitions().add( stubAnalyticsTablePartition() );
 
         // When
-        List<AnalyticsIndex> indexes = getIndexes( List.of( analyticsTable ) );
+        List<AnalyticsIndex> indexes = getIndexes( List.of( analyticsTable ), analyticsTable.getTablePartitions() );
 
         // Then
         assertThat( indexes, hasSize( 1 ) );
