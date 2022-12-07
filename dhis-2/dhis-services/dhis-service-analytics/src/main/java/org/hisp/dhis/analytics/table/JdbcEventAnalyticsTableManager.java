@@ -61,6 +61,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -187,13 +188,13 @@ public class JdbcEventAnalyticsTableManager
     {
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        Calendar calendar = PeriodType.getCalendar();
-
         List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
                 .stream()
                 .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( Collectors.toList() );
+
+        Calendar calendar = PeriodType.getCalendar();
 
         for ( Program program : programs )
         {
@@ -206,11 +207,18 @@ public class JdbcEventAnalyticsTableManager
 
             for ( Integer year : dataYears )
             {
-                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                    PartitionUtils.getEndDate( calendar, year ) );
+                if ( !params.isViewsEnabled() )
+                {
+                    table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
+                        PartitionUtils.getEndDate( calendar, year ) );
+                }
+                else
+                {
+                    table.addView( year );
+                }
             }
 
-            if ( table.hasPartitionTables() )
+            if ( table.hasPartitionTables() || table.hasViews() )
             {
                 tables.add( table );
             }
@@ -363,6 +371,41 @@ public class JdbcEventAnalyticsTableManager
             "and psi.deleted is false ";
 
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
+    }
+
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        Program program = view.getMasterTable().getProgram();
+        Calendar calendar = PeriodType.getCalendar();
+        String start = DateUtils.getLongDateString( PartitionUtils.getStartDate( calendar, view.getYear() ) );
+        String end = DateUtils.getLongDateString( PartitionUtils.getEndDate( calendar, view.getYear() ) );
+        String viewClause = "and psi.executiondate >= '" + start + "' and psi.executiondate < '" + end + "' ";
+
+        String fromClause = "from programstageinstance psi " +
+            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
+            "inner join programstage ps on psi.programstageid=ps.programstageid " +
+            "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
+            "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "and tei.deleted is false " +
+            "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
+            "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+            viewClause +
+            "and pr.programid=" + program.getId() + " " +
+            "and psi.organisationunitid is not null " +
+            "and psi.executiondate is not null " +
+            "and dps.yearly is not null " +
+            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and psi.deleted is false ";
+
+        populateViewInternal( view, getDimensionColumns( program ), fromClause );
     }
 
     /**

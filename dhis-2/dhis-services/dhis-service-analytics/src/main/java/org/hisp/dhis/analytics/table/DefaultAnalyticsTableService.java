@@ -35,7 +35,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -59,7 +60,7 @@ import org.hisp.dhis.system.util.Clock;
  * @author Lars Helge Overland
  */
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
@@ -98,6 +99,7 @@ public class DefaultAnalyticsTableService
         progress.startingStage( "Validating Analytics Table " + tableType );
         String validState = tableManager.validState();
         progress.completedStage( validState );
+
         if ( validState != null || progress.isCancellationRequested() )
         {
             return;
@@ -129,9 +131,11 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Created analytics tables" );
 
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
+        List<AnalyticsTableView> views = PartitionUtils.getTableViews( tables );
 
         progress.startingStage( "Populating analytics tables " + tableType, partitions.size() );
         populateTables( params, partitions, progress );
+        populateTableViews( params, views, progress );
         clock.logTime( "Populated analytics tables" );
 
         progress.startingStage( "Invoking analytics table hooks " + tableType );
@@ -148,7 +152,7 @@ public class DefaultAnalyticsTableService
             clock.logTime( "Tables vacuumed" );
         }
 
-        List<AnalyticsIndex> indexes = getIndexes( partitions );
+        List<AnalyticsIndex> indexes = getIndexes( tables );
         progress.startingStage( "Creating indexes " + tableType, indexes.size() );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );
@@ -226,11 +230,30 @@ public class DefaultAnalyticsTableService
     private void populateTables( AnalyticsTableUpdateParams params, List<AnalyticsTablePartition> partitions,
         JobProgress progress )
     {
-        int parallelism = Math.min( getProcessNo(), partitions.size() );
-        log.info( "Populate table task number: " + parallelism );
+        if ( !partitions.isEmpty() )
+        {
+            int parallelism = Math.min( getProcessNo(), partitions.size() );
+            log.info( "Populate table task number: " + parallelism );
 
-        progress.runStageInParallel( parallelism, partitions, AnalyticsTablePartition::getTableName,
-            partition -> tableManager.populateTablePartition( params, partition ) );
+            progress.runStageInParallel( parallelism, partitions, AnalyticsTablePartition::getTableName,
+                partition -> tableManager.populateTablePartition( params, partition ) );
+        }
+    }
+
+    /**
+     * Populates the given analytics table views.
+     */
+    private void populateTableViews( AnalyticsTableUpdateParams params, List<AnalyticsTableView> views,
+        JobProgress progress )
+    {
+        if ( !views.isEmpty() )
+        {
+            int parallelism = Math.min( getProcessNo(), views.size() );
+            log.info( "Populate table task number: " + parallelism );
+
+            progress.runStageInParallel( parallelism, views, AnalyticsTableView::getViewName,
+                view -> tableManager.populateTableViews( params, view ) );
+        }
     }
 
     /**

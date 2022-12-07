@@ -60,11 +60,12 @@ class AnalyticsIndexHelperTest
     @Test
     void testGetIndexes()
     {
-        // Given
-        final List<AnalyticsTablePartition> stubPartitions = List.of( stubAnalyticsTablePartition() );
+        AnalyticsTable analyticsTable = stubAnalyticsTable();
+
+        analyticsTable.getTablePartitions().add( stubAnalyticsTablePartition() );
 
         // When
-        final List<AnalyticsIndex> indexes = getIndexes( stubPartitions );
+        List<AnalyticsIndex> indexes = getIndexes( List.of( analyticsTable ) );
 
         // Then
         assertThat( indexes, hasSize( 1 ) );

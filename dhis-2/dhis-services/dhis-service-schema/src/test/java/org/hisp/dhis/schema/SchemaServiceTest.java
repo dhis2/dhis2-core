@@ -105,7 +105,7 @@ class SchemaServiceTest extends DhisSpringTest
 
         assertNotNull( schema );
         assertFalse( schema.getProperties().isEmpty() );
-        assertEquals( 4, schema.getProperties().size() );
+        assertEquals( 5, schema.getProperties().size() );
     }
 
     @Test
@@ -128,6 +128,6 @@ class SchemaServiceTest extends DhisSpringTest
 
         assertNotNull( schema );
         assertFalse( schema.getProperties().isEmpty() );
-        assertEquals( 4, schema.getProperties().size() );
+        assertEquals( 5, schema.getProperties().size() );
     }
 }
