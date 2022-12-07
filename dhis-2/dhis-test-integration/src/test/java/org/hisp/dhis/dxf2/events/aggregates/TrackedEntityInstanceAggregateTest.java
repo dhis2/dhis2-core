@@ -400,6 +400,32 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
+    void testFetchTrackedEntityInstancesWithEventNotes()
+    {
+        doInTransaction( this::persistTrackedEntityInstanceWithEnrollmentAndEvents );
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.setIncludeAllAttributes( true );
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams( false, true, true, false, false, false );
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, false );
+
+        assertThat( trackedEntityInstances, hasSize( 1 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
+
+        List<Event> events = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).getEvents();
+
+        assertThat( events.get( 0 ).getNotes(), hasSize( 2 ) );
+        assertThat( events.get( 1 ).getNotes(), hasSize( 2 ) );
+        assertThat( events.get( 2 ).getNotes(), hasSize( 2 ) );
+        assertThat( events.get( 3 ).getNotes(), hasSize( 2 ) );
+        assertThat( events.get( 4 ).getNotes(), hasSize( 2 ) );
+
+    }
+
+    @Test
     void testFetchTrackedEntityInstancesWithoutEvents()
     {
         doInTransaction( () -> {
