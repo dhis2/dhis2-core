@@ -30,6 +30,9 @@ package org.hisp.dhis.analytics;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.program.Program;
@@ -40,32 +43,39 @@ import org.springframework.util.Assert;
  *
  * @author Lars Helge Overland
  */
+@Data
+@RequiredArgsConstructor
 public class AnalyticsTable
 {
     /**
      * Analytics table type.
      */
-    private AnalyticsTableType tableType;
+    private final AnalyticsTableType tableType;
 
     /**
      * Columns representing dimensions.
      */
-    private List<AnalyticsTableColumn> dimensionColumns;
+    private final List<AnalyticsTableColumn> dimensionColumns;
 
     /**
      * Columns representing values.
      */
-    private List<AnalyticsTableColumn> valueColumns;
+    private final List<AnalyticsTableColumn> valueColumns;
 
     /**
      * Program for analytics tables, applies to events and enrollments.
      */
-    private Program program;
+    private final Program program;
 
     /**
      * Analytics table partitions for this base analytics table.
      */
-    private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
+    private final List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
+
+    /**
+     * Analytics table views for this base analytics table.
+     */
+    private final List<AnalyticsTableView> tableViews = new UniqueArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -73,6 +83,7 @@ public class AnalyticsTable
 
     public AnalyticsTable()
     {
+        this( null, null, null );
     }
 
     public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
@@ -81,13 +92,7 @@ public class AnalyticsTable
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
-    }
-
-    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
-        List<AnalyticsTableColumn> valueColumns, Program program )
-    {
-        this( tableType, dimensionColumns, valueColumns );
-        this.program = program;
+        this.program = null;
     }
 
     // -------------------------------------------------------------------------
@@ -109,6 +114,23 @@ public class AnalyticsTable
         AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); // TODO
                                                                                                                       // approval
         this.tablePartitions.add( tablePartition );
+
+        return this;
+    }
+
+    /**
+     * Adds an analytics view to this master table.
+     *
+     * @param year the year.
+     * @return this analytics table.
+     */
+    public AnalyticsTable addView( Integer year )
+    {
+        Assert.notNull( year, "Year must be specified" );
+
+        AnalyticsTableView tableView = new AnalyticsTableView( this, year );
+
+        this.tableViews.add( tableView );
 
         return this;
     }
@@ -142,14 +164,14 @@ public class AnalyticsTable
         return name;
     }
 
-    public boolean hasProgram()
-    {
-        return program != null;
-    }
-
     public boolean hasPartitionTables()
     {
         return !tablePartitions.isEmpty();
+    }
+
+    public boolean hasViews()
+    {
+        return !tableViews.isEmpty();
     }
 
     public AnalyticsTablePartition getLatestPartition()
@@ -159,99 +181,4 @@ public class AnalyticsTable
             .findAny().orElse( null );
     }
 
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
-
-    public AnalyticsTableType getTableType()
-    {
-        return tableType;
-    }
-
-    public List<AnalyticsTableColumn> getDimensionColumns()
-    {
-        return dimensionColumns;
-    }
-
-    public List<AnalyticsTableColumn> getValueColumns()
-    {
-        return valueColumns;
-    }
-
-    public Program getProgram()
-    {
-        return program;
-    }
-
-    public List<AnalyticsTablePartition> getTablePartitions()
-    {
-        return tablePartitions;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals, toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        int prime = 31;
-        int result = 1;
-        result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
-        result = prime * result + ((program == null) ? 0 : program.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        AnalyticsTable other = (AnalyticsTable) object;
-
-        if ( tableType == null )
-        {
-            if ( other.tableType != null )
-            {
-                return false;
-            }
-        }
-        else if ( tableType != other.tableType )
-        {
-            return false;
-        }
-
-        if ( program == null )
-        {
-            if ( other.program != null )
-            {
-                return false;
-            }
-        }
-        else if ( !program.equals( other.program ) )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
-    }
 }

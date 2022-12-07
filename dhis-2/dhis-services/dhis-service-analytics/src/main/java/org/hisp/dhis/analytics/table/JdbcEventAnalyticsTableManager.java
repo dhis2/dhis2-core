@@ -66,7 +66,6 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -75,7 +74,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -88,7 +86,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -117,7 +114,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -209,8 +206,6 @@ public class JdbcEventAnalyticsTableManager
     {
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        Calendar calendar = PeriodType.getCalendar();
-
         List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
             : idObjectManager.getAllNoAcl( Program.class )
                 .stream()
@@ -228,11 +223,10 @@ public class JdbcEventAnalyticsTableManager
 
             for ( Integer year : dataYears )
             {
-                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                    PartitionUtils.getEndDate( calendar, year ) );
+                table.addView( year );
             }
 
-            if ( table.hasPartitionTables() )
+            if ( table.hasPartitionTables() || table.hasViews() )
             {
                 tables.add( table );
             }
@@ -355,11 +349,6 @@ public class JdbcEventAnalyticsTableManager
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         Program program = partition.getMasterTable().getProgram();
-        String start = DateUtils.getLongDateString( partition.getStartDate() );
-        String end = DateUtils.getLongDateString( partition.getEndDate() );
-        String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
-            : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
-                + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
@@ -377,7 +366,7 @@ public class JdbcEventAnalyticsTableManager
             "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
-            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and (" + getDateLinkedToStatus() + ") is not null " +

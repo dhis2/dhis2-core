@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -170,6 +171,7 @@ public abstract class AbstractJdbcTableManager
     {
         createTempTable( table );
         createTempTablePartitions( table );
+        createTableViews( table );
     }
 
     @Override
@@ -333,6 +335,28 @@ public abstract class AbstractJdbcTableManager
         catch ( DataAccessException ex )
         {
             log.error( ex.getMessage() );
+        }
+    }
+
+    /**
+     * Creates the table views for the given analytics table.
+     *
+     * @param table the {@link AnalyticsTable}.
+     */
+    protected void createTableViews( AnalyticsTable table )
+    {
+        for ( AnalyticsTableView view : table.getTableViews() )
+        {
+            String viewName = view.getViewName();
+
+            String sqlCreate = "create view " + viewName + " as select * from " + table.getTempTableName()
+                + " where yearly = '" + view.getYear() + "'";
+
+            log.info( "Creating view: '{}'", viewName );
+
+            log.debug( "Create SQL: {}", sqlCreate );
+
+            jdbcTemplate.execute( sqlCreate );
         }
     }
 
