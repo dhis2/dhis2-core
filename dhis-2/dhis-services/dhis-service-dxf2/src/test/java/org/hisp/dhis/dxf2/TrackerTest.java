@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -376,6 +377,7 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setLastUpdatedAtClient( now );
                 event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
+                event1.setNotes( createEventNotes() );
 
                 eventList.add( event1 );
             }
@@ -450,5 +452,20 @@ public abstract class TrackerTest extends IntegrationTestBase
             .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
         user.setUserCredentials( userCredentials );
+    }
+
+    private List<Note> createEventNotes()
+    {
+        List<Note> notes = new ArrayList<>();
+
+        for ( int i = 1; i < 3; i++ )
+        {
+            Note e = new Note();
+            e.setNote( "Event note: " + i );
+            e.setValue( "Event note: " + i );
+            notes.add( e );
+        }
+
+        return notes;
     }
 }
