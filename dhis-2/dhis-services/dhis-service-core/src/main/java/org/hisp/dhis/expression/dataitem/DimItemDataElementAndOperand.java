@@ -59,7 +59,8 @@ public class DimItemDataElementAndOperand
         else
         {
             return new DimensionalItemId( DATA_ELEMENT,
-                ctx.uid0.getText(), visitor.getPeriodOffset() );
+                ctx.uid0.getText(), null, null,
+                visitor.getPeriodOffset(), ctx.getText() );
         }
     }
 

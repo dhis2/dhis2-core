@@ -193,4 +193,27 @@ public class ObjectUtils
 
         return object;
     }
+
+    /**
+     * Indicates whether all of the given argument object are null.
+     *
+     * @param objects the objects.
+     * @return true if all of the given argument object are null.
+     */
+    public static <T> boolean allNull( T... objects )
+    {
+        if ( objects != null )
+        {
+            for ( T object : objects )
+            {
+                if ( object != null )
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return true;
+    }
 }
