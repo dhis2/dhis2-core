@@ -64,6 +64,10 @@ class PersistablesFilterTest
     // TODO refactor using my sketch
     // TODO run all tests with everything wired up
 
+    // TODO mocking of preheat.exists( dto) does not work if the dto is not of the same instance
+    // makes sense but is annoying; so I have to write preheat.exists( parent.getTrackerType(), parent.getUid())
+    // for now
+
     @Test
     void testCreateAndUpdateValidEntitiesCanBePersisted()
     {
