@@ -11,3 +11,4 @@ checks:
   - orgunits/orgunit_null_island.yaml
   - orgunits/orgunits_multiple_roots.yaml
   - orgunits/orgunits_orphaned.yaml
+  - orgunits/orgunits_trailing_spaces.yaml

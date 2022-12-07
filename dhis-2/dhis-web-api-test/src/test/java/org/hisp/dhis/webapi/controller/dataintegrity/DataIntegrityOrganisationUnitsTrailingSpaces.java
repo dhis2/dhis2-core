@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
@@ -48,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataIntegrityIntegrationTest
 {
     @Autowired
     private OrganisationUnitService orgUnitService;
@@ -61,48 +63,66 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
 
     private User superUser;
 
+    final String unitAName = "Space District   ";
+
+    final String unitBName = "Spaced Out District";
+
     @Test
     void testOrgUnitOpeningDateAfterClosedDate()
     {
         doInTransaction( () -> {
 
             unitA = createOrganisationUnit( 'A' );
+            unitA.setName( unitAName );
+            unitA.setShortName( unitAName );
             unitA.setOpeningDate( getDate( "2022-01-01" ) );
-            unitA.setClosedDate( getDate( "2020-01-01" ) );
             orgUnitService.addOrganisationUnit( unitA );
 
             unitB = createOrganisationUnit( 'B' );
+            unitB.setName( unitBName );
+            unitB.setShortName( unitBName + "    " );
             unitB.setOpeningDate( getDate( "2022-01-01" ) );
-            unitB.setClosedDate( getDate( "2023-01-01" ) );
             orgUnitService.addOrganisationUnit( unitB );
 
             unitC = createOrganisationUnit( 'C' );
+            unitC.setName( "NoSpaceDistrict" );
+            unitC.setShortName( "NoSpaceDistrict" );
             unitC.setOpeningDate( getDate( "2022-01-01" ) );
-            unitC.setClosedDate( null );
             orgUnitService.addOrganisationUnit( unitC );
 
             dbmsManager.flushSession();
         } );
 
-        postSummary( "orgunit_openingdate_gt_closeddate" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_openingdate_gt_closeddate/summary" ).content()
+        JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
+        assertEquals( json_unitA.getString( "name" ).string(), unitAName );
+
+        postSummary( "orgunit_trailing_spaces" );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_trailing_spaces/summary" ).content()
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 33, summary.getPercentage().intValue() );
+        assertEquals( 2, summary.getCount() );
+        assertEquals( 66, summary.getPercentage().intValue() );
 
-        postDetails( "orgunit_openingdate_gt_closeddate" );
+        postDetails( "orgunit_trailing_spaces" );
 
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_openingdate_gt_closeddate/details" ).content()
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_trailing_spaces/details" ).content()
             .as( JsonDataIntegrityDetails.class );
         assertTrue( details.exists() );
         assertTrue( details.isObject() );
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( unitA.getUid(), issues.get( 0 ).getId() );
-        assertEquals( unitA.getName(), issues.get( 0 ).getName() );
+        assertEquals( 2, issues.size() );
+
+        HashSet<String> issueUIDs = new HashSet<String>();
+        issueUIDs.add( issues.get( 0 ).getId() );
+        issueUIDs.add( issues.get( 1 ).getId() );
+
+        HashSet<String> orgUnitUIDs = new HashSet<String>();
+        orgUnitUIDs.add( unitA.getUid() );
+        orgUnitUIDs.add( unitB.getUid() );
+
+        assertEquals( issueUIDs, orgUnitUIDs );
         assertEquals( "orgunits", details.getIssuesIdType() );
     }
 
