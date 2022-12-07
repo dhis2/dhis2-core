@@ -40,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -79,6 +80,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 import com.google.common.collect.Lists;
 
+@OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = "/potentialDuplicates" )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
@@ -97,6 +99,7 @@ public class DeduplicationController
 
     private final ContextService contextService;
 
+    @OpenApi.Response( PotentialDuplicate[].class )
     @GetMapping
     public Node getAllByQuery(
         PotentialDuplicateQuery query,

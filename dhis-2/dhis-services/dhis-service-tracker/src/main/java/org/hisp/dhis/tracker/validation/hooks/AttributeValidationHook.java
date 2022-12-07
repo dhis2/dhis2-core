@@ -50,14 +50,14 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
+public abstract class AttributeValidationHook
 {
 
     private final TrackedAttributeValidationService teAttrService;

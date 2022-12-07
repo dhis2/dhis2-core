@@ -50,7 +50,7 @@ public class ProgramStagePreProcessor implements Processor
         if ( program == null )
         {
             return; // Program is a mandatory value, it will be caught by the
-                    // validation
+                   // validation
         }
         ProgramStage programStage = ctx.getProgramStage(
             ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() );

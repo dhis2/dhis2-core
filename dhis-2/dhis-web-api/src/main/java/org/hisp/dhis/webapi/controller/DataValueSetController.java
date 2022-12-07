@@ -66,10 +66,12 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
@@ -93,6 +95,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequiredArgsConstructor
 @RequestMapping( value = "/dataValueSets" )
@@ -113,6 +116,7 @@ public class DataValueSetController
     // Get
     // -------------------------------------------------------------------------
 
+    @OpenApi.Ignore
     @GetMapping( params = { "format" } )
     public void getDataValueSet(
         DataValueSetQueryParams params,
@@ -137,6 +141,7 @@ public class DataValueSetController
         }
     }
 
+    @OpenApi.Response( DataValueSet.class )
     @GetMapping( produces = CONTENT_TYPE_XML )
     public void getDataValueSetXml( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
@@ -148,6 +153,7 @@ public class DataValueSetController
             ( exportParams, out ) -> dataValueSetService.exportDataValueSetXml( exportParams, out ) );
     }
 
+    @OpenApi.Response( DataValueSet.class )
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
     public void getDataValueSetXmlAdx( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
@@ -169,6 +175,7 @@ public class DataValueSetController
             } );
     }
 
+    @OpenApi.Response( DataValueSet.class )
     @GetMapping( produces = CONTENT_TYPE_JSON )
     public void getDataValueSetJson( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
@@ -180,6 +187,7 @@ public class DataValueSetController
             ( exportParams, out ) -> dataValueSetService.exportDataValueSetJson( exportParams, out ) );
     }
 
+    @OpenApi.Response( String.class )
     @GetMapping( produces = CONTENT_TYPE_CSV )
     public void getDataValueSetCsv( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
