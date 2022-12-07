@@ -35,6 +35,7 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
@@ -70,6 +71,8 @@ public class ResourceTableController
     private final SchedulingManager schedulingManager;
 
     private final CurrentUserService currentUserService;
+
+    private final AnalyticsExportSettings settings;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -108,7 +111,7 @@ public class ResourceTableController
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms, skipResourceTables );
+            skipPrograms, skipResourceTables, settings.isViewEnabled() );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );

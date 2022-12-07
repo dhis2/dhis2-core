@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -57,6 +58,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -154,7 +156,7 @@ public class JdbcAnalyticsTableManager
             ? getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() )
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
+        return (table.hasPartitionTables() || table.hasViews()) ? newArrayList( table ) : newArrayList();
     }
 
     @Override
@@ -251,6 +253,30 @@ public class JdbcAnalyticsTableManager
             null );
     }
 
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        String dbl = statementBuilder.getDoubleColumnType();
+        boolean skipDataTypeValidation = systemSettingManager
+            .getBoolSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
+        boolean includeZeroValues = systemSettingManager
+            .getBoolSetting( SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS );
+
+        String numericClause = skipDataTypeValidation ? ""
+            : ("and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
+        String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
+        String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + "','"
+            + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
+        String intClause = zeroValueClause + numericClause;
+
+        populateView( params, view, "cast(dv.value as " + dbl + ")", "null", NUMERIC_TYPES, intClause );
+        populateView( params, view, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ),
+            "dv.value = 'true'" );
+        populateView( params, view, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'" );
+        populateView( params, view, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ),
+            null );
+    }
+
     /**
      * Populates the given analytics table.
      *
@@ -332,6 +358,86 @@ public class JdbcAnalyticsTableManager
         }
 
         invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
+    }
+
+    /**
+     * Populates the given analytics table.
+     *
+     * @param valueExpression numeric value expression.
+     * @param textValueExpression textual value expression.
+     * @param valueTypes data element value types to include data for.
+     * @param whereClause where clause to constrain data query.
+     */
+    private void populateView( AnalyticsTableUpdateParams params, AnalyticsTableView view,
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause )
+    {
+        String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
+        boolean respectStartEndDates = systemSettingManager
+            .getBoolSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
+        String approvalClause = getApprovalJoinClause( view.getYear() );
+        String viewClause = "and ps.year = " + view.getYear() + " ";
+
+        String sql = "insert into " + view.getMasterTable().getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( view.getYear() );
+        List<AnalyticsTableColumn> values = view.getMasterTable().getValueColumns();
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql += valueExpression + " * ps.daysno as daysxvalue, " +
+            "ps.daysno as daysno, " +
+            valueExpression + " as value, " +
+            textValueExpression + " as textvalue " +
+            "from datavalue dv " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+            "inner join dataelement de on dv.dataelementid=de.dataelementid " +
+            "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+            "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+            "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
+            "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+            "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
+            "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+            "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
+            "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
+            approvalClause +
+            "where de.valuetype in (" + valTypes + ") " +
+            "and de.domaintype = 'AGGREGATE' " +
+            viewClause +
+            "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and dv.value is not null " +
+            "and dv.deleted is false ";
+
+        if ( respectStartEndDates )
+        {
+            sql += "and (aon.startdate is null or aon.startdate <= pe.startdate) " +
+                "and (aon.enddate is null or aon.enddate >= pe.enddate) " +
+                "and (con.startdate is null or con.startdate <= pe.startdate) " +
+                "and (con.enddate is null or con.enddate >= pe.enddate) ";
+        }
+
+        if ( whereClause != null )
+        {
+            sql += "and " + whereClause;
+        }
+
+        invokeTimeAndLog( sql, String.format( "Populate %s %s", view.getMasterTable().getTableName(), valueTypes ) );
     }
 
     /**

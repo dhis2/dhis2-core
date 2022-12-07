@@ -715,6 +715,8 @@ public enum ConfigurationKey
      */
     REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false ),
 
+    ANALYTICS_TABLE_USE_VIEWS( "analytics.table.use_views", Constants.OFF, false ),
+
     /**
      * Content Security Policy feature. Enable or disable the feature.
      */

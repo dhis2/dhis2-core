@@ -32,10 +32,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
@@ -206,7 +208,7 @@ public class PartitionUtils
     /**
      * Returns a list of table partitions based on the given analytics tables.
      * For master tables with no partitions, a fake partition representing the
-     * master table is used.
+     * master table is used, when the master table has no views
      *
      * @param tables the list of {@link AnalyticsTable}.
      * @return a list of {@link AnalyticsTablePartition}.
@@ -223,13 +225,33 @@ public class PartitionUtils
             }
             else
             {
-                // Fake partition representing the master table
-
-                partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
+                // we use a fake partition for master tables only if table
+                // doesn't have views as well
+                if ( !table.hasViews() )
+                {
+                    // Fake partition representing the master table
+                    partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
+                }
             }
         }
 
         return partitions;
+    }
+
+    /**
+     * Returns a list of table partitions based on the given analytics tables.
+     * For master tables with no partitions, a fake partition representing the
+     * master table is used.
+     *
+     * @param tables the list of {@link AnalyticsTable}.
+     * @return a list of {@link AnalyticsTablePartition}.
+     */
+    public static List<AnalyticsTableView> getTableViews( List<AnalyticsTable> tables )
+    {
+        return tables.stream()
+            .map( AnalyticsTable::getTableViews )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
     }
 
     /**

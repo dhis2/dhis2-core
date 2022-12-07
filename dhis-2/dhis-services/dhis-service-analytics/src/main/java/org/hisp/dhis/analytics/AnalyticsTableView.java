@@ -27,48 +27,36 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_USE_VIEWS;
-
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.analytics.table.PartitionUtils;
 
-/**
- * Component responsible for exposing analytics table export settings. Can hold
- * settings living in configuration files (ie. dhis.conf) or in system settings.
- *
- * @author maikel arabori
- */
-@Component
+@Data
 @RequiredArgsConstructor
-public class AnalyticsExportSettings
+public class AnalyticsTableView
 {
-    private final DhisConfigurationProvider dhisConfigurationProvider;
-
-    private static final String UNLOGGED = "unlogged";
+    private final AnalyticsTable masterTable;
 
     /**
-     * Returns the respective string that represents the table type to be
-     * exported. Two types are supported: UNLOGGED and EMPTY. See
-     * {@link AnalyticsTableType}
-     *
-     * @return the string representation of the type
+     * The year this view refers to
      */
-    public String getTableType()
+    private final Integer year;
+
+    public String getViewName()
     {
-        if ( dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_UNLOGGED ) )
+        String name = masterTable.getBaseName();
+
+        if ( masterTable.getProgram() != null )
         {
-            return UNLOGGED;
+            name = PartitionUtils.getTableName( name, masterTable.getProgram() );
         }
 
-        return EMPTY;
-    }
+        if ( year != null )
+        {
+            name += PartitionUtils.SEP + year;
+        }
 
-    public boolean isViewEnabled()
-    {
-        return dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_USE_VIEWS );
+        return name;
     }
 }
