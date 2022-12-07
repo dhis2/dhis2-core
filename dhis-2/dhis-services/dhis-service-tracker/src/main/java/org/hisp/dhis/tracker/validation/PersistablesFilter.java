@@ -110,14 +110,7 @@ public class PersistablesFilter
 
         private final List<Relationship> relationships = new ArrayList<>();
 
-        public <T extends TrackerDto> Result put( Class<T> type, T instance )
-        {
-            List<T> list = get( Objects.requireNonNull( type ) );
-            list.add( instance );
-            return this;
-        }
-
-        public <T extends TrackerDto> Result putAll( Class<T> type, Collection<T> instance )
+        private <T extends TrackerDto> Result putAll( Class<T> type, Collection<T> instance )
         {
             List<T> list = get( Objects.requireNonNull( type ) );
             list.addAll( instance );

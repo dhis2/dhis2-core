@@ -657,7 +657,6 @@ class PersistablesFilterTest
          *
          * @return this setup
          */
-        @SuppressWarnings( "unchecked" )
         Setup isExisting()
         {
             when( this.preheat.exists( current.getTrackerType(), current.getUid() ) )
