@@ -117,11 +117,10 @@ public class PersistablesFilter
         private final List<Relationship> relationships = new ArrayList<>();
 
         // TODO I could just replace this with an all args constructor
-        private <T extends TrackerDto> Result putAll( Class<T> type, Collection<T> instance )
+        private <T extends TrackerDto> void putAll( Class<T> type, Collection<T> instance )
         {
             List<T> list = get( Objects.requireNonNull( type ) );
             list.addAll( instance );
-            return this;
         }
 
         @SuppressWarnings( "unchecked" )
@@ -225,7 +224,7 @@ public class PersistablesFilter
                 for ( TrackerType type : topDown )
                 {
                     List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
-                        entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
+                        entities.get( type.getKlass() ), preheat );
                     result.putAll( type.getKlass(), persistableEntities );
                     // TODO can I move this inside persistable?
                     persistables.put( type, collectUids( persistableEntities ) );
@@ -238,7 +237,7 @@ public class PersistablesFilter
                 for ( TrackerType type : bottomUp )
                 {
                     List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
-                        entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
+                        entities.get( type.getKlass() ), preheat );
                     result.putAll( type.getKlass(), persistableEntities );
                     // TODO can I move this inside persistable? if so I can make this method super simple :)
                     List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
@@ -250,13 +249,12 @@ public class PersistablesFilter
             return result;
         }
 
-        public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat,
-            EnumMap<TrackerType, Set<String>> invalidEntities,
-            TrackerImportStrategy importStrategy )
+        public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat )
         {
             Predicate<T> entityConditions = baseCondition();
             Predicate<T> deleteCondition = deleteCondition();
 
+            // TODO improve/move to a function? and reuse in nonDeletableParents?
             if ( importStrategy == TrackerImportStrategy.DELETE )
             {
                 entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
@@ -268,14 +266,7 @@ public class PersistablesFilter
                 Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
                     || preheat.exists( parent.getTrackerType(), parent.getUid() );
                 final Predicate<T> parentCondition;
-                if ( check.parentCondition.isPresent() )
-                {
-                    parentCondition = baseParentCondition.or( check.parentCondition.get() );
-                }
-                else
-                {
-                    parentCondition = baseParentCondition;
-                }
+                parentCondition = check.parentCondition.map( baseParentCondition::or ).orElse( baseParentCondition );
                 parentConditions = check.parents.stream()
                     .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
                     .reduce( Predicate::and )
@@ -300,7 +291,7 @@ public class PersistablesFilter
 
         public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities )
         {
-            // TODO just copied from above; how can I reuse this?
+            // TODO improve
             Predicate<T> entityConditions = baseCondition();
             Predicate<T> deleteCondition = deleteCondition();
             entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
