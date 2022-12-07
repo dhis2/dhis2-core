@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackerEnrollmentFieldsParamMapper.map;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFieldsParamMapper.map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -35,14 +35,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TrackerEnrollmentFieldsMapperTest
+class EnrollmentFieldsMapperTest
 {
     static Stream<Arguments> getEnrollmentParamsMultipleCases()
     {

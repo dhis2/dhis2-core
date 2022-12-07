@@ -36,6 +36,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
@@ -213,7 +214,7 @@ class TrackerSynchronizationTest extends DhisSpringTest
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-        params = new TrackedEntityInstanceParams( false, false, false, false, true, true );
+        params = new TrackedEntityInstanceParams( false, EnrollmentParams.FALSE, false, false, true, true );
     }
 
     @Test
