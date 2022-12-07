@@ -41,7 +41,6 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,13 +53,13 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.preheat.Finder;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest
 {
-    // TODO figure out if I can remove the reliance on the preheat
+    // TODO refactor
     // TODO implement DELETE with CASCADE authority
     // TODO refactor using my sketch
     // TODO run all tests with everything wired up
@@ -82,7 +81,7 @@ class PersistablesFilterTest
                 trackedEntity("QxGbKYwChDM")
             );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -102,7 +101,7 @@ class PersistablesFilterTest
                 .enrollment( "t1zaUjKgT3p" ).isExisting()
                     .event( "Qck4PQ7TMun" ).isExisting();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -119,7 +118,7 @@ class PersistablesFilterTest
         Setup setup = new Setup()
             .trackedEntity( "xK7H53f4Hc2" ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertIsEmpty( persistable.get( TrackedEntity.class ) );
@@ -133,7 +132,7 @@ class PersistablesFilterTest
             .trackedEntity( "xK7H53f4Hc2" ).isInvalid().isExisting()
                 .enrollment( "t1zaUjKgT3p" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -150,7 +149,7 @@ class PersistablesFilterTest
             .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
                 .enrollment( "t1zaUjKgT3p" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -167,7 +166,7 @@ class PersistablesFilterTest
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -185,7 +184,7 @@ class PersistablesFilterTest
                 .enrollment( "t1zaUjKgT3p" ).isInvalid().isExisting()
                     .event( "Qck4PQ7TMun" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -204,7 +203,7 @@ class PersistablesFilterTest
                 .enrollment( "t1zaUjKgT3p" ).isInvalid()
                     .event( "Qck4PQ7TMun" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -223,7 +222,7 @@ class PersistablesFilterTest
                 .enrollment( "t1zaUjKgT3p" )
                     .event( "Qck4PQ7TMun" ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -244,7 +243,7 @@ class PersistablesFilterTest
             .eventWithoutRegistration( "nVjkL7qHYvL" ).isExisting().isInvalid()
             .eventWithoutRegistration( "MeC1UpOX4Wu" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -266,7 +265,7 @@ class PersistablesFilterTest
                     trackedEntity("QxGbKYwChDM")
                 ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -287,7 +286,7 @@ class PersistablesFilterTest
                     trackedEntity("QxGbKYwChDM")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -308,7 +307,7 @@ class PersistablesFilterTest
                     trackedEntity("QxGbKYwChDM")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -329,7 +328,7 @@ class PersistablesFilterTest
                     trackedEntity("xK7H53f4Hc2")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -350,7 +349,7 @@ class PersistablesFilterTest
                     event("QxGbKYwChDM")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -376,7 +375,7 @@ class PersistablesFilterTest
                     trackedEntity("QxGbKYwChDM")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -397,7 +396,7 @@ class PersistablesFilterTest
                         .event( "Qck4PQ7TMun" )
                         .event( "Ox1qBWsnVwE" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -416,7 +415,7 @@ class PersistablesFilterTest
                     .enrollment( "t1zaUjKgT3p" ).isInvalid()
                         .event( "Qck4PQ7TMun" );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -437,7 +436,7 @@ class PersistablesFilterTest
                         .event( "Ox1qBWsnVwE" )
                 .eventWithoutRegistration("G9cH8AVvguf");
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -459,7 +458,7 @@ class PersistablesFilterTest
                         event("QxGbKYwChDM")
                 ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -483,7 +482,7 @@ class PersistablesFilterTest
                         enrollment("t1zaUjKgT3p")
                 ).isInvalid();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -507,7 +506,7 @@ class PersistablesFilterTest
                         event("QxGbKYwChDM")
                 );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(), setup.finder(),
+        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -520,7 +519,7 @@ class PersistablesFilterTest
 
     /**
      * Setup builds the arguments for calling
-     * {@link PersistablesFilter#filter(TrackerBundle, EnumMap, Finder, TrackerImportStrategy)}.
+     * {@link PersistablesFilter#filter(TrackerBundle, EnumMap, TrackerImportStrategy)}
      * Adding an entity with methods like {@link #trackedEntity(String)} always assumes the
      * entity is valid and does not yet exist.
      * <p>
@@ -534,11 +533,11 @@ class PersistablesFilterTest
     private static class Setup
     {
 
-        private final TrackerBundle bundle = TrackerBundle.builder().build();
+        private final TrackerBundle bundle;
 
         private final EnumMap<TrackerType, Set<String>> invalidEntities = PersistablesFilterTest.invalidEntities();
 
-        private final Finder finder;
+        private final TrackerPreheat preheat;
 
         /**
          * Keeps track of the current entity that can be set to
@@ -557,7 +556,8 @@ class PersistablesFilterTest
 
         Setup()
         {
-            this.finder = mock( Finder.class );
+            this.preheat = mock( TrackerPreheat.class );
+            this.bundle = TrackerBundle.builder().preheat(this.preheat).build();
         }
 
         Setup trackedEntity( String uid )
@@ -653,15 +653,15 @@ class PersistablesFilterTest
 
         /**
          * Marks {@link #current} {@link TrackerDto} as existing in
-         * {@link #finder}.
+         * {@link #preheat}.
          *
          * @return this setup
          */
         @SuppressWarnings( "unchecked" )
         Setup isExisting()
         {
-            when( this.finder.findById( current.getTrackerType().getKlass(), current.getUid() ) )
-                .thenReturn( Optional.of( current ) );
+            when( this.preheat.exists( current.getTrackerType().getKlass(), current.getUid() ) )
+                .thenReturn( true);
             return this;
         }
 
@@ -673,11 +673,6 @@ class PersistablesFilterTest
         EnumMap<TrackerType, Set<String>> invalidEntities()
         {
             return invalidEntities;
-        }
-
-        Finder finder()
-        {
-            return finder;
         }
     }
 

@@ -78,6 +78,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.user.User;
 
@@ -90,7 +91,7 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerPreheat implements Finder
+public class TrackerPreheat
 {
     /**
      * User to use for import job (important for threaded imports).
@@ -862,20 +863,42 @@ public class TrackerPreheat implements Finder
         return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
     }
 
+    /**
+     * Checks if an entity of given type and UID exists in the DB.
+     *
+     * @param type class extending TrackerDto
+     * @param uid uid of entity to check
+     * @return true if an entity of given type and UID exists in the DB
+     * @param <T>
+     */
+    public <T extends TrackerDto> boolean exists( Class<T> type, String uid )
+    {
+        Objects.requireNonNull( type );
+
+        if ( type == TrackedEntity.class )
+        {
+            return getTrackedEntity( uid ) != null;
+        }
+        else if ( type == Enrollment.class )
+        {
+            return getEnrollment( uid ) != null;
+        }
+        else if ( type == Event.class )
+        {
+            return getEvent( uid ) != null;
+        }
+        else if ( type == org.hisp.dhis.tracker.domain.Relationship.class )
+        {
+            return getRelationship( uid ) != null;
+        }
+        return false;
+    }
+
     @Override
     public String toString()
     {
         return new StringJoiner( ", ", TrackerPreheat.class.getSimpleName() + "[", "]" )
             .add( "map=" + map )
             .toString();
-    }
-
-    @Override
-    public <T extends TrackerDto> Optional<T> findById( Class<T> type, String uid )
-    {
-        // TODO in PersistablesFilter I am only concerned with existence checks and the tracker domain.
-        // I do not want to deal with any mapping between TrackedEntityInstance classes and TrackedEntity
-        // all I need is the UID and the tracker type.
-        return Optional.empty();
     }
 }

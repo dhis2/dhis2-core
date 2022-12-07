@@ -109,7 +109,7 @@ public class DefaultTrackerValidationService
             .addErrors( reporter.getErrors() )
             .addWarnings( reporter.getWarnings() );
 
-        PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(), bundle.getPreheat(),
+        PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(),
             bundle.getImportStrategy() );
 
         bundle.setTrackedEntities( persistables.get( TrackedEntity.class ) );
