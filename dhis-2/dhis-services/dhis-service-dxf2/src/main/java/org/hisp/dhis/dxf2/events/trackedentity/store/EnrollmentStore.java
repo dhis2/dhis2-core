@@ -73,7 +73,7 @@ public interface EnrollmentStore
      *
      * @param ids a list of enrollment ids
      * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Relationship} objects
+     *         List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids, AggregateContext ctx );
 }

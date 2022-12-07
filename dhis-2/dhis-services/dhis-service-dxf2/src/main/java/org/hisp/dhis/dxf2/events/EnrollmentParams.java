@@ -41,17 +41,17 @@ public class EnrollmentParams
     public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false, false );
 
     // Root is only relevant if it is a nested Param
-    boolean includeRoot;
+    private boolean includeRoot;
 
-    boolean includeEvents;
+    private boolean includeEvents;
 
-    boolean includeRelationships;
+    private boolean includeRelationships;
 
-    boolean includeAttributes;
+    private boolean includeAttributes;
 
-    boolean includeDeleted;
+    private boolean includeDeleted;
 
-    boolean dataSynchronizationQuery;
+    private boolean dataSynchronizationQuery;
 
     @JsonProperty
     public boolean isIncludeRelationships()
