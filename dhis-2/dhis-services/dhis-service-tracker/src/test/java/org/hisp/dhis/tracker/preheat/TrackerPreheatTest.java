@@ -61,10 +61,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -470,50 +470,50 @@ class TrackerPreheatTest extends DhisConvenienceTest
     @Test
     void testExistsTrackedEntity()
     {
-        assertFalse( preheat.exists( TrackedEntity.class, "uid" ) );
+        assertFalse( preheat.exists( TrackerType.TRACKED_ENTITY, "uid" ) );
 
         TrackedEntityInstance tei = new TrackedEntityInstance();
         tei.setUid( "uid" );
         preheat.putTrackedEntities( List.of( tei ) );
 
-        assertTrue( preheat.exists( TrackedEntity.class, "uid" ) );
+        assertTrue( preheat.exists( TrackerType.TRACKED_ENTITY, "uid" ) );
         assertTrue( preheat.exists( TrackedEntity.builder().trackedEntity( "uid" ).build() ) );
     }
 
     @Test
     void testExistsEnrollment()
     {
-        assertFalse( preheat.exists( Enrollment.class, "uid" ) );
+        assertFalse( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
 
         ProgramInstance pi = new ProgramInstance();
         pi.setUid( "uid" );
         preheat.putEnrollments( List.of( pi ) );
 
-        assertTrue( preheat.exists( Enrollment.class, "uid" ) );
+        assertTrue( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
     }
 
     @Test
     void testExistsEvent()
     {
-        assertFalse( preheat.exists( Event.class, "uid" ) );
+        assertFalse( preheat.exists( TrackerType.EVENT, "uid" ) );
 
         ProgramStageInstance psi = new ProgramStageInstance();
         psi.setUid( "uid" );
         preheat.putEvents( List.of( psi ) );
 
-        assertTrue( preheat.exists( Event.class, "uid" ) );
+        assertTrue( preheat.exists( TrackerType.EVENT, "uid" ) );
     }
 
     @Test
     void testExistsRelationship()
     {
-        assertFalse( preheat.exists( Relationship.class, "uid" ) );
+        assertFalse( preheat.exists( TrackerType.RELATIONSHIP, "uid" ) );
 
         org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
         relationship.setUid( "uid" );
         preheat.putRelationship( relationship );
 
-        assertTrue( preheat.exists( Relationship.class, "uid" ) );
+        assertTrue( preheat.exists( TrackerType.RELATIONSHIP, "uid" ) );
     }
 
     @Test

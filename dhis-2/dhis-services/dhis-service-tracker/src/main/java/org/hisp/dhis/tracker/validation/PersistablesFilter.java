@@ -163,6 +163,11 @@ public class PersistablesFilter
         //  direction: does not matter
         //  conditions: current is valid
 
+        //                    && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
+        //                        || preheat.exists( TrackedEntity.class, en.getTrackedEntity() )) )
+        // TODO note that we pass type, uid. we could translate from TRACKED_ENTITY.getKlass() or adapt the preheat.exists
+        // implementation to accept tracker type?
+
         EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( TrackerType.class );
 
         if ( importStrategy != TrackerImportStrategy.DELETE )
@@ -177,7 +182,7 @@ public class PersistablesFilter
             List<Enrollment> persistableEnrollments = entities.get( Enrollment.class ).stream()
                 .filter( en -> isValid( invalidEntities, en )
                     && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
-                        || preheat.exists( TrackedEntity.class, en.getTrackedEntity() )) )
+                        || preheat.exists( TRACKED_ENTITY, en.getTrackedEntity() )) )
                 .collect( Collectors.toList() );
             persistables.put( ENROLLMENT, collectUids( persistableEnrollments ) );
 
@@ -187,7 +192,7 @@ public class PersistablesFilter
                 .filter( ev -> isValid( invalidEntities, ev )
                     && (ev.getEnrollment() == null
                         || persistables.get( ENROLLMENT ).contains( ev.getEnrollment() )
-                        || preheat.exists( Enrollment.class, ev.getEnrollment() )) )
+                        || preheat.exists( ENROLLMENT, ev.getEnrollment() )) )
                 .collect( Collectors.toList() );
             persistables.put( EVENT, collectUids( persistableEvents ) );
 

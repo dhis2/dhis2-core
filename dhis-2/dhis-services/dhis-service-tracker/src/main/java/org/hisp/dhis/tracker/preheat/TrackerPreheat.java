@@ -78,7 +78,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.user.User;
 
@@ -868,39 +867,34 @@ public class TrackerPreheat
      */
     public <T extends TrackerDto> boolean exists( T entity )
     {
-        return exists( entity.getTrackerType().getKlass(), entity.getUid() );
+        return exists( entity.getTrackerType(), entity.getUid() );
     }
 
     /**
      * Checks if an entity of given type and UID exists in the DB.
      *
-     * @param type class extending TrackerDto
+     * @param type tracker type
      * @param uid uid of entity to check
      * @return true if an entity of given type and UID exists in the DB
-     * @param <T>
      */
-    public <T extends TrackerDto> boolean exists( Class<T> type, String uid )
+    public boolean exists( TrackerType type, String uid )
     {
         Objects.requireNonNull( type );
 
-        if ( type == TrackedEntity.class )
+        switch ( type )
         {
+        case TRACKED_ENTITY:
             return getTrackedEntity( uid ) != null;
-        }
-        else if ( type == Enrollment.class )
-        {
+        case ENROLLMENT:
             return getEnrollment( uid ) != null;
-        }
-        else if ( type == Event.class )
-        {
+        case EVENT:
             return getEvent( uid ) != null;
-        }
-        else if ( type == org.hisp.dhis.tracker.domain.Relationship.class )
-        {
+        case RELATIONSHIP:
             return getRelationship( uid ) != null;
+        default:
+            // only reached if a new TrackerDto implementation is added
+            return false;
         }
-        // only reached if a new TrackerDto implementation is added
-        return false;
     }
 
     @Override
