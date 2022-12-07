@@ -152,7 +152,7 @@ public class DefaultAnalyticsTableService
             clock.logTime( "Tables vacuumed" );
         }
 
-        List<AnalyticsIndex> indexes = getIndexes( tables );
+        List<AnalyticsIndex> indexes = getIndexes( tables, partitions );
         progress.startingStage( "Creating indexes " + tableType, indexes.size() );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );

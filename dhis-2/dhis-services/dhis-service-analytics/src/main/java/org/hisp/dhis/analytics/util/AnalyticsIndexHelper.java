@@ -70,7 +70,8 @@ public class AnalyticsIndexHelper
      * @param partitions the list of {@link AnalyticsTablePartition}.
      * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
      */
-    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTable> tables )
+    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTable> tables,
+        List<AnalyticsTablePartition> partitions )
     {
         List<AnalyticsIndex> indexes = new ArrayList<>();
 
@@ -82,7 +83,9 @@ public class AnalyticsIndexHelper
             }
             else
             {
-                for ( AnalyticsTablePartition partition : table.getTablePartitions() )
+                List<AnalyticsTablePartition> tablePartitions = table.getTablePartitions().isEmpty() ? partitions
+                    : table.getTablePartitions();
+                for ( AnalyticsTablePartition partition : tablePartitions )
                 {
                     indexes.addAll( getIndexes( partition.getMasterTable(), partition.getTempTableName() ) );
                 }
