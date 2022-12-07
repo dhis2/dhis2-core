@@ -248,8 +248,8 @@ class PersistablesFilterTest
 
         assertAll(
                 () -> assertIsEmpty( persistable.get( TrackedEntity.class ) ),
-                        () -> assertIsEmpty( persistable.get( Enrollment.class ) ),
-                                () -> assertContainsOnly( persistable, Event.class, "Ok4Fe5moc3N", "MeC1UpOX4Wu" )
+                () -> assertIsEmpty( persistable.get( Enrollment.class ) ),
+                () -> assertContainsOnly( persistable, Event.class, "Ok4Fe5moc3N", "MeC1UpOX4Wu" )
         );
     }
 

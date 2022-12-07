@@ -34,13 +34,18 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -110,6 +115,7 @@ public class PersistablesFilter
 
         private final List<Relationship> relationships = new ArrayList<>();
 
+        // TODO I could just replace this with an all args constructor
         private <T extends TrackerDto> Result putAll( Class<T> type, Collection<T> instance )
         {
             List<T> list = get( Objects.requireNonNull( type ) );
@@ -141,6 +147,70 @@ public class PersistablesFilter
         }
     }
 
+    @RequiredArgsConstructor
+    public static class Checks
+    {
+        private final Check<TrackedEntity> trackedEntityCheck;
+
+        private final Check<Enrollment> enrollmentCheck;
+
+        private final Check<Event> eventCheck;
+
+        private final Check<Relationship> relationshipsCheck;
+
+        @SuppressWarnings( "unchecked" )
+        public <T extends TrackerDto> Check<T> get( Class<T> type )
+        {
+            Objects.requireNonNull( type );
+            if ( type == TrackedEntity.class )
+            {
+                return (Check<T>) trackedEntityCheck;
+            }
+            else if ( type == Enrollment.class )
+            {
+                return (Check<T>) enrollmentCheck;
+            }
+            else if ( type == Event.class )
+            {
+                return (Check<T>) eventCheck;
+            }
+            else if ( type == Relationship.class )
+            {
+                return (Check<T>) relationshipsCheck;
+            }
+            return null;
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class Check<T extends TrackerDto>
+    {
+
+        // TODO lets see if I can remove this token
+        private final Class<T> type;
+
+        private final Predicate<T> condition;
+
+        // TODO create a type for parents and parentCondition as they belong together?
+        private final List<Function<T, ? extends TrackerDto>> parents;
+
+        private final Predicate<? super TrackerDto> parentCondition;
+
+        public List<T> persistable( List<T> entities )
+        {
+            Predicate<T> parentConditions = parents.stream()
+                .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) )
+                .reduce( Predicate::and )
+                .orElse( x -> true );
+
+            return entities.stream()
+                .filter( condition )
+                .filter( parentConditions )
+                .collect( Collectors.toList() );
+        }
+
+    }
+
     public static Result filter( TrackerBundle entities,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
@@ -156,56 +226,112 @@ public class PersistablesFilter
         //  direction: does not matter
         //  conditions: current is valid
 
+        // this occurs multiple times, we pass a type and a uid: note its not the type of the entity we call get... on
+        // as it's a link to another entity
         //                    && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
-        //                        || preheat.exists( TrackedEntity.class, en.getTrackedEntity() )) )
-        // TODO note that we pass type, uid. we could translate from TRACKED_ENTITY.getKlass() or adapt the preheat.exists
-        // implementation to accept tracker type?
+        //                        || preheat.exists( TRACKED_ENTITY, en.getTrackedEntity() )) )
 
         EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( TrackerType.class );
 
+        // TODO remove this or try if I can make it work?
+        // order is defined in the TrackerType either top down which is the default one defined by priority/then reverse needs to be implemented
+        // list of functions to parents: given current dto -> getFrom, getTo
+        Function<Enrollment, ? extends TrackerDto> enrollmentParent = en -> TrackedEntity.builder()
+            .trackedEntity( en.getTrackedEntity() ).build();
+        Function<Event, ? extends TrackerDto> eventParent = ev -> Enrollment.builder().enrollment( ev.getEnrollment() )
+            .build();
+        Function<Relationship, ? extends TrackerDto> relFrom = rel -> toTrackerDto( rel.getFrom() );
+        Function<Relationship, ? extends TrackerDto> relTo = rel -> toTrackerDto( rel.getTo() );
+        EnumMap<TrackerType, List<Function<? extends TrackerDto, ? extends TrackerDto>>> play = new EnumMap<>( Map.of(
+            TRACKED_ENTITY, Collections.emptyList(),
+            ENROLLMENT, List.of( enrollmentParent ),
+            EVENT, List.of( eventParent ),
+            RELATIONSHIP, List.of( relFrom, relTo ) ) );
+        Predicate<? super TrackerDto> condition = parent -> persistables.get( parent.getTrackerType() )
+            .contains( parent.getUid() )
+            || preheat.exists( parent.getTrackerType(), parent.getUid() );
+        // the issue is that I lose the information here since I have to cast here?
+        //                List<? extends TrackerDto> currentPersistables = ((List<? extends TrackerDto>) entities.get(type.getKlass())).stream()
+        //                        .filter(current -> isValid(invalidEntities, current))
+        //                        .filter(current -> play.get(type).get(0).apply(type.getKlass().cast(current)).getUid().isEmpty())
+        //                        .collect(Collectors.toList());
+
+        // PATTERNS
+        // links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
+        // could be done for the other links as well; pack these into a TrackerDto only containing type and UID
+        // then pass that around
+
+        // != DELETE
+        // filter
+        //   current == valid &&
+        //   for each link (type and uid): persistable or exists
+        // collect in persistables
+
+        // == DELETE
+        // filter
+        //   current == invalid
+        //   for each link (type and uid)
+        // collect in nonPersistables
+
+        // filter
+        //   current == valid &&
+        //   current == persistable (not in nonPersistable)
+        // collect in persistables
+        // the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
+
         if ( importStrategy != TrackerImportStrategy.DELETE )
         {
-            // if current == valid
-            List<TrackedEntity> persistableTeis = entities.get( TrackedEntity.class ).stream()
-                .filter( tei -> isValid( invalidEntities, tei ) )
-                .collect( Collectors.toList() );
-            persistables.put( TRACKED_ENTITY, collectUids( persistableTeis ) );
+            // TODO how can I make this readable. Can I remove some of the Java clutter?
+            // enrollment()
+            // condition()
+            // parents()
+            //      .condition()
+            //      .parent()
+            //
+            // new Check(Enrollment.class,
+            //                    en -> isValid(invalidEntities, en),
+            //                            new Parents(
+            //
+            //                            ),
+            //             )
+            Check<TrackedEntity> teiCheck = new Check<>(
+                TrackedEntity.class,
+                tei -> isValid( invalidEntities, tei ),
+                Collections.emptyList(),
+                __ -> true );
+            Check<Enrollment> enCheck = new Check<>(
+                Enrollment.class,
+                en -> isValid( invalidEntities, en ),
+                List.of( en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() ),
+                parent -> persistables.get( parent.getTrackerType() ).contains( parent.getUid() )
+                    || preheat.exists( parent.getTrackerType(), parent.getUid() ) );
+            Check<Event> evCheck = new Check<>(
+                Event.class,
+                ev -> isValid( invalidEntities, ev ),
+                List.of( ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() ),
+                parent -> StringUtils.isBlank( parent.getUid() ) ||
+                    persistables.get( parent.getTrackerType() ).contains( parent.getUid() ) ||
+                    preheat.exists( parent.getTrackerType(), parent.getUid() ) );
+            Check<Relationship> relCheck = new Check<>(
+                Relationship.class,
+                rel -> isValid( invalidEntities, rel ),
+                List.of(
+                    rel -> toTrackerDto( rel.getFrom() ),
+                    rel -> toTrackerDto( rel.getTo() ) ),
+                parent -> persistables.get( parent.getTrackerType() ).contains( parent.getUid() )
+                    || preheat.exists( parent.getTrackerType(), parent.getUid() ) );
+            Checks checks = new Checks( teiCheck, enCheck, evCheck, relCheck );
 
-            // if current == valid && (parent == persistable || parent exists)
-            List<Enrollment> persistableEnrollments = entities.get( Enrollment.class ).stream()
-                .filter( en -> isValid( invalidEntities, en )
-                    && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
-                        || preheat.exists( TRACKED_ENTITY, en.getTrackedEntity() )) )
-                .collect( Collectors.toList() );
-            persistables.put( ENROLLMENT, collectUids( persistableEnrollments ) );
-
-            // if current == valid && (parent == null || parent == persistable || parent exists)
-            // parent == null; accounts for event programs not having an enrollment set
-            List<Event> persistableEvents = entities.get( Event.class ).stream()
-                .filter( ev -> isValid( invalidEntities, ev )
-                    && (ev.getEnrollment() == null
-                        || persistables.get( ENROLLMENT ).contains( ev.getEnrollment() )
-                        || preheat.exists( ENROLLMENT, ev.getEnrollment() )) )
-                .collect( Collectors.toList() );
-            persistables.put( EVENT, collectUids( persistableEvents ) );
-
-            // TODO clean up this mess of transformations to TrackerDto
-
-            // if current == valid && (from == persistable || from exists) && (to == persistable || to exists)
-            List<Relationship> persistableRelationships = entities.get( Relationship.class ).stream()
-                .filter( rel -> isValid( invalidEntities, rel )
-                    && (persistables.get( toTrackerDto( rel.getFrom() ).getTrackerType() )
-                        .contains( toTrackerDto( rel.getFrom() ).getUid() )
-                        || preheat.exists( toTrackerDto( rel.getFrom() ) ))
-                    && (persistables.get( toTrackerDto( rel.getTo() ).getTrackerType() )
-                        .contains( toTrackerDto( rel.getTo() ).getUid() )
-                        || preheat.exists( toTrackerDto( rel.getTo() ) )) )
-                .collect( Collectors.toList() );
-            return new Result()
-                .putAll( TrackedEntity.class, persistableTeis )
-                .putAll( Enrollment.class, persistableEnrollments )
-                .putAll( Event.class, persistableEvents )
-                .putAll( Relationship.class, persistableRelationships );
+            Result result = new Result();
+            // go top-down : TODO make the direction clear in the enum itself. priority does not really explain that we are going top-down in a tree
+            for ( TrackerType type : TrackerType.getOrderedByPriority() )
+            {
+                List<? extends TrackerDto> persistableEntities = checks.get( type.getKlass() )
+                    .persistable( entities.get( type.getKlass() ) );
+                result.putAll( type.getKlass(), persistableEntities );
+                persistables.put( type, collectUids( persistableEntities ) );
+            }
+            return result;
         }
         else
         {
@@ -224,7 +350,10 @@ public class PersistablesFilter
                 .filter( rel -> isValid( invalidEntities, rel ) )
                 .collect( Collectors.toList() );
             persistables.put( RELATIONSHIP, collectUids( persistableRelationships ) );
+
             // TODO clean this up
+            // what is the pattern?
+            // I collect the links (to parents) for every current that is invalid
             Set<TrackerDto> nonPersistableFroms = entities.get( Relationship.class ).stream()
                 .filter( rel -> isNotValid( invalidEntities, rel ) )
                 .map( Relationship::getFrom )
