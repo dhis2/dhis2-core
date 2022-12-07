@@ -245,6 +245,7 @@ public class PersistablesFilter
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
         TrackerPreheat preheat = entities.getPreheat();
+
         // TODO variations in logic to consider when refactoring
         // != DELETE
         //  direction: is top-down (TEI -> EN -> EV -> REL)
@@ -255,35 +256,6 @@ public class PersistablesFilter
         // CASCADE
         //  direction: does not matter
         //  conditions: current is valid
-
-        // this occurs multiple times, we pass a type and a uid: note its not the type of the entity we call get... on
-        // as it's a link to another entity
-        //                    && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
-        //                        || preheat.exists( TRACKED_ENTITY, en.getTrackedEntity() )) )
-
-        EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( TrackerType.class );
-
-        // TODO remove this or try if I can make it work?
-        // order is defined in the TrackerType either top down which is the default one defined by priority/then reverse needs to be implemented
-        // list of functions to parents: given current dto -> getFrom, getTo
-        //        Function<Enrollment, ? extends TrackerDto> enrollmentParent = en -> TrackedEntity.builder()
-        //            .trackedEntity( en.getTrackedEntity() ).build();
-        //        Function<Event, ? extends TrackerDto> eventParent = ev -> Enrollment.builder().enrollment( ev.getEnrollment() )
-        //            .build();
-        //        Function<Relationship, ? extends TrackerDto> relFrom = rel -> toTrackerDto( rel.getFrom() );
-        //        Function<Relationship, ? extends TrackerDto> relTo = rel -> toTrackerDto( rel.getTo() );
-        //        EnumMap<TrackerType, List<Function<? extends TrackerDto, ? extends TrackerDto>>> play = new EnumMap<>( Map.of(
-        //            TRACKED_ENTITY, Collections.emptyList(),
-        //            ENROLLMENT, List.of( enrollmentParent ),
-        //            EVENT, List.of( eventParent ),
-        //            RELATIONSHIP, List.of( relFrom, relTo ) ) );
-        //        Predicate<? super TrackerDto> condition = parent -> isPersistable(persistables, parent)
-        //            || preheat.exists( parent.getTrackerType(), parent.getUid() );
-        // the issue is that I lose the information here since I have to cast here?
-        //                List<? extends TrackerDto> currentPersistables = ((List<? extends TrackerDto>) entities.get(type.getKlass())).stream()
-        //                        .filter(current -> isValid(invalidEntities, current))
-        //                        .filter(current -> play.get(type).get(0).apply(type.getKlass().cast(current)).getUid().isEmpty())
-        //                        .collect(Collectors.toList());
 
         // PATTERNS
         // links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
@@ -307,6 +279,8 @@ public class PersistablesFilter
         //   current == persistable (not in nonPersistable)
         // collect in persistables
         // the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
+
+        EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( TrackerType.class );
 
         // TODO initialize like this or like the above persistables be consistent; is the shorter version good enough for us,
         // then lets use it. If not and this is safer, extract this initialization
@@ -373,21 +347,8 @@ public class PersistablesFilter
                     .nonPersistableParents( entities.get( type.getKlass() ), invalidEntities );
                 nonPersist.stream().forEach( t -> nonPersistableParents.get( t.getTrackerType() ).add( t.getUid() ) );
             }
-
-            return result;
         }
         return result;
-    }
-
-    private static boolean isNotPersistable( EnumMap<TrackerType, Set<String>> nonPersistableParents,
-        TrackerDto entity )
-    {
-        return isContained( nonPersistableParents, entity );
-    }
-
-    private static boolean isPersistable( EnumMap<TrackerType, Set<String>> persistables, TrackerDto entity )
-    {
-        return isContained( persistables, entity );
     }
 
     private static boolean isValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
