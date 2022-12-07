@@ -79,7 +79,7 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertTrue( summary.isObject() );
-        assertEquals( 2, summary.getCount() );
+        assertEquals( 1, summary.getCount() );
         assertEquals( 66, summary.getPercentage().intValue() );
 
         postDetails( "orgunit_multiple_spaces" );
