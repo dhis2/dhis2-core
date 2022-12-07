@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -87,6 +88,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@OpenApi.Tags( "data" )
 @Controller
 @RequestMapping( LockExceptionController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

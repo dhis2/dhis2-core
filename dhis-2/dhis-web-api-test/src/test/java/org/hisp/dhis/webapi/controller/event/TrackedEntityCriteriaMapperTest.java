@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -205,10 +206,15 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         assertThat( queryParams.getEventStatus(), is( EventStatus.COMPLETED ) );
         assertThat( queryParams.getEventStartDate(), is( criteria.getEventStartDate() ) );
         assertThat( queryParams.getEventEndDate(), is( criteria.getEventEndDate() ) );
-        assertThat( queryParams.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId1 ) ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId2 ) ) );
-        assertThat( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId3 ) ), is( false ) );
+        assertThat( queryParams.getAssignedUserQueryParam().getMode(), is( AssignedUserSelectionMode.PROVIDED ) );
+        Set<String> assignedUsers = queryParams.getAssignedUserQueryParam().getAssignedUsers();
+        assertTrue(
+            assignedUsers.stream().anyMatch( u -> u.equals( userId1 ) ) );
+        assertTrue(
+            assignedUsers.stream().anyMatch( u -> u.equals( userId2 ) ) );
+        assertThat(
+            assignedUsers.stream().anyMatch( u -> u.equals( userId3 ) ),
+            is( false ) );
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
         assertTrue( queryParams.getOrders().stream().anyMatch( orderParam -> orderParam

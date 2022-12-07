@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
+import static org.hisp.dhis.common.OpenApi.Response.Status.FORBIDDEN;
+import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
@@ -47,6 +50,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.Value;
+
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,10 +59,12 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -187,6 +194,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // GET Full
     // --------------------------------------------------------------------------
 
+    @Value
+    @OpenApi.Shared( value = false )
+    private static class ObjectListResponse
+    {
+        Pager pager;
+
+        @SuppressWarnings( "java:S116" )
+        OpenApi.EntityType[] path$;
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -250,6 +272,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = CONFLICT, value = WebMessage.class )
     @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -397,6 +425,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return null;
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( OpenApi.EntityType.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
@@ -451,6 +485,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             FieldFilterParams.of( entities, fields ) ) );
     }
 
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( status = FORBIDDEN, value = WebMessage.class )
+    @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,

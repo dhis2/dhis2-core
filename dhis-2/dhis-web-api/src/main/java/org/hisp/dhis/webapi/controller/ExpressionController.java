@@ -31,6 +31,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.ExpressionService;
@@ -49,6 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = "/expressions" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

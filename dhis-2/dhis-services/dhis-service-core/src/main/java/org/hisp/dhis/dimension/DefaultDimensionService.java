@@ -393,7 +393,7 @@ public class DefaultDimensionService
         }
         else if ( !idScheme.is( IdentifiableProperty.UID ) || CodeGenerator.isValidUid( dimensionItem ) )
         {
-            return idObjectManager.get( DataDimensionItem.DATA_DIMENSION_CLASSES, idScheme, dimensionItem );
+            return idObjectManager.get( DataDimensionItem.DATA_DIM_CLASSES, idScheme, dimensionItem );
         }
 
         return null;

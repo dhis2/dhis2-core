@@ -25,46 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.validation.ValidationFailFastException;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 
 /**
- * A class that collects {@link TrackerErrorReport} during the validation
- * process.
+ * Collects {@link TrackerErrorReport}s, {@link TrackerWarningReport}s and
+ * invalid entities the errors are attributed to.
+ * <p>
+ * Long-term we would want to remove the responsibility of tracking invalid
+ * entities from here. This could allow us to merge this class with
+ * {@link org.hisp.dhis.tracker.report.TrackerValidationReport}.
+ * </p>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-// TODO: should this be "ValidationReporter" since it does not only report
-// errors ?
 public class ValidationErrorReporter
 {
-    private final List<TrackerErrorReport> reportList;
+    List<TrackerErrorReport> errors;
 
-    private final List<TrackerWarningReport> warningsReportList;
+    List<TrackerWarningReport> warnings;
 
-    private final boolean isFailFast;
+    boolean isFailFast;
 
-    private final TrackerIdSchemeParams idSchemes;
+    TrackerIdSchemeParams idSchemes;
 
+    @Getter( AccessLevel.PACKAGE )
     /*
-     * A map that keep tracks of all the invalid Tracker objects encountered
-     * during the validation process
+     * Keeps track of all the invalid Tracker objects (i.e. objects with at
+     * least one TrackerErrorReport in the ValidationErrorReporter) encountered
+     * during the validation process.
      */
-    private final Map<TrackerType, List<String>> invalidDTOs;
+    EnumMap<TrackerType, Set<String>> invalidDTOs;
 
     /**
      * Create a {@link ValidationErrorReporter} reporting all errors and
@@ -73,13 +83,13 @@ public class ValidationErrorReporter
      * {@link ValidationFailFastException} if {@code failFast} true is given.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
-     * @param failFast
+     * @param failFast reporter throws exception on first error added when true
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes, boolean failFast )
     {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.invalidDTOs = new HashMap<>();
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
+        this.invalidDTOs = new EnumMap<>( TrackerType.class );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
     }
@@ -94,81 +104,17 @@ public class ValidationErrorReporter
      */
     public ValidationErrorReporter( TrackerIdSchemeParams idSchemes )
     {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.invalidDTOs = new HashMap<>();
-        this.idSchemes = idSchemes;
-        this.isFailFast = false;
+        this( idSchemes, false );
     }
 
     public boolean hasErrors()
     {
-        return !this.reportList.isEmpty();
+        return !this.errors.isEmpty();
     }
 
     public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
     {
-        return reportList.stream().anyMatch( test );
-    }
-
-    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
-    {
-        return warningsReportList.stream().anyMatch( test );
-    }
-
-    public boolean hasWarnings()
-    {
-        return !this.warningsReportList.isEmpty();
-    }
-
-    public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
-    {
-        addError( new TrackerErrorReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
-            code, dto.getTrackerType(), dto.getUid() ) );
-    }
-
-    public void addError( TrackerErrorReport error )
-    {
-        getReportList().add( error );
-        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
-
-        if ( isFailFast() )
-        {
-            throw new ValidationFailFastException( getReportList() );
-        }
-    }
-
-    public void addWarning( TrackerWarningReport warning )
-    {
-        getWarningsReportList().add( warning );
-    }
-
-    /**
-     * Checks if the provided uid and Tracker Type is part of the invalid
-     * entities
-     */
-    public boolean isInvalid( TrackerType trackerType, String uid )
-    {
-        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
-    }
-
-    public boolean isInvalid( TrackerDto dto )
-    {
-        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
-    }
-
-    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
-    {
-        addWarning( new TrackerWarningReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
-            code, dto.getTrackerType(), dto.getUid() ) );
-    }
-
-    public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
-    {
-        if ( expression.getAsBoolean() )
-        {
-            addWarning( dto, code, args );
-        }
+        return errors.stream().anyMatch( test );
     }
 
     public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
@@ -185,5 +131,69 @@ public class ValidationErrorReporter
         {
             addError( dto, code, args );
         }
+    }
+
+    public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
+    {
+        addError( new TrackerErrorReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
+            code, dto.getTrackerType(), dto.getUid() ) );
+    }
+
+    public void addError( TrackerErrorReport error )
+    {
+        getErrors().add( error );
+        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new HashSet<>() ).add( error.getUid() );
+
+        if ( isFailFast() )
+        {
+            throw new ValidationFailFastException( getErrors() );
+        }
+    }
+
+    public boolean hasWarnings()
+    {
+        return !this.warnings.isEmpty();
+    }
+
+    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
+    {
+        return warnings.stream().anyMatch( test );
+    }
+
+    public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
+    {
+        if ( expression.getAsBoolean() )
+        {
+            addWarning( dto, code, args );
+        }
+    }
+
+    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
+    {
+        addWarning( new TrackerWarningReport( MessageFormatter.format( idSchemes, code.getMessage(), args ),
+            code, dto.getTrackerType(), dto.getUid() ) );
+    }
+
+    public void addWarning( TrackerWarningReport warning )
+    {
+        getWarnings().add( warning );
+    }
+
+    /**
+     * Checks if a TrackerDto is invalid (i.e. has at least one
+     * TrackerErrorReport in the ValidationErrorReporter).
+     */
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
+    }
+
+    /**
+     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
+     * least one TrackerErrorReport in the ValidationErrorReporter).
+     */
+    public boolean isInvalid( TrackerType trackerType, String uid )
+    {
+        return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
     }
 }
