@@ -271,8 +271,8 @@ public class TrackedEntityInstanceQueryParams
     private Date skipChangedBefore;
 
     /**
-     * Indicates whether tracked entity instance is marked as a Potential
-     * Duplicate
+     * Potential Duplicate query parameter value. If null, we don't check
+     * whether a TEI is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
 
@@ -706,9 +706,9 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether we are filtering for potential duplicate.
+     * Check whether we are filtering for potential duplicate property.
      */
-    public boolean hasPotentialDuplicate()
+    public boolean hasPotentialDuplicateFilter()
     {
         return potentialDuplicate != null;
     }

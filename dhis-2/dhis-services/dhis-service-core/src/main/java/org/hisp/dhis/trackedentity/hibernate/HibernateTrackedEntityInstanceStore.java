@@ -661,7 +661,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "TEI.deleted IS FALSE " );
         }
 
-        if ( params.hasPotentialDuplicate() )
+        if ( params.hasPotentialDuplicateFilter() )
         {
             trackedEntity
                 .append( whereAnd.whereAnd() ).append( "TEI.potentialduplicate=" )
