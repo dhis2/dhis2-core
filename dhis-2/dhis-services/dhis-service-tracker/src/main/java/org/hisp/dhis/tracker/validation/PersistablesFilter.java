@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -158,6 +159,18 @@ public class PersistablesFilter
 
         private final Check<Relationship> relationshipsCheck;
 
+        private final EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( Map.of(
+            TRACKED_ENTITY, new HashSet<>(),
+            ENROLLMENT, new HashSet<>(),
+            EVENT, new HashSet<>(),
+            RELATIONSHIP, new HashSet<>() ) );
+
+        private final EnumMap<TrackerType, Set<String>> nonPersistableParents = new EnumMap<>( Map.of(
+            TRACKED_ENTITY, new HashSet<>(),
+            ENROLLMENT, new HashSet<>(),
+            EVENT, new HashSet<>(),
+            RELATIONSHIP, new HashSet<>() ) );
+
         @SuppressWarnings( "unchecked" )
         public <T extends TrackerDto> Check<T> get( Class<T> type )
         {
@@ -180,27 +193,52 @@ public class PersistablesFilter
             }
             return null;
         }
-    }
 
-    @RequiredArgsConstructor
-    private static class Check<T extends TrackerDto>
-    {
-
-        // TODO lets see if I can remove this token
-        private final Class<T> type;
-
-        private final Predicate<T> deleteCondition;
-
-        // TODO allow a check without parents
-        // TODO create a type for parents and parentCondition as they belong together?
-        private final List<Function<T, ? extends TrackerDto>> parents;
-
-        private final Predicate<? super TrackerDto> parentCondition;
-
-        public List<T> persistable( List<T> entities, EnumMap<TrackerType, Set<String>> invalidEntities,
+        public Result apply( TrackerBundle entities, EnumMap<TrackerType, Set<String>> invalidEntities,
             TrackerImportStrategy importStrategy )
         {
+            TrackerPreheat preheat = entities.getPreheat();
+
+            Result result = new Result();
+
+            if ( importStrategy != TrackerImportStrategy.DELETE )
+            {
+                // go top-down : TODO make the direction clear in the enum itself. priority does not really explain that we are going top-down in a tree
+                for ( TrackerType type : TrackerType.getOrderedByPriority() )
+                {
+                    List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
+                        entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
+                    result.putAll( type.getKlass(), persistableEntities );
+                    persistables.put( type, collectUids( persistableEntities ) );
+                }
+            }
+            else
+            {
+                // bottom-up
+                List<TrackerType> bottomUp = TrackerType.getOrderedByPriority();
+                Collections.reverse( bottomUp );
+                for ( TrackerType type : bottomUp )
+                {
+                    List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
+                        entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
+                    result.putAll( type.getKlass(), persistableEntities );
+                    List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
+                        entities.get( type.getKlass() ), invalidEntities );
+                    nonPersist.stream()
+                        .forEach( t -> nonPersistableParents.get( t.getTrackerType() ).add( t.getUid() ) );
+                }
+            }
+            return result;
+        }
+
+        public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat,
+            EnumMap<TrackerType, Set<String>> invalidEntities,
+            TrackerImportStrategy importStrategy )
+        {
+            // TODO this is actually the baseCondition used across CREATE_UPDATE/DELETE
             Predicate<T> entityConditions = t -> isValid( invalidEntities, t );
+            Predicate<T> deleteCondition = t -> !isContained( nonPersistableParents, t );
+
             if ( importStrategy == TrackerImportStrategy.DELETE )
             {
                 entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
@@ -209,8 +247,19 @@ public class PersistablesFilter
             Predicate<T> parentConditions = t -> true;
             if ( importStrategy != TrackerImportStrategy.DELETE )
             {
-                parentConditions = parents.stream()
-                    .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
+                Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
+                    || preheat.exists( parent.getTrackerType(), parent.getUid() );
+                final Predicate<T> parentCondition;
+                if ( check.parentCondition.isPresent() )
+                {
+                    parentCondition = baseParentCondition.or( check.parentCondition.get() );
+                }
+                else
+                {
+                    parentCondition = baseParentCondition;
+                }
+                parentConditions = check.parents.stream()
+                    .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
                     .reduce( Predicate::and )
                     .orElse( t -> true ); // predicate always returning true for entities without parents
             }
@@ -221,135 +270,102 @@ public class PersistablesFilter
                 .collect( Collectors.toList() );
         }
 
-        public List<? extends TrackerDto> nonPersistableParents( List<T> entities,
+        public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities,
             EnumMap<TrackerType, Set<String>> invalidEntities )
         {
-            // TODO just copied from above
+            // TODO just copied from above; how can I reuse this?
             Predicate<T> entityConditions = t -> isValid( invalidEntities, t );
+            Predicate<T> deleteCondition = t -> !isContained( nonPersistableParents, t );
             entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
             // copied this and applied not() to show it's the inverse; which makes sense ;)
             // question is how can we take advantage of this
             entityConditions = Predicate.not( entityConditions );
 
-            // TODO what if it has no parents; what happens then?
             return entities.stream()
                 .filter( entityConditions )
-                .map( t -> parents.stream().map( p -> p.apply( t ) ).collect( Collectors.toList() ) ) // parents of invalid children
+                .map( t -> check.parents.stream().map( p -> p.apply( t ) ).collect( Collectors.toList() ) ) // parents of invalid children
                 .flatMap( Collection::stream )
                 .collect( Collectors.toList() );
         }
 
     }
 
+    private static class Check<T extends TrackerDto>
+    {
+        private final List<Function<T, ? extends TrackerDto>> parents;
+
+        private final Optional<Predicate<? super TrackerDto>> parentCondition;
+
+        public Check( Class<T> type )
+        {
+            this( Collections.emptyList() );
+        }
+
+        public Check( List<Function<T, ? extends TrackerDto>> parents )
+        {
+            this.parents = parents;
+            this.parentCondition = Optional.empty();
+        }
+
+        public Check( List<Function<T, ? extends TrackerDto>> parents, Predicate<? super TrackerDto> parentCondition )
+        {
+            this.parents = parents;
+            this.parentCondition = Optional.of( parentCondition );
+        }
+    }
+
     public static Result filter( TrackerBundle entities,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        TrackerPreheat preheat = entities.getPreheat();
+        Checks checks = new Checks(
+            new Check<>( TrackedEntity.class ),
+            new Check<Enrollment>(
+                List.of( en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() ) ),
+            new Check<Event>(
+                List.of( ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() ),
+                parent -> StringUtils.isBlank( parent.getUid() ) ),
+            new Check<Relationship>(
+                List.of(
+                    rel -> toTrackerDto( rel.getFrom() ),
+                    rel -> toTrackerDto( rel.getTo() ) ) ) );
 
-        // TODO variations in logic to consider when refactoring
-        // != DELETE
-        //  direction: is top-down (TEI -> EN -> EV -> REL)
-        //  conditions: current is valid && includes parents and if parent exists or is persistable
-        // DELETE
-        //  direction: is bottom up (REL -> EV -> EN -> TEI)
-        //  conditions: current is valid && includes children and if children are persistable
-        // CASCADE
-        //  direction: does not matter
-        //  conditions: current is valid
+        return checks.apply( entities, invalidEntities, importStrategy );
 
-        // PATTERNS
-        // links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
-        // could be done for the other links as well; pack these into a TrackerDto only containing type and UID
-        // then pass that around
-
-        // != DELETE
-        // filter
-        //   current == valid &&
-        //   for each link (type and uid): persistable or exists
-        // collect in persistables
-
-        // == DELETE
-        // filter
-        //   current == invalid
-        //   for each link (type and uid)
-        // collect in nonPersistables
-
-        // filter
-        //   current == valid &&
-        //   current == persistable (not in nonPersistable)
-        // collect in persistables
-        // the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
-
-        EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( TrackerType.class );
-
-        // TODO initialize like this or like the above persistables be consistent; is the shorter version good enough for us,
-        // then lets use it. If not and this is safer, extract this initialization
-        EnumMap<TrackerType, Set<String>> nonPersistableParents = new EnumMap<>( Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>() ) );
-
-        Check<TrackedEntity> teiCheck = new Check<>(
-            TrackedEntity.class,
-            tei -> !isContained( nonPersistableParents, tei ),
-            Collections.emptyList(),
-            __ -> true );
-        Check<Enrollment> enCheck = new Check<>(
-            Enrollment.class,
-            en -> !isContained( nonPersistableParents, en ),
-            List.of( en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() ),
-            parent -> isContained( persistables, parent )
-                || preheat.exists( parent.getTrackerType(), parent.getUid() ) );
-        Check<Event> evCheck = new Check<>(
-            Event.class,
-            ev -> !isContained( nonPersistableParents, ev ),
-            List.of( ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() ),
-            parent -> StringUtils.isBlank( parent.getUid() ) ||
-                isContained( persistables, parent ) ||
-                preheat.exists( parent.getTrackerType(), parent.getUid() ) );
-        Check<Relationship> relCheck = new Check<>(
-            Relationship.class,
-            __ -> true,
-            List.of(
-                rel -> toTrackerDto( rel.getFrom() ),
-                rel -> toTrackerDto( rel.getTo() ) ),
-            parent -> isContained( persistables, parent )
-                || preheat.exists( parent.getTrackerType(), parent.getUid() ) );
-        Checks checks = new Checks( teiCheck, enCheck, evCheck, relCheck );
-
-        Result result = new Result();
-
-        if ( importStrategy != TrackerImportStrategy.DELETE )
-        {
-            // go top-down : TODO make the direction clear in the enum itself. priority does not really explain that we are going top-down in a tree
-            for ( TrackerType type : TrackerType.getOrderedByPriority() )
-            {
-                List<? extends TrackerDto> persistableEntities = checks.get( type.getKlass() )
-                    .persistable( entities.get( type.getKlass() ), invalidEntities, importStrategy );
-                result.putAll( type.getKlass(), persistableEntities );
-                persistables.put( type, collectUids( persistableEntities ) );
-            }
-        }
-        else
-        {
-            // bottom-up
-            List<TrackerType> bottomUp = TrackerType.getOrderedByPriority();
-            Collections.reverse( bottomUp );
-            for ( TrackerType type : bottomUp )
-            {
-                List<? extends TrackerDto> persistableEntities = checks.get( type.getKlass() )
-                    .persistable( entities.get( type.getKlass() ), invalidEntities, importStrategy );
-                result.putAll( type.getKlass(), persistableEntities );
-                // TODO on delete we don't need the persistables
-                persistables.put( type, collectUids( persistableEntities ) );
-                List<? extends TrackerDto> nonPersist = checks.get( type.getKlass() )
-                    .nonPersistableParents( entities.get( type.getKlass() ), invalidEntities );
-                nonPersist.stream().forEach( t -> nonPersistableParents.get( t.getTrackerType() ).add( t.getUid() ) );
-            }
-        }
-        return result;
     }
+
+    // TODO variations in logic to consider when refactoring
+    // != DELETE
+    //  direction: is top-down (TEI -> EN -> EV -> REL)
+    //  conditions: current is valid && includes parents and if parent exists or is persistable
+    // DELETE
+    //  direction: is bottom up (REL -> EV -> EN -> TEI)
+    //  conditions: current is valid && includes children and if children are persistable
+    // CASCADE
+    //  direction: does not matter
+    //  conditions: current is valid
+
+    // PATTERNS
+    // links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
+    // could be done for the other links as well; pack these into a TrackerDto only containing type and UID
+    // then pass that around
+
+    // != DELETE
+    // filter
+    //   current == valid &&
+    //   for each link (type and uid): persistable or exists
+    // collect in persistables
+
+    // == DELETE
+    // filter
+    //   current == invalid
+    //   for each link (type and uid)
+    // collect in nonPersistables
+
+    // filter
+    //   current == valid &&
+    //   current == persistable (not in nonPersistable)
+    // collect in persistables
+    // the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
 
     private static boolean isValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
     {
