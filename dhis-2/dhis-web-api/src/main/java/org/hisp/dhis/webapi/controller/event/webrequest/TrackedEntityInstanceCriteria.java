@@ -187,8 +187,8 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
     private boolean includeAllAttributes;
 
     /**
-     * Indicates whether the Tracked Entity Instance is marked as a Potential
-     * Duplicate.
+     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
+     * is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
 
