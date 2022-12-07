@@ -151,13 +151,24 @@ public class PersistablesFilter
     @RequiredArgsConstructor
     public static class Checks
     {
-        private final Check<TrackedEntity> trackedEntityCheck;
+        private static final Check<TrackedEntity> trackedEntityCheck = new Check<>( TrackedEntity.class );
 
-        private final Check<Enrollment> enrollmentCheck;
+        private static final Check<Enrollment> enrollmentCheck = new Check<>(
+            List.of(
+                en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() // parent
+            ) );
 
-        private final Check<Event> eventCheck;
+        private static final Check<Event> eventCheck = new Check<>(
+            List.of(
+                ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() // parent
+            ),
+            parent -> StringUtils.isBlank( parent.getUid() ) // events in event programs have no enrollment
+        );
 
-        private final Check<Relationship> relationshipsCheck;
+        private static final Check<Relationship> relationshipsCheck = new Check<>(
+            List.of(
+                rel -> toTrackerDto( rel.getFrom() ), // parents
+                rel -> toTrackerDto( rel.getTo() ) ) );
 
         private final EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( Map.of(
             TRACKED_ENTITY, new HashSet<>(),
@@ -203,18 +214,18 @@ public class PersistablesFilter
 
             if ( importStrategy != TrackerImportStrategy.DELETE )
             {
-                // go top-down : TODO make the direction clear in the enum itself. priority does not really explain that we are going top-down in a tree
-                for ( TrackerType type : TrackerType.getOrderedByPriority() )
+                List<TrackerType> topDown = TrackerType.getOrderedByPriority();
+                for ( TrackerType type : topDown )
                 {
                     List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
                         entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
                     result.putAll( type.getKlass(), persistableEntities );
+                    // TODO can I move this inside persistable?
                     persistables.put( type, collectUids( persistableEntities ) );
                 }
             }
             else
             {
-                // bottom-up
                 List<TrackerType> bottomUp = TrackerType.getOrderedByPriority();
                 Collections.reverse( bottomUp );
                 for ( TrackerType type : bottomUp )
@@ -222,6 +233,7 @@ public class PersistablesFilter
                     List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
                         entities.get( type.getKlass() ), preheat, invalidEntities, importStrategy );
                     result.putAll( type.getKlass(), persistableEntities );
+                    // TODO can I move this inside persistable? if so I can make this method super simple :)
                     List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
                         entities.get( type.getKlass() ), invalidEntities );
                     nonPersist.stream()
@@ -317,19 +329,7 @@ public class PersistablesFilter
     public static Result filter( TrackerBundle entities,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        Checks checks = new Checks(
-            new Check<>( TrackedEntity.class ),
-            new Check<Enrollment>(
-                List.of( en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() ) ),
-            new Check<Event>(
-                List.of( ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() ),
-                parent -> StringUtils.isBlank( parent.getUid() ) ),
-            new Check<Relationship>(
-                List.of(
-                    rel -> toTrackerDto( rel.getFrom() ),
-                    rel -> toTrackerDto( rel.getTo() ) ) ) );
-
-        return checks.apply( entities, invalidEntities, importStrategy );
+        return new Checks().apply( entities, invalidEntities, importStrategy );
 
     }
 
