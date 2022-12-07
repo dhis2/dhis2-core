@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_ATTRIBUTES;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_EVENTS;
 import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.getFieldPaths;
+import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.FieldsParamMapper.rootFields;
 
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,9 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 
-public class TrackerTrackedEntityFieldsParamMapper
+public class TrackedEntityFieldsParamMapper
 {
-
-    private TrackerTrackedEntityFieldsParamMapper()
+    private TrackedEntityFieldsParamMapper()
     {
     }
 
@@ -51,9 +52,9 @@ public class TrackerTrackedEntityFieldsParamMapper
 
     public static TrackedEntityInstanceParams map( List<String> fields )
     {
-        List<FieldPath> fieldPaths = FieldsParamMapper.getFieldPaths( fields );
+        List<FieldPath> fieldPaths = getFieldPaths( fields );
 
-        Map<String, FieldPath> roots = FieldsParamMapper.rootFields( fieldPaths );
+        Map<String, FieldPath> roots = rootFields( fieldPaths );
 
         TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
 
