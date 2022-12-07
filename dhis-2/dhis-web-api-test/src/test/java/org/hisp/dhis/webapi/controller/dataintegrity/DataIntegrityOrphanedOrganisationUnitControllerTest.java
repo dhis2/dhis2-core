@@ -89,7 +89,7 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
-        assertEquals( orgunitC, issues.get( 0 ).getId() );
+        assertEquals( orgunitB, issues.get( 0 ).getId() );
         assertEquals( "Cupcake District", issues.get( 0 ).getName() );
         assertEquals( "orgunits", details.getIssuesIdType() );
 
