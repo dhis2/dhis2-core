@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,15 +36,12 @@ import java.util.HashSet;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests for orgunits which have multiple spaces in their names or shortnames
@@ -52,42 +50,29 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataIntegrityIntegrationTest
 {
-    @Autowired
-    private OrganisationUnitService orgUnitService;
 
-    private OrganisationUnit unitA;
+    String orgunitA;
 
-    private OrganisationUnit unitB;
+    String orgunitB;
 
-    private OrganisationUnit unitC;
-
-    private User superUser;
+    String orgunitC;
 
     @Test
     void testOrgUnitMultipleSpaces()
     {
-        doInTransaction( () -> {
 
-            superUser = preCreateInjectAdminUser();
-            injectSecurityContext( superUser );
+        orgunitA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Space    District', 'shortName': 'Space    District', 'openingDate' : '2022-01-01'}" ) );
 
-            unitA = createOrganisationUnit( 'A' );
-            unitA.setName( "Lots     of      spaces" );
-            unitA.setShortName( "Lots     of      spaces" );
-            orgUnitService.addOrganisationUnit( unitA );
+        orgunitB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'TwoSpace District', 'shortName': 'Two  Space  District', 'openingDate' : '2022-01-01', " +
+                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-            unitB = createOrganisationUnit( 'B' );
-            unitB.setName( "Some spaces" );
-            unitB.setShortName( "Some      spaces" );
-            orgUnitService.addOrganisationUnit( unitB );
-
-            unitC = createOrganisationUnit( 'C' );
-            unitC.setName( "Just enough space" );
-            unitC.setShortName( "Just enough space" );
-            orgUnitService.addOrganisationUnit( unitC );
-
-            dbmsManager.clearSession();
-        } );
+        orgunitC = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
         postSummary( "orgunit_multiple_spaces" );
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_multiple_spaces/summary" ).content()
@@ -113,8 +98,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
         issueUIDs.add( issues.get( 1 ).getId() );
 
         HashSet<String> orgUnitUIDs = new HashSet<String>();
-        orgUnitUIDs.add( unitA.getUid() );
-        orgUnitUIDs.add( unitB.getUid() );
+        orgUnitUIDs.add( orgunitA );
+        orgUnitUIDs.add( orgunitB );
 
         assertEquals( issueUIDs, orgUnitUIDs );
         assertEquals( "orgunits", details.getIssuesIdType() );
@@ -134,11 +119,20 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
     @AfterEach
     public void tearDown()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        assertStatus( HttpStatus.OK,
+            DELETE( "/organisationUnits/" + orgunitC ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            GET( "/organisationUnits/" + orgunitC ) );
+
+        assertStatus( HttpStatus.OK,
+            DELETE( "/organisationUnits/" + orgunitB ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            GET( "/organisationUnits/" + orgunitB ) );
+
+        assertStatus( HttpStatus.OK,
+            DELETE( "/organisationUnits/" + orgunitA ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            GET( "/organisationUnits/" + orgunitA ) );
 
     }
 }
