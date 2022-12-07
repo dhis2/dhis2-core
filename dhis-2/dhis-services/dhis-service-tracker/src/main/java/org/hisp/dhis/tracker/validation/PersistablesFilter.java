@@ -170,6 +170,8 @@ public class PersistablesFilter
                 rel -> toTrackerDto( rel.getFrom() ), // parents
                 rel -> toTrackerDto( rel.getTo() ) ) );
 
+        // TODO can I reuse one for both purposes? what is the essence. on CREATE_UPDATE it contains the persistable parents
+        // on DELETE it contains the non persistable parents. So in both cases these are parents just their meaning changes.
         private final EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( Map.of(
             TRACKED_ENTITY, new HashSet<>(),
             ENROLLMENT, new HashSet<>(),
@@ -181,6 +183,12 @@ public class PersistablesFilter
             ENROLLMENT, new HashSet<>(),
             EVENT, new HashSet<>(),
             RELATIONSHIP, new HashSet<>() ) );
+
+        private final TrackerBundle entities;
+
+        private final EnumMap<TrackerType, Set<String>> invalidEntities;
+
+        private final TrackerImportStrategy importStrategy;
 
         @SuppressWarnings( "unchecked" )
         public <T extends TrackerDto> Check<T> get( Class<T> type )
@@ -205,8 +213,7 @@ public class PersistablesFilter
             return null;
         }
 
-        public Result apply( TrackerBundle entities, EnumMap<TrackerType, Set<String>> invalidEntities,
-            TrackerImportStrategy importStrategy )
+        public Result apply()
         {
             TrackerPreheat preheat = entities.getPreheat();
 
@@ -235,7 +242,7 @@ public class PersistablesFilter
                     result.putAll( type.getKlass(), persistableEntities );
                     // TODO can I move this inside persistable? if so I can make this method super simple :)
                     List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
-                        entities.get( type.getKlass() ), invalidEntities );
+                        entities.get( type.getKlass() ) );
                     nonPersist.stream()
                         .forEach( t -> nonPersistableParents.get( t.getTrackerType() ).add( t.getUid() ) );
                 }
@@ -247,9 +254,8 @@ public class PersistablesFilter
             EnumMap<TrackerType, Set<String>> invalidEntities,
             TrackerImportStrategy importStrategy )
         {
-            // TODO this is actually the baseCondition used across CREATE_UPDATE/DELETE
-            Predicate<T> entityConditions = t -> isValid( invalidEntities, t );
-            Predicate<T> deleteCondition = t -> !isContained( nonPersistableParents, t );
+            Predicate<T> entityConditions = baseCondition();
+            Predicate<T> deleteCondition = deleteCondition();
 
             if ( importStrategy == TrackerImportStrategy.DELETE )
             {
@@ -282,12 +288,21 @@ public class PersistablesFilter
                 .collect( Collectors.toList() );
         }
 
-        public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities,
-            EnumMap<TrackerType, Set<String>> invalidEntities )
+        private <T extends TrackerDto> Predicate<T> baseCondition()
+        {
+            return t -> isValid( this.invalidEntities, t );
+        }
+
+        private <T extends TrackerDto> Predicate<T> deleteCondition()
+        {
+            return t -> !isContained( nonPersistableParents, t );
+        }
+
+        public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities )
         {
             // TODO just copied from above; how can I reuse this?
-            Predicate<T> entityConditions = t -> isValid( invalidEntities, t );
-            Predicate<T> deleteCondition = t -> !isContained( nonPersistableParents, t );
+            Predicate<T> entityConditions = baseCondition();
+            Predicate<T> deleteCondition = deleteCondition();
             entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
             // copied this and applied not() to show it's the inverse; which makes sense ;)
             // question is how can we take advantage of this
@@ -329,7 +344,7 @@ public class PersistablesFilter
     public static Result filter( TrackerBundle entities,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        return new Checks().apply( entities, invalidEntities, importStrategy );
+        return new Checks( entities, invalidEntities, importStrategy ).apply();
 
     }
 
