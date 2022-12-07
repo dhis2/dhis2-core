@@ -477,6 +477,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.putTrackedEntities( List.of( tei ) );
 
         assertTrue( preheat.exists( TrackedEntity.class, "uid" ) );
+        assertTrue( preheat.exists( TrackedEntity.builder().trackedEntity( "uid" ).build() ) );
     }
 
     @Test

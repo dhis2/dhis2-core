@@ -662,6 +662,7 @@ class PersistablesFilterTest
         {
             when( this.preheat.exists( current.getTrackerType().getKlass(), current.getUid() ) )
                 .thenReturn( true);
+            when( this.preheat.exists( current ) ).thenReturn( true);
             return this;
         }
 

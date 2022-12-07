@@ -864,6 +864,14 @@ public class TrackerPreheat
     }
 
     /**
+     * Checks if an entity exists in the DB.
+     */
+    public <T extends TrackerDto> boolean exists( T entity )
+    {
+        return exists( entity.getTrackerType().getKlass(), entity.getUid() );
+    }
+
+    /**
      * Checks if an entity of given type and UID exists in the DB.
      *
      * @param type class extending TrackerDto
@@ -891,6 +899,7 @@ public class TrackerPreheat
         {
             return getRelationship( uid ) != null;
         }
+        // only reached if a new TrackerDto implementation is added
         return false;
     }
 

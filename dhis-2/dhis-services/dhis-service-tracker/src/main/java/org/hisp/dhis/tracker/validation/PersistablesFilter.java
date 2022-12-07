@@ -177,7 +177,7 @@ public class PersistablesFilter
             List<Enrollment> persistableEnrollments = entities.get( Enrollment.class ).stream()
                 .filter( en -> isValid( invalidEntities, en )
                     && (persistables.get( TRACKED_ENTITY ).contains( en.getTrackedEntity() )
-                        || exists( preheat, TrackedEntity.class, en.getTrackedEntity() )) )
+                        || preheat.exists( TrackedEntity.class, en.getTrackedEntity() )) )
                 .collect( Collectors.toList() );
             persistables.put( ENROLLMENT, collectUids( persistableEnrollments ) );
 
@@ -187,7 +187,7 @@ public class PersistablesFilter
                 .filter( ev -> isValid( invalidEntities, ev )
                     && (ev.getEnrollment() == null
                         || persistables.get( ENROLLMENT ).contains( ev.getEnrollment() )
-                        || exists( preheat, Enrollment.class, ev.getEnrollment() )) )
+                        || preheat.exists( Enrollment.class, ev.getEnrollment() )) )
                 .collect( Collectors.toList() );
             persistables.put( EVENT, collectUids( persistableEvents ) );
 
@@ -198,12 +198,10 @@ public class PersistablesFilter
                 .filter( rel -> isValid( invalidEntities, rel )
                     && (persistables.get( toTrackerDto( rel.getFrom() ).getTrackerType() )
                         .contains( toTrackerDto( rel.getFrom() ).getUid() )
-                        || exists( preheat, toTrackerDto( rel.getFrom() ).getTrackerType().getKlass(),
-                            toTrackerDto( rel.getFrom() ).getUid() ))
+                        || preheat.exists( toTrackerDto( rel.getFrom() ) ))
                     && (persistables.get( toTrackerDto( rel.getTo() ).getTrackerType() )
                         .contains( toTrackerDto( rel.getTo() ).getUid() )
-                        || exists( preheat, toTrackerDto( rel.getTo() ).getTrackerType().getKlass(),
-                            toTrackerDto( rel.getTo() ).getUid() )) )
+                        || preheat.exists( toTrackerDto( rel.getTo() ) )) )
                 .collect( Collectors.toList() );
             return new Result()
                 .putAll( TrackedEntity.class, persistableTeis )
@@ -285,11 +283,6 @@ public class PersistablesFilter
                 .putAll( Event.class, persistableEvents )
                 .putAll( Relationship.class, persistableRelationships );
         }
-    }
-
-    private static <T extends TrackerDto> boolean exists( TrackerPreheat preheat, Class<T> type, String uid )
-    {
-        return preheat.exists( type, uid );
     }
 
     private static boolean isValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
