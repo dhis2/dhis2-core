@@ -59,9 +59,9 @@ import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest
 {
-    // TODO refactobottomUpr
     // TODO implement DELETE with CASCADE authority
 
+    // TODO get rid of compiler warnings
     // TODO run all tests with everything wired up
 
     // TODO mocking of preheat.exists( dto) does not work if the dto is not of the same instance

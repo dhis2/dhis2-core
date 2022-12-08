@@ -97,6 +97,40 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
  * </ul>
  */
 // TODO naming. commit or persist? CommittablesFilter, PersistablesFilter?
+// variations in logic to consider when refactoring
+// != DELETE
+//  direction: is top-down (TEI -> EN -> EV -> REL)
+//  conditions: current is valid && includes parents and if parent exists or is persistable
+// DELETE
+//  direction: is bottom up (REL -> EV -> EN -> TEI)
+//  conditions: current is valid && includes children and if children are persistable
+// CASCADE
+//  direction: does not matter
+//  conditions: current is valid
+
+// PATTERNS
+// links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
+// could be done for the other links as well; pack these into a TrackerDto only containing type and UID
+// then pass that around
+
+// != DELETE
+// filter
+//   current == valid &&
+//   for each link (type and uid): persistable or exists
+// collect in persistables
+
+// == DELETE
+// filter
+//   current == invalid
+//   for each link (type and uid)
+// collect in nonPersistables
+
+// filter
+//   current == valid &&
+//   current == persistable (not in nonPersistable)
+// collect in persistables
+// the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
+
 public class PersistablesFilter
 {
     /**
@@ -252,8 +286,8 @@ public class PersistablesFilter
         {
             if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
-                List<? extends TrackerDto> nonPersist = nonDeletableParents( check, entities );
-                nonPersist.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
+                List<? extends TrackerDto> nonDeletable = nonDeletableParents( check, entities );
+                nonDeletable.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
             }
             else
             {
@@ -330,7 +364,6 @@ public class PersistablesFilter
                 .flatMap( Collection::stream )
                 .collect( Collectors.toList() );
         }
-
     }
 
     private static class Check<T extends TrackerDto>
@@ -357,46 +390,12 @@ public class PersistablesFilter
         }
     }
 
-    public static Result filter( TrackerBundle entities,
+    public static Result filter( TrackerBundle bundle,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        return new Checks( entities, invalidEntities, importStrategy ).apply();
-
+        // TODO think about the design. This does not feel right.
+        return new Checks( bundle, invalidEntities, importStrategy ).apply();
     }
-
-    // TODO variations in logic to consider when refactoring
-    // != DELETE
-    //  direction: is top-down (TEI -> EN -> EV -> REL)
-    //  conditions: current is valid && includes parents and if parent exists or is persistable
-    // DELETE
-    //  direction: is bottom up (REL -> EV -> EN -> TEI)
-    //  conditions: current is valid && includes children and if children are persistable
-    // CASCADE
-    //  direction: does not matter
-    //  conditions: current is valid
-
-    // PATTERNS
-    // links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
-    // could be done for the other links as well; pack these into a TrackerDto only containing type and UID
-    // then pass that around
-
-    // != DELETE
-    // filter
-    //   current == valid &&
-    //   for each link (type and uid): persistable or exists
-    // collect in persistables
-
-    // == DELETE
-    // filter
-    //   current == invalid
-    //   for each link (type and uid)
-    // collect in nonPersistables
-
-    // filter
-    //   current == valid &&
-    //   current == persistable (not in nonPersistable)
-    // collect in persistables
-    // the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
 
     private static boolean isValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
     {
