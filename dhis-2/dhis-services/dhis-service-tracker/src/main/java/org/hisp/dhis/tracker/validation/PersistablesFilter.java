@@ -251,19 +251,10 @@ public class PersistablesFilter
 
         public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat )
         {
-            Predicate<T> entityConditions = baseCondition();
-            Predicate<T> deleteCondition = deleteCondition();
-
-            // TODO improve/move to a function? and reuse in nonDeletableParents?
-            if ( importStrategy == TrackerImportStrategy.DELETE )
-            {
-                entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
-            }
-
             Predicate<T> parentConditions = t -> true;
             if ( importStrategy != TrackerImportStrategy.DELETE )
             {
-                Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
+                final Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
                     || preheat.exists( parent.getTrackerType(), parent.getUid() );
                 final Predicate<T> parentCondition;
                 parentCondition = check.parentCondition.map( baseParentCondition::or ).orElse( baseParentCondition );
@@ -274,11 +265,32 @@ public class PersistablesFilter
             }
 
             return entities.stream()
-                .filter( entityConditions )
+                .filter( entityCondition() )
                 .filter( parentConditions )
                 .collect( Collectors.toList() );
         }
 
+        private <T extends TrackerDto> Predicate<T> entityCondition()
+        {
+            Predicate<T> entityConditions = baseCondition();
+            Predicate<T> deleteCondition = deleteCondition();
+
+            if ( importStrategy == TrackerImportStrategy.DELETE )
+            {
+                entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
+            }
+
+            return entityConditions;
+        }
+
+        /**
+         * Every entity needs to be valid irrespective of
+         * {@link TrackerImportStrategy} or whether it's a child/parent i.e. not
+         * have any errors detected by our validation.
+         *
+         * @return predicate testing validity
+         * @param <T>
+         */
         private <T extends TrackerDto> Predicate<T> baseCondition()
         {
             return t -> isValid( this.invalidEntities, t );
@@ -286,21 +298,24 @@ public class PersistablesFilter
 
         private <T extends TrackerDto> Predicate<T> deleteCondition()
         {
-            return t -> !isContained( nonPersistableParents, t );
+            return t -> !isContained( this.nonPersistableParents, t );
         }
 
+        /**
+         * Determines parents of invalid children. Such parents cannot be
+         * deleted. Examples are a valid trackedEntity (parent) which has an
+         * invalid enrollment (child) or the from and to (parents) of an invalid
+         * relationship (child).
+         *
+         * @param check
+         * @param entities entities to find parents of invalid children
+         * @return parents of entities of type T which cannot be deleted
+         * @param <T>
+         */
         public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities )
         {
-            // TODO improve
-            Predicate<T> entityConditions = baseCondition();
-            Predicate<T> deleteCondition = deleteCondition();
-            entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
-            // copied this and applied not() to show it's the inverse; which makes sense ;)
-            // question is how can we take advantage of this
-            entityConditions = Predicate.not( entityConditions );
-
             return entities.stream()
-                .filter( entityConditions )
+                .filter( Predicate.not( entityCondition() ) )
                 .map( t -> check.parents.stream().map( p -> p.apply( t ) ).collect( Collectors.toList() ) ) // parents of invalid children
                 .flatMap( Collection::stream )
                 .collect( Collectors.toList() );
