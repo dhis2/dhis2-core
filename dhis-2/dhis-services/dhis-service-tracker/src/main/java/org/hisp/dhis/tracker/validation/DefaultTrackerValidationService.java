@@ -117,7 +117,7 @@ public class DefaultTrackerValidationService
         bundle.setEvents( persistables.get( Event.class ) );
         bundle.setRelationships( persistables.get( Relationship.class ) );
 
-        // TODO add errors collected during filtering to report
+        validationReport.addErrors( persistables.getErrors() );
 
         return validationReport;
     }

@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static java.util.function.Predicate.not;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -46,9 +48,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -59,6 +63,8 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
@@ -150,6 +156,9 @@ public class PersistablesFilter
 
         private final List<Relationship> relationships = new ArrayList<>();
 
+        @Getter
+        private final List<TrackerErrorReport> errors = new ArrayList<>();
+
         private <T extends TrackerDto> void putAll( Class<T> type, Collection<T> instance )
         {
             List<T> list = get( Objects.requireNonNull( type ) );
@@ -231,6 +240,8 @@ public class PersistablesFilter
 
         private final TrackerImportStrategy importStrategy;
 
+        private final List<TrackerErrorReport> errors = new ArrayList<>();
+
         @SuppressWarnings( "unchecked" )
         private <T extends TrackerDto> Check<T> get( Class<T> type )
         {
@@ -268,6 +279,7 @@ public class PersistablesFilter
                 // TODO how can I make the compiler happy? Generic hell :joy:
                 result.putAll( type.getKlass(), persistable( type, get( type.getKlass() ),
                     entities.get( type.getKlass() ), entities.getPreheat() ) );
+                result.errors.addAll( errors );
             }
             return result;
         }
@@ -280,7 +292,7 @@ public class PersistablesFilter
                 .filter( parentConditions( check, preheat ) )
                 .collect( Collectors.toList() );
 
-            markEntities( klass, check, entities, persistables );
+            markEntities( klass, check, entities, persistables, preheat );
 
             return persistables;
         }
@@ -334,17 +346,35 @@ public class PersistablesFilter
         }
 
         private <T extends TrackerDto> void markEntities( TrackerType klass, Check<T> check, List<T> entities,
-            List<T> persistables )
+            List<T> persistables, TrackerPreheat preheat )
         {
+            // TODO same pattern again with DELETE being an inverse of CREATE
             if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
-                List<? extends TrackerDto> nonDeletable = nonDeletableParents( check, entities );
-                nonDeletable.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
+                List<TrackerErrorReport> errors = nonDeletableParents( check, entities );
+                errors.forEach( err -> this.markedEntities.get( err.getTrackerType() ).add( err.getUid() ) );
+                this.errors.addAll( errors );
             }
             else
             {
+                List<TrackerErrorReport> errors = nonPersistableChildren( check, entities, preheat );
+                this.errors.addAll( errors );
                 this.markedEntities.put( klass, collectUids( persistables ) );
             }
+        }
+
+        // TODO reorder after I am done
+        private <T extends TrackerDto> List<TrackerErrorReport> nonPersistableChildren( Check<T> check,
+            List<T> entities, TrackerPreheat preheat )
+        {
+            return entities.stream()
+                .filter( entityCondition() ) // valid children
+                .filter( not( parentConditions( check, preheat ) ) ) // invalid parents
+                .map(
+                    t -> check.parents.stream().map( p -> Pair.of( t, p.apply( t ) ) ).collect( Collectors.toList() ) ) // tuple of valid children with invalid parents
+                .flatMap( Collection::stream )
+                .map( t -> error( TrackerErrorCode.E5000, t.getLeft(), t.getRight() ) )
+                .collect( Collectors.toList() );
         }
 
         /**
@@ -358,14 +388,31 @@ public class PersistablesFilter
          * @return parents of entities of type T which cannot be deleted
          * @param <T> type to find non-deletable parents on
          */
-        private <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check,
-            List<T> entities )
+        private <T extends TrackerDto> List<TrackerErrorReport> nonDeletableParents( Check<T> check, List<T> entities )
         {
             return entities.stream()
-                .filter( Predicate.not( entityCondition() ) )
-                .map( t -> check.parents.stream().map( p -> p.apply( t ) ).collect( Collectors.toList() ) ) // parents of invalid children
+                .filter( not( entityCondition() ) )
+                .map(
+                    t -> check.parents.stream().map( p -> Pair.of( p.apply( t ), t ) ).collect( Collectors.toList() ) ) // tuple of valid parents with invalid children TODO are they just valid parents? add test
                 .flatMap( Collection::stream )
+                .map( t -> error( TrackerErrorCode.E5001, t.getLeft(), t.getRight() ) )
                 .collect( Collectors.toList() );
+        }
+
+        private static TrackerErrorReport error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
+        {
+            String message = MessageFormat.format(
+                code.getMessage(),
+                notPersistable.getTrackerType().getName(),
+                notPersistable.getUid(),
+                reason.getTrackerType().getName(),
+                reason.getUid() );
+
+            return new TrackerErrorReport(
+                message,
+                code,
+                notPersistable.getTrackerType(),
+                notPersistable.getUid() );
         }
     }
 

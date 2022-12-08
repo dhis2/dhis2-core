@@ -85,6 +85,7 @@ public class RelationshipsValidationHook
 
             validateDuplication( reporter, relationship, bundle );
 
+            // TODO(DHIS2-14213): remove as this is now done by PersistablesFilter
             validateReferences( reporter, relationship, relationship.getFrom() );
             validateReferences( reporter, relationship, relationship.getTo() );
         }
