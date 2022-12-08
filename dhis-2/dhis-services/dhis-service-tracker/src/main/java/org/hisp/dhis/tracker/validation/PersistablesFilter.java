@@ -169,15 +169,14 @@ public class PersistablesFilter
                 rel -> toTrackerDto( rel.getFrom() ), // parents
                 rel -> toTrackerDto( rel.getTo() ) ) );
 
-        // TODO can I reuse one for both purposes? what is the essence. on CREATE_UPDATE it contains the persistable parents
-        // on DELETE it contains the non persistable parents. So in both cases these are parents just their meaning changes.
-        private final EnumMap<TrackerType, Set<String>> persistables = new EnumMap<>( Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>() ) );
-
-        private final EnumMap<TrackerType, Set<String>> nonPersistableParents = new EnumMap<>( Map.of(
+        /**
+         * Collects non-deletable parent entities on DELETE and persistable
+         * entities otherwise. Checking each non-root "layer" depends on the
+         * knowledge (marked entities) we gain from the previous layers. For
+         * example on DELETE event, enrollment, trackedEntity entities cannot be
+         * deleted if an invalid relationship points to them.
+         */
+        private final EnumMap<TrackerType, Set<String>> markedEntities = new EnumMap<>( Map.of(
             TRACKED_ENTITY, new HashSet<>(),
             ENROLLMENT, new HashSet<>(),
             EVENT, new HashSet<>(),
@@ -227,7 +226,7 @@ public class PersistablesFilter
                         entities.get( type.getKlass() ), preheat );
                     result.putAll( type.getKlass(), persistableEntities );
                     // TODO can I move this inside persistable?
-                    persistables.put( type, collectUids( persistableEntities ) );
+                    markedEntities.put( type, collectUids( persistableEntities ) );
                 }
             }
             else
@@ -243,7 +242,7 @@ public class PersistablesFilter
                     List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
                         entities.get( type.getKlass() ) );
                     nonPersist.stream()
-                        .forEach( t -> nonPersistableParents.get( t.getTrackerType() ).add( t.getUid() ) );
+                        .forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
                 }
             }
             return result;
@@ -285,21 +284,20 @@ public class PersistablesFilter
 
         private <T extends TrackerDto> Predicate<T> deleteCondition()
         {
-            return t -> !isContained( this.nonPersistableParents, t );
+            return t -> !isContained( this.markedEntities, t );
         }
 
         private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check, TrackerPreheat preheat )
         {
-
             if ( importStrategy == TrackerImportStrategy.DELETE )
             {
                 return t -> true; // on DELETE parents are checked via conditions on parent nodes instead children
             }
 
-            final Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
+            final Predicate<T> baseParentCondition = parent -> isContained( this.markedEntities, parent )
                 || preheat.exists( parent.getTrackerType(), parent.getUid() );
-            final Predicate<T> parentCondition;
-            parentCondition = check.parentCondition.map( baseParentCondition::or ).orElse( baseParentCondition );
+            final Predicate<T> parentCondition = check.parentCondition.map( baseParentCondition::or )
+                .orElse( baseParentCondition );
 
             return check.parents.stream()
                 .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
