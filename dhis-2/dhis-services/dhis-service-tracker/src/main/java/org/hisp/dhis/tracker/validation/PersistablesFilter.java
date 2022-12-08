@@ -193,11 +193,13 @@ public class PersistablesFilter
         private static final Check<TrackedEntity> trackedEntityCheck = new Check<>( TrackedEntity.class );
 
         private static final Check<Enrollment> enrollmentCheck = new Check<>(
+            Enrollment.class,
             List.of(
                 en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() // parent
             ) );
 
         private static final Check<Event> eventCheck = new Check<>(
+            Event.class,
             List.of(
                 ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() // parent
             ),
@@ -205,6 +207,7 @@ public class PersistablesFilter
         );
 
         private static final Check<Relationship> relationshipsCheck = new Check<>(
+            Relationship.class,
             List.of(
                 rel -> toTrackerDto( rel.getFrom() ), // parents
                 rel -> toTrackerDto( rel.getTo() ) ) );
@@ -373,19 +376,24 @@ public class PersistablesFilter
 
         private final Optional<Predicate<? super TrackerDto>> parentCondition;
 
+        private final Class<T> type;
+
         public Check( Class<T> type )
         {
-            this( Collections.emptyList() );
+            this( type, Collections.emptyList() );
         }
 
-        public Check( List<Function<T, ? extends TrackerDto>> parents )
+        public Check( Class<T> type, List<Function<T, ? extends TrackerDto>> parents )
         {
+            this.type = type;
             this.parents = parents;
             this.parentCondition = Optional.empty();
         }
 
-        public Check( List<Function<T, ? extends TrackerDto>> parents, Predicate<? super TrackerDto> parentCondition )
+        public Check( Class<T> type, List<Function<T, ? extends TrackerDto>> parents,
+            Predicate<? super TrackerDto> parentCondition )
         {
+            this.type = type;
             this.parents = parents;
             this.parentCondition = Optional.of( parentCondition );
         }
