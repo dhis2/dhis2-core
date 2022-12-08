@@ -61,7 +61,7 @@ class PersistablesFilterTest
 {
     // TODO refactobottomUpr
     // TODO implement DELETE with CASCADE authority
-    // TODO refactor using my sketch
+
     // TODO run all tests with everything wired up
 
     // TODO mocking of preheat.exists( dto) does not work if the dto is not of the same instance
