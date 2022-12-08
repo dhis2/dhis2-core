@@ -28,13 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +40,8 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
     String nullIsland;
 
     String notNullIsland;
+
+    final String check = "orgunit_null_island";
 
     @Test
     void testOrgUnitNullIsland()
@@ -60,38 +57,23 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        this.postSummary( "orgunit_null_island" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_null_island/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
+        organisationUnitPositiveTestTemplate( check, 1,
+            50, nullIsland, "Null Island", null );
+
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllOrgUnits();
 
     }
 
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + nullIsland ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + nullIsland ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + notNullIsland ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + notNullIsland ) );
+        DeleteMetadataObject( "organisationUnits", nullIsland );
+        DeleteMetadataObject( "organisationUnits", notNullIsland );
 
     }
 }

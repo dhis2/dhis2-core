@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
@@ -58,6 +56,8 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
     String testOrgUnitGroupB;
 
     String testOrgUnitGroupSet;
+
+    final String check = "orgunitgroupset_excess_groups";
 
     @Test
     void testOrganisationUnitInMultipleGroupSetGroups()
@@ -89,28 +89,8 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        postSummary( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunitgroupset_excess_groups/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-
-        postDetails( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunitgroupset_excess_groups/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( orgunitB, issues.get( 0 ).getId() );
-        assertEquals( "Pizza District", issues.get( 0 ).getName() );
-        assertTrue( issues.get( 0 ).getComment().toString().contains( "Type" ) );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        organisationUnitPositiveTestTemplate( check, 1,
+            50, orgunitB, "Pizza District", "Type" );
 
     }
 
@@ -203,50 +183,17 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-
+        deleteAllOrgUnits();
     }
 
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitA ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitA ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitB ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitB ) );
-
-        if ( testOrgUnitGroupA != null )
-        {
-            assertStatus( HttpStatus.OK,
-                DELETE( "/organisationUnitGroups/" + testOrgUnitGroupA ) );
-            assertStatus( HttpStatus.NOT_FOUND,
-                GET( "/organisationUnitGroups/" + testOrgUnitGroupA ) );
-        }
-
-        if ( testOrgUnitGroupB != null )
-        {
-            assertStatus( HttpStatus.OK,
-                DELETE( "/organisationUnitGroups/" + testOrgUnitGroupB ) );
-            assertStatus( HttpStatus.NOT_FOUND,
-                GET( "/organisationUnitGroups/" + testOrgUnitGroupB ) );
-        }
-
-        if ( testOrgUnitGroupSet != null )
-        {
-            assertStatus( HttpStatus.OK,
-                DELETE( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
-            assertStatus( HttpStatus.NOT_FOUND,
-                GET( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
-        }
+        DeleteMetadataObject( "organisationUnits", orgunitA );
+        DeleteMetadataObject( "organisationUnits", orgunitB );
+        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupA );
+        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupB );
+        DeleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
 
     }
 }

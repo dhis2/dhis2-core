@@ -28,16 +28,10 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,51 +52,23 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        this.postSummary( "orgunit_multiple_roots" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_multiple_roots/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 2, summary.getCount() );
-        assertEquals( 100, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_multiple_roots" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_multiple_roots/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-
-        assertEquals( 2, issues.size() );
-
-        Set issueUIDs = Set.of( issues.get( 0 ).getId(), issues.get( 1 ).getId() );
         Set orgUnitUIDs = Set.of( nullIsland, notNullIsland );
 
-        assertEquals( issueUIDs, orgUnitUIDs );
+        organisationUnitPositiveTestTemplate( "orgunit_multiple_roots", 2,
+            100, orgUnitUIDs, null, null );
 
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-
+        deleteAllOrgUnits();
     }
 
     @AfterEach
     public void tearDown()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllOrgUnits();
 
     }
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
@@ -56,6 +54,8 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     String districtA;
 
+    String check = "organisation_units_not_contained_by_parent";
+
     @Test
     void testOrgunitsNotContainedByParent()
     {
@@ -77,30 +77,8 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
 
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-
-        postDetails( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( clinicB, issues.get( 0 ).getId() );
-        assertEquals( "Clinic B", issues.get( 0 ).getName() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        organisationUnitPositiveTestTemplate( check, 1,
+            50, clinicB, "Clinic B", null );
 
     }
 
@@ -176,40 +154,11 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     }
 
-    private void deleteAllOrgUnits()
-    {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-    }
-
     @BeforeEach
     public void setUp()
     {
         deleteAllOrgUnits();
 
-    }
-
-    private boolean DeleteMetadataObject( String endpoint, String uid )
-        throws Exception
-    {
-
-        if ( endpoint == null )
-        {
-            throw new Exception( "Endpoint cannot be null." );
-        }
-
-        if ( uid != null )
-        {
-
-            assertStatus( HttpStatus.OK,
-                DELETE( "/" + endpoint + "/" + uid ) );
-            assertStatus( HttpStatus.NOT_FOUND,
-                GET( "/" + endpoint + "/" + uid ) );
-        }
-        return true;
     }
 
     @AfterEach

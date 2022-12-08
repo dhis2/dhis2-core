@@ -28,18 +28,13 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
+import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,6 +61,8 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     final String unitAName = "Space District   ";
 
     final String unitBName = "Spaced Out District";
+
+    final String check = "orgunit_trailing_spaces";
 
     @Test
     void DataIntegrityOrganisationUnitsTrailingSpacesTest()
@@ -96,55 +93,21 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
         JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
         assertEquals( json_unitA.getString( "name" ).string(), unitAName );
 
-        postSummary( "orgunit_trailing_spaces" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_trailing_spaces/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 2, summary.getCount() );
-        assertEquals( 66, summary.getPercentage().intValue() );
+        Set orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
 
-        postDetails( "orgunit_trailing_spaces" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_trailing_spaces/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 2, issues.size() );
-
-        HashSet<String> issueUIDs = new HashSet<String>();
-        issueUIDs.add( issues.get( 0 ).getId() );
-        issueUIDs.add( issues.get( 1 ).getId() );
-
-        HashSet<String> orgUnitUIDs = new HashSet<String>();
-        orgUnitUIDs.add( unitA.getUid() );
-        orgUnitUIDs.add( unitB.getUid() );
-
-        assertEquals( issueUIDs, orgUnitUIDs );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        organisationUnitPositiveTestTemplate( check, 2, 66, orgUnitUIDs, null, null );
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
 
+        deleteAllOrgUnits();
     }
 
     @AfterEach
     public void tearDown()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-
+        deleteAllOrgUnits();
     }
 }

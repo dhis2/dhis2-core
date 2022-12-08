@@ -29,16 +29,12 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
 
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,30 +70,10 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        postSummary( "orgunit_multiple_spaces" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_multiple_spaces/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 2, summary.getCount() );
-        assertEquals( 66, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_multiple_spaces" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_multiple_spaces/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-
-        assertEquals( 2, issues.size() );
-
-        Set issueUIDs = Set.of( issues.get( 0 ).getId(), issues.get( 1 ).getId() );
         Set orgUnitUIDs = Set.of( orgunitA, orgunitB );
 
-        assertEquals( issueUIDs, orgUnitUIDs );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        organisationUnitPositiveTestTemplate( "orgunit_multiple_spaces", 2,
+            66, orgUnitUIDs, null, null );
     }
 
     @BeforeEach
@@ -114,20 +90,9 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitC ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitC ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitB ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitB ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitA ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitA ) );
+        DeleteMetadataObject( "organisationUnits", orgunitC );
+        DeleteMetadataObject( "organisationUnits", orgunitB );
+        DeleteMetadataObject( "organisationUnits", orgunitA );
 
     }
 }

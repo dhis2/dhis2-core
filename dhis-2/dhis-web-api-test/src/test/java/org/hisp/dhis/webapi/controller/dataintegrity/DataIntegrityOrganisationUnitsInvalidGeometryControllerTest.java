@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
@@ -56,6 +54,8 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
     String districtA;
 
+    final String check = "orgunit_invalid_geometry";
+
     @Test
     void testOrgunitsInvalidGeometry()
     {
@@ -76,32 +76,8 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        postSummary( "orgunit_invalid_geometry" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_invalid_geometry/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 33, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_invalid_geometry" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_invalid_geometry/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( districtA, issues.get( 0 ).getId() );
-        assertEquals( "Bowtie District", issues.get( 0 ).getName() );
-        assertTrue( issues.get( 0 ).getName().toString().startsWith( "Bowtie" ) );
-        assertTrue( issues.get( 0 ).getComment().toString().contains( "15" ) );
-        assertEquals( "orgunits", details.getIssuesIdType() );
-
+        organisationUnitPositiveTestTemplate( check, 1,
+            33, districtA, "Bowtie District", "15" );
     }
 
     @Test
@@ -176,39 +152,11 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
     }
 
-    private void deleteAllOrgUnits()
-    {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-    }
-
     @BeforeEach
     public void setUp()
     {
         deleteAllOrgUnits();
 
-    }
-
-    private boolean DeleteMetadataObject( String endpoint, String uid )
-    {
-
-        if ( endpoint == null )
-        {
-            return false;
-        }
-
-        if ( uid != null )
-        {
-
-            assertStatus( HttpStatus.OK,
-                DELETE( "/" + endpoint + "/" + uid ) );
-            assertStatus( HttpStatus.NOT_FOUND,
-                GET( "/" + endpoint + "/" + uid ) );
-        }
-        return true;
     }
 
     @AfterEach

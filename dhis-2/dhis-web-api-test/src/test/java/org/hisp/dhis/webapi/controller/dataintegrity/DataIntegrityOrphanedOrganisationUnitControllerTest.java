@@ -28,15 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +45,8 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
     String orgunitB;
 
     String orgunitC;
+
+    String check = "orgunit_orphaned";
 
     @Test
     void testOrphanedOrganisationUnits()
@@ -70,38 +65,9 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "orgunit_orphaned" );
+        organisationUnitPositiveTestTemplate( check, 1,
+            50, orgunitC, "Cupcake District", null );
 
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_orphaned/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_orphaned" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_orphaned/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( orgunitC, issues.get( 0 ).getId() );
-        assertEquals( "Cupcake District", issues.get( 0 ).getName() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
-
-    }
-
-    private void deleteAllOrgUnits()
-    {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
     }
 
     @BeforeEach
@@ -114,19 +80,9 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitC ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitC ) );
+        DeleteMetadataObject( "organisationUnits", orgunitC );
+        DeleteMetadataObject( "organisationUnits", orgunitB );
+        DeleteMetadataObject( "organisationUnits", orgunitA );
 
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitB ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitB ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + orgunitA ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + orgunitA ) );
     }
 }

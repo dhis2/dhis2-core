@@ -28,15 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +47,8 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
     String testOrgUnitGroup;
 
     String testOrgUnitGroupSet;
+
+    final String check = "orgunit_compulsory_group_count";
 
     @Test
     void testOrgUnitNotInCompulsoryGroup()
@@ -79,63 +74,24 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "orgunit_compulsory_group_count" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_compulsory_group_count/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_compulsory_group_count" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_compulsory_group_count/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( outOfGroup, issues.get( 0 ).getId() );
-        assertEquals( "Fish District", issues.get( 0 ).getName() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
-
+        organisationUnitPositiveTestTemplate( check, 1,
+            50, outOfGroup, "Fish District", null );
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllOrgUnits();
 
     }
 
     @AfterEach
     public void tearDown()
     {
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + outOfGroup ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + outOfGroup ) );
+        DeleteMetadataObject( "organisationUnits", outOfGroup );
+        DeleteMetadataObject( "organisationUnits", inGroup );
+        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
+        DeleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
 
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnits/" + inGroup ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnits/" + inGroup ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnitGroups/" + testOrgUnitGroup ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnitGroups/" + testOrgUnitGroup ) );
-
-        assertStatus( HttpStatus.OK,
-            DELETE( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
-        assertStatus( HttpStatus.NOT_FOUND,
-            GET( "/organisationUnitGroupSets/" + testOrgUnitGroupSet ) );
     }
 }

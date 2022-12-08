@@ -27,10 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
@@ -72,18 +80,116 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
+    public final void organisationUnitPositiveTestTemplate( String check, Integer expectedCount,
+        Integer expectedPercentage, String expectedUnit, String expectedName, String expectedComment )
+    {
+        postSummary( check );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
+            .content()
+            .as( JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        assertEquals( expectedCount, summary.getCount() );
+        assertEquals( expectedPercentage, summary.getPercentage().intValue() );
+
+        postDetails( check );
+
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
+            .content()
+            .as( JsonDataIntegrityDetails.class );
+        assertTrue( details.exists() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 1, issues.size() );
+        assertEquals( expectedUnit, issues.get( 0 ).getId() );
+        assertEquals( expectedName, issues.get( 0 ).getName() );
+
+        if ( expectedComment != null )
+        {
+            assertTrue( issues.get( 0 ).getComment().toString().contains( expectedComment ) );
+        }
+        assertEquals( "orgunits", details.getIssuesIdType() );
+    }
+
+    public final void organisationUnitPositiveTestTemplate( String check, Integer expectedCount,
+        Integer expectedPercentage, Set<String> expectedDetailsUnits,
+        Set<String> expectedDetailsNames, Set<String> expectedDetailsComments )
+    {
+
+        postSummary( check );
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
+            .content()
+            .as( JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        assertEquals( expectedCount, summary.getCount() );
+        assertEquals( expectedPercentage, summary.getPercentage().intValue() );
+
+        postDetails( check );
+
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
+            .content()
+            .as( JsonDataIntegrityDetails.class );
+        assertTrue( details.exists() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+
+        Set issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
+        assertEquals( issueUIDs, expectedDetailsUnits );
+
+        if ( expectedDetailsNames != null )
+        {
+            Set detailsNames = issues.stream().map( issue -> issue.getName() ).collect( Collectors.toSet() );
+            assertEquals( expectedDetailsNames, detailsNames );
+        }
+        if ( expectedDetailsComments != null )
+        {
+            Set detailsComments = issues.stream().map( issue -> issue.getComment() ).collect( Collectors.toSet() );
+            assertEquals( expectedDetailsNames, detailsComments );
+        }
+
+        assertEquals( "orgunits", details.getIssuesIdType() );
+    }
+
+    void deleteAllOrgUnits()
+    {
+        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
+        JsonResponse response = GET( "/organisationUnits/" ).content();
+        JsonArray dimensions = response.getArray( "organisationUnits" );
+        assertEquals( 0, dimensions.size() );
+    }
+
+    boolean DeleteMetadataObject( String endpoint, String uid )
+
+    {
+
+        if ( endpoint == null )
+        {
+            return false;
+        }
+
+        if ( uid != null )
+        {
+            assertStatus( HttpStatus.OK,
+                DELETE( "/" + endpoint + "/" + uid ) );
+            assertStatus( HttpStatus.NOT_FOUND,
+                GET( "/" + endpoint + "/" + uid ) );
+        }
+        return true;
+    }
+
     @Autowired
     private TransactionTemplate txTemplate;
 
     protected void doInTransaction( Runnable operation )
     {
-        //        final int defaultPropagationBehaviour = txTemplate.getPropagationBehavior();
-        //        txTemplate.setPropagationBehavior( TransactionDefinition.PROPAGATION_REQUIRES_NEW );
         txTemplate.execute( status -> {
             operation.run();
             return null;
         } );
-        // restore original propagation behaviour
-        //        txTemplate.setPropagationBehavior( defaultPropagationBehaviour );
+        ;
     }
 }

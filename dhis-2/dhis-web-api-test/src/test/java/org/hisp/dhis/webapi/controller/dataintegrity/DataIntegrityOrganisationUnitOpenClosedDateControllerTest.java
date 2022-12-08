@@ -27,16 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +49,8 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
     private OrganisationUnit unitB;
 
     private OrganisationUnit unitC;
+
+    final String check = "orgunit_openingdate_gt_closeddate";
 
     @Test
     void testOrgUnitOpeningDateAfterClosedDate()
@@ -81,46 +75,20 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
             dbmsManager.clearSession();
         } );
 
-        postSummary( "orgunit_openingdate_gt_closeddate" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_openingdate_gt_closeddate/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 33, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_openingdate_gt_closeddate" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_openingdate_gt_closeddate/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( unitA.getUid(), issues.get( 0 ).getId() );
-        assertEquals( unitA.getName(), issues.get( 0 ).getName() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        organisationUnitPositiveTestTemplate( "orgunit_openingdate_gt_closeddate", 1,
+            33, unitA.getUid(), unitA.getName(), null );
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllOrgUnits();
 
     }
 
     @AfterEach
     public void tearDown()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllOrgUnits();
     }
 }
