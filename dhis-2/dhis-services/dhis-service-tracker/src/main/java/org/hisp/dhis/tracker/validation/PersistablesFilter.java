@@ -213,47 +213,46 @@ public class PersistablesFilter
 
         public Result apply()
         {
-            TrackerPreheat preheat = entities.getPreheat();
+            List<TrackerType> traversalOrder = TrackerType.getOrderedByPriority(); // top-down
+            if ( importStrategy == TrackerImportStrategy.DELETE )
+            {
+                Collections.reverse( traversalOrder ); // bottom-up
+            }
 
             Result result = new Result();
-
-            if ( importStrategy != TrackerImportStrategy.DELETE )
+            for ( TrackerType type : traversalOrder )
             {
-                List<TrackerType> topDown = TrackerType.getOrderedByPriority();
-                for ( TrackerType type : topDown )
-                {
-                    List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
-                        entities.get( type.getKlass() ), preheat );
-                    result.putAll( type.getKlass(), persistableEntities );
-                    // TODO can I move this inside persistable?
-                    markedEntities.put( type, collectUids( persistableEntities ) );
-                }
-            }
-            else
-            {
-                List<TrackerType> bottomUp = TrackerType.getOrderedByPriority();
-                Collections.reverse( bottomUp );
-                for ( TrackerType type : bottomUp )
-                {
-                    List<? extends TrackerDto> persistableEntities = persistable( get( type.getKlass() ),
-                        entities.get( type.getKlass() ), preheat );
-                    result.putAll( type.getKlass(), persistableEntities );
-                    // TODO can I move this inside persistable? if so I can make this method super simple :)
-                    List<? extends TrackerDto> nonPersist = nonDeletableParents( get( type.getKlass() ),
-                        entities.get( type.getKlass() ) );
-                    nonPersist.stream()
-                        .forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
-                }
+                result.putAll( type.getKlass(), persistable( type, get( type.getKlass() ),
+                    entities.get( type.getKlass() ), entities.getPreheat() ) );
             }
             return result;
         }
 
-        public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat )
+        public <T extends TrackerDto> List<T> persistable( TrackerType klass, Check<T> check, List<T> entities,
+            TrackerPreheat preheat )
         {
-            return entities.stream()
+            List<T> persistables = entities.stream()
                 .filter( entityCondition() )
                 .filter( parentConditions( check, preheat ) )
                 .collect( Collectors.toList() );
+
+            markEntities( klass, check, entities, persistables );
+
+            return persistables;
+        }
+
+        private <T extends TrackerDto> void markEntities( TrackerType klass, Check<T> check, List<T> entities,
+            List<T> persistables )
+        {
+            if ( importStrategy == TrackerImportStrategy.DELETE )
+            {
+                List<? extends TrackerDto> nonPersist = nonDeletableParents( check, entities );
+                nonPersist.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
+            }
+            else
+            {
+                markedEntities.put( klass, collectUids( persistables ) );
+            }
         }
 
         private <T extends TrackerDto> Predicate<T> entityCondition()
