@@ -262,6 +262,7 @@ public class PersistablesFilter
             Result result = new Result();
             for ( TrackerType type : traversalOrder )
             {
+                // TODO how can I make the compiler happy? Generic hell :joy:
                 result.putAll( type.getKlass(), persistable( type, get( type.getKlass() ),
                     entities.get( type.getKlass() ), entities.getPreheat() ) );
             }
@@ -314,7 +315,7 @@ public class PersistablesFilter
          * have any errors detected by our validation.
          *
          * @return predicate testing validity
-         * @param <T>
+         * @param <T> type to test
          */
         private <T extends TrackerDto> Predicate<T> baseCondition()
         {
@@ -330,7 +331,7 @@ public class PersistablesFilter
         {
             if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
-                return t -> true; // on DELETE parents are checked via conditions on parent nodes instead children
+                return t -> true; // on DELETE parents are checked via conditions on parent nodes instead of children
             }
 
             final Predicate<T> baseParentCondition = parent -> isContained( this.markedEntities, parent )
@@ -350,10 +351,10 @@ public class PersistablesFilter
          * invalid enrollment (child) or the from and to (parents) of an invalid
          * relationship (child).
          *
-         * @param check
+         * @param check to be run
          * @param entities entities to find parents of invalid children
          * @return parents of entities of type T which cannot be deleted
-         * @param <T>
+         * @param <T> type to find non-deletable parents on
          */
         private <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check,
             List<T> entities )

@@ -107,7 +107,7 @@ public class TrackerBundle
     private boolean skipRuleEngine;
 
     /**
-     * Should import be treated as a atomic import (all or nothing).
+     * Should import be treated as an atomic import (all or nothing).
      */
     @Builder.Default
     private AtomicMode atomicMode = AtomicMode.ALL;
