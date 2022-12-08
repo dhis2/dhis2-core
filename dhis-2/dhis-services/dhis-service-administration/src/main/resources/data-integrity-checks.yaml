@@ -15,3 +15,4 @@ checks:
   - orgunits/orgunits_excess_group_memberships.yaml
   - orgunits/orgunits_not_contained_by_parent.yaml
   - orgunits/orgunits_invalid_geometry.yaml
+  - orgunits/orgunits_no_geometry.yaml
