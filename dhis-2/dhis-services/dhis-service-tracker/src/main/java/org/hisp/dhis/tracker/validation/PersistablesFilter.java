@@ -116,7 +116,6 @@ public class PersistablesFilter
 
         private final List<Relationship> relationships = new ArrayList<>();
 
-        // TODO I could just replace this with an all args constructor
         private <T extends TrackerDto> void putAll( Class<T> type, Collection<T> instance )
         {
             List<T> list = get( Objects.requireNonNull( type ) );
@@ -148,7 +147,7 @@ public class PersistablesFilter
     }
 
     @RequiredArgsConstructor
-    public static class Checks
+    private static class Checks
     {
         private static final Check<TrackedEntity> trackedEntityCheck = new Check<>( TrackedEntity.class );
 
@@ -189,7 +188,7 @@ public class PersistablesFilter
         private final TrackerImportStrategy importStrategy;
 
         @SuppressWarnings( "unchecked" )
-        public <T extends TrackerDto> Check<T> get( Class<T> type )
+        private <T extends TrackerDto> Check<T> get( Class<T> type )
         {
             Objects.requireNonNull( type );
             if ( type == TrackedEntity.class )
@@ -211,7 +210,7 @@ public class PersistablesFilter
             return null;
         }
 
-        public Result apply()
+        private Result apply()
         {
             List<TrackerType> traversalOrder = TrackerType.getOrderedByPriority(); // top-down
             if ( importStrategy == TrackerImportStrategy.DELETE )
@@ -228,7 +227,7 @@ public class PersistablesFilter
             return result;
         }
 
-        public <T extends TrackerDto> List<T> persistable( TrackerType klass, Check<T> check, List<T> entities,
+        private <T extends TrackerDto> List<T> persistable( TrackerType klass, Check<T> check, List<T> entities,
             TrackerPreheat preheat )
         {
             List<T> persistables = entities.stream()
@@ -244,14 +243,14 @@ public class PersistablesFilter
         private <T extends TrackerDto> void markEntities( TrackerType klass, Check<T> check, List<T> entities,
             List<T> persistables )
         {
-            if ( importStrategy == TrackerImportStrategy.DELETE )
+            if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
                 List<? extends TrackerDto> nonPersist = nonDeletableParents( check, entities );
                 nonPersist.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
             }
             else
             {
-                markedEntities.put( klass, collectUids( persistables ) );
+                this.markedEntities.put( klass, collectUids( persistables ) );
             }
         }
 
@@ -260,7 +259,7 @@ public class PersistablesFilter
             Predicate<T> entityConditions = baseCondition();
             Predicate<T> deleteCondition = deleteCondition();
 
-            if ( importStrategy == TrackerImportStrategy.DELETE )
+            if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
                 entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
             }
@@ -288,7 +287,7 @@ public class PersistablesFilter
 
         private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check, TrackerPreheat preheat )
         {
-            if ( importStrategy == TrackerImportStrategy.DELETE )
+            if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
                 return t -> true; // on DELETE parents are checked via conditions on parent nodes instead children
             }
@@ -315,7 +314,8 @@ public class PersistablesFilter
          * @return parents of entities of type T which cannot be deleted
          * @param <T>
          */
-        public <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check, List<T> entities )
+        private <T extends TrackerDto> List<? extends TrackerDto> nonDeletableParents( Check<T> check,
+            List<T> entities )
         {
             return entities.stream()
                 .filter( Predicate.not( entityCondition() ) )
@@ -393,12 +393,7 @@ public class PersistablesFilter
 
     private static boolean isValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
     {
-        return !isNotValid( invalidEntities, entity );
-    }
-
-    private static boolean isNotValid( EnumMap<TrackerType, Set<String>> invalidEntities, TrackerDto entity )
-    {
-        return isContained( invalidEntities, entity );
+        return !isContained( invalidEntities, entity );
     }
 
     private static boolean isContained( EnumMap<TrackerType, Set<String>> map, TrackerDto entity )
