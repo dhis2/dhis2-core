@@ -285,28 +285,13 @@ public class PersistablesFilter
             return persistables;
         }
 
-        private <T extends TrackerDto> void markEntities( TrackerType klass, Check<T> check, List<T> entities,
-            List<T> persistables )
-        {
-            if ( this.importStrategy == TrackerImportStrategy.DELETE )
-            {
-                List<? extends TrackerDto> nonDeletable = nonDeletableParents( check, entities );
-                nonDeletable.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
-            }
-            else
-            {
-                this.markedEntities.put( klass, collectUids( persistables ) );
-            }
-        }
-
         private <T extends TrackerDto> Predicate<T> entityCondition()
         {
             Predicate<T> entityConditions = baseCondition();
-            Predicate<T> deleteCondition = deleteCondition();
 
             if ( this.importStrategy == TrackerImportStrategy.DELETE )
             {
-                entityConditions = entityConditions.and( deleteCondition ); // parents of invalid children cannot be deleted
+                entityConditions = entityConditions.and( deleteCondition() ); // parents of invalid children cannot be deleted
             }
 
             return entityConditions;
@@ -346,6 +331,20 @@ public class PersistablesFilter
                 .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
                 .reduce( Predicate::and )
                 .orElse( t -> true ); // predicate always returning true for entities without parents
+        }
+
+        private <T extends TrackerDto> void markEntities( TrackerType klass, Check<T> check, List<T> entities,
+            List<T> persistables )
+        {
+            if ( this.importStrategy == TrackerImportStrategy.DELETE )
+            {
+                List<? extends TrackerDto> nonDeletable = nonDeletableParents( check, entities );
+                nonDeletable.forEach( t -> this.markedEntities.get( t.getTrackerType() ).add( t.getUid() ) );
+            }
+            else
+            {
+                this.markedEntities.put( klass, collectUids( persistables ) );
+            }
         }
 
         /**
