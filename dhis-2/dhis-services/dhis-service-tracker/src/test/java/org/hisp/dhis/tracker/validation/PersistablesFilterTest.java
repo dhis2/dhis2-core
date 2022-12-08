@@ -65,7 +65,7 @@ import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest
 {
-    // TODO implement DELETE with CASCADE authority
+    // TODO double-check that DELETE with CASCADE authority is actually implemented (I think it is)
 
     // TODO get rid of compiler warnings
 

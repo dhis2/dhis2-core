@@ -363,20 +363,6 @@ public class PersistablesFilter
             }
         }
 
-        // TODO reorder after I am done
-        private <T extends TrackerDto> List<TrackerErrorReport> nonPersistableChildren( Check<T> check,
-            List<T> entities, TrackerPreheat preheat )
-        {
-            return entities.stream()
-                .filter( entityCondition() ) // valid children
-                .filter( not( parentConditions( check, preheat ) ) ) // invalid parents
-                .map(
-                    t -> check.parents.stream().map( p -> Pair.of( t, p.apply( t ) ) ).collect( Collectors.toList() ) ) // tuple of valid children with invalid parents
-                .flatMap( Collection::stream )
-                .map( t -> error( TrackerErrorCode.E5000, t.getLeft(), t.getRight() ) )
-                .collect( Collectors.toList() );
-        }
-
         /**
          * Determines parents of invalid children. Such parents cannot be
          * deleted. Examples are a valid trackedEntity (parent) which has an
@@ -396,6 +382,19 @@ public class PersistablesFilter
                     t -> check.parents.stream().map( p -> Pair.of( p.apply( t ), t ) ).collect( Collectors.toList() ) ) // tuple of valid parents with invalid children TODO are they just valid parents? add test
                 .flatMap( Collection::stream )
                 .map( t -> error( TrackerErrorCode.E5001, t.getLeft(), t.getRight() ) )
+                .collect( Collectors.toList() );
+        }
+
+        private <T extends TrackerDto> List<TrackerErrorReport> nonPersistableChildren( Check<T> check,
+            List<T> entities, TrackerPreheat preheat )
+        {
+            return entities.stream()
+                .filter( entityCondition() ) // valid children
+                .filter( not( parentConditions( check, preheat ) ) ) // invalid parents
+                .map(
+                    t -> check.parents.stream().map( p -> Pair.of( t, p.apply( t ) ) ).collect( Collectors.toList() ) ) // tuple of valid children with invalid parents
+                .flatMap( Collection::stream )
+                .map( t -> error( TrackerErrorCode.E5000, t.getLeft(), t.getRight() ) )
                 .collect( Collectors.toList() );
         }
 
