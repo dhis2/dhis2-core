@@ -38,37 +38,71 @@ import org.junit.jupiter.api.Test;
 
 class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
+    private final String check = "orgunit_multiple_roots";
+
+    String nullIsland;
+
+    String notNullIsland;
+
     @Test
     void testOrgunitMultipleRoots()
     {
 
-        String nullIsland = assertStatus( HttpStatus.CREATED,
+        nullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
 
-        String notNullIsland = assertStatus( HttpStatus.CREATED,
+        notNullIsland = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
         Set orgUnitUIDs = Set.of( nullIsland, notNullIsland );
 
-        organisationUnitPositiveTestTemplate( "orgunit_multiple_roots", 2,
+        DataIntegrityPositiveTestTemplate( "orgunits", "orgunit_multiple_roots", 2,
             100, orgUnitUIDs, null, null );
+
+    }
+
+    @Test
+    void testOrgunitNoMultipleRoots()
+    {
+
+        nullIsland = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
+
+        notNullIsland = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
+                    "'parent' : {'id': '" + nullIsland + "'}, " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+
+    }
+
+    @Test
+    void testOrgunitsInvalidGeometryDivideByZero()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
 
     }
 
     @BeforeEach
     public void setUp()
     {
-        deleteAllOrgUnits();
+        deleteMetadataObject( "organisationUnits", notNullIsland );
+        deleteMetadataObject( "organisationUnits", nullIsland );
     }
 
     @AfterEach
     public void tearDown()
     {
-        deleteAllOrgUnits();
+        deleteMetadataObject( "organisationUnits", notNullIsland );
+        deleteMetadataObject( "organisationUnits", nullIsland );
 
     }
 }

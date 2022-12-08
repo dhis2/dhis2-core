@@ -32,18 +32,26 @@ section: Organisation units
 section_order: 8
 summary_sql: >-
   WITH orgunit_multiple_roots as (
-  SELECT uid,name from organisationunit
-  WHERE parentid IS NULL
-  OFFSET 1 )
+  SELECT uid,name,
+  (SELECT array_agg(name) from organisationunit where parentid IS NULL) as comment
+  FROM organisationunit
+  where parentid IS NULL )
   SELECT 
-  (COUNT(*) + 1) as count,
-  ( 100.0 * COUNT(*) + 1 / ( SELECT COUNT(*) FROM organisationunit where parentid IS NULL)) as percent 
-  FROM orgunit_multiple_roots;
+  COUNT(*) as count,
+  100.0 * COUNT(*) / NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0)  as percent
+  FROM orgunit_multiple_roots
+  WHERE array_length(comment,1) > 1;
 details_uid: CVy8mwGN6Ec
 details_sql: >-
-  SELECT uid,name
-  FROM organisationunit where parentid IS NULL
-  ORDER BY name;
+  WITH duplicate_roots as (
+  SELECT uid,name,
+  (SELECT array_agg(name) from organisationunit where parentid IS NULL) as comment
+  FROM organisationunit
+  where parentid IS NULL
+  )
+  SELECT uid,name,
+  array_to_string(comment,  ' ; ') as comment from duplicate_roots
+  where array_length(comment, 1) > 1;
 details_id_type: orgunits
 severity: CRITICAL
 introduction: >

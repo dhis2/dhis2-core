@@ -47,7 +47,7 @@ summary_sql: >-
     ORDER BY name
     )
     SELECT COUNT(*),
-    (100 * COUNT(*)/( SELECT COUNT(*) FROM organisationunit))
+    100 * COUNT(*)/NULLIF( ( SELECT COUNT(*) FROM organisationunit), 0) as percent
     FROM ougs_compulsory_members
     where has_compulsory IS FALSE;
 details_uid: HnmKIwXFWy5

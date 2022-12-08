@@ -65,9 +65,31 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            50, orgunitC, "Cupcake District", null );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 33, orgunitC, "Cupcake District", null );
 
+    }
+
+    @Test
+    void testNotOrphanedOrganisationUnits()
+    {
+        orgunitA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+
+        orgunitB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
+                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+
+    }
+
+    @Test
+    void testOrphansZeroCase()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
     }
 
     @BeforeEach
@@ -80,9 +102,9 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", orgunitC );
-        DeleteMetadataObject( "organisationUnits", orgunitB );
-        DeleteMetadataObject( "organisationUnits", orgunitA );
+        deleteMetadataObject( "organisationUnits", orgunitC );
+        deleteMetadataObject( "organisationUnits", orgunitB );
+        deleteMetadataObject( "organisationUnits", orgunitA );
 
     }
 }

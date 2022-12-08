@@ -50,6 +50,8 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
 
     final String check = "orgunit_compulsory_group_count";
 
+    /* TODO: The zero case here returns zero... */
+
     @Test
     void testOrgUnitNotInCompulsoryGroup()
     {
@@ -74,24 +76,58 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            50, outOfGroup, "Fish District", null );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 50, outOfGroup, "Fish District", null );
+    }
+
+    @Test
+    void testOrgunitInCompulsoryGroupSet()
+    {
+
+        inGroup = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+
+        //Create an orgunit group
+        testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
+                    + "'}]}" ) );
+
+        //Add it to a group set
+        testOrgUnitGroupSet = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroupSets",
+                "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
+                    + testOrgUnitGroup + "'}]}" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+
+    }
+
+    @Test
+    void testOrgunitsInvalidGeometryDivideByZero()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+
     }
 
     @BeforeEach
     public void setUp()
     {
-        deleteAllOrgUnits();
+        deleteMetadataObject( "organisationUnits", outOfGroup );
+        deleteMetadataObject( "organisationUnits", inGroup );
+        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
+        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
 
     }
 
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", outOfGroup );
-        DeleteMetadataObject( "organisationUnits", inGroup );
-        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
-        DeleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
+        deleteMetadataObject( "organisationUnits", outOfGroup );
+        deleteMetadataObject( "organisationUnits", inGroup );
+        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroup );
+        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
 
     }
 }

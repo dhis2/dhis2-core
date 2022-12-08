@@ -28,8 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,7 +79,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    public final void organisationUnitPositiveTestTemplate( String check, Integer expectedCount,
+    public final void DataIntegrityPositiveTestTemplate( String issueType, String check, Integer expectedCount,
         Integer expectedPercentage, String expectedUnit, String expectedName, String expectedComment )
     {
         postSummary( check );
@@ -109,10 +108,10 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         {
             assertTrue( issues.get( 0 ).getComment().toString().contains( expectedComment ) );
         }
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        assertEquals( issueType, details.getIssuesIdType() );
     }
 
-    public final void organisationUnitPositiveTestTemplate( String check, Integer expectedCount,
+    public final void DataIntegrityPositiveTestTemplate( String issueType, String check, Integer expectedCount,
         Integer expectedPercentage, Set<String> expectedDetailsUnits,
         Set<String> expectedDetailsNames, Set<String> expectedDetailsComments )
     {
@@ -150,8 +149,55 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             assertEquals( expectedDetailsNames, detailsComments );
         }
 
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        assertEquals( issueType, details.getIssuesIdType() );
     }
+
+    public final void DataIntegrityDivideByZeroTestTemplate( String detailsIssueType, String check )
+    {
+        postSummary( check );
+
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
+            .content()
+            .as( JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        assertEquals( 0, summary.getCount() );
+        assertNull( summary.getPercentage() );
+
+        postDetails( check );
+
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
+            .content()
+            .as( JsonDataIntegrityDetails.class );
+        assertTrue( details.exists() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 0, issues.size() );
+    }
+
+    public final void DataIntegrityNegativeTestTemplate( String detailsIssueType, String check )
+    {
+        postSummary( check );
+
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" ).content()
+            .as( JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        assertEquals( 0, summary.getCount() );
+        assertEquals( 0, summary.getPercentage().intValue() );
+
+        postDetails( check );
+
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" ).content()
+            .as( JsonDataIntegrityDetails.class );
+        assertTrue( details.exists() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 0, issues.size() );
+        assertEquals( detailsIssueType, details.getIssuesIdType() );
+    };
 
     void deleteAllOrgUnits()
     {
@@ -162,7 +208,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( 0, dimensions.size() );
     }
 
-    boolean DeleteMetadataObject( String endpoint, String uid )
+    boolean deleteMetadataObject( String endpoint, String uid )
 
     {
 

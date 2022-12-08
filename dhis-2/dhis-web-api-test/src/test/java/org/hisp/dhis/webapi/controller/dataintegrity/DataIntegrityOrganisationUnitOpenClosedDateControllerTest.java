@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,8 +78,33 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
             dbmsManager.clearSession();
         } );
 
-        organisationUnitPositiveTestTemplate( "orgunit_openingdate_gt_closeddate", 1,
-            33, unitA.getUid(), unitA.getName(), null );
+        DataIntegrityPositiveTestTemplate( "orgunits", "orgunit_openingdate_gt_closeddate",
+            1, 33, unitA.getUid(), unitA.getName(), null );
+    }
+
+    @Test
+    void testOrgunitsWithOpenClosedDates()
+    {
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'closedDate' : '2023-02-22', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+
+    }
+
+    @Test
+    void testOrgunitsNoGeometryDivideByZero()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+
     }
 
     @BeforeEach

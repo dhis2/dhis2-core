@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
@@ -35,6 +36,7 @@ import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +97,24 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
 
         Set orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
 
-        organisationUnitPositiveTestTemplate( check, 2, 66, orgUnitUIDs, null, null );
+        DataIntegrityPositiveTestTemplate( "orgunits", check, 2, 66, orgUnitUIDs, null, null );
+    }
+
+    @Test
+    void orgunitsNoTrailingSpaces()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+    }
+
+    @Test
+    void testOrgunitsTrailingSpacesZeroCase()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+
     }
 
     @BeforeEach

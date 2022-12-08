@@ -30,10 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,8 +86,8 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            50, orgunitB, "Pizza District", "Type" );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 50, orgunitB, "Pizza District", "Type" );
 
     }
 
@@ -124,60 +121,14 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        postSummary( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunitgroupset_excess_groups/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertEquals( 0, summary.getPercentage().intValue() );
-
-        postDetails( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunitgroupset_excess_groups/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
 
     }
 
     @Test
     void testOrganisationMultipleGroupsInGroupSetDivideByZero()
     {
-
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
-
-        postSummary( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunitgroupset_excess_groups/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertNull( summary.getPercentage() );
-
-        postDetails( "orgunitgroupset_excess_groups" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunitgroupset_excess_groups/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
-        assertEquals( "orgunits", details.getIssuesIdType() );
-
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
     }
 
     @BeforeEach
@@ -189,11 +140,11 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", orgunitA );
-        DeleteMetadataObject( "organisationUnits", orgunitB );
-        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupA );
-        DeleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupB );
-        DeleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
+        deleteMetadataObject( "organisationUnits", orgunitA );
+        deleteMetadataObject( "organisationUnits", orgunitB );
+        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupA );
+        deleteMetadataObject( "organisationUnitGroups", testOrgUnitGroupB );
+        deleteMetadataObject( "organisationUnitGroupSets", testOrgUnitGroupSet );
 
     }
 }

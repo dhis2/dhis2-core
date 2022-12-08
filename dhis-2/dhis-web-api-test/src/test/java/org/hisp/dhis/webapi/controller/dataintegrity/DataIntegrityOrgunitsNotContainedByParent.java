@@ -30,10 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,8 +74,8 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            50, clinicB, "Clinic B", null );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 50, clinicB, "Clinic B", null );
 
     }
 
@@ -102,55 +99,14 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
-
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertEquals( 0, summary.getPercentage().intValue() );
-
-        postDetails( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
 
     }
 
     @Test
     void testOrgunitsContainedByParentDivideByZero()
     {
-
-        postSummary( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertNull( summary.getPercentage() );
-
-        postDetails( "organisation_units_not_contained_by_parent" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/organisation_units_not_contained_by_parent/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
 
     }
 
@@ -165,8 +121,8 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
     public void tearDown()
         throws Exception
     {
-        DeleteMetadataObject( "organisationUnits", clinicA );
-        DeleteMetadataObject( "organisationUnits", clinicB );
-        DeleteMetadataObject( "organisationUnits", districtA );
+        deleteMetadataObject( "organisationUnits", clinicA );
+        deleteMetadataObject( "organisationUnits", clinicB );
+        deleteMetadataObject( "organisationUnits", districtA );
     }
 }

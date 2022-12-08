@@ -28,12 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,8 +72,8 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            33, districtA, "Bowtie District", "15" );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 33, districtA, "Bowtie District", "15" );
     }
 
     @Test
@@ -101,54 +97,14 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "orgunit_invalid_geometry" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_invalid_geometry/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertEquals( 0, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_invalid_geometry" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_invalid_geometry/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-
-        postSummary( "orgunit_invalid_geometry" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_invalid_geometry/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertNull( summary.getPercentage() );
-
-        postDetails( "orgunit_invalid_geometry" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_invalid_geometry/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
 
     }
 
@@ -162,8 +118,8 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", clinicB );
-        DeleteMetadataObject( "organisationUnits", clinicA );
-        DeleteMetadataObject( "organisationUnits", districtA );
+        deleteMetadataObject( "organisationUnits", clinicB );
+        deleteMetadataObject( "organisationUnits", clinicA );
+        deleteMetadataObject( "organisationUnits", districtA );
     }
 }

@@ -44,7 +44,7 @@ summary_sql: >-
   )
   SELECT 
   COUNT(*) as value,
-  (100 * COUNT(*) / (SELECT COUNT(*) FROM organisationunit WHERE parentid IS NULL))  as percent
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0)  as percent
   from orgunits_orphaned;
 details_uid: wovrWdNIuMb
 details_sql: >-

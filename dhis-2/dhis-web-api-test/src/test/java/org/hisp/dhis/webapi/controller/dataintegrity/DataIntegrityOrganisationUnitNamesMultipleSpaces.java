@@ -28,12 +28,9 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +49,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
     String orgunitB;
 
     String orgunitC;
+
+    final String check = "orgunit_multiple_spaces";
 
     @Test
     void testOrgUnitMultipleSpaces()
@@ -72,27 +71,39 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
 
         Set orgUnitUIDs = Set.of( orgunitA, orgunitB );
 
-        organisationUnitPositiveTestTemplate( "orgunit_multiple_spaces", 2,
+        DataIntegrityPositiveTestTemplate( "orgunits", check, 2,
             66, orgUnitUIDs, null, null );
+    }
+
+    @Test
+    void orgunitsNoMultipleSpaces()
+    {
+        orgunitC = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+    }
+
+    @Test
+    void testOrgunitsMultipleSpacesZeroCase()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+
     }
 
     @BeforeEach
     public void setUp()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
-
+        deleteAllOrgUnits();
     }
 
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", orgunitC );
-        DeleteMetadataObject( "organisationUnits", orgunitB );
-        DeleteMetadataObject( "organisationUnits", orgunitA );
+        deleteMetadataObject( "organisationUnits", orgunitC );
+        deleteMetadataObject( "organisationUnits", orgunitB );
+        deleteMetadataObject( "organisationUnits", orgunitA );
 
     }
 }

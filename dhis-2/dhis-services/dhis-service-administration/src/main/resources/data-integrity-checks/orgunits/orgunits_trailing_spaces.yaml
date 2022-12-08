@@ -36,7 +36,7 @@ summary_sql: >-
   )
   SELECT 
   COUNT(*) as value,
-  (100 * COUNT(*) / (SELECT COUNT(*) FROM organisationunit))  as percent
+  100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0)  as percent
   from orgunits_trailing_spaces;
 details_uid: N2qHFwW0Yyr
 details_sql: >-

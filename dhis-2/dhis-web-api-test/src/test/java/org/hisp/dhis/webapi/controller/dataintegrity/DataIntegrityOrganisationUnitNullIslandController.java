@@ -57,8 +57,33 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            50, nullIsland, "Null Island", null );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 50, nullIsland, "Null Island", null );
+
+    }
+
+    @Test
+    void testOrgUnitNotNullIsland()
+    {
+
+        nullIsland = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }" ) );
+
+        notNullIsland = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
+                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
+
+    }
+
+    @Test
+    void testOrgUnitNotNullIslandZeroCase()
+    {
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
 
     }
 
@@ -72,8 +97,8 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", nullIsland );
-        DeleteMetadataObject( "organisationUnits", notNullIsland );
+        deleteMetadataObject( "organisationUnits", nullIsland );
+        deleteMetadataObject( "organisationUnits", notNullIsland );
 
     }
 }

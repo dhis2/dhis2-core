@@ -34,7 +34,7 @@ summary_sql: >-
   from organisationunit where openingdate > closeddate )
   select 
   count(*) as count,
-  (100*count(*)/(select count(*) from organisationunit)) as percent
+  100*count(*)/NULLIF((select count(*) from organisationunit), 0) as percent
   from orgunit_future_opening_date;
 details_uid: qGXxCOoeipq
 details_sql: >-

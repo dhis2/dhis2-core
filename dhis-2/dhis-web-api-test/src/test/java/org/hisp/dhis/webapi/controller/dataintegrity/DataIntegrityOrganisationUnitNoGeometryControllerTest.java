@@ -28,14 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,8 +69,8 @@ class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractData
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        organisationUnitPositiveTestTemplate( check, 1,
-            33, districtA, "Offgrid District", "1" );
+        DataIntegrityPositiveTestTemplate( "orgunits", check,
+            1, 33, districtA, "Offgrid District", "1" );
 
     }
 
@@ -101,54 +95,14 @@ class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractData
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        //Create an orgunit, but do not add it to the compulsory group
-        postSummary( "orgunit_no_coordinates" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_no_coordinates/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertEquals( 0, summary.getPercentage().intValue() );
-
-        postDetails( "orgunit_no_coordinates" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_no_coordinates/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityNegativeTestTemplate( "orgunits", check );
 
     }
 
     @Test
     void testOrgunitsNoGeometryDivideByZero()
     {
-
-        postSummary( "orgunit_no_coordinates" );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/orgunit_no_coordinates/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertNull( summary.getPercentage() );
-
-        postDetails( "orgunit_no_coordinates" );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/orgunit_no_coordinates/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
 
     }
 
@@ -162,8 +116,8 @@ class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractData
     @AfterEach
     public void tearDown()
     {
-        DeleteMetadataObject( "organisationUnits", clinicB );
-        DeleteMetadataObject( "organisationUnits", clinicA );
-        DeleteMetadataObject( "organisationUnits", districtA );
+        deleteMetadataObject( "organisationUnits", clinicB );
+        deleteMetadataObject( "organisationUnits", clinicA );
+        deleteMetadataObject( "organisationUnits", districtA );
     }
 }

@@ -44,8 +44,8 @@ summary_sql: >-
   WHERE  distance_km < 100
   )
   SELECT 
-  COUNT(*),
-  ROUND( 100.0 * COUNT(*) / ( SELECT COUNT(*) FROM organisationunit))
+  COUNT(*) as count,
+  100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   FROM orgunits_null_island;
 details_uid: yBAsnuFkmbj
 details_sql: >-
