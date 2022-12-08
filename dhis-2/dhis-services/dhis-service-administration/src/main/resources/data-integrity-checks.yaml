@@ -13,3 +13,4 @@ checks:
   - orgunits/orgunits_orphaned.yaml
   - orgunits/orgunits_trailing_spaces.yaml
   - orgunits/orgunits_excess_group_memberships.yaml
+  - orgunits/orgunits_not_contained_by_parent.yaml

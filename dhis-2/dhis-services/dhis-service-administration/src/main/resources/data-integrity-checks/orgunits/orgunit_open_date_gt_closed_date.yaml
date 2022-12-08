@@ -46,6 +46,7 @@ severity: SEVERE
 introduction: >
   If a closing date has been defined for an organisation unit, it should always be
   after the opening date (if one has been defined).
+section_order: 5
 recommendation: >
   Alter either the opening or closing date of all affected organisation units
   so that the closing date is after the opening date.
