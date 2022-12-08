@@ -251,22 +251,9 @@ public class PersistablesFilter
 
         public <T extends TrackerDto> List<T> persistable( Check<T> check, List<T> entities, TrackerPreheat preheat )
         {
-            Predicate<T> parentConditions = t -> true;
-            if ( importStrategy != TrackerImportStrategy.DELETE )
-            {
-                final Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
-                    || preheat.exists( parent.getTrackerType(), parent.getUid() );
-                final Predicate<T> parentCondition;
-                parentCondition = check.parentCondition.map( baseParentCondition::or ).orElse( baseParentCondition );
-                parentConditions = check.parents.stream()
-                    .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
-                    .reduce( Predicate::and )
-                    .orElse( t -> true ); // predicate always returning true for entities without parents
-            }
-
             return entities.stream()
                 .filter( entityCondition() )
-                .filter( parentConditions )
+                .filter( parentConditions( check, preheat ) )
                 .collect( Collectors.toList() );
         }
 
@@ -299,6 +286,25 @@ public class PersistablesFilter
         private <T extends TrackerDto> Predicate<T> deleteCondition()
         {
             return t -> !isContained( this.nonPersistableParents, t );
+        }
+
+        private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check, TrackerPreheat preheat )
+        {
+
+            if ( importStrategy == TrackerImportStrategy.DELETE )
+            {
+                return t -> true; // on DELETE parents are checked via conditions on parent nodes instead children
+            }
+
+            final Predicate<T> baseParentCondition = parent -> isContained( persistables, parent )
+                || preheat.exists( parent.getTrackerType(), parent.getUid() );
+            final Predicate<T> parentCondition;
+            parentCondition = check.parentCondition.map( baseParentCondition::or ).orElse( baseParentCondition );
+
+            return check.parents.stream()
+                .map( p -> (Predicate<T>) t -> parentCondition.test( (T) p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
+                .reduce( Predicate::and )
+                .orElse( t -> true ); // predicate always returning true for entities without parents
         }
 
         /**
