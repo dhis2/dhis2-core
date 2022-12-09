@@ -49,4 +49,4 @@ introduction: >
 recommendation: >
   If the number of affected organisation units is small, the easiest remedy is to correct
   them directly from the user interface. Another possible option would be to replace
-  all of the multiple spaces using SQL.
+  all of the trailing spaces using SQL.
