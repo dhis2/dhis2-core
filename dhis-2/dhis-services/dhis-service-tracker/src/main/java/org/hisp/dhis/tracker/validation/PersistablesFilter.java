@@ -251,7 +251,7 @@ class PersistablesFilter
 
         private Result apply()
         {
-            if ( isDelete() )
+            if ( onDelete() )
             {
                 // bottom-up
                 collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships(),
@@ -281,10 +281,9 @@ class PersistablesFilter
         {
             for ( T entity : entities )
             {
-                if ( isValid( entity ) && ((isDelete() && !isMarked( entity ))
-                    || (!isDelete() && !hasInvalidParents( check, preheat, entity ))) )
+                if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( check, preheat, entity )) )
                 {
-                    if ( !isDelete() )
+                    if ( onCreateOrUpdate() )
                     {
                         mark( entity ); // mark as persistable for later children
                     }
@@ -292,22 +291,20 @@ class PersistablesFilter
                     continue;
                 }
 
-                if ( isDelete() )
+                if ( onDelete() )
                 {
-                    if ( isNotValid( entity ) || (isMarked( entity )) ) // parents of invalid children cannot be deleted
-                    {
-                        // add error for parents with entity as reason (only to valid parents in the payload)
-                        List<TrackerErrorReport> errors = check.parents.stream()
-                            .map( p -> p.apply( entity ) )
-                            .filter( this::isValid ) // remove invalid parents
-                            .filter( bundle::exists ) // remove parents not in payload
-                            .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
-                            .collect( Collectors.toList() );
-                        this.result.errors.addAll( errors );
-                        errors.forEach( this::mark ); // mark parents as non-deletable for potential children
-                    }
+                    // parents of invalid children cannot be deleted
+                    // add error for parents with entity as reason (only to valid parents in the payload)
+                    List<TrackerErrorReport> errors = check.parents.stream()
+                        .map( p -> p.apply( entity ) )
+                        .filter( this::isValid ) // remove invalid parents
+                        .filter( bundle::exists ) // remove parents not in payload
+                        .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
+                        .collect( Collectors.toList() );
+                    this.result.errors.addAll( errors );
+                    errors.forEach( this::mark ); // mark parents as non-deletable for potential children
                 }
-                else if ( hasInvalidParents( check, preheat, entity ) )
+                else
                 {
                     // add error for entity with parent as a reason
                     List<TrackerErrorReport> errors = check.parents.stream()
@@ -335,7 +332,22 @@ class PersistablesFilter
             return map.get( entity.getTrackerType() ).contains( entity.getUid() );
         }
 
-        private boolean isDelete()
+        private <T extends TrackerDto> boolean isDeletable( T entity )
+        {
+            return onDelete() && !isMarked( entity );
+        }
+
+        private <T extends TrackerDto> boolean isCreateOrUpdatable( Check<T> check, TrackerPreheat preheat, T entity )
+        {
+            return onCreateOrUpdate() && !hasInvalidParents( check, preheat, entity );
+        }
+
+        private boolean onCreateOrUpdate()
+        {
+            return !onDelete();
+        }
+
+        private boolean onDelete()
         {
             return this.importStrategy == TrackerImportStrategy.DELETE;
         }
