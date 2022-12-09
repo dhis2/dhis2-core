@@ -33,7 +33,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
