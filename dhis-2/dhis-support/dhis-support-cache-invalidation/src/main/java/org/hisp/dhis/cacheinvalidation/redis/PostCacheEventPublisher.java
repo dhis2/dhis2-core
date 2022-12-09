@@ -30,9 +30,14 @@ package org.hisp.dhis.cacheinvalidation.redis;
 import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
 
 import java.io.Serializable;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
@@ -40,7 +45,23 @@ import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.datastatistics.DataStatisticsEvent;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
@@ -62,6 +83,19 @@ import io.lettuce.core.api.StatefulRedisConnection;
 public class PostCacheEventPublisher implements PostCommitUpdateEventListener, PostCommitInsertEventListener,
     PostCommitDeleteEventListener
 {
+
+    @Autowired
+    protected IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    protected PeriodService periodService;
+
+    @Autowired
+    protected TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    protected TrackedEntityInstanceService trackedEntityInstanceService;
+
     @Autowired
     @Qualifier( "cacheInvalidationServerId" )
     private String serverInstanceId;
@@ -94,6 +128,33 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
     private void handleMessage( CacheEventOperation operation, Object entity, Serializable id )
     {
         Class<?> realClass = HibernateProxyUtils.getRealClass( entity );
+
+        if ( entity instanceof DataValue )
+        {
+            log.debug( "DataValue, skipping" );
+            id = getDataValueId( entity );
+        }
+        else if ( entity instanceof TrackedEntityAttributeValue )
+        {
+            log.debug( "TrackedEntityAttributeValue, skipping" );
+            id = getTrackedEntityAttributeValueId( entity );
+        }
+        else if ( entity instanceof CompleteDataSetRegistration )
+        {
+            id = getCompleteDataSetRegistrationId( entity );
+        }
+        else if ( entity instanceof DataStatisticsEvent )
+        {
+            DataStatisticsEvent dataStatisticsEvent = (DataStatisticsEvent) entity;
+            id = dataStatisticsEvent.getId();
+        }
+        else if ( IdentifiableObject.class.isAssignableFrom( entity.getClass() ) )
+        {
+            IdentifiableObject identifiableObject = (IdentifiableObject) entity;
+            long longId = identifiableObject.getId();
+            id = Long.toString( longId );
+        }
+
         String op = operation.name().toLowerCase();
         String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
 
@@ -112,6 +173,47 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
         {
             log.debug( "Ignoring excluded class: " + realClass.getName() );
         }
+    }
+
+    private Serializable getDataValueId( Object entity )
+    {
+        DataValue dataValue = (DataValue) entity;
+
+        long dataElementId = dataValue.getDataElement().getId();
+        long periodId = dataValue.getPeriod().getId();
+        long organisationUnitId = dataValue.getSource().getId();
+        long categoryOptionComboId = dataValue.getAttributeOptionCombo().getId();
+        long attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
+
+        return dataElementId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId + ";"
+            + attributeOptionComboId;
+    }
+
+    private Serializable getTrackedEntityAttributeValueId( Object entity )
+    {
+        TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
+
+        long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
+        long entityInstanceId = trackedEntityAttributeValue.getEntityInstance().getId();
+
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
+            trackedEntityAttributeId );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
+            entityInstanceId );
+
+        return trackedEntityAttribute.getUid() + ";" + entityInstance.getUid();
+    }
+
+    private Serializable getCompleteDataSetRegistrationId( Object entity )
+    {
+        CompleteDataSetRegistration completeDataSetRegistration = (CompleteDataSetRegistration) entity;
+
+        long dataSetId = completeDataSetRegistration.getDataSet().getId();
+        long periodId = completeDataSetRegistration.getPeriod().getId();
+        long organisationUnitId = completeDataSetRegistration.getSource().getId();
+        long categoryOptionComboId = completeDataSetRegistration.getAttributeOptionCombo().getId();
+
+        return dataSetId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId;
     }
 
     @Override
