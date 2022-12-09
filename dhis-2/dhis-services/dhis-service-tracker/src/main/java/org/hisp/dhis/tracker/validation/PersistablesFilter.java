@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
+// TODO(DHIS2-14213) reword all javadocs
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
  * taking into account the {@link TrackerImportStrategy} and the links between
@@ -99,41 +100,8 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * It does so by only checking the parent if it is set.</li>
  * </ul>
  */
-// TODO naming. commit or persist? CommittablesFilter, PersistablesFilter?
-// variations in logic to consider when refactoring
-// != DELETE
-//  direction: is top-down (TEI -> EN -> EV -> REL)
-//  conditions: current is valid && includes parents and if parent exists or is persistable
-// DELETE
-//  direction: is bottom up (REL -> EV -> EN -> TEI)
-//  conditions: current is valid && includes children and if children are persistable
-// CASCADE
-//  direction: does not matter
-//  conditions: current is valid
-
-// PATTERNS
-// links are always comprised of TrackerType and UID; so what I am doing for RelationshipItem
-// could be done for the other links as well; pack these into a TrackerDto only containing type and UID
-// then pass that around
-
-// != DELETE
-// filter
-//   current == valid &&
-//   for each link (type and uid): persistable or exists
-// collect in persistables
-
-// == DELETE
-// filter
-//   current == invalid
-//   for each link (type and uid)
-// collect in nonPersistables
-
-// filter
-//   current == valid &&
-//   current == persistable (not in nonPersistable)
-// collect in persistables
-// the difference to the != DELETE is that we also collect a nonPersistable structure with all the invalid parents
-
+// TODO(DHIS2-14213) naming. commit or persist? CommittablesFilter, PersistablesFilter?
+// if the Checks/Check stick around think about a better name
 class PersistablesFilter
 {
     private PersistablesFilter()
@@ -144,7 +112,9 @@ class PersistablesFilter
     public static Result filter( TrackerBundle bundle,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        // TODO think about the design. This does not feel right.
+        // TODO(DHIS2-14213) think about the design. This does not feel right. How about simply moving all "result" fields
+        // into the filter. doing the filtering in the constructor. using a factory like this to create the "filter"
+        // so it feels as if it were a function
         return new Checks( bundle, invalidEntities, importStrategy ).apply();
     }
 
@@ -293,26 +263,12 @@ class PersistablesFilter
 
                 if ( onDelete() )
                 {
-                    // parents of invalid children cannot be deleted
-                    // add error for parents with entity as reason (only to valid parents in the payload)
-                    List<TrackerErrorReport> errors = check.parents.stream()
-                        .map( p -> p.apply( entity ) )
-                        .filter( this::isValid ) // remove invalid parents
-                        .filter( bundle::exists ) // remove parents not in payload
-                        .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
-                        .collect( Collectors.toList() );
-                    this.result.errors.addAll( errors );
+                    List<TrackerErrorReport> errors = addErrorsForParents( check, bundle, entity );
                     errors.forEach( this::mark ); // mark parents as non-deletable for potential children
                 }
                 else
                 {
-                    // add error for entity with parent as a reason
-                    List<TrackerErrorReport> errors = check.parents.stream()
-                        .map( p -> p.apply( entity ) )
-                        .filter( this::isNotValid ) // remove valid parents
-                        .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
-                        .collect( Collectors.toList() );
-                    this.result.errors.addAll( errors );
+                    addErrorsForChildren( check, entity );
                 }
             }
         }
@@ -383,6 +339,31 @@ class PersistablesFilter
                 .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
                 .reduce( Predicate::and )
                 .orElse( t -> true ); // predicate always returning true for entities without parents
+        }
+
+        private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( Check<T> check,
+            TrackerBundle bundle, T entity )
+        {
+            // add error for parents with entity as reason (only to valid parents in the payload)
+            List<TrackerErrorReport> errors = check.parents.stream()
+                .map( p -> p.apply( entity ) )
+                .filter( this::isValid ) // remove invalid parents
+                .filter( bundle::exists ) // remove parents not in payload
+                .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
+                .collect( Collectors.toList() );
+            this.result.errors.addAll( errors );
+            return errors;
+        }
+
+        private <T extends TrackerDto> void addErrorsForChildren( Check<T> check, T entity )
+        {
+            // add error for entity with parent as a reason
+            List<TrackerErrorReport> errors = check.parents.stream()
+                .map( p -> p.apply( entity ) )
+                .filter( this::isNotValid ) // remove valid parents
+                .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
+                .collect( Collectors.toList() );
+            this.result.errors.addAll( errors );
         }
 
         private static TrackerErrorReport error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )

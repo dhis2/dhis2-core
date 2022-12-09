@@ -189,6 +189,7 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
+    // TODO(DHIS2-14213) not very efficient; does it matter? should we adapt this?
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
@@ -250,7 +251,7 @@ public class TrackerBundle
         return getPreheat().getRelationship( relationship );
     }
 
-    // TODO test
+    // TODO(DHIS2-14213) test
     @SuppressWarnings( "unchecked" )
     public <T extends TrackerDto> List<T> get( Class<T> type )
     {
@@ -305,7 +306,7 @@ public class TrackerBundle
             return false; // TODO(DHIS2-14213) will this ever be needed? Even if not, I guess it should be implemented or an exception thrown as this is surprising
         default:
             // only reached if a new TrackerDto implementation is added
-            return false;
+            return false; // TODO(DHIS2-14213) better to throw than to hide this
         }
     }
 }

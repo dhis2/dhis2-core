@@ -64,11 +64,8 @@ import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest
 {
-    // TODO get rid of compiler warnings
-
-    // TODO run all tests with everything wired up
-
-    // TODO mocking of preheat.exists( dto) does not work if the dto is not of the same instance
+    // TODO(DHIS2-14213) get rid of compiler warnings
+    // TODO(DHIS2-14213) mocking of preheat.exists( dto) does not work if the dto is not of the same instance
     // makes sense but is annoying; so I have to write preheat.exists( parent.getTrackerType(), parent.getUid())
     // for now
 
@@ -101,8 +98,8 @@ class PersistablesFilterTest
         );
     }
 
-    // TODO find an alternative to the boolean flag
-    // TODO also test relationship
+    // TODO(DHIS2-14213) find an alternative to the boolean flag
+    // TODO(DHIS2-14213) also test relationship
     @Test
     void testCreateAndUpdateValidEntitiesReferencingParentsNotInPayload()
     {
@@ -129,7 +126,7 @@ class PersistablesFilterTest
         );
     }
 
-    // TODO move to delete tests
+    // TODO(DHIS2-14213) move to delete tests
     @Test
     void testDeleteValidEntitiesReferencingParentsNotInPayload()
     {
@@ -163,7 +160,7 @@ class PersistablesFilterTest
         Setup setup = new Setup()
                 .trackedEntity( "xK7H53f4Hc2", true ).isExisting()
                     .enrollment( "t1zaUjKgT3p").isInvalid()
-                .enrollment( "Ok4Fe5moc3N", true).isExisting() // TODO could there be a case where a parent of a parent has a reference? second if
+                .enrollment( "Ok4Fe5moc3N", true).isExisting() // TODO(DHIS2-14213) could there be a case where a parent of a parent has a reference? second if
                     .event( "Ox1qBWsnVwE" ).isInvalid();
 //                .relationship("Te3IC6TpnBB",
 //                        trackedEntity("xK7H53f4Hc2"),
