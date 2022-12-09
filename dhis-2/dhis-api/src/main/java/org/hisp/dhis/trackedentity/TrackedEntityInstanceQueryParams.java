@@ -472,7 +472,7 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Returns a list of of attributes and filters combined.
+     * Returns a list of attributes and filters combined.
      */
     public Set<String> getAttributeAndFilterIds()
     {

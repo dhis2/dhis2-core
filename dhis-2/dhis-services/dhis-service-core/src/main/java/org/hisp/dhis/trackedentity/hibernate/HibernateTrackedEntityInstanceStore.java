@@ -39,6 +39,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACT
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
@@ -484,9 +486,41 @@ public class HibernateTrackedEntityInstanceStore
         {
             select.append( ", TEI.trackedentityinstanceid AS teiid" );
         }
+
+        for ( OrderParam orderParam : params.getOrders() )
+        {
+            if ( isStaticColumn( orderParam.getField() ) )
+            {
+                if ( ENROLLED_AT.getPropName().equalsIgnoreCase( orderParam.getField() ) )
+                {
+                    select.append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
+                }
+                else
+                {
+                    select.append( addStaticColumn( orderParam.getField(), select.toString() ) );
+                }
+            }
+            else
+            {
+                //TODO what if it's not static?
+            }
+        }
+
         select.append( SPACE );
 
         return select.toString();
+    }
+
+    private String addStaticColumn( String field, String sqlQuery )
+    {
+        String sqlField = getColumn( field );
+
+        if ( !StringUtils.containsIgnoreCase( sqlQuery, sqlField ) )
+        {
+            return ", " + sqlField;
+        }
+
+        return "";
     }
 
     /**
@@ -523,6 +557,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQueryJoinAttributeConditions( params ) )
             .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
             .append( getFromSubQueryJoinOrgUnitConditions( params ) )
+            .append( getFromSubQueryJoinProgramInstanceConditions( params ) )
 
             // LEFT JOIN attributes we need to sort on.
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
@@ -554,7 +589,9 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
     {
-        return new StringBuilder()
+        StringBuilder subqueryBuilder = new StringBuilder();
+
+        subqueryBuilder
             .append( "SELECT " )
             .append( "TEI.trackedentityinstanceid, " )
             .append( "TEI.uid, " )
@@ -565,33 +602,60 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.potentialduplicate, " )
             .append( "TEI.deleted, " )
             .append( "OU.uid as ou, " )
-            .append( "OU.name as ouname " )
-            .append( getFromSubQueryOrderAttributes( params ) )
-            .toString();
+            .append( "OU.name as ouname " );
+
+        subqueryBuilder.append( getSubqueryFromClauseOrderFields( params, subqueryBuilder.toString() ) );
+
+        return subqueryBuilder.toString();
     }
 
     /**
-     * Generates a list of columns for projections if we are ordering by
-     * attributes.
+     * OrderColumn Generates a list of columns for projections based on the
+     * params we are ordering by.
      *
      * @param params
      * @return a list of columns to be used in the subquery SQL projection, or
-     *         empty string if no attributes are used for ordering.
+     *         empty string if no attributes nor order params are used for
+     *         ordering.
      */
-    private String getFromSubQueryOrderAttributes( TrackedEntityInstanceQueryParams params )
+    private String getSubqueryFromClauseOrderFields( TrackedEntityInstanceQueryParams params, String query )
     {
         StringBuilder orderAttributes = new StringBuilder();
 
-        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+        if ( params.getAttributesAndFilters().isEmpty() )
         {
-            orderAttributes
-                .append( ", " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
-                .append( ".value AS " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
+            for ( String orderField : getOrderFields( params.getOrders() ) )
+            {
+                if ( isStaticColumn( orderField ) )
+                {
+                    orderAttributes.append( addStaticColumn( orderField, query ) );
+                }
+                else
+                {
+                    //TODO Non static column
+                }
+            }
+        }
+        else
+        {
+            for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+            {
+                orderAttributes
+                    .append( ", " )
+                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                    .append( ".value AS " )
+                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
+            }
         }
 
         return orderAttributes.toString();
+    }
+
+    private List<String> getOrderFields( List<OrderParam> orders )
+    {
+
+        return orders.stream().filter( op -> isStaticColumn( op.getField() ) && !getColumn( op.getField() ).isEmpty() )
+            .map( OrderParam::getField ).collect( Collectors.toList() );
     }
 
     /**
@@ -907,6 +971,17 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return orgUnits.toString();
+    }
+
+    private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
+    {
+
+        if ( params.getOrders().stream().anyMatch( p -> ENROLLED_AT.getPropName().equalsIgnoreCase( p.getField() ) ) )
+        {
+            return " INNER JOIN programinstance pi ON pi.trackedentityinstanceid = TEI.trackedentityinstanceid ";
+        }
+
+        return "";
     }
 
     /**
@@ -1277,7 +1352,13 @@ public class HibernateTrackedEntityInstanceStore
             {
                 if ( isStaticColumn( order.getField() ) )
                 {
-                    String columnName = TrackedEntityInstanceQueryParams.OrderColumn.getColumn( order.getField() );
+                    String columnName = getColumn( order.getField() );
+
+                    if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
+                    {
+                        columnName = columnName.replace( "pi", "tei" );
+                    }
+
                     orderFields.add( columnName + " " + order.getDirection() );
                 }
                 else
@@ -1366,16 +1447,21 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( params.getOrders() != null )
         {
-            List<String> ordersIdentifier = params.getOrders().stream()
-                .map( OrderParam::getField )
-                .collect( Collectors.toList() );
-
-            return params.getAttributesAndFilters().stream()
-                .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
-                .collect( Collectors.toList() );
+            return getQueryItemsByAttributeAndFilters( params );
         }
 
         return Lists.newArrayList();
+    }
+
+    private List<QueryItem> getQueryItemsByAttributeAndFilters( TrackedEntityInstanceQueryParams params )
+    {
+        List<String> ordersIdentifier = params.getOrders().stream()
+            .map( OrderParam::getField )
+            .collect( Collectors.toList() );
+
+        return params.getAttributesAndFilters().stream()
+            .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
+            .collect( Collectors.toList() );
     }
 
     /**
