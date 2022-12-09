@@ -279,9 +279,23 @@ class PersistablesFilter
         {
             for ( T entity : entities )
             {
-                if ( isNotValid( entity ) )
+                if ( isValid( entity ) && ((isDelete() && !isMarked( entity ))
+                    || (!isDelete() && !hasInvalidParents( check, preheat, entity ))) )
                 {
-                    if ( isDelete() )
+                    if ( !isDelete() )
+                    {
+                        // TODO since its already in this.result.get(type) can we not just use contains on the result?
+                        // same with !isMarked(entity) no? if its marked it will already have an error in our list
+                        // try using that so I can get rid of "marking"
+                        mark( entity ); // mark as persistable for later children
+                    }
+                    this.result.put( type, entity ); // persistable
+                    continue;
+                }
+
+                if ( isDelete() )
+                {
+                    if ( isNotValid( entity ) || (isMarked( entity )) ) // parents of invalid children cannot be deleted
                     {
                         // add error for parents with entity as reason (only to valid parents in the payload)
                         List<TrackerErrorReport> errors = check.parents.stream()
@@ -293,41 +307,17 @@ class PersistablesFilter
                         this.result.errors.addAll( errors );
                         errors.forEach( this::mark ); // mark parents as non-deletable
                     }
-                    continue;
                 }
-
-                if ( isDelete() )
+                else if ( hasInvalidParents( check, preheat, entity ) )
                 {
-                    if ( isMarked( entity ) ) // parents of invalid children cannot be deleted
-                    {
-                        // add error for its parents with itself as reason (only to valid parents in the payload)
-                        List<TrackerErrorReport> errors = check.parents.stream()
-                            .map( p -> p.apply( entity ) )
-                            .filter( this::isValid ) // remove invalid parents
-                            .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
-                            .collect( Collectors.toList() );
-                        this.result.errors.addAll( errors );
-                        errors.forEach( this::mark ); // mark parents as non-deletable
-                        continue;
-                    }
+                    // add error for entity with parent as a reason
+                    List<TrackerErrorReport> errors = check.parents.stream()
+                        .map( p -> p.apply( entity ) )
+                        .filter( this::isNotValid ) // remove valid parents
+                        .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
+                        .collect( Collectors.toList() );
+                    this.result.errors.addAll( errors );
                 }
-                else
-                {
-                    if ( hasInvalidParents( check, preheat, entity ) )
-                    {
-                        // add error for entity with parent as a reason
-                        List<TrackerErrorReport> errors = check.parents.stream()
-                            .map( p -> p.apply( entity ) )
-                            .filter( this::isNotValid ) // remove valid parents
-                            .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
-                            .collect( Collectors.toList() );
-                        this.result.errors.addAll( errors );
-                        continue;
-                    }
-                    mark( entity ); // mark as persistable for later children
-                }
-
-                this.result.put( type, entity );
             }
         }
 
