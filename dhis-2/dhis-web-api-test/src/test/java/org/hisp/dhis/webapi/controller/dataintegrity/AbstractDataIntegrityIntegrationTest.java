@@ -97,6 +97,13 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     }
 
+    private Boolean hasComments( JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues )
+    {
+        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
+            Boolean::logicalOr );
+        return (containsComments);
+    }
+
     private void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
         String expectedDetailsNames, String expectedDetailsComments, String issueType )
     {
@@ -114,9 +121,8 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         }
 
         /* This can be empty if comments do not exist in the JSON response. */
-        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
-            Boolean::logicalOr );
-        if ( containsComments && expectedDetailsComments != null )
+
+        if ( hasComments( issues ) && expectedDetailsComments != null )
         {
             assertTrue( issues.get( 0 ).getComment().toString().contains( expectedDetailsComments ) );
         }
@@ -149,11 +155,8 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             Set<String> detailsNames = issues.stream().map( issue -> issue.getName() ).collect( Collectors.toSet() );
             assertEquals( expectedDetailsNames, detailsNames );
         }
-
         /* This can be empty if comments do not exist in the JSON response. */
-        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
-            Boolean::logicalOr );
-        if ( containsComments && !expectedDetailsComments.isEmpty() )
+        if ( hasComments( issues ) && !expectedDetailsComments.isEmpty() )
         {
             Set<JsonString> detailsComments = issues.stream().map( issue -> issue.getComment() )
                 .collect( Collectors.toSet() );
