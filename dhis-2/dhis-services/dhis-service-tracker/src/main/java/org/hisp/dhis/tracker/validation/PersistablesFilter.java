@@ -226,6 +226,8 @@ class PersistablesFilter
                 rel -> toTrackerDto( rel.getFrom() ), // parents
                 rel -> toTrackerDto( rel.getTo() ) ) );
 
+        // TODO(DHIS2-14213) in theory we could rely on result and errors we collect to figure out whether something
+        // is persistable or deletable. These structures are just not designed for fast lookups.
         /**
          * Collects non-deletable parent entities on DELETE and persistable
          * entities otherwise. Checking each non-root "layer" depends on the
@@ -284,9 +286,6 @@ class PersistablesFilter
                 {
                     if ( !isDelete() )
                     {
-                        // TODO since its already in this.result.get(type) can we not just use contains on the result?
-                        // same with !isMarked(entity) no? if its marked it will already have an error in our list
-                        // try using that so I can get rid of "marking"
                         mark( entity ); // mark as persistable for later children
                     }
                     this.result.put( type, entity ); // persistable
@@ -305,7 +304,7 @@ class PersistablesFilter
                             .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
                             .collect( Collectors.toList() );
                         this.result.errors.addAll( errors );
-                        errors.forEach( this::mark ); // mark parents as non-deletable
+                        errors.forEach( this::mark ); // mark parents as non-deletable for potential children
                     }
                 }
                 else if ( hasInvalidParents( check, preheat, entity ) )
@@ -363,7 +362,7 @@ class PersistablesFilter
 
         private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check, TrackerPreheat preheat )
         {
-            final Predicate<TrackerDto> baseParentCondition = parent -> isContained( this.markedEntities, parent )
+            final Predicate<TrackerDto> baseParentCondition = parent -> isMarked( parent )
                 || preheat.exists( parent.getTrackerType(), parent.getUid() );
             final Predicate<TrackerDto> parentCondition = check.parentCondition.map( baseParentCondition::or )
                 .orElse( baseParentCondition );
