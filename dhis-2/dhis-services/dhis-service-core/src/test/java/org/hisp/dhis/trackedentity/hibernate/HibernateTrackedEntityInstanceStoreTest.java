@@ -33,8 +33,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -122,8 +123,8 @@ class HibernateTrackedEntityInstanceStoreTest
         // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, ", TEI.inactive" ) ),
-            () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, "ORDER BY tei.inactive DESC" ) ) );
+        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.inactive" ) ),
+            () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.inactive DESC" ) ) );
     }
 
     @Test
@@ -138,8 +139,8 @@ class HibernateTrackedEntityInstanceStoreTest
         // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, ", TEI.lastupdated" ) ),
-            () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, "ORDER BY tei.lastUpdated ASC" ) ) );
+        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.lastupdated" ) ),
+            () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.lastUpdated ASC" ) ) );
     }
 
     @Test
@@ -154,8 +155,8 @@ class HibernateTrackedEntityInstanceStoreTest
         // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, ", tei.lastUpdatedAtClient" ) ),
-            () -> assertEquals( 2, StringUtils.countMatches( sqlQuery, "ORDER BY tei.lastUpdatedAtClient ASC" ) ) );
+        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", tei.lastUpdatedAtClient" ) ),
+            () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.lastUpdatedAtClient ASC" ) ) );
     }
 
     @Test
@@ -170,10 +171,11 @@ class HibernateTrackedEntityInstanceStoreTest
         // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 1, StringUtils.countMatches( sqlQuery, ", pi.enrollmentDate" ) ),
-            () -> assertEquals( 1, StringUtils.countMatches( sqlQuery, ", tei.enrollmentDate" ) ),
-            () -> assertEquals( 1, StringUtils.countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC" ) ),
-            () -> assertEquals( 1, StringUtils.countMatches( sqlQuery, "ORDER BY tei.enrollmentDate DESC" ) ) );
+
+        assertAll( () -> assertEquals( 1, countMatches( sqlQuery, ", pi.enrollmentDate" ) ),
+            () -> assertEquals( 1, countMatches( sqlQuery, ", tei.enrollmentDate" ) ),
+            () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC" ) ),
+            () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY tei.enrollmentDate DESC" ) ) );
     }
 
     // @Test
@@ -208,12 +210,25 @@ class HibernateTrackedEntityInstanceStoreTest
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll(
             () -> assertEquals( 1,
-                StringUtils.countMatches( sqlQuery, ", pi.enrollmentDate, tei.lastUpdatedAtClient" ) ),
+                countMatches( sqlQuery, ", pi.enrollmentDate, tei.lastUpdatedAtClient" ) ),
             () -> assertEquals( 1,
-                StringUtils.countMatches( sqlQuery, ", tei.enrollmentDate, tei.lastUpdatedAtClient" ) ),
+                countMatches( sqlQuery, ", tei.enrollmentDate, tei.lastUpdatedAtClient" ) ),
             () -> assertEquals( 1,
-                StringUtils.countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC,tei.lastUpdatedAtClient ASC" ) ),
-            () -> assertEquals( 1, StringUtils.countMatches( sqlQuery,
+                countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC,tei.lastUpdatedAtClient ASC" ) ),
+            () -> assertEquals( 1, countMatches( sqlQuery,
                 "ORDER BY tei.enrollmentDate DESC,tei.lastUpdatedAtClient ASC" ) ) );
+    }
+
+    private int countMatches( String string, String substring )
+    {
+        Matcher matcher = Pattern.compile( substring ).matcher( string );
+
+        int count = 0;
+        while ( matcher.find() )
+        {
+            count++;
+        }
+
+        return count;
     }
 }

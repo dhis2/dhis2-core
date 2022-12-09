@@ -460,6 +460,7 @@ public class HibernateTrackedEntityInstanceStore
             {
                 if ( ENROLLED_AT.getPropName().equalsIgnoreCase( orderParam.getField() ) )
                 {
+                    //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
                     select.append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
                 }
                 else
@@ -1311,6 +1312,7 @@ public class HibernateTrackedEntityInstanceStore
 
                     if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
                     {
+                        //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
                         columnName = columnName.replace( "pi", "tei" );
                     }
 
