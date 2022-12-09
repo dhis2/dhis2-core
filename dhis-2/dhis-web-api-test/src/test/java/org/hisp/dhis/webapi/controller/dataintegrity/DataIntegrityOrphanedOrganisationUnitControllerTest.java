@@ -40,13 +40,13 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String orgunitA;
+    private String orgunitA;
 
-    String orgunitB;
+    private String orgunitB;
 
-    String orgunitC;
+    private String orgunitC;
 
-    String check = "orgunit_orphaned";
+    private final String check = "orgunit_orphaned";
 
     @Test
     void testOrphanedOrganisationUnits()
@@ -61,12 +61,13 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
+        /* Create the orphaned organisation unit */
         orgunitC = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Cupcake District', 'shortName': 'Cupcake District', 'openingDate' : '2022-01-01'}" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 33, orgunitC, "Cupcake District", null );
+        assertHasDataIntegrityIssues( "orgunits", check,
+            33, orgunitC, "Cupcake District", null, true );
 
     }
 
@@ -82,25 +83,25 @@ class DataIntegrityOrphanedOrganisationUnitControllerTest extends AbstractDataIn
                 "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
                     "'parent': {'id' : '" + orgunitA + "'}}" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrphansZeroCase()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteAllOrgUnits();
 
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", orgunitC );
         deleteMetadataObject( "organisationUnits", orgunitB );

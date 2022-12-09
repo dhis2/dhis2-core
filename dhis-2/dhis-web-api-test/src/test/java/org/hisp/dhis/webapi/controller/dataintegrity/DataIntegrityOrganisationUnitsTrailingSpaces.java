@@ -35,7 +35,6 @@ import java.util.Set;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,8 +56,6 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     private OrganisationUnit unitB;
 
     private OrganisationUnit unitC;
-
-    private User superUser;
 
     final String unitAName = "Space District   ";
 
@@ -95,9 +92,10 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
         JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
         assertEquals( json_unitA.getString( "name" ).string(), unitAName );
 
-        Set orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
+        Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
+        Set<String> orgunitNames = Set.of( unitA.getName(), unitB.getName() );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check, 2, 66, orgUnitUIDs, null, null );
+        assertHasDataIntegrityIssues( "orgunits", check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
     }
 
     @Test
@@ -107,25 +105,24 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
     }
 
     @Test
     void testOrgunitsTrailingSpacesZeroCase()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
-
         deleteAllOrgUnits();
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteAllOrgUnits();
     }

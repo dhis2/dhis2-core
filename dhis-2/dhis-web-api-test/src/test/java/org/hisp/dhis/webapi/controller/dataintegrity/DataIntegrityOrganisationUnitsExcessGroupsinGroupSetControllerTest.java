@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
@@ -86,8 +85,7 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 50, orgunitB, "Pizza District", "Type" );
+        assertHasDataIntegrityIssues( "orgunits", check, 50, orgunitB, "Pizza District", "Type", true );
 
     }
 
@@ -121,14 +119,14 @@ class DataIntegrityOrganisationUnitExcessGroupControllerTest extends AbstractDat
                     "'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroupA + "'}, {'id' : '" + testOrgUnitGroupB + "'}]}" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrganisationMultipleGroupsInGroupSetDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
     }
 
     @BeforeEach

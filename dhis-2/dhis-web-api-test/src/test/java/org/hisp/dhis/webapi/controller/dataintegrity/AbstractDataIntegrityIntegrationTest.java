@@ -33,10 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.*;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
@@ -47,8 +44,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 {
-    public final JsonDataIntegrityDetails getDetails( String check )
+    final JsonDataIntegrityDetails getDetails( String check )
     {
+
         JsonObject content = GET( "/dataIntegrity/details?checks={check}&timeout=1000", check ).content();
         JsonDataIntegrityDetails details = content.get( check.replace( '-', '_' ), JsonDataIntegrityDetails.class );
         assertTrue( details.exists(), "check " + check + " did not complete in time or threw an exception" );
@@ -56,14 +54,14 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         return details;
     }
 
-    public final void postDetails( String check )
+    final void postDetails( String check )
     {
         HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
         assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    public final JsonDataIntegritySummary getSummary( String check )
+    final JsonDataIntegritySummary getSummary( String check )
     {
         JsonObject content = GET( "/dataIntegrity/summary?checks={check}&timeout=1000", check ).content();
         JsonDataIntegritySummary summary = content.get( check.replace( '-', '_' ), JsonDataIntegritySummary.class );
@@ -79,127 +77,119 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    public final void DataIntegrityPositiveTestTemplate( String issueType, String check, Integer expectedCount,
-        Integer expectedPercentage, String expectedUnit, String expectedName, String expectedComment )
+    private void checkDataIntegritySummary( String check, Integer expectedCount,
+        Integer expectedPercentage, Boolean hasPercentage )
     {
+
         postSummary( check );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
+
+        JsonDataIntegritySummary summary = getSummary( check );
         assertEquals( expectedCount, summary.getCount() );
-        assertEquals( expectedPercentage, summary.getPercentage().intValue() );
+
+        if ( hasPercentage )
+        {
+            assertEquals( expectedPercentage, summary.getPercentage().intValue() );
+        }
+        else
+        {
+            assertNull( summary.getPercentage() );
+        }
+
+    }
+
+    private void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
+        String expectedDetailsNames, String expectedDetailsComments, String issueType )
+    {
 
         postDetails( check );
 
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
+        JsonDataIntegrityDetails details = getDetails( check );
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
-        assertEquals( expectedUnit, issues.get( 0 ).getId() );
-        assertEquals( expectedName, issues.get( 0 ).getName() );
-
-        if ( expectedComment != null )
-        {
-            assertTrue( issues.get( 0 ).getComment().toString().contains( expectedComment ) );
-        }
-        assertEquals( issueType, details.getIssuesIdType() );
-    }
-
-    public final void DataIntegrityPositiveTestTemplate( String issueType, String check, Integer expectedCount,
-        Integer expectedPercentage, Set<String> expectedDetailsUnits,
-        Set<String> expectedDetailsNames, Set<String> expectedDetailsComments )
-    {
-
-        postSummary( check );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( expectedCount, summary.getCount() );
-        assertEquals( expectedPercentage, summary.getPercentage().intValue() );
-
-        postDetails( check );
-
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-
-        Set issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
-        assertEquals( issueUIDs, expectedDetailsUnits );
 
         if ( expectedDetailsNames != null )
         {
-            Set detailsNames = issues.stream().map( issue -> issue.getName() ).collect( Collectors.toSet() );
-            assertEquals( expectedDetailsNames, detailsNames );
+            assertTrue( issues.get( 0 ).getName().toString().startsWith( expectedDetailsNames ) );
         }
-        if ( expectedDetailsComments != null )
+
+        /* This can be empty if comments do not exist in the JSON response. */
+        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
+            Boolean::logicalOr );
+        if ( containsComments && expectedDetailsComments != null )
         {
-            Set detailsComments = issues.stream().map( issue -> issue.getComment() ).collect( Collectors.toSet() );
-            assertEquals( expectedDetailsNames, detailsComments );
+            assertTrue( issues.get( 0 ).getComment().toString().contains( expectedDetailsComments ) );
         }
 
         assertEquals( issueType, details.getIssuesIdType() );
     }
 
-    public final void DataIntegrityDivideByZeroTestTemplate( String detailsIssueType, String check )
+    private void checkDataIntegrityDetailsIssues( String check, Set<String> expectedDetailsUnits,
+        Set<String> expectedDetailsNames, Set<String> expectedDetailsComments, String issueType )
     {
-        postSummary( check );
-
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertNull( summary.getPercentage() );
 
         postDetails( check );
 
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" )
-            .content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
+        JsonDataIntegrityDetails details = getDetails( check );
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
+
         assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
+        assertEquals( expectedDetailsUnits.size(), issues.size() );
+
+        /* Always check the UIDs */
+        Set issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
+        assertEquals( issueUIDs, expectedDetailsUnits );
+
+        /*
+         * Names can be optionally checked, but should always exist in the
+         * response
+         */
+        if ( !expectedDetailsNames.isEmpty() )
+        {
+            Set<String> detailsNames = issues.stream().map( issue -> issue.getName() ).collect( Collectors.toSet() );
+            assertEquals( expectedDetailsNames, detailsNames );
+        }
+
+        /* This can be empty if comments do not exist in the JSON response. */
+        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
+            Boolean::logicalOr );
+        if ( containsComments && !expectedDetailsComments.isEmpty() )
+        {
+            Set<JsonString> detailsComments = issues.stream().map( issue -> issue.getComment() )
+                .collect( Collectors.toSet() );
+            assertEquals( expectedDetailsComments, detailsComments );
+        }
+
+        assertEquals( issueType, details.getIssuesIdType() );
     }
 
-    public final void DataIntegrityNegativeTestTemplate( String detailsIssueType, String check )
+    final void assertHasDataIntegrityIssues( String issueType, String check,
+        Integer expectedPercentage, String expectedDetailsUnit, String expectedDetailsName,
+        String expectedDetailsComment, Boolean hasPercentage )
     {
-        postSummary( check );
+        checkDataIntegritySummary( check, 1, expectedPercentage, hasPercentage );
 
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertEquals( 0, summary.getPercentage().intValue() );
+        checkDataIntegrityDetailsIssues( check, expectedDetailsUnit, expectedDetailsName,
+            expectedDetailsComment, issueType );
+    }
 
-        postDetails( check );
+    final void assertHasDataIntegrityIssues( String issueType, String check,
+        Integer expectedPercentage, Set<String> expectedDetailsUnits, Set<String> expectedDetailsNames,
+        Set<String> expectedDetailsComments, Boolean hasPercentage )
+    {
+        checkDataIntegritySummary( check, expectedDetailsUnits.size(), expectedPercentage, hasPercentage );
+        checkDataIntegrityDetailsIssues( check, expectedDetailsUnits, expectedDetailsNames,
+            expectedDetailsComments, issueType );
+    }
 
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/" + check + "/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 0, issues.size() );
-        assertEquals( detailsIssueType, details.getIssuesIdType() );
-    };
+    final void assertHasNoDataIntegrityIssues( String issueType, String check, Boolean expectPercent )
+    {
+        checkDataIntegritySummary( check, 0, 0, expectPercent );
+        Set<String> emptyStringSet = Set.of();
+        checkDataIntegrityDetailsIssues( check, emptyStringSet, emptyStringSet, emptyStringSet, issueType );
+    }
 
-    void deleteAllOrgUnits()
+    final void deleteAllOrgUnits()
     {
         GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
             .forEach( id -> DELETE( "/organisationUnits/" + id ) );
@@ -232,10 +222,11 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     protected void doInTransaction( Runnable operation )
     {
+
         txTemplate.execute( status -> {
             operation.run();
             return null;
         } );
-        ;
+
     }
 }

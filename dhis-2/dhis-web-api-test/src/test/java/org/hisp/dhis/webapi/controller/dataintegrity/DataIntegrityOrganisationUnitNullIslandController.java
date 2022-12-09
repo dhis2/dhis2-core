@@ -37,9 +37,9 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String nullIsland;
+    private String nullIsland;
 
-    String notNullIsland;
+    private String notNullIsland;
 
     final String check = "orgunit_null_island";
 
@@ -57,8 +57,8 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 50, nullIsland, "Null Island", null );
+        assertHasDataIntegrityIssues( "orgunits", check, 50, nullIsland,
+            "Null Island", null, true );
 
     }
 
@@ -76,14 +76,14 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgUnitNotNullIslandZeroCase()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 

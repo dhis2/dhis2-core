@@ -40,9 +40,9 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
 {
     private final String check = "orgunit_multiple_roots";
 
-    String nullIsland;
+    private String nullIsland;
 
-    String notNullIsland;
+    private String notNullIsland;
 
     @Test
     void testOrgunitMultipleRoots()
@@ -60,8 +60,8 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
 
         Set orgUnitUIDs = Set.of( nullIsland, notNullIsland );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", "orgunit_multiple_roots", 2,
-            100, orgUnitUIDs, null, null );
+        assertHasDataIntegrityIssues( "orgunits", "orgunit_multiple_roots", 100, orgUnitUIDs, Set.of(), Set.of(),
+            true );
 
     }
 
@@ -80,26 +80,26 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
                     "'parent' : {'id': '" + nullIsland + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteMetadataObject( "organisationUnits", notNullIsland );
         deleteMetadataObject( "organisationUnits", nullIsland );
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", notNullIsland );
         deleteMetadataObject( "organisationUnits", nullIsland );

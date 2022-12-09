@@ -78,8 +78,7 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
             dbmsManager.clearSession();
         } );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", "orgunit_openingdate_gt_closeddate",
-            1, 33, unitA.getUid(), unitA.getName(), null );
+        assertHasDataIntegrityIssues( "orgunits", check, 33, unitA.getUid(), unitA.getName(), "", true );
     }
 
     @Test
@@ -96,14 +95,14 @@ class DataIntegrityOrganisationUnitOpenClosedDateControllerTest extends Abstract
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsNoGeometryDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 

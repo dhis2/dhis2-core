@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
@@ -45,13 +44,13 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String clinicA;
+    private String clinicA;
 
-    String clinicB;
+    private String clinicB;
 
-    String districtA;
+    private String districtA;
 
-    String check = "organisation_units_not_contained_by_parent";
+    private final String check = "organisation_units_not_contained_by_parent";
 
     @Test
     void testOrgunitsNotContainedByParent()
@@ -74,8 +73,7 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 50, clinicB, "Clinic B", null );
+        assertHasDataIntegrityIssues( "orgunits", check, 50, clinicB, "Clinic B", null, true );
 
     }
 
@@ -99,26 +97,26 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
                 "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsContainedByParentDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteAllOrgUnits();
 
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
         throws Exception
     {
         deleteMetadataObject( "organisationUnits", clinicA );

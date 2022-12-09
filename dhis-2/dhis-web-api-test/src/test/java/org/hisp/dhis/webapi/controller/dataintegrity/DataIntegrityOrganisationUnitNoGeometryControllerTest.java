@@ -42,13 +42,13 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String clinicA;
+    private String clinicA;
 
-    String clinicB;
+    private String clinicB;
 
-    String districtA;
+    private String districtA;
 
-    final String check = "orgunit_no_coordinates";
+    private final String check = "orgunit_no_coordinates";
 
     @Test
     void testOrgunitsNoGeometry()
@@ -69,8 +69,7 @@ class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractData
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 33, districtA, "Offgrid District", "1" );
+        assertHasDataIntegrityIssues( "orgunits", check, 33, districtA, "Offgrid District", "1", true );
 
     }
 
@@ -95,26 +94,26 @@ class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractData
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsNoGeometryDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteAllOrgUnits();
 
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", clinicB );
         deleteMetadataObject( "organisationUnits", clinicA );

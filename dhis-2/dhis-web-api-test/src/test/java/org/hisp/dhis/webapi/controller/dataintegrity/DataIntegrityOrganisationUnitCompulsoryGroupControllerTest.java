@@ -40,15 +40,15 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String outOfGroup;
+    private String outOfGroup;
 
-    String inGroup;
+    private String inGroup;
 
-    String testOrgUnitGroup;
+    private String testOrgUnitGroup;
 
-    String testOrgUnitGroupSet;
+    private String testOrgUnitGroupSet;
 
-    final String check = "orgunit_compulsory_group_count";
+    private final String check = "orgunit_compulsory_group_count";
 
     /* TODO: The zero case here returns zero... */
 
@@ -76,8 +76,8 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 50, outOfGroup, "Fish District", null );
+        assertHasDataIntegrityIssues( "orgunits", check,
+            50, outOfGroup, "Fish District", "", true );
     }
 
     @Test
@@ -100,19 +100,19 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
                 "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
                     + testOrgUnitGroup + "'}]}" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteMetadataObject( "organisationUnits", outOfGroup );
         deleteMetadataObject( "organisationUnits", inGroup );
@@ -122,7 +122,7 @@ class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends Abstrac
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", outOfGroup );
         deleteMetadataObject( "organisationUnits", inGroup );

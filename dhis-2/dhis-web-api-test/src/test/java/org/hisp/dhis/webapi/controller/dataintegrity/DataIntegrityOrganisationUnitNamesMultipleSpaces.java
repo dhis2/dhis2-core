@@ -44,13 +44,13 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    String orgunitA;
+    private String orgunitA;
 
-    String orgunitB;
+    private String orgunitB;
 
-    String orgunitC;
+    private String orgunitC;
 
-    final String check = "orgunit_multiple_spaces";
+    private final String check = "orgunit_multiple_spaces";
 
     @Test
     void testOrgUnitMultipleSpaces()
@@ -69,10 +69,8 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        Set orgUnitUIDs = Set.of( orgunitA, orgunitB );
-
-        DataIntegrityPositiveTestTemplate( "orgunits", check, 2,
-            66, orgUnitUIDs, null, null );
+        assertHasDataIntegrityIssues( "orgunits", check, 66,
+            Set.of( orgunitA, orgunitB ), Set.of(), Set.of(), true );
     }
 
     @Test
@@ -82,24 +80,24 @@ class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataI
             POST( "/organisationUnits",
                 "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
     }
 
     @Test
     void testOrgunitsMultipleSpacesZeroCase()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteAllOrgUnits();
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", orgunitC );
         deleteMetadataObject( "organisationUnits", orgunitB );

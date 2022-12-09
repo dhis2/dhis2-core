@@ -72,8 +72,8 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        DataIntegrityPositiveTestTemplate( "orgunits", check,
-            1, 33, districtA, "Bowtie District", "15" );
+        assertHasDataIntegrityIssues( "orgunits", check, 33,
+            districtA, "Bowtie District", "Self-intersection", true );
     }
 
     @Test
@@ -97,26 +97,26 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
                     "'parent': {'id' : '" + districtA + "'}, " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
 
-        DataIntegrityNegativeTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, true );
 
     }
 
     @Test
     void testOrgunitsInvalidGeometryDivideByZero()
     {
-        DataIntegrityDivideByZeroTestTemplate( "orgunits", check );
+        assertHasNoDataIntegrityIssues( "orgunits", check, false );
 
     }
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
         deleteAllOrgUnits();
 
     }
 
     @AfterEach
-    public void tearDown()
+    void tearDown()
     {
         deleteMetadataObject( "organisationUnits", clinicB );
         deleteMetadataObject( "organisationUnits", clinicA );
