@@ -69,7 +69,6 @@ public class TrackerValidationReport
     {
         addErrors( report.getErrors() );
         addWarnings( report.getWarnings() );
-        addTimings( report.getTimings() );
     }
 
     public List<TrackerErrorReport> getErrors()
@@ -80,11 +79,6 @@ public class TrackerValidationReport
     public List<TrackerWarningReport> getWarnings()
     {
         return Collections.unmodifiableList( warningReports );
-    }
-
-    public List<Timing> getTimings()
-    {
-        return Collections.unmodifiableList( timings );
     }
 
     public TrackerValidationReport addError( TrackerErrorReport error )
@@ -117,18 +111,6 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addTiming( Timing timing )
-    {
-        timings.add( timing );
-        return this;
-    }
-
-    public TrackerValidationReport addTimings( List<Timing> timings )
-    {
-        this.timings.addAll( timings );
-        return this;
-    }
-
     public boolean hasErrors()
     {
         return !errorReports.isEmpty();
@@ -147,11 +129,6 @@ public class TrackerValidationReport
     public boolean hasWarning( Predicate<TrackerWarningReport> test )
     {
         return warningReports.stream().anyMatch( test );
-    }
-
-    public boolean hasTimings()
-    {
-        return !timings.isEmpty();
     }
 
     /**

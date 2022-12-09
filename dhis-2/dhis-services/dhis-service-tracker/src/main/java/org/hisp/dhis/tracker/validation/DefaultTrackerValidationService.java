@@ -94,11 +94,11 @@ public class DefaultTrackerValidationService
 
         try
         {
-            validateTrackedEntities( bundle, hooks, validationReport, reporter );
-            validateEnrollments( bundle, hooks, validationReport, reporter );
-            validateEvents( bundle, hooks, validationReport, reporter );
-            validateRelationships( bundle, hooks, validationReport, reporter );
-            validateBundle( bundle, hooks, validationReport, reporter );
+            validateTrackedEntities( bundle, hooks, reporter );
+            validateEnrollments( bundle, hooks, reporter );
+            validateEvents( bundle, hooks, reporter );
+            validateRelationships( bundle, hooks, reporter );
+            validateBundle( bundle, hooks, reporter );
         }
         catch ( ValidationFailFastException e )
         {
@@ -114,7 +114,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+        ValidationErrorReporter reporter )
     {
         for ( TrackedEntity tei : bundle.getTrackedEntities() )
         {
@@ -126,7 +126,7 @@ public class DefaultTrackerValidationService
 
                     hook.validateTrackedEntity( reporter, bundle, tei );
 
-                    validationReport.addTiming( new Timing(
+                    reporter.addTiming( new Timing(
                         hook.getClass().getName(),
                         hookTimer.toString() ) );
 
@@ -140,7 +140,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEnrollments( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+        ValidationErrorReporter reporter )
     {
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
@@ -152,7 +152,7 @@ public class DefaultTrackerValidationService
 
                     hook.validateEnrollment( reporter, bundle, enrollment );
 
-                    validationReport.addTiming( new Timing(
+                    reporter.addTiming( new Timing(
                         hook.getClass().getName(),
                         hookTimer.toString() ) );
 
@@ -166,7 +166,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEvents( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+        ValidationErrorReporter reporter )
     {
         for ( Event event : bundle.getEvents() )
         {
@@ -178,7 +178,7 @@ public class DefaultTrackerValidationService
 
                     hook.validateEvent( reporter, bundle, event );
 
-                    validationReport.addTiming( new Timing(
+                    reporter.addTiming( new Timing(
                         hook.getClass().getName(),
                         hookTimer.toString() ) );
 
@@ -192,7 +192,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateRelationships( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+        ValidationErrorReporter reporter )
     {
         for ( Relationship relationship : bundle.getRelationships() )
         {
@@ -204,7 +204,7 @@ public class DefaultTrackerValidationService
 
                     hook.validateRelationship( reporter, bundle, relationship );
 
-                    validationReport.addTiming( new Timing(
+                    reporter.addTiming( new Timing(
                         hook.getClass().getName(),
                         hookTimer.toString() ) );
 
@@ -218,7 +218,7 @@ public class DefaultTrackerValidationService
     }
 
     private static void validateBundle( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+        ValidationErrorReporter reporter )
     {
         for ( TrackerValidationHook hook : hooks )
         {
@@ -226,7 +226,7 @@ public class DefaultTrackerValidationService
 
             hook.validate( reporter, bundle );
 
-            validationReport.addTiming( new Timing(
+            reporter.addTiming( new Timing(
                 hook.getClass().getName(),
                 hookTimer.toString() ) );
         }
