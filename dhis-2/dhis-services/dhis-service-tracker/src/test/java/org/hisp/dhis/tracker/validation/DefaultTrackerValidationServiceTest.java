@@ -63,6 +63,7 @@ import org.junit.jupiter.api.Test;
 class DefaultTrackerValidationServiceTest
 {
 
+    // TODO(DHIS2-14213) ensure we have a test that shows an invalid entity will be removed and the error end in the report
     private DefaultTrackerValidationService service;
 
     @Test

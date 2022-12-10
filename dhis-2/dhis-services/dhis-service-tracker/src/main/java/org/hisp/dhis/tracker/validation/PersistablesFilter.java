@@ -47,7 +47,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -105,18 +104,246 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 // if the Checks/Check stick around think about a better name
 class PersistablesFilter
 {
-    private PersistablesFilter()
-    {
-        // should not be instantiated
-    }
+    private static final Check<TrackedEntity> TRACKED_ENTITY_CHECK = new Check<>();
+
+    private static final Check<Enrollment> ENROLLMENT_CHECK = new Check<>(
+        List.of(
+            en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() // parent
+        ) );
+
+    private static final Check<Event> EVENT_CHECK = new Check<>(
+        List.of(
+            ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() // parent
+        ),
+        parent -> StringUtils.isBlank( parent.getUid() ) // events in event programs have no enrollment
+    );
+
+    private static final Check<Relationship> RELATIONSHIP_CHECK = new Check<>(
+        List.of(
+            rel -> toTrackerDto( rel.getFrom() ), // parents
+            rel -> toTrackerDto( rel.getTo() ) ) );
+
+    // TODO(DHIS2-14213) in theory we could rely on result and errors we collect to figure out whether something
+    // is persistable or deletable. These structures are just not designed for fast lookups.
+    /**
+     * Collects non-deletable parent entities on DELETE and persistable entities
+     * otherwise. Checking each non-root "layer" depends on the knowledge
+     * (marked entities) we gain from the previous layers. For example on DELETE
+     * event, enrollment, trackedEntity entities cannot be deleted if an invalid
+     * relationship points to them.
+     */
+    private final EnumMap<TrackerType, Set<String>> markedEntities = new EnumMap<>( Map.of(
+        TRACKED_ENTITY, new HashSet<>(),
+        ENROLLMENT, new HashSet<>(),
+        EVENT, new HashSet<>(),
+        RELATIONSHIP, new HashSet<>() ) );
+
+    private final Result result = new Result();
+
+    private final TrackerBundle bundle;
+
+    private final TrackerPreheat preheat;
+
+    private final EnumMap<TrackerType, Set<String>> invalidEntities;
+
+    private final TrackerImportStrategy importStrategy;
 
     public static Result filter( TrackerBundle bundle,
         EnumMap<TrackerType, Set<String>> invalidEntities, TrackerImportStrategy importStrategy )
     {
-        // TODO(DHIS2-14213) think about the design. This does not feel right. How about simply moving all "result" fields
-        // into the filter. doing the filtering in the constructor. using a factory like this to create the "filter"
-        // so it feels as if it were a function
-        return new Checks( bundle, invalidEntities, importStrategy ).apply();
+        return new PersistablesFilter( bundle, invalidEntities, importStrategy ).result;
+    }
+
+    private PersistablesFilter( TrackerBundle bundle, EnumMap<TrackerType, Set<String>> invalidEntities,
+        TrackerImportStrategy importStrategy )
+    {
+        this.bundle = bundle;
+        this.preheat = bundle.getPreheat();
+        this.invalidEntities = invalidEntities;
+        this.importStrategy = importStrategy;
+
+        filter();
+    }
+
+    private void filter()
+    {
+        if ( onDelete() )
+        {
+            // bottom-up
+            collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships() );
+            collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents() );
+            collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments() );
+            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities() );
+        }
+        else
+        {
+            // top-down
+            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities() );
+            collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments() );
+            collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents() );
+            collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships() );
+        }
+    }
+
+    private <T extends TrackerDto> void collectPersistables( Class<T> type, Check<T> check, List<T> entities )
+    {
+        for ( T entity : entities )
+        {
+            if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( check, entity )) )
+            {
+                if ( onCreateOrUpdate() )
+                {
+                    mark( entity ); // mark as persistable for later children
+                }
+                this.result.put( type, entity ); // persistable
+                continue;
+            }
+
+            if ( onDelete() )
+            {
+                List<TrackerErrorReport> errors = addErrorsForParents( check, entity );
+                errors.forEach( this::mark ); // mark parents as non-deletable for potential children
+            }
+            else
+            {
+                addErrorsForChildren( check, entity );
+            }
+        }
+    }
+
+    private boolean isNotValid( TrackerDto entity )
+    {
+        return !isValid( entity );
+    }
+
+    private boolean isValid( TrackerDto entity )
+    {
+        return !isContained( this.invalidEntities, entity );
+    }
+
+    private boolean isContained( EnumMap<TrackerType, Set<String>> map, TrackerDto entity )
+    {
+        return map.get( entity.getTrackerType() ).contains( entity.getUid() );
+    }
+
+    private <T extends TrackerDto> boolean isDeletable( T entity )
+    {
+        return onDelete() && !isMarked( entity );
+    }
+
+    private <T extends TrackerDto> boolean isCreateOrUpdatable( Check<T> check, T entity )
+    {
+        return onCreateOrUpdate() && !hasInvalidParents( check, entity );
+    }
+
+    private boolean onCreateOrUpdate()
+    {
+        return !onDelete();
+    }
+
+    private boolean onDelete()
+    {
+        return this.importStrategy == TrackerImportStrategy.DELETE;
+    }
+
+    private <T extends TrackerDto> void mark( T entity )
+    {
+        this.markedEntities.get( entity.getTrackerType() ).add( entity.getUid() );
+    }
+
+    private void mark( TrackerErrorReport error )
+    {
+        this.markedEntities.get( error.getTrackerType() ).add( error.getUid() );
+    }
+
+    private <T extends TrackerDto> boolean isMarked( T entity )
+    {
+        return isContained( this.markedEntities, entity );
+    }
+
+    private <T extends TrackerDto> boolean hasInvalidParents( Check<T> check, T entity )
+    {
+        return !parentConditions( check ).test( entity );
+    }
+
+    private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check )
+    {
+        final Predicate<TrackerDto> baseParentCondition = parent -> isMarked( parent )
+            || this.preheat.exists( parent.getTrackerType(), parent.getUid() );
+        final Predicate<TrackerDto> parentCondition = check.parentCondition.map( baseParentCondition::or )
+            .orElse( baseParentCondition );
+
+        return check.parents.stream()
+            .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
+            .reduce( Predicate::and )
+            .orElse( t -> true ); // predicate always returning true for entities without parents
+    }
+
+    private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( Check<T> check, T entity )
+    {
+        // add error for parents with entity as reason (only to valid parents in the payload)
+        List<TrackerErrorReport> errors = check.parents.stream()
+            .map( p -> p.apply( entity ) )
+            .filter( this::isValid ) // remove invalid parents
+            .filter( this.bundle::exists ) // remove parents not in payload
+            .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
+            .collect( Collectors.toList() );
+        this.result.errors.addAll( errors );
+        return errors;
+    }
+
+    private <T extends TrackerDto> void addErrorsForChildren( Check<T> check, T entity )
+    {
+        // add error for entity with parent as a reason
+        List<TrackerErrorReport> errors = check.parents.stream()
+            .map( p -> p.apply( entity ) )
+            .filter( this::isNotValid ) // remove valid parents
+            .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
+            .collect( Collectors.toList() );
+        this.result.errors.addAll( errors );
+    }
+
+    private static TrackerErrorReport error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
+    {
+        String message = MessageFormat.format(
+            code.getMessage(),
+            notPersistable.getTrackerType().getName(),
+            notPersistable.getUid(),
+            reason.getTrackerType().getName(),
+            reason.getUid() );
+
+        return new TrackerErrorReport(
+            message,
+            code,
+            notPersistable.getTrackerType(),
+            notPersistable.getUid() );
+    }
+
+    /**
+     * Captures UID and {@link TrackerType} information in a {@link TrackerDto}.
+     * Valid {@link RelationshipItem} only has one of its 3 identifier fields
+     * set. The RelationshipItem API does not enforce it since it needs to
+     * capture invalid user input. Transform it to a shallow TrackerDto, so it
+     * is easier to work with.
+     *
+     * @param item relationship item
+     * @return a tracker dto only capturing the uid and type
+     */
+    private static TrackerDto toTrackerDto( RelationshipItem item )
+    {
+        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
+        {
+            return TrackedEntity.builder().trackedEntity( item.getTrackedEntity() ).build();
+        }
+        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
+        {
+            return Enrollment.builder().enrollment( item.getEnrollment() ).build();
+        }
+        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
+        {
+            return Event.builder().event( item.getEvent() ).build();
+        }
+        return null; // TODO(DHIS2-14213) isn't throwing better? if none of the above is set its not a valid item
     }
 
     /**
@@ -175,242 +402,6 @@ class PersistablesFilter
      * different types (trackedEntity, enrollment, ...) easier.
      * </p>
      */
-    @RequiredArgsConstructor
-    private static class Checks
-    {
-        private static final Check<TrackedEntity> TRACKED_ENTITY_CHECK = new Check<>();
-
-        private static final Check<Enrollment> ENROLLMENT_CHECK = new Check<>(
-            List.of(
-                en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() // parent
-            ) );
-
-        private static final Check<Event> EVENT_CHECK = new Check<>(
-            List.of(
-                ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() // parent
-            ),
-            parent -> StringUtils.isBlank( parent.getUid() ) // events in event programs have no enrollment
-        );
-
-        private static final Check<Relationship> RELATIONSHIP_CHECK = new Check<>(
-            List.of(
-                rel -> toTrackerDto( rel.getFrom() ), // parents
-                rel -> toTrackerDto( rel.getTo() ) ) );
-
-        // TODO(DHIS2-14213) in theory we could rely on result and errors we collect to figure out whether something
-        // is persistable or deletable. These structures are just not designed for fast lookups.
-        /**
-         * Collects non-deletable parent entities on DELETE and persistable
-         * entities otherwise. Checking each non-root "layer" depends on the
-         * knowledge (marked entities) we gain from the previous layers. For
-         * example on DELETE event, enrollment, trackedEntity entities cannot be
-         * deleted if an invalid relationship points to them.
-         */
-        private final EnumMap<TrackerType, Set<String>> markedEntities = new EnumMap<>( Map.of(
-            TRACKED_ENTITY, new HashSet<>(),
-            ENROLLMENT, new HashSet<>(),
-            EVENT, new HashSet<>(),
-            RELATIONSHIP, new HashSet<>() ) );
-
-        private final TrackerBundle bundle;
-
-        private final EnumMap<TrackerType, Set<String>> invalidEntities;
-
-        private final TrackerImportStrategy importStrategy;
-
-        private final Result result = new Result();
-
-        private Result apply()
-        {
-            if ( onDelete() )
-            {
-                // bottom-up
-                collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships(),
-                    bundle.getPreheat(), bundle );
-                collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents(), bundle.getPreheat(), bundle );
-                collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments(),
-                    bundle.getPreheat(), bundle );
-                collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities(),
-                    bundle.getPreheat(), bundle );
-            }
-            else
-            {
-                // top-down
-                collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities(),
-                    bundle.getPreheat(), bundle );
-                collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments(),
-                    bundle.getPreheat(), bundle );
-                collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents(), bundle.getPreheat(), bundle );
-                collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships(),
-                    bundle.getPreheat(), bundle );
-            }
-            return this.result;
-        }
-
-        private <T extends TrackerDto> void collectPersistables( Class<T> type, Check<T> check, List<T> entities,
-            TrackerPreheat preheat, TrackerBundle bundle )
-        {
-            for ( T entity : entities )
-            {
-                if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( check, preheat, entity )) )
-                {
-                    if ( onCreateOrUpdate() )
-                    {
-                        mark( entity ); // mark as persistable for later children
-                    }
-                    this.result.put( type, entity ); // persistable
-                    continue;
-                }
-
-                if ( onDelete() )
-                {
-                    List<TrackerErrorReport> errors = addErrorsForParents( check, bundle, entity );
-                    errors.forEach( this::mark ); // mark parents as non-deletable for potential children
-                }
-                else
-                {
-                    addErrorsForChildren( check, entity );
-                }
-            }
-        }
-
-        private boolean isNotValid( TrackerDto entity )
-        {
-            return !isValid( entity );
-        }
-
-        private boolean isValid( TrackerDto entity )
-        {
-            return !isContained( this.invalidEntities, entity );
-        }
-
-        private boolean isContained( EnumMap<TrackerType, Set<String>> map, TrackerDto entity )
-        {
-            return map.get( entity.getTrackerType() ).contains( entity.getUid() );
-        }
-
-        private <T extends TrackerDto> boolean isDeletable( T entity )
-        {
-            return onDelete() && !isMarked( entity );
-        }
-
-        private <T extends TrackerDto> boolean isCreateOrUpdatable( Check<T> check, TrackerPreheat preheat, T entity )
-        {
-            return onCreateOrUpdate() && !hasInvalidParents( check, preheat, entity );
-        }
-
-        private boolean onCreateOrUpdate()
-        {
-            return !onDelete();
-        }
-
-        private boolean onDelete()
-        {
-            return this.importStrategy == TrackerImportStrategy.DELETE;
-        }
-
-        private <T extends TrackerDto> void mark( T entity )
-        {
-            this.markedEntities.get( entity.getTrackerType() ).add( entity.getUid() );
-        }
-
-        private void mark( TrackerErrorReport error )
-        {
-            this.markedEntities.get( error.getTrackerType() ).add( error.getUid() );
-        }
-
-        private <T extends TrackerDto> boolean isMarked( T entity )
-        {
-            return isContained( this.markedEntities, entity );
-        }
-
-        private <T extends TrackerDto> boolean hasInvalidParents( Check<T> check, TrackerPreheat preheat, T entity )
-        {
-            return !parentConditions( check, preheat ).test( entity );
-        }
-
-        private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check, TrackerPreheat preheat )
-        {
-            final Predicate<TrackerDto> baseParentCondition = parent -> isMarked( parent )
-                || preheat.exists( parent.getTrackerType(), parent.getUid() );
-            final Predicate<TrackerDto> parentCondition = check.parentCondition.map( baseParentCondition::or )
-                .orElse( baseParentCondition );
-
-            return check.parents.stream()
-                .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
-                .reduce( Predicate::and )
-                .orElse( t -> true ); // predicate always returning true for entities without parents
-        }
-
-        private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( Check<T> check,
-            TrackerBundle bundle, T entity )
-        {
-            // add error for parents with entity as reason (only to valid parents in the payload)
-            List<TrackerErrorReport> errors = check.parents.stream()
-                .map( p -> p.apply( entity ) )
-                .filter( this::isValid ) // remove invalid parents
-                .filter( bundle::exists ) // remove parents not in payload
-                .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
-                .collect( Collectors.toList() );
-            this.result.errors.addAll( errors );
-            return errors;
-        }
-
-        private <T extends TrackerDto> void addErrorsForChildren( Check<T> check, T entity )
-        {
-            // add error for entity with parent as a reason
-            List<TrackerErrorReport> errors = check.parents.stream()
-                .map( p -> p.apply( entity ) )
-                .filter( this::isNotValid ) // remove valid parents
-                .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
-                .collect( Collectors.toList() );
-            this.result.errors.addAll( errors );
-        }
-
-        private static TrackerErrorReport error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
-        {
-            String message = MessageFormat.format(
-                code.getMessage(),
-                notPersistable.getTrackerType().getName(),
-                notPersistable.getUid(),
-                reason.getTrackerType().getName(),
-                reason.getUid() );
-
-            return new TrackerErrorReport(
-                message,
-                code,
-                notPersistable.getTrackerType(),
-                notPersistable.getUid() );
-        }
-
-        /**
-         * Captures UID and {@link TrackerType} information in a
-         * {@link TrackerDto}. Valid {@link RelationshipItem} only has one of
-         * its 3 identifier fields set. The RelationshipItem API does not
-         * enforce it since it needs to capture invalid user input. Transform it
-         * to a shallow TrackerDto, so it is easier to work with.
-         *
-         * @param item relationship item
-         * @return a tracker dto only capturing the uid and type
-         */
-        private static TrackerDto toTrackerDto( RelationshipItem item )
-        {
-            if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-            {
-                return TrackedEntity.builder().trackedEntity( item.getTrackedEntity() ).build();
-            }
-            else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-            {
-                return Enrollment.builder().enrollment( item.getEnrollment() ).build();
-            }
-            else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-            {
-                return Event.builder().event( item.getEvent() ).build();
-            }
-            return null; // TODO(DHIS2-14213) isn't throwing better? if none of the above is set its not a valid item
-        }
-    }
-
     private static class Check<T extends TrackerDto>
     {
         private final List<Function<T, TrackerDto>> parents;
