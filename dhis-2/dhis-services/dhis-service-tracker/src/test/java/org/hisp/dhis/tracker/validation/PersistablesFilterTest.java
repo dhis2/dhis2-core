@@ -102,9 +102,9 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2" ).isExisting().isNotInPayload()
+                .trackedEntity( "xK7H53f4Hc2" ).isInDB().isNotInPayload()
                     .enrollment( "t1zaUjKgT3p")
-                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload()
+                .enrollment( "Ok4Fe5moc3N").isInDB().isNotInPayload()
                     .event( "Ox1qBWsnVwE" )
                 .build();
 //                .relationship("Te3IC6TpnBB",
@@ -130,9 +130,9 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2").isExisting().isNotInPayload()
+                .trackedEntity( "xK7H53f4Hc2").isInDB().isNotInPayload()
                     .enrollment( "t1zaUjKgT3p")
-                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload()
+                .enrollment( "Ok4Fe5moc3N").isInDB().isNotInPayload()
                     .event( "Ox1qBWsnVwE" )
                 .build();
 //                .relationship("Te3IC6TpnBB",
@@ -157,10 +157,10 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2").isExisting().isNotInPayload()
-                    .enrollment( "t1zaUjKgT3p").isInvalid()
-                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload() // TODO(DHIS2-14213) could there be a case where a parent of a parent has a reference? second if
-                    .event( "Ox1qBWsnVwE" ).isInvalid()
+                .trackedEntity( "xK7H53f4Hc2").isInDB().isNotInPayload()
+                    .enrollment( "t1zaUjKgT3p").isNotValid()
+                .enrollment( "Ok4Fe5moc3N").isInDB().isNotInPayload() // TODO(DHIS2-14213) could there be a case where a parent of a parent has a reference? second if
+                    .event( "Ox1qBWsnVwE" ).isNotValid()
                 .build();
 //                .relationship("Te3IC6TpnBB",
 //                        trackedEntity("xK7H53f4Hc2"),
@@ -184,9 +184,9 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-            .trackedEntity( "xK7H53f4Hc2" ).isExisting()
-                .enrollment( "t1zaUjKgT3p" ).isExisting()
-                    .event( "Qck4PQ7TMun" ).isExisting()
+            .trackedEntity( "xK7H53f4Hc2" ).isInDB()
+                .enrollment( "t1zaUjKgT3p" ).isInDB()
+                    .event( "Qck4PQ7TMun" ).isInDB()
             .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -205,7 +205,7 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-            .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
+            .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
             .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -222,7 +222,7 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-            .trackedEntity( "xK7H53f4Hc2" ).isInvalid().isExisting()
+            .trackedEntity( "xK7H53f4Hc2" ).isNotValid().isInDB()
                 .enrollment( "t1zaUjKgT3p" )
             .build();
 
@@ -241,7 +241,7 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-            .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
+            .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
                 .enrollment( "t1zaUjKgT3p" )
             .build();
 
@@ -261,7 +261,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
-                .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                .enrollment( "t1zaUjKgT3p" ).isNotValid()
             .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -280,7 +280,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
-                .enrollment( "t1zaUjKgT3p" ).isInvalid().isExisting()
+                .enrollment( "t1zaUjKgT3p" ).isNotValid().isInDB()
                     .event( "Qck4PQ7TMun" )
             .build();
 
@@ -301,7 +301,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
-                .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                .enrollment( "t1zaUjKgT3p" ).isNotValid()
                     .event( "Qck4PQ7TMun" )
             .build();
 
@@ -323,7 +323,7 @@ class PersistablesFilterTest
         Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" )
-                    .event( "Qck4PQ7TMun" ).isInvalid()
+                    .event( "Qck4PQ7TMun" ).isNotValid()
             .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -343,9 +343,9 @@ class PersistablesFilterTest
         // @formatter:off
         // an event in an event program does not have an enrollment set (even though technically its enrolled in a default program)
         Setup setup = new Setup.Builder()
-            .eventWithoutRegistration( "Qck4PQ7TMun" ).isInvalid()
-            .eventWithoutRegistration( "Ok4Fe5moc3N" ).isExisting()
-            .eventWithoutRegistration( "nVjkL7qHYvL" ).isExisting().isInvalid()
+            .eventWithoutRegistration( "Qck4PQ7TMun" ).isNotValid()
+            .eventWithoutRegistration( "Ok4Fe5moc3N" ).isInDB()
+            .eventWithoutRegistration( "nVjkL7qHYvL" ).isInDB().isNotValid()
             .eventWithoutRegistration( "MeC1UpOX4Wu" )
             .build();
 
@@ -367,7 +367,7 @@ class PersistablesFilterTest
                 .trackedEntity( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")).isInvalid()
+                    trackedEntity("QxGbKYwChDM")).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -385,7 +385,7 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2" ).isInvalid().isExisting()
+                .trackedEntity( "xK7H53f4Hc2" ).isNotValid().isInDB()
                 .trackedEntity( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
@@ -408,7 +408,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                .trackedEntity( "QxGbKYwChDM" ).isInvalid().isExisting()
+                .trackedEntity( "QxGbKYwChDM" ).isNotValid().isInDB()
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
                     trackedEntity("QxGbKYwChDM") )
@@ -430,7 +430,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                    .enrollment( "QxGbKYwChDM" ).isInvalid()
+                    .enrollment( "QxGbKYwChDM" ).isNotValid()
                 .relationship("Te3IC6TpnBB",
                     enrollment("QxGbKYwChDM"),
                     trackedEntity("xK7H53f4Hc2") )
@@ -452,7 +452,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                .eventWithoutRegistration( "QxGbKYwChDM" ).isInvalid()
+                .eventWithoutRegistration( "QxGbKYwChDM" ).isNotValid()
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
                     event("QxGbKYwChDM") )
@@ -502,7 +502,7 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
+                .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "Qck4PQ7TMun" )
                         .event( "Ox1qBWsnVwE" )
@@ -525,7 +525,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                    .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                    .enrollment( "t1zaUjKgT3p" ).isNotValid()
                         .event( "Qck4PQ7TMun" )
                 .build();
 
@@ -548,8 +548,8 @@ class PersistablesFilterTest
 
         // @formatter:off
         Setup setup = new Setup.Builder()
-                .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
-                    .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+                    .enrollment( "t1zaUjKgT3p" ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -569,7 +569,7 @@ class PersistablesFilterTest
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" )
-                        .event( "Qck4PQ7TMun" ).isInvalid()
+                        .event( "Qck4PQ7TMun" ).isNotValid()
                         .event( "Ox1qBWsnVwE" )
                 .eventWithoutRegistration("G9cH8AVvguf")
                 .build();
@@ -595,7 +595,7 @@ class PersistablesFilterTest
                 .eventWithoutRegistration( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
-                        event("QxGbKYwChDM") ).isInvalid()
+                        event("QxGbKYwChDM") ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -621,7 +621,7 @@ class PersistablesFilterTest
                         .event( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         event("QxGbKYwChDM"),
-                        enrollment("t1zaUjKgT3p") ).isInvalid()
+                        enrollment("t1zaUjKgT3p") ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -643,7 +643,7 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                    .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                    .enrollment( "t1zaUjKgT3p" ).isNotValid()
                 .eventWithoutRegistration( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         enrollment("t1zaUjKgT3p"),
@@ -684,7 +684,7 @@ class PersistablesFilterTest
          * Adding an entity with methods like {@link #trackedEntity(String)} always assumes the
          * entity is valid and does not yet exist.
          * <p>
-         * Call {@link #isInvalid()} or {@link #isExisting()} to mark the current
+         * Call {@link #isNotValid()} or {@link #isInDB()} to mark the current
          * entity as invalid or existing. You need to make sure to add entities in
          * the right order (hierarchy) otherwise you'll get NPE. This means that you
          * cannot add an {@link #enrollment(String)} without first adding a
@@ -702,7 +702,7 @@ class PersistablesFilterTest
 
             /**
              * Keeps track of the current entity that can be set to
-             * {@link #isInvalid()} or {@link #isExisting()}.
+             * {@link #isNotValid()}, {@link #isNotInPayload()} or {@link #isInDB()}.
              */
             private Entity<? extends TrackerDto> current;
 
@@ -718,6 +718,16 @@ class PersistablesFilterTest
              */
             private Entity<Enrollment> currentEnrollment;
 
+            /**
+             * Build a tracked entity.
+             * <p>
+             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
+             * Attach enrollments by calling {@link #enrollment(String)}.
+             * </p>
+             *
+             * @param uid uid of tracked entity
+             * @return builder
+             */
             Builder trackedEntity(String uid) {
                 Entity<TrackedEntity> entity = new Entity<>(TrackedEntity.builder().trackedEntity(uid).build());
                 this.trackedEntities.add(entity);
@@ -727,13 +737,17 @@ class PersistablesFilterTest
             }
 
             /**
-             * Add an enrollment to the payload with the {@link #currentTrackedEntity} as its parent which is also in the payload.
+             * Build an enrollment with the {@link #currentTrackedEntity} as its parent.
              * <p>
              * <b>Requires call</b> to {@link #trackedEntity(String)} first.
              * </p>
+             * <p>
+             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
+             * Attach events by calling {@link #event(String)}.
+             * </p>
              *
              * @param uid uid of enrollment
-             * @return setup
+             * @return builder
              */
             Builder enrollment( String uid )
             {
@@ -752,6 +766,18 @@ class PersistablesFilterTest
                 return new Entity<>(enrollment);
             }
 
+            /**
+             * Build an event with the {@link #currentEnrollment} as its parent.
+             * <p>
+             * <b>Requires call</b> to {@link #enrollment(String)} first.
+             * </p>
+             * <p>
+             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
+             * </p>
+             *
+             * @param uid uid of event
+             * @return builder
+             */
             Builder event( String uid )
             {
                 Entity<Event> entity = event( uid, currentEnrollment );
@@ -760,6 +786,15 @@ class PersistablesFilterTest
                 return this;
             }
 
+            /**
+             * Build an event without an enrollment as parent.
+             * <p>
+             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
+             * </p>
+             *
+             * @param uid uid of event
+             * @return builder
+             */
             Builder eventWithoutRegistration( String uid )
             {
                 Entity<Event> entity = event( uid, currentEnrollment );
@@ -790,6 +825,19 @@ class PersistablesFilterTest
                 return new Entity<>(event);
             }
 
+            /**
+             * Build a relationship.
+             * <p>
+             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
+             * Set {@code from} and {@code to} via {@link PersistablesFilterTest#trackedEntity(String)}, {@link PersistablesFilterTest#enrollment(String)} or {@link PersistablesFilterTest#event(String)}.
+             * Note: the entities you reference by UID in the from and to need to be setup using {@link #trackedEntity(String)}, {@link #enrollment(String)} or {@link #event(String)}.
+             * </p>
+             *
+             * @param uid uid of relationship
+             * @param from relationship item from
+             * @param to relationship item to
+             * @return builder
+             */
             Builder relationship(String uid, RelationshipItem from, RelationshipItem to) {
                 Relationship relationship = Relationship.builder()
                         .relationship(uid)
@@ -798,22 +846,20 @@ class PersistablesFilterTest
                         .build();
                 Entity<Relationship> entity = new Entity<>(relationship);
                 this.relationships.add(entity);
-                // set cursors
                 current = entity;
                 return this;
             }
 
-            // TODO(DHIS2-14213) return something? Maybe I need a setup builder and on build I return the setup with the args and mocks and so on
             private Setup build() {
                 TrackerPreheat preheat = mock( TrackerPreheat.class );
                 TrackerBundle bundle = TrackerBundle.builder().preheat(preheat).build();
-                EnumMap<TrackerType, Set<String>> invalidEntities = PersistablesFilterTest.invalidEntities();
 
                 bundle.setTrackedEntities( toEntitiesInPayload(trackedEntities));
                 bundle.setEnrollments( toEntitiesInPayload(enrollments));
                 bundle.setEvents( toEntitiesInPayload(events));
                 bundle.setRelationships( toEntitiesInPayload(relationships));
 
+                EnumMap<TrackerType, Set<String>> invalidEntities = PersistablesFilterTest.invalidEntities();
                 invalidEntities.get(TRACKED_ENTITY).addAll(invalid(trackedEntities));
                 invalidEntities.get(ENROLLMENT).addAll(invalid(enrollments));
                 invalidEntities.get(EVENT).addAll(invalid(events));
@@ -859,7 +905,7 @@ class PersistablesFilterTest
              *
              * @return this setup
              */
-            Builder isInvalid()
+            Builder isNotValid()
             {
                 this.current.valid = false;
                 return this;
@@ -871,14 +917,14 @@ class PersistablesFilterTest
              *
              * @return this setup
              */
-            Builder isExisting()
+            Builder isInDB()
             {
                 this.current.isInDB = true;
                 return this;
             }
 
             /**
-             * Exlude {@link #current} {@link TrackerDto} from the {@link #bundle}.
+             * Exclude {@link #current} {@link TrackerDto} from the {@link #bundle}.
              *
              * @return this setup
              */
