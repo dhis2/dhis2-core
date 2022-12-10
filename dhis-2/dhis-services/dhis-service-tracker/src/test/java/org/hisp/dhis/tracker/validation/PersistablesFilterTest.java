@@ -412,6 +412,32 @@ class PersistablesFilterTest
     }
 
     @Test
+    void testCreateAndUpdateOnlyReportErrorsIfItAddsNewInformation()
+    {
+        // If entities are found to be invalid during the validation an error for the entity will already be in the
+        // validation report. Only add errors if it would not be clear why an entity cannot be persisted.
+
+        // @formatter:off
+        Setup setup = new Setup.Builder()
+                .trackedEntity( "xK7H53f4Hc2" ).isNotValid()
+                .enrollment( "t1zaUjKgT3p" ).isNotValid()
+                .relationship("Te3IC6TpnBB",
+                        trackedEntity("xK7H53f4Hc2"),
+                        enrollment("t1zaUjKgT3p") ).isNotValid()
+                .build();
+
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
+                TrackerImportStrategy.CREATE_AND_UPDATE );
+
+        assertAll(
+                () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
+                () -> assertIsEmpty(persistable.get(Enrollment.class)),
+                () -> assertIsEmpty(persistable.get(Relationship.class)),
+                () -> assertIsEmpty( persistable.getErrors())
+        );
+    }
+
+    @Test
     void testDeleteValidEntitiesCanBeDeleted()
     {
         // @formatter:off
@@ -504,6 +530,7 @@ class PersistablesFilterTest
         assertAll(
                 () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
                 () -> assertIsEmpty(persistable.get(Enrollment.class)),
+                () -> assertIsEmpty(persistable.get(Relationship.class)),
                 () -> assertIsEmpty( persistable.getErrors())
         );
     }

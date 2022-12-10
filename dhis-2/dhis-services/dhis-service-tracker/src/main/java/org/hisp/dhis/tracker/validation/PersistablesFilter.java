@@ -195,7 +195,7 @@ class PersistablesFilter
                 {
                     mark( entity ); // mark as persistable for later children
                 }
-                this.result.put( type, entity ); // persistable
+                this.result.put( type, entity );
                 continue;
             }
 
@@ -279,6 +279,10 @@ class PersistablesFilter
             .orElse( t -> true ); // predicate always returning true for entities without parents
     }
 
+    /**
+     * Add error for valid parents with invalid child as the reason. So users
+     * know why a valid entity could not be deleted.
+     */
     private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( Check<T> check, T entity )
     {
         // add error for parents with entity as reason (only to valid parents in the payload)
@@ -292,9 +296,18 @@ class PersistablesFilter
         return errors;
     }
 
+    /**
+     * Add error for valid child entity with invalid parent as a reason. If a
+     * child is invalid that is enough information for a user to know why it
+     * could not be persisted.
+     */
     private <T extends TrackerDto> void addErrorsForChildren( Check<T> check, T entity )
     {
-        // add error for entity with parent as a reason
+        if ( isNotValid( entity ) )
+        {
+            return;
+        }
+
         List<TrackerErrorReport> errors = check.parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isNotValid ) // remove valid parents
