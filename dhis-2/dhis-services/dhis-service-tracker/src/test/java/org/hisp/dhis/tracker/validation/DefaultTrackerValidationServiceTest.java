@@ -63,7 +63,6 @@ import org.junit.jupiter.api.Test;
 class DefaultTrackerValidationServiceTest
 {
 
-    // TODO(DHIS2-14213) ensure we have a test that shows an invalid entity will be removed and the error end in the report
     private DefaultTrackerValidationService service;
 
     @Test
@@ -213,7 +212,7 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        assertEquals( 1, report.getErrors().size(), "only remove on error hook should add 1 error" );
+        assertEquals( 1, report.getErrors().size(), "only skip on error hook should add 1 error" );
         assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
