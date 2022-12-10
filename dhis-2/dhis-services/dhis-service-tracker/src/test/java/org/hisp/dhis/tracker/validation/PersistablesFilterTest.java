@@ -41,12 +41,15 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
@@ -64,16 +67,11 @@ import org.junit.jupiter.api.Test;
 
 class PersistablesFilterTest
 {
-    // TODO(DHIS2-14213) get rid of compiler warnings
-    // TODO(DHIS2-14213) mocking of preheat.exists( dto) does not work if the dto is not of the same instance
-    // makes sense but is annoying; so I have to write preheat.exists( parent.getTrackerType(), parent.getUid())
-    // for now
-
     @Test
     void testCreateAndUpdateValidEntitiesCanBePersisted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" )
                     .event( "Qck4PQ7TMun" )
@@ -83,10 +81,10 @@ class PersistablesFilterTest
                     .event( "jNyGqnwryNi" )
             .relationship("Te3IC6TpnBB",
                 trackedEntity("xK7H53f4Hc2"),
-                trackedEntity("QxGbKYwChDM")
-            );
+                trackedEntity("QxGbKYwChDM") )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -98,23 +96,23 @@ class PersistablesFilterTest
         );
     }
 
-    // TODO(DHIS2-14213) find an alternative to the boolean flag
     // TODO(DHIS2-14213) also test relationship
     @Test
     void testCreateAndUpdateValidEntitiesReferencingParentsNotInPayload()
     {
         // @formatter:off
-        Setup setup = new Setup()
-                .trackedEntity( "xK7H53f4Hc2", true ).isExisting()
+        Setup setup = new Setup.Builder()
+                .trackedEntity( "xK7H53f4Hc2" ).isExisting().isNotInPayload()
                     .enrollment( "t1zaUjKgT3p")
-                .enrollment( "Ok4Fe5moc3N", true).isExisting()
-                    .event( "Ox1qBWsnVwE" );
+                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload()
+                    .event( "Ox1qBWsnVwE" )
+                .build();
 //                .relationship("Te3IC6TpnBB",
 //                        trackedEntity("xK7H53f4Hc2"),
 //                        trackedEntity("QxGbKYwChDM")
 //                );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -131,17 +129,18 @@ class PersistablesFilterTest
     void testDeleteValidEntitiesReferencingParentsNotInPayload()
     {
         // @formatter:off
-        Setup setup = new Setup()
-                .trackedEntity( "xK7H53f4Hc2", true ).isExisting()
+        Setup setup = new Setup.Builder()
+                .trackedEntity( "xK7H53f4Hc2").isExisting().isNotInPayload()
                     .enrollment( "t1zaUjKgT3p")
-                .enrollment( "Ok4Fe5moc3N", true).isExisting()
-                    .event( "Ox1qBWsnVwE" );
+                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload()
+                    .event( "Ox1qBWsnVwE" )
+                .build();
 //                .relationship("Te3IC6TpnBB",
 //                        trackedEntity("xK7H53f4Hc2"),
 //                        trackedEntity("QxGbKYwChDM")
 //                );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -157,17 +156,18 @@ class PersistablesFilterTest
     void testDeleteInvalidEntitiesReferencingParentsNotInPayload()
     {
         // @formatter:off
-        Setup setup = new Setup()
-                .trackedEntity( "xK7H53f4Hc2", true ).isExisting()
+        Setup setup = new Setup.Builder()
+                .trackedEntity( "xK7H53f4Hc2").isExisting().isNotInPayload()
                     .enrollment( "t1zaUjKgT3p").isInvalid()
-                .enrollment( "Ok4Fe5moc3N", true).isExisting() // TODO(DHIS2-14213) could there be a case where a parent of a parent has a reference? second if
-                    .event( "Ox1qBWsnVwE" ).isInvalid();
+                .enrollment( "Ok4Fe5moc3N").isExisting().isNotInPayload() // TODO(DHIS2-14213) could there be a case where a parent of a parent has a reference? second if
+                    .event( "Ox1qBWsnVwE" ).isInvalid()
+                .build();
 //                .relationship("Te3IC6TpnBB",
 //                        trackedEntity("xK7H53f4Hc2"),
 //                        trackedEntity("QxGbKYwChDM")
 //                );
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -183,12 +183,13 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidEntitiesCanBePersistedIfTheyExist()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" ).isExisting()
                 .enrollment( "t1zaUjKgT3p" ).isExisting()
-                    .event( "Qck4PQ7TMun" ).isExisting();
+                    .event( "Qck4PQ7TMun" ).isExisting()
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -203,10 +204,11 @@ class PersistablesFilterTest
     void testCreateAndUpdateInvalidTeiCannotBePersisted()
     {
         // @formatter:off
-        Setup setup = new Setup()
-            .trackedEntity( "xK7H53f4Hc2" ).isInvalid();
+        Setup setup = new Setup.Builder()
+            .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -219,11 +221,12 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidEnrollmentOfInvalidTeiCanBeUpdatedIfTeiExists()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" ).isInvalid().isExisting()
-                .enrollment( "t1zaUjKgT3p" );
+                .enrollment( "t1zaUjKgT3p" )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -237,11 +240,12 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidEnrollmentOfInvalidTeiCannotBeUpdatedIfTeiDoesNotExist()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
-                .enrollment( "t1zaUjKgT3p" );
+                .enrollment( "t1zaUjKgT3p" )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -255,11 +259,12 @@ class PersistablesFilterTest
     void testCreateAndUpdateInvalidEnrollmentOfValidTeiCannotBePersisted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
-                .enrollment( "t1zaUjKgT3p" ).isInvalid();
+                .enrollment( "t1zaUjKgT3p" ).isInvalid()
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -273,12 +278,13 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidEventOfInvalidEnrollmentCanBeUpdatedIfEnrollmentExists()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" ).isInvalid().isExisting()
-                    .event( "Qck4PQ7TMun" );
+                    .event( "Qck4PQ7TMun" )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -293,12 +299,13 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidEventOfInvalidEnrollmentCannotBeCreatedIfEnrollmentDoesNotExist()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" ).isInvalid()
-                    .event( "Qck4PQ7TMun" );
+                    .event( "Qck4PQ7TMun" )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -313,12 +320,13 @@ class PersistablesFilterTest
     void testCreateAndUpdateInvalidEventOfValidEnrollmentCannotBePersisted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .trackedEntity( "xK7H53f4Hc2" )
                 .enrollment( "t1zaUjKgT3p" )
-                    .event( "Qck4PQ7TMun" ).isInvalid();
+                    .event( "Qck4PQ7TMun" ).isInvalid()
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -334,13 +342,14 @@ class PersistablesFilterTest
     {
         // @formatter:off
         // an event in an event program does not have an enrollment set (even though technically its enrolled in a default program)
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
             .eventWithoutRegistration( "Qck4PQ7TMun" ).isInvalid()
             .eventWithoutRegistration( "Ok4Fe5moc3N" ).isExisting()
             .eventWithoutRegistration( "nVjkL7qHYvL" ).isExisting().isInvalid()
-            .eventWithoutRegistration( "MeC1UpOX4Wu" );
+            .eventWithoutRegistration( "MeC1UpOX4Wu" )
+            .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
             TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -353,15 +362,15 @@ class PersistablesFilterTest
     void testCreateAndUpdateInvalidRelationshipCannotBePersisted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                 .trackedEntity( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")
-                ).isInvalid();
+                    trackedEntity("QxGbKYwChDM")).isInvalid()
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -375,15 +384,15 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidRelationshipWithInvalidButExistingFrom()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" ).isInvalid().isExisting()
                 .trackedEntity( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")
-                );
+                    trackedEntity("QxGbKYwChDM") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -397,15 +406,15 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidRelationshipWithInvalidButExistingTo()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                 .trackedEntity( "QxGbKYwChDM" ).isInvalid().isExisting()
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")
-                );
+                    trackedEntity("QxGbKYwChDM") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -419,15 +428,15 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidRelationshipWithInvalidFromCannotBeCreated()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "QxGbKYwChDM" ).isInvalid()
                 .relationship("Te3IC6TpnBB",
                     enrollment("QxGbKYwChDM"),
-                    trackedEntity("xK7H53f4Hc2")
-                );
+                    trackedEntity("xK7H53f4Hc2") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -441,15 +450,15 @@ class PersistablesFilterTest
     void testCreateAndUpdateValidRelationshipWithInvalidToCannotBeCreated()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                 .eventWithoutRegistration( "QxGbKYwChDM" ).isInvalid()
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    event("QxGbKYwChDM")
-                );
+                    event("QxGbKYwChDM") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.CREATE_AND_UPDATE );
 
         assertAll(
@@ -463,7 +472,7 @@ class PersistablesFilterTest
     void testDeleteValidEntitiesCanBeDeleted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "Qck4PQ7TMun" )
@@ -473,10 +482,10 @@ class PersistablesFilterTest
                         .event( "jNyGqnwryNi" )
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")
-                );
+                    trackedEntity("QxGbKYwChDM") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -492,13 +501,14 @@ class PersistablesFilterTest
     void testDeleteInvalidTrackedEntityCannotBeDeletedButItsChildrenCan()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "Qck4PQ7TMun" )
-                        .event( "Ox1qBWsnVwE" );
+                        .event( "Ox1qBWsnVwE" )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -513,12 +523,13 @@ class PersistablesFilterTest
     void testDeleteValidTrackedEntityOfInvalidEnrollmentCannotBeDeleted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" ).isInvalid()
-                        .event( "Qck4PQ7TMun" );
+                        .event( "Qck4PQ7TMun" )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -536,11 +547,12 @@ class PersistablesFilterTest
         // validation report. Only add errors if it would not be clear why an entity cannot be persisted.
 
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" ).isInvalid()
-                    .enrollment( "t1zaUjKgT3p" ).isInvalid();
+                    .enrollment( "t1zaUjKgT3p" ).isInvalid()
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -554,14 +566,15 @@ class PersistablesFilterTest
     void testDeleteValidTrackedEntityAndEnrollmentWithInvalidEventCannotBeDeleted()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "Qck4PQ7TMun" ).isInvalid()
                         .event( "Ox1qBWsnVwE" )
-                .eventWithoutRegistration("G9cH8AVvguf");
+                .eventWithoutRegistration("G9cH8AVvguf")
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -577,15 +590,15 @@ class PersistablesFilterTest
     void testDeleteInvalidRelationshipPreventsDeletionOfTrackedEntityAndEvent()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                 .eventWithoutRegistration( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
-                        event("QxGbKYwChDM")
-                ).isInvalid();
+                        event("QxGbKYwChDM") ).isInvalid()
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -602,16 +615,16 @@ class PersistablesFilterTest
     void testDeleteInvalidRelationshipPreventsDeletionOfEnrollmentAndEvent()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         event("QxGbKYwChDM"),
-                        enrollment("t1zaUjKgT3p")
-                ).isInvalid();
+                        enrollment("t1zaUjKgT3p") ).isInvalid()
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -628,16 +641,16 @@ class PersistablesFilterTest
     void testDeleteValidRelationshipWithInvalidFrom()
     {
         // @formatter:off
-        Setup setup = new Setup()
+        Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" ).isInvalid()
                 .eventWithoutRegistration( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         enrollment("t1zaUjKgT3p"),
-                        event("QxGbKYwChDM")
-                );
+                        event("QxGbKYwChDM") )
+                .build();
 
-        PersistablesFilter.Result persistable = filter( setup.entities(), setup.invalidEntities(),
+        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
@@ -648,198 +661,235 @@ class PersistablesFilterTest
         );
     }
 
-    /**
-     * Setup builds the arguments for calling
-     * {@link PersistablesFilter#filter(TrackerBundle, EnumMap, TrackerImportStrategy)}
-     * Adding an entity with methods like {@link #trackedEntity(String)} always assumes the
-     * entity is valid and does not yet exist.
-     * <p>
-     * Call {@link #isInvalid()} or {@link #isExisting()} to mark the current
-     * entity as invalid or existing. You need to make sure to add entities in
-     * the right order (hierarchy) otherwise you'll get NPE. This means that you
-     * cannot add an {@link #enrollment(String)} without first adding a
-     * {@link #trackedEntity(String)}.
-     * </p>
-     */
-    private static class Setup
-    {
+    @RequiredArgsConstructor
+    private static class Entity<T extends TrackerDto> {
+        private boolean valid = true;
 
-        private final TrackerBundle bundle;
+        private boolean isInPayload = true;
 
-        private final EnumMap<TrackerType, Set<String>> invalidEntities = PersistablesFilterTest.invalidEntities();
+        private boolean isInDB = false;
 
-        private final TrackerPreheat preheat;
-
-        /**
-         * Keeps track of the current entity that can be set to
-         * {@link #isInvalid()} or {@link #isExisting()}.
-         */
-        private TrackerDto current;
-
-        /**
-         * Keeps track of the current trackedEntity to which enrollments and
-         * events will be added on calls to {@link #enrollment(String)} or
-         * {@link #event(String)}.
-         */
-        private TrackedEntity currentTrackedEntity;
-
-        private Enrollment currentEnrollment;
-
-        Setup()
-        {
-            this.preheat = mock( TrackerPreheat.class );
-            this.bundle = TrackerBundle.builder().preheat(this.preheat).build();
-        }
-
-        Setup trackedEntity( String uid )
-        {
-            TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity(uid).build();
-            bundle.getTrackedEntities().add(trackedEntity);
-            // set cursors
-            current = trackedEntity;
-            currentTrackedEntity = trackedEntity;
-            return this;
-        }
-
-        Setup trackedEntity( String uid, boolean notInPayload )
-        {
-            TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity(uid).build();
-            if (!notInPayload) {
-                bundle.getTrackedEntities().add(trackedEntity);
-            }
-            // set cursors
-            current = trackedEntity;
-            currentTrackedEntity = trackedEntity;
-            return this;
-        }
-
-        /**
-         * Add an enrollment to the payload with the {@link #currentTrackedEntity} as its parent which is also in the payload.
-         * <p>
-         * <b>Requires call</b> to {@link #trackedEntity(String)} first.
-         * </p>
-         *
-         * @param uid uid of enrollment
-         * @return setup
-         */
-        Setup enrollment( String uid )
-        {
-            Enrollment enrollment = enrollment( uid, currentTrackedEntity );
-            bundle.getEnrollments().add(enrollment);
-            // set cursors
-            current = enrollment;
-            currentEnrollment = enrollment;
-            return this;
-        }
-
-        Setup enrollment( String uid, boolean notInPayload )
-        {
-            Enrollment enrollment = enrollment( uid, currentTrackedEntity );
-            if (!notInPayload) {
-                bundle.getEnrollments().add(enrollment);
-            }
-            // set cursors
-            current = enrollment;
-            currentEnrollment = enrollment;
-            return this;
-        }
-
-        private static Enrollment enrollment( String uid, TrackedEntity parent )
-        {
-            // set child/parent links
-            Enrollment enrollment = Enrollment.builder().enrollment( uid ).trackedEntity( parent.getUid() ).build();
-            parent.getEnrollments().add( enrollment );
-            return enrollment;
-        }
-
-        Setup event( String uid )
-        {
-            Event event = event( uid, currentEnrollment );
-            bundle.getEvents().add(event);
-            // set cursors
-            current = event;
-            return this;
-        }
-
-        Setup eventWithoutRegistration( String uid )
-        {
-            Event event = event( uid, null );
-            bundle.getEvents().add(event);
-            // set cursors
-            current = event;
-            // unset enrollment cursor. it might be confusing otherwise when calling .enrollment().eventWithoutRegistration().event()
-            currentEnrollment = null;
-            return this;
-        }
-
-        private static Event event( String uid, Enrollment parent )
-        {
-            Event event;
-            Event.EventBuilder eventBuilder = Event.builder().event( uid );
-
-            if ( parent != null )
-            {
-                // set child/parent links only if the event has a parent. Events in an event program have no enrollment.
-                // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
-                event = eventBuilder.enrollment( parent.getUid() ).build();
-                parent.getEvents().add( event );
-            }
-            else
-            {
-                event = eventBuilder.build();
-            }
-
-            return event;
-        }
-
-        Setup relationship(String uid, RelationshipItem from, RelationshipItem to) {
-            Relationship relationship = Relationship.builder()
-                    .relationship(uid)
-                    .from(from)
-                    .to(to)
-                    .build();
-            bundle.getRelationships().add(relationship);
-            // set cursors
-            current = relationship;
-            return this;
-        }
-
-        /**
-         * Marks {@link #current} {@link TrackerDto} as invalid.
-         *
-         * @return this setup
-         */
-        Setup isInvalid()
-        {
-            this.invalidEntities.get( current.getTrackerType() ).add( current.getUid() );
-            return this;
-        }
-
-        /**
-         * Marks {@link #current} {@link TrackerDto} as existing in
-         * {@link #preheat}.
-         *
-         * @return this setup
-         */
-        Setup isExisting()
-        {
-            when( this.preheat.exists( current.getTrackerType(), current.getUid() ) )
-                .thenReturn( true);
-            when( this.preheat.exists( current ) ).thenReturn( true);
-            return this;
-        }
-
-        TrackerBundle entities()
-        {
-            return bundle;
-        }
-
-        EnumMap<TrackerType, Set<String>> invalidEntities()
-        {
-            return invalidEntities;
-        }
+        private final T entity;
     }
 
+    @RequiredArgsConstructor
+    private static class Setup {
+        private final TrackerBundle bundle;
+
+        private final EnumMap<TrackerType, Set<String>> invalidEntities;
+
+        /**
+         * Setup builds the arguments for calling
+         * {@link PersistablesFilter#filter(TrackerBundle, EnumMap, TrackerImportStrategy)}
+         * Adding an entity with methods like {@link #trackedEntity(String)} always assumes the
+         * entity is valid and does not yet exist.
+         * <p>
+         * Call {@link #isInvalid()} or {@link #isExisting()} to mark the current
+         * entity as invalid or existing. You need to make sure to add entities in
+         * the right order (hierarchy) otherwise you'll get NPE. This means that you
+         * cannot add an {@link #enrollment(String)} without first adding a
+         * {@link #trackedEntity(String)}.
+         * </p>
+         */
+        private static class Builder
+        {
+            private final List<Entity<TrackedEntity>> trackedEntities = new ArrayList<>();
+
+            private final List<Entity<Enrollment>> enrollments = new ArrayList<>();
+
+            private final List<Entity<Event>> events = new ArrayList<>();
+            private final List<Entity<Relationship>> relationships = new ArrayList<>();
+
+            /**
+             * Keeps track of the current entity that can be set to
+             * {@link #isInvalid()} or {@link #isExisting()}.
+             */
+            private Entity<? extends TrackerDto> current;
+
+            /**
+             * Keeps track of the current trackedEntity to which enrollments and
+             * events will be added on calls to {@link #enrollment(String)} or
+             * {@link #event(String)}.
+             */
+            private Entity<TrackedEntity> currentTrackedEntity;
+
+            /**
+             * Keeps track of the current enrollment to which events will be added on calls to {@link #event(String)}.
+             */
+            private Entity<Enrollment> currentEnrollment;
+
+            Builder trackedEntity(String uid) {
+                Entity<TrackedEntity> entity = new Entity<>(TrackedEntity.builder().trackedEntity(uid).build());
+                this.trackedEntities.add(entity);
+                current = entity;
+                currentTrackedEntity = entity;
+                return this;
+            }
+
+            /**
+             * Add an enrollment to the payload with the {@link #currentTrackedEntity} as its parent which is also in the payload.
+             * <p>
+             * <b>Requires call</b> to {@link #trackedEntity(String)} first.
+             * </p>
+             *
+             * @param uid uid of enrollment
+             * @return setup
+             */
+            Builder enrollment( String uid )
+            {
+                Entity<Enrollment> entity = enrollment( uid, currentTrackedEntity );
+                this.enrollments.add(entity);
+                current = entity;
+                currentEnrollment = entity;
+                return this;
+            }
+
+            private static Entity<Enrollment> enrollment( String uid, Entity<TrackedEntity> parent )
+            {
+                // set child/parent links
+                Enrollment enrollment = Enrollment.builder().enrollment( uid ).trackedEntity( parent.entity.getUid() ).build();
+                parent.entity.getEnrollments().add( enrollment );
+                return new Entity<>(enrollment);
+            }
+
+            Builder event( String uid )
+            {
+                Entity<Event> entity = event( uid, currentEnrollment );
+                this.events.add(entity);
+                current = entity;
+                return this;
+            }
+
+            Builder eventWithoutRegistration( String uid )
+            {
+                Entity<Event> entity = event( uid, currentEnrollment );
+                this.events.add(entity);
+                current = entity;
+                // unset enrollment cursor. Otherwise, it might be confusing when calling .enrollment().eventWithoutRegistration().event()
+                currentEnrollment = null;
+                return this;
+            }
+
+            private static Entity<Event> event( String uid, Entity<Enrollment> parent )
+            {
+                Event event;
+                Event.EventBuilder eventBuilder = Event.builder().event( uid );
+
+                if ( parent != null )
+                {
+                    // set child/parent links only if the event has a parent. Events in an event program have no enrollment.
+                    // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
+                    event = eventBuilder.enrollment( parent.entity.getUid() ).build();
+                    parent.entity.getEvents().add( event );
+                }
+                else
+                {
+                    event = eventBuilder.build();
+                }
+
+                return new Entity<>(event);
+            }
+
+            Builder relationship(String uid, RelationshipItem from, RelationshipItem to) {
+                Relationship relationship = Relationship.builder()
+                        .relationship(uid)
+                        .from(from)
+                        .to(to)
+                        .build();
+                Entity<Relationship> entity = new Entity<>(relationship);
+                this.relationships.add(entity);
+                // set cursors
+                current = entity;
+                return this;
+            }
+
+            // TODO(DHIS2-14213) return something? Maybe I need a setup builder and on build I return the setup with the args and mocks and so on
+            private Setup build() {
+                TrackerPreheat preheat = mock( TrackerPreheat.class );
+                TrackerBundle bundle = TrackerBundle.builder().preheat(preheat).build();
+                EnumMap<TrackerType, Set<String>> invalidEntities = PersistablesFilterTest.invalidEntities();
+
+                bundle.setTrackedEntities( toEntitiesInPayload(trackedEntities));
+                bundle.setEnrollments( toEntitiesInPayload(enrollments));
+                bundle.setEvents( toEntitiesInPayload(events));
+                bundle.setRelationships( toEntitiesInPayload(relationships));
+
+                invalidEntities.get(TRACKED_ENTITY).addAll(invalid(trackedEntities));
+                invalidEntities.get(ENROLLMENT).addAll(invalid(enrollments));
+                invalidEntities.get(EVENT).addAll(invalid(events));
+                invalidEntities.get(RELATIONSHIP).addAll(invalid(relationships));
+
+                inDB(preheat, trackedEntities);
+                inDB(preheat, enrollments);
+                inDB(preheat, events);
+                inDB(preheat, relationships);
+
+                return new Setup(bundle, invalidEntities);
+            }
+
+            private <T extends TrackerDto> List<T> toEntitiesInPayload(List<Entity<T>> entities) {
+                return entities.stream()
+                            .filter(e -> e.isInPayload)
+                            .map(e -> e.entity)
+                            .collect(Collectors.toList());
+            }
+
+            private <T extends TrackerDto> Set<String> invalid(List<Entity<T>> entities) {
+                return entities.stream()
+                        .filter(e -> !e.valid)
+                        .map(e -> e.entity.getUid())
+                        .collect(Collectors.toSet());
+            }
+
+            private <T extends TrackerDto> void inDB(TrackerPreheat preheat, List<Entity<T>> entities) {
+                // TODO(DHIS2-14213) mocking of preheat.exists( dto) does not work if the dto is not of the same instance
+                // makes sense but is annoying; so I have to write preheat.exists( parent.getTrackerType(), parent.getUid())
+                // for now
+                entities.stream()
+                    .filter(e -> e.isInDB)
+                    .map(e -> e.entity)
+                    .forEach(e -> {
+                        when( preheat.exists( e.getTrackerType(), e.getUid() ) ).thenReturn( true);
+                        when( preheat.exists( e) ).thenReturn( true);
+                    });
+            }
+
+            /**
+             * Marks {@link #current} {@link TrackerDto} as invalid in {@link #invalid}.
+             *
+             * @return this setup
+             */
+            Builder isInvalid()
+            {
+                this.current.valid = false;
+                return this;
+            }
+
+            /**
+             * Marks {@link #current} {@link TrackerDto} as existing in
+             * {@link #bundle}'s {@link TrackerPreheat}.
+             *
+             * @return this setup
+             */
+            Builder isExisting()
+            {
+                this.current.isInDB = true;
+                return this;
+            }
+
+            /**
+             * Exlude {@link #current} {@link TrackerDto} from the {@link #bundle}.
+             *
+             * @return this setup
+             */
+            Builder isNotInPayload()
+            {
+                this.current.isInPayload = false;
+                return this;
+            }
+        }
+
+    }
     private static RelationshipItem trackedEntity(String uid) {
         return RelationshipItem.builder().trackedEntity(uid).build();
     }

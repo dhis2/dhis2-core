@@ -64,6 +64,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
 // TODO(DHIS2-14213) reword all javadocs
+// TODO(DHIS2-14213) get rid of compiler warnings
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
  * taking into account the {@link TrackerImportStrategy} and the links between
