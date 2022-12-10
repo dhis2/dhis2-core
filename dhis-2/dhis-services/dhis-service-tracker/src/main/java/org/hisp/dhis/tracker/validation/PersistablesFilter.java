@@ -396,11 +396,9 @@ class PersistablesFilter
     }
 
     /**
-     * <p>
      * Using {@link TrackerDto} in functions to parents {@link Check#parents} as
      * a tuple of UID and {@link TrackerType}. This makes working with the
      * different types (trackedEntity, enrollment, ...) easier.
-     * </p>
      */
     private static class Check<T extends TrackerDto>
     {
