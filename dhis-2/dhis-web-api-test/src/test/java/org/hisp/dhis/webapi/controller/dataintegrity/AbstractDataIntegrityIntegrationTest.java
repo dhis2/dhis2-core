@@ -192,13 +192,18 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         checkDataIntegrityDetailsIssues( check, emptyStringSet, emptyStringSet, emptyStringSet, issueType );
     }
 
+    final void deleteAllMetadataObjects( String endpoint )
+    {
+        GET( "/" + endpoint + "/gist?fields=id&headless=true" ).content().stringValues()
+            .forEach( id -> DELETE( "/" + endpoint + "/" + id ) );
+        JsonResponse response = GET( "/" + endpoint ).content();
+        JsonArray dimensions = response.getArray( endpoint );
+        assertEquals( 0, dimensions.size() );
+    }
+
     final void deleteAllOrgUnits()
     {
-        GET( "/organisationUnits/gist?fields=id&headless=true" ).content().stringValues()
-            .forEach( id -> DELETE( "/organisationUnits/" + id ) );
-        JsonResponse response = GET( "/organisationUnits/" ).content();
-        JsonArray dimensions = response.getArray( "organisationUnits" );
-        assertEquals( 0, dimensions.size() );
+        deleteAllMetadataObjects( "organisationUnits" );
     }
 
     boolean deleteMetadataObject( String endpoint, String uid )

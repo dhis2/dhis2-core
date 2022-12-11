@@ -31,7 +31,7 @@ section: Categories
 summary_sql: >-
     select
     COUNT(*) as value,
-    (100 * COUNT(*) / (SELECT COUNT(*) FROM dataelementcategory)) as percent
+    100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM dataelementcategory), 0) as percent
     from dataelementcategory where categoryid
     not in (select distinct categoryid from categories_categoryoptions);
 details_sql: >-
