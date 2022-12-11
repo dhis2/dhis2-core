@@ -189,7 +189,7 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
-    // TODO(DHIS2-14213) not safe; what if arg is null or there is a null in our bundle
+    // TODO(DHIS2-14213) not safe if bundle contains a TEI with no id
     // TODO(DHIS2-14213) not very efficient; does it matter? should we adapt this?
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {
