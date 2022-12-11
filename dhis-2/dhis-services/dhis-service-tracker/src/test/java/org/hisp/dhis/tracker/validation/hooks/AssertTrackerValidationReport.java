@@ -81,12 +81,6 @@ public class AssertTrackerValidationReport
                 type, uid, messageContains, errors ) );
     }
 
-    public static void assertHasNoErrorWithCode( List<TrackerErrorReport> errors, TrackerErrorCode code )
-    {
-        assertTrue( errors.stream().noneMatch( err -> code == err.getErrorCode() ),
-            String.format( "error with code %s not expected to be in error(s) %s", code, errors ) );
-    }
-
     public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
     {
         assertHasWarning( report, code, dto.getTrackerType(), dto.getUid() );

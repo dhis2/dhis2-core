@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5001;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasNoErrorWithCode;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -965,9 +964,5 @@ class PersistablesFilterTest
 
     private static void assertError(PersistablesFilter.Result result, TrackerErrorCode code, TrackerType type, String uid, String messageContains ) {
         assertHasError(result.getErrors(), code, type, uid, messageContains);
-    }
-
-    private static void assertNoErrorWithCode(PersistablesFilter.Result result, TrackerErrorCode code) {
-        assertHasNoErrorWithCode(result.getErrors(), code);
     }
 }
