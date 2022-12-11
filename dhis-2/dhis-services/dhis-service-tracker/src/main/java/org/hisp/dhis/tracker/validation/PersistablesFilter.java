@@ -362,7 +362,8 @@ class PersistablesFilter
         {
             return Event.builder().event( item.getEvent() ).build();
         }
-        return null; // TODO(DHIS2-14213) isn't throwing better? if none of the above is set its not a valid item
+        // only reached if a new TrackerDto implementation is added
+        throw new IllegalStateException( "TrackerType for relationship item not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
     }
 
     /**
@@ -410,7 +411,8 @@ class PersistablesFilter
             {
                 return (List<T>) relationships;
             }
-            return Collections.emptyList();
+            // only reached if a new TrackerDto implementation is added
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
         }
     }
 }

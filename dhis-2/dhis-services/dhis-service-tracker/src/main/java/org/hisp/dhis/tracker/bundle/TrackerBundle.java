@@ -205,6 +205,11 @@ public class TrackerBundle
         return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
     }
 
+    public Optional<Relationship> getRelationship( String id )
+    {
+        return this.relationships.stream().filter( t -> t.getRelationship().equals( id ) ).findFirst();
+    }
+
     public Map<String, List<RuleEffect>> getEnrollmentRuleEffects()
     {
         return ruleEffects.stream()
@@ -246,12 +251,6 @@ public class TrackerBundle
         return getPreheat().getEvent( event );
     }
 
-    public org.hisp.dhis.relationship.Relationship getRelationship( String relationship )
-    {
-        return getPreheat().getRelationship( relationship );
-    }
-
-    // TODO(DHIS2-14213) test
     @SuppressWarnings( "unchecked" )
     public <T extends TrackerDto> List<T> get( Class<T> type )
     {
@@ -272,7 +271,8 @@ public class TrackerBundle
         {
             return (List<T>) relationships;
         }
-        return null;
+        // only reached if a new TrackerDto implementation is added
+        throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
     }
 
     /**
@@ -303,10 +303,10 @@ public class TrackerBundle
         case EVENT:
             return getEvent( uid ).isPresent();
         case RELATIONSHIP:
-            return false; // TODO(DHIS2-14213) will this ever be needed? Even if not, I guess it should be implemented or an exception thrown as this is surprising
+            return getRelationship( uid ).isPresent();
         default:
             // only reached if a new TrackerDto implementation is added
-            return false; // TODO(DHIS2-14213) better to throw than to hide this
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return false?
         }
     }
 }
