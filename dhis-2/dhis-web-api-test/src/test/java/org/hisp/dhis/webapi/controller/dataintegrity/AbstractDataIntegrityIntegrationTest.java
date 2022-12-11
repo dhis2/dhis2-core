@@ -192,6 +192,13 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         checkDataIntegrityDetailsIssues( check, emptyStringSet, emptyStringSet, emptyStringSet, issueType );
     }
 
+    final void assertNamedMetadataObjectExists( String endpoint, String name )
+    {
+        JsonResponse response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
+        JsonArray dimensions = response.getArray( endpoint );
+        assertEquals( 1, dimensions.size() );
+    }
+
     final void deleteAllMetadataObjects( String endpoint )
     {
         GET( "/" + endpoint + "/gist?fields=id&headless=true" ).content().stringValues()

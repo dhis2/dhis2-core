@@ -62,6 +62,8 @@ class DataIntegrityCategoryNoOptions extends AbstractDataIntegrityIntegrationTes
         categoryNoOptions = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' }" ) );
 
+        assertNamedMetadataObjectExists( "categories", "default" );
+        assertNamedMetadataObjectExists( "categoryOptions", "default" );
         /*
          * Note that the default category is implicit here, so the percentage
          * need to take that into account
