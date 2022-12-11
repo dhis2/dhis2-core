@@ -270,7 +270,7 @@ class PersistablesFilter
     private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check )
     {
         final Predicate<TrackerDto> baseParentCondition = parent -> isMarked( parent )
-            || this.preheat.exists( parent.getTrackerType(), parent.getUid() );
+            || this.preheat.exists( parent );
         final Predicate<TrackerDto> parentCondition = check.parentCondition.map( baseParentCondition::or )
             .orElse( baseParentCondition );
 

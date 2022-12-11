@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationRepo
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasNoErrorWithCode;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -796,7 +797,7 @@ class PersistablesFilterTest
              */
             Builder eventWithoutRegistration( String uid )
             {
-                Entity<Event> entity = event( uid, currentEnrollment );
+                Entity<Event> entity = event( uid, null );
                 this.events.add(entity);
                 current = entity;
                 // unset enrollment cursor. Otherwise, it might be confusing when calling .enrollment().eventWithoutRegistration().event()
@@ -887,16 +888,10 @@ class PersistablesFilterTest
             }
 
             private <T extends TrackerDto> void inDB(TrackerPreheat preheat, List<Entity<T>> entities) {
-                // TODO(DHIS2-14213) mocking of preheat.exists( dto) does not work if the dto is not of the same instance
-                // makes sense but is annoying; so I have to write preheat.exists( parent.getTrackerType(), parent.getUid())
-                // for now
                 entities.stream()
                     .filter(e -> e.isInDB)
                     .map(e -> e.entity)
-                    .forEach(e -> {
-                        when( preheat.exists( e.getTrackerType(), e.getUid() ) ).thenReturn( true);
-                        when( preheat.exists( e) ).thenReturn( true);
-                    });
+                    .forEach(e -> when( preheat.exists( argThat(t -> t != null && e.getTrackerType() == t.getTrackerType() && e.getUid().equals(t.getUid()))) ).thenReturn( true));
             }
 
             /**
