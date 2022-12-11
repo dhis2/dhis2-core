@@ -61,43 +61,53 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
-// TODO(DHIS2-14213) reword all javadocs
 // TODO(DHIS2-14213) get rid of compiler warnings
 // TODO(DHIS2-14213) can we remove its reliance on the preheat? now that we also need to check whether something is in the payload for error reporting?
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
- * taking into account the {@link TrackerImportStrategy} and the links between
- * entities. For example during {@link TrackerImportStrategy#CREATE} no valid
- * child of an invalid parent can be created (i.e. enrollment of trackedEntity
- * or event of enrollment). During {@link TrackerImportStrategy#UPDATE} a valid
- * child of an invalid parent can be updated if the parent exists.
+ * taking into account the {@link TrackerImportStrategy} and the parent/child
+ * relationships between entities. For example during
+ * {@link TrackerImportStrategy#CREATE} no valid child of an invalid parent can
+ * be created (i.e. enrollment of trackedEntity or event of enrollment). During
+ * {@link TrackerImportStrategy#UPDATE} a valid child of an invalid parent can
+ * be updated if the parent exists.
  * <p>
- * Filtering is only concerned with
- * {@link org.hisp.dhis.tracker.AtomicMode#OBJECT} as only then do we need to
- * determine what is persistable despite errors in the payload. With
- * {@link org.hisp.dhis.tracker.AtomicMode#ALL} only one error suffices to
- * reject the entire payload.
+ * The {@link Result} returned from
+ * {@link #filter(TrackerBundle, EnumMap, TrackerImportStrategy)} can be trusted
+ * to only contain persistable entities. The {@link TrackerBundle} is not
+ * mutated!
  * </p>
  * <p>
- * This filter relies on validations having run beforehand. The following are
- * some assumptions the filtering relies on:
+ * Errors are only added to {@link Result#errors} if they add information. For
+ * example a valid entity with invalid children cannot be deleted because of its
+ * children. Since the valid parent did not already have an error added during
+ * validation on will be added here. For more information see
+ * {@link #addErrorsForParents(List, TrackerDto)} and
+ * {@link #addErrorsForChildren(List, TrackerDto)}.
+ * </p>
+ * <p>
+ * This filter relies on preprocessing and all
+ * {@link org.hisp.dhis.tracker.validation.TrackerValidationHook}s having run
+ * beforehand. The following are some assumptions the filtering relies on:
  * </p>
  * <ul>
  * <li>This does not validate whether the {@link TrackerImportStrategy} matches
- * the state of a given entity. This is expected to be validated by the
- * {@link org.hisp.dhis.tracker.validation.TrackerValidationHook}s. Currently,
- * it's done by
- * {@link org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook}
- * So for example a TEI can only be {@link TrackerImportStrategy#UPDATE}d if it
- * exists. Existence is only checked in relation to a parent or child. During
+ * the state of a given entity. In case a non existing entity is updated it is
+ * expected to already be flagged in the {@code invalidEntities}.</li>
+ * <li>Existence is only checked in relation to a parent or child. During
  * {@link TrackerImportStrategy#UPDATE} a valid enrollment can be updated if its
  * parent the TEI is invalid but exists. Same applies to
  * {@link TrackerImportStrategy#DELETE} as you cannot delete an entity that does
  * not yet exist.</li>
  * <li>An {@link Event} in an event program does not have an
- * {@link Event#getEnrollment()} (parent) set. {@link PersistablesFilter} relies
- * on validations having marked entities as invalid that should have a parent.
- * It does so by only checking the parent if it is set.</li>
+ * {@link Event#getEnrollment()} (parent) set in the payload. This expects one
+ * to be set during preprocessing. So events in program with or without
+ * registration do not get any special treatment.</li>
+ * <li>{@link TrackerImportStrategy#DELETE} with
+ * {@link org.hisp.dhis.security.Authorities#F_TEI_CASCADE_DELETE} is not
+ * treated differently than a delete without such authority. Validation should
+ * have already flagged entities in {@code invalidEntities} if they have
+ * children that cannot be deleted by that user.</li>
  * </ul>
  */
 // TODO(DHIS2-14213) naming. commit or persist? CommittablesFilter, PersistablesFilter?
@@ -108,7 +118,7 @@ class PersistablesFilter
     /**
      * Using {@link TrackerDto} as a tuple of UID and {@link TrackerType}. This
      * makes working with the different types (trackedEntity, enrollment, ...)
-     * easier.
+     * transparent.
      */
     private static final List<Function<Enrollment, TrackerDto>> ENROLLMENT_PARENTS = List.of(
         en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() );
@@ -116,11 +126,6 @@ class PersistablesFilter
     private static final List<Function<Event, TrackerDto>> EVENT_PARENTS = List.of(
         ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() );
 
-    /**
-     * Using {@link TrackerDto} as a tuple of UID and {@link TrackerType}. This
-     * makes working with the relationship items easier as from and to can be
-     * any of tracked entity, enrollment and event.
-     */
     private static final List<Function<Relationship, TrackerDto>> RELATIONSHIP_PARENTS = List.of(
         rel -> toTrackerDto( rel.getFrom() ),
         rel -> toTrackerDto( rel.getTo() ) );
@@ -129,9 +134,9 @@ class PersistablesFilter
     // is persistable or deletable. These structures are just not designed for fast lookups.
     /**
      * Collects non-deletable parent entities on DELETE and persistable entities
-     * otherwise. Checking each non-root "layer" depends on the knowledge
-     * (marked entities) we gain from the previous layers. For example on DELETE
-     * event, enrollment, trackedEntity entities cannot be deleted if an invalid
+     * otherwise. Checking each "layer" depends on the knowledge (marked
+     * entities) we gain from the previous layers. For example on DELETE event,
+     * enrollment, trackedEntity entities cannot be deleted if an invalid
      * relationship points to them.
      */
     private final EnumMap<TrackerType, Set<String>> markedEntities = new EnumMap<>( Map.of(
@@ -335,10 +340,10 @@ class PersistablesFilter
 
     /**
      * Captures UID and {@link TrackerType} information in a {@link TrackerDto}.
-     * Valid {@link RelationshipItem} only has one of its 3 identifier fields
+     * A valid {@link RelationshipItem} only has one of its 3 identifier fields
      * set. The RelationshipItem API does not enforce it since it needs to
-     * capture invalid user input. Transform it to a shallow TrackerDto, so it
-     * is easier to work with.
+     * capture invalid user input. Transform it to a shallow {@link TrackerDto},
+     * so working with it is transparent.
      *
      * @param item relationship item
      * @return a tracker dto only capturing the uid and type
@@ -363,9 +368,9 @@ class PersistablesFilter
     /**
      * Result of {@link #filter(TrackerBundle, EnumMap, TrackerImportStrategy)}
      * operation indicating all entities that can be persisted. The meaning of
-     * persisted comes from the context which includes the
-     * {@link TrackerImportStrategy} and whether the entity existed or not (for
-     * {@link TrackerImportStrategy#CREATE_AND_UPDATE}).
+     * persisted i.e. create, update, delete comes from the context which
+     * includes the {@link TrackerImportStrategy} and whether the entity existed
+     * or not.
      */
     @Getter
     public static class Result
