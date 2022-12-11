@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
-// TODO(DHIS2-14213) get rid of compiler warnings
 // TODO(DHIS2-14213) can we remove its reliance on the preheat? now that we also need to check whether something is in the payload for error reporting?
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
