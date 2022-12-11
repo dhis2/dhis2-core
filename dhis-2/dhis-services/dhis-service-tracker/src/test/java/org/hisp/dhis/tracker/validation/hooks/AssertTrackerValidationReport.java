@@ -46,6 +46,7 @@ public class AssertTrackerValidationReport
         assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
+    // TODO(DHIS2-14213) reduce duplication?
     public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
