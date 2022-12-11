@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -49,6 +50,7 @@ import lombok.Builder;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -58,6 +60,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DefaultTrackerValidationServiceTest
@@ -65,10 +68,25 @@ class DefaultTrackerValidationServiceTest
 
     private DefaultTrackerValidationService service;
 
+    private TrackerPreheat preheat;
+
+    private TrackerBundle.TrackerBundleBuilder bundleBuilder;
+
+    private TrackerBundle bundle;
+
+    @BeforeEach
+    void setUp()
+    {
+        preheat = mock( TrackerPreheat.class );
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+
+        bundleBuilder = newBundle();
+    }
+
     @Test
     void shouldNotValidateMissingUser()
     {
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .validationMode( ValidationMode.SKIP )
             .user( null )
             .build();
@@ -84,7 +102,7 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldNotValidateSuperUserSkip()
     {
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .validationMode( ValidationMode.SKIP )
             .user( superUser() )
             .build();
@@ -99,7 +117,7 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldValidateSuperUserNoSkip()
     {
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .validationMode( ValidationMode.FULL )
             .user( superUser() )
             .build();
@@ -192,7 +210,7 @@ class DefaultTrackerValidationServiceTest
         Event validEvent = event();
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .events( events( invalidEvent, validEvent ) )
             .build();
 
@@ -231,7 +249,7 @@ class DefaultTrackerValidationServiceTest
         Event validEvent = event();
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .events( events( invalidEvent, validEvent ) )
             .build();
 
@@ -265,7 +283,7 @@ class DefaultTrackerValidationServiceTest
         Event validEvent = event();
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .validationMode( ValidationMode.FAIL_FAST )
             .events( events( invalidEvent, validEvent ) )
             .build();
@@ -294,7 +312,7 @@ class DefaultTrackerValidationServiceTest
     {
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .importStrategy( TrackerImportStrategy.DELETE )
             .events( events( invalidEvent ) )
             .build();
@@ -318,7 +336,7 @@ class DefaultTrackerValidationServiceTest
     {
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .events( events( invalidEvent ) )
             .build();
 
@@ -339,7 +357,7 @@ class DefaultTrackerValidationServiceTest
     {
         Event invalidEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .events( events( invalidEvent ) )
             .build();
 
@@ -362,7 +380,7 @@ class DefaultTrackerValidationServiceTest
 
         Event validEvent = event();
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .events( events( validEvent ) )
             .build();
 
@@ -400,7 +418,7 @@ class DefaultTrackerValidationServiceTest
         Event invalidEvent = event();
         invalidEnrollment.setEvents( events( invalidEvent ) );
 
-        TrackerBundle bundle = newBundle()
+        bundle = bundleBuilder
             .validationMode( ValidationMode.FULL )
             .trackedEntities( trackedEntities( invalidTrackedEntity ) )
             .enrollments( invalidTrackedEntity.getEnrollments() )
@@ -444,7 +462,11 @@ class DefaultTrackerValidationServiceTest
 
     private Event event()
     {
-        return Event.builder().event( CodeGenerator.generateUid() ).build();
+        String enrollment = CodeGenerator.generateUid();
+        when( preheat.exists( argThat(
+            t -> t != null && t.getTrackerType() == TrackerType.ENROLLMENT && enrollment.equals( t.getUid() ) ) ) )
+                .thenReturn( true );
+        return Event.builder().event( CodeGenerator.generateUid() ).enrollment( enrollment ).build();
     }
 
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
@@ -464,8 +486,6 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerBundle.TrackerBundleBuilder newBundle()
     {
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
         return TrackerBundle.builder().preheat( preheat ).skipRuleEngine( true );
     }
 }

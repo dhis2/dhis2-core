@@ -281,27 +281,6 @@ class PersistablesFilterTest
     }
 
     @Test
-    void testCreateAndUpdateValidEventWithoutEnrollment()
-    {
-        // @formatter:off
-        // an event in an event program does not have an enrollment set (even though technically its enrolled in a default program)
-        Setup setup = new Setup.Builder()
-            .eventWithoutRegistration( "Qck4PQ7TMun" ).isNotValid()
-            .eventWithoutRegistration( "Ok4Fe5moc3N" ).isInDB()
-            .eventWithoutRegistration( "nVjkL7qHYvL" ).isInDB().isNotValid()
-            .eventWithoutRegistration( "MeC1UpOX4Wu" )
-            .build();
-
-        PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
-            TrackerImportStrategy.CREATE_AND_UPDATE );
-
-        assertAll(
-                () -> assertContainsOnly( persistable, Event.class, "Ok4Fe5moc3N", "MeC1UpOX4Wu" ),
-                () -> assertIsEmpty( persistable.getErrors())
-        );
-    }
-
-    @Test
     void testCreateAndUpdateInvalidRelationshipCannotBePersisted()
     {
         // @formatter:off
@@ -395,7 +374,8 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                .eventWithoutRegistration( "QxGbKYwChDM" ).isNotValid()
+                    .enrollment( "QxGbKYwChDM" )
+                        .event( "QxGbKYwChDM" ).isNotValid()
                 .relationship("Te3IC6TpnBB",
                     trackedEntity("xK7H53f4Hc2"),
                     event("QxGbKYwChDM") )
@@ -406,6 +386,7 @@ class PersistablesFilterTest
 
         assertAll(
                 () -> assertContainsOnly( persistable, TrackedEntity.class,  "xK7H53f4Hc2" ),
+                () -> assertContainsOnly( persistable, Enrollment.class,  "QxGbKYwChDM" ),
                 () -> assertIsEmpty( persistable.get( Relationship.class ) ),
                 () -> assertError(persistable, E5000, RELATIONSHIP, "Te3IC6TpnBB", "because \"event\" `QxGbKYwChDM`")
         );
@@ -544,7 +525,6 @@ class PersistablesFilterTest
                     .enrollment( "t1zaUjKgT3p" )
                         .event( "Qck4PQ7TMun" ).isNotValid()
                         .event( "Ox1qBWsnVwE" )
-                .eventWithoutRegistration("G9cH8AVvguf")
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -553,7 +533,7 @@ class PersistablesFilterTest
         assertAll(
                 () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
                 () -> assertIsEmpty(persistable.get(Enrollment.class)),
-                () -> assertContainsOnly( persistable, Event.class, "Ox1qBWsnVwE", "G9cH8AVvguf"),
+                () -> assertContainsOnly( persistable, Event.class, "Ox1qBWsnVwE"),
                 () -> assertError(persistable, E5001, TRACKED_ENTITY, "xK7H53f4Hc2", "because \"enrollment\" `t1zaUjKgT3p`"),
                 () -> assertError(persistable, E5001, ENROLLMENT, "t1zaUjKgT3p", "because \"event\" `Qck4PQ7TMun`")
         );
@@ -565,7 +545,8 @@ class PersistablesFilterTest
         // @formatter:off
         Setup setup = new Setup.Builder()
                 .trackedEntity( "xK7H53f4Hc2" )
-                .eventWithoutRegistration( "QxGbKYwChDM" )
+                    .enrollment( "t1zaUjKgT3p" )
+                        .event( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
                         event("QxGbKYwChDM") ).isNotValid()
@@ -580,6 +561,7 @@ class PersistablesFilterTest
                 () -> assertIsEmpty(persistable.get(Event.class)),
                 () -> assertIsEmpty(persistable.get(Relationship.class)),
                 () -> assertError(persistable, E5001, TRACKED_ENTITY, "xK7H53f4Hc2", "because \"relationship\" `Te3IC6TpnBB`"),
+                () -> assertError(persistable, E5001, ENROLLMENT, "t1zaUjKgT3p", "because \"event\" `QxGbKYwChDM`"),
                 () -> assertError(persistable, E5001, EVENT, "QxGbKYwChDM", "because \"relationship\" `Te3IC6TpnBB`")
         );
     }
@@ -615,21 +597,20 @@ class PersistablesFilterTest
     {
         // @formatter:off
         Setup setup = new Setup.Builder()
+                .trackedEntity( "QxGbKYwChDM" )
                 .trackedEntity( "xK7H53f4Hc2" )
                     .enrollment( "t1zaUjKgT3p" ).isNotValid()
-                .eventWithoutRegistration( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
                         enrollment("t1zaUjKgT3p"),
-                        event("QxGbKYwChDM") )
+                        trackedEntity("QxGbKYwChDM") )
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
                 TrackerImportStrategy.DELETE );
 
         assertAll(
-                () -> assertIsEmpty(persistable.get(TrackedEntity.class)),
+                () -> assertContainsOnly( persistable, TrackedEntity.class, "QxGbKYwChDM"),
                 () -> assertIsEmpty(persistable.get(Enrollment.class)),
-                () -> assertContainsOnly( persistable, Event.class, "QxGbKYwChDM"),
                 () -> assertContainsOnly( persistable, Relationship.class, "Te3IC6TpnBB")
         );
     }
@@ -782,25 +763,6 @@ class PersistablesFilterTest
                 Entity<Event> entity = event( uid, currentEnrollment );
                 this.events.add(entity);
                 current = entity;
-                return this;
-            }
-
-            /**
-             * Build an event without an enrollment as parent.
-             * <p>
-             * Configure it using calls to {@link #isInDB()}, {@link #isNotValid()} or {@link #isNotInPayload()}.
-             * </p>
-             *
-             * @param uid uid of event
-             * @return builder
-             */
-            Builder eventWithoutRegistration( String uid )
-            {
-                Entity<Event> entity = event( uid, null );
-                this.events.add(entity);
-                current = entity;
-                // unset enrollment cursor. Otherwise, it might be confusing when calling .enrollment().eventWithoutRegistration().event()
-                currentEnrollment = null;
                 return this;
             }
 

@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -102,27 +101,29 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * </ul>
  */
 // TODO(DHIS2-14213) naming. commit or persist? CommittablesFilter, PersistablesFilter?
-// if the Checks/Check stick around think about a better name
 class PersistablesFilter
 {
-    private static final Check<TrackedEntity> TRACKED_ENTITY_CHECK = new Check<>();
+    private static final List<Function<TrackedEntity, TrackerDto>> TRACKED_ENTITY_PARENTS = Collections.emptyList();
 
-    private static final Check<Enrollment> ENROLLMENT_CHECK = new Check<>(
-        List.of(
-            en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() // parent
-        ) );
+    /**
+     * Using {@link TrackerDto} as a tuple of UID and {@link TrackerType}. This
+     * makes working with the different types (trackedEntity, enrollment, ...)
+     * easier.
+     */
+    private static final List<Function<Enrollment, TrackerDto>> ENROLLMENT_PARENTS = List.of(
+        en -> TrackedEntity.builder().trackedEntity( en.getTrackedEntity() ).build() );
 
-    private static final Check<Event> EVENT_CHECK = new Check<>(
-        List.of(
-            ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() // parent
-        ),
-        parent -> StringUtils.isBlank( parent.getUid() ) // events in event programs have no enrollment
-    );
+    private static final List<Function<Event, TrackerDto>> EVENT_PARENTS = List.of(
+        ev -> Enrollment.builder().enrollment( ev.getEnrollment() ).build() );
 
-    private static final Check<Relationship> RELATIONSHIP_CHECK = new Check<>(
-        List.of(
-            rel -> toTrackerDto( rel.getFrom() ), // parents
-            rel -> toTrackerDto( rel.getTo() ) ) );
+    /**
+     * Using {@link TrackerDto} as a tuple of UID and {@link TrackerType}. This
+     * makes working with the relationship items easier as from and to can be
+     * any of tracked entity, enrollment and event.
+     */
+    private static final List<Function<Relationship, TrackerDto>> RELATIONSHIP_PARENTS = List.of(
+        rel -> toTrackerDto( rel.getFrom() ),
+        rel -> toTrackerDto( rel.getTo() ) );
 
     // TODO(DHIS2-14213) in theory we could rely on result and errors we collect to figure out whether something
     // is persistable or deletable. These structures are just not designed for fast lookups.
@@ -171,26 +172,27 @@ class PersistablesFilter
         if ( onDelete() )
         {
             // bottom-up
-            collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships() );
-            collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents() );
-            collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments() );
-            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities() );
+            collectPersistables( Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships() );
+            collectPersistables( Event.class, EVENT_PARENTS, bundle.getEvents() );
+            collectPersistables( Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments() );
+            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities() );
         }
         else
         {
             // top-down
-            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_CHECK, bundle.getTrackedEntities() );
-            collectPersistables( Enrollment.class, ENROLLMENT_CHECK, bundle.getEnrollments() );
-            collectPersistables( Event.class, EVENT_CHECK, bundle.getEvents() );
-            collectPersistables( Relationship.class, RELATIONSHIP_CHECK, bundle.getRelationships() );
+            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities() );
+            collectPersistables( Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments() );
+            collectPersistables( Event.class, EVENT_PARENTS, bundle.getEvents() );
+            collectPersistables( Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships() );
         }
     }
 
-    private <T extends TrackerDto> void collectPersistables( Class<T> type, Check<T> check, List<T> entities )
+    private <T extends TrackerDto> void collectPersistables( Class<T> type, List<Function<T, TrackerDto>> parents,
+        List<T> entities )
     {
         for ( T entity : entities )
         {
-            if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( check, entity )) )
+            if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( parents, entity )) )
             {
                 if ( onCreateOrUpdate() )
                 {
@@ -202,12 +204,12 @@ class PersistablesFilter
 
             if ( onDelete() )
             {
-                List<TrackerErrorReport> errors = addErrorsForParents( check, entity );
+                List<TrackerErrorReport> errors = addErrorsForParents( parents, entity );
                 errors.forEach( this::mark ); // mark parents as non-deletable for potential children
             }
             else
             {
-                addErrorsForChildren( check, entity );
+                addErrorsForChildren( parents, entity );
             }
         }
     }
@@ -232,9 +234,9 @@ class PersistablesFilter
         return onDelete() && !isMarked( entity );
     }
 
-    private <T extends TrackerDto> boolean isCreateOrUpdatable( Check<T> check, T entity )
+    private <T extends TrackerDto> boolean isCreateOrUpdatable( List<Function<T, TrackerDto>> parents, T entity )
     {
-        return onCreateOrUpdate() && !hasInvalidParents( check, entity );
+        return onCreateOrUpdate() && !hasInvalidParents( parents, entity );
     }
 
     private boolean onCreateOrUpdate()
@@ -262,19 +264,16 @@ class PersistablesFilter
         return isContained( this.markedEntities, entity );
     }
 
-    private <T extends TrackerDto> boolean hasInvalidParents( Check<T> check, T entity )
+    private <T extends TrackerDto> boolean hasInvalidParents( List<Function<T, TrackerDto>> parents, T entity )
     {
-        return !parentConditions( check ).test( entity );
+        return !parentConditions( parents ).test( entity );
     }
 
-    private <T extends TrackerDto> Predicate<T> parentConditions( Check<T> check )
+    private <T extends TrackerDto> Predicate<T> parentConditions( List<Function<T, TrackerDto>> parents )
     {
-        final Predicate<TrackerDto> baseParentCondition = parent -> isMarked( parent )
-            || this.preheat.exists( parent );
-        final Predicate<TrackerDto> parentCondition = check.parentCondition.map( baseParentCondition::or )
-            .orElse( baseParentCondition );
+        final Predicate<TrackerDto> parentCondition = parent -> isMarked( parent ) || this.preheat.exists( parent );
 
-        return check.parents.stream()
+        return parents.stream()
             .map( p -> (Predicate<T>) t -> parentCondition.test( p.apply( t ) ) ) // children of invalid parents can only be persisted under certain conditions
             .reduce( Predicate::and )
             .orElse( t -> true ); // predicate always returning true for entities without parents
@@ -284,10 +283,11 @@ class PersistablesFilter
      * Add error for valid parents with invalid child as the reason. So users
      * know why a valid entity could not be deleted.
      */
-    private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( Check<T> check, T entity )
+    private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( List<Function<T, TrackerDto>> parents,
+        T entity )
     {
         // add error for parents with entity as reason (only to valid parents in the payload)
-        List<TrackerErrorReport> errors = check.parents.stream()
+        List<TrackerErrorReport> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isValid ) // remove invalid parents
             .filter( this.bundle::exists ) // remove parents not in payload
@@ -302,14 +302,14 @@ class PersistablesFilter
      * child is invalid that is enough information for a user to know why it
      * could not be persisted.
      */
-    private <T extends TrackerDto> void addErrorsForChildren( Check<T> check, T entity )
+    private <T extends TrackerDto> void addErrorsForChildren( List<Function<T, TrackerDto>> parents, T entity )
     {
         if ( isNotValid( entity ) )
         {
             return;
         }
 
-        List<TrackerErrorReport> errors = check.parents.stream()
+        List<TrackerErrorReport> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isNotValid ) // remove valid parents
             .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
@@ -406,35 +406,6 @@ class PersistablesFilter
                 return (List<T>) relationships;
             }
             return Collections.emptyList();
-        }
-    }
-
-    /**
-     * Using {@link TrackerDto} in functions to parents {@link Check#parents} as
-     * a tuple of UID and {@link TrackerType}. This makes working with the
-     * different types (trackedEntity, enrollment, ...) easier.
-     */
-    private static class Check<T extends TrackerDto>
-    {
-        private final List<Function<T, TrackerDto>> parents;
-
-        private final Optional<Predicate<TrackerDto>> parentCondition;
-
-        public Check()
-        {
-            this( Collections.emptyList() );
-        }
-
-        public Check( List<Function<T, TrackerDto>> parents )
-        {
-            this.parents = parents;
-            this.parentCondition = Optional.empty();
-        }
-
-        public Check( List<Function<T, TrackerDto>> parents, Predicate<TrackerDto> parentCondition )
-        {
-            this.parents = parents;
-            this.parentCondition = Optional.of( parentCondition );
         }
     }
 }
