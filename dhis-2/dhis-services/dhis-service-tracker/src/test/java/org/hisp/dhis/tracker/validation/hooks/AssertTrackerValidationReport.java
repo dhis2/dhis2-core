@@ -46,16 +46,10 @@ public class AssertTrackerValidationReport
         assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    // TODO(DHIS2-14213) reduce duplication?
     public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
-        assertTrue( report.hasErrors(), "error not found since report has no errors" );
-        assertTrue( report.hasError( err -> code == err.getErrorCode() &&
-            type == err.getTrackerType() &&
-            uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in report with error(s) %s", code,
-                type, uid, report.getErrors() ) );
+        assertHasError( report.getErrors(), code, type, uid );
     }
 
     public static void assertHasError( List<TrackerErrorReport> errors, TrackerErrorCode code, TrackerType type,
@@ -65,7 +59,7 @@ public class AssertTrackerValidationReport
         assertTrue( errors.stream().anyMatch( err -> code == err.getErrorCode() &&
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in report with error(s) %s", code,
+            String.format( "error with code %s, type %s, uid %s not found in error(s) %s", code,
                 type, uid, errors ) );
     }
 
