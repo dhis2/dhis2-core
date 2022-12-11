@@ -42,7 +42,7 @@ class DataIntegrityCategoryNoOptions extends AbstractDataIntegrityIntegrationTes
 
     private String categoryWithOptions;
 
-    private String categoryoptionSour;
+    private String categoryOptionSour;
 
     private String categoryOptionRed;
 
@@ -77,20 +77,20 @@ class DataIntegrityCategoryNoOptions extends AbstractDataIntegrityIntegrationTes
     void testCategoriesAreValid()
     {
 
-        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
+        categoryOptionSour = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
 
-        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
+        categoryOptionRed = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        assertStatus( HttpStatus.CREATED,
+        categoryWithOptions = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
 
-        assertStatus( HttpStatus.CREATED,
+        categoryNoOptions = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'} ] }" ) );
@@ -109,7 +109,7 @@ class DataIntegrityCategoryNoOptions extends AbstractDataIntegrityIntegrationTes
 
     private void tearDown()
     {
-        deleteMetadataObject( "categoryOptions", categoryoptionSour );
+        deleteMetadataObject( "categoryOptions", categoryOptionSour );
         deleteMetadataObject( "categoryOptions", categoryOptionRed );
         deleteMetadataObject( "categories", categoryNoOptions );
         deleteMetadataObject( "categories", categoryWithOptions );
