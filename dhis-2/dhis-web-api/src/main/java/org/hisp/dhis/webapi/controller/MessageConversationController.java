@@ -48,6 +48,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -130,6 +131,9 @@ public class MessageConversationController
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
     @Override
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
@@ -940,7 +944,7 @@ public class MessageConversationController
             throw new WebMessageException( conflict( "Invalid messageattachment." ) );
         }
 
-        fileResourceUtils.configureFileResourceResponse( response, fr );
+        fileResourceUtils.configureFileResourceResponse( response, fr, dhisConfig );
     }
 
     // --------------------------------------------------------------------------
