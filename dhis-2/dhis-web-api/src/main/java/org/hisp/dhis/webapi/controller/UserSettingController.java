@@ -55,6 +55,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -99,7 +100,7 @@ public class UserSettingController
     public Map<String, Serializable> getAllUserSettings(
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId,
+        @OpenApi.Param( { UID.class, User.class } ) @RequestParam( value = "userId", required = false ) String userId,
         @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
         throws WebMessageException
     {
@@ -123,12 +124,14 @@ public class UserSettingController
         return result;
     }
 
+    @OpenApi.Response( Serializable.class )
     @GetMapping( value = "/{key}" )
     public void getUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
+        @OpenApi.Param( { UID.class, User.class } ) @RequestParam( value = "userId", required = false ) String userId,
+        HttpServletResponse response )
         throws WebMessageException,
         IOException
     {
@@ -148,7 +151,7 @@ public class UserSettingController
     public WebMessage setUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId,
+        @OpenApi.Param( { UID.class, User.class } ) @RequestParam( value = "userId", required = false ) String userId,
         @RequestParam( required = false ) String value,
         @RequestBody( required = false ) String valuePayload )
         throws WebMessageException
@@ -172,7 +175,7 @@ public class UserSettingController
     public void deleteUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId )
+        @OpenApi.Param( { UID.class, User.class } ) @RequestParam( value = "userId", required = false ) String userId )
         throws WebMessageException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );

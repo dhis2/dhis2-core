@@ -62,6 +62,7 @@ public class WebOptions
     // Getters for standard web options
     // --------------------------------------------------------------------------
 
+    @OpenApi.Property
     public boolean hasPaging()
     {
         return stringAsBoolean( options.get( PAGING ), true );
@@ -81,6 +82,7 @@ public class WebOptions
         return stringAsBoolean( options.get( PAGING ), defaultReturnValue );
     }
 
+    @OpenApi.Property
     public int getPage()
     {
         return stringAsInt( options.get( PAGE ), 1 );
@@ -96,6 +98,7 @@ public class WebOptions
         return stringAsString( options.get( VIEW_CLASS ), defaultValue );
     }
 
+    @OpenApi.Property
     public int getPageSize()
     {
         return stringAsInt( options.get( PAGE_SIZE ), Pager.DEFAULT_PAGE_SIZE );
@@ -106,6 +109,7 @@ public class WebOptions
         return stringAsBoolean( options.get( MANAGE ), false );
     }
 
+    @OpenApi.Property
     public Junction.Type getRootJunction()
     {
         String rootJunction = options.get( ROOT_JUNCTION );
