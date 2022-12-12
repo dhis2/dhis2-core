@@ -88,6 +88,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -198,10 +200,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Shared( value = false )
     private static class ObjectListResponse
     {
+        @OpenApi.Property
         Pager pager;
 
-        @SuppressWarnings( "java:S116" )
-        OpenApi.EntityType[] path$;
+        @OpenApi.Property( name = "path$", value = OpenApi.EntityType[].class )
+        List<Object> entries;
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
@@ -434,7 +437,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @GetMapping( "/{uid}" )
     @SuppressWarnings( "unchecked" )
     public @ResponseBody ResponseEntity<?> getObject(
-        @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
@@ -491,7 +494,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @GetMapping( "/{uid}/{property}" )
     public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
         @CurrentUser User currentUser,
