@@ -38,7 +38,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DataItegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "options_sets_empty";
 
@@ -123,6 +123,14 @@ class DataItegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTes
                     "    'id': '" + badOptionSet + "'" +
                     "  }}" ) );
 
+        JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
+        JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
+        assertEquals( optionSetOptions.size(), 1 );
+
+        content = GET( "/optionSets/" + badOptionSet ).content();
+        optionSetOptions = content.getList( "options", JsonOption.class );
+        assertEquals( optionSetOptions.size(), 1 );
+
         assertHasNoDataIntegrityIssues( "optionSets", check, true );
 
     }
@@ -131,7 +139,7 @@ class DataItegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTes
     void testInvalidCategoriesDivideByZero()
     {
 
-        assertHasNoDataIntegrityIssues( "optionSets", check, false );
+        assertHasNoDataIntegrityIssues( "option_sets", check, false );
 
     }
 

@@ -17,3 +17,4 @@ checks:
   - orgunits/orgunits_invalid_geometry.yaml
   - orgunits/orgunits_no_geometry.yaml
   - option_sets/option_sets_empty.yaml
+  - option_sets/unused_option_sets.yaml
