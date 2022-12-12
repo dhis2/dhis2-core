@@ -66,13 +66,10 @@ public class CategoryOptionComboNameResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(categoryoptioncomboid bigint not null primary key, categoryoptioncomboname varchar(255), approvallevel integer, startdate date, enddate date)" );
-
-        return sql.toString();
+        return "create " + tableType + " table " + getTempTableName() +
+            " (categoryoptioncomboid bigint not null primary key, " +
+            "categoryoptioncomboname varchar(255), approvallevel integer, " +
+            "startdate date, enddate date)";
     }
 
     @Override

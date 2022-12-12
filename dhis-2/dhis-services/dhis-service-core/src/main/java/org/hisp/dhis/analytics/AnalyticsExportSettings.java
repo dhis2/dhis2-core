@@ -28,8 +28,6 @@
 package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.analytics.AnalyticsExportSettings.AnalyticsTableType.DEFAULT;
-import static org.hisp.dhis.analytics.AnalyticsExportSettings.AnalyticsTableType.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 
 import lombok.RequiredArgsConstructor;
@@ -49,25 +47,7 @@ public class AnalyticsExportSettings
 {
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    private String cachedTableType;
-
-    public enum AnalyticsTableType
-    {
-        DEFAULT( EMPTY ),
-        UNLOGGED( "unlogged" );
-
-        private final String value;
-
-        AnalyticsTableType( String value )
-        {
-            this.value = value;
-        }
-
-        public String value()
-        {
-            return value;
-        }
-    }
+    private static final String UNLOGGED = "unlogged";
 
     /**
      * Returns the respective string that represents the table type to be
@@ -78,20 +58,11 @@ public class AnalyticsExportSettings
      */
     public String getTableType()
     {
-        if ( cachedTableType != null )
-        {
-            return cachedTableType;
-        }
-
         if ( dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_UNLOGGED ) )
         {
-            cachedTableType = UNLOGGED.value();
-        }
-        else
-        {
-            cachedTableType = DEFAULT.value();
+            return UNLOGGED;
         }
 
-        return cachedTableType;
+        return EMPTY;
     }
 }

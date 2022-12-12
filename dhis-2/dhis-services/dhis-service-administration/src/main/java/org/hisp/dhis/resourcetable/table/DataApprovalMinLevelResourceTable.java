@@ -60,15 +60,13 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(workflowid bigint not null, periodid bigint not null, organisationunitid bigint not null, attributeoptioncomboid bigint not null, " )
-            .append(
-                "minlevel integer not null, primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))" );
-
-        return sql.toString();
+        return "create " + tableType + " table " + getTempTableName() + "(" +
+            "workflowid bigint not null, " +
+            "periodid bigint not null, " +
+            "organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, " +
+            "minlevel integer not null, " +
+            "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
     }
 
     @Override

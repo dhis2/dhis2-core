@@ -62,20 +62,19 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append( "(dataelementid bigint not null, dataelementname varchar(230), " );
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
+            "dataelementid bigint not null, " +
+            "dataelementname varchar(230), ";
 
         for ( DataElementGroupSet groupSet : objects )
         {
-            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " );
-            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
-        sql.append( "primary key (dataelementid))" );
+        statement += "primary key (dataelementid))";
 
-        return sql.toString();
+        return statement;
     }
 
     @Override

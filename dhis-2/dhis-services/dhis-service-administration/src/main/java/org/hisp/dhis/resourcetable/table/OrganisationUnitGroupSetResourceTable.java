@@ -70,18 +70,18 @@ public class OrganisationUnitGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append( "(organisationunitid bigint not null, organisationunitname varchar(230), startdate date, " );
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
+            "organisationunitid bigint not null, " +
+            "organisationunitname varchar(230), " +
+            "startdate date, ";
 
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " )
-                .append( quote( groupSet.getUid() ) ).append( " character(11), " );
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
-        return removeLastComma( sql.toString() ) + ")";
+        return removeLastComma( statement ) + ")";
     }
 
     @Override

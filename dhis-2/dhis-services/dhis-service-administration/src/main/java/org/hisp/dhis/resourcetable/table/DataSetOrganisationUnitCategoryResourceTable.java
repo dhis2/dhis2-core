@@ -72,13 +72,9 @@ public class DataSetOrganisationUnitCategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(datasetid bigint not null, organisationunitid bigint not null, attributeoptioncomboid bigint not null, costartdate date, coenddate date)" );
-
-        return sql.toString();
+        return "create " + tableType + " table " + getTempTableName() +
+            "(datasetid bigint not null, organisationunitid bigint not null, " +
+            "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
     }
 
     @Override

@@ -66,28 +66,27 @@ public class CategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append( "(categoryoptioncomboid bigint not null, categoryoptioncomboname varchar(255), " );
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
+            "categoryoptioncomboid bigint not null, " +
+            "categoryoptioncomboname varchar(255), ";
 
         UniqueNameContext nameContext = new UniqueNameContext();
 
         for ( Category category : objects )
         {
-            sql.append( quote( nameContext.uniqueName( category.getShortName() ) ) ).append( " varchar(230), " );
-            sql.append( quote( category.getUid() ) ).append( " character(11), " );
+            statement += quote( nameContext.uniqueName( category.getShortName() ) ) + " varchar(230), ";
+            statement += quote( category.getUid() ) + " character(11), ";
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            sql.append( quote( nameContext.uniqueName( groupSet.getShortName() ) ) ).append( " varchar(230), " );
-            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
+            statement += quote( nameContext.uniqueName( groupSet.getShortName() ) ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
-        sql.append( "primary key (categoryoptioncomboid))" );
+        statement += "primary key (categoryoptioncomboid))";
 
-        return sql.toString();
+        return statement;
     }
 
     @Override

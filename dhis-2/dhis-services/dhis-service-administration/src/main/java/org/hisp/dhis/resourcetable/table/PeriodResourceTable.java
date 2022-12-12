@@ -72,20 +72,17 @@ public class PeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null" );
+        String sql = "create " + tableType + " table " + getTempTableName() +
+            " (periodid bigint not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql.append( ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)" );
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
 
-        sql.append( ")" );
+        sql += ")";
 
-        return sql.toString();
+        return sql;
     }
 
     @Override

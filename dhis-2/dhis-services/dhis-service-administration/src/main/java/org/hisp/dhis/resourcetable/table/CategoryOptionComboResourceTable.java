@@ -59,13 +59,11 @@ public class CategoryOptionComboResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() );
-        sql.append(
-            "(dataelementid bigint not null, dataelementuid varchar(11) not null, categoryoptioncomboid bigint not null, categoryoptioncombouid varchar(11) not null)" );
-
-        return sql.toString();
+        return "create " + tableType + " table " + getTempTableName() + " (" +
+            "dataelementid bigint not null, " +
+            "dataelementuid varchar(11) not null, " +
+            "categoryoptioncomboid bigint not null, " +
+            "categoryoptioncombouid varchar(11) not null)";
     }
 
     @Override

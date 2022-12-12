@@ -72,13 +72,11 @@ public class DataApprovalRemapLevelResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(workflowid bigint not null, dataapprovallevelid bigint not null, level integer not null, primary key (workflowid,dataapprovallevelid))" );
-
-        return sql.toString();
+        return "create " + tableType + " table " + getTempTableName() + "(" +
+            "workflowid bigint not null, " +
+            "dataapprovallevelid bigint not null, " +
+            "level integer not null, " +
+            "primary key (workflowid,dataapprovallevelid))";
     }
 
     @Override

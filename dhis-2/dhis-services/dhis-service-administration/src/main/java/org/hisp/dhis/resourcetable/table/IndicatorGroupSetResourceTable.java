@@ -62,20 +62,19 @@ public class IndicatorGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append( "(indicatorid bigint not null, indicatorname varchar(230), " );
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
+            "indicatorid bigint not null, " +
+            "indicatorname varchar(230), ";
 
         for ( IndicatorGroupSet groupSet : objects )
         {
-            sql.append( quote( groupSet.getShortName() ) ).append( " varchar(230), " );
-            sql.append( quote( groupSet.getUid() ) ).append( " character(11), " );
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
+            statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 
-        sql.append( "primary key (indicatorid))" );
+        statement += "primary key (indicatorid))";
 
-        return sql.toString();
+        return statement;
     }
 
     @Override

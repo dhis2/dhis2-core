@@ -67,19 +67,17 @@ public class DatePeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        StringBuilder sql = new StringBuilder();
-
-        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append( " (dateperiod date not null primary key, year integer not null" );
+        String sql = "create " + tableType + " table " + getTempTableName()
+            + " (dateperiod date not null primary key, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql.append( ", " ).append( quote( periodType.getName().toLowerCase() ) ).append( " varchar(15)" );
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
 
-        sql.append( ")" );
+        sql += ")";
 
-        return sql.toString();
+        return sql;
     }
 
     @Override

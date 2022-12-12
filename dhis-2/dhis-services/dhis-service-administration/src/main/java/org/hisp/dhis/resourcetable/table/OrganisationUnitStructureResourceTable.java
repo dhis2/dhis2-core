@@ -76,8 +76,8 @@ public class OrganisationUnitStructureResourceTable
         StringBuilder sql = new StringBuilder();
 
         sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
-            .append(
-                "(organisationunitid bigint not null primary key, organisationunituid character(11), level integer" );
+            .append( "(organisationunitid bigint not null primary key," )
+            .append( "organisationunituid character(11), level integer" );
 
         for ( int k = 1; k <= organisationUnitLevels; k++ )
         {
