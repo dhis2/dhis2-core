@@ -670,21 +670,10 @@ class PersistablesFilterTest
 
             private static Entity<Event> event( String uid, Entity<Enrollment> parent )
             {
-                Event event;
-                Event.EventBuilder eventBuilder = Event.builder().event( uid );
-
-                if ( parent != null )
-                {
-                    // set child/parent links only if the event has a parent. Events in an event program have no enrollment.
-                    // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
-                    event = eventBuilder.enrollment( parent.entity.getUid() ).build();
-                    parent.entity.getEvents().add( event );
-                }
-                else
-                {
-                    event = eventBuilder.build();
-                }
-
+                // set child/parent links only if the event has a parent. Events in an event program have no enrollment.
+                // They do have a "fake" enrollment (a default program) but it's not set on the event DTO.
+                Event event = Event.builder().event( uid ).enrollment( parent.entity.getUid() ).build();
+                parent.entity.getEvents().add( event );
                 return new Entity<>(event);
             }
 
