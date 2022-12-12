@@ -122,10 +122,10 @@ class JdbcAnalyticsTableManagerTest
         AnalyticsTableView viewB = table.getTableViews().get( 1 );
 
         assertNotNull( viewA );
-        assertEquals( viewA.getYear().intValue(), 2018 );
+        assertEquals( 2018, viewA.getYear().intValue() );
 
         assertNotNull( viewB );
-        assertEquals( viewB.getYear().intValue(), 2019 );
+        assertEquals( 2019, viewB.getYear().intValue() );
     }
 
     @Test
