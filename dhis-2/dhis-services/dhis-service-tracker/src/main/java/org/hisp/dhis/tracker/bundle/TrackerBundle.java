@@ -125,8 +125,7 @@ public class TrackerBundle
     private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
-     * Preheat bundle for all attached objects (or null if preheater not run
-     * yet).
+     * Preheat bundle for all attached objects (or null if preheat not run yet).
      */
     private TrackerPreheat preheat;
 
