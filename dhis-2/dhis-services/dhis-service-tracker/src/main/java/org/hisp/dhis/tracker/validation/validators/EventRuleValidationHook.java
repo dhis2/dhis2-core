@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventRuleValidationHook
-    implements Validator
+    implements Validator<Event>
 {
     private List<RuleActionImplementer> validators;
 
@@ -58,7 +58,7 @@ public class EventRuleValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
 

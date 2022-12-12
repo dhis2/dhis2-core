@@ -121,8 +121,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validate( reporter, bundle, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
         assertEquals( 0, reporter.getErrors().size() );
@@ -158,8 +157,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( contextAttribute );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validate( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
@@ -178,8 +176,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validate( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 2, reporter.getErrors().size() );
@@ -213,8 +210,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityAttribute( MetadataIdentifier.ofUid( tea ) ) )
             .thenReturn( trackedEntityAttribute );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
-            trackedEntity );
+        trackedEntityAttributeValidationHook.validate( reporter, bundle, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
@@ -302,7 +298,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -326,7 +322,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -357,7 +353,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -390,7 +386,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityType );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -431,7 +427,7 @@ class TrackedEntityAttributeValidationHookTest
 
         bundle.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -445,7 +441,7 @@ class TrackedEntityAttributeValidationHookTest
 
         bundle.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertTrue( reporter.hasErrors() );
@@ -459,7 +455,7 @@ class TrackedEntityAttributeValidationHookTest
 
         bundle.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
 
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter, bundle,
+        trackedEntityAttributeValidationHook.validate( reporter, bundle,
             trackedEntity );
 
         assertFalse( reporter.hasErrors() );

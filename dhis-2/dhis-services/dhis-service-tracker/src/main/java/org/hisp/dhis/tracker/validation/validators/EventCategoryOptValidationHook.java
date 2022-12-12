@@ -56,7 +56,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class EventCategoryOptValidationHook
-    implements Validator
+    implements Validator<Event>
 {
     private final I18nManager i18nManager;
 
@@ -67,7 +67,7 @@ public class EventCategoryOptValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         Program program = bundle.getPreheat().getProgram( event.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

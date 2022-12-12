@@ -41,10 +41,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventGeoValidationHook
-    implements Validator
+    implements Validator<Event>
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );

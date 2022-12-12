@@ -52,16 +52,6 @@ public interface Validator<T>
     }
 
     /**
-     * Validate the tracker bundle.
-     *
-     * @param reporter ValidationErrorReporter instance
-     * @param bundle tracker bundle
-     */
-    default void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
-    {
-    }
-
-    /**
      * Called on every event in the bundle.
      *
      * @param reporter ValidationErrorReporter instance

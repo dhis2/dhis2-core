@@ -159,7 +159,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultCatOptionCombo );
         program.setCategoryCombo( defaultCatCombo );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -169,7 +169,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     {
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -181,7 +181,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
         catOption.setEndDate( ONE_YEAR_AFTER_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -192,7 +192,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1056, EVENT, event.getUid() );
     }
@@ -203,7 +203,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1057, EVENT, event.getUid() );
     }
@@ -215,7 +215,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
         program.setOpenDaysAfterCoEndDate( 400 );
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }

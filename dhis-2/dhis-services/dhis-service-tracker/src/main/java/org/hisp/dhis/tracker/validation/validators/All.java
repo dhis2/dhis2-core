@@ -27,22 +27,74 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Component
-public class EventNoteValidationHook implements Validator<Event>
+@RequiredArgsConstructor
+public class All<T> implements Validator<T>
 {
-    @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    private final List<Validator<T>> validators;
+
+    public All( Validator<T> v1 )
     {
-        event
-            .setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), event, event.getNotes() ) );
+        this( List.of( v1 ) );
+    }
+
+    public All( Validator<T> v1, Validator<T> v2 )
+    {
+        this( List.of( v1, v2 ) );
+    }
+
+    public All( Validator<T> v1, Validator<T> v2, Validator<T> v3 )
+    {
+        this( List.of( v1, v2, v3 ) );
+    }
+
+    public All( Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4 )
+    {
+        this( List.of( v1, v2, v3, v4 ) );
+    }
+
+    // TODO if I do not pass the class the compiler does not have enough
+    // information to infer the type. So without it
+    // the client code is working with an Object. Casting on the client could
+    // also work but that's even more awkward.
+    public static <T> All<T> all( Class<T> klass, Validator<T> v1 )
+    {
+        return new All<>( v1 );
+    }
+
+    public static <T> All<T> all( Class<T> klass, Validator<T> v1, Validator<T> v2 )
+    {
+        return new All<>( v1, v2 );
+    }
+
+    public static <T> All<T> all( Class<T> klass, Validator<T> v1, Validator<T> v2, Validator<T> v3 )
+    {
+        return new All<>( v1, v2, v3 );
+    }
+
+    public static <T> All<T> all( Class<T> klass, Validator<T> v1, Validator<T> v2, Validator<T> v3, Validator<T> v4 )
+    {
+        return new All<>( v1, v2, v3, v4 );
+    }
+
+    public static <T> All<T> all( Class<T> klass, List<Validator<T>> validators )
+    {
+        return new All<>( validators );
+    }
+
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input )
+    {
+        for ( Validator<T> validator : validators )
+        {
+            validator.validate( reporter, bundle, input );
+        }
     }
 }

@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.tracker.config;
 
+import static org.hisp.dhis.tracker.validation.validators.All.all;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.validators.AssignedUserValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EnrollmentAttributeValidationHook;
@@ -96,6 +99,13 @@ public class TrackerValidationConfig
             TrackedEntityAttributeValidationHook.class,
             EnrollmentAttributeValidationHook.class,
             EventDataValuesValidationHook.class ) );
+    }
+
+    @Bean
+    public Validator<TrackerBundle> newValidators()
+    {
+        return all( TrackerBundle.class,
+            new PreCheckUidValidationHook() );
     }
 
     @Bean

@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EnrollmentRuleValidationHook
-    implements Validator
+    implements Validator<Enrollment>
 {
     private List<RuleActionImplementer> validators;
 
@@ -58,7 +58,7 @@ public class EnrollmentRuleValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
 

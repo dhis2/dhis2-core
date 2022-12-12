@@ -66,7 +66,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
-    implements Validator
+    implements Validator<TrackedEntity>
 {
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
@@ -75,8 +75,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );

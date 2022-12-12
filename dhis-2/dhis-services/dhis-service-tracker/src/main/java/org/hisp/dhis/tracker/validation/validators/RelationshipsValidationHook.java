@@ -63,11 +63,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RelationshipsValidationHook
-    implements Validator
+    implements Validator<Relationship>
 {
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         boolean isValid = validateMandatoryData( reporter, relationship,

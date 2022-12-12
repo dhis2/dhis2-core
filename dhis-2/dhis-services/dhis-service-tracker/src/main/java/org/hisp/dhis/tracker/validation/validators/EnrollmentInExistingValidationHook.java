@@ -57,10 +57,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EnrollmentInExistingValidationHook
-    implements Validator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 

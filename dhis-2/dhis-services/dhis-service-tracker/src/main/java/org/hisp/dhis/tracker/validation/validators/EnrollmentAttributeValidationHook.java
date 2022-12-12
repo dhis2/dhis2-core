@@ -69,7 +69,7 @@ import com.google.common.collect.Streams;
  */
 @Component
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
-    implements Validator
+    implements Validator<Enrollment>
 {
 
     public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
@@ -79,7 +79,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );

@@ -59,10 +59,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventDateValidationHook
-    implements Validator
+    implements Validator<Event>
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerPreheat preheat = bundle.getPreheat();
 

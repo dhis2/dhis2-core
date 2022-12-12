@@ -41,10 +41,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EnrollmentGeoValidationHook
-    implements Validator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
 

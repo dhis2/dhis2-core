@@ -51,10 +51,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EnrollmentDateValidationHook
-    implements Validator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         validateMandatoryDates( reporter, enrollment );
 

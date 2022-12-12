@@ -109,7 +109,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertTrue( errorReporter.getErrors().isEmpty() );
     }
@@ -131,7 +131,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.hasProgramStageWithEvents( event.getProgramStage(), event.getEnrollment() ) ).thenReturn( true );
         bundle.setEvents( Lists.newArrayList( event ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         // then
         assertEquals( 1, errorReporter.getErrors().size() );
@@ -152,7 +152,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertEquals( 2, errorReporter.getErrors().size() );
         assertThat( errorReporter.getErrors().get( 0 ).getErrorCode(), is( E1039 ) );
@@ -178,7 +178,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertTrue( errorReporter.getErrors().isEmpty() );
     }
@@ -195,7 +195,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         errorReporter
             .addError( new TrackerErrorReport( "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid() ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertFalse( errorReporter.hasErrorReport( e -> E1039 == e.getErrorCode() ) );
     }
@@ -212,7 +212,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertTrue( errorReporter.getErrors().isEmpty() );
     }
@@ -228,7 +228,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validatorToTest.validate( errorReporter, bundle );
+        validatorToTest.validate( errorReporter, bundle, bundle.getEvents() );
 
         assertTrue( errorReporter.getErrors().isEmpty() );
     }
