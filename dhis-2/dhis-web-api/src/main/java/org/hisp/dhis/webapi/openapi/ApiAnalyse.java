@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -274,21 +275,33 @@ final class ApiAnalyse
             {
                 continue;
             }
-            if ( p.isAnnotationPresent( PathVariable.class ) )
+            if ( p.isAnnotationPresent( OpenApi.Param.class ) )
+            {
+                OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
+                Param param = getParam( p );
+                String name = firstNonEmpty( a.name(), param == null ? "" : param.getName(), p.getName() );
+                Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.getIn();
+                boolean required = param == null ? a.required() : param.isRequired();
+                Api.Schema type = analyseParamSchema( endpoint, p.getParameterizedType(), a.value() );
+                if ( in != Api.Parameter.In.BODY )
+                {
+                    endpoint.getParameters().computeIfAbsent( name,
+                        key -> new Api.Parameter( p, null, key, in, required, type ) );
+                }
+                else
+                {
+                    Api.RequestBody requestBody = endpoint.getRequestBody()
+                        .init( () -> new Api.RequestBody( p, required ) );
+                    consumes.forEach( mediaType -> requestBody.getConsumes().putIfAbsent( mediaType, type ) );
+                }
+            }
+            else if ( p.isAnnotationPresent( PathVariable.class ) )
             {
                 PathVariable a = p.getAnnotation( PathVariable.class );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
                     key -> new Api.Parameter( p, null, key, Api.Parameter.In.PATH, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
-            }
-            else if ( p.isAnnotationPresent( OpenApi.Param.class ) )
-            {
-                OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
-                String name = firstNonEmpty( a.name(), p.getName() );
-                endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, a.required(),
-                        analyseParamSchema( endpoint, p.getParameterizedType(), a.value() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
             {
@@ -303,10 +316,9 @@ final class ApiAnalyse
             else if ( p.isAnnotationPresent( RequestBody.class ) )
             {
                 RequestBody a = p.getAnnotation( RequestBody.class );
-                Api.RequestBody requestBody = endpoint.getRequestBody().isPresent()
-                    ? endpoint.getRequestBody().getValue()
-                    : new Api.RequestBody( p, a.required() );
-                Api.Schema type = analyseInputSchema( endpoint, p.getParameterizedType() );
+                Api.RequestBody requestBody = endpoint.getRequestBody()
+                    .init( () -> new Api.RequestBody( p, a.required() ) );
+                Api.Schema type = analyseParamSchema( endpoint, p.getParameterizedType(), p.getType() );
                 consumes.forEach( mediaType -> requestBody.getConsumes().putIfAbsent( mediaType, type ) );
             }
             else if ( isParams( p ) )
@@ -344,7 +356,7 @@ final class ApiAnalyse
     private static void analyseParams( Api.Endpoint endpoint, Class<?> paramsObject )
     {
         Collection<Property> properties = getProperties( paramsObject );
-        if ( isSharable( paramsObject ) )
+        if ( isSharable( paramsObject, false ) )
         {
             Map<String, Api.Parameter> globalParameters = endpoint.getIn().getIn().getParameters();
             Function<Property, String> toName = property -> paramsObject.getSimpleName() + "." + property.getName();
@@ -363,9 +375,11 @@ final class ApiAnalyse
     private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property, String globalName )
     {
         AnnotatedElement member = (AnnotatedElement) property.getSource();
-        return new Api.Parameter( member, globalName,
-            property.getName(), Api.Parameter.In.QUERY, false,
-            analyseInputSchema( endpoint, getSubstitutedType( endpoint, property, member ) ) );
+        Type type = property.getType();
+        Api.Schema schema = type instanceof Class && isGeneratorType( (Class<?>) type )
+            ? analyseGeneratorSchema( endpoint, type, member.getAnnotation( OpenApi.Property.class ).value() )
+            : analyseInputSchema( endpoint, getSubstitutedType( endpoint, property, member ) );
+        return new Api.Parameter( member, globalName, property.getName(), Api.Parameter.In.QUERY, false, schema );
     }
 
     private static Api.Schema analyseParamSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
@@ -373,6 +387,10 @@ final class ApiAnalyse
         if ( oneOf.length == 0 && source != null )
         {
             return analyseInputSchema( endpoint, source );
+        }
+        if ( isGeneratorType( oneOf[0] ) )
+        {
+            return analyseGeneratorSchema( endpoint, source, oneOf );
         }
         return Api.Schema.oneOf( List.of( oneOf ),
             type -> analyseInputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
@@ -384,8 +402,29 @@ final class ApiAnalyse
         {
             return analyseOutputSchema( endpoint, source );
         }
+        if ( isGeneratorType( oneOf[0] ) )
+        {
+            return analyseGeneratorSchema( endpoint, source, oneOf );
+        }
         return Api.Schema.oneOf( List.of( oneOf ),
             type -> analyseOutputSchema( endpoint, getSubstitutedType( endpoint, type ) ) );
+    }
+
+    private static boolean isGeneratorType( Class<?> type )
+    {
+        return Api.SchemaGenerator.class.isAssignableFrom( type )
+            || Api.SchemaGenerator[].class.isAssignableFrom( type );
+    }
+
+    private static Api.Schema analyseGeneratorSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
+    {
+        Class<?> type = oneOf[0];
+        Class<?> elementType = Object[].class.isAssignableFrom( type ) ? type.getComponentType() : type;
+        Api.Schema schema = newGenerator( elementType ).generate( endpoint, source,
+            copyOfRange( oneOf, 1, oneOf.length ) );
+        return type == elementType
+            ? schema
+            : new Api.Schema( Api.Schema.Type.ARRAY, false, type, type ).withElements( schema );
     }
 
     private static Api.Schema analyseInputSchema( Api.Endpoint endpoint, Type source )
@@ -427,7 +466,7 @@ final class ApiAnalyse
         {
             return s;
         }
-        boolean sharable = isSharable( rawType );
+        boolean sharable = isSharable( rawType, true );
         UnaryOperator<Api.Schema> resolvedTo = schema -> {
             resolving.put( rawType, schema );
             return schema;
@@ -471,6 +510,10 @@ final class ApiAnalyse
             return analyseSubTypeSchema( endpoint, member, resolving );
         }
         Type type = getSubstitutedType( endpoint, property, member );
+        if ( type instanceof Class && isGeneratorType( (Class<?>) type ) )
+        {
+            return analyseGeneratorSchema( endpoint, type, member.getAnnotation( OpenApi.Property.class ).value() );
+        }
         return analyseTypeSchema( endpoint, type, type == property.getType(), resolving );
     }
 
@@ -546,10 +589,11 @@ final class ApiAnalyse
      * OpenAPI "business" helper methods
      */
 
-    private static boolean isSharable( Class<?> rawType )
+    private static boolean isSharable( Class<?> rawType, boolean defaultValue )
     {
         return !rawType.isAnnotationPresent( OpenApi.Shared.class )
-            || rawType.getAnnotation( OpenApi.Shared.class ).value();
+            ? defaultValue
+            : rawType.getAnnotation( OpenApi.Shared.class ).value();
     }
 
     private static String getPropertyName( Api.Endpoint endpoint, Property property )
@@ -683,9 +727,41 @@ final class ApiAnalyse
         return null;
     }
 
+    private static Param getParam( Parameter source )
+    {
+        if ( source.isAnnotationPresent( PathVariable.class ) )
+        {
+            PathVariable a = source.getAnnotation( PathVariable.class );
+            return new Param( Api.Parameter.In.PATH, firstNonEmpty( a.name(), a.value() ), a.required() );
+        }
+        if ( source.isAnnotationPresent( RequestParam.class ) )
+        {
+            RequestParam a = source.getAnnotation( RequestParam.class );
+            return new Param( Api.Parameter.In.QUERY, firstNonEmpty( a.name(), a.value() ), a.required() );
+        }
+        if ( source.isAnnotationPresent( RequestBody.class ) )
+        {
+            RequestBody a = source.getAnnotation( RequestBody.class );
+            return new Param( Api.Parameter.In.BODY, "", a.required() );
+        }
+        return null;
+    }
+
     /*
      * Basic helper methods
      */
+
+    private static Api.SchemaGenerator newGenerator( Class<?> type )
+    {
+        try
+        {
+            return (Api.SchemaGenerator) type.getConstructor().newInstance();
+        }
+        catch ( Exception ex )
+        {
+            throw new RuntimeException( ex );
+        }
+    }
 
     private static String[] firstNonEmpty( String[] a, String[] b, String[] c )
     {
@@ -732,6 +808,17 @@ final class ApiAnalyse
         String[] consumes;
 
         String[] produces;
+    }
+
+    @Value
+    static class Param
+    {
+
+        Api.Parameter.In in;
+
+        String name;
+
+        boolean required;
     }
 
     /*

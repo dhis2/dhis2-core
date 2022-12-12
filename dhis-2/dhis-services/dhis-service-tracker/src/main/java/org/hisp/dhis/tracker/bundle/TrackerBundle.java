@@ -172,19 +172,11 @@ public class TrackerBundle
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     @Builder.Default
-    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
-
-    private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
-    {
-        Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
-
-        resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
-        resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
-        resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
-        resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
-
-        return resolvedStrategyMap;
-    }
+    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( Map.of(
+        TrackerType.RELATIONSHIP, new HashMap<>(),
+        TrackerType.EVENT, new HashMap<>(),
+        TrackerType.ENROLLMENT, new HashMap<>(),
+        TrackerType.TRACKED_ENTITY, new HashMap<>() ) );
 
     @JsonProperty
     public String getUsername()

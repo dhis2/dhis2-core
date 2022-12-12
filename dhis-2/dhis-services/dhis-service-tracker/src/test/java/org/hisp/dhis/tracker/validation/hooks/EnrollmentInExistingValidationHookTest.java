@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -181,7 +181,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
         hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
@@ -199,7 +199,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
         hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
@@ -222,7 +222,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
         hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
@@ -240,7 +240,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
         hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
@@ -268,7 +268,7 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
         hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 

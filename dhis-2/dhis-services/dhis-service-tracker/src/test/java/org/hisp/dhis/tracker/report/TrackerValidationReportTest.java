@@ -37,7 +37,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
 
@@ -235,28 +234,6 @@ class TrackerValidationReportTest
         assertNotNull( report.getErrors() );
         assertEquals( 3, report.getErrors().size() );
         assertEquals( 2, report.size() );
-    }
-
-    @Test
-    void isInvalidReturnsTrueWhenDtoHasError()
-    {
-
-        TrackerValidationReport report = new TrackerValidationReport();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
-
-        report.addError( newError( event ) );
-
-        assertTrue( report.isInvalid( event ) );
-    }
-
-    @Test
-    void isInvalidReturnsFalseWhenDtoHasNoError()
-    {
-
-        TrackerValidationReport report = new TrackerValidationReport();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
-
-        assertFalse( report.isInvalid( event ) );
     }
 
     private TrackerErrorReport newError()

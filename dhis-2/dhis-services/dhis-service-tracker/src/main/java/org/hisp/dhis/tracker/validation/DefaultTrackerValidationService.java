@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -106,8 +105,8 @@ public class DefaultTrackerValidationService
             // exit early when in FAIL_FAST validation mode
         }
         validationReport
-            .addErrors( reporter.getReportList() )
-            .addWarnings( reporter.getWarningsReportList() );
+            .addErrors( reporter.getErrors() )
+            .addWarnings( reporter.getWarnings() );
 
         removeInvalidObjects( bundle, reporter );
 
@@ -251,6 +250,6 @@ public class DefaultTrackerValidationService
 
     private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
     {
-        return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
+        return reporter.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }
