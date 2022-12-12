@@ -108,7 +108,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * children that cannot be deleted by that user.</li>
  * </ul>
  */
-// TODO(DHIS2-14213) naming. commit or persist? CommittablesFilter, PersistablesFilter?
 class PersistablesFilter
 {
     private static final List<Function<TrackedEntity, TrackerDto>> TRACKED_ENTITY_PARENTS = Collections.emptyList();
@@ -128,8 +127,6 @@ class PersistablesFilter
         rel -> toTrackerDto( rel.getFrom() ),
         rel -> toTrackerDto( rel.getTo() ) );
 
-    // TODO(DHIS2-14213) in theory we could rely on result and errors we collect to figure out whether something
-    // is persistable or deletable. These structures are just not designed for fast lookups.
     /**
      * Collects non-deletable parent entities on DELETE and persistable entities
      * otherwise. Checking each "layer" depends on the knowledge (marked
@@ -360,7 +357,7 @@ class PersistablesFilter
             return Event.builder().event( item.getEvent() ).build();
         }
         // only reached if a new TrackerDto implementation is added
-        throw new IllegalStateException( "TrackerType for relationship item not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
+        throw new IllegalStateException( "TrackerType for relationship item not yet supported." );
     }
 
     /**
@@ -409,7 +406,7 @@ class PersistablesFilter
                 return (List<T>) relationships;
             }
             // only reached if a new TrackerDto implementation is added
-            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
         }
     }
 }

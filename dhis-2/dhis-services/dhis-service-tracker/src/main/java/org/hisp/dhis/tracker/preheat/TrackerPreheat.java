@@ -893,7 +893,7 @@ public class TrackerPreheat
             return getRelationship( uid ) != null;
         default:
             // only reached if a new TrackerDto implementation is added
-            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
         }
     }
 

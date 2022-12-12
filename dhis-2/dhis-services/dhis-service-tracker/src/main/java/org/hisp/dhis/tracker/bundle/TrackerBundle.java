@@ -188,7 +188,6 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
-    // TODO(DHIS2-14213) not very efficient; does it matter? should we adapt this?
     public Optional<TrackedEntity> getTrackedEntity( String uid )
     {
         return findById( this.trackedEntities, uid );
@@ -276,7 +275,7 @@ public class TrackerBundle
             return (List<T>) relationships;
         }
         // only reached if a new TrackerDto implementation is added
-        throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return
+        throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
     }
 
     /**
@@ -310,7 +309,7 @@ public class TrackerBundle
             return getRelationship( uid ).isPresent();
         default:
             // only reached if a new TrackerDto implementation is added
-            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." ); // TODO(DHIS2-14213) do you agree its better to throw than just return false?
+            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
         }
     }
 }
