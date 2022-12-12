@@ -97,6 +97,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -173,7 +175,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
@@ -210,7 +212,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request )
@@ -293,7 +296,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
     public WebMessage patchObject(
-        @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
         HttpServletRequest request )
@@ -515,7 +518,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PostMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage setAsFavorite( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
     {
         if ( !getSchema().isFavoritable() )
         {
@@ -541,7 +545,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PostMapping( value = "/{uid}/subscriber" )
     @ResponseBody
-    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage subscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
     {
         if ( !getSchema().isSubscribable() )
         {
@@ -573,7 +578,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage putJsonObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
         throws Exception
     {
@@ -628,7 +634,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage putXmlObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -679,7 +686,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
     public WebMessage replaceTranslations(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
@@ -724,7 +731,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
-    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+    public WebMessage deleteObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -759,7 +767,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Response( status = NOT_FOUND, value = WebMessage.class )
     @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage removeAsFavorite( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
     {
         if ( !getSchema().isFavoritable() )
         {
@@ -786,7 +795,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     @SuppressWarnings( "unchecked" )
-    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
+    public WebMessage unsubscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @CurrentUser User currentUser )
     {
         if ( !getSchema().isSubscribable() )
         {
@@ -818,8 +828,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -832,8 +842,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -856,8 +866,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage replaceCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -870,8 +880,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage replaceCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -895,8 +905,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage addCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
         throws Exception
@@ -923,8 +933,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItemsJson(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -937,8 +947,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItemsXml(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
@@ -961,8 +971,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( HttpStatus.OK )
     @ResponseBody
     public WebMessage deleteCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
         HttpServletResponse response )
         throws Exception
@@ -984,7 +994,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage setSharing( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser,
+    public WebMessage setSharing( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
         throws IOException
     {

@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,7 +165,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
     }
 
     @Test
@@ -180,7 +180,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
     }
 
     @Test
@@ -208,7 +208,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
     }
 
     @Test
@@ -223,7 +223,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
     private TrackedEntity validTei()

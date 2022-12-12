@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -312,6 +316,39 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertContainsOnly( Set.of(
             new QueryFilter( QueryOperator.GT, "10" ),
             new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
+    void testFilterWhenTEAFilterIsRepeated()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20" ) );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class, () -> mapper.map( criteria ) );
+
+        assertStartsWith( "Filter for attribute TvjwTPToKHO was specified more than once.", e.getMessage() );
+        assertThat( e.getMessage(), allOf( containsString( "GT:10" ), containsString( "LT:20" ) ) );
+        assertThat( e.getMessage(),
+            anyOf( containsString( "TvjwTPToKHO:GT:10" ), containsString( "TvjwTPToKHO:LT:20" ) ) );
+    }
+
+    @Test
+    void testFilterWhenMultipleTEAFiltersAreRepeated()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20",
+            TEA_2_UID + ":gt:30", TEA_2_UID + ":lt:40" ) );
+
+        IllegalQueryException e = assertThrows( IllegalQueryException.class, () -> mapper.map( criteria ) );
+
+        assertThat( e.getMessage(),
+            containsString( "Filter for attribute " + TEA_1_UID + " was specified more than once." ) );
+        assertThat( e.getMessage(), allOf( containsString( "GT:10" ), containsString( "LT:20" ) ) );
+        assertThat( e.getMessage(),
+            anyOf( containsString( TEA_1_UID + ":GT:10" ), containsString( TEA_1_UID + ":LT:20" ) ) );
+        assertThat( e.getMessage(),
+            containsString( "Filter for attribute " + TEA_2_UID + " was specified more than once." ) );
+        assertThat( e.getMessage(), allOf( containsString( "GT:30" ), containsString( "LT:40" ) ) );
+        assertThat( e.getMessage(),
+            anyOf( containsString( TEA_2_UID + ":GT:30" ), containsString( TEA_2_UID + ":LT:40" ) ) );
     }
 
     @Test

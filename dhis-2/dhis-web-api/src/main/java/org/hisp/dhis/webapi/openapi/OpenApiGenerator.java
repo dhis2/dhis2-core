@@ -59,6 +59,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.types.RootNode;
@@ -249,9 +250,9 @@ public class OpenApiGenerator extends JsonGenerator
 
     private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
 
-    private final Map<String, Class<?>> typeByName = new TreeMap<>();
+    private final Map<String, Class<?>> typesByName = new TreeMap<>();
 
-    private final Map<String, Api.Schema> refTypeByName = new TreeMap<>();
+    private final Map<String, Api.Schema> syntheticTypesByName = new TreeMap<>();
 
     private void generateDocument()
     {
@@ -270,7 +271,7 @@ public class OpenApiGenerator extends JsonGenerator
                     addStringMember( "email", configuration.contactEmail );
                 } );
             } );
-            addArrayMember( "tags", api.getTags().values().stream(), tag -> addObjectMember( null, () -> {
+            addArrayMember( "tags", api.getTags().values(), tag -> addObjectMember( null, () -> {
                 addStringMember( "name", tag.getName() );
                 addStringMember( "description", tag.getDescription().orElse( configuration.missingDescription ) );
                 addObjectMember( "externalDocs", tag.getExternalDocsUrl().isPresent(), () -> {
@@ -312,25 +313,14 @@ public class OpenApiGenerator extends JsonGenerator
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
             addStringMember( "description", endpoint.getDescription().orElse( configuration.missingDescription ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
-            if ( !tags.isEmpty() )
-            {
-                addArrayMember( "tags", tags );
-            }
-            if ( !endpoint.getParameters().isEmpty() )
-            {
-                addArrayMember( "parameters",
-                    () -> endpoint.getParameters().values().forEach( this::generateParameter ) );
-            }
+            addArrayMember( "tags", tags );
+            addArrayMember( "parameters", endpoint.getParameters().values(), this::generateParameter );
             if ( endpoint.getRequestBody().isPresent() )
             {
                 addObjectMember( "requestBody",
                     () -> generateRequestBody( endpoint.getRequestBody().getValue() ) );
             }
-            if ( !endpoint.getResponses().isEmpty() )
-            {
-                addObjectMember( "responses",
-                    () -> endpoint.getResponses().values().forEach( this::generateResponse ) );
-            }
+            addObjectMember( "responses", endpoint.getResponses().values(), this::generateResponse );
         } );
     }
 
@@ -366,7 +356,7 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generateRequestBody( Api.RequestBody requestBody )
     {
-        addStringMember( "description", requestBody.getDescription() );
+        addStringMember( "description", requestBody.getDescription().orElse( configuration.missingDescription ) );
         addBooleanMember( "required", requestBody.isRequired() );
         addObjectMember( "content",
             () -> requestBody.getConsumes().forEach( ( key, value ) -> addObjectMember( key.toString(),
@@ -399,10 +389,12 @@ public class OpenApiGenerator extends JsonGenerator
         // we still need a copy due to Ref name being based on the referenced
         // target
         // name we might add to the map while generating a schema
-        new TreeMap<>( typeByName )
-            .forEach( ( name, type ) -> addObjectMember( name, () -> generateSchema( api.getSchemas().get( type ) ) ) );
-        // write ref schemas:
-        refTypeByName.forEach( ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
+        new TreeMap<>( typesByName ).entrySet().stream()
+            .filter( e -> api.getSchemas().containsKey( e.getValue() ) )
+            .forEach(
+                e -> addObjectMember( e.getKey(), () -> generateSchema( api.getSchemas().get( e.getValue() ) ) ) );
+        // write ref/uid schemas:
+        syntheticTypesByName.forEach( ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
     }
 
     private static boolean isReferencableSchema( Api.Schema schema )
@@ -416,12 +408,18 @@ public class OpenApiGenerator extends JsonGenerator
     {
         if ( schema == null )
             return;
-        if ( schema.getType() == Api.Schema.Type.REF )
+        Api.Schema.Type type = schema.getType();
+        if ( type == Api.Schema.Type.REF || type == Api.Schema.Type.UID || type == Api.Schema.Type.ENUM )
         {
             Class<?> to = schema.getRawType();
-            String name = "Ref:" + getUniqueSchemaName( to );
+            Map<Api.Schema.Type, String> prefixes = Map.of(
+                Api.Schema.Type.REF, "Ref",
+                Api.Schema.Type.UID, "UID",
+                Api.Schema.Type.ENUM, ((Class<?>) schema.getSource()).getSimpleName() );
+            String prefix = prefixes.get( type );
+            String name = prefix + ":" + getUniqueSchemaName( to );
             addStringMember( "$ref", "#/components/schemas/" + name );
-            refTypeByName.putIfAbsent( name, schema );
+            syntheticTypesByName.putIfAbsent( name, schema );
             return;
         }
         if ( !isReferencableSchema( schema ) )
@@ -451,21 +449,33 @@ public class OpenApiGenerator extends JsonGenerator
             }
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.REF )
+        Api.Schema.Type schemaType = schema.getType();
+        if ( schemaType == Api.Schema.Type.REF )
         {
-            generateRefType( schema );
+            generateRefTypeSchema( schema );
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.UNKNOWN )
+        if ( schemaType == Api.Schema.Type.UID )
+        {
+            generateUidSchema( schema );
+            return;
+        }
+        if ( schemaType == Api.Schema.Type.UNKNOWN )
         {
             addStringMember( "description",
                 "The exact type is unknown.  \\n(Java type was: `" + schema.getSource().getTypeName() + "`)" );
             return;
         }
-        if ( schema.getType() == Api.Schema.Type.ONE_OF )
+        if ( schemaType == Api.Schema.Type.ONE_OF )
         {
-            addArrayMember( "oneOf", () -> schema.getProperties()
-                .forEach( property -> addObjectMember( null, () -> generateSchemaOrRef( property.getType() ) ) ) );
+            addArrayMember( "oneOf", schema.getProperties(),
+                property -> addObjectMember( null, () -> generateSchemaOrRef( property.getType() ) ) );
+            return;
+        }
+        if ( schemaType == Api.Schema.Type.ENUM )
+        {
+            addStringMember( "type", "string" );
+            addArrayMember( "enum", schema.getValues() );
             return;
         }
         if ( type.isEnum() )
@@ -475,7 +485,7 @@ public class OpenApiGenerator extends JsonGenerator
                 .map( e -> ((Enum<?>) e).name() ).collect( toList() ) );
             return;
         }
-        if ( type.isArray() || schema.getType() == Api.Schema.Type.ARRAY )
+        if ( type.isArray() || schemaType == Api.Schema.Type.ARRAY )
         {
             Api.Schema elements = schema.getProperties().isEmpty()
                 ? api.getSchemas().get( type.getComponentType() )
@@ -498,9 +508,8 @@ public class OpenApiGenerator extends JsonGenerator
                 return;
             }
             addArrayMember( "required", schema.getRequiredProperties() );
-            addObjectMember( "properties", () -> schema.getProperties()
-                .forEach( property -> addObjectMember( property.getName(),
-                    () -> generateSchemaOrRef( property.getType() ) ) ) );
+            addObjectMember( "properties", schema.getProperties(),
+                property -> addObjectMember( property.getName(), () -> generateSchemaOrRef( property.getType() ) ) );
         }
         else
         {
@@ -516,7 +525,6 @@ public class OpenApiGenerator extends JsonGenerator
     {
         addStringMember( "type", simpleType.getType() );
         addStringMember( "format", simpleType.getFormat() );
-        // addBooleanMember( "nullable", simpleType.getNullable() );
         addNumberMember( "minLength", simpleType.getMinLength() );
         addNumberMember( "maxLength", simpleType.getMaxLength() );
         addStringMember( "pattern", simpleType.getPattern() );
@@ -526,25 +534,34 @@ public class OpenApiGenerator extends JsonGenerator
         }
     }
 
-    private void generateRefType( Api.Schema schema )
+    private void generateRefTypeSchema( Api.Schema schema )
     {
-        Type to = schema.getSource();
-        String name = to == BaseIdentifiableObject.class || to == IdentifiableObject.class
-            ? "any type of object"
-            : getUniqueSchemaName( (Class<?>) to );
-
         addStringMember( "type", "object" );
-        addStringMember( "description",
-            "A UID reference to a " + name + "  \\n(Java name `" + to.getTypeName() + "`)" );
         addArrayMember( "required", List.of( "id" ) );
-        addObjectMember( "properties", () -> addObjectMember( "id", () -> {
-            addStringMember( "type", "string" );
-            addStringMember( "format", "uid" );
-            addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
-            addBooleanMember( "readOnly", true );
-            addNumberMember( "minLength", 11 );
-            addNumberMember( "maxLength", 11 );
-        } ) );
+        addObjectMember( "properties", () -> addObjectMember( "id", () -> generateUidSchema( schema ) ) );
+        addTypeDescriptionMember( schema.getSource(), "A UID reference to a %s  \\n(Java name `%s`)" );
+    }
+
+    private void generateUidSchema( Api.Schema schema )
+    {
+        addStringMember( "type", "string" );
+        addStringMember( "format", "uid" );
+        addStringMember( "pattern", "^[0-9a-zA-Z]{11}$" );
+        addNumberMember( "minLength", 11 );
+        addNumberMember( "maxLength", 11 );
+        addStringMember( "example", generateUid( schema.getRawType() ) );
+        if ( schema.getType() == Api.Schema.Type.UID )
+        {
+            addTypeDescriptionMember( schema.getSource(), "A UID for an %s object  \\n(Java name `%s`)" );
+        }
+    }
+
+    private void addTypeDescriptionMember( Type type, String template )
+    {
+        String name = type == BaseIdentifiableObject.class || type == IdentifiableObject.class
+            ? "any type of object"
+            : getUniqueSchemaName( (Class<?>) type );
+        addStringMember( "description", String.format( template, name, type.getTypeName() ) );
     }
 
     /*
@@ -554,14 +571,14 @@ public class OpenApiGenerator extends JsonGenerator
     private String getUniqueSchemaName( Class<?> type )
     {
         String name = type.getSimpleName();
-        Class<?> assigned = typeByName.get( name );
+        Class<?> assigned = typesByName.get( name );
         if ( assigned == type )
         {
             return name;
         }
         if ( assigned == null )
         {
-            typeByName.put( name, type );
+            typesByName.put( name, type );
             return name;
         }
         // clash => use full name
@@ -571,7 +588,7 @@ public class OpenApiGenerator extends JsonGenerator
         name = stream( segments ).limit( segments.length - 1L )
             .map( word -> Character.toUpperCase( word.charAt( 0 ) ) + word.substring( 1 ) )
             .collect( joining( "" ) ) + ":" + segments[segments.length - 1];
-        typeByName.put( name, type );
+        typesByName.put( name, type );
         return name;
     }
 
@@ -599,6 +616,10 @@ public class OpenApiGenerator extends JsonGenerator
                     for ( String ePath : e.getPaths() )
                     {
                         String absolutePath = cPath + ePath;
+                        if ( absolutePath.isEmpty() )
+                        {
+                            absolutePath = "/";
+                        }
                         endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
                     }
                 }
@@ -625,5 +646,27 @@ public class OpenApiGenerator extends JsonGenerator
             merged.add( controller.iterator().next() );
         }
         return merged;
+    }
+
+    /**
+     * Generates an 11 character UID based on the target type. This is so each
+     * UID type gets its unique but stable example.
+     */
+    private static String generateUid( Class<?> fromType )
+    {
+        char[] chars = CodeGenerator.ALLOWED_CHARS.toCharArray();
+        String key = fromType.getSimpleName();
+        key = key.repeat( (11 / key.length()) + 1 );
+        StringBuilder uid = new StringBuilder( 11 );
+        int offset = fromType.getSimpleName().length();
+        for ( int i = 0; i < 11; i++ )
+        {
+            int index = key.charAt( i ) + offset;
+            uid.append( chars[index % chars.length] );
+            // this is just to get more realistic character distribution
+            // 13 because it is about half the alphabet
+            offset += 13;
+        }
+        return uid.toString();
     }
 }

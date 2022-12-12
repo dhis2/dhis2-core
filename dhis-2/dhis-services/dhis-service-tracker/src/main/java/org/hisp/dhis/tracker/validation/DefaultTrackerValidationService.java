@@ -36,9 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -91,28 +94,142 @@ public class DefaultTrackerValidationService
 
         try
         {
-            for ( TrackerValidationHook hook : hooks )
-            {
-                Timer hookTimer = Timer.startTimer();
-
-                hook.validate( reporter, bundle );
-
-                validationReport.addTiming( new Timing(
-                    hook.getClass().getName(),
-                    hookTimer.toString() ) );
-            }
+            validateTrackedEntities( bundle, hooks, validationReport, reporter );
+            validateEnrollments( bundle, hooks, validationReport, reporter );
+            validateEvents( bundle, hooks, validationReport, reporter );
+            validateRelationships( bundle, hooks, validationReport, reporter );
+            validateBundle( bundle, hooks, validationReport, reporter );
         }
         catch ( ValidationFailFastException e )
         {
             // exit early when in FAIL_FAST validation mode
         }
         validationReport
-            .addErrors( reporter.getReportList() )
-            .addWarnings( reporter.getWarningsReportList() );
+            .addErrors( reporter.getErrors() )
+            .addWarnings( reporter.getWarnings() );
 
         removeInvalidObjects( bundle, reporter );
 
         return validationReport;
+    }
+
+    private void validateTrackedEntities( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    {
+        for ( TrackedEntity tei : bundle.getTrackedEntities() )
+        {
+            for ( TrackerValidationHook hook : hooks )
+            {
+                if ( hook.needsToRun( bundle.getStrategy( tei ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    hook.validateTrackedEntity( reporter, bundle, tei );
+
+                    validationReport.addTiming( new Timing(
+                        hook.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( hook.skipOnError() && didNotPassValidation( reporter, tei.getUid() ) )
+                    {
+                        break; // skip subsequent validation hooks for this invalid entity
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateEnrollments( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    {
+        for ( Enrollment enrollment : bundle.getEnrollments() )
+        {
+            for ( TrackerValidationHook hook : hooks )
+            {
+                if ( hook.needsToRun( bundle.getStrategy( enrollment ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    hook.validateEnrollment( reporter, bundle, enrollment );
+
+                    validationReport.addTiming( new Timing(
+                        hook.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( hook.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
+                    {
+                        break; // skip subsequent validation hooks for this invalid entity
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateEvents( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    {
+        for ( Event event : bundle.getEvents() )
+        {
+            for ( TrackerValidationHook hook : hooks )
+            {
+                if ( hook.needsToRun( bundle.getStrategy( event ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    hook.validateEvent( reporter, bundle, event );
+
+                    validationReport.addTiming( new Timing(
+                        hook.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( hook.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
+                    {
+                        break; // skip subsequent validation hooks for this invalid entity
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateRelationships( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    {
+        for ( Relationship relationship : bundle.getRelationships() )
+        {
+            for ( TrackerValidationHook hook : hooks )
+            {
+                if ( hook.needsToRun( bundle.getStrategy( relationship ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    hook.validateRelationship( reporter, bundle, relationship );
+
+                    validationReport.addTiming( new Timing(
+                        hook.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( hook.skipOnError() && didNotPassValidation( reporter, relationship.getUid() ) )
+                    {
+                        break; // skip subsequent validation hooks for this invalid entity
+                    }
+                }
+            }
+        }
+    }
+
+    private static void validateBundle( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    {
+        for ( TrackerValidationHook hook : hooks )
+        {
+            Timer hookTimer = Timer.startTimer();
+
+            hook.validate( reporter, bundle );
+
+            validationReport.addTiming( new Timing(
+                hook.getClass().getName(),
+                hookTimer.toString() ) );
+        }
     }
 
     private void removeInvalidObjects( TrackerBundle bundle, ValidationErrorReporter reporter )
@@ -129,5 +246,10 @@ public class DefaultTrackerValidationService
         bundle.setRelationships( bundle.getRelationships().stream().filter(
             e -> !reporter.isInvalid( e ) )
             .collect( Collectors.toList() ) );
+    }
+
+    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
+    {
+        return reporter.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }
