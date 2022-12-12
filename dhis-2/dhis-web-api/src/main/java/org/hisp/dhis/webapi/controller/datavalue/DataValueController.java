@@ -54,6 +54,8 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -69,6 +71,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.jclouds.rest.AuthorizationException;
@@ -118,10 +121,12 @@ public class DataValueController
 
     private final FileResourceUtils fileResourceUtils;
 
+    private final DhisConfigurationProvider dhisConfig;
+
     public DataValueController( final CurrentUserService currentUserService, final DataValueService dataValueService,
         final SystemSettingManager systemSettingManager, final InputUtils inputUtils,
         final FileResourceService fileResourceService, final DataValidator dataValueValidation,
-        final FileResourceUtils fileResourceUtils )
+        final FileResourceUtils fileResourceUtils, final DhisConfigurationProvider dhisConfig )
     {
         checkNotNull( currentUserService );
         checkNotNull( dataValueService );
@@ -130,6 +135,7 @@ public class DataValueController
         checkNotNull( fileResourceService );
         checkNotNull( dataValueValidation );
         checkNotNull( fileResourceUtils );
+        checkNotNull( dhisConfig );
 
         this.currentUserService = currentUserService;
         this.dataValueService = dataValueService;
@@ -138,6 +144,7 @@ public class DataValueController
         this.fileResourceService = fileResourceService;
         this.dataValueValidation = dataValueValidation;
         this.fileResourceUtils = fileResourceUtils;
+        this.dhisConfig = dhisConfig;
     }
 
     // ---------------------------------------------------------------------
@@ -639,7 +646,10 @@ public class DataValueController
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
         response.setHeader( HttpHeaders.CONTENT_LENGTH,
             String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
+
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
         setNoStore( response );
+
         try
         {
             fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );

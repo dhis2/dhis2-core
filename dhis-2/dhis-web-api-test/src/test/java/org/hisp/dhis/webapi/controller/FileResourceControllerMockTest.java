@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -59,6 +60,9 @@ public class FileResourceControllerMockTest
     @Mock
     private FileResourceUtils fileResourceUtils;
 
+    @Mock
+    private DhisConfigurationProvider dhisConfig;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -67,7 +71,8 @@ public class FileResourceControllerMockTest
         throws WebMessageException,
         IOException
     {
-        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils );
+        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils,
+            dhisConfig );
         FileResource fileResource = new FileResource();
         fileResource.setDomain( FileResourceDomain.ORG_UNIT );
         fileResource.setUid( "id" );
@@ -84,7 +89,8 @@ public class FileResourceControllerMockTest
         throws WebMessageException,
         IOException
     {
-        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils );
+        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils,
+            dhisConfig );
         FileResource fileResource = new FileResource();
         fileResource.setDomain( FileResourceDomain.DATA_VALUE );
         fileResource.setUid( "id" );

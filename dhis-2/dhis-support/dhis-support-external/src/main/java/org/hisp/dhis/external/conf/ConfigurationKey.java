@@ -32,6 +32,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.hisp.dhis.security.utils.CspUtils;
+
 /**
  * @author Lars Helge Overland
  */
@@ -162,7 +164,22 @@ public enum ConfigurationKey
     DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
     DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
     DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
-    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false ),
+
+    /**
+     * Content Security Policy feature. Enable or disable the feature.
+     */
+    CSP_ENABLED( "csp.enabled", Constants.ON, true ),
+
+    /**
+     * CSP upgrade insecure connections. Enable or disable the feature.
+     */
+    CSP_UPGRADE_INSECURE_ENABLED( "csp.upgrade.insecure.enabled", Constants.OFF, true ),
+
+    /**
+     * CSP default header value/string. Enable or disable the feature.
+     */
+    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false );
 
     private final String key;
 
