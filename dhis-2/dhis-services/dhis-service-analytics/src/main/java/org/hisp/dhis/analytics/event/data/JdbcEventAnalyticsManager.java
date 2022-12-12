@@ -151,7 +151,7 @@ public class JdbcEventAnalyticsManager
      */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
-        log.debug( String.format( "Analytics event query SQL: %s", sql ) );
+        log.debug( "Analytics event query SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -215,7 +215,7 @@ public class JdbcEventAnalyticsManager
             sqlClusterFields + "), 4326), 3785), " +
             params.getClusterSize() + ") ";
 
-        log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
+        log.debug( "Analytics event cluster SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -244,7 +244,7 @@ public class JdbcEventAnalyticsManager
 
         try
         {
-            log.debug( "Analytics event count SQL: " + sql );
+            log.debug( "Analytics event count SQL: '{}'", sql );
 
             if ( params.analyzeOnly() )
             {
@@ -284,7 +284,7 @@ public class JdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
+        log.debug( "Analytics event count and extent SQL: '{}'", sql );
 
         Rectangle rectangle = new Rectangle();
 
