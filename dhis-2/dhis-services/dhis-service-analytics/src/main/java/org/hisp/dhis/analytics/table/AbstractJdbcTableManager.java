@@ -57,7 +57,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -433,8 +432,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with partitions based on a list of years
-     * with data.
+     * Creates a {@link AnalyticsTable} with views based on a list of years with
+     * data.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
@@ -445,16 +444,13 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Calendar calendar = PeriodType.getCalendar();
-
         Collections.sort( dataYears );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         for ( Integer year : dataYears )
         {
-            table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                PartitionUtils.getEndDate( calendar, year ) );
+            table.addView( year );
         }
 
         return table;

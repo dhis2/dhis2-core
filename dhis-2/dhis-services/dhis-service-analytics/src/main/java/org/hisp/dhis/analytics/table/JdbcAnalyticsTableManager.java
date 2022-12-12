@@ -153,7 +153,7 @@ public class JdbcAnalyticsTableManager
             ? getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() )
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
+        return (table.hasPartitionTables() || table.hasViews()) ? newArrayList( table ) : newArrayList();
     }
 
     @Override
@@ -268,7 +268,7 @@ public class JdbcAnalyticsTableManager
         String approvalClause = getApprovalJoinClause( partition.getYear() );
         String partitionClause = partition.isLatestPartition()
             ? "and dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+            : "";
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 

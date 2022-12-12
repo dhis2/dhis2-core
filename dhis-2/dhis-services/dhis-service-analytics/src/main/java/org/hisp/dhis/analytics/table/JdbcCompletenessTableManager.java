@@ -110,7 +110,7 @@ public class JdbcCompletenessTableManager
             ? getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() )
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return (table.hasPartitionTables() || table.hasViews()) ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class JdbcCompletenessTableManager
         String tableName = partition.getTempTableName();
         String partitionClause = partition.isLatestPartition()
             ? "and cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
-            : "and ps.year = " + partition.getYear() + " ";
+            : "";
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 

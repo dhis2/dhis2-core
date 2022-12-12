@@ -349,6 +349,9 @@ public class JdbcEventAnalyticsTableManager
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         Program program = partition.getMasterTable().getProgram();
+        String start = DateUtils.getLongDateString( partition.getStartDate() );
+        String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
+            : "";
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
@@ -366,7 +369,7 @@ public class JdbcEventAnalyticsTableManager
             "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
-            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and (" + getDateLinkedToStatus() + ") is not null " +

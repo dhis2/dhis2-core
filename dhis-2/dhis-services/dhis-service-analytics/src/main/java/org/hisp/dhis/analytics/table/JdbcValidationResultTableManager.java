@@ -107,7 +107,7 @@ public class JdbcValidationResultTableManager
         AnalyticsTable table = params.isLatestUpdate() ? new AnalyticsTable()
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return (table.hasPartitionTables() || table.hasViews()) ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
 
     @Override
