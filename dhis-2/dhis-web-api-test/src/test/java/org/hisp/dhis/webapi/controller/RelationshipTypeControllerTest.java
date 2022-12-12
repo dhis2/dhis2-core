@@ -27,67 +27,87 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Zubair Asghar
  */
 
-class RelationshipTypeControllerTest extends DhisControllerConvenienceTest
+class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
 {
-    @Test
-    void testPostingEmptyRelationshipTypes()
+
+    private String relationshipTypeUid;
+
+    private String programUid;
+
+    private String attrA;
+
+    private String attrB;
+
+    private String orgUnitId;
+
+    private String trackedEntityType;
+
+    private User userA;
+
+    @BeforeEach
+    void setUp()
     {
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "One or more errors occurred, please see full details in import report.",
-            POST( "/relationshipTypes/",
-                "{'relationshipTypes':[]}" )
-                    .content( HttpStatus.CONFLICT ) );
+        userA = createUserWithAuth( "userA", "ALL" );
+
+        switchContextToUser( userA );
+
+        orgUnitId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
+
+        trackedEntityType = assertStatus( HttpStatus.CREATED,
+            POST( "/trackedEntityTypes/",
+                "{'name':'person', 'shortName':'person', 'description':'person', 'allowAuditLog':false }" ) );
+
+        attrA = assertStatus( HttpStatus.CREATED,
+            POST( "/trackedEntityAttributes/",
+                "{'name':'attrA', 'shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
+
+        attrB = assertStatus( HttpStatus.CREATED,
+            POST( "/trackedEntityAttributes/",
+                "{'name':'attrB', 'shortName':'attrB', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
+
+        programUid = assertStatus( HttpStatus.CREATED, POST( "/programs/",
+            "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'trackedEntityType': {"
+                +
+                "'id': '" + trackedEntityType + "'}," +
+                " 'programTrackedEntityAttributes' :  [{'id':'ZZplHtHLrgQ', 'trackedEntityAttribute' :{'id': '" + attrA
+                + "' }}, {'id':'tOtVj7xlNHB', 'trackedEntityAttribute' :{'id': '" + attrB + "' }}] }" ) );
+
     }
 
     @Test
     void testPostingRelationshipTypes()
     {
-        Program program = createProgram( 'A' );
-        TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
-        TrackedEntityAttribute attributeB = createTrackedEntityAttribute( 'B' );
-
-        ProgramTrackedEntityAttribute programTrackedEntityAttributeA = createProgramTrackedEntityAttribute( program,
-            attributeA );
-        ProgramTrackedEntityAttribute programTrackedEntityAttributeB = createProgramTrackedEntityAttribute( program,
-            attributeB );
-
-        program.setProgramAttributes(
-            List.of( programTrackedEntityAttributeA, programTrackedEntityAttributeA, programTrackedEntityAttributeB ) );
-
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'T' );
-        manager.save( attributeA );
-        manager.save( attributeB );
-        manager.save( trackedEntityType );
-        manager.save( program );
-
         JsonWebMessage relationtionShip = assertWebMessage( "Created", 201, "OK", null,
             POST( "/relationshipTypes/",
                 "{'code': 'test-rel','description': 'test-rel','fromToName': 'A to B','toConstraint': { 'relationshipEntity': "
                     +
-                    "'TRACKED_ENTITY_INSTANCE','trackedEntityType': {'id': '" + trackedEntityType.getUid()
-                    + "'}, 'program': {'id': '" + program.getUid() + "'}, 'trackerDataView': {" +
-                    "'attributes': ['" + attributeA.getUid() + "', '" + attributeB.getUid()
+                    "'TRACKED_ENTITY_INSTANCE','trackedEntityType': {'id': '" + trackedEntityType
+                    + "'}, 'program': {'id': '" + programUid + "'}, 'trackerDataView': {" +
+                    "'attributes': ['" + attrA + "', '" + attrB
                     + "']} }, 'fromConstraint': { 'relationshipEntity':"
                     +
-                    "'TRACKED_ENTITY_INSTANCE' , 'trackedEntityType': {'id': '" + trackedEntityType.getUid()
-                    + "'}, 'program': {'id': '" + program.getUid() + "' }},'name': 'test-rel'}" )
+                    "'TRACKED_ENTITY_INSTANCE' , 'trackedEntityType': {'id': '" + trackedEntityType
+                    + "'}, 'program': {'id': '" + programUid + "' }},'name': 'test-rel'}" )
                         .content( HttpStatus.CREATED ) );
 
-    }
+        String relationShipTypeUid = relationtionShip.getResponse().get( "uid" ).toString();
 
+        JsonResponse relationShipType = GET( "/relationshipTypes/{id}?fields=toConstraint[trackerDataView[attributes]]",
+            relationShipTypeUid ).content();
+    }
 }
