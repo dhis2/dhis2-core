@@ -375,7 +375,7 @@ public class Period
     @Override
     public String toString()
     {
-        return getIsoDate();
+        return getIsoDate() + (isDefault() ? "" : ":" + dateField);
     }
 
     // -------------------------------------------------------------------------

@@ -279,8 +279,8 @@ public final class ImportContext
      * <ul>
      * <li>the same {@link DataElement} as the value</li>
      * <li>include the same {@link OrganisationUnit} as the value</li>
-     * <li>the same {@link org.hisp.dhis.category.CategoryCombo} as the value's
-     * attribute option combo</li>
+     * <li>the same {@link org.hisp.dhis.category.CategoryCombo} as the category
+     * combo for the value's attribute option combo</li>
      * </ul>
      *
      * @param dataSetContext current data set context

@@ -1074,7 +1074,7 @@ public class DefaultDataValueSetService
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_APPROVAL ) )
             .strictDataSetLocking( options.isStrictDataSetLocking()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_LOCKING ) )
-            .strictDataSetLocking( options.isStrictDataSetInputPeriods()
+            .strictDataSetInputPeriods( options.isStrictDataSetInputPeriods()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_INPUT_PERIODS ) )
             .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
