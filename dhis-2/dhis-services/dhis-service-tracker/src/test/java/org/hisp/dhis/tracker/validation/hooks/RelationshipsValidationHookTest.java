@@ -313,7 +313,7 @@ class RelationshipsValidationHookTest
         trackedEntityInstance.setUid( trackedEntityUid );
         trackedEntityInstance.setTrackedEntityType( teiTrackedEntityType );
 
-        when( bundle.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
+        when( preheat.getTrackedEntity( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
 
         validationHook.validateRelationship( reporter, bundle, relationship );
 

@@ -128,7 +128,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
+        when( preheat.getTrackedEntity( TEI_ID ) )
             .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
@@ -200,7 +200,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
+        when( preheat.getTrackedEntity( TEI_ID ) )
             .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
@@ -225,7 +225,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( null );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -257,7 +257,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
+        when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn( programInstance( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
@@ -355,7 +355,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
+        when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn(
                 programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
 
@@ -393,7 +393,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
                 Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
+        when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn( programInstance( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
@@ -944,7 +944,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
         validTrackedEntity.setUid( "validTrackedEntity" );
-        when( bundle.getTrackedEntityInstance( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
+        when( preheat.getTrackedEntity( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
 
         ReferenceTrackerEntity anotherValidTrackedEntity = new ReferenceTrackerEntity( "anotherValidTrackedEntity",
             null );
@@ -1049,7 +1049,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
+        when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn( programInstance( ENROLLMENT_ID, program ) );
         return program;
     }
