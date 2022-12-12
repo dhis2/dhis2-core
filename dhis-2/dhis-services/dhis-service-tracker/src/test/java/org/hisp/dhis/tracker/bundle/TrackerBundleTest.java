@@ -155,6 +155,16 @@ class TrackerBundleTest
     }
 
     @Test
+    void testGetRelationshipInBundleContainingNullUids()
+    {
+        TrackerBundle bundle = TrackerBundle.builder()
+            .relationships( List.of( Relationship.builder().build() ) )
+            .build();
+
+        assertTrue( bundle.getRelationship( "uid" ).isEmpty() );
+    }
+
+    @Test
     void testExistsRelationship()
     {
         TrackerBundle bundle = TrackerBundle.builder()

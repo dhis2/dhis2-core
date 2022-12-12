@@ -189,26 +189,30 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
-    // TODO(DHIS2-14213) not safe if bundle contains a TEI with no id
     // TODO(DHIS2-14213) not very efficient; does it matter? should we adapt this?
-    public Optional<TrackedEntity> getTrackedEntity( String id )
+    public Optional<TrackedEntity> getTrackedEntity( String uid )
     {
-        return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();
+        return findById( this.trackedEntities, uid );
     }
 
-    public Optional<Event> getEvent( String id )
+    public Optional<Event> getEvent( String uid )
     {
-        return this.events.stream().filter( t -> t.getEvent().equals( id ) ).findFirst();
+        return findById( this.events, uid );
     }
 
-    public Optional<Enrollment> getEnrollment( String id )
+    public Optional<Enrollment> getEnrollment( String uid )
     {
-        return this.enrollments.stream().filter( t -> t.getEnrollment().equals( id ) ).findFirst();
+        return findById( this.enrollments, uid );
     }
 
-    public Optional<Relationship> getRelationship( String id )
+    public Optional<Relationship> getRelationship( String uid )
     {
-        return this.relationships.stream().filter( t -> t.getRelationship().equals( id ) ).findFirst();
+        return findById( this.relationships, uid );
+    }
+
+    private static <T extends TrackerDto> Optional<T> findById( List<T> entities, String uid )
+    {
+        return entities.stream().filter( e -> Objects.equals( e.getUid(), uid ) ).findFirst();
     }
 
     public Map<String, List<RuleEffect>> getEnrollmentRuleEffects()
