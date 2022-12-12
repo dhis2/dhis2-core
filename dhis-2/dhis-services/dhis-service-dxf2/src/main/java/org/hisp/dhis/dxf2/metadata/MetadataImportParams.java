@@ -172,6 +172,7 @@ public class MetadataImportParams
         addObjects( objects );
     }
 
+    @OpenApi.Ignore
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
@@ -368,6 +369,7 @@ public class MetadataImportParams
         return this;
     }
 
+    @OpenApi.Ignore
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFilename()
@@ -381,6 +383,7 @@ public class MetadataImportParams
         return this;
     }
 
+    @OpenApi.Ignore
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public CsvImportClass getCsvImportClass()
@@ -404,6 +407,7 @@ public class MetadataImportParams
         return this;
     }
 
+    @OpenApi.Ignore
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFirstRowIsHeader()

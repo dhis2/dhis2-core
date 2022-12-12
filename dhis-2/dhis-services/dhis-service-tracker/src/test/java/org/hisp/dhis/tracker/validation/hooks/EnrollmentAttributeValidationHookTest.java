@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -176,7 +176,7 @@ class EnrollmentAttributeValidationHookTest
 
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
@@ -205,7 +205,7 @@ class EnrollmentAttributeValidationHookTest
 
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -233,7 +233,7 @@ class EnrollmentAttributeValidationHookTest
 
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, TrackerErrorCode.E1085, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
@@ -263,7 +263,7 @@ class EnrollmentAttributeValidationHookTest
 
         hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList(), hasSize( 2 ) );
+        assertThat( reporter.getErrors(), hasSize( 2 ) );
     }
 
     @Test
@@ -286,7 +286,7 @@ class EnrollmentAttributeValidationHookTest
 
         hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter,
             TrackerErrorCode.E1006,
             TrackerType.ENROLLMENT,
