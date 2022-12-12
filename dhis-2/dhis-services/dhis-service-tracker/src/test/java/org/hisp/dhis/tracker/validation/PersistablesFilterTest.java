@@ -252,8 +252,9 @@ class PersistablesFilterTest
                 .trackedEntity( "xK7H53f4Hc2" )
                 .trackedEntity( "QxGbKYwChDM" )
                 .relationship("Te3IC6TpnBB",
-                    trackedEntity("xK7H53f4Hc2"),
-                    trackedEntity("QxGbKYwChDM")).isNotValid()
+                        trackedEntity("xK7H53f4Hc2"),
+                        trackedEntity("QxGbKYwChDM")
+                    ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -346,7 +347,8 @@ class PersistablesFilterTest
                 .enrollment( "t1zaUjKgT3p" ).isNotValid()
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
-                        enrollment("t1zaUjKgT3p") ).isNotValid()
+                        enrollment("t1zaUjKgT3p")
+                    ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -423,7 +425,8 @@ class PersistablesFilterTest
                     .enrollment( "t1zaUjKgT3p" ).isNotValid()
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
-                        enrollment("t1zaUjKgT3p") ).isNotValid()
+                        enrollment("t1zaUjKgT3p")
+                    ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -449,7 +452,8 @@ class PersistablesFilterTest
                     .enrollment( "Ok4Fe5moc3N" )
                 .relationship("Te3IC6TpnBB",
                         trackedEntity("xK7H53f4Hc2"),
-                        event("Qck4PQ7TMun") ).isNotValid()
+                        event("Qck4PQ7TMun")
+                    ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
@@ -478,7 +482,8 @@ class PersistablesFilterTest
                     .enrollment( "Ok4Fe5moc3N" )
                 .relationship("Te3IC6TpnBB",
                         event("QxGbKYwChDM"),
-                        enrollment("t1zaUjKgT3p") ).isNotValid()
+                        enrollment("t1zaUjKgT3p")
+                    ).isNotValid()
                 .build();
 
         PersistablesFilter.Result persistable = filter( setup.bundle, setup.invalidEntities,
