@@ -52,8 +52,6 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
 
     private String attrB;
 
-    private String orgUnitId;
-
     private String trackedEntityType;
 
     private User userA;
@@ -64,9 +62,6 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
         userA = createUserWithAuth( "userA", "ALL" );
 
         switchContextToUser( userA );
-
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
 
         trackedEntityType = assertStatus( HttpStatus.CREATED,
             POST( "/trackedEntityTypes/",
