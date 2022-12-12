@@ -240,6 +240,7 @@ public enum ErrorCode
 
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
+    E4061( "Object is referenced by another object and cannot be deleted" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

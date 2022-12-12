@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.feedback.ErrorCode.E4061;
 
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
@@ -45,6 +46,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -236,6 +238,13 @@ public class CrudControllerAdvice
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
         return error( getExceptionMessage( ex ) );
+    }
+
+    @ExceptionHandler( PersistenceException.class )
+    @ResponseBody
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
+    {
+        return getPersistenceMessage( ex );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -445,6 +454,24 @@ public class CrudControllerAdvice
         return message;
     }
 
+    /**
+     * This method receives a {@link PersistenceException}, evaluates the cause
+     * and returns the message associated that cause.
+     *
+     * @param ex the {@link PersistenceException}
+     * @return the respective {@link WebMessage}
+     */
+    private WebMessage getPersistenceMessage( PersistenceException ex )
+    {
+        if ( ex.getCause() != null && ex.getCause().getClass()
+            .isAssignableFrom( ConstraintViolationException.class ) )
+        {
+            return conflict( E4061.getMessage(), E4061 );
+        }
+
+        return conflict( ex.getMessage() );
+    }
+
     private boolean isSensitiveException( Throwable e )
     {
         for ( Class<?> exClass : SENSITIVE_EXCEPTIONS )
@@ -464,7 +491,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )
