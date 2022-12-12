@@ -49,8 +49,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -138,7 +138,7 @@ public class PreCheckExistenceValidationHook
         Relationship relationship )
     {
 
-        org.hisp.dhis.relationship.Relationship existingRelationship = bundle
+        org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
             .getRelationship( relationship.getRelationship() );
         TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 

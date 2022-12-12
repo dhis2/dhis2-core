@@ -63,7 +63,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -376,12 +376,13 @@ class PreCheckExistenceValidationHookTest
             .relationship( NOT_PRESENT_RELATIONSHIP_UID )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         validationHook.validateRelationship( reporter, bundle, rel );
 
         assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getWarningsReportList(), empty() );
+        assertThat( reporter.getWarnings(), empty() );
     }
 
     @Test
@@ -390,7 +391,8 @@ class PreCheckExistenceValidationHookTest
         Relationship rel = getPayloadRelationship();
 
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
 
         validationHook.validateRelationship( reporter, bundle, rel );
 
@@ -406,7 +408,8 @@ class PreCheckExistenceValidationHookTest
         Relationship rel = getPayloadRelationship();
 
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( bundle.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( getRelationship() );
 
         validationHook.validateRelationship( reporter, bundle, rel );
 
@@ -420,6 +423,7 @@ class PreCheckExistenceValidationHookTest
             .relationship( NOT_PRESENT_RELATIONSHIP_UID )
             .build();
 
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.DELETE );
 
         validationHook.validateRelationship( reporter, bundle, rel );
@@ -434,7 +438,9 @@ class PreCheckExistenceValidationHookTest
             .relationship( SOFT_DELETED_RELATIONSHIP_UID )
             .build();
 
-        when( bundle.getRelationship( SOFT_DELETED_RELATIONSHIP_UID ) ).thenReturn( softDeletedRelationship() );
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( preheat.getRelationship( SOFT_DELETED_RELATIONSHIP_UID ) )
+            .thenReturn( softDeletedRelationship() );
         validationHook.validateRelationship( reporter, bundle, rel );
 
         hasTrackerError( reporter, E4017, RELATIONSHIP, rel.getUid() );

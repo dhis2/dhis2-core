@@ -67,6 +67,8 @@ import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -107,7 +109,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @OpenApi.Response( value = ObjectNode.class )
     @GetMapping( value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
-        @PathVariable( "uid" ) String uid,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
         GistParams params )
         throws NotFoundException
     {
@@ -117,7 +119,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
     @OpenApi.Response( String.class )
     @GetMapping( value = { "/{uid}/gist", "/{uid}/gist.csv" }, produces = "text/csv" )
-    public void getObjectGistAsCsv( @PathVariable( "uid" ) String uid,
+    public void getObjectGistAsCsv( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
         GistParams params, HttpServletResponse response )
         throws IOException
     {
@@ -130,10 +132,11 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @OpenApi.Shared( value = false )
     private static class GistListResponse
     {
+        @OpenApi.Property
         GistPager pager;
 
-        @SuppressWarnings( "java:S116" )
-        ObjectNode[] path$ = null;
+        @OpenApi.Property( name = "path$" )
+        ObjectNode[] entries = null;
     }
 
     @OpenApi.Response( { GistListResponse.class, ObjectNode[].class } )
@@ -159,8 +162,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @OpenApi.Response( { ObjectNode.class, ArrayNode.class } )
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
-        @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String property,
         GistParams params, HttpServletRequest request )
         throws Exception
     {
@@ -184,8 +187,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     @OpenApi.Response( String.class )
     @GetMapping( value = { "/{uid}/{property}/gist", "/{uid}/{property}/gist.csv" }, produces = "text/csv" )
     public void getObjectPropertyGistAsCsv(
-        @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property,
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String property,
         GistParams params, HttpServletResponse response )
         throws Exception
     {
@@ -199,7 +202,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     }
 
     @SuppressWarnings( "unchecked" )
-    private GistQuery createPropertyQuery( @PathVariable( "uid" ) String uid,
+    private GistQuery createPropertyQuery( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property, GistParams params, Property objProperty )
     {
         return createGistQuery( params, (Class<IdentifiableObject>) objProperty.getItemKlass(), GistAutoType.M )

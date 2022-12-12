@@ -46,7 +46,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.DefaultTrackerImportService;
@@ -102,7 +101,6 @@ class TrackerBundleImportReportTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertFalse( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -117,7 +115,6 @@ class TrackerBundleImportReportTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -132,7 +129,6 @@ class TrackerBundleImportReportTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertTrue( report.getValidationReport().hasTimings() );
         assertNotNull( report.getTimingsStats() );
         assertEquals( "1 sec.", report.getTimingsStats().getProgramRule() );
         assertEquals( "2 sec.", report.getTimingsStats().getCommit() );
@@ -289,11 +285,10 @@ class TrackerBundleImportReportTest
     private TrackerValidationReport createValidationReport()
     {
         return new TrackerValidationReport()
-            .addError(
-                new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
-            .addWarning(
-                new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
-            .addTiming( new Timing( "1min", "validation" ) );
+            .addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
+                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
+            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
     }
 
     private TrackerBundleReport createBundleReport()
