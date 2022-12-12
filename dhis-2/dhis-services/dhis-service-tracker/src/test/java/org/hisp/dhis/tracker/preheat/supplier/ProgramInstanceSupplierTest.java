@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,12 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.hisp.dhis.tracker.TrackerIdentifier.UID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,24 +44,28 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceSupplierTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ProgramInstanceSupplierTest extends DhisConvenienceTest
 {
+
     @InjectMocks
     private ProgramInstanceSupplier supplier;
 
@@ -69,11 +75,6 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     @Mock
     private ProgramStore programStore;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    private BeanRandomizer rnd = new BeanRandomizer();
-
     private List<ProgramInstance> programInstances;
 
     private Program programWithRegistration;
@@ -82,38 +83,45 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
     private TrackerImportParams params;
 
-    @Before
+    private BeanRandomizer rnd;
+
+    private TrackerPreheat preheat;
+
+    private ProgramInstance programInstanceWithoutRegistration;
+
+    @BeforeEach
     public void setUp()
     {
-        programWithRegistration = createProgram( 'A' );
-        programWithRegistration.setProgramType( WITH_REGISTRATION );
-
-        programWithoutRegistration = createProgram( 'B' );
-        programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
-
-        params = TrackerImportParams.builder().build();
+        rnd = new BeanRandomizer();
 
         programInstances = rnd.randomObjects( ProgramInstance.class, 2 );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        programInstances.get( 0 ).setProgram( programWithRegistration );
-        programInstances.get( 1 ).setProgram( programWithoutRegistration );
+
+        programWithRegistration = createProgram( 'A' );
+        programWithRegistration.setProgramType( WITH_REGISTRATION );
+        ProgramInstance programInstanceWithRegistration = programInstances.get( 0 );
+        programInstanceWithRegistration.setProgram( programWithRegistration );
+
+        programWithoutRegistration = createProgram( 'B' );
+        programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
+        programInstanceWithoutRegistration = programInstances.get( 1 );
+        programInstanceWithoutRegistration.setProgram( programWithoutRegistration );
 
         when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
             .thenReturn( programInstances );
+
+        params = TrackerImportParams.builder().build();
+        preheat = new TrackerPreheat();
     }
 
     @Test
-    public void verifySupplierWhenNoEventProgramArePresent()
+    void verifySupplierWhenNoEventProgramArePresent()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, programWithRegistration );
+        preheat.put( UID, programWithRegistration );
 
-        // when
         this.supplier.preheatAdd( params, preheat );
 
-        // then
         final List<String> programUids = programInstances
             .stream()
             .map( pi -> pi.getProgram().getUid() )
@@ -125,38 +133,40 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoProgramsArePresent()
+    void verifySupplierWhenNoProgramsArePresent()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( programStore.getByType( WITHOUT_REGISTRATION ) )
-            .thenReturn( Lists.newArrayList( programWithoutRegistration ) );
+            .thenReturn( Arrays.asList( programWithoutRegistration ) );
         programInstances = rnd.randomObjects( ProgramInstance.class, 1 );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        programInstances.get( 0 ).setProgram( programWithoutRegistration );
-        when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
+        ProgramInstance programInstance = programInstances.get( 0 );
+        programInstance.setProgram( programWithoutRegistration );
+        when( programInstanceStore.getByPrograms( Arrays.asList( programWithoutRegistration ) ) )
             .thenReturn( programInstances );
 
-        // when
         this.supplier.preheatAdd( params, preheat );
 
-        // then
-        assertNotNull( preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
+        assertProgramInstanceInPreheat( programInstance,
+            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
+        preheat.put( UID,
+            Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
 
-        // when
         this.supplier.preheatAdd( params, preheat );
 
-        // then
-        assertNotNull( preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
+        assertProgramInstanceInPreheat( programInstanceWithoutRegistration,
+            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
+    private void assertProgramInstanceInPreheat( ProgramInstance expected, ProgramInstance actual )
+    {
+        assertEquals( expected.getUid(), actual.getUid() );
+        assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );
+        assertEquals( actual, preheat.getEnrollment( TrackerIdScheme.UID, actual.getUid() ) );
+    }
 }
