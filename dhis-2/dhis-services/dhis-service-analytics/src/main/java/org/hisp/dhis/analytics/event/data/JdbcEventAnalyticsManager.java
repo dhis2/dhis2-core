@@ -656,7 +656,7 @@ public class JdbcEventAnalyticsManager
 
         String valueItem = params.getValue().getDimensionItem();
 
-        List<String> cols = Lists.newArrayList( "yearly", valueItem );
+        List<String> cols = Lists.newArrayList( "psi", "yearly", valueItem );
 
         cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
 
