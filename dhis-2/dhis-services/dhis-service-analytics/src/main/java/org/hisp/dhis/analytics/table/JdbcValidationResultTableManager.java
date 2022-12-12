@@ -173,6 +173,8 @@ public class JdbcValidationResultTableManager
 
         select = select.replace( "organisationunitid", "sourceid" );
 
+        String partitionClause = partition.getYear() != null ? "and ps.year = " + partition.getYear() : "";
+
         select += "vrs.created as value " +
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
@@ -182,9 +184,8 @@ public class JdbcValidationResultTableManager
             "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "where ps.year = " + partition.getYear() + " " +
-            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and vrs.created is not null";
+            "where vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and vrs.created is not null " + partitionClause;
 
         String sql = insert + select;
 
