@@ -68,7 +68,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * {@link TrackerImportStrategy#CREATE} no valid child of an invalid parent can
  * be created (i.e. enrollment of trackedEntity or event of enrollment). During
  * {@link TrackerImportStrategy#UPDATE} a valid child of an invalid parent can
- * be updated if the parent exists.
+ * be updated.
  * <p>
  * The {@link Result} returned from
  * {@link #filter(TrackerBundle, EnumMap, TrackerImportStrategy)} can be trusted
