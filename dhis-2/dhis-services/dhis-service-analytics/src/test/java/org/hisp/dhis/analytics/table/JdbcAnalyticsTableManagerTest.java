@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -114,20 +115,17 @@ class JdbcAnalyticsTableManagerTest
 
         assertNotNull( table );
         assertNotNull( table.getTablePartitions() );
-        assertEquals( 2, table.getTablePartitions().size() );
+        assertEquals( 0, table.getTablePartitions().size() );
+        assertEquals( 2, table.getTableViews().size() );
 
-        AnalyticsTablePartition partitionA = table.getTablePartitions().get( 0 );
-        AnalyticsTablePartition partitionB = table.getTablePartitions().get( 1 );
+        AnalyticsTableView viewA = table.getTableViews().get( 0 );
+        AnalyticsTableView viewB = table.getTableViews().get( 1 );
 
-        assertNotNull( partitionA );
-        assertNotNull( partitionA.getStartDate() );
-        assertNotNull( partitionA.getEndDate() );
-        assertEquals( partitionA.getYear().intValue(), new DateTime( partitionA.getStartDate() ).getYear() );
+        assertNotNull( viewA );
+        assertEquals( viewA.getYear().intValue(), 2018 );
 
-        assertNotNull( partitionB );
-        assertNotNull( partitionB.getStartDate() );
-        assertNotNull( partitionB.getEndDate() );
-        assertEquals( partitionB.getYear().intValue(), new DateTime( partitionB.getStartDate() ).getYear() );
+        assertNotNull( viewB );
+        assertEquals( viewB.getYear().intValue(), 2019 );
     }
 
     @Test
