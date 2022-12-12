@@ -66,11 +66,7 @@ public class EventStrategy implements ClassBasedSupplierStrategy
 
             preheat.putEvents(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    programStageInstances ),
-                params.getEvents().stream()
-                    .filter(
-                        e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEvent() ) )
-                    .collect( Collectors.toList() ) );
+                    programStageInstances ) );
         }
     }
 }

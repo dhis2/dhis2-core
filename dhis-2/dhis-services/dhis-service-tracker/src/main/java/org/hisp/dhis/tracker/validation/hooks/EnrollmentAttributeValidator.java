@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
@@ -205,16 +204,7 @@ public class EnrollmentAttributeValidator extends AttributeValidationHook
 
     private MetadataIdentifier getOrgUnitUidFromTei( TrackerBundle bundle, String teiUid )
     {
-
-        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat().getReference( teiUid );
-        if ( reference.isPresent() )
-        {
-            final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( teiUid );
-            if ( tei.isPresent() )
-            {
-                return tei.get().getOrgUnit();
-            }
-        }
-        return null;
+        final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( teiUid );
+        return tei.map( TrackedEntity::getOrgUnit ).orElse( null );
     }
 }
