@@ -283,13 +283,12 @@ class PersistablesFilter
     }
 
     /**
-     * Add error for valid parents with invalid child as the reason. So users
-     * know why a valid entity could not be deleted.
+     * Add error for valid parents in the payload with invalid child as the
+     * reason. So users know why a valid entity could not be deleted.
      */
     private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( List<Function<T, TrackerDto>> parents,
         T entity )
     {
-        // add error for parents with entity as reason (only to valid parents in the payload)
         List<TrackerErrorReport> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isValid ) // remove invalid parents
