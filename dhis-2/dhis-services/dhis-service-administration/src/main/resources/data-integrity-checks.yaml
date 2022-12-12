@@ -16,3 +16,4 @@ checks:
   - orgunits/orgunits_not_contained_by_parent.yaml
   - orgunits/orgunits_invalid_geometry.yaml
   - orgunits/orgunits_no_geometry.yaml
+  - option_sets/option_sets_empty.yaml
