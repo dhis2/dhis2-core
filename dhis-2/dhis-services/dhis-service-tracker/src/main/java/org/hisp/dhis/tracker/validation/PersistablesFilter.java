@@ -172,10 +172,10 @@ class PersistablesFilter
         if ( onDelete() )
         {
             // bottom-up
-            collectPersistables( Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships() );
-            collectPersistables( Event.class, EVENT_PARENTS, bundle.getEvents() );
-            collectPersistables( Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments() );
-            collectPersistables( TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities() );
+            collectDeletables( Relationship.class, RELATIONSHIP_PARENTS, bundle.getRelationships() );
+            collectDeletables( Event.class, EVENT_PARENTS, bundle.getEvents() );
+            collectDeletables( Enrollment.class, ENROLLMENT_PARENTS, bundle.getEnrollments() );
+            collectDeletables( TrackedEntity.class, TRACKED_ENTITY_PARENTS, bundle.getTrackedEntities() );
         }
         else
         {
@@ -187,30 +187,35 @@ class PersistablesFilter
         }
     }
 
+    private <T extends TrackerDto> void collectDeletables( Class<T> type, List<Function<T, TrackerDto>> parents,
+        List<T> entities )
+    {
+        for ( T entity : entities )
+        {
+            if ( isValid( entity ) && isDeletable( entity ) )
+            {
+                collectPersistable( type, entity );
+                continue;
+            }
+
+            List<TrackerErrorReport> errors = addErrorsForParents( parents, entity );
+            markAsNonDeletable( errors );
+        }
+    }
+
     private <T extends TrackerDto> void collectPersistables( Class<T> type, List<Function<T, TrackerDto>> parents,
         List<T> entities )
     {
         for ( T entity : entities )
         {
-            if ( isValid( entity ) && (isDeletable( entity ) || isCreateOrUpdatable( parents, entity )) )
+            if ( isValid( entity ) && isCreateOrUpdatable( parents, entity ) )
             {
-                if ( onCreateOrUpdate() )
-                {
-                    mark( entity ); // mark as persistable for later children
-                }
-                this.result.put( type, entity );
+                markAsPersistable( entity );
+                collectPersistable( type, entity );
                 continue;
             }
 
-            if ( onDelete() )
-            {
-                List<TrackerErrorReport> errors = addErrorsForParents( parents, entity );
-                errors.forEach( this::mark ); // mark parents as non-deletable for potential children
-            }
-            else
-            {
-                addErrorsForChildren( parents, entity );
-            }
+            addErrorsForChildren( parents, entity );
         }
     }
 
@@ -231,17 +236,26 @@ class PersistablesFilter
 
     private <T extends TrackerDto> boolean isDeletable( T entity )
     {
-        return onDelete() && !isMarked( entity );
+        return !isMarked( entity );
+    }
+
+    /**
+     * Collect given entity in the persistables result. This entity can be
+     * created, updated or deleted (depending on context and
+     * {@link TrackerImportStrategy}.
+     *
+     * @param type tracker dto type to add persistable to
+     * @param entity persistable entity
+     * @param <T> type of tracker dto
+     */
+    private <T extends TrackerDto> void collectPersistable( Class<T> type, T entity )
+    {
+        this.result.put( type, entity );
     }
 
     private <T extends TrackerDto> boolean isCreateOrUpdatable( List<Function<T, TrackerDto>> parents, T entity )
     {
-        return onCreateOrUpdate() && !hasInvalidParents( parents, entity );
-    }
-
-    private boolean onCreateOrUpdate()
-    {
-        return !onDelete();
+        return !hasInvalidParents( parents, entity );
     }
 
     private boolean onDelete()
@@ -262,6 +276,24 @@ class PersistablesFilter
     private <T extends TrackerDto> boolean isMarked( T entity )
     {
         return isContained( this.markedEntities, entity );
+    }
+
+    /**
+     * Mark parents as non-deletable for potential children. For example an
+     * invalid relationship (child) referencing a valid tracked entity (parent).
+     */
+    private void markAsNonDeletable( List<TrackerErrorReport> errors )
+    {
+        errors.forEach( this::mark );
+    }
+
+    /**
+     * Mark as persistable for later children. For example a tracked entity
+     * (parent) referenced by an enrollment (child).
+     */
+    private <T extends TrackerDto> void markAsPersistable( T entity )
+    {
+        mark( entity );
     }
 
     private <T extends TrackerDto> boolean hasInvalidParents( List<Function<T, TrackerDto>> parents, T entity )
