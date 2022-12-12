@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.importer.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
@@ -73,7 +71,9 @@ public class EventsTests
     extends TrackerNtiApiTest
 {
     private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
+
     private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
+
     private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
     private static Stream<Arguments> provideEventFilesTestArguments()
@@ -219,7 +219,7 @@ public class EventsTests
         eventActions.get( builder.build() )
             .validate().statusCode( 200 )
             .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "events[0].orgUnit", equalTo( OU_ID_0 ));
+            .body( "events[0].orgUnit", equalTo( OU_ID_0 ) );
     }
 
     @Test
