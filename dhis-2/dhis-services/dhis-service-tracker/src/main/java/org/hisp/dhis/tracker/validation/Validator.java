@@ -37,8 +37,20 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Validator
+public interface Validator<T>
 {
+
+    /**
+     * Validate input adding errors to {@code reporter}.
+     *
+     * @param reporter reporter aggregating errors
+     * @param bundle tracker bundle
+     * @param input input to validate
+     */
+    default void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input )
+    {
+    }
+
     /**
      * Validate the tracker bundle.
      *
