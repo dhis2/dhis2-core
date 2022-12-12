@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasWarning;
+import static org.hisp.dhis.tracker.validation.validators.AssertTrackerValidationReport.assertHasError;
+import static org.hisp.dhis.tracker.validation.validators.AssertTrackerValidationReport.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -75,9 +75,9 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerBundle bundle;
 
-    private TrackerValidationHook hook1;
+    private Validator hook1;
 
-    private TrackerValidationHook hook2;
+    private Validator hook2;
 
     @BeforeEach
     void setUp()
@@ -85,8 +85,8 @@ class DefaultTrackerValidationServiceTest
         preheat = mock( TrackerPreheat.class );
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
 
-        hook1 = mock( TrackerValidationHook.class );
-        hook2 = mock( TrackerValidationHook.class );
+        hook1 = mock( Validator.class );
+        hook2 = mock( Validator.class );
 
         bundleBuilder = newBundle();
     }
@@ -153,7 +153,7 @@ class DefaultTrackerValidationServiceTest
             .skipOnError( true )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        // using default TrackerValidationHook.skipOnError==false
+        // using default Validator.skipOnError==false
         ValidationHook doNotSkipOnError = ValidationHook.builder()
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E9999 ) )
             .build();
@@ -223,7 +223,7 @@ class DefaultTrackerValidationServiceTest
             .skipOnError( false )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
+        Validator hook2 = mock( Validator.class );
         service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
 
         TrackerValidationReport report = service.validate( bundle );
@@ -386,7 +386,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Builder
-    private static class ValidationHook implements TrackerValidationHook
+    private static class ValidationHook implements Validator
     {
         private Boolean skipOnError;
 
@@ -432,7 +432,7 @@ class DefaultTrackerValidationServiceTest
             // using boxed Boolean, so we can test the default skipOnError
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
-            return Objects.requireNonNullElseGet( this.skipOnError, TrackerValidationHook.super::skipOnError );
+            return Objects.requireNonNullElseGet( this.skipOnError, Validator.super::skipOnError );
         }
 
         @Override
@@ -442,7 +442,7 @@ class DefaultTrackerValidationServiceTest
             // behavior of the AbstractTrackerDtoValidationHook
             // by default we delegate to AbstractTrackerDtoValidationHook
             return Objects.requireNonNullElseGet( this.needsToRun,
-                () -> TrackerValidationHook.super.needsToRun( strategy ) );
+                () -> Validator.super.needsToRun( strategy ) );
         }
     }
 

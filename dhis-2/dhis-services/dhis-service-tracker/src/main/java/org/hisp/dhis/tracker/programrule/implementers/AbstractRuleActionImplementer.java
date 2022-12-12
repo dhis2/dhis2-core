@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
+import static org.hisp.dhis.tracker.validation.validators.ValidationUtils.needsToValidateDataValues;
 
 import java.util.Collections;
 import java.util.List;

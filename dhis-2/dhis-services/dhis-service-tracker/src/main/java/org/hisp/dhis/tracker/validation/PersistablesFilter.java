@@ -84,8 +84,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * {@link #addErrorsForChildren(List, TrackerDto)}.
  * </p>
  * <p>
- * This filter relies on preprocessing and all
- * {@link org.hisp.dhis.tracker.validation.TrackerValidationHook}s having run
+ * This filter relies on preprocessing and all {@link Validator}s having run
  * beforehand. The following are some assumptions the filtering relies on:
  * </p>
  * <ul>

@@ -33,30 +33,30 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventRuleValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckDataRelationsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckMandatoryFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityOwnershipValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckUpdatableFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.hisp.dhis.tracker.validation.validators.AssignedUserValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentAttributeValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentDateValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentGeoValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentInExistingValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentNoteValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EnrollmentRuleValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventCategoryOptValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventDataValuesValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventDateValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventGeoValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventNoteValidationHook;
+import org.hisp.dhis.tracker.validation.validators.EventRuleValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckDataRelationsValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckExistenceValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckMandatoryFieldsValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckMetaValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckSecurityOwnershipValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckUidValidationHook;
+import org.hisp.dhis.tracker.validation.validators.PreCheckUpdatableFieldsValidationHook;
+import org.hisp.dhis.tracker.validation.validators.RelationshipsValidationHook;
+import org.hisp.dhis.tracker.validation.validators.RepeatedEventsValidationHook;
+import org.hisp.dhis.tracker.validation.validators.TrackedEntityAttributeValidationHook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -72,26 +72,26 @@ import com.google.common.collect.ImmutableList;
 @Configuration( "trackerImportValidationConfig" )
 public class TrackerValidationConfig
 {
-    private final Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> validationHooks;
+    private final Map<Class<? extends Validator>, Validator> validators;
 
-    public TrackerValidationConfig( Collection<TrackerValidationHook> hooks )
+    public TrackerValidationConfig( Collection<Validator> validators )
     {
-        validationHooks = byClass( hooks );
+        this.validators = byClass( validators );
     }
 
-    private Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> byClass(
-        Collection<TrackerValidationHook> items )
+    private Map<Class<? extends Validator>, Validator> byClass(
+        Collection<Validator> items )
     {
         return items.stream()
             .collect( Collectors.toMap(
-                TrackerValidationHook::getClass,
+                Validator::getClass,
                 Functions.identity() ) );
     }
 
     @Bean
-    public List<TrackerValidationHook> ruleEngineValidationHooks()
+    public List<Validator> ruleEngineValidators()
     {
-        return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
+        return getValidatorByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
             EventRuleValidationHook.class,
             TrackedEntityAttributeValidationHook.class,
             EnrollmentAttributeValidationHook.class,
@@ -99,9 +99,9 @@ public class TrackerValidationConfig
     }
 
     @Bean
-    public List<TrackerValidationHook> validationHooks()
+    public List<Validator> validators()
     {
-        return getHookByClass( ImmutableList.of( PreCheckUidValidationHook.class,
+        return getValidatorByClass( ImmutableList.of( PreCheckUidValidationHook.class,
             PreCheckExistenceValidationHook.class,
             PreCheckMandatoryFieldsValidationHook.class,
             PreCheckMetaValidationHook.class,
@@ -134,9 +134,9 @@ public class TrackerValidationConfig
             RepeatedEventsValidationHook.class ) );
     }
 
-    private List<TrackerValidationHook> getHookByClass( List<Class<? extends TrackerValidationHook>> hookClasses )
+    private List<Validator> getValidatorByClass( List<Class<? extends Validator>> validatorClasses )
     {
-        return hookClasses.stream().map( hookClass -> Optional.ofNullable( validationHooks.get( hookClass ) )
+        return validatorClasses.stream().map( hookClass -> Optional.ofNullable( validators.get( hookClass ) )
             .orElseThrow(
                 () -> new IllegalArgumentException( "Unable to find validation hook by class: " + hookClass ) ) )
             .collect( Collectors.toUnmodifiableList() );

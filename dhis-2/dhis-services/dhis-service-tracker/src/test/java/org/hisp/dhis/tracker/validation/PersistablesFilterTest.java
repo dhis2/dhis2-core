@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5001;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
+import static org.hisp.dhis.tracker.validation.validators.AssertTrackerValidationReport.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.argThat;
