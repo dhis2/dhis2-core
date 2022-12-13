@@ -162,7 +162,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( expected,
             persistenceReport.getTypeReportMap().get( trackedEntityType ).getStats().getCreated() );
         assertEquals( expected,
-            persistenceReport.getTypeReportMap().get( trackedEntityType ).getEntity().size() );
+            persistenceReport.getTypeReportMap().get( trackedEntityType ).getEntityReportMap().size() );
     }
 
     private void assertDeletedObjects( int expected, PersistenceReport persistenceReport,
@@ -172,6 +172,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( expected,
             persistenceReport.getTypeReportMap().get( trackedEntityType ).getStats().getDeleted() );
         assertEquals( expected,
-            persistenceReport.getTypeReportMap().get( trackedEntityType ).getEntity().size() );
+            persistenceReport.getTypeReportMap().get( trackedEntityType ).getEntityReportMap().size() );
     }
 }

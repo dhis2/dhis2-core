@@ -214,10 +214,10 @@ class TrackerBundleImportReportTest
         // just asserting on all other fields.
         assertEquals( serializedReportTrackerTypeReport.getTrackerType(),
             deserializedReportTrackerTypeReport.getTrackerType() );
-        assertEquals( serializedReportTrackerTypeReport.getEntity(),
-            deserializedReportTrackerTypeReport.getEntity() );
-        assertEquals( serializedReportTrackerTypeReport.getObjectReports(),
-            deserializedReportTrackerTypeReport.getObjectReports() );
+        assertEquals( serializedReportTrackerTypeReport.getEntityReportMap(),
+            deserializedReportTrackerTypeReport.getEntityReportMap() );
+        assertEquals( serializedReportTrackerTypeReport.getEntityReport(),
+            deserializedReportTrackerTypeReport.getEntityReport() );
         assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
         // Verify Validation Report - Error Reports
         assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getErrorMessage(),

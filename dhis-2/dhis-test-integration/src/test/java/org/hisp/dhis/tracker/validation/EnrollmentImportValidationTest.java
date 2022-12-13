@@ -147,7 +147,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         assertNoErrors( importReport );
         assertEquals( 1, importReport.getPersistenceReport().getTypeReportMap().get( TrackerType.ENROLLMENT )
-            .getEntity().values().size() );
+            .getEntityReportMap().values().size() );
     }
 
     @Test

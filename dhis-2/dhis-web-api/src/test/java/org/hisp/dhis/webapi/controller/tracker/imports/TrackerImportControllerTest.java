@@ -152,9 +152,7 @@ class TrackerImportControllerTest
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
-            PersistenceReport.builder()
-                .status( Status.OK )
-                .build(),
+            PersistenceReport.emptyReport(),
             new ValidationReport(),
             new TimingsStats(),
             new HashMap<>() ) );
@@ -190,9 +188,7 @@ class TrackerImportControllerTest
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
-            PersistenceReport.builder()
-                .status( Status.OK )
-                .build(),
+            PersistenceReport.emptyReport(),
             new ValidationReport(),
             new TimingsStats(),
             new HashMap<>() ) );
@@ -324,9 +320,7 @@ class TrackerImportControllerTest
 
         ImportReport importReport = ImportReport.withImportCompleted(
             Status.OK,
-            PersistenceReport.builder()
-                .status( Status.OK )
-                .build(),
+            PersistenceReport.emptyReport(),
             new ValidationReport(),
             new TimingsStats(),
             new HashMap<>() );

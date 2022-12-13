@@ -378,7 +378,7 @@ public class DefaultTrackerImportService
     public ImportReport buildImportReport( ImportReport originalImportReport,
         TrackerBundleReportMode reportMode )
     {
-        ImportReport.TrackerImportReportBuilder importReportBuilder = ImportReport.builder()
+        ImportReport.ImportReportBuilder importReportBuilder = ImportReport.builder()
             .status( originalImportReport.getStatus() )
             .stats( originalImportReport.getStats() )
             .persistenceReport( originalImportReport.getPersistenceReport() )
