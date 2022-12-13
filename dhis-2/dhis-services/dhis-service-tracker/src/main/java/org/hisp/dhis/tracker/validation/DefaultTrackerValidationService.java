@@ -169,6 +169,11 @@ public class DefaultTrackerValidationService
                     reporter.addTiming( new Timing(
                         validator.getClass().getName(),
                         hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, tei.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
+                    }
                 }
             }
         }
@@ -216,6 +221,11 @@ public class DefaultTrackerValidationService
                     reporter.addTiming( new Timing(
                         validator.getClass().getName(),
                         hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
+                    }
                 }
             }
         }
@@ -263,6 +273,11 @@ public class DefaultTrackerValidationService
                     reporter.addTiming( new Timing(
                         validator.getClass().getName(),
                         hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
+                    }
                 }
             }
         }
@@ -310,6 +325,11 @@ public class DefaultTrackerValidationService
                     reporter.addTiming( new Timing(
                         validator.getClass().getName(),
                         hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, relationship.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
+                    }
                 }
             }
         }

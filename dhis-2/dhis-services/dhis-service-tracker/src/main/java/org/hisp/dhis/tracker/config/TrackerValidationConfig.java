@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.validation.hooks.PreCheckDataRelationsValidationHoo
 import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckMandatoryFieldsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityOwnershipValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUpdatableFieldsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
@@ -82,7 +81,6 @@ public class TrackerValidationConfig
             PreCheckMetaValidationHook.class,
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
-            PreCheckSecurityOwnershipValidationHook.class,
 
             /*
              * NB! This hook must be run after all the Event validations,
