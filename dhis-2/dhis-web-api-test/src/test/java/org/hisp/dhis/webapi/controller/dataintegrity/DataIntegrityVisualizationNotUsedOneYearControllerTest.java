@@ -86,7 +86,8 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
     void testUsedVisualizationsExist()
     {
 
-        Date date = new Date();
+        long millis = System.currentTimeMillis();
+        Date date = new Date( millis );
 
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid() );
         dataStatisticsEventStore.save( dse1 );
@@ -96,7 +97,6 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
         assertHasNoDataIntegrityIssues( "visualizations", check, true );
     }
 
-    /* Will create a manual test for the positive and negative cases */
     @Test
     void testUnusedVisualizationsRuns()
     {
