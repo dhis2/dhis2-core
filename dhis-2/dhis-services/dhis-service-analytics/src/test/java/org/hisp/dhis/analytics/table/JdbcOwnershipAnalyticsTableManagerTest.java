@@ -61,6 +61,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -146,6 +147,9 @@ class JdbcOwnershipAnalyticsTableManagerTest
     @Mock
     private JdbcOwnershipWriter writer;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     private static final Program programA = createProgram( 'A' );
 
     private static final Program programB = createProgramWithoutRegistration( 'B' );
@@ -163,7 +167,7 @@ class JdbcOwnershipAnalyticsTableManagerTest
     {
         target = new JdbcOwnershipAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder,
-            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration );
+            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration, analyticsExportSettings );
 
         tableA = new AnalyticsTable( AnalyticsTableType.OWNERSHIP, target.getFixedColumns(),
             emptyList(), programA );
