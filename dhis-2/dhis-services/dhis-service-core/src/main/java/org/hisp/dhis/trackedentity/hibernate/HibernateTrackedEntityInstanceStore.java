@@ -480,7 +480,7 @@ public class HibernateTrackedEntityInstanceStore
             {
                 if ( ENROLLED_AT.getPropName().equalsIgnoreCase( orderParam.getField() ) )
                 {
-                    //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
+                    //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
                     orderQuery
                         .append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
                 }
@@ -488,10 +488,6 @@ public class HibernateTrackedEntityInstanceStore
                 {
                     orderQuery.append( addStaticColumn( orderParam.getField(), select.toString() ) );
                 }
-            }
-            else
-            {
-                //TODO Non static column
             }
         }
 
@@ -618,10 +614,6 @@ public class HibernateTrackedEntityInstanceStore
                 if ( isStaticColumn( orderField ) )
                 {
                     orderAttributes.append( addStaticColumn( orderField, query ) );
-                }
-                else
-                {
-                    //TODO Non static column
                 }
             }
         }
@@ -1329,21 +1321,13 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getOrders() != null
             && (!isGridQuery || (params.getAttributes() != null && !params.getAttributes().isEmpty())) )
         {
-            ArrayList<String> orderFields = new ArrayList<>();
+            List<String> orderFields = new ArrayList<>();
 
             for ( OrderParam order : params.getOrders() )
             {
                 if ( isStaticColumn( order.getField() ) )
                 {
-                    String columnName = getColumn( order.getField() );
-
-                    if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
-                    {
-                        //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
-                        columnName = columnName.replace( "pi", "tei" );
-                    }
-
-                    orderFields.add( columnName + " " + order.getDirection() );
+                    orderFields.add( extractStaticOrderFields( order.getField(), order.getDirection(), innerOrder ) );
                 }
                 else
                 {
@@ -1367,8 +1351,22 @@ public class HibernateTrackedEntityInstanceStore
         }
     }
 
+    private String extractStaticOrderFields( String orderField, OrderParam.SortDirection orderDirection,
+        boolean innerOrder )
+    {
+        String columnName = getColumn( orderField );
+
+        if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
+        {
+            //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
+            columnName = columnName.replace( "pi", "tei" );
+        }
+
+        return columnName + " " + orderDirection;
+    }
+
     private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
-        ArrayList<String> orderFields, OrderParam order )
+        List<String> orderFields, OrderParam order )
     {
         if ( isAttributeOrder( params, order.getField() )
             || isAttributeFilterOrder( params, order.getField() ) )
