@@ -90,8 +90,8 @@ public class ImportReport
      * A report containing the outcome of the commit stage (e.g. how many
      * entities were persisted)
      */
-    @JsonProperty
-    PersistenceReport bundleReport;
+    @JsonProperty( "bundleReport" )
+    PersistenceReport persistenceReport;
 
     /**
      * A message to attach to the report. This message is designed to be used
@@ -176,7 +176,7 @@ public class ImportReport
             .status( status )
             .validationReport( validationReport )
             .timingsStats( timingsStats )
-            .bundleReport( processBundleReport( persistenceReport, bundleSize ) )
+            .persistenceReport( processBundleReport( persistenceReport, bundleSize ) )
             .stats( stats )
             .build();
     }

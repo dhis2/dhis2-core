@@ -194,20 +194,20 @@ class TrackerBundleImportReportTest
         assertEquals( toSerializeReport.getStats().getCreated(), deserializedReport.getStats().getCreated() );
         assertEquals( toSerializeReport.getStats().getTotal(), deserializedReport.getStats().getTotal() );
         // Verify BundleReport
-        assertEquals( toSerializeReport.getBundleReport().getStats().getIgnored(),
-            deserializedReport.getBundleReport().getStats().getIgnored() );
-        assertEquals( toSerializeReport.getBundleReport().getStats().getDeleted(),
-            deserializedReport.getBundleReport().getStats().getDeleted() );
-        assertEquals( toSerializeReport.getBundleReport().getStats().getUpdated(),
-            deserializedReport.getBundleReport().getStats().getUpdated() );
-        assertEquals( toSerializeReport.getBundleReport().getStats().getCreated(),
-            deserializedReport.getBundleReport().getStats().getCreated() );
-        assertEquals( toSerializeReport.getBundleReport().getStats().getTotal(),
-            deserializedReport.getBundleReport().getStats().getTotal() );
-        TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getBundleReport()
+        assertEquals( toSerializeReport.getPersistenceReport().getStats().getIgnored(),
+            deserializedReport.getPersistenceReport().getStats().getIgnored() );
+        assertEquals( toSerializeReport.getPersistenceReport().getStats().getDeleted(),
+            deserializedReport.getPersistenceReport().getStats().getDeleted() );
+        assertEquals( toSerializeReport.getPersistenceReport().getStats().getUpdated(),
+            deserializedReport.getPersistenceReport().getStats().getUpdated() );
+        assertEquals( toSerializeReport.getPersistenceReport().getStats().getCreated(),
+            deserializedReport.getPersistenceReport().getStats().getCreated() );
+        assertEquals( toSerializeReport.getPersistenceReport().getStats().getTotal(),
+            deserializedReport.getPersistenceReport().getStats().getTotal() );
+        TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getPersistenceReport()
             .getTypeReportMap()
             .get( TRACKED_ENTITY );
-        TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getBundleReport()
+        TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getPersistenceReport()
             .getTypeReportMap()
             .get( TRACKED_ENTITY );
         // sideEffectsDataBundle is no more relevant to object equivalence, so

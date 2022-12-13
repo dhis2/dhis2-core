@@ -429,7 +429,7 @@ class EventImportValidationTest extends TrackerTest
 
     private ProgramStageInstance getEventFromReport( ImportReport importReport )
     {
-        final Map<TrackerType, TrackerTypeReport> typeReportMap = importReport.getBundleReport()
+        final Map<TrackerType, TrackerTypeReport> typeReportMap = importReport.getPersistenceReport()
             .getTypeReportMap();
         String newEvent = typeReportMap.get( TrackerType.EVENT ).getEntityReportMap().get( 0 ).getUid();
         return programStageServiceInstance.getProgramStageInstance( newEvent );

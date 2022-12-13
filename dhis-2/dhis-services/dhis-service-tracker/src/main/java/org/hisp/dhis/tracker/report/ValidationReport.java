@@ -44,10 +44,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @EqualsAndHashCode
 public class ValidationReport
 {
-    @JsonProperty
+    @JsonProperty( "errorReports" )
     private final List<TrackerErrorReport> errors;
 
-    @JsonProperty
+    @JsonProperty( "warningReports" )
     private final List<TrackerWarningReport> warnings;
 
     public ValidationReport()

@@ -82,8 +82,8 @@ public class TrackerTypeReport
         }
     }
 
-    @JsonProperty
-    public List<Entity> getObjectReports()
+    @JsonProperty( "objectReports" )
+    public List<Entity> getEntityReport()
     {
         return new ArrayList<>( entityReport.values() );
     }
