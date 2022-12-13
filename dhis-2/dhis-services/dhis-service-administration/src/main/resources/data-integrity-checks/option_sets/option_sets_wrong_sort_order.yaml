@@ -26,7 +26,7 @@
 #
 ---
   summary_uid: xPFtcXBvQfk
-  name: option_sets_wrong_sort_order
+  name:  option_sets_wrong_sort_order
   description: Option sets with possibly wrong sort order.
   section: Option sets
   section_order: 3
@@ -39,17 +39,14 @@
     ) as foo where sort_order != row_number
     ORDER BY optionsetid, sort_order
     )
-    SELECT 'option_sets_wrong_sort_order' as indicator,
-    ( SELECT COUNT(*) from (SELECT DISTINCT optionsetid
-    from option_sets_wrong_sort_order ) as baz ) as value,
-    (100 * (SELECT COUNT(*) from (SELECT DISTINCT optionsetid
+    SELECT COUNT(*) as value,
+    100 * (SELECT COUNT(*) from (SELECT DISTINCT optionsetid
     from option_sets_wrong_sort_order ) as bar) /
-    (SELECT COUNT(*) from optionset)) || '%' as percent,
-    'Option sets with incorrect sort order' as description
-    FROM option_sets_wrong_sort_order LIMIT 1;
+    NULLIF( (SELECT COUNT(*) from optionset), 0)  as percent
+    FROM option_sets_wrong_sort_order;
   details_uid: NxtEkZcmLl0
   details_sql: >-
-    SELECT a.uid,a.name,b.sort_order,b.row_number from
+    SELECT a.uid, a.name, b.sort_order || ' != ' || b.row_number as comment from
     optionset a
     INNER JOIN (
     SELECT DISTINCT optionsetid, sort_order, row_number FROM (
@@ -59,6 +56,7 @@
     ) as foo where sort_order != row_number
     ORDER BY optionsetid, sort_order
     ) b  on a.optionsetid = b.optionsetid;
+  details_id_type: option_sets
   severity: SEVERE
   introduction: >
     Option sets contain options which can be ordered. The sort_order property should always start with 1
@@ -70,8 +68,5 @@
   recommendation: >
     If it is possible to open the option set in the maintenance app, you can resort the option set,
     which should correct the problem. Another possible solution is to directly update the sort_order
-    property of in the `optionset` table in the database, ensuring that a valid sequence is present
+    property of in the optionset table in the database, ensuring that a valid sequence is present
     for all options in the option set.
-
-
-

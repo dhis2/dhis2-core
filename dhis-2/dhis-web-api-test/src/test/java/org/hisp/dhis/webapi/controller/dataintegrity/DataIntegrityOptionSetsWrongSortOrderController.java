@@ -30,63 +30,79 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
+import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "options_sets_unused";
+
+    @Autowired
+    private OptionService myOptionService;
+
+    private Option optionA;
+
+    private Option optionB;
+
+    private Option optionC;
+
+    private OptionSet optionSetA;
 
     private String goodOptionSet;
 
-    private String testDataElement;
-
-    private String secondOption;
+    private final static String check = "option_sets_wrong_sort_order";
 
     @Test
-    void testOptionSetNotUsed()
+    void testOptionSetWrongSortOrder()
     {
+        doInTransaction( () -> {
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
-            POST( "/optionSets",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
+            optionA = new Option( "Sweet", "SWEET", 1 );
+            optionB = new Option( "Sour", "SOUR", 2 );
+            optionC = new Option( "Salty", "SALTY", 3 );
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SWEET'," +
-                    "  'sortOrder': 1," +
-                    "  'name': 'Sweet'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+            optionSetA = new OptionSet( "Taste", ValueType.TEXT );
+            optionSetA.addOption( optionA );
+            optionSetA.addOption( optionB );
+            optionSetA.addOption( optionC );
+            myOptionService.saveOptionSet( optionSetA );
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SOUR'," +
-                    "  'sortOrder': 2," +
-                    "  'name': 'Sour'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+            optionSetA.removeOption( optionB );
+            myOptionService.saveOptionSet( optionSetA );
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
-        assertEquals( content.size(), 1 );
+            dbmsManager.clearSession();
+        } );
+
+        JsonObject content = GET( "/optionSets/" + optionSetA.getUid() + "?fields=id,name,options[id,name,sortOrder" )
+            .content();
+        JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
+        assertEquals( myOptionSet.getId(), optionSetA.getUid() );
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
-        assertEquals( optionSetOptions.size(), 2 );
 
-        assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", null,
-            true );
+        var sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() ).collect( Collectors.toSet() );
+        var expectedSortOrders = new HashSet<>();
+        expectedSortOrders.add( 1 );
+        expectedSortOrders.add( 4 );
+        assertEquals( expectedSortOrders, sortOrders );
 
+        assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", "4 != 2", true );
     }
 
     @Test
-    void testOptionSetsUsed()
+    void testOptionSetRightSortOrder()
     {
 
         goodOptionSet = assertStatus( HttpStatus.CREATED,
@@ -111,39 +127,30 @@ class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        testDataElement = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'Candy', 'shortName': 'Candy', 'valueType' : 'TEXT',  " +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'," +
-                    "'optionSet' : { 'id' : '" + goodOptionSet + "'}  }" ) );
+        JsonObject content = GET( "/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder" )
+            .content();
+        JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
+        assertEquals( myOptionSet.getId(), goodOptionSet );
+        JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
-        JsonObject content = GET( "/dataElements/?fields=id,name,optionSet" ).content();
-        JsonList<JsonDataElement> testDataElementJSON = content.getList( "dataElements", JsonDataElement.class );
-        assertEquals( testDataElementJSON.size(), 1 );
-        assertEquals( testDataElementJSON.get( 0 ).getName(), "Candy" );
-        assertEquals( testDataElementJSON.get( 0 ).getOptionSet().getId(), goodOptionSet );
+        var sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() ).collect( Collectors.toSet() );
+        var expectedSortOrders = new HashSet<>();
+        expectedSortOrders.add( 1 );
+        expectedSortOrders.add( 2 );
+        assertEquals( expectedSortOrders, sortOrders );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
-
-    }
-
-    @Test
-    void testInvalidCategoriesDivideByZero()
-    {
-
-        assertHasNoDataIntegrityIssues( "option_sets", check, false );
-
     }
 
     private void tearDown()
     {
-        deleteMetadataObject( "dataElements", testDataElement );
+
         deleteMetadataObject( "optionSets", goodOptionSet );
 
     }
 
-    @BeforeEach
     @AfterEach
+    @BeforeEach
     void setUp()
     {
         tearDown();
