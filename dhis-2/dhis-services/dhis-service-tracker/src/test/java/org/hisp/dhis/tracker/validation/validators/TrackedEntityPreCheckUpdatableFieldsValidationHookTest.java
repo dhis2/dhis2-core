@@ -27,14 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
 import static org.hisp.dhis.tracker.validation.validators.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,7 +62,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class PreCheckUpdatableFieldsValidationHookTest
+class TrackedEntityPreCheckUpdatableFieldsValidationHookTest
 {
 
     private final static String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
@@ -83,7 +77,7 @@ class PreCheckUpdatableFieldsValidationHookTest
 
     private final static String EVENT_ID = "EventId";
 
-    private PreCheckUpdatableFieldsValidationHook validationHook;
+    private TrackedEntityPreCheckUpdatableFieldsValidationHook validationHook;
 
     @Mock
     private TrackerBundle bundle;
@@ -95,7 +89,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        validationHook = new PreCheckUpdatableFieldsValidationHook();
+        validationHook = new TrackedEntityPreCheckUpdatableFieldsValidationHook();
 
         when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
@@ -121,7 +115,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         TrackedEntity trackedEntity = validTei();
 
         // when
-        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
+        validationHook.validate( reporter, bundle, trackedEntity );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -135,95 +129,10 @@ class PreCheckUpdatableFieldsValidationHookTest
         trackedEntity.setTrackedEntityType( MetadataIdentifier.ofUid( "NewTrackedEntityTypeId" ) );
 
         // when
-        validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
+        validationHook.validate( reporter, bundle, trackedEntity );
 
         // then
         hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
-
-        // when
-        validationHook.validateEnrollment( reporter, bundle, enrollment );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationFailsWhenUpdateProgram()
-    {
-        // given
-        Enrollment enrollment = validEnrollment( "NewProgramId" );
-
-        // when
-        validationHook.validateEnrollment( reporter, bundle, enrollment );
-
-        // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
-    }
-
-    @Test
-    void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
-        enrollment.setTrackedEntity( "NewTrackedEntityId" );
-
-        // when
-        validationHook.validateEnrollment( reporter, bundle, enrollment );
-
-        // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
-    }
-
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        // given
-        Event event = validEvent();
-
-        // when
-        validationHook.validateEvent( reporter, bundle, event );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEventValidationFailsWhenUpdateProgramStage()
-    {
-        // given
-        Event event = validEvent();
-        event.setProgramStage( MetadataIdentifier.ofUid( "NewProgramStageId" ) );
-
-        // when
-        validationHook.validateEvent( reporter, bundle, event );
-
-        // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
-    }
-
-    @Test
-    void verifyEventValidationFailsWhenUpdateEnrollment()
-    {
-        // given
-        Event event = validEvent();
-        event.setEnrollment( "NewEnrollmentId" );
-
-        // when
-        validationHook.validateEvent( reporter, bundle, event );
-
-        // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
     private TrackedEntity validTei()
@@ -231,29 +140,6 @@ class PreCheckUpdatableFieldsValidationHookTest
         return TrackedEntity.builder()
             .trackedEntity( TRACKED_ENTITY_ID )
             .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_ID ) )
-            .build();
-    }
-
-    private Enrollment validEnrollment()
-    {
-        return validEnrollment( PROGRAM_ID );
-    }
-
-    private Enrollment validEnrollment( String uid )
-    {
-        return Enrollment.builder()
-            .enrollment( ENROLLMENT_ID )
-            .trackedEntity( TRACKED_ENTITY_ID )
-            .program( MetadataIdentifier.ofUid( uid ) )
-            .build();
-    }
-
-    private Event validEvent()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
-            .enrollment( ENROLLMENT_ID )
             .build();
     }
 
