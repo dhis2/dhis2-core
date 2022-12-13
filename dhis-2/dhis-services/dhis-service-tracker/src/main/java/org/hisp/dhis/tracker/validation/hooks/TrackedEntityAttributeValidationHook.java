@@ -81,7 +81,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
-        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = bundle.getPreheat()
             .getOrganisationUnit( trackedEntity.getOrgUnit() );
 

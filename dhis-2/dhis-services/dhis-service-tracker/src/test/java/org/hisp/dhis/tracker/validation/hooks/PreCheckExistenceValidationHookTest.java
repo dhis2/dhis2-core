@@ -113,6 +113,8 @@ class PreCheckExistenceValidationHookTest
     @BeforeEach
     void setUp()
     {
+        when( bundle.getPreheat() ).thenReturn( preheat );
+
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new ValidationErrorReporter( idSchemes );
     }
@@ -151,7 +153,7 @@ class PreCheckExistenceValidationHookTest
             .trackedEntity( TEI_UID )
             .build();
 
-        when( bundle.getTrackedEntityInstance( TEI_UID ) ).thenReturn( getTei() );
+        when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( getTei() );
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
@@ -165,7 +167,7 @@ class PreCheckExistenceValidationHookTest
             .trackedEntity( SOFT_DELETED_TEI_UID )
             .build();
 
-        when( bundle.getTrackedEntityInstance( SOFT_DELETED_TEI_UID ) ).thenReturn( getSoftDeletedTei() );
+        when( preheat.getTrackedEntity( SOFT_DELETED_TEI_UID ) ).thenReturn( getSoftDeletedTei() );
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
 
@@ -179,7 +181,7 @@ class PreCheckExistenceValidationHookTest
             .trackedEntity( TEI_UID )
             .build();
 
-        when( bundle.getTrackedEntityInstance( TEI_UID ) ).thenReturn( getTei() );
+        when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( getTei() );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         validationHook.validateTrackedEntity( reporter, bundle, trackedEntity );
@@ -235,7 +237,7 @@ class PreCheckExistenceValidationHookTest
             .enrollment( ENROLLMENT_UID )
             .build();
 
-        when( bundle.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
+        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
         when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateEnrollment( reporter, bundle, enrollment );
 
@@ -249,7 +251,7 @@ class PreCheckExistenceValidationHookTest
             .enrollment( SOFT_DELETED_ENROLLMENT_UID )
             .build();
 
-        when( bundle.getProgramInstance( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
+        when( preheat.getEnrollment( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
         when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateEnrollment( reporter, bundle, enrollment );
 
@@ -263,7 +265,7 @@ class PreCheckExistenceValidationHookTest
             .enrollment( ENROLLMENT_UID )
             .build();
 
-        when( bundle.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
+        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         validationHook.validateEnrollment( reporter, bundle, enrollment );
@@ -319,7 +321,7 @@ class PreCheckExistenceValidationHookTest
             .event( EVENT_UID )
             .build();
 
-        when( bundle.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
+        when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
         when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateEvent( reporter, bundle, event );
 
@@ -333,7 +335,7 @@ class PreCheckExistenceValidationHookTest
             .event( SOFT_DELETED_EVENT_UID )
             .build();
 
-        when( bundle.getProgramStageInstance( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
+        when( preheat.getEvent( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
         when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         validationHook.validateEvent( reporter, bundle, event );
 
@@ -347,7 +349,7 @@ class PreCheckExistenceValidationHookTest
             .event( EVENT_UID )
             .build();
 
-        when( bundle.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
+        when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
 
         validationHook.validateEvent( reporter, bundle, event );
