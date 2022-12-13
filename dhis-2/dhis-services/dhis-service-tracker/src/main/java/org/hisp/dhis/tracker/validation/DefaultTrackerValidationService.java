@@ -157,7 +157,7 @@ public class DefaultTrackerValidationService
 
             if ( failed )
             {
-                continue;
+                continue; // skip specific validations for this invalid entity
             }
 
             for ( Validator<TrackedEntity> validator : validators.getTrackedEntityValidators() )
