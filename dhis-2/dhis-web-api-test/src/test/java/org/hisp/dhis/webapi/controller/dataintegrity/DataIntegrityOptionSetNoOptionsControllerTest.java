@@ -34,11 +34,9 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "options_sets_empty";
 
@@ -82,11 +80,11 @@ class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTe
 
         JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
-        assertEquals( optionSetOptions.size(), 2 );
+        assertEquals( 2, optionSetOptions.size() );
 
         content = GET( "/optionSets/" + badOptionSet ).content();
         optionSetOptions = content.getList( "options", JsonOption.class );
-        assertEquals( optionSetOptions.size(), 0 );
+        assertEquals( 0, optionSetOptions.size() );
 
         assertHasDataIntegrityIssues( "option_sets", check, 50, badOptionSet, "Color", null,
             true );
@@ -125,11 +123,11 @@ class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTe
 
         JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
-        assertEquals( optionSetOptions.size(), 1 );
+        assertEquals( 1, optionSetOptions.size() );
 
         content = GET( "/optionSets/" + badOptionSet ).content();
         optionSetOptions = content.getList( "options", JsonOption.class );
-        assertEquals( optionSetOptions.size(), 1 );
+        assertEquals( 1, optionSetOptions.size() );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
 
@@ -140,22 +138,6 @@ class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTe
     {
 
         assertHasNoDataIntegrityIssues( "option_sets", check, false );
-
-    }
-
-    private void tearDown()
-    {
-
-        deleteMetadataObject( "optionSets", badOptionSet );
-        deleteMetadataObject( "optionSets", goodOptionSet );
-
-    }
-
-    @BeforeEach
-    @AfterEach
-    void setUp()
-    {
-        tearDown();
 
     }
 
