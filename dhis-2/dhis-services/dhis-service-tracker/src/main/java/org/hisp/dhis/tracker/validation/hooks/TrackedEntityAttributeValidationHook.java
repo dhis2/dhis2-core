@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateOptionSet;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +56,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -64,6 +66,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
+    implements TrackerValidationHook
 {
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )

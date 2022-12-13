@@ -236,8 +236,8 @@ public class DefaultGmlImportService
             if ( imported == null || imported.getGeometry() == null )
             {
                 continue; // Failed to dereference a persisted entity for this
-                          // org unit or geo data incomplete/missing, therefore
-                          // ignore
+                         // org unit or geo data incomplete/missing, therefore
+                         // ignore
             }
 
             mergeNonGeoData( persisted, imported );
@@ -295,8 +295,8 @@ public class DefaultGmlImportService
         Map<String, OrganisationUnit> codeMap, Map<String, OrganisationUnit> nameMap )
     {
         for ( OrganisationUnit orgUnit : sourceList ) // Identifier Matching
-                                                      // priority: uid, code,
-                                                      // name
+                                                     // priority: uid, code,
+                                                     // name
         {
             // Only matches if UID is actually in DB as an empty UID on input
             // will be replaced by auto-generated value

@@ -241,8 +241,8 @@ public class DefaultDataSetReportService
                 {
                     grid.addRow();
                     grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data
-                                                                                         // element
-                                                                                         // name
+                                                                                        // element
+                                                                                        // name
 
                     for ( CategoryOptionCombo optionCombo : optionCombos ) // Values
                     {

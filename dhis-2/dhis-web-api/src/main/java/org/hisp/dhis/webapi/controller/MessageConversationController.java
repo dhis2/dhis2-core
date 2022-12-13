@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -106,6 +107,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "messaging" )
 @Controller
 @RequestMapping( value = MessageConversationSchemaDescriptor.API_ENDPOINT )
 public class MessageConversationController

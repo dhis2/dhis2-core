@@ -34,7 +34,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ValidationFailFastException
+class ValidationFailFastException
     extends RuntimeException
 {
     private final transient List<TrackerErrorReport> errorReportRef;

@@ -37,6 +37,7 @@ import java.util.Date;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -60,6 +61,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Stian Sandvold
  */
+@OpenApi.Tags( "system" )
 @Controller
 @RequestMapping( ExternalFileResourceSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
@@ -87,6 +89,7 @@ public class ExternalFileResourceController
      * @param response
      * @throws WebMessageException
      */
+    @OpenApi.Response( FileResource.class )
     @GetMapping( "/{accessToken}" )
     public void getExternalFileResource( @PathVariable String accessToken,
         HttpServletResponse response )

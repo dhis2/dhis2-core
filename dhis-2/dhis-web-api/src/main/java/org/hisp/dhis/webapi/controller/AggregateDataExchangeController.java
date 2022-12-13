@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
+@OpenApi.Tags( "data" )
 @RestController
 @RequiredArgsConstructor
 @RequestMapping( value = AggregateDataExchangeSchemaDescriptor.API_ENDPOINT )

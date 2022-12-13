@@ -33,7 +33,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
@@ -55,7 +54,8 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,7 +63,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RelationshipsValidationHook
-    extends AbstractTrackerDtoValidationHook
+    implements TrackerValidationHook
 {
 
     @Override
@@ -83,11 +83,7 @@ public class RelationshipsValidationHook
             validateAutoRelationship( reporter, relationship );
 
             validateDuplication( reporter, relationship, bundle );
-
-            validateReferences( reporter, relationship, relationship.getFrom() );
-            validateReferences( reporter, relationship, relationship.getTo() );
         }
-
     }
 
     private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
@@ -134,7 +130,7 @@ public class RelationshipsValidationHook
             () -> getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isEmpty(),
             relationship, E4009, relationship.getRelationshipType() );
 
-        return reporter.getReportList()
+        return reporter.getErrors()
             .stream()
             .noneMatch( r -> relationship.getRelationship().equals( r.getUid() ) );
     }
@@ -220,18 +216,6 @@ public class RelationshipsValidationHook
             .count() > 1;
     }
 
-    private void validateReferences( ValidationErrorReporter reporter, Relationship relationship,
-        RelationshipItem item )
-
-    {
-        TrackerType trackerType = relationshipItemValueType( item );
-        Optional<String> itemUid = getUidFromRelationshipItem( item );
-
-        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
-            relationship, E4011, relationship.getRelationship(),
-            trackerType.getName(), s ) );
-    }
-
     private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
@@ -256,7 +240,7 @@ public class RelationshipsValidationHook
     }
 
     @Override
-    public boolean removeOnError()
+    public boolean skipOnError()
     {
         return true;
     }

@@ -57,6 +57,8 @@ public class StatementUtil
 
     public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
 
+    public static final String SPACED_FROM = " from ";
+
     /**
      * This method is specific for strings used in "ilike" filters where some
      * non accepted characters will fail at querying time. It will only replace

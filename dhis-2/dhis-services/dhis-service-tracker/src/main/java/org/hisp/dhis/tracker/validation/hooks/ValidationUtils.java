@@ -31,14 +31,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -51,7 +56,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.locationtech.jts.geom.Geometry;
 
 import com.google.common.collect.Lists;
@@ -189,5 +194,24 @@ public class ValidationUtils
     {
         return bundle.getProgramStageInstance( eventUid ) != null
             || bundle.getPreheat().getReference( eventUid ).isPresent();
+    }
+
+    public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
+        TrackerDto dto,
+        T optionalObject, String value )
+    {
+        if ( value == null )
+        {
+            return;
+        }
+
+        Optional.ofNullable( optionalObject.getOptionSet() )
+            .ifPresent( optionSet -> reporter.addErrorIf(
+                () -> optionSet.getOptions().stream().filter( Objects::nonNull )
+                    .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
+                dto, E1125, value,
+                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
+                optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
+                    .collect( Collectors.joining( "," ) ) ) );
     }
 }

@@ -29,16 +29,11 @@ package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -59,20 +54,11 @@ public class TrackerValidationReport
     @JsonIgnore
     private final List<Timing> timings;
 
-    /*
-     * Keeps track of all the invalid Tracker objects (i.e. objects with at
-     * least one TrackerErrorReport in the TrackerValidationReport) encountered
-     * during the validation process.
-     */
-    @JsonIgnore
-    private final Map<TrackerType, List<String>> invalidDTOs;
-
     public TrackerValidationReport()
     {
         this.errorReports = new ArrayList<>();
         this.warningReports = new ArrayList<>();
         this.timings = new ArrayList<>();
-        this.invalidDTOs = new HashMap<>();
     }
 
     // -----------------------------------------------------------------------------------
@@ -83,7 +69,6 @@ public class TrackerValidationReport
     {
         addErrors( report.getErrors() );
         addWarnings( report.getWarnings() );
-        addTimings( report.getTimings() );
     }
 
     public List<TrackerErrorReport> getErrors()
@@ -94,11 +79,6 @@ public class TrackerValidationReport
     public List<TrackerWarningReport> getWarnings()
     {
         return Collections.unmodifiableList( warningReports );
-    }
-
-    public List<Timing> getTimings()
-    {
-        return Collections.unmodifiableList( timings );
     }
 
     public TrackerValidationReport addError( TrackerErrorReport error )
@@ -131,18 +111,6 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addTiming( Timing timing )
-    {
-        timings.add( timing );
-        return this;
-    }
-
-    public TrackerValidationReport addTimings( List<Timing> timings )
-    {
-        this.timings.addAll( timings );
-        return this;
-    }
-
     public boolean hasErrors()
     {
         return !errorReports.isEmpty();
@@ -163,11 +131,6 @@ public class TrackerValidationReport
         return warningReports.stream().anyMatch( test );
     }
 
-    public boolean hasTimings()
-    {
-        return !timings.isEmpty();
-    }
-
     /**
      * Returns the size of all the Tracker DTO that did not pass validation
      */
@@ -182,7 +145,6 @@ public class TrackerValidationReport
         if ( !this.errorReports.contains( error ) )
         {
             this.errorReports.add( error );
-            this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
         }
     }
 
@@ -192,23 +154,5 @@ public class TrackerValidationReport
         {
             this.warningReports.add( warning );
         }
-    }
-
-    /**
-     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
-     * least one TrackerErrorReport in the TrackerValidationReport).
-     */
-    public boolean isInvalid( TrackerType type, String uid )
-    {
-        return this.invalidDTOs.getOrDefault( type, new ArrayList<>() ).contains( uid );
-    }
-
-    /**
-     * Checks if the given TrackerDto is invalid (i.e. has at least one
-     * TrackerErrorReport in the TrackerValidationReport).
-     */
-    public boolean isInvalid( TrackerDto dto )
-    {
-        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
     }
 }

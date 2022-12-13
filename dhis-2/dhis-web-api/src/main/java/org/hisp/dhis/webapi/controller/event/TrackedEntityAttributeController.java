@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
@@ -67,6 +68,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT )
 public class TrackedEntityAttributeController

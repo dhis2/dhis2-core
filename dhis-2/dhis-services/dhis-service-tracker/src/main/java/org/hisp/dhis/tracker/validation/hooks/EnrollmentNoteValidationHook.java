@@ -29,14 +29,15 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
+public class EnrollmentNoteValidationHook implements TrackerValidationHook
 {
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )

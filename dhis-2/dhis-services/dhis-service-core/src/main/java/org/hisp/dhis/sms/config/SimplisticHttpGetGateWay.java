@@ -150,8 +150,8 @@ public class SimplisticHttpGetGateWay
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches
-                                                                                                                   // on
-                                                                                                                   // ${...}
+                                                                                                                  // on
+                                                                                                                  // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
