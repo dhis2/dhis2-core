@@ -88,7 +88,7 @@ class TrackerBundleTest
             .trackedEntities( List.of( TrackedEntity.builder().trackedEntity( "uid" ).build() ) )
             .build();
 
-        assertTrue( bundle.getTrackedEntity( null ).isEmpty() );
+        assertTrue( bundle.findTrackedEntityByUid( null ).isEmpty() );
     }
 
     @Test
@@ -109,7 +109,7 @@ class TrackerBundleTest
             .enrollments( List.of( Enrollment.builder().enrollment( "uid" ).build() ) )
             .build();
 
-        assertTrue( bundle.getEnrollment( null ).isEmpty() );
+        assertTrue( bundle.findEnrollmentByUid( null ).isEmpty() );
     }
 
     @Test
@@ -130,7 +130,7 @@ class TrackerBundleTest
             .events( List.of( Event.builder().event( "uid" ).build() ) )
             .build();
 
-        assertTrue( bundle.getEvent( null ).isEmpty() );
+        assertTrue( bundle.findEventByUid( null ).isEmpty() );
     }
 
     @Test
@@ -151,7 +151,7 @@ class TrackerBundleTest
             .relationships( List.of( Relationship.builder().relationship( "uid" ).build() ) )
             .build();
 
-        assertTrue( bundle.getRelationship( null ).isEmpty() );
+        assertTrue( bundle.findRelationshipByUid( null ).isEmpty() );
     }
 
     @Test
@@ -161,7 +161,7 @@ class TrackerBundleTest
             .relationships( List.of( Relationship.builder().build() ) )
             .build();
 
-        assertTrue( bundle.getRelationship( "uid" ).isEmpty() );
+        assertTrue( bundle.findRelationshipByUid( "uid" ).isEmpty() );
     }
 
     @Test

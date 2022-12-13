@@ -85,7 +85,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
 
         OrganisationUnit orgUnit = preheat
             .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
@@ -209,7 +209,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat().getReference( teiUid );
         if ( reference.isPresent() )
         {
-            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( teiUid );
+            final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( teiUid );
             if ( tei.isPresent() )
             {
                 return tei.get().getOrgUnit();

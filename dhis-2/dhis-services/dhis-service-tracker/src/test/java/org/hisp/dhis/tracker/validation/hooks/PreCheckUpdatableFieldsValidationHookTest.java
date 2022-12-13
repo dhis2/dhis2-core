@@ -88,6 +88,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     @Mock
     private TrackerBundle bundle;
 
+    @Mock
     private TrackerPreheat preheat;
 
     private ValidationErrorReporter reporter;
@@ -103,15 +104,13 @@ class PreCheckUpdatableFieldsValidationHookTest
         when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        when( bundle.getTrackedEntityInstance( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance() );
-        when( bundle.getProgramStageInstance( EVENT_ID ) ).thenReturn( programStageInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
+        when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( programInstance() );
+        when( preheat.getEvent( EVENT_ID ) ).thenReturn( programStageInstance() );
 
-        preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
         when( bundle.getPreheat() ).thenReturn( preheat );
+
+        reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
     }
 
     @Test
