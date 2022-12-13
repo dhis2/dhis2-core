@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueType;
@@ -42,8 +42,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +89,9 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         assertEquals( myOptionSet.getId(), goodOptionSet );
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
-        var sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() ).collect( Collectors.toSet() );
-        var expectedSortOrders = new HashSet<>();
-        expectedSortOrders.add( 1 );
-        expectedSortOrders.add( 4 );
+        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() )
+            .collect( Collectors.toSet() );
+        Set<Integer> expectedSortOrders = Set.of( 1, 4 );
         assertEquals( expectedSortOrders, sortOrders );
 
         assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", "4 != 2", true );
@@ -132,10 +129,9 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
         assertEquals( myOptionSet.getId(), goodOptionSet );
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
-        var sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() ).collect( Collectors.toSet() );
-        var expectedSortOrders = new HashSet<>();
-        expectedSortOrders.add( 1 );
-        expectedSortOrders.add( 2 );
+        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() )
+            .collect( Collectors.toSet() );
+        Set<Integer> expectedSortOrders = Set.of( 1, 2 );
         assertEquals( expectedSortOrders, sortOrders );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
@@ -146,21 +142,6 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
     {
 
         assertHasNoDataIntegrityIssues( "option_sets", check, false );
-
-    }
-
-    private void tearDown()
-    {
-
-        deleteMetadataObject( "optionSets", goodOptionSet );
-
-    }
-
-    @AfterEach
-    @BeforeEach
-    void setUp()
-    {
-        tearDown();
 
     }
 
