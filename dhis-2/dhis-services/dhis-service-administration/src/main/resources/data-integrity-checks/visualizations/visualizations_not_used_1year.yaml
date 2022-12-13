@@ -31,20 +31,32 @@
   section: Visualizations
   section_order: 1
   summary_sql: >-
-    WITH unused_visualizations AS (
-      SELECT favoriteuid, MAX(timestamp) FROM datastatisticsevent where eventtype = 'VISUALIZATION_VIEW'
-      AND favoriteuid IS NOT NULL GROUP BY favoriteuid 
-      )
-    select count(*) as value,
-    100*count(*)/NULLIF( (select count(*) from visualization), 0) as percent
-    from unused_visualizations
+      WITH unused_visualizations as (
+       SELECT c.uid,c.name, c.last_viewed from (
+       SELECT a.uid,a.name,b.last_viewed
+       from visualization a
+       LEFT OUTER JOIN (SELECT favoriteuid,
+       MAX(timestamp) as last_viewed FROM datastatisticsevent
+       where eventtype = 'VISUALIZATION_VIEW'
+       AND favoriteuid IS NOT NULL GROUP BY favoriteuid ) b on
+       a.uid = b.favoriteuid ) as c
+       where c.last_viewed IS NULL
+       OR AGE(now(),c.last_viewed) >= INTERVAL '12 months' )
+       SELECT COUNT(*) as value,
+       100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM visualization), 0) as percent
+       from unused_visualizations;
   details_uid: nxpcGQ7h4ey
   details_sql: >-
-    SELECT uid,name from visualization
-    WHERE uid not in (select favoriteuid from datastatisticsevent
-    where eventtype = 'VISUALIZATION_VIEW'
-    and favoriteuid is not null and timestamp > (now() - INTERVAL '12 months') group by favoriteuid)
-    ORDER BY name;
+      SELECT c.uid,c.name, CAST(c.last_viewed as text) from (
+      SELECT a.uid,a.name,b.last_viewed
+      from visualization a
+      LEFT OUTER JOIN (SELECT favoriteuid,
+      MAX(timestamp) as last_viewed FROM datastatisticsevent
+      where eventtype = 'VISUALIZATION_VIEW'
+      AND favoriteuid IS NOT NULL GROUP BY favoriteuid ) b on
+      a.uid = b.favoriteuid ) as c
+      where c.last_viewed IS NULL
+      OR AGE(now(),c.last_viewed) >= INTERVAL '12 months';
   severity: WARNING
   introduction: >
     Charts should be regularly viewed in the system. In many cases, users may create charts for

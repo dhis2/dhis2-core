@@ -27,15 +27,88 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.hisp.dhis.datastatistics.DataStatisticsEvent;
+import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
+import org.hisp.dhis.datastatistics.DataStatisticsEventType;
+import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
 {
+
+    @Autowired
+    private DataStatisticsEventStore dataStatisticsEventStore;
+
+    @Autowired
+    VisualizationService visualizationService;
+
+    private DataStatisticsEvent dse1;
+
+    private Visualization viz;
+
+    private static final String check = "visualizations_notviewed_1y";
+
+    private static final String viz_uid = "YngaQVeOC44";
+
+    @Test
+    void testUnusedVisualizationsExist()
+    {
+
+        SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd" );
+        String dateInString = "2015-10-01";
+        Date date = null;
+        try
+        {
+            date = formatter.parse( dateInString );
+        }
+        catch ( ParseException e )
+        {
+            throw new RuntimeException( e );
+        }
+
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid() );
+        dataStatisticsEventStore.save( dse1 );
+
+        dbmsManager.clearSession();
+
+        assertHasDataIntegrityIssues( "visualizations", check, 100, viz.getUid(), "myviz", null, true );
+    }
+
+    @Test
+    void testUsedVisualizationsExist()
+    {
+
+        Date date = new Date();
+
+        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, date, "TestUser", viz.getUid() );
+        dataStatisticsEventStore.save( dse1 );
+
+        dbmsManager.clearSession();
+
+        assertHasNoDataIntegrityIssues( "visualizations", check, true );
+    }
 
     /* Will create a manual test for the positive and negative cases */
     @Test
     void testUnusedVisualizationsRuns()
     {
         assertHasNoDataIntegrityIssues( "visualizations", "visualizations_notviewed_1y", false );
+    }
+
+    @BeforeEach
+    void setUp()
+    {
+        viz = new Visualization( "myviz" );
+        viz.setUid( viz_uid );
+        viz.setType( VisualizationType.SINGLE_VALUE );
+        visualizationService.save( viz );
     }
 }
