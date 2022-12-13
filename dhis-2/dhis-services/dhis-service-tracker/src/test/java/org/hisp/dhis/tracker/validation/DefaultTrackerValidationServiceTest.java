@@ -389,7 +389,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    void shouldNotCallValidatorIfPreCheckHookWithSkipOnErrorFail()
+    void shouldNotCallTrackedEntityValidatorIfPreCheckHookWithSkipOnErrorFails()
     {
         TrackedEntity invalidTrackedEntity = trackedEntity();
         bundle = bundleBuilder
@@ -397,6 +397,7 @@ class DefaultTrackerValidationServiceTest
             .build();
 
         Validator<TrackedEntity> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator ) );
 
         ValidationHook hook = ValidationHook.builder()
@@ -411,7 +412,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    void shouldCallValidatorIfPreCheckHookWithSkipOnErrorFail()
+    void shouldCallTrackedEntityValidatorIfPreCheckHookWithoutSkipOnErrorFails()
     {
         TrackedEntity invalidTrackedEntity = trackedEntity();
         bundle = bundleBuilder
@@ -431,6 +432,52 @@ class DefaultTrackerValidationServiceTest
         service.validate( bundle );
 
         verify( validator, times( 1 ) ).validate( any(), any(), eq( invalidTrackedEntity ) );
+    }
+
+    @Test
+    void shouldNotCallEnrollmentValidatorIfPreCheckHookWithSkipOnErrorFails()
+    {
+        Enrollment invalidEnrollment = enrollment();
+        bundle = bundleBuilder
+            .enrollments( enrollments( invalidEnrollment ) )
+            .build();
+
+        Validator<Enrollment> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getEnrollmentValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( true )
+            .validateEnrollment( addErrorIfMatches( invalidEnrollment, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verifyNoInteractions( validator );
+    }
+
+    @Test
+    void shouldCallEnrollmentValidatorIfPreCheckHookWithoutSkipOnErrorFails()
+    {
+        Enrollment invalidEnrollment = enrollment();
+        bundle = bundleBuilder
+            .enrollments( enrollments( invalidEnrollment ) )
+            .build();
+
+        Validator<Enrollment> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getEnrollmentValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( false )
+            .validateEnrollment( addErrorIfMatches( invalidEnrollment, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verify( validator, times( 1 ) ).validate( any(), any(), eq( invalidEnrollment ) );
     }
 
     private User superUser()

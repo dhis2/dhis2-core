@@ -35,12 +35,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
@@ -90,9 +84,8 @@ public class TrackerValidationConfig
     @Bean
     public List<TrackerValidationHook> ruleEngineValidationHooks()
     {
-        return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
+        return getHookByClass( ImmutableList.of(
             EventRuleValidationHook.class,
-            EnrollmentAttributeValidationHook.class,
             EventDataValuesValidationHook.class ) );
     }
 
@@ -106,12 +99,6 @@ public class TrackerValidationConfig
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
             PreCheckSecurityOwnershipValidationHook.class,
-
-            EnrollmentNoteValidationHook.class,
-            EnrollmentInExistingValidationHook.class,
-            EnrollmentGeoValidationHook.class,
-            EnrollmentDateValidationHook.class,
-            EnrollmentAttributeValidationHook.class,
 
             EventCategoryOptValidationHook.class,
             EventDateValidationHook.class,

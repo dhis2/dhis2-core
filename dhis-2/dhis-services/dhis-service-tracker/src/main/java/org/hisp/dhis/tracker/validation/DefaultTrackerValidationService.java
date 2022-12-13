@@ -103,7 +103,7 @@ public class DefaultTrackerValidationService
         try
         {
             validateTrackedEntities( bundle, hooks, validators, reporter );
-            validateEnrollments( bundle, hooks, reporter );
+            validateEnrollments( bundle, hooks, validators, reporter );
             validateEvents( bundle, hooks, reporter );
             validateRelationships( bundle, hooks, reporter );
             validateBundle( bundle, hooks, reporter );
@@ -177,10 +177,11 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEnrollments( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
+            boolean failed = false;
             for ( TrackerValidationHook hook : hooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( enrollment ) ) )
@@ -195,8 +196,28 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
                     }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<Enrollment> validator : validators.getEnrollmentValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( enrollment ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, enrollment );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
                 }
             }
         }
