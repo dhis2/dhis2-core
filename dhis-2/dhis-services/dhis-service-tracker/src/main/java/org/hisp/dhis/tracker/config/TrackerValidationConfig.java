@@ -56,7 +56,6 @@ import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUpdatableFieldsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -93,7 +92,6 @@ public class TrackerValidationConfig
     {
         return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
             EventRuleValidationHook.class,
-            TrackedEntityAttributeValidationHook.class,
             EnrollmentAttributeValidationHook.class,
             EventDataValuesValidationHook.class ) );
     }
@@ -108,8 +106,6 @@ public class TrackerValidationConfig
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
             PreCheckSecurityOwnershipValidationHook.class,
-
-            TrackedEntityAttributeValidationHook.class,
 
             EnrollmentNoteValidationHook.class,
             EnrollmentInExistingValidationHook.class,
