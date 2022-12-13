@@ -42,6 +42,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +66,8 @@ class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegr
 
     private final static String check = "option_sets_wrong_sort_order";
 
-    @Test
+    /* Skipping this test for now, until we can set the sort order directly */
+    @Ignore
     void testOptionSetWrongSortOrder()
     {
         doInTransaction( () -> {
@@ -86,10 +88,12 @@ class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegr
             dbmsManager.clearSession();
         } );
 
-        JsonObject content = GET( "/optionSets/" + optionSetA.getUid() + "?fields=id,name,options[id,name,sortOrder" )
+        goodOptionSet = optionSetA.getUid();
+
+        JsonObject content = GET( "/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder" )
             .content();
         JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
-        assertEquals( myOptionSet.getId(), optionSetA.getUid() );
+        assertEquals( myOptionSet.getId(), goodOptionSet );
         JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
         var sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() ).collect( Collectors.toSet() );
@@ -140,6 +144,14 @@ class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegr
         assertEquals( expectedSortOrders, sortOrders );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
+    }
+
+    @Test
+    void testInvalidCategoriesDivideByZero()
+    {
+
+        assertHasNoDataIntegrityIssues( "option_sets", check, false );
+
     }
 
     private void tearDown()
