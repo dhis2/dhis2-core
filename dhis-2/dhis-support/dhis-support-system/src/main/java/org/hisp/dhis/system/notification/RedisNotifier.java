@@ -36,8 +36,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -93,7 +91,7 @@ public class RedisNotifier implements Notifier
     // -------------------------------------------------------------------------
 
     @Override
-    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed )
+    public Notifier notify( JobConfiguration id, NotificationLevel level, String message, boolean completed )
     {
         if ( id != null && !level.isOff() )
         {
