@@ -111,6 +111,7 @@ public class SvgConversionController
         svg = replaceUnsafeSvgText( svg );
 
         PDFTranscoder transcoder = new PDFTranscoder();
+        transcoder.addTranscodingHint( SVGAbstractTranscoder.KEY_ALLOW_EXTERNAL_RESOURCES, false );
 
         TranscoderInput input = new TranscoderInput( new StringReader( svg ) );
 
