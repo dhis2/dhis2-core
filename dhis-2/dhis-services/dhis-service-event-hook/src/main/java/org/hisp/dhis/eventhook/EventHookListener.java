@@ -100,7 +100,7 @@ public class EventHookListener
     }
 
     @PostConstruct
-    @EventListener( ReloadEventListener.class )
+    @EventListener( ReloadEventHookListener.class )
     public void reload()
     {
         eventHooks.clear();

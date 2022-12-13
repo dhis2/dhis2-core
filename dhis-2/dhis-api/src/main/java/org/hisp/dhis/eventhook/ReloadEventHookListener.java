@@ -33,6 +33,6 @@ package org.hisp.dhis.eventhook;
  *
  * @author Morten Olav Hansen
  */
-public class ReloadEventListener
+public class ReloadEventHookListener
 {
 }
