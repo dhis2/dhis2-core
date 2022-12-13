@@ -27,90 +27,77 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
 import static org.hisp.dhis.tracker.validation.validators.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class PreCheckMetaValidationHookTest
+class EventPreCheckUidValidationHookTest
 {
-    private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
+    private static final String INVALID_UID = "InvalidUID";
 
-    private PreCheckMetaValidationHook validatorToTest;
-
-    @Mock
-    private TrackerPreheat preheat;
+    private EventPreCheckUidValidationHook validationHook;
 
     private TrackerBundle bundle;
 
     private ValidationErrorReporter reporter;
 
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
-        validatorToTest = new PreCheckMetaValidationHook();
-
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
-
+        TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        preheat.setIdSchemes( idSchemes );
         reporter = new ValidationErrorReporter( idSchemes );
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
+
+        validationHook = new EventPreCheckUidValidationHook();
     }
 
     @Test
-    void verifyRelationshipValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         // given
-        Relationship relationship = validRelationship();
-
-        // when
-        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
-            .thenReturn( new RelationshipType() );
-
-        validatorToTest.validate( reporter, bundle, relationship );
-
+        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
+        validationHook.validate( reporter, bundle, event );
         // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
-    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
+    void verifyEventWithInvalidUidFails()
     {
         // given
-        Relationship relationship = validRelationship();
-
-        // when
-        validatorToTest.validate( reporter, bundle, relationship );
-
+        Event event = Event.builder().event( INVALID_UID ).build();
+        validationHook.validate( reporter, bundle, event );
         // then
-        hasTrackerError( reporter, E4006, RELATIONSHIP, relationship.getUid() );
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 
-    private Relationship validRelationship()
+    @Test
+    void verifyEventWithNoteWithInvalidUidFails()
     {
-        return Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) )
-            .build();
+        // given
+        Note note = Note.builder().note( INVALID_UID ).build();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
+        validationHook.validate( reporter, bundle, event );
+        // then
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 }

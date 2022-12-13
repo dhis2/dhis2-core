@@ -27,64 +27,69 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.validation.validators.Field.field;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.validators.AssertValidationErrorReporter.hasTrackerError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class FieldTest
+/**
+ * @author Enrico Colasante
+ */
+class TrackedEntityPreCheckUidValidationHookTest
 {
+    private static final String INVALID_UID = "InvalidUID";
 
-    private ValidationErrorReporter reporter;
+    private TrackedEntityPreCheckUidValidationHook validationHook;
 
     private TrackerBundle bundle;
+
+    private ValidationErrorReporter reporter;
 
     @BeforeEach
     void setUp()
     {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .build();
+        TrackerPreheat preheat = new TrackerPreheat();
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        preheat.setIdSchemes( idSchemes );
         reporter = new ValidationErrorReporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
+
+        validationHook = new TrackedEntityPreCheckUidValidationHook();
     }
 
     @Test
-    void testFieldWithValidator()
+    void verifyTrackedEntityValidationSuccess()
     {
-        Enrollment enrollment = Enrollment.builder()
-            .trackedEntity( "PuBvJxDB73z" )
+        // given
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( CodeGenerator.generateUid() )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
-
-        Validator<String> isValidUid = ( r, bundle, uid ) -> {
-            // to demonstrate that we are getting the trackedEntity field
-            r.addError( new TrackerErrorReport( uid, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, uid ) );
-        };
-
-        Validator<Enrollment> validator = field(
-            Enrollment::getTrackedEntity,
-            isValidUid );
-
-        validator.validate( reporter, bundle, enrollment );
-
-        assertContainsOnly( List.of( "PuBvJxDB73z" ), actualErrors() );
+        validationHook.validate( reporter, bundle, trackedEntity );
+        assertFalse( reporter.hasErrors() );
     }
 
-    // TODO add test for predicate
-
-    private List<String> actualErrors()
+    @Test
+    void verifyTrackedEntityWithInvalidUidFails()
     {
-        return reporter.getErrors().stream().map( TrackerErrorReport::getMessage ).collect( Collectors.toList() );
+        // given
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( INVALID_UID )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .build();
+        // when
+        validationHook.validate( reporter, bundle, trackedEntity );
+        // then
+        hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 }

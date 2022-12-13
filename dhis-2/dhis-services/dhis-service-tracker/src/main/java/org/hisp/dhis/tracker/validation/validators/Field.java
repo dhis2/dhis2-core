@@ -27,24 +27,30 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.validation.Validator;
+
 public class Field
 {
-    //    public static <T, S> Validator<T> field(Function<T, S> map, Validator<S> validator )
-    //    {
-    //        return ( reporter,bundle, input ) -> validator.validate( reporter,bundle, map.apply( input ) );
-    //    }
-    //
-    //    public static <T, S> Validator<T> field( Function<T, S> map, Predicate<S> validator, String error )
-    //    {
-    //
-    //        return ( reporter,bundle, input ) -> {
-    //
-    //            if ( !validator.test( map.apply( input ) ) )
-    //            {
-    //                return reporter.add( error );
-    //            }
-    //
-    //            return true;
-    //        };
-    //    }
+    public static <T, S> Validator<T> field( Function<T, S> map, Validator<S> validator )
+    {
+        return ( reporter, bundle, input ) -> validator.validate( reporter, bundle, map.apply( input ) );
+    }
+
+    public static <T extends TrackerDto, S> Validator<T> field( Function<T, S> map, Predicate<S> validator,
+        TrackerErrorCode code, String error )
+    {
+
+        return ( reporter, bundle, input ) -> {
+            if ( !validator.test( map.apply( input ) ) )
+            {
+                reporter.addError( new TrackerErrorReport( error, code, input.getTrackerType(), input.getUid() ) );
+            }
+        };
+    }
 }

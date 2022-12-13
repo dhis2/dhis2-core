@@ -34,14 +34,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,10 +89,10 @@ public class DefaultTrackerValidationService
 
         try
         {
-            validateTrackedEntities( bundle, validators, validationReport, reporter );
-            validateEnrollments( bundle, validators, validationReport, reporter );
-            validateEvents( bundle, validators, validationReport, reporter );
-            validateRelationships( bundle, validators, validationReport, reporter );
+            //            validateTrackedEntities( bundle, validators, validationReport, reporter );
+            //            validateEnrollments( bundle, validators, validationReport, reporter );
+            //            validateEvents( bundle, validators, validationReport, reporter );
+            //            validateRelationships( bundle, validators, validationReport, reporter );
             //            validateBundle( bundle, validators, validationReport, reporter );
         }
         catch ( ValidationFailFastException e )
@@ -120,129 +114,5 @@ public class DefaultTrackerValidationService
         validationReport.addErrors( persistables.getErrors() );
 
         return validationReport;
-    }
-
-    private void validateTrackedEntities( TrackerBundle bundle, List<Validator> validators,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    {
-        for ( TrackedEntity tei : bundle.getTrackedEntities() )
-        {
-            for ( Validator validator : validators )
-            {
-                if ( validator.needsToRun( bundle.getStrategy( tei ) ) )
-                {
-                    Timer timer = Timer.startTimer();
-
-                    validator.validateTrackedEntity( reporter, bundle, tei );
-
-                    validationReport.addTiming( new Timing(
-                        validator.getClass().getName(),
-                        timer.toString() ) );
-
-                    if ( validator.skipOnError() && didNotPassValidation( reporter, tei.getUid() ) )
-                    {
-                        break; // skip subsequent validation validators for this invalid entity
-                    }
-                }
-            }
-        }
-    }
-
-    private void validateEnrollments( TrackerBundle bundle, List<Validator> validators,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    {
-        for ( Enrollment enrollment : bundle.getEnrollments() )
-        {
-            for ( Validator validator : validators )
-            {
-                if ( validator.needsToRun( bundle.getStrategy( enrollment ) ) )
-                {
-                    Timer timer = Timer.startTimer();
-
-                    validator.validateEnrollment( reporter, bundle, enrollment );
-
-                    validationReport.addTiming( new Timing(
-                        validator.getClass().getName(),
-                        timer.toString() ) );
-
-                    if ( validator.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
-                    {
-                        break; // skip subsequent validation validators for this invalid entity
-                    }
-                }
-            }
-        }
-    }
-
-    private void validateEvents( TrackerBundle bundle, List<Validator> validators,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            for ( Validator validator : validators )
-            {
-                if ( validator.needsToRun( bundle.getStrategy( event ) ) )
-                {
-                    Timer timer = Timer.startTimer();
-
-                    validator.validateEvent( reporter, bundle, event );
-
-                    validationReport.addTiming( new Timing(
-                        validator.getClass().getName(),
-                        timer.toString() ) );
-
-                    if ( validator.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
-                    {
-                        break; // skip subsequent validation validators for this invalid entity
-                    }
-                }
-            }
-        }
-    }
-
-    private void validateRelationships( TrackerBundle bundle, List<Validator> validators,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    {
-        for ( Relationship relationship : bundle.getRelationships() )
-        {
-            for ( Validator validator : validators )
-            {
-                if ( validator.needsToRun( bundle.getStrategy( relationship ) ) )
-                {
-                    Timer timer = Timer.startTimer();
-
-                    validator.validateRelationship( reporter, bundle, relationship );
-
-                    validationReport.addTiming( new Timing(
-                        validator.getClass().getName(),
-                        timer.toString() ) );
-
-                    if ( validator.skipOnError() && didNotPassValidation( reporter, relationship.getUid() ) )
-                    {
-                        break; // skip subsequent validation validators for this invalid entity
-                    }
-                }
-            }
-        }
-    }
-
-    //    private static void validateBundle( TrackerBundle bundle, List<Validator> validators,
-    //        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    //    {
-    //        for ( Validator validator : validators )
-    //        {
-    //            Timer timer = Timer.startTimer();
-    //
-    //            validator.validate( reporter, bundle );
-    //
-    //            validationReport.addTiming( new Timing(
-    //                validator.getClass().getName(),
-    //                timer.toString() ) );
-    //        }
-    //    }
-
-    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
-    {
-        return reporter.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }

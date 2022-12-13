@@ -29,72 +29,20 @@ package org.hisp.dhis.tracker.validation;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface Validator<T>
 {
-
     /**
-     * Validate input adding errors to {@code reporter}.
+     * Validate input adding errors and warnings to {@code reporter}.
      *
      * @param reporter reporter aggregating errors
      * @param bundle tracker bundle
      * @param input input to validate
      */
-    default void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input )
-    {
-    }
-
-    /**
-     * Called on every event in the bundle.
-     *
-     * @param reporter ValidationErrorReporter instance
-     * @param bundle tracker bundle
-     * @param event entity to validate
-     */
-    default void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-    }
-
-    /**
-     * Called on every enrollment in the bundle.
-     *
-     * @param reporter ValidationErrorReporter instance
-     * @param bundle tracker bundle
-     * @param enrollment entity to validate
-     */
-    default void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-    }
-
-    /**
-     * Called on every relationship in the bundle.
-     *
-     * @param reporter ValidationErrorReporter instance
-     * @param bundle tracker bundle
-     * @param relationship entity to validate
-     */
-    default void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-    }
-
-    /**
-     * Called on every TEI in the bundle.
-     *
-     * @param reporter ValidationErrorReporter instance
-     * @param bundle tracker bundle
-     * @param tei entity to validate
-     */
-    default void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
-    {
-    }
+    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
 
     default boolean needsToRun( TrackerImportStrategy strategy )
     {

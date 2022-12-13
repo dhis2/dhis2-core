@@ -27,64 +27,24 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.validation.validators.Field.field;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.validation.validators.ValidationUtils.checkUidFormat;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Component;
 
-public class FieldTest
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+public class RelationshipPreCheckUidValidationHook implements Validator<Relationship>
 {
-
-    private ValidationErrorReporter reporter;
-
-    private TrackerBundle bundle;
-
-    @BeforeEach
-    void setUp()
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .build();
-        reporter = new ValidationErrorReporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
-    }
-
-    @Test
-    void testFieldWithValidator()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
-
-        Validator<String> isValidUid = ( r, bundle, uid ) -> {
-            // to demonstrate that we are getting the trackedEntity field
-            r.addError( new TrackerErrorReport( uid, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, uid ) );
-        };
-
-        Validator<Enrollment> validator = field(
-            Enrollment::getTrackedEntity,
-            isValidUid );
-
-        validator.validate( reporter, bundle, enrollment );
-
-        assertContainsOnly( List.of( "PuBvJxDB73z" ), actualErrors() );
-    }
-
-    // TODO add test for predicate
-
-    private List<String> actualErrors()
-    {
-        return reporter.getErrors().stream().map( TrackerErrorReport::getMessage ).collect( Collectors.toList() );
+        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
+            relationship.getRelationship() );
     }
 }

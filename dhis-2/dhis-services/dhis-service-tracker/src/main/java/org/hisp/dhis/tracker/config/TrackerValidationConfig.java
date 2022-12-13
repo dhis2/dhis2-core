@@ -38,28 +38,11 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validators.AssignedUserValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EnrollmentAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EnrollmentDateValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EnrollmentGeoValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EnrollmentInExistingValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EnrollmentNoteValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EnrollmentRuleValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EventCategoryOptValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EventDataValuesValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EventDateValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EventGeoValidationHook;
-import org.hisp.dhis.tracker.validation.validators.EventNoteValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EventRuleValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckDataRelationsValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckExistenceValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckMandatoryFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckMetaValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckSecurityOwnershipValidationHook;
 import org.hisp.dhis.tracker.validation.validators.PreCheckUidValidationHook;
-import org.hisp.dhis.tracker.validation.validators.PreCheckUpdatableFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.validators.RelationshipsValidationHook;
-import org.hisp.dhis.tracker.validation.validators.RepeatedEventsValidationHook;
 import org.hisp.dhis.tracker.validation.validators.TrackedEntityAttributeValidationHook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -133,37 +116,38 @@ public class TrackerValidationConfig
     @Bean
     public List<Validator> validators()
     {
-        return getValidatorByClass( ImmutableList.of( PreCheckUidValidationHook.class,
-            PreCheckExistenceValidationHook.class,
-            PreCheckMandatoryFieldsValidationHook.class,
-            PreCheckMetaValidationHook.class,
-            PreCheckUpdatableFieldsValidationHook.class,
-            PreCheckDataRelationsValidationHook.class,
-            PreCheckSecurityOwnershipValidationHook.class,
-
-            TrackedEntityAttributeValidationHook.class,
-
-            EnrollmentNoteValidationHook.class,
-            EnrollmentInExistingValidationHook.class,
-            EnrollmentGeoValidationHook.class,
-            EnrollmentDateValidationHook.class,
-            EnrollmentAttributeValidationHook.class,
-
-            EventCategoryOptValidationHook.class,
-            EventDateValidationHook.class,
-            EventGeoValidationHook.class,
-            EventNoteValidationHook.class,
-            EventDataValuesValidationHook.class,
-
-            RelationshipsValidationHook.class,
-
-            AssignedUserValidationHook.class,
-
-            /*
-             * NB! This hook must be run after all the Event validations,
-             * because it needs to consider only all events deemed valid
-             */
-            RepeatedEventsValidationHook.class ) );
+        //        return getValidatorByClass( ImmutableList.of( PreCheckUidValidationHook.class,
+        //            PreCheckExistenceValidationHook.class,
+        //            PreCheckMandatoryFieldsValidationHook.class,
+        //            PreCheckMetaValidationHook.class,
+        //            PreCheckUpdatableFieldsValidationHook.class,
+        //            PreCheckDataRelationsValidationHook.class,
+        //            PreCheckSecurityOwnershipValidationHook.class,
+        //
+        //            TrackedEntityAttributeValidationHook.class,
+        //
+        //            EnrollmentNoteValidationHook.class,
+        //            EnrollmentInExistingValidationHook.class,
+        //            EnrollmentGeoValidationHook.class,
+        //            EnrollmentDateValidationHook.class,
+        //            EnrollmentAttributeValidationHook.class,
+        //
+        //            EventCategoryOptValidationHook.class,
+        //            EventDateValidationHook.class,
+        //            EventGeoValidationHook.class,
+        //            EventNoteValidationHook.class,
+        //            EventDataValuesValidationHook.class,
+        //
+        //            RelationshipsValidationHook.class,
+        //
+        //            AssignedUserValidationHook.class,
+        //
+        //            /*
+        //             * NB! This hook must be run after all the Event validations,
+        //             * because it needs to consider only all events deemed valid
+        //             */
+        //            RepeatedEventsValidationHook.class ) );
+        return null;
     }
 
     private List<Validator> getValidatorByClass( List<Class<? extends Validator>> validatorClasses )

@@ -27,64 +27,36 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.validation.validators.Field.field;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.validation.validators.ValidationUtils.trackedEntityInstanceExist;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Component;
 
-public class FieldTest
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+public class EnrollmentPreCheckMetaValidationHook implements Validator<Enrollment>
 {
-
-    private ValidationErrorReporter reporter;
-
-    private TrackerBundle bundle;
-
-    @BeforeEach
-    void setUp()
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .build();
-        reporter = new ValidationErrorReporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
-    }
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
 
-    @Test
-    void testFieldWithValidator()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
 
-        Validator<String> isValidUid = ( r, bundle, uid ) -> {
-            // to demonstrate that we are getting the trackedEntity field
-            r.addError( new TrackerErrorReport( uid, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, uid ) );
-        };
-
-        Validator<Enrollment> validator = field(
-            Enrollment::getTrackedEntity,
-            isValidUid );
-
-        validator.validate( reporter, bundle, enrollment );
-
-        assertContainsOnly( List.of( "PuBvJxDB73z" ), actualErrors() );
-    }
-
-    // TODO add test for predicate
-
-    private List<String> actualErrors()
-    {
-        return reporter.getErrors().stream().map( TrackerErrorReport::getMessage ).collect( Collectors.toList() );
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
+            enrollment,
+            E1068, enrollment.getTrackedEntity() );
     }
 }

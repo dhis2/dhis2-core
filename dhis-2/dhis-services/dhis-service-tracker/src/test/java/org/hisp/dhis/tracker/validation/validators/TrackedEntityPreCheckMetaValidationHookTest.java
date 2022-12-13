@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1049;
 import static org.hisp.dhis.tracker.validation.validators.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,11 +52,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class PreCheckMetaValidationHookTest
+class TrackedEntityPreCheckMetaValidationHookTest
 {
-    private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
 
-    private PreCheckMetaValidationHook validatorToTest;
+    private static final String ORG_UNIT_UID = "OrgUnitUid";
+
+    private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
+
+    private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+
+    private TrackedEntityPreCheckMetaValidationHook validatorToTest;
 
     @Mock
     private TrackerPreheat preheat;
@@ -67,7 +73,7 @@ class PreCheckMetaValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        validatorToTest = new PreCheckMetaValidationHook();
+        validatorToTest = new TrackedEntityPreCheckMetaValidationHook();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
@@ -78,39 +84,61 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    void verifyRelationshipValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         // given
-        Relationship relationship = validRelationship();
+        TrackedEntity tei = validTei();
 
         // when
-        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
-            .thenReturn( new RelationshipType() );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
 
-        validatorToTest.validate( reporter, bundle, relationship );
+        validatorToTest.validate( reporter, bundle, tei );
 
         // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
-    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
+    void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
-        Relationship relationship = validRelationship();
+        TrackedEntity tei = validTei();
 
         // when
-        validatorToTest.validate( reporter, bundle, relationship );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
+
+        validatorToTest.validate( reporter, bundle, tei );
 
         // then
-        hasTrackerError( reporter, E4006, RELATIONSHIP, relationship.getUid() );
+        hasTrackerError( reporter, E1049, TRACKED_ENTITY, tei.getUid() );
     }
 
-    private Relationship validRelationship()
+    @Test
+    void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
     {
-        return Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) )
+        // given
+        TrackedEntity tei = validTei();
+
+        // when
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
+
+        validatorToTest.validate( reporter, bundle, tei );
+
+        // then
+        hasTrackerError( reporter, E1005, TRACKED_ENTITY, tei.getUid() );
+    }
+
+    private TrackedEntity validTei()
+    {
+        return TrackedEntity.builder()
+            .trackedEntity( TRACKED_ENTITY_UID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) )
             .build();
     }
 }
