@@ -67,7 +67,7 @@ public class TrackerTypeReport
     public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
         @JsonProperty( "stats" ) Stats stats,
         @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
-        @JsonProperty( "entityReport" ) List<Entity> entityReport )
+        @JsonProperty( "objectReports" ) List<Entity> entityReport )
     {
         this.trackerType = trackerType;
         this.stats = stats;
@@ -83,7 +83,7 @@ public class TrackerTypeReport
     }
 
     @JsonProperty
-    public List<Entity> getEntityReport()
+    public List<Entity> getObjectReports()
     {
         return new ArrayList<>( entityReport.values() );
     }

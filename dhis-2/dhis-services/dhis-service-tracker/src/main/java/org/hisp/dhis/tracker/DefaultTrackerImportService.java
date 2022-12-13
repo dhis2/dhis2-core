@@ -381,7 +381,7 @@ public class DefaultTrackerImportService
         ImportReport.ImportReportBuilder importReportBuilder = ImportReport.builder()
             .status( originalImportReport.getStatus() )
             .stats( originalImportReport.getStats() )
-            .persistenceReport( originalImportReport.getPersistenceReport() )
+            .bundleReport( originalImportReport.getBundleReport() )
             .message( originalImportReport.getMessage() );
 
         ValidationReport originalValidationReport = originalImportReport.getValidationReport();

@@ -83,7 +83,7 @@ class ImportReportTest
 
     private Stats getBundleReportStats( ImportReport importReport, TrackerType type )
     {
-        return importReport.getPersistenceReport().getTypeReportMap().get( type ).getStats();
+        return importReport.getBundleReport().getTypeReportMap().get( type ).getStats();
     }
 
     private TrackerTypeReport createTypeReport( TrackerType type, int created, int updated, int deleted )

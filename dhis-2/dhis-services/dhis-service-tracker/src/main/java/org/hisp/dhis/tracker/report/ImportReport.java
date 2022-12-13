@@ -91,7 +91,7 @@ public class ImportReport
      * entities were persisted)
      */
     @JsonProperty
-    PersistenceReport persistenceReport;
+    PersistenceReport bundleReport;
 
     /**
      * A message to attach to the report. This message is designed to be used
@@ -176,7 +176,7 @@ public class ImportReport
             .status( status )
             .validationReport( validationReport )
             .timingsStats( timingsStats )
-            .persistenceReport( processBundleReport( persistenceReport, bundleSize ) )
+            .bundleReport( processBundleReport( persistenceReport, bundleSize ) )
             .stats( stats )
             .build();
     }

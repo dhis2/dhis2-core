@@ -69,7 +69,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertEquals( 2, params.getEvents().size() );
 
         ImportReport importReport = trackerImportService.importTracker( params );
-        PersistenceReport persistenceReport = importReport.getPersistenceReport();
+        PersistenceReport persistenceReport = importReport.getBundleReport();
 
         assertImportedObjects( 13, persistenceReport, TrackerType.TRACKED_ENTITY );
         assertImportedObjects( 2, persistenceReport, TrackerType.ENROLLMENT );
@@ -89,7 +89,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
         assertNoErrors( importReport );
-        assertDeletedObjects( 9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY );
+        assertDeletedObjects( 9, importReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
         assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
@@ -107,7 +107,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( params );
         assertNoErrors( importReport );
 
-        assertDeletedObjects( 1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT );
+        assertDeletedObjects( 1, importReport.getBundleReport(), TrackerType.ENROLLMENT );
         // remaining
         assertEquals( 5, manager.getAll( ProgramInstance.class ).size() );
         // delete associated events as well
@@ -124,7 +124,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( params );
 
         assertNoErrors( importReport );
-        assertDeletedObjects( 1, importReport.getPersistenceReport(), TrackerType.EVENT );
+        assertDeletedObjects( 1, importReport.getBundleReport(), TrackerType.EVENT );
         // remaining
         assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
     }
@@ -151,8 +151,8 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( params );
 
         assertNoErrors( importReport );
-        assertDeletedObjects( 1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT );
-        assertDeletedObjects( 1, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY );
+        assertDeletedObjects( 1, importReport.getBundleReport(), TrackerType.ENROLLMENT );
+        assertDeletedObjects( 1, importReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
     }
 
     private void assertImportedObjects( int expected, PersistenceReport persistenceReport,
