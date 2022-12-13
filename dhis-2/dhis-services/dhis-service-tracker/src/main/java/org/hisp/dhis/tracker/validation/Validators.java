@@ -25,53 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
-
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
+package org.hisp.dhis.tracker.validation;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 
-/**
- * @author Enrico Colasante
- */
-@Component
-public class EnrollmentRuleValidationHook
-    implements Validator<Enrollment>
+public interface Validators
 {
-    private List<RuleActionImplementer> validators;
 
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
-    {
-        this.validators = validators;
-    }
+    List<Validator<TrackedEntity>> getTrackedEntityValidators();
 
-    @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
-
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
-    }
+    List<Validator<Enrollment>> getEnrollmentValidators();
 }

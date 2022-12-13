@@ -25,53 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
-/**
- * @author Enrico Colasante
- */
-@Component
-public class EnrollmentRuleValidationHook
-    implements Validator<Enrollment>
+@FunctionalInterface
+public interface Validator<T extends TrackerDto>
 {
-    private List<RuleActionImplementer> validators;
+    /**
+     * Validates given input and adds errors and warnings to {@code reporter}.
+     *
+     * @param reporter aggregates errors and warnings
+     * @param bundle tracker bundle
+     * @param input input to validate
+     */
+    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
 
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
+    default boolean needsToRun( TrackerImportStrategy strategy )
     {
-        this.validators = validators;
-    }
-
-    @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
-
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
+        return strategy != TrackerImportStrategy.DELETE;
     }
 }

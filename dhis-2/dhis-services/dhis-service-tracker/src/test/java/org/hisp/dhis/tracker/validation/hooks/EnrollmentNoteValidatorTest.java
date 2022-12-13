@@ -58,11 +58,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class EnrollmentNoteValidationHookTest
+class EnrollmentNoteValidatorTest
 {
-
-    // Class under test
-    private EnrollmentNoteValidationHook hook;
+    private EnrollmentNoteValidator validator;
 
     private Enrollment enrollment;
 
@@ -77,7 +75,7 @@ class EnrollmentNoteValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        this.hook = new EnrollmentNoteValidationHook();
+        this.validator = new EnrollmentNoteValidator();
         enrollment = rnd.nextObject( Enrollment.class );
 
         preheat = mock( TrackerPreheat.class );
@@ -98,7 +96,7 @@ class EnrollmentNoteValidationHookTest
         enrollment.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // Then
         assertTrue( reporter.hasWarnings() );
@@ -118,7 +116,7 @@ class EnrollmentNoteValidationHookTest
         enrollment.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // Then
         assertFalse( reporter.hasErrors() );
@@ -134,7 +132,7 @@ class EnrollmentNoteValidationHookTest
         enrollment.setNotes( notes );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // Then
         assertFalse( reporter.hasErrors() );

@@ -57,10 +57,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class EnrollmentDateValidationHookTest
+class EnrollmentDateValidatorTest
 {
 
-    private EnrollmentDateValidationHook hookToTest;
+    private EnrollmentDateValidator validator;
 
     @Mock
     private TrackerPreheat preheat;
@@ -72,7 +72,7 @@ class EnrollmentDateValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new EnrollmentDateValidationHook();
+        validator = new EnrollmentDateValidator();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
@@ -93,7 +93,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
@@ -111,7 +111,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
@@ -130,7 +130,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -151,7 +151,7 @@ class EnrollmentDateValidationHookTest
         program.setSelectIncidentDatesInFuture( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -169,7 +169,7 @@ class EnrollmentDateValidationHookTest
         program.setDisplayIncidentDate( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }

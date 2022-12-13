@@ -25,37 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.validation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
 
-import org.hisp.dhis.program.Program;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * {@link Validators} used in
+ * {@link TrackerValidationService#validateRuleEngine(TrackerBundle)}.
  */
-@Component
-public class EnrollmentGeoValidationHook
-    implements TrackerValidationHook
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )
+public class RuleEngineValidators implements Validators
 {
+
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private final EnrollmentRuleValidationHook enrollmentRuleValidationHook;
+
+    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-
-        if ( enrollment.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter, enrollment,
-                enrollment.getGeometry(),
-                program.getFeatureType() );
-        }
+        return List.of(
+            attributeValidator );
     }
 
+    @Override
+    public List<Validator<Enrollment>> getEnrollmentValidators()
+    {
+        return List.of(
+            enrollmentRuleValidationHook,
+            enrollmentAttributeValidator );
+    }
 }
