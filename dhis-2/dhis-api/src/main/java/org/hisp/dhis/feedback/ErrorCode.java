@@ -173,6 +173,7 @@ public enum ErrorCode
     E3025( "User must have a secret" ),
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
+    E3028( "User `{0}` does not have access to user role" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
