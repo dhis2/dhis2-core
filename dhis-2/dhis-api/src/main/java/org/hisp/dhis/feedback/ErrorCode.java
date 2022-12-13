@@ -446,7 +446,7 @@ public enum ErrorCode
     E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
-    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`" ),
     E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
