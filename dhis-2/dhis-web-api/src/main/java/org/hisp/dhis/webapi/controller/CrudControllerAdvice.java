@@ -35,7 +35,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-import static org.hisp.dhis.feedback.ErrorCode.E4061;
 
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
@@ -244,7 +243,7 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage persistenceExceptionHandler( PersistenceException ex )
     {
-        return getPersistenceMessage( ex );
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -452,24 +451,6 @@ public class CrudControllerAdvice
             message = GENERIC_ERROR_MESSAGE;
         }
         return message;
-    }
-
-    /**
-     * This method receives a {@link PersistenceException}, evaluates the cause
-     * and returns the message associated that cause.
-     *
-     * @param ex the {@link PersistenceException}
-     * @return the respective {@link WebMessage}
-     */
-    private WebMessage getPersistenceMessage( PersistenceException ex )
-    {
-        if ( ex.getCause() != null && ex.getCause().getClass()
-            .isAssignableFrom( ConstraintViolationException.class ) )
-        {
-            return conflict( E4061.getMessage(), E4061 );
-        }
-
-        return conflict( ex.getMessage() );
     }
 
     private boolean isSensitiveException( Throwable e )
