@@ -25,25 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import java.util.List;
 
-import org.springframework.web.client.RestTemplate;
+import lombok.AllArgsConstructor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.eventhook.ReloadEventListener;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen
  */
-@Value
-@Builder
-@RequiredArgsConstructor
-public class EventHookContext
+@Component
+@AllArgsConstructor
+public class EventHookObjectBundleHook
+    extends AbstractObjectBundleHook<EventHook>
 {
-    ObjectMapper objectMapper;
+    private final ApplicationEventPublisher publisher;;
 
-    RestTemplate restTemplate;
+    @Override
+    public <E extends EventHook> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
+    {
+        publisher.publishEvent( new ReloadEventListener() );
+    }
 }

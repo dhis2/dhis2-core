@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.eventhook;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.transaction.annotation.Transactional;
-
 /**
+ * Event that reloads the internals of the event listener. Should be published
+ * when EventHooks are created, updated, deleted.
+ *
  * @author Morten Olav Hansen
  */
-@Transactional
-public interface EventHookStore
-    extends IdentifiableObjectStore<EventHook>
+public class ReloadEventListener
 {
 }

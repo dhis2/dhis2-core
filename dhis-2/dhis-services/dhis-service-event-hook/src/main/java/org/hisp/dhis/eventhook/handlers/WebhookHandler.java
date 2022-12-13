@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.eventhook.handlers;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.springframework.http.HttpEntity;
@@ -39,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Morten Olav Hansen
  */
+@Slf4j
 public class WebhookHandler implements Handler
 {
     private final RestTemplate restTemplate;
@@ -68,12 +71,12 @@ public class WebhookHandler implements Handler
         {
             ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
                 String.class );
-            System.err.println( "responseStatusCode: " + response.getStatusCode() );
-            System.err.println( "responseBody: " + response.getBody() );
+            log.info( response.getStatusCode().name() );
+            log.info( response.getBody() );
         }
         catch ( RestClientException ex )
         {
-            ex.printStackTrace();
+            log.error( ex.getMessage() );
         }
     }
 }

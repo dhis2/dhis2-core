@@ -32,12 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -56,21 +60,19 @@ public class EventHookListener
 {
     private final ObjectMapper objectMapper;
 
-    private final EventHookStore eventHookStore;
-
     private final FieldFilterService fieldFilterService;
 
     private final Map<String, List<Handler>> targets = new HashMap<>();
 
     private final List<EventHook> eventHooks = new ArrayList<>();
 
+    private final IdentifiableObjectManager manager;
+
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
         throws EventHookException,
         JsonProcessingException
     {
-        reload();
-
         for ( EventHook eventHook : eventHooks )
         {
             if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
@@ -97,18 +99,19 @@ public class EventHookListener
         }
     }
 
-    private void reload()
+    @PostConstruct
+    @EventListener( ReloadEventListener.class )
+    public void reload()
     {
         eventHooks.clear();
         targets.clear();
 
-        eventHooks.addAll( eventHookStore.getAll() );
+        eventHooks.addAll( manager.getAll( EventHook.class ) );
 
         eventHooks.forEach( eh -> {
-            List<Target> ehTargets = eh.getTargets();
             targets.put( eh.getUid(), new ArrayList<>() );
 
-            for ( Target target : ehTargets )
+            for ( Target target : eh.getTargets() )
             {
                 if ( target.getType().equals( "webhook" ) )
                 {
