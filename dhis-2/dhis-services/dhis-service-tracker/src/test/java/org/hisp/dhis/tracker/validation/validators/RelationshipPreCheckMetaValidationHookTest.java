@@ -51,11 +51,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class PreCheckMetaValidationHookTest
+class RelationshipPreCheckMetaValidationHookTest
 {
     private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
 
-    private PreCheckMetaValidationHook validatorToTest;
+    private RelationshipPreCheckUidValidationHook validatorToTest;
 
     @Mock
     private TrackerPreheat preheat;
@@ -67,7 +67,7 @@ class PreCheckMetaValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        validatorToTest = new PreCheckMetaValidationHook();
+        validatorToTest = new RelationshipPreCheckUidValidationHook();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )

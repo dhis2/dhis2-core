@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckMetaValidationHook implements Validator<Relationship>
+public class RelationshipPreCheckMetaValidationHook implements Validator<Relationship>
 {
     @Override
     public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship )
