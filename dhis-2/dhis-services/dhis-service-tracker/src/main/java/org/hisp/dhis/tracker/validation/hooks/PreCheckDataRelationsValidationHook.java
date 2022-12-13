@@ -387,7 +387,7 @@ public class PreCheckDataRelationsValidationHook
 
     private Program getEnrollmentProgramFromEvent( TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         if ( programInstance != null )
         {
             return programInstance.getProgram();
@@ -398,7 +398,7 @@ public class PreCheckDataRelationsValidationHook
                 .getReference( event.getEnrollment() );
             if ( reference.isPresent() )
             {
-                final Optional<Enrollment> enrollment = bundle.getEnrollment( event.getEnrollment() );
+                final Optional<Enrollment> enrollment = bundle.findEnrollmentByUid( event.getEnrollment() );
                 if ( enrollment.isPresent() )
                 {
                     return bundle.getPreheat().getProgram( enrollment.get().getProgram() );
@@ -427,7 +427,7 @@ public class PreCheckDataRelationsValidationHook
     private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
     {
         final TrackedEntityInstance trackedEntityInstance = bundle
-            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+            .getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
         {
             return program.getTrackedEntityType().getUid()
@@ -438,7 +438,7 @@ public class PreCheckDataRelationsValidationHook
             .getReference( enrollment.getTrackedEntity() );
         if ( reference.isPresent() )
         {
-            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
+            final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
             if ( tei.isPresent() )
             {
                 return tei.get().getTrackedEntityType().isEqualTo( program.getTrackedEntityType() );

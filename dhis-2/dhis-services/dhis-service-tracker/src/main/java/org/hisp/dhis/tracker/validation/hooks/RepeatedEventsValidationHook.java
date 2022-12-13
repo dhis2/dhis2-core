@@ -85,7 +85,7 @@ public class RepeatedEventsValidationHook
 
     private void validateNotMultipleEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
         TrackerImportStrategy strategy = bundle.getStrategy( event );
