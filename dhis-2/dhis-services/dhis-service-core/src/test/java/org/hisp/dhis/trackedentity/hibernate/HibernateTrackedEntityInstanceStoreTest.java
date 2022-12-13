@@ -114,13 +114,13 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenOrderingByInactiveThenQueryAndSubqueryContainInactiveField()
     {
-        //given
+        // given
         params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.inactive" ) ),
@@ -130,13 +130,13 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenOrderingByUpdatedAtThenQueryAndSubqueryContainUpdatedAtField()
     {
-        //given
+        // given
         params.setOrders( List.of( new OrderParam( "updatedAt", OrderParam.SortDirection.ASC ) ) );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.lastupdated" ) ),
@@ -146,13 +146,13 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenOrderingByUpdatedAtClientThenQueryAndSubqueryContainUpdatedAtClient()
     {
-        //given
+        // given
         params.setOrders( List.of( new OrderParam( "updatedAtClient", OrderParam.SortDirection.ASC ) ) );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", tei.lastUpdatedAtClient" ) ),
@@ -162,13 +162,13 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenOrderingByEnrolledAtThenQueryAndSubqueryContainEnrolledAtField()
     {
-        //given
+        // given
         params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
 
@@ -181,14 +181,14 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenOrderingByMultipleFieldsThenQueryAndSubqueryContainAllFields()
     {
-        //given
+        // given
         params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
             new OrderParam( "updatedAtClient", OrderParam.SortDirection.ASC ) ) );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll(
@@ -205,13 +205,13 @@ class HibernateTrackedEntityInstanceStoreTest
     @Test
     void whenNoOrderParamsProvidedThenQueryAndSubqueryContainDefaultOrderByClause()
     {
-        //given
+        // given
         params.setOrders( Collections.emptyList() );
 
-        //when
+        // when
         store.getTrackedEntityInstanceIds( params );
 
-        //then
+        // then
         Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
 
