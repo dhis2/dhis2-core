@@ -145,7 +145,7 @@ public class EnrollmentInExistingValidationHook
 
     private TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String uid )
     {
-        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( uid );
+        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( uid );
 
         if ( tei == null && bundle.getPreheat().getReference( uid ).isPresent() )
         {

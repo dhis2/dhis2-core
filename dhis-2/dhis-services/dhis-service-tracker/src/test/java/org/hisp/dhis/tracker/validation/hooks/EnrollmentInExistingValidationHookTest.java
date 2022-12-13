@@ -102,7 +102,7 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
         when( enrollment.getTrackerType() ).thenCallRealMethod();
 
-        when( bundle.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
+        when( preheat.getTrackedEntity( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
 
         Program program = new Program();

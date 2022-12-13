@@ -895,12 +895,16 @@ public class DefaultDataValueSetService
 
         if ( !context.isDryRun() )
         {
-            DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
-            if ( valueContext.getDataElement().isFileType() && actualDataValue != null )
+            if ( valueContext.getDataElement().isFileType() )
             {
-                FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+                DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
 
-                fileResourceService.updateFileResource( fr );
+                if ( actualDataValue != null )
+                {
+                    FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+
+                    fileResourceService.updateFileResource( fr );
+                }
             }
 
             context.getDataValueBatchHandler().updateObject( internalValue );
@@ -1070,6 +1074,12 @@ public class DefaultDataValueSetService
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
             .strictOrgUnits( options.isStrictOrganisationUnits()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .strictDataSetApproval( options.isStrictDataSetApproval()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_APPROVAL ) )
+            .strictDataSetLocking( options.isStrictDataSetLocking()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_LOCKING ) )
+            .strictDataSetInputPeriods( options.isStrictDataSetInputPeriods()
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_SET_INPUT_PERIODS ) )
             .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
                 || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()

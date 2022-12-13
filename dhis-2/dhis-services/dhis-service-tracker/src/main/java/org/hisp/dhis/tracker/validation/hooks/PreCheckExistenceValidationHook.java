@@ -66,7 +66,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( trackedEntity );
 
-        TrackedEntityInstance existingTe = bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance existingTe = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
@@ -90,7 +90,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
 
-        ProgramInstance existingPi = bundle.getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance existingPi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
@@ -114,7 +114,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( event );
 
-        ProgramStageInstance existingPsi = bundle.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
 
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
@@ -138,7 +138,7 @@ public class PreCheckExistenceValidationHook
         Relationship relationship )
     {
 
-        org.hisp.dhis.relationship.Relationship existingRelationship = bundle
+        org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
             .getRelationship( relationship.getRelationship() );
         TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 

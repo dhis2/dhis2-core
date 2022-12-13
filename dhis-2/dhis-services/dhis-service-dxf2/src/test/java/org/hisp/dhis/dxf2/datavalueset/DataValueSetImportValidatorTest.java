@@ -30,7 +30,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -54,6 +56,7 @@ import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -74,6 +77,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,6 +107,8 @@ class DataValueSetImportValidatorTest
 
     private OrganisationUnitService organisationUnitService;
 
+    private final CategoryCombo defaultCombo = new CategoryCombo();
+
     @BeforeEach
     void setUp()
     {
@@ -123,6 +129,9 @@ class DataValueSetImportValidatorTest
         validator.init();
         setupUserCanWriteCategoryOptions( true );
         when( i18n.getString( anyString() ) ).thenAnswer( invocation -> invocation.getArgument( 0, String.class ) );
+
+        defaultCombo.setUid( CodeGenerator.generateUid() );
+        defaultCombo.setName( "default" );
     }
 
     /*
@@ -520,12 +529,13 @@ class DataValueSetImportValidatorTest
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
         ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).isIso8601( true )
             .build();
-        context.getDataElementLatestFuturePeriodMap().put( valueContext.getDataElement().getUid(),
+        context.getDataSetLatestFuturePeriodMap().put( dataSetContext.getDataSet().getUid(),
             PeriodType.getPeriodFromIsoString( "2020-01" ) );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7641,
-            "Period: `<object1>` is after latest open future period: `202001` for data element: `<object2>`", context,
-            dataValue.getPeriod(), dataValue.getDataElement() );
+            "Period: `<object1>` is after latest open future period: `202001` for data element: `<object2>` and data set: `<object3>`",
+            context,
+            dataValue.getPeriod(), dataValue.getDataElement(), dataSetContext.getDataSet().getUid() );
     }
 
     @Test
@@ -557,12 +567,62 @@ class DataValueSetImportValidatorTest
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
         ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
-        DataInputPeriod inputPeriod = new DataInputPeriod();
-        inputPeriod.setPeriod( PeriodType.getPeriodFromIsoString( "2019" ) );
-        dataSetContext.getDataSet().setDataInputPeriods( singleton( inputPeriod ) );
+        DataSet dataSet = dataSetContext.getDataSet();
+        dataSet.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.YEARLY ) );
+        dataSet.setDataInputPeriods( Set.of( createDataInputPeriod( PeriodType.getPeriodFromIsoString( "2019" ) ) ) );
+
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7643, "Period: `<object1>` is not open for this data set at this time: `<object2>`",
-            context, dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
+            context, dataValue.getPeriod(), dataSet.getUid() );
+    }
+
+    @Test
+    void testCheckDataValuePeriodIsOpenNow_MultiDataSetScenario()
+    {
+        Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod();
+        Period lastMonth = thisMonth.getPeriodType().getPreviousPeriod( thisMonth );
+        DataValue dataValue = createRandomDataValue();
+        DataValueContext valueContext = createDataValueContext( dataValue ).build();
+        DataElement de = valueContext.getDataElement();
+        DataSet setA = createMonthlyDataSet( CodeGenerator.generateUid() );
+        setA.setSources( Set.of( valueContext.getOrgUnit() ) );
+        DataSet setB = createMonthlyDataSet( CodeGenerator.generateUid() );
+        setB.setSources( Set.of( valueContext.getOrgUnit() ) );
+        setA.setDataInputPeriods( Set.of( createDataInputPeriod( lastMonth ) ) );
+        setB.setDataInputPeriods( Set.of( createDataInputPeriod( thisMonth ) ) );
+        Set<DataSetElement> dataSetElements = Set.of( new DataSetElement( setA, de ), new DataSetElement( setB, de ) );
+        DataSetContext dataSetContext = createMinimalDataSetContext( new DataValueSet() ).build();
+        ImportContext context = createMinimalImportContext( valueContext )
+            .forceDataInput( false )
+            .strictDataSetInputPeriods( false )
+            .build();
+
+        // last month cannot be entered any longer
+        dataValue.setPeriod( lastMonth.getIsoDate() );
+        valueContext = createDataValueContext( dataValue ).build();
+        valueContext.getDataElement().setDataSetElements( dataSetElements );
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertHasConflict( ErrorCode.E7643,
+            "Period: `<object1>` is not open for this data set at this time: `<object2>`",
+            context, dataValue.getPeriod(), setA.getUid() );
+
+        // current month can be entered
+        dataValue.setPeriod( thisMonth.getIsoDate() );
+        valueContext = createDataValueContext( dataValue ).build();
+        valueContext.getDataElement().setDataSetElements( dataSetElements );
+        assertFalse( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+
+        // next month cannot be entered yet
+        dataValue.setPeriod( thisMonth.getPeriodType().getNextPeriod( thisMonth ).getIsoDate() );
+        valueContext = createDataValueContext( dataValue ).build();
+        valueContext.getDataElement().setDataSetElements( dataSetElements );
+        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
+        assertHasConflict( ErrorCode.E7643,
+            "Period: `<object1>` is not open for this data set at this time: `<object2>`",
+            context, dataValue.getPeriod(), setA.getUid() );
+        assertHasConflict( ErrorCode.E7643,
+            "Period: `<object1>` is not open for this data set at this time: `<object2>`",
+            context, dataValue.getPeriod(), setB.getUid() );
     }
 
     @Test
@@ -605,6 +665,31 @@ class DataValueSetImportValidatorTest
         ImportSummary summary = context.getSummary();
         assertEquals( 1, summary.getConflictCount() );
         ImportConflict conflict = summary.getConflicts().iterator().next();
+        assertEqualConflict( expectedError, expectedValue, conflict, expectedObjects );
+    }
+
+    private static void assertHasConflict( ErrorCode expectedError, String expectedValue, ImportContext context,
+        String... expectedObjects )
+    {
+        ImportSummary summary = context.getSummary();
+        assertTrue( summary.getConflictCount() > 0, "At least one conflict was expected" );
+        for ( ImportConflict conflict : summary.getConflicts() )
+        {
+            try
+            {
+                assertEqualConflict( expectedError, expectedValue, conflict, expectedObjects );
+                return;
+            }
+            catch ( AssertionError ex )
+            {
+            }
+        }
+        fail( "None of the conflicts was equal to the expected parameters" );
+    }
+
+    private static void assertEqualConflict( ErrorCode expectedError, String expectedValue, ImportConflict conflict,
+        String[] expectedObjects )
+    {
         String object = conflict.getObject();
         assertEquals( expectedError, conflict.getErrorCode(), "unexpected conflict type: " );
         if ( expectedObjects.length > 0 )
@@ -652,6 +737,15 @@ class DataValueSetImportValidatorTest
         return dvs;
     }
 
+    private static DataInputPeriod createDataInputPeriod( Period period )
+    {
+        DataInputPeriod ip = new DataInputPeriod();
+        ip.setPeriod( period );
+        ip.setOpeningDate( period.getStartDate() );
+        ip.setClosingDate( period.getEndDate() );
+        return ip;
+    }
+
     private static DataValue createRandomDataValue()
     {
         DataValue dv = new DataValue();
@@ -678,12 +772,19 @@ class DataValueSetImportValidatorTest
             String dsId = dataValueSet.getDataSet();
             if ( dsId != null )
             {
-                DataSet ds = new DataSet();
-                ds.setUid( dsId );
-                builder.dataSet( ds );
+                builder.dataSet( createMonthlyDataSet( dsId ) );
             }
         }
         return builder;
+    }
+
+    private DataSet createMonthlyDataSet( String dsId )
+    {
+        DataSet ds = new DataSet();
+        ds.setUid( dsId );
+        ds.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ) );
+        ds.setCategoryCombo( defaultCombo );
+        return ds;
     }
 
     private ImportContextBuilder createMinimalImportContext( DataValueContext valueContext )
@@ -720,7 +821,7 @@ class DataValueSetImportValidatorTest
         }
         if ( period != null )
         {
-            Period p = PeriodType.getPeriodFromIsoString( "2021-01" );
+            Period p = PeriodType.getPeriodFromIsoString( dataValue.getPeriod() );
             builder.period( p );
         }
         if ( ouId != null )
@@ -747,6 +848,7 @@ class DataValueSetImportValidatorTest
         CategoryOption option = new CategoryOption( "name" );
         option.setUid( CodeGenerator.generateUid() );
         combo.setCategoryOptions( singleton( option ) );
+        combo.setCategoryCombo( defaultCombo );
         return combo;
     }
 
