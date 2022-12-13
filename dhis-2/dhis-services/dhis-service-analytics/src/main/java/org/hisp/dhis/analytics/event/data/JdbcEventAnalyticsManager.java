@@ -625,7 +625,7 @@ public class JdbcEventAnalyticsManager
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
-        String sql = "(select psi, ";
+        String sql = "(select ";
 
         for ( String col : columns )
         {
