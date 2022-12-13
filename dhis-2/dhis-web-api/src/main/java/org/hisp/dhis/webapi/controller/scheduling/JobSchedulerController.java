@@ -31,11 +31,13 @@ import static java.util.Comparator.comparing;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
@@ -52,6 +54,7 @@ import org.hisp.dhis.scheduling.JobQueueService;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingType;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +74,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags( "system" )
 @RestController
-@RequestMapping( value = "scheduler" )
+@RequestMapping( value = "/scheduler" )
 @AllArgsConstructor
 public class JobSchedulerController
 {
@@ -134,8 +137,10 @@ public class JobSchedulerController
     }
 
     @Value
+    @OpenApi.Property
     static class SchedulerEntryJob
     {
+        @OpenApi.Property( { UID.class, JobConfiguration.class } )
         String id;
 
         String name;
@@ -196,7 +201,17 @@ public class JobSchedulerController
 
         String cronExpression;
 
+        @OpenApi.Property( { UID[].class, JobConfiguration.class } )
         List<String> sequence;
+    }
+
+    @GetMapping( "/queue/" )
+    public Set<String> getQueueNames()
+    {
+        return jobConfigurationService.getAllJobConfigurations().stream()
+            .filter( config -> config.getQueueName() != null )
+            .map( JobConfiguration::getQueueName )
+            .collect( toUnmodifiableSet() );
     }
 
     @GetMapping( "/queue/{name}" )
