@@ -48,7 +48,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     @Autowired
@@ -66,8 +66,8 @@ class DataIntegrityOptionSetsWrongSortOrderController extends AbstractDataIntegr
 
     private final static String check = "option_sets_wrong_sort_order";
 
-    /* Skipping this test for now, until we can set the sort order directly */
-    @Ignore
+    @Test
+    @Ignore( "Cannot directly set the sort order of option sets" )
     void testOptionSetWrongSortOrder()
     {
         doInTransaction( () -> {
