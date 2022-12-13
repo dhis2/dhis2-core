@@ -25,31 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.events;
-
-import java.util.Map;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.hisp.dhis.eventhook.Event;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.eventhook;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-@Builder
-public class PathEvent implements Event
+@FunctionalInterface
+public interface Handler
 {
-    @JsonProperty
-    public String path;
-
-    @JsonProperty
-    @Builder.Default
-    public Map<String, ?> meta = Map.of();
-
-    @JsonProperty
-    public Object object;
+    void run( String payload );
 }

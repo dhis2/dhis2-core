@@ -27,25 +27,24 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.eventhook.events.PathEvent;
+import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
@@ -57,65 +56,65 @@ public class EventHookListener
 {
     private final ObjectMapper objectMapper;
 
-    private final RestTemplate restTemplate;
-
     private final EventHookStore eventHookStore;
+
+    private final FieldFilterService fieldFilterService;
+
+    private final Map<String, List<Handler>> targets = new HashMap<>();
+
+    private final List<EventHook> eventHooks = new ArrayList<>();
 
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
         throws EventHookException,
         JsonProcessingException
     {
-        EventHookContext ctx = EventHookContext.builder()
-            .objectMapper( objectMapper )
-            .restTemplate( restTemplate ).build();
-
-        List<EventHook> eventHooks = eventHookStore.getAll();
-
-        PathEvent pathEvent = (PathEvent) event;
-        String payload = null;
+        reload();
 
         for ( EventHook eventHook : eventHooks )
         {
-            if ( pathEvent.getPath().startsWith( eventHook.getSource().getPath() )
-                && !eventHook.getTargets().isEmpty() )
+            if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
             {
-                payload = objectMapper.writeValueAsString( pathEvent );
-
-                for ( Target target : eventHook.getTargets() )
+                if ( !targets.containsKey( eventHook.getUid() ) )
                 {
-                    // TODO make it own class
-                    if ( target.getType().equals( "webhook" ) )
-                    {
-                        WebhookTarget webhookTarget = (WebhookTarget) target;
-
-                        HttpHeaders httpHeaders = new HttpHeaders();
-                        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
-                        httpHeaders.setAll( webhookTarget.getHeaders() );
-
-                        if ( webhookTarget.getAuth() != null )
-                        {
-                            webhookTarget.getAuth().apply( httpHeaders );
-                        }
-
-                        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
-
-                        try
-                        {
-                            ResponseEntity<String> response = ctx.getRestTemplate().postForEntity(
-                                webhookTarget.getUrl(),
-                                httpEntity, String.class );
-                            System.err.println( "responseStatusCode: " + response.getStatusCode() );
-                            System.err.println( "responseBody: " + response.getBody() );
-                        }
-                        catch ( RestClientException ex )
-                        {
-                            ex.printStackTrace();
-                        }
-                    }
+                    continue;
                 }
 
+                ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
+                    List.of( eventHook.getSource().getFields() ) );
+                String payload = objectMapper.writeValueAsString( Map.of(
+                    "path", event.getPath(),
+                    "meta", event.getMeta(),
+                    "object", objectNode ) );
+
+                List<Handler> handlers = targets.get( eventHook.getUid() );
+
+                for ( Handler handler : handlers )
+                {
+                    handler.run( payload );
+                }
             }
         }
+    }
+
+    private void reload()
+    {
+        eventHooks.clear();
+        targets.clear();
+
+        eventHooks.addAll( eventHookStore.getAll() );
+
+        eventHooks.forEach( eh -> {
+            List<Target> ehTargets = eh.getTargets();
+            targets.put( eh.getUid(), new ArrayList<>() );
+
+            for ( Target target : ehTargets )
+            {
+                if ( target.getType().equals( "webhook" ) )
+                {
+                    targets.get( eh.getUid() ).add( new WebhookHandler( (WebhookTarget) target ) );
+                }
+            }
+        } );
     }
 }

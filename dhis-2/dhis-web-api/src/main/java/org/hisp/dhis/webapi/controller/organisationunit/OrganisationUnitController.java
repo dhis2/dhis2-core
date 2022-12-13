@@ -45,7 +45,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.eventhook.events.PathEvent;
+import org.hisp.dhis.eventhook.EventUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
@@ -411,38 +411,20 @@ public class OrganisationUnitController
     protected void postCreateEntity( OrganisationUnit entity )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-
-        eventHookPublisher.publishEvent( PathEvent.builder()
-            .path( "metadata.organisationUnit." + entity.getUid() )
-            .meta( Map.of(
-                "op", "create" ) )
-            .object( entity )
-            .build() );
+        eventHookPublisher.publishEvent( EventUtils.metadataCreate( entity ) );
     }
 
     @Override
     protected void postUpdateEntity( OrganisationUnit entity )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-
-        eventHookPublisher.publishEvent( PathEvent.builder()
-            .path( "metadata.organisationUnit." + entity.getUid() )
-            .meta( Map.of(
-                "op", "update" ) )
-            .object( entity )
-            .build() );
+        eventHookPublisher.publishEvent( EventUtils.metadataUpdate( entity ) );
     }
 
     @Override
     protected void postDeleteEntity( String entityUID )
     {
         versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
-
-        eventHookPublisher.publishEvent( PathEvent.builder()
-            .path( "metadata.organisationUnit." + entityUID )
-            .meta( Map.of(
-                "op", "delete" ) )
-            .object( Map.of( "id", entityUID ) )
-            .build() );
+        eventHookPublisher.publishEvent( EventUtils.metadataDelete( getEntityClass(), entityUID ) );
     }
 }

@@ -48,4 +48,7 @@ public class Source
 {
     @JsonProperty( required = true )
     private String path;
+
+    @JsonProperty( required = true )
+    private String fields = "*";
 }

@@ -27,9 +27,27 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.Map;
+
+import lombok.Builder;
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author Morten Olav Hansen
  */
-public interface Event
+@Data
+@Builder
+public class Event
 {
+    @JsonProperty
+    private String path;
+
+    @JsonProperty
+    @Builder.Default
+    private Map<String, ?> meta = Map.of();
+
+    @JsonProperty
+    private Object object;
 }

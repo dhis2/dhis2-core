@@ -25,55 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.handlers;
+package org.hisp.dhis.eventhook;
 
-import org.hisp.dhis.eventhook.Handler;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import java.util.Map;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
  * @author Morten Olav Hansen
  */
-public class WebhookHandler implements Handler
+public final class EventUtils
 {
-    private final RestTemplate restTemplate;
-
-    private final WebhookTarget webhookTarget;
-
-    public WebhookHandler( WebhookTarget webhookTarget )
+    public static Event metadataCreate( BaseIdentifiableObject object )
     {
-        this.webhookTarget = webhookTarget;
-        this.restTemplate = new RestTemplate();
+        return metadata( object, "create" );
     }
 
-    public void run( String payload )
+    public static Event metadataUpdate( BaseIdentifiableObject object )
     {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
-        httpHeaders.setAll( webhookTarget.getHeaders() );
+        return metadata( object, "update" );
+    }
 
-        if ( webhookTarget.getAuth() != null )
-        {
-            webhookTarget.getAuth().apply( httpHeaders );
-        }
+    public static Event metadataDelete( Class<?> type, String uid )
+    {
+        return Event.builder()
+            .path( "metadata." + type.getSimpleName() + "." + uid )
+            .meta( Map.of( "op", "delete" ) )
+            .object( Map.of( "id", uid ) )
+            .build();
+    }
 
-        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
-
-        try
-        {
-            ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
-                String.class );
-            System.err.println( "responseStatusCode: " + response.getStatusCode() );
-            System.err.println( "responseBody: " + response.getBody() );
-        }
-        catch ( RestClientException ex )
-        {
-            ex.printStackTrace();
-        }
+    private static Event metadata( BaseIdentifiableObject object, String op )
+    {
+        return Event.builder()
+            .path( "metadata." + object.getClass().getSimpleName() + "." + object.getUid() )
+            .meta( Map.of( "op", op ) )
+            .object( object )
+            .build();
     }
 }
