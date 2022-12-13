@@ -45,8 +45,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -55,19 +55,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class EventCategoryOptValidationHook
-    implements TrackerValidationHook
+public class EventCategoryOptValidator
+    implements Validator<Event>
 {
     private final I18nManager i18nManager;
 
-    public EventCategoryOptValidationHook( I18nManager i18nManager )
+    public EventCategoryOptValidator( I18nManager i18nManager )
     {
         checkNotNull( i18nManager );
         this.i18nManager = i18nManager;
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         Program program = bundle.getPreheat().getProgram( event.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

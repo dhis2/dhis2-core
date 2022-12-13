@@ -33,9 +33,12 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventRuleValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +57,10 @@ public class RuleEngineValidators implements Validators
 
     private final EnrollmentAttributeValidator enrollmentAttributeValidator;
 
+    private final EventDataValuesValidator eventDataValuesValidator;
+
+    private final EventRuleValidator eventRuleValidator;
+
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
@@ -67,5 +74,13 @@ public class RuleEngineValidators implements Validators
         return List.of(
             enrollmentRuleValidationHook,
             enrollmentAttributeValidator );
+    }
+
+    @Override
+    public List<Validator<Event>> getEventValidators()
+    {
+        return List.of(
+            eventRuleValidator,
+            eventDataValuesValidator );
     }
 }

@@ -58,11 +58,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class EventNoteValidationHookTest
+class EventNoteValidatorTest
 {
 
     // Class under test
-    private EventNoteValidationHook hook;
+    private EventNoteValidator validator;
 
     private Event event;
 
@@ -77,7 +77,7 @@ class EventNoteValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        this.hook = new EventNoteValidationHook();
+        this.validator = new EventNoteValidator();
         event = rnd.nextObject( Event.class );
 
         bundle = mock( TrackerBundle.class );
@@ -98,7 +98,7 @@ class EventNoteValidationHookTest
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertTrue( reporter.hasWarnings() );
@@ -118,7 +118,7 @@ class EventNoteValidationHookTest
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );
@@ -134,7 +134,7 @@ class EventNoteValidationHookTest
         event.setNotes( notes );
 
         // When
-        this.hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );

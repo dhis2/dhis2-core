@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -60,9 +61,6 @@ public class DefaultTrackerValidationService
     @Qualifier( "validationHooks" )
     private final List<TrackerValidationHook> validationHooks;
 
-    @Qualifier( "ruleEngineValidationHooks" )
-    private final List<TrackerValidationHook> ruleEngineValidationHooks;
-
     @Qualifier( "org.hisp.dhis.tracker.validation.DefaultValidators" )
     private final Validators validators;
 
@@ -78,7 +76,7 @@ public class DefaultTrackerValidationService
     @Override
     public TrackerValidationReport validateRuleEngine( TrackerBundle bundle )
     {
-        return validate( bundle, ruleEngineValidationHooks, ruleEngineValidators );
+        return validate( bundle, Collections.emptyList(), ruleEngineValidators );
     }
 
     private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks,
@@ -104,7 +102,7 @@ public class DefaultTrackerValidationService
         {
             validateTrackedEntities( bundle, hooks, validators, reporter );
             validateEnrollments( bundle, hooks, validators, reporter );
-            validateEvents( bundle, hooks, reporter );
+            validateEvents( bundle, hooks, validators, reporter );
             validateRelationships( bundle, hooks, reporter );
             validateBundle( bundle, hooks, reporter );
         }
@@ -224,10 +222,11 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEvents( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( Event event : bundle.getEvents() )
         {
+            boolean failed = false;
             for ( TrackerValidationHook hook : hooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( event ) ) )
@@ -242,8 +241,28 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
                     }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<Event> validator : validators.getEventValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( event ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, event );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
                 }
             }
         }

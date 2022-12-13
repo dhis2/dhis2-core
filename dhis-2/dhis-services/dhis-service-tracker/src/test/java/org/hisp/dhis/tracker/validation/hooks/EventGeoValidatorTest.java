@@ -60,12 +60,12 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EventGeoValidationHookTest
+class EventGeoValidatorTest
 {
 
     private static final String PROGRAM_STAGE = "ProgramStage";
 
-    private EventGeoValidationHook hookToTest;
+    private EventGeoValidator validator;
 
     @Mock
     private TrackerPreheat preheat;
@@ -77,7 +77,7 @@ class EventGeoValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new EventGeoValidationHook();
+        validator = new EventGeoValidator();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
@@ -101,7 +101,7 @@ class EventGeoValidationHookTest
         event.setGeometry( new GeometryFactory().createPoint() );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -118,7 +118,7 @@ class EventGeoValidationHookTest
         when( preheat.getProgramStage( (MetadataIdentifier) null ) ).thenReturn( null );
 
         // when
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, bundle, event ) );
+        assertThrows( NullPointerException.class, () -> validator.validate( reporter, bundle, event ) );
     }
 
     @Test
@@ -133,7 +133,7 @@ class EventGeoValidationHookTest
         // when
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1074, EVENT, event.getUid() );
@@ -153,7 +153,7 @@ class EventGeoValidationHookTest
         programStage.setFeatureType( NONE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );
@@ -173,7 +173,7 @@ class EventGeoValidationHookTest
         programStage.setFeatureType( MULTI_POLYGON );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );
