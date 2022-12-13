@@ -28,6 +28,8 @@
 package org.hisp.dhis.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.String.format;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.time.Duration;
@@ -101,13 +103,20 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     @Override
     public void schedule( JobConfiguration configuration )
     {
-        log.info( String.format( "Scheduling job: %s", configuration ) );
+        boolean isCronTriggered = configuration.getJobType().getSchedulingType() == SchedulingType.CRON;
+        if ( isCronTriggered && isNullOrEmpty( configuration.getCronExpression() ) )
+        {
+            log.info(
+                format( "Ignoring CRON schedule for %s as it is not ready to run.", configuration.getJobType() ) );
+            return;
+        }
+        log.info( format( "Scheduling job: %s", configuration ) );
 
-        scheduleTask( configuration, task -> configuration.getJobType().getSchedulingType() == SchedulingType.CRON
+        scheduleTask( configuration, task -> isCronTriggered
             ? scheduleCronBased( configuration, task )
             : scheduleFixedDelayBased( configuration, task ) );
 
-        log.info( String.format( "Scheduled job: %s", configuration ) );
+        log.info( format( "Scheduled job: %s", configuration ) );
     }
 
     @Override
@@ -115,7 +124,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     {
         scheduleTask( configuration, task -> scheduleTimeBased( startTime, task ) );
 
-        log.info( String.format( "Scheduled job: %s with start time: %s", configuration,
+        log.info( format( "Scheduled job: %s with start time: %s", configuration,
             getMediumDateString( startTime ) ) );
     }
 
@@ -126,7 +135,9 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         CompletableFuture<Future<?>> cancellation = new CompletableFuture<>();
         Runnable task = configuration.isInMemoryJob()
             ? () -> execute( configuration )
-            : () -> execute( jobId );
+            : !isNullOrEmpty( configuration.getQueueName() )
+                ? () -> executeQueue( configuration.getQueueName() )
+                : () -> execute( jobId );
         Future<?> cancelable = scheduler.apply( runIfPossible( configuration, cancellation, task ) );
         Future<?> scheduledBefore = scheduled.put( type, cancelable );
         if ( scheduledBefore != null && !scheduledBefore.cancel( true ) )
@@ -179,7 +190,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         {
             return false;
         }
-        log.info( String.format( "Scheduler initiated execution of job: %s", configuration ) );
+        log.info( format( "Scheduler initiated execution of job: %s", configuration ) );
         CompletableFuture<Future<?>> cancellation = new CompletableFuture<>();
         Runnable task = runIfPossible( configuration, cancellation, () -> execute( configuration ) );
         cancellation.complete( taskExecutor.executeTaskWithCancelation( task ) );
@@ -250,7 +261,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
             return true;
         }
         boolean success = cancelable.isDone() || cancelable.cancel( true );
-        log.info( String.format( "Stopped job of type: '%s' with successful result: '%b'", type, success ) );
+        log.info( format( "Stopped job of type: '%s' with successful result: '%b'", type, success ) );
         return success;
     }
 }
