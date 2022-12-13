@@ -60,7 +60,7 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityInstance trackedEntityInstance = bundle
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
         reporter.addErrorIf(
             () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
@@ -70,7 +70,7 @@ public class PreCheckUpdatableFieldsValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        ProgramInstance pi = bundle.getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance pi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
@@ -83,7 +83,7 @@ public class PreCheckUpdatableFieldsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStageInstance programStageInstance = bundle.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 

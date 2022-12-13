@@ -71,6 +71,18 @@ public interface FileResourceService
         throws IOException,
         NoSuchElementException;
 
+    /**
+     * Copy fileResource content to a byte array
+     *
+     * @param fileResource
+     * @return a byte array of the content
+     * @throws IOException
+     * @throws NoSuchElementException
+     */
+    byte[] copyFileResourceContent( FileResource fileResource )
+        throws IOException,
+        NoSuchElementException;
+
     boolean fileResourceExists( String uid );
 
     void updateFileResource( FileResource fileResource );

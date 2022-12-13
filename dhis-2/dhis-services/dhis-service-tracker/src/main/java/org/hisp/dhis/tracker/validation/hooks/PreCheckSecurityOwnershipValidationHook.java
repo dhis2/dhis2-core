@@ -108,12 +108,12 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
-            ? bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
+            ? bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
             : bundle.getPreheat()
                 .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
         OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
-            ? bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
+            ? bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         // If trackedEntity is newly created, or going to be deleted, capture
@@ -130,7 +130,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( strategy.isDelete() )
         {
-            TrackedEntityInstance tei = bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
@@ -164,7 +164,7 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
         Program program = strategy.isUpdateOrDelete()
-            ? bundle.getProgramInstance( enrollment.getEnrollment() )
+            ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() )
                 .getProgram()
             : bundle.getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
@@ -217,7 +217,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( strategy.isUpdateOrDelete() )
         {
-            enrollmentOrgUnit = bundle.getProgramInstance( enrollment.getEnrollment() )
+            enrollmentOrgUnit = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() )
                 .getOrganisationUnit();
 
             if ( enrollmentOrgUnit == null )
@@ -252,7 +252,7 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        ProgramStageInstance programStageInstance = bundle.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
 
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
@@ -362,12 +362,12 @@ public class PreCheckSecurityOwnershipValidationHook
             return null;
         }
 
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
 
         if ( programInstance == null )
         {
             return bundle
-                .getEnrollment( event.getEnrollment() )
+                .findEnrollmentByUid( event.getEnrollment() )
                 .map( Enrollment::getTrackedEntity )
                 .orElse( null );
         }
@@ -455,7 +455,7 @@ public class PreCheckSecurityOwnershipValidationHook
         if ( program.isRegistration() )
         {
             String trackedEntity = bundle.getStrategy( enrollment ).isDelete()
-                ? bundle.getProgramInstance( enrollment.getEnrollment() ).getEntityInstance().getUid()
+                ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() ).getEntityInstance().getUid()
                 : enrollment.getTrackedEntity();
 
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );

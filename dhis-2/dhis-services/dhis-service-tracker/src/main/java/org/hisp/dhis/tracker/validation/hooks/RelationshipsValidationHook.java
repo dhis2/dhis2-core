@@ -33,7 +33,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
@@ -84,11 +83,7 @@ public class RelationshipsValidationHook
             validateAutoRelationship( reporter, relationship );
 
             validateDuplication( reporter, relationship, bundle );
-
-            validateReferences( reporter, relationship, relationship.getFrom() );
-            validateReferences( reporter, relationship, relationship.getTo() );
         }
-
     }
 
     private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
@@ -221,18 +216,6 @@ public class RelationshipsValidationHook
             .count() > 1;
     }
 
-    private void validateReferences( ValidationErrorReporter reporter, Relationship relationship,
-        RelationshipItem item )
-
-    {
-        TrackerType trackerType = relationshipItemValueType( item );
-        Optional<String> itemUid = getUidFromRelationshipItem( item );
-
-        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
-            relationship, E4011, relationship.getRelationship(),
-            trackerType.getName(), s ) );
-    }
-
     private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
     {
         return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
@@ -241,7 +224,7 @@ public class RelationshipsValidationHook
 
     private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
-        final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
+        final TrackedEntityInstance trackedEntity = bundle.getPreheat().getTrackedEntity( uid );
 
         return trackedEntity != null
             ? Optional

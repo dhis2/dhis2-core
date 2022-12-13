@@ -28,9 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.Data;
 
@@ -63,7 +61,7 @@ public class TrackerObjectReport
     @JsonProperty
     private String uid;
 
-    private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
+    private List<TrackerErrorReport> errorReports = new ArrayList<>();
 
     public TrackerObjectReport( TrackerType trackerType )
     {
@@ -87,46 +85,13 @@ public class TrackerObjectReport
         this.index = index;
         if ( errorReports != null )
         {
-            List<TrackerErrorReport> errorCodeReportList;
-            for ( TrackerErrorReport errorReport : errorReports )
-            {
-                errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
-
-                if ( errorCodeReportList == null )
-                {
-                    errorCodeReportList = new ArrayList<>();
-                }
-                errorCodeReportList.add( errorReport );
-                this.errorReportsByCode.put( errorReport.getErrorCode(), errorCodeReportList );
-            }
+            this.errorReports = errorReports;
         }
     }
 
     @JsonProperty
     public List<TrackerErrorReport> getErrorReports()
     {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-        errorReportsByCode.values().forEach( errorReports::addAll );
-
-        return errorReports;
-    }
-
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
-
-    public boolean isEmpty()
-    {
-        return errorReportsByCode.isEmpty();
-    }
-
-    public int size()
-    {
-        return errorReportsByCode.size();
-    }
-
-    public List<TrackerErrorCode> getErrorCodes()
-    {
-        return new ArrayList<>( errorReportsByCode.keySet() );
+        return this.errorReports;
     }
 }
