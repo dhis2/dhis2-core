@@ -90,6 +90,7 @@ import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
@@ -212,10 +213,11 @@ public class DataAnalysisController
     @GetMapping( "validationRulesExpression" )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody ValidationRuleExpressionDetails getValidationRuleExpressionDetials(
-        @RequestParam String validationRuleId,
-        @RequestParam String periodId,
-        @RequestParam String organisationUnitId,
-        @RequestParam( required = false ) String attributeOptionComboId )
+        @OpenApi.Param( { UID.class, ValidationRule.class } ) @RequestParam String validationRuleId,
+        @OpenApi.Param( Period.class ) @RequestParam String periodId,
+        @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam String organisationUnitId,
+        @OpenApi.Param( { UID.class,
+            CategoryOptionCombo.class } ) @RequestParam( required = false ) String attributeOptionComboId )
         throws WebMessageException
     {
         ValidationRule validationRule = validationRuleService.getValidationRule( validationRuleId );

@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -43,6 +44,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,6 +52,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
 
+import org.hisp.dhis.common.OpenApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -68,6 +71,19 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Value
 class Api
 {
+    /**
+     * Can be used in {@link OpenApi.Param#value()} to point not to the type to
+     * use but the generator to use.
+     *
+     * All generators must provide an accessible no args constructor and be
+     * stateless.
+     */
+    @FunctionalInterface
+    interface SchemaGenerator
+    {
+        Schema generate( Endpoint endpoint, Type source, Class<?>... args );
+    }
+
     List<Controller> controllers = new ArrayList<>();
 
     /**
@@ -113,6 +129,15 @@ class Api
         boolean isPresent()
         {
             return value != null;
+        }
+
+        T init( Supplier<T> ifNotPresent )
+        {
+            if ( !isPresent() )
+            {
+                setValue( ifNotPresent.get() );
+            }
+            return getValue();
         }
 
         T orElse( T defaultValue )
@@ -220,7 +245,7 @@ class Api
 
         boolean required;
 
-        String description = "dummy";
+        Maybe<String> description = new Maybe<>();
 
         @EqualsAndHashCode.Include
         Map<MediaType, Schema> consumes = new TreeMap<>();
@@ -234,6 +259,7 @@ class Api
         {
             PATH,
             QUERY,
+            BODY
         }
 
         @ToString.Exclude
@@ -325,6 +351,11 @@ class Api
             return new Schema( Type.REF, false, to, to );
         }
 
+        public static Schema uid( Class<?> of )
+        {
+            return new Schema( Type.UID, false, of, of );
+        }
+
         public static Schema unknown( java.lang.reflect.Type source )
         {
             return new Schema( Type.UNKNOWN, false, source, Object.class );
@@ -342,6 +373,13 @@ class Api
             return oneOf;
         }
 
+        public static Schema enumeration( Class<?> source, Class<?> of, List<String> values )
+        {
+            Schema schema = new Schema( Type.ENUM, false, source, of );
+            schema.getValues().addAll( values );
+            return schema;
+        }
+
         static boolean isNamed( Class<?> source )
         {
             String name = source.getName();
@@ -357,9 +395,11 @@ class Api
             SIMPLE,
             ARRAY,
             OBJECT,
+            UID,
             REF,
             UNKNOWN,
-            ONE_OF
+            ONE_OF,
+            ENUM
         }
 
         @EqualsAndHashCode.Include
@@ -384,6 +424,11 @@ class Api
          */
         @EqualsAndHashCode.Include
         List<Property> properties = new ArrayList<>();
+
+        /**
+         * Enum values in case this is an enum schema.
+         */
+        List<String> values = new ArrayList<>();
 
         public Schema( Type type, java.lang.reflect.Type source, Class<?> rawType )
         {

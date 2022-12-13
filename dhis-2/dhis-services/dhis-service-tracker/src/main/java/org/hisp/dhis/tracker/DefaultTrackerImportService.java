@@ -396,8 +396,7 @@ public class DefaultTrackerImportService
         else if ( originalValidationReport != null && TrackerBundleReportMode.FULL == reportMode )
         {
             validationReport
-                .addWarnings( originalValidationReport.getWarnings() )
-                .addTimings( originalValidationReport.getTimings() );
+                .addWarnings( originalValidationReport.getWarnings() );
             importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
         }
         importReportBuilder.validationReport( validationReport );
