@@ -77,7 +77,7 @@ public class EventHookListener
         {
             if ( eventHook.getSource().getPath().startsWith( eventHook.getSource().getPath() ) )
             {
-                if ( !targets.containsKey( eventHook.getUid() ) )
+                if ( !targets.containsKey( eventHook.getUid() ) || targets.get( eventHook.getUid() ).isEmpty() )
                 {
                     continue;
                 }
