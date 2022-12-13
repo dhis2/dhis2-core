@@ -80,7 +80,7 @@ public class RuleEngineValidators implements Validators
     public List<Validator<Event>> getEventValidators()
     {
         return List.of(
-            eventDataValuesValidator,
-            eventRuleValidator );
+            eventRuleValidator,
+            eventDataValuesValidator );
     }
 }
