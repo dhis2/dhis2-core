@@ -224,7 +224,7 @@ public class RelationshipsValidationHook
 
     private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
-        final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
+        final TrackedEntityInstance trackedEntity = bundle.getPreheat().getTrackedEntity( uid );
 
         return trackedEntity != null
             ? Optional
