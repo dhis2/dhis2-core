@@ -138,7 +138,7 @@ public class PreCheckExistenceValidationHook
         Relationship relationship )
     {
 
-        org.hisp.dhis.relationship.Relationship existingRelationship = bundle
+        org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
             .getRelationship( relationship.getRelationship() );
         TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
 
