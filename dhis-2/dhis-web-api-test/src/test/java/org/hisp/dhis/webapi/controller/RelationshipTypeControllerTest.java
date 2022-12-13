@@ -79,15 +79,15 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
             "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'trackedEntityType': {"
                 +
                 "'id': '" + trackedEntityType + "'}," +
-                " 'programTrackedEntityAttributes' :  [{'id':'ZZplHtHLrgQ', 'trackedEntityAttribute' :{'id': '" + attrA
-                + "' }}, {'id':'tOtVj7xlNHB', 'trackedEntityAttribute' :{'id': '" + attrB + "' }}] }" ) );
+                " 'programTrackedEntityAttributes' :  [{ 'trackedEntityAttribute' :{'id': '" + attrA
+                + "' }}, { 'trackedEntityAttribute' :{'id': '" + attrB + "' }}] }" ) );
 
     }
 
     @Test
     void testPostingRelationshipTypes()
     {
-        JsonWebMessage relationtionShip = assertWebMessage( "Created", 201, "OK", null,
+        JsonWebMessage relationShip = assertWebMessage( "Created", 201, "OK", null,
             POST( "/relationshipTypes/",
                 "{'code': 'test-rel','description': 'test-rel','fromToName': 'A to B','toConstraint': { 'relationshipEntity': "
                     +
@@ -100,7 +100,7 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
                     + "'}, 'program': {'id': '" + programUid + "' }},'name': 'test-rel'}" )
                         .content( HttpStatus.CREATED ) );
 
-        String relationShipTypeUid = relationtionShip.getResponse().get( "uid" ).toString();
+        String relationShipTypeUid = relationShip.getResponse().get( "uid" ).toString();
 
         JsonResponse relationShipType = GET( "/relationshipTypes/{id}?fields=toConstraint[trackerDataView[attributes]]",
             relationShipTypeUid ).content();
