@@ -37,10 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -62,8 +60,6 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -371,100 +367,6 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertEquals( de1.getUid(), preheat.getDataElement( MetadataIdentifier.ofUid( de1.getUid() ) ).getUid() );
         assertEquals( de2.getUid(), preheat.getDataElement( MetadataIdentifier.ofUid( de2.getUid() ) ).getUid() );
         assertEquals( de3.getUid(), preheat.getDataElement( MetadataIdentifier.ofUid( de3.getUid() ) ).getUid() );
-    }
-
-    @Test
-    void testReferenceInvalidation()
-    {
-        // Create root TEI
-        TrackedEntityInstance tei = new TrackedEntityInstance();
-        tei.setUid( CodeGenerator.generateUid() );
-        List<TrackedEntityInstance> teiList = new ArrayList<>();
-        teiList.add( tei );
-        List<String> allEntities = new ArrayList<>();
-        allEntities.add( CodeGenerator.generateUid() );
-        preheat.putTrackedEntities( teiList, allEntities );
-        // Create 2 Enrollments, where TEI is parent
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( CodeGenerator.generateUid() );
-        List<ProgramInstance> psList = new ArrayList<>();
-        psList.add( programInstance );
-        List<Enrollment> allPs = new ArrayList<>();
-        allPs.add( new Enrollment()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEnrollment( uid );
-                setTrackedEntity( allEntities.get( 0 ) );
-            }
-        } );
-        allPs.add( new Enrollment()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEnrollment( uid );
-                setTrackedEntity( allEntities.get( 0 ) );
-            }
-        } );
-        preheat.putEnrollments( psList, allPs );
-        // Create 4 Enrollments, where TEI is parent
-        ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setUid( CodeGenerator.generateUid() );
-        List<ProgramStageInstance> psiList = new ArrayList<>();
-        psiList.add( psi );
-        List<Event> allEvents = new ArrayList<>();
-        allEvents.add( new Event()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEvent( uid );
-                setEnrollment( allPs.get( 0 ).getEnrollment() );
-            }
-        } );
-        allEvents.add( new Event()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEvent( uid );
-                setEnrollment( allPs.get( 0 ).getEnrollment() );
-            }
-        } );
-        allEvents.add( new Event()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEvent( uid );
-                setEnrollment( allPs.get( 1 ).getEnrollment() );
-            }
-        } );
-        allEvents.add( new Event()
-        {
-
-            {
-                String uid = CodeGenerator.generateUid();
-                setEvent( uid );
-                setEnrollment( allPs.get( 1 ).getEnrollment() );
-            }
-        } );
-        preheat.putEvents( psiList, allEvents );
-        preheat.createReferenceTree();
-        Optional<ReferenceTrackerEntity> reference = preheat.getReference( allEvents.get( 0 ).getUid() );
-        assertThat( reference.get().getUid(), is( allEvents.get( 0 ).getUid() ) );
-        assertThat( reference.get().getParentUid(), is( allPs.get( 0 ).getUid() ) );
-        Optional<ReferenceTrackerEntity> reference2 = preheat.getReference( allEvents.get( 1 ).getUid() );
-        assertThat( reference2.get().getUid(), is( allEvents.get( 1 ).getUid() ) );
-        assertThat( reference2.get().getParentUid(), is( allPs.get( 0 ).getUid() ) );
-        Optional<ReferenceTrackerEntity> reference3 = preheat.getReference( allEvents.get( 2 ).getUid() );
-        assertThat( reference3.get().getUid(), is( allEvents.get( 2 ).getUid() ) );
-        assertThat( reference3.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
-        Optional<ReferenceTrackerEntity> reference4 = preheat.getReference( allEvents.get( 3 ).getUid() );
-        assertThat( reference4.get().getUid(), is( allEvents.get( 3 ).getUid() ) );
-        assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
     }
 
     @Test

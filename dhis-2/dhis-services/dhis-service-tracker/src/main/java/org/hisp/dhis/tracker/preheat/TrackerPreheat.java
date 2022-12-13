@@ -52,7 +52,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -75,17 +74,12 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.user.User;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.scalified.tree.TreeNode;
-import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -105,22 +99,6 @@ public class TrackerPreheat
      * attribute value
      */
     private final Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
-
-    /**
-     * List of all payload references by tracker type which are not present in
-     * the database. This will be used to create the reference tree that
-     * represents the hierarchical structure of the references.
-     */
-    private final ArrayListMultimap<TrackerType, ReferenceTrackerEntity> referenceTrackerEntities = ArrayListMultimap
-        .create();
-
-    /**
-     * Internal tree of all payload references which are not present in the
-     * database. This map is required to allow the validation stage to reference
-     * root objects (TEI, PS, PSI) which are present in the payload but not
-     * stored in the pre-heat object (since they do not exist in the db yet).
-     */
-    private final TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -546,21 +524,6 @@ public class TrackerPreheat
         return trackedEntities.get( uid );
     }
 
-    public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances, List<String> allEntities )
-    {
-        putTrackedEntities( trackedEntityInstances );
-
-        List<String> uidOnDB = trackedEntityInstances.stream()
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
-
-        allEntities
-            .stream()
-            .filter( t -> !uidOnDB.contains( t ) )
-            .map( t -> new ReferenceTrackerEntity( t, null ) )
-            .forEach( u -> this.addReference( TrackerType.TRACKED_ENTITY, u ) );
-    }
-
     public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances )
     {
 
@@ -577,19 +540,6 @@ public class TrackerPreheat
         return enrollments.get( uid );
     }
 
-    public void putEnrollments( List<ProgramInstance> programInstances, List<Enrollment> allEntities )
-    {
-        putEnrollments( programInstances );
-        List<String> uidOnDB = programInstances.stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
-
-        allEntities
-            .stream()
-            .filter( t -> !uidOnDB.contains( t.getEnrollment() ) )
-            .map( t -> new ReferenceTrackerEntity( t.getEnrollment(), t.getTrackedEntity() ) )
-            .forEach( pi -> this.addReference( TrackerType.ENROLLMENT, pi ) );
-    }
-
     public void putEnrollments( List<ProgramInstance> programInstances )
     {
         programInstances.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
@@ -603,20 +553,6 @@ public class TrackerPreheat
     public ProgramStageInstance getEvent( String uid )
     {
         return events.get( uid );
-    }
-
-    public void putEvents( List<ProgramStageInstance> programStageInstances, List<Event> allEntities )
-    {
-        putEvents( programStageInstances );
-
-        List<String> uidOnDB = programStageInstances.stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
-
-        allEntities
-            .stream()
-            .filter( t -> !uidOnDB.contains( t.getEvent() ) )
-            .map( t -> new ReferenceTrackerEntity( t.getEvent(), t.getEnrollment() ) )
-            .forEach( psi -> this.addReference( TrackerType.EVENT, psi ) );
     }
 
     public void putEvents( List<ProgramStageInstance> programStageInstances )
@@ -709,47 +645,6 @@ public class TrackerPreheat
     public void putProgramInstancesWithoutRegistration( String programUid, ProgramInstance programInstance )
     {
         this.programInstancesWithoutRegistration.put( programUid, programInstance );
-    }
-
-    public void createReferenceTree()
-    {
-        referenceTrackerEntities.get( TrackerType.TRACKED_ENTITY )
-            .forEach( r -> referenceTree.add( new ArrayMultiTreeNode<>( r.getUid() ) ) );
-
-        referenceTrackerEntities.get( TrackerType.ENROLLMENT )
-            .forEach( this::addElementInReferenceTree );
-
-        referenceTrackerEntities.get( TrackerType.EVENT )
-            .forEach( this::addElementInReferenceTree );
-    }
-
-    private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity )
-    {
-        referenceTrackerEntities.put( trackerType, referenceTrackerEntity );
-    }
-
-    private void addElementInReferenceTree( ReferenceTrackerEntity referenceTrackerEntity )
-    {
-        final TreeNode<String> node = referenceTree.find( referenceTrackerEntity.getParentUid() );
-
-        if ( node != null )
-        {
-            node.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
-        }
-        else
-        {
-            referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
-        }
-    }
-
-    public Optional<ReferenceTrackerEntity> getReference( String uid )
-    {
-        final TreeNode<String> node = referenceTree.find( uid );
-        if ( node != null )
-        {
-            return Optional.of( new ReferenceTrackerEntity( uid, node.parent().data() ) );
-        }
-        return Optional.empty();
     }
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
