@@ -27,33 +27,49 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 
-import org.hisp.dhis.program.ProgramStage;
+import java.util.Optional;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
 @Component
-public class EventGeoValidationHook
-    implements TrackerValidationHook
+public class AssignedUserValidator
+    implements Validator<Event>
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
-
-        if ( event.getGeometry() != null )
+        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
         {
-            ValidationUtils.validateGeometry( reporter, event,
-                event.getGeometry(),
-                programStage.getFeatureType() );
+            if ( assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
+            {
+                reporter.addError( event, E1118, event.getAssignedUser().toString() );
+            }
+            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
+            {
+                reporter.addWarning( event, E1120, event.getProgramStage() );
+            }
         }
+    }
+
+    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
+    {
+        Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
+
+        return !Optional.ofNullable( userAssignmentEnabled )
+            .orElse( false );
+    }
+
+    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
+    {
+        return event.getAssignedUser().getUsername() == null ||
+            preheat.getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
     }
 }

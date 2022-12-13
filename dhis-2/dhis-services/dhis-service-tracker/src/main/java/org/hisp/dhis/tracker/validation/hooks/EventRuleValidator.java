@@ -27,56 +27,52 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Enrico Colasante
+ */
 @Component
-public class AssignedUserValidationHook
-    implements TrackerValidationHook
+public class EventRuleValidator
+    implements Validator<Event>
 {
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    private List<RuleActionImplementer> validators;
+
+    @Autowired( required = false )
+    public void setValidators( List<RuleActionImplementer> validators )
     {
-        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
+        this.validators = validators;
+    }
+
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
+
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
         {
-            if ( assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
-            {
-                reporter.addError( event, E1118, event.getAssignedUser().toString() );
-            }
-            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
-            {
-                reporter.addWarning( event, E1120, event.getProgramStage() );
-            }
+            return;
         }
+
+        List<ProgramRuleIssue> programRuleIssues = validators
+            .stream()
+            .flatMap(
+                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
+            .collect( Collectors.toList() );
+
+        addIssuesToReporter( reporter, event, programRuleIssues );
     }
-
-    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
-    {
-        Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
-
-        return !Optional.ofNullable( userAssignmentEnabled )
-            .orElse( false );
-    }
-
-    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
-    {
-        return event.getAssignedUser().getUsername() == null ||
-            preheat.getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
-    }
-
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }
