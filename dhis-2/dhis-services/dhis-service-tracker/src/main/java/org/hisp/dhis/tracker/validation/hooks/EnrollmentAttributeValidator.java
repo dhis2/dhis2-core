@@ -56,8 +56,8 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -68,18 +68,18 @@ import com.google.common.collect.Streams;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentAttributeValidationHook extends AttributeValidationHook
-    implements TrackerValidationHook
+public class EnrollmentAttributeValidator extends AttributeValidationHook
+    implements Validator<Enrollment>
 {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
+    public EnrollmentAttributeValidator( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( teAttrService, dhisConfigurationProvider );
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );

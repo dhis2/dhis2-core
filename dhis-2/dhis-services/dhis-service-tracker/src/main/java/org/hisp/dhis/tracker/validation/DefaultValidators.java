@@ -32,7 +32,13 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
@@ -47,10 +53,31 @@ public class DefaultValidators implements Validators
 
     private final TrackedEntityAttributeValidator attributeValidator;
 
+    private final EnrollmentNoteValidator enrollmentNoteValidator;
+
+    private final EnrollmentInExistingValidator enrollmentInExistingValidator;
+
+    private final EnrollmentGeoValidator enrollmentGeoValidator;
+
+    private final EnrollmentDateValidator enrollmentDateValidator;
+
+    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
         return List.of(
             attributeValidator );
+    }
+
+    @Override
+    public List<Validator<Enrollment>> getEnrollmentValidators()
+    {
+        return List.of(
+            enrollmentNoteValidator,
+            enrollmentInExistingValidator,
+            enrollmentGeoValidator,
+            enrollmentDateValidator,
+            enrollmentAttributeValidator );
     }
 }
