@@ -47,4 +47,9 @@ public interface Validator<T extends TrackerDto>
     {
         return strategy != TrackerImportStrategy.DELETE;
     }
+
+    default boolean skipOnError()
+    {
+        return false;
+    }
 }

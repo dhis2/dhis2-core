@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
@@ -82,5 +84,11 @@ public class RuleEngineValidators implements Validators
         return List.of(
             eventRuleValidator,
             eventDataValuesValidator );
+    }
+
+    @Override
+    public List<Validator<Relationship>> getRelationshipValidators()
+    {
+        return Collections.emptyList();
     }
 }
