@@ -42,11 +42,14 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
@@ -77,6 +80,9 @@ public class DocumentController
     @Autowired
     private ContextUtils contextUtils;
 
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
+
     @GetMapping( "/{uid}/data" )
     public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response )
         throws Exception
@@ -99,6 +105,7 @@ public class DocumentController
             response.setContentType( fileResource.getContentType() );
             response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+            HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
             try
             {
