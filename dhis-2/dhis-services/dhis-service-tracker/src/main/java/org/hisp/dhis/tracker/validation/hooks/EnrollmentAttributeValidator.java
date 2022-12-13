@@ -204,7 +204,8 @@ public class EnrollmentAttributeValidator extends AttributeValidationHook
 
     private MetadataIdentifier getOrgUnitUidFromTei( TrackerBundle bundle, String teiUid )
     {
-        final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( teiUid );
-        return tei.map( TrackedEntity::getOrgUnit ).orElse( null );
+        return bundle.findTrackedEntityByUid( teiUid )
+            .map( TrackedEntity::getOrgUnit )
+            .orElse( null );
     }
 }

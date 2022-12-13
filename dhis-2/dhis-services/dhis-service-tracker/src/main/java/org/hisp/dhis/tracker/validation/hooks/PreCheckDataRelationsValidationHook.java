@@ -67,7 +67,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -428,9 +427,9 @@ public class PreCheckDataRelationsValidationHook
                 .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
         }
 
-        final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
-        return tei.map( te -> te.getTrackedEntityType().isEqualTo( program.getTrackedEntityType() ) ).orElse( false );
-
+        return bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
+            .map( te -> te.getTrackedEntityType().isEqualTo( program.getTrackedEntityType() ) )
+            .orElse( false );
     }
 
     @Override
