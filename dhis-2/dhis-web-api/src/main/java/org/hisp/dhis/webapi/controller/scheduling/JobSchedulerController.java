@@ -195,6 +195,7 @@ public class JobSchedulerController
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @OpenApi.Property
     static class SchedulerQueue
     {
         String name;
