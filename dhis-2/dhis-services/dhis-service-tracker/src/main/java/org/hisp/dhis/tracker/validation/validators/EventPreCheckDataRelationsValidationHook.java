@@ -27,21 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1033;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1079;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4012;
-import static org.hisp.dhis.tracker.validation.validators.RelationshipValidationUtils.getUidFromRelationshipItem;
-import static org.hisp.dhis.tracker.validation.validators.RelationshipValidationUtils.relationshipItemValueType;
 
 import java.util.HashSet;
 import java.util.List;
@@ -59,15 +50,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -80,36 +66,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PreCheckDataRelationsValidationHook
-    implements Validator
+public class EventPreCheckDataRelationsValidationHook implements Validator<Event>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = bundle.getPreheat()
-            .getOrganisationUnit( enrollment.getOrgUnit() );
-
-        reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
-
-        TrackerPreheat preheat = bundle.getPreheat();
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
-        {
-            reporter.addError( enrollment, E1041, organisationUnit, program );
-        }
-
-        validateTrackedEntityTypeMatchesPrograms( reporter, bundle, program, enrollment );
-    }
-
-    private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
-        Map<String, List<String>> programAndOrgUnitsMap )
-    {
-        return !programAndOrgUnitsMap.containsKey( program.getUid() )
-            || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
-    }
-
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
@@ -158,6 +118,13 @@ public class PreCheckDataRelationsValidationHook
         {
             reporter.addError( event, E1029, organisationUnit, program );
         }
+    }
+
+    private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
+        Map<String, List<String>> programAndOrgUnitsMap )
+    {
+        return !programAndOrgUnitsMap.containsKey( program.getUid() )
+            || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
     private void validateEventCategoryOptionCombo( ValidationErrorReporter reporter,
@@ -408,85 +375,9 @@ public class PreCheckDataRelationsValidationHook
         return null;
     }
 
-    private void validateTrackedEntityTypeMatchesPrograms( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Program program,
-        Enrollment enrollment )
-    {
-
-        if ( program.getTrackedEntityType() == null )
-        {
-            return;
-        }
-
-        if ( !trackedEntityTypesMatch( bundle, program, enrollment ) )
-        {
-            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
-        }
-    }
-
-    private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
-    {
-        final TrackedEntityInstance trackedEntityInstance = bundle
-            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
-        if ( trackedEntityInstance != null )
-        {
-            return program.getTrackedEntityType().getUid()
-                .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
-        }
-
-        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
-            .getReference( enrollment.getTrackedEntity() );
-        if ( reference.isPresent() )
-        {
-            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
-            if ( tei.isPresent() )
-            {
-                return tei.get().getTrackedEntityType().isEqualTo( program.getTrackedEntityType() );
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        validateRelationshipReference( reporter, bundle, relationship, relationship.getFrom() );
-        validateRelationshipReference( reporter, bundle, relationship, relationship.getTo() );
-    }
-
-    private void validateRelationshipReference( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship,
-        RelationshipItem item )
-    {
-        Optional<String> uid = getUidFromRelationshipItem( item );
-        TrackerType trackerType = relationshipItemValueType( item );
-
-        if ( TRACKED_ENTITY.equals( trackerType ) )
-        {
-            if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( bundle, uid.get() ) )
-            {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-            }
-        }
-        else if ( ENROLLMENT.equals( trackerType ) )
-        {
-            if ( uid.isPresent() && !ValidationUtils.enrollmentExist( bundle, uid.get() ) )
-            {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-            }
-        }
-        else if ( EVENT.equals( trackerType ) && uid.isPresent() && !ValidationUtils.eventExist( bundle, uid.get() ) )
-        {
-            reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-        }
-    }
-
     @Override
     public boolean skipOnError()
     {
         return true;
     }
-
 }

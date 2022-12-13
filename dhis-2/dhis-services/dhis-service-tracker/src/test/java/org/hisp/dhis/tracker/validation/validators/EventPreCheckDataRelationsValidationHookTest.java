@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,9 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
@@ -53,21 +48,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +68,7 @@ import com.google.common.collect.Sets;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
+class EventPreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String PROGRAM_UID = "PROGRAM_UID";
@@ -92,13 +79,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
 
-    private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
-
-    private static final String TEI_ID = "TEI_ID";
-
     private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
-    private PreCheckDataRelationsValidationHook hook;
+    private EventPreCheckDataRelationsValidationHook hook;
 
     private TrackerBundle bundle;
 
@@ -110,139 +93,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @BeforeEach
     void setUp()
     {
-        hook = new PreCheckDataRelationsValidationHook();
+        hook = new EventPreCheckDataRelationsValidationHook();
 
         bundle = TrackerBundle.builder().preheat( preheat ).build();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new ValidationErrorReporter( idSchemes );
-    }
-
-    @Test
-    void verifyValidationSuccessForEnrollment()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
-
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TEI_ID )
-            .build();
-
-        hook.validateEnrollment( reporter, bundle, enrollment );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .build();
-
-        hook.validateEnrollment( reporter, bundle, enrollment );
-
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
-    }
-
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn(
-                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
-
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .build();
-
-        hook.validateEnrollment( reporter, bundle, enrollment );
-
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
-    }
-
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
-
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .build();
-
-        hook.validateEnrollment( reporter, bundle, enrollment );
-
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
-    }
-
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
-
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .trackedEntityType( MetadataIdentifier.ofUid( ANOTHER_TEI_TYPE_ID ) )
-            .build();
-        bundle.setTrackedEntities( Collections.singletonList( trackedEntity ) );
-
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .build();
-
-        hook.validateEnrollment( reporter, bundle, enrollment );
-
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
 
     @Test
@@ -274,7 +129,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -306,7 +161,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
     }
@@ -337,7 +192,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
@@ -373,7 +228,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
@@ -410,7 +265,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
@@ -426,7 +281,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Event event = eventBuilder()
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -447,7 +302,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -473,7 +328,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( defaultCO ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -496,7 +351,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -519,7 +374,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -542,7 +397,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( aoc ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -563,7 +418,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -582,7 +437,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -602,7 +457,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -622,7 +477,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( aoc ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
@@ -645,7 +500,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -665,7 +520,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.ofUid( aoc ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
@@ -694,7 +549,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( defaultCO ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -717,7 +572,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -741,7 +596,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -767,7 +622,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
@@ -792,7 +647,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( UNKNOWN_CO_ID ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
@@ -823,7 +678,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
                 MetadataIdentifier.ofUid( co ), MetadataIdentifier.ofUid( UNKNOWN_CO_ID2 ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 3, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
@@ -852,7 +707,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( eventCO ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -880,7 +735,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co1 ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
@@ -906,63 +761,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeCategoryOptions( Set.of( MetadataIdentifier.ofUid( co1 ) ) )
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+        hook.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
             r.getErrorMessage().contains( co1.getUid() ) &&
             r.getErrorMessage().contains( aoc.getUid() ) ) );
-    }
-
-    @Test
-    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
-            .build();
-
-        hook.validateRelationship( reporter, bundle, relationship );
-
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
-        assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
-        assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." ) );
-    }
-
-    @Test
-    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
-    {
-
-        TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
-        validTrackedEntity.setUid( "validTrackedEntity" );
-        when( bundle.getTrackedEntityInstance( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
-
-        ReferenceTrackerEntity anotherValidTrackedEntity = new ReferenceTrackerEntity( "anotherValidTrackedEntity",
-            null );
-        when( preheat.getReference( "anotherValidTrackedEntity" ) )
-            .thenReturn( Optional.of( anotherValidTrackedEntity ) );
-
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( MetadataIdentifier.ofUid( relType.getUid() ) )
-            .build();
-
-        hook.validateRelationship( reporter, bundle, relationship );
-
-        assertFalse( reporter.hasErrors() );
     }
 
     private OrganisationUnit organisationUnit( String uid )
@@ -975,22 +779,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private Program programWithRegistration( String uid, OrganisationUnit orgUnit )
     {
         return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
-    }
-
-    // Note : parameters that always have the same value are kept to
-    // make connections between different entities clear when looking at the
-    // test. Without having to navigate to the
-    // helpers.
-    private Program programWithRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit, TrackedEntityType teiType )
-    {
-        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType );
-    }
-
-    private Program programWithoutRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit )
-    {
-        return program( uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
     }
 
     private Program program( String uid, ProgramType type, char uniqueCharacter, OrganisationUnit orgUnit,
@@ -1014,15 +802,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( uniqueChar );
         trackedEntityType.setUid( uid );
         return trackedEntityType;
-    }
-
-    private TrackedEntityInstance trackedEntityInstance( @SuppressWarnings( "SameParameterValue" ) String uid,
-        TrackedEntityType type, OrganisationUnit orgUnit )
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
-        tei.setUid( uid );
-        tei.setTrackedEntityType( type );
-        return tei;
     }
 
     private ProgramStage programStage( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
@@ -1128,12 +907,4 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .attributeOptionCombo( MetadataIdentifier.EMPTY_UID )
             .enrollment( ENROLLMENT_ID );
     }
-
-    private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
-    {
-        return RelationshipItem.builder()
-            .trackedEntity( trackedEntityUid )
-            .build();
-    }
-
 }
