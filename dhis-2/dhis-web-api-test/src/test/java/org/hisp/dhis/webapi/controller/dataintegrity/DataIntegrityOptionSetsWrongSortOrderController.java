@@ -70,23 +70,18 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
     @Disabled( "Cannot directly set the sort order of option sets" )
     void testOptionSetWrongSortOrder()
     {
-        doInTransaction( () -> {
 
-            optionA = new Option( "Sweet", "SWEET", 1 );
-            optionB = new Option( "Sour", "SOUR", 2 );
-            optionC = new Option( "Salty", "SALTY", 3 );
-
-            optionSetA = new OptionSet( "Taste", ValueType.TEXT );
-            optionSetA.addOption( optionA );
-            optionSetA.addOption( optionB );
-            optionSetA.addOption( optionC );
-            myOptionService.saveOptionSet( optionSetA );
-
-            optionSetA.removeOption( optionB );
-            myOptionService.saveOptionSet( optionSetA );
-
-            dbmsManager.clearSession();
-        } );
+        optionA = new Option( "Sweet", "SWEET", 1 );
+        optionB = new Option( "Sour", "SOUR", 2 );
+        optionC = new Option( "Salty", "SALTY", 3 );
+        optionSetA = new OptionSet( "Taste", ValueType.TEXT );
+        optionSetA.addOption( optionA );
+        optionSetA.addOption( optionB );
+        optionSetA.addOption( optionC );
+        myOptionService.saveOptionSet( optionSetA );
+        optionSetA.removeOption( optionB );
+        myOptionService.saveOptionSet( optionSetA );
+        dbmsManager.clearSession();
 
         goodOptionSet = optionSetA.getUid();
 

@@ -36,8 +36,6 @@ import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,28 +64,25 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
     @Test
     void DataIntegrityOrganisationUnitsTrailingSpacesTest()
     {
-        doInTransaction( () -> {
 
-            unitA = createOrganisationUnit( 'A' );
-            unitA.setName( unitAName );
-            unitA.setShortName( unitAName );
-            unitA.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitA );
+        unitA = createOrganisationUnit( 'A' );
+        unitA.setName( unitAName );
+        unitA.setShortName( unitAName );
+        unitA.setOpeningDate( getDate( "2022-01-01" ) );
+        orgUnitService.addOrganisationUnit( unitA );
 
-            unitB = createOrganisationUnit( 'B' );
-            unitB.setName( unitBName );
-            unitB.setShortName( unitBName + "    " );
-            unitB.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitB );
+        unitB = createOrganisationUnit( 'B' );
+        unitB.setName( unitBName );
+        unitB.setShortName( unitBName + "    " );
+        unitB.setOpeningDate( getDate( "2022-01-01" ) );
+        orgUnitService.addOrganisationUnit( unitB );
 
-            unitC = createOrganisationUnit( 'C' );
-            unitC.setName( "NoSpaceDistrict" );
-            unitC.setShortName( "NoSpaceDistrict" );
-            unitC.setOpeningDate( getDate( "2022-01-01" ) );
-            orgUnitService.addOrganisationUnit( unitC );
-
-            dbmsManager.clearSession();
-        } );
+        unitC = createOrganisationUnit( 'C' );
+        unitC.setName( "NoSpaceDistrict" );
+        unitC.setShortName( "NoSpaceDistrict" );
+        unitC.setOpeningDate( getDate( "2022-01-01" ) );
+        orgUnitService.addOrganisationUnit( unitC );
+        dbmsManager.clearSession();
 
         JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
         assertEquals( json_unitA.getString( "name" ).string(), unitAName );
@@ -115,15 +110,4 @@ class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataInteg
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteAllOrgUnits();
-    }
 }

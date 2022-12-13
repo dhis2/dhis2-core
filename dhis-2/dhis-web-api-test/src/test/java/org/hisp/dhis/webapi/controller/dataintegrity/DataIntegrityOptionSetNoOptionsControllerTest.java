@@ -88,7 +88,7 @@ class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTe
         optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( optionSetOptions.size(), 0 );
 
-        assertHasDataIntegrityIssues( "optionSets", check, 50, badOptionSet, "Color", null,
+        assertHasDataIntegrityIssues( "option_sets", check, 50, badOptionSet, "Color", null,
             true );
 
     }
@@ -131,7 +131,7 @@ class DataIntegrityOptionSetNoOptions extends AbstractDataIntegrityIntegrationTe
         optionSetOptions = content.getList( "options", JsonOption.class );
         assertEquals( optionSetOptions.size(), 1 );
 
-        assertHasNoDataIntegrityIssues( "optionSets", check, true );
+        assertHasNoDataIntegrityIssues( "option_sets", check, true );
 
     }
 

@@ -35,6 +35,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
+import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,9 +76,12 @@ class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
                     "    'id': '" + goodOptionSet + "'" +
                     "  }}" ) );
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet ).content();
-        assertEquals( content.size(), 1 );
-        JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
+        JsonObject content = GET( "/optionSets?fields=id,name,options[id]" ).content();
+        JsonList<JsonOptionSet> myOptionSets = content.getList( "optionSets", JsonOptionSet.class );
+        assertEquals( 1, myOptionSets.size() );
+        JsonOptionSet myOptionSet = myOptionSets.get( 0 );
+        assertEquals( myOptionSet.getId(), goodOptionSet );
+        JsonList<JsonOption> optionSetOptions = myOptionSet.getOptions();
         assertEquals( optionSetOptions.size(), 2 );
 
         assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", null,

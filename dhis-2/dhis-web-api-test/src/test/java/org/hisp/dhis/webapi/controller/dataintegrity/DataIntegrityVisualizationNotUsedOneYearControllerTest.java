@@ -32,9 +32,9 @@ import org.junit.jupiter.api.Test;
 class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
-    /* Will create a manual test for the positive case */
+    /* Will create a manual test for the positive and negative cases */
     @Test
-    void testUnusedVisualizations()
+    void testUnusedVisualizationsRuns()
     {
         assertHasNoDataIntegrityIssues( "visualizations", "visualizations_notviewed_1y", false );
     }
