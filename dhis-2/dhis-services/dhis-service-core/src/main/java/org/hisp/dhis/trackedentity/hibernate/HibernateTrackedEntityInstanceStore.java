@@ -638,10 +638,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             for ( String orderField : getOrderFields( params.getOrders() ) )
             {
-                if ( isStaticColumn( orderField ) )
-                {
-                    orderAttributes.append( addStaticColumn( orderField, query ) );
-                }
+                orderAttributes.append( addStaticColumn( orderField, query ) );
             }
         }
         else
@@ -659,9 +656,15 @@ public class HibernateTrackedEntityInstanceStore
         return orderAttributes.toString();
     }
 
+    /**
+     * Maps each order to its order field name provided they are static and
+     * match a column from the OrderColumn enum
+     *
+     * @param orders
+     * @return a list of strings with the mapped order fields
+     */
     private List<String> getOrderFields( List<OrderParam> orders )
     {
-
         return orders.stream().filter( op -> isStaticColumn( op.getField() ) && !getColumn( op.getField() ).isEmpty() )
             .map( OrderParam::getField ).collect( Collectors.toList() );
     }
@@ -981,6 +984,14 @@ public class HibernateTrackedEntityInstanceStore
         return orgUnits.toString();
     }
 
+    /**
+     * Generates an INNER JOIN for program instances. If the param we need to
+     * order by is enrolledAt, we need to join the program instance table to be
+     * able to select and order by this value
+     *
+     * @param params
+     * @return a SQL INNER JOIN for program instances
+     */
     private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
 
@@ -1361,7 +1372,7 @@ public class HibernateTrackedEntityInstanceStore
             {
                 if ( isStaticColumn( order.getField() ) )
                 {
-                    orderFields.add( extractStaticOrderFields( order.getField(), order.getDirection(), innerOrder ) );
+                    orderFields.add( extractStaticOrderFields( order, innerOrder ) );
                 }
                 else
                 {
@@ -1385,10 +1396,20 @@ public class HibernateTrackedEntityInstanceStore
         }
     }
 
-    private String extractStaticOrderFields( String orderField, OrderParam.SortDirection orderDirection,
-        boolean innerOrder )
+    /**
+     * Gets column name based on the OrderParam enum + the order direction (ASC
+     * or DESC). In case the order parameter is enrolledAt, and we are building
+     * the main query (inner order is false), the method will replace the alias
+     * from "pi" to "tei" to match the one from the main query.
+     *
+     * @param order
+     * @param innerOrder boolean to represent whether this is build for the main
+     *        query or the subquery
+     * @return the order by clause to apply to the query.
+     */
+    private String extractStaticOrderFields( OrderParam order, boolean innerOrder )
     {
-        String columnName = getColumn( orderField );
+        String columnName = getColumn( order.getField() );
 
         if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
         {
@@ -1396,9 +1417,19 @@ public class HibernateTrackedEntityInstanceStore
             columnName = columnName.replace( "pi", "tei" );
         }
 
-        return columnName + " " + orderDirection;
+        return columnName + " " + order.getDirection();
     }
 
+    /**
+     * Gets the attribute orders depending on the inner order (main query or
+     * subquery)
+     *
+     * @param innerOrder
+     * @param params
+     * @param order
+     * @return the order by query if attributes are present, empty string if
+     *         not.
+     */
     private String extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
         OrderParam order )
     {
