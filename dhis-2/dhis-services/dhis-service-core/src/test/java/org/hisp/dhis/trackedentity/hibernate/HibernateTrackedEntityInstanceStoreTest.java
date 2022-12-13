@@ -30,9 +30,9 @@ package org.hisp.dhis.trackedentity.hibernate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,12 +100,15 @@ class HibernateTrackedEntityInstanceStoreTest
     @BeforeEach
     void setUp()
     {
+
         params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Set.of( new OrganisationUnit( "orgUnitUid" ) ) );
+        params
+            .setOrganisationUnits( new HashSet<>( Collections.singletonList( new OrganisationUnit( "orgUnitUid" ) ) ) );
         params.setProgram( new Program( "programUid" ) );
         params.setIncludeDeleted( false );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
-        params.setTrackedEntityTypes( List.of( new TrackedEntityType( "ARV commodity", "ARV commodity" ) ) );
+        params.setTrackedEntityTypes(
+            Collections.singletonList( new TrackedEntityType( "ARV commodity", "ARV commodity" ) ) );
 
         SqlRowSet sqlRowSet = Mockito.mock( SqlRowSet.class );
         Mockito.when( jdbcTemplate.queryForRowSet( Mockito.anyString() ) ).thenReturn( sqlRowSet );
@@ -116,7 +119,8 @@ class HibernateTrackedEntityInstanceStoreTest
     {
         // given
         params.setOrders(
-            List.of( OrderParam.builder().field( "inactive" ).direction( OrderParam.SortDirection.DESC ).build() ) );
+            Collections.singletonList(
+                OrderParam.builder().field( "inactive" ).direction( OrderParam.SortDirection.DESC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -133,7 +137,8 @@ class HibernateTrackedEntityInstanceStoreTest
     {
         // given
         params.setOrders(
-            List.of( OrderParam.builder().field( "updatedAt" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+            Collections.singletonList(
+                OrderParam.builder().field( "updatedAt" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -149,8 +154,8 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByUpdatedAtClientThenQueryAndSubqueryContainUpdatedAtClient()
     {
         // given
-        params.setOrders( List
-            .of( OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+        params.setOrders( Collections.singletonList(
+            OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -167,7 +172,8 @@ class HibernateTrackedEntityInstanceStoreTest
     {
         // given
         params.setOrders(
-            List.of( OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build() ) );
+            Collections.singletonList(
+                OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -186,9 +192,9 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByMultipleFieldsThenQueryAndSubqueryContainAllFields()
     {
         // given
-        params.setOrders(
-            List.of( OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build(),
-                OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
+        params.setOrders( Arrays.asList(
+            OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build(),
+            OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
