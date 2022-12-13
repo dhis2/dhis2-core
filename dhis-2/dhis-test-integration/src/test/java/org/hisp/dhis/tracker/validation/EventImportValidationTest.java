@@ -96,23 +96,13 @@ class EventImportValidationTest extends TrackerTest
     }
 
     @Test
-    void testEnrollmentAndEventFailIndependently()
+    void testInvalidEnrollmentPreventsValidEventFromBeingCreated()
         throws IOException
     {
-        // tests that a child like an event can be valid while its parent is
-        // invalid
-        // previously invalid entities like an enrollment were removed from the
-        // bundle during the validation process
-        // this affected subsequent validations like the
-        // PreCheckDataRelationsValidationHook. E1079 was raised because
-        // the enrollment was not in the bundle anymore. Even though enrollment
-        // and event program in the payload
-        // were identical.
-
         TrackerImportReport trackerImportReport = trackerImportService
             .importTracker( fromJson( "tracker/validations/invalid_enrollment_with_valid_event.json" ) );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1070 );
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1070, TrackerErrorCode.E5000 );
     }
 
     @Test
@@ -161,13 +151,10 @@ class EventImportValidationTest extends TrackerTest
     {
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/program_and_tracker_events.json" );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( trackerImportService.importTracker( trackerBundleParams ) );
 
         trackerBundleParams.setImportStrategy( UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertNoErrors( trackerImportReport );
     }
