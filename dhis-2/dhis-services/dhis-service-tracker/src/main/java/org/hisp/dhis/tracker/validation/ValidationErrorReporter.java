@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 
 /**
  * Collects {@link TrackerErrorReport}s, {@link TrackerWarningReport}s and
@@ -55,7 +56,7 @@ import org.hisp.dhis.tracker.report.TrackerWarningReport;
  * <p>
  * Long-term we would want to remove the responsibility of tracking invalid
  * entities from here. This could allow us to merge this class with
- * {@link org.hisp.dhis.tracker.report.TrackerValidationReport}.
+ * {@link ValidationReport}.
  * </p>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>

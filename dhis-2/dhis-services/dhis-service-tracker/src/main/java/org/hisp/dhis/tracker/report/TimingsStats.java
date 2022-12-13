@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Luciano Fiandesio
  */
 @Data
-public class TrackerTimingsStats
+public class TimingsStats
 {
     public static final String PREHEAT_OPS = "preheat";
 
@@ -108,7 +108,7 @@ public class TrackerTimingsStats
 
     private static Timer timer;
 
-    public TrackerTimingsStats()
+    public TimingsStats()
     {
         timer = new SystemTimer().start();
     }
@@ -156,7 +156,7 @@ public class TrackerTimingsStats
         this.set( timedOperation, timer.toString() );
     }
 
-    public TrackerTimingsStats stopTimer()
+    public TimingsStats stopTimer()
     {
         if ( timer != null )
         {

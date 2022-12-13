@@ -40,14 +40,14 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
 
-class TrackerValidationReportTest
+class ValidationReportTest
 {
 
     @Test
     void addErrorIfItDoesNotExist()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerErrorReport error = newError();
 
         report.addError( error );
@@ -65,7 +65,7 @@ class TrackerValidationReportTest
     void addErrorsIfTheyDoNotExist()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
         TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
@@ -82,7 +82,7 @@ class TrackerValidationReportTest
     void addWarningIfItDoesNotExist()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerWarningReport warning = newWarning();
 
         report.addWarning( warning );
@@ -100,7 +100,7 @@ class TrackerValidationReportTest
     void addWarningsIfTheyDoNotExist()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerWarningReport warning1 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
         TrackerWarningReport warning2 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
@@ -117,7 +117,7 @@ class TrackerValidationReportTest
     void hasErrorsReturnsFalse()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         assertFalse( report.hasErrors() );
     }
@@ -126,7 +126,7 @@ class TrackerValidationReportTest
     void hasErrorsReturnsTrue()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         report.addError( newError() );
 
@@ -137,7 +137,7 @@ class TrackerValidationReportTest
     void hasWarningsReturnsFalse()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         assertFalse( report.hasWarnings() );
     }
@@ -146,7 +146,7 @@ class TrackerValidationReportTest
     void hasWarningsReturnsTrue()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         report.addWarning( newWarning() );
 
@@ -157,7 +157,7 @@ class TrackerValidationReportTest
     void hasErrorReportFound()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerErrorReport error = newError();
         report.addError( error );
 
@@ -168,7 +168,7 @@ class TrackerValidationReportTest
     void hasErrorReportNotFound()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
         report.addError( error );
 
@@ -179,7 +179,7 @@ class TrackerValidationReportTest
     void hasWarningReportFound()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerWarningReport warning = newWarning();
         report.addWarning( warning );
 
@@ -190,7 +190,7 @@ class TrackerValidationReportTest
     void hasWarningReportNotFound()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerWarningReport warning = newWarning( TrackerErrorCode.E1006 );
         report.addWarning( warning );
 
@@ -201,7 +201,7 @@ class TrackerValidationReportTest
     void sizeReturnsErrorCountUniqueByUid()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1006 );
         TrackerErrorReport error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
         TrackerErrorReport error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );

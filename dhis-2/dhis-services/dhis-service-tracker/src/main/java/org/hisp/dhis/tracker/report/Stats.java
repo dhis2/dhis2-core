@@ -27,24 +27,80 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleReportTest
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Stats
 {
+    @JsonProperty
+    private int created = 0;
 
-    @Test
-    void testEmptyReport()
+    @JsonProperty
+    private int updated = 0;
+
+    @JsonProperty
+    private int deleted = 0;
+
+    @JsonProperty
+    private int ignored = 0;
+
+    @JsonProperty
+    public int getTotal()
     {
-        TrackerBundleReport report = new TrackerBundleReport();
-        assertEquals( TrackerStatus.OK, report.getStatus() );
-        assertNotNull( report.getTypeReportMap() );
-        assertTrue( report.isEmpty() );
+        return created + updated + deleted + ignored;
+    }
+
+    // -----------------------------------------------------------------------------------
+    // Utility Methods
+    // -----------------------------------------------------------------------------------
+
+    public void merge( Stats stats )
+    {
+        created += stats.getCreated();
+        updated += stats.getUpdated();
+        deleted += stats.getDeleted();
+        ignored += stats.getIgnored();
+    }
+
+    public void ignored()
+    {
+        ignored += created;
+        ignored += updated;
+        ignored += deleted;
+
+        created = 0;
+        updated = 0;
+        deleted = 0;
+    }
+
+    public void incCreated()
+    {
+        created++;
+    }
+
+    public void incUpdated()
+    {
+        updated++;
+    }
+
+    public void incDeleted()
+    {
+        deleted++;
+    }
+
+    public void incIgnored()
+    {
+        ignored++;
     }
 }

@@ -27,80 +27,71 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
 
+import lombok.Data;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class TrackerStats
+public class Entity
 {
+    /**
+     * Type of object this {@link Entity} represents.
+     */
     @JsonProperty
-    private int created = 0;
+    private final TrackerType trackerType;
+
+    /**
+     * Index into list.
+     */
+    @JsonProperty
+    private Integer index;
+
+    /**
+     * UID of entity (if object is id object).
+     */
+    @JsonProperty
+    private String uid;
+
+    private List<TrackerErrorReport> errorReports = new ArrayList<>();
+
+    public Entity( TrackerType trackerType )
+    {
+        this.trackerType = trackerType;
+    }
+
+    public Entity( TrackerType trackerType, String uid, Integer index )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+    }
+
+    @JsonCreator
+    public Entity( @JsonProperty( "trackerType" ) TrackerType trackerType,
+        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
+        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+        if ( errorReports != null )
+        {
+            this.errorReports = errorReports;
+        }
+    }
 
     @JsonProperty
-    private int updated = 0;
-
-    @JsonProperty
-    private int deleted = 0;
-
-    @JsonProperty
-    private int ignored = 0;
-
-    @JsonProperty
-    public int getTotal()
+    public List<TrackerErrorReport> getErrorReports()
     {
-        return created + updated + deleted + ignored;
-    }
-
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
-
-    public void merge( TrackerStats stats )
-    {
-        created += stats.getCreated();
-        updated += stats.getUpdated();
-        deleted += stats.getDeleted();
-        ignored += stats.getIgnored();
-    }
-
-    public void ignored()
-    {
-        ignored += created;
-        ignored += updated;
-        ignored += deleted;
-
-        created = 0;
-        updated = 0;
-        deleted = 0;
-    }
-
-    public void incCreated()
-    {
-        created++;
-    }
-
-    public void incUpdated()
-    {
-        updated++;
-    }
-
-    public void incDeleted()
-    {
-        deleted++;
-    }
-
-    public void incIgnored()
-    {
-        ignored++;
+        return this.errorReports;
     }
 }
