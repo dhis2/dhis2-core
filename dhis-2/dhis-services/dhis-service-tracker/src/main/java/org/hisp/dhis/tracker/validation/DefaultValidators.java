@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
@@ -46,6 +47,7 @@ import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventDateValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventGeoValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
@@ -82,6 +84,8 @@ public class DefaultValidators implements Validators
 
     private final AssignedUserValidator assignedUserValidator;
 
+    private final RelationshipsValidator relationshipsValidator;
+
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
@@ -110,5 +114,12 @@ public class DefaultValidators implements Validators
             eventNoteValidator,
             eventDataValuesValidator,
             assignedUserValidator );
+    }
+
+    @Override
+    public List<Validator<Relationship>> getRelationshipValidators()
+    {
+        return List.of(
+            relationshipsValidator );
     }
 }

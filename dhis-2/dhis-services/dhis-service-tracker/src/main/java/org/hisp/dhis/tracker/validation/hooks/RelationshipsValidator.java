@@ -54,20 +54,20 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
 @Component
-public class RelationshipsValidationHook
-    implements TrackerValidationHook
+public class RelationshipsValidator
+    implements Validator<Relationship>
 {
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         boolean isValid = validateMandatoryData( reporter, relationship,
@@ -237,12 +237,6 @@ public class RelationshipsValidationHook
         final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
             .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
         return payloadTei.map( TrackedEntity::getTrackedEntityType );
-    }
-
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
     }
 
     // Skip validation when strategy is update as relationships are not

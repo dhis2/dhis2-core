@@ -41,7 +41,6 @@ import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityOwnershipValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUpdatableFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -84,8 +83,6 @@ public class TrackerValidationConfig
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
             PreCheckSecurityOwnershipValidationHook.class,
-
-            RelationshipsValidationHook.class,
 
             /*
              * NB! This hook must be run after all the Event validations,
