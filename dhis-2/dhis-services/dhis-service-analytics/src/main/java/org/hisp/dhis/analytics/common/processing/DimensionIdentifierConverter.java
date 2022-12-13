@@ -79,7 +79,7 @@ public class DimensionIdentifierConverter
 
         if ( dimensionIdentifier.hasProgramStage() )
         { // Contains a fully qualified dimension. ie.:
-          // {programUid}.{programStageUid}.DataElementUid.
+         // {programUid}.{programStageUid}.DataElementUid.
             if ( programOptional.isPresent() )
             {
                 Program program = programOptional.get();

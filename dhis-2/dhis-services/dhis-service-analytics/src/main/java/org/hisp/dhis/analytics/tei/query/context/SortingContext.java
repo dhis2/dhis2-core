@@ -128,7 +128,7 @@ public class SortingContext
                         .of( param, counter.getAndIncrement(), trackedEntityType, parameterManager )
                         .getSortingContextBuilder() );
             } // it is either data element or program indicator ( content of
-              // EventDataValues json object )
+             // EventDataValues json object )
             else if ( param.getOrderBy().getDimension()
                 .getDimensionParamObjectType() == DimensionParamObjectType.DATA_ELEMENT )
             {
