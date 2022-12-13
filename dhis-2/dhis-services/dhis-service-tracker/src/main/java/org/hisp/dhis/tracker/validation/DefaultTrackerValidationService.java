@@ -99,7 +99,7 @@ public class DefaultTrackerValidationService
             validateEnrollments( bundle, validators, validationReport, reporter );
             validateEvents( bundle, validators, validationReport, reporter );
             validateRelationships( bundle, validators, validationReport, reporter );
-            validateBundle( bundle, validators, validationReport, reporter );
+            //            validateBundle( bundle, validators, validationReport, reporter );
         }
         catch ( ValidationFailFastException e )
         {
@@ -226,20 +226,20 @@ public class DefaultTrackerValidationService
         }
     }
 
-    private static void validateBundle( TrackerBundle bundle, List<Validator> validators,
-        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
-    {
-        for ( Validator validator : validators )
-        {
-            Timer timer = Timer.startTimer();
-
-            validator.validate( reporter, bundle );
-
-            validationReport.addTiming( new Timing(
-                validator.getClass().getName(),
-                timer.toString() ) );
-        }
-    }
+    //    private static void validateBundle( TrackerBundle bundle, List<Validator> validators,
+    //        TrackerValidationReport validationReport, ValidationErrorReporter reporter )
+    //    {
+    //        for ( Validator validator : validators )
+    //        {
+    //            Timer timer = Timer.startTimer();
+    //
+    //            validator.validate( reporter, bundle );
+    //
+    //            validationReport.addTiming( new Timing(
+    //                validator.getClass().getName(),
+    //                timer.toString() ) );
+    //        }
+    //    }
 
     private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
     {

@@ -36,6 +36,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.validators.AssignedUserValidationHook;
 import org.hisp.dhis.tracker.validation.validators.EnrollmentAttributeValidationHook;
@@ -105,7 +106,28 @@ public class TrackerValidationConfig
     public Validator<TrackerBundle> newValidators()
     {
         return all( TrackerBundle.class,
+            //                field(TrackerBundle::getEvents, eventsValidator()),
             new PreCheckUidValidationHook() );
+    }
+
+    public Validator<List<Event>> eventsValidators()
+    {
+        // TODO(DHIS2-14298) see if I can get rid of the type token
+        //        return all( List<Event>.class,
+        //                new PreCheckUidValidationHook(),
+        //                new PreCheckExistenceValidationHook(),
+        //                new PreCheckMandatoryFieldsValidationHook(),
+        //                new PreCheckMetaValidationHook(),
+        //                new PreCheckUpdatableFieldsValidationHook(),
+        //                new PreCheckDataRelationsValidationHook(),
+        ////                new PreCheckSecurityOwnershipValidationHook(), // TODO(DHIS2-14298) this needs some other services
+        ////                new EventCategoryOptValidationHook(), // TODO(DHIS2-14298) this needs some i18Manager
+        //                new EventDateValidationHook(),
+        //                new EventGeoValidationHook(),
+        //                new EventNoteValidationHook(),
+        //                new EventDataValuesValidationHook()
+        //                );
+        return null;
     }
 
     @Bean

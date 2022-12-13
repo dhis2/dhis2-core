@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.validation.validators.All.all;
+import static org.hisp.dhis.tracker.validation.validators.Each.each;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +46,7 @@ import org.hisp.dhis.tracker.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AllTest
+class EachTest
 {
     private ValidationErrorReporter reporter;
 
@@ -61,35 +62,28 @@ class AllTest
     }
 
     @Test
-    void testAllAreCalled()
+    void testCalledForEachElementInCollectionFails()
     {
-        Validator<String> validator = all( String.class,
-            new StringValidator( "one" ),
-            new StringValidator( "two" ),
-            all( String.class,
-                new StringValidator( "three" ),
-                new StringValidator( "four" ),
-                all( String.class,
-                    new StringValidator( "five" ) ) ) );
+        Validator<Collection<String>> validator = each( String.class, new InputValidator() );
 
-        validator.validate( reporter, bundle, "input" );
+        validator.validate( reporter, bundle, List.of(
+            "note1",
+            "note2",
+            "note3" ) );
 
-        assertEquals( List.of( "one", "two", "three", "four", "five" ), actualErrors() );
+        assertEquals( List.of( "note1", "note2", "note3" ), actualErrors() );
     }
 
     /**
-     * Adds an error with {@link #error} message irrespective of the input.
+     * Adds an error with the input as the error message.
      */
     @RequiredArgsConstructor
-    private static class StringValidator implements Validator<String>
+    private static class InputValidator implements Validator<String>
     {
-
-        private final String error;
-
         @Override
         public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, String input )
         {
-            reporter.addError( new TrackerErrorReport( error, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, "uid" ) );
+            reporter.addError( new TrackerErrorReport( input, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, "uid" ) );
         }
     }
 

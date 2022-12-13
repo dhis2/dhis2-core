@@ -130,8 +130,8 @@ class DefaultTrackerValidationServiceTest
 
         service.validate( bundle );
 
-        verify( hook1, times( 1 ) ).validate( any(), any() );
-        verify( hook2, times( 1 ) ).validate( any(), any() );
+        verify( hook1, times( 1 ) ).validate( any(), any(), any() );
+        verify( hook2, times( 1 ) ).validate( any(), any(), any() );
     }
 
     @Test

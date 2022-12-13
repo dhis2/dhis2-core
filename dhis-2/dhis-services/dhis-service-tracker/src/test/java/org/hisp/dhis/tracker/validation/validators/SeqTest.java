@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validators;
 
-import static org.hisp.dhis.tracker.validation.validators.All.all;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1000;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1001;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.validation.validators.Seq.seq;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -45,7 +49,7 @@ import org.hisp.dhis.tracker.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AllTest
+class SeqTest
 {
     private ValidationErrorReporter reporter;
 
@@ -61,40 +65,44 @@ class AllTest
     }
 
     @Test
-    void testAllAreCalled()
+    void testSeqCallsUntilFirstError()
     {
-        Validator<String> validator = all( String.class,
-            new StringValidator( "one" ),
-            new StringValidator( "two" ),
-            all( String.class,
-                new StringValidator( "three" ),
-                new StringValidator( "four" ),
-                all( String.class,
-                    new StringValidator( "five" ) ) ) );
+        Validator<String> validator = seq( String.class,
+            new MatchingValidator( E1000, "one" ), // no error so moving on to the next sequence
+            seq( String.class,
+                new MatchingValidator( E1001, "two" ), // input matches so no further validators are called
+                seq( String.class,
+                    new MatchingValidator( E1002, "two" ),
+                    new MatchingValidator( E1005, "three" ) ) ) );
 
-        validator.validate( reporter, bundle, "input" );
+        validator.validate( reporter, bundle, "two" );
 
-        assertEquals( List.of( "one", "two", "three", "four", "five" ), actualErrors() );
+        assertEquals( List.of( E1001 ), actualErrors() );
     }
 
     /**
-     * Adds an error with {@link #error} message irrespective of the input.
+     * Adds an error with the {@link #code} as the error code if the input
+     * equals {@link #matches}.
      */
     @RequiredArgsConstructor
-    private static class StringValidator implements Validator<String>
+    private static class MatchingValidator implements Validator<String>
     {
+        private final TrackerErrorCode code;
 
-        private final String error;
+        private final String matches;
 
         @Override
         public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, String input )
         {
-            reporter.addError( new TrackerErrorReport( error, TrackerErrorCode.E9999, TrackerType.ENROLLMENT, "uid" ) );
+            if ( matches.equals( input ) )
+            {
+                reporter.addError( new TrackerErrorReport( input, code, TrackerType.ENROLLMENT, "uid" ) );
+            }
         }
     }
 
-    private List<String> actualErrors()
+    private List<TrackerErrorCode> actualErrors()
     {
-        return reporter.getErrors().stream().map( TrackerErrorReport::getMessage ).collect( Collectors.toList() );
+        return reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() );
     }
 }

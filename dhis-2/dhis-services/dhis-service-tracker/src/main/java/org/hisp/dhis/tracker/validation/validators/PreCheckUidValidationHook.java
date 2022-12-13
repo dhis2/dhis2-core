@@ -42,6 +42,9 @@ import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
+// TODO add other helpers? think about whether to just split this into 4 classes
+// what would be the most readable diff?
+// maybe start simple with 4 classes for this one
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
