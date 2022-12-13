@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.List;
@@ -177,23 +176,6 @@ class HibernateTrackedEntityInstanceStoreTest
             () -> assertEquals( 1, countMatches( sqlQuery, ", tei.enrollmentDate" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY tei.enrollmentDate DESC" ) ) );
-    }
-
-    //@Test
-    void whenOrderingByNonStaticFieldThenQueryAndSubqueryContainNonStaticField()
-    {
-        //given
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
-            new OrderParam( "updatedAtClient", OrderParam.SortDirection.ASC ) ) );
-
-        //when
-        store.getTrackedEntityInstanceIds( params );
-
-        //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
-        String sqlQuery = sqlQueryCaptor.getValue();
-
-        fail();
     }
 
     @Test
