@@ -147,7 +147,7 @@ public class EnrollmentInExistingValidator
     {
         TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( uid );
 
-        if ( tei == null && bundle.getPreheat().getReference( uid ).isPresent() )
+        if ( tei == null && bundle.findTrackedEntityByUid( uid ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( uid );

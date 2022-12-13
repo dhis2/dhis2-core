@@ -66,7 +66,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-class EventCategoryOptValidationHookTest extends DhisConvenienceTest
+class EventCategoryOptValidatorTest extends DhisConvenienceTest
 {
 
     @Mock
@@ -79,7 +79,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
-    private EventCategoryOptValidationHook hook;
+    private EventCategoryOptValidator validator;
 
     private CategoryOption catOption;
 
@@ -112,7 +112,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     {
         initServices();
 
-        hook = new EventCategoryOptValidationHook( i18nManager );
+        validator = new EventCategoryOptValidator( i18nManager );
 
         catOption = createCategoryOption( 'A' );
 
@@ -159,7 +159,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultCatOptionCombo );
         program.setCategoryCombo( defaultCatCombo );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -169,7 +169,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     {
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -181,7 +181,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
         catOption.setEndDate( ONE_YEAR_AFTER_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -192,7 +192,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1056, EVENT, event.getUid() );
     }
@@ -203,7 +203,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1057, EVENT, event.getUid() );
     }
@@ -215,7 +215,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
         program.setOpenDaysAfterCoEndDate( 400 );
 
-        hook.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
