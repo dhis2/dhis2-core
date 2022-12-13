@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -217,6 +218,22 @@ class HibernateTrackedEntityInstanceStoreTest
                 countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC,tei.lastUpdatedAtClient ASC" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery,
                 "ORDER BY tei.enrollmentDate DESC,tei.lastUpdatedAtClient ASC" ) ) );
+    }
+
+    @Test
+    void whenNoOrderParamsProvidedThenQueryAndSubqueryContainDefaultOrderByClause()
+    {
+        // given
+        params.setOrders( Collections.emptyList() );
+
+        // when
+        store.getTrackedEntityInstanceIds( params );
+
+        // then
+        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        String sqlQuery = sqlQueryCaptor.getValue();
+
+        assertEquals( 2, countMatches( sqlQuery, "ORDER BY TEI.trackedentityinstanceid ASC" ) );
     }
 
     private int countMatches( String string, String substring )
