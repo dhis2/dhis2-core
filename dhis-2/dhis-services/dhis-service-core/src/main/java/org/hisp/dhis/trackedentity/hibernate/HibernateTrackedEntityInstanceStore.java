@@ -454,29 +454,45 @@ public class HibernateTrackedEntityInstanceStore
             select.append( ", TEI.trackedentityinstanceid AS teiid" );
         }
 
+        if ( params.getOrders() != null )
+        {
+            select.append( getOrderByQuery( params, select ) );
+        }
+
+        select.append( SPACE );
+
+        return select.toString();
+    }
+
+    private String getOrderByQuery( TrackedEntityInstanceQueryParams params, StringBuilder select )
+    {
+        StringBuilder orderQuery = new StringBuilder();
+
         for ( OrderParam orderParam : params.getOrders() )
         {
             if ( isStaticColumn( orderParam.getField() ) )
             {
                 if ( ENROLLED_AT.getPropName().equalsIgnoreCase( orderParam.getField() ) )
                 {
-                    //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
-                    select.append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
+                    // In the main query, we need to use the alias tei to fetch
+                    // the value of the field enrolledAt
+                    orderQuery
+                        .append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
                 }
                 else
                 {
-                    select.append( addStaticColumn( orderParam.getField(), select.toString() ) );
+                    orderQuery.append( addStaticColumn( orderParam.getField(), select.toString() ) );
                 }
             }
             else
             {
-                // TODO what if it's not static?
+                // TODO Non static column
             }
         }
 
         select.append( SPACE );
 
-        return select.toString();
+        return orderQuery.toString();
     }
 
     private String addStaticColumn( String field, String sqlQuery )
@@ -590,7 +606,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder orderAttributes = new StringBuilder();
 
-        if ( params.getAttributesAndFilters().isEmpty() )
+        if ( params.getAttributesAndFilters().isEmpty() && params.getOrders() != null )
         {
             for ( String orderField : getOrderFields( params.getOrders() ) )
             {
@@ -937,7 +953,8 @@ public class HibernateTrackedEntityInstanceStore
     private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
 
-        if ( params.getOrders().stream().anyMatch( p -> ENROLLED_AT.getPropName().equalsIgnoreCase( p.getField() ) ) )
+        if ( params.getOrders() != null
+            && params.getOrders().stream().anyMatch( p -> ENROLLED_AT.getPropName().equalsIgnoreCase( p.getField() ) ) )
         {
             return " INNER JOIN programinstance pi ON pi.trackedentityinstanceid = TEI.trackedentityinstanceid ";
         }
@@ -1312,7 +1329,8 @@ public class HibernateTrackedEntityInstanceStore
 
                     if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
                     {
-                        //In the main query, we need to use the alias tei to fetch the value of the field enrolledAt
+                        // In the main query, we need to use the alias tei to
+                        // fetch the value of the field enrolledAt
                         columnName = columnName.replace( "pi", "tei" );
                     }
 
