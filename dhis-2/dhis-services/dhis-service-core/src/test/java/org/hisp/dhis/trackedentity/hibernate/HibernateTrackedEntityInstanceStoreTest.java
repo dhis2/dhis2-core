@@ -115,7 +115,8 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByInactiveThenQueryAndSubqueryContainInactiveField()
     {
         // given
-        params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "inactive" ).direction( OrderParam.SortDirection.DESC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -131,7 +132,8 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByUpdatedAtThenQueryAndSubqueryContainUpdatedAtField()
     {
         // given
-        params.setOrders( List.of( new OrderParam( "updatedAt", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "updatedAt" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -147,7 +149,8 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByUpdatedAtClientThenQueryAndSubqueryContainUpdatedAtClient()
     {
         // given
-        params.setOrders( List.of( new OrderParam( "updatedAtClient", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List
+            .of( OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -163,7 +166,8 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByEnrolledAtThenQueryAndSubqueryContainEnrolledAtField()
     {
         // given
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
@@ -182,8 +186,9 @@ class HibernateTrackedEntityInstanceStoreTest
     void whenOrderingByMultipleFieldsThenQueryAndSubqueryContainAllFields()
     {
         // given
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ),
-            new OrderParam( "updatedAtClient", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders(
+            List.of( OrderParam.builder().field( "enrolledAt" ).direction( OrderParam.SortDirection.DESC ).build(),
+                OrderParam.builder().field( "updatedAtClient" ).direction( OrderParam.SortDirection.ASC ).build() ) );
 
         // when
         store.getTrackedEntityInstanceIds( params );
