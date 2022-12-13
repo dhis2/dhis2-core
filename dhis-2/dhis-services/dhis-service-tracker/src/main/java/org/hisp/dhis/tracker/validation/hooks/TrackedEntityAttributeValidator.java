@@ -56,8 +56,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -65,18 +65,17 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
-    implements TrackerValidationHook
+public class TrackedEntityAttributeValidator extends AttributeValidationHook
+    implements Validator<TrackedEntity>
 {
-    public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
+    public TrackedEntityAttributeValidator( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( teAttrService, dhisConfigurationProvider );
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );

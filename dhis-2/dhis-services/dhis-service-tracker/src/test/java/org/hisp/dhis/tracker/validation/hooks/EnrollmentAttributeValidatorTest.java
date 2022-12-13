@@ -69,11 +69,11 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EnrollmentAttributeValidationHookTest
+class EnrollmentAttributeValidatorTest
 {
 
     @InjectMocks
-    private EnrollmentAttributeValidationHook hookToTest;
+    private EnrollmentAttributeValidator validator;
 
     @Mock
     private Enrollment enrollment;
@@ -174,7 +174,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
@@ -203,7 +203,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
@@ -231,7 +231,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter, TrackerErrorCode.E1085, TrackerType.ENROLLMENT, enrollment.getUid() );
@@ -259,7 +259,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid() );
@@ -284,7 +284,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
         hasTrackerError( reporter,

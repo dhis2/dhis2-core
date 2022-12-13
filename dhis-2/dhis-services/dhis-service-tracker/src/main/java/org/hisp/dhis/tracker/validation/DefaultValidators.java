@@ -25,53 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
-
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
+package org.hisp.dhis.tracker.validation;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Enrico Colasante
+ * {@link Validators} used in
+ * {@link TrackerValidationService#validate(TrackerBundle)}.
  */
-@Component
-public class EnrollmentRuleValidationHook
-    implements Validator<Enrollment>
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.DefaultValidators" )
+public class DefaultValidators implements Validators
 {
-    private List<RuleActionImplementer> validators;
 
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private final EnrollmentNoteValidator enrollmentNoteValidator;
+
+    private final EnrollmentInExistingValidator enrollmentInExistingValidator;
+
+    private final EnrollmentGeoValidator enrollmentGeoValidator;
+
+    private final EnrollmentDateValidator enrollmentDateValidator;
+
+    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
+    @Override
+    public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
-        this.validators = validators;
+        return List.of(
+            attributeValidator );
     }
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public List<Validator<Enrollment>> getEnrollmentValidators()
     {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
-
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
+        return List.of(
+            enrollmentNoteValidator,
+            enrollmentInExistingValidator,
+            enrollmentGeoValidator,
+            enrollmentDateValidator,
+            enrollmentAttributeValidator );
     }
 }
