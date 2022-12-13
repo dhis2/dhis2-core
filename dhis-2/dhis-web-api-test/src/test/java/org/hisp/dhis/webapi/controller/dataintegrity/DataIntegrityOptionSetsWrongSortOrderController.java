@@ -42,9 +42,9 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
 import org.hisp.dhis.webapi.json.domain.JsonOptionSet;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,7 +67,7 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
     private final static String check = "option_sets_wrong_sort_order";
 
     @Test
-    @Ignore( "Cannot directly set the sort order of option sets" )
+    @Disabled( "Cannot directly set the sort order of option sets" )
     void testOptionSetWrongSortOrder()
     {
         doInTransaction( () -> {
