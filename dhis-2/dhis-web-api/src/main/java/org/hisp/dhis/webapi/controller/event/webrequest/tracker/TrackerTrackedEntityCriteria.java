@@ -215,9 +215,9 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
          * example: org.hisp.dhis.tracker.domain.TrackedEntity.updatedAtClient
          * --> UPDATED_AT_CLIENT
          */
-        TRACKED_ENTITY( "trackedEntityInstance" ),
+        TRACKED_ENTITY( "trackedEntity" ),
         CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" );
+        UPDATED_AT( "updatedAt" );
 
         @Getter
         private final String entityName;
