@@ -299,29 +299,30 @@ public abstract class AbstractEventService implements EventService
         }
 
         Events events = new Events();
-        List<Event> eventList = new ArrayList<>();
 
-        if ( params.isPaging() )
+        if ( params.isSkipPaging() )
         {
-            final Pager pager;
-
-            if ( params.isTotalPages() )
-            {
-                eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
-
-                int count = eventStore.getEventCount( params, organisationUnits );
-                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            }
-            else
-            {
-                pager = handleLastPageFlag( params, eventList, organisationUnits );
-            }
-
-            events.setPager( pager );
+            events.setEvents( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+            return events;
         }
 
-        events.setEvents( eventList );
+        final Pager pager;
+        List<Event> eventList = new ArrayList<>();
 
+        if ( params.isTotalPages() )
+        {
+            eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+            int count = eventStore.getEventCount( params, organisationUnits );
+            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+        }
+        else
+        {
+            pager = handleLastPageFlag( params, eventList, organisationUnits );
+        }
+
+        events.setPager( pager );
+        events.setEvents( eventList );
         return events;
     }
 
