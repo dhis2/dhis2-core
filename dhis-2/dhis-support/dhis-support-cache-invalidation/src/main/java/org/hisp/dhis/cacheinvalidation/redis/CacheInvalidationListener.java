@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import java.io.Serializable;
-import java.util.Objects;
-
+import io.lettuce.core.pubsub.RedisPubSubListener;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,7 +47,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.pubsub.RedisPubSubListener;
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Listens for messages on a Redis pub/sub channel, and when it receives a
@@ -62,7 +60,9 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 @Component
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class CacheInvalidationListener extends BaseCacheEvictionService implements RedisPubSubListener<String, String>
+public class CacheInvalidationListener
+    extends BaseCacheEvictionService
+    implements RedisPubSubListener<String, String>
 {
 
     @Autowired
@@ -85,7 +85,8 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
     }
 
     private void handleMessage( String message )
-        throws Exception
+        throws
+        Exception
     {
         log.debug( "Handling Redis cache invalidation message: " + message );
 
@@ -97,7 +98,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
         if ( serverInstanceId.equals( uid ) )
         {
             log.debug( "Message came from this server, ignoring." );
-            //            return;
+            return;
         }
 
         log.debug( "Incoming invalidating cache message from other server with UID: " + uid );
@@ -138,7 +139,8 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
     }
 
     private Serializable getEntityId( String message )
-        throws ClassNotFoundException
+        throws
+        ClassNotFoundException
     {
         String[] parts = message.split( ":" );
 
@@ -202,6 +204,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService implemen
         CategoryOptionCombo attributeOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
             attributeOptionComboId );
         Period period = periodService.getPeriod( periodId );
+
 
         return new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
             attributeOptionCombo );

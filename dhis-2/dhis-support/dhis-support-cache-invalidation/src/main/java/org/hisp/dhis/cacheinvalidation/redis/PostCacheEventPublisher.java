@@ -27,18 +27,9 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
-
-import java.io.Serializable;
-
+import io.lettuce.core.api.StatefulRedisConnection;
 import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.event.spi.PostCommitDeleteEventListener;
-import org.hibernate.event.spi.PostCommitInsertEventListener;
-import org.hibernate.event.spi.PostCommitUpdateEventListener;
-import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.*;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -58,7 +49,9 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.api.StatefulRedisConnection;
+import java.io.Serializable;
+
+import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
 
 /**
  * It listens for events from Hibernate and publishes a message to Redis when an
@@ -70,7 +63,9 @@ import io.lettuce.core.api.StatefulRedisConnection;
 @Component
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class PostCacheEventPublisher implements PostCommitUpdateEventListener, PostCommitInsertEventListener,
+public class PostCacheEventPublisher
+    implements PostCommitUpdateEventListener,
+    PostCommitInsertEventListener,
     PostCommitDeleteEventListener
 {
 
@@ -136,7 +131,7 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
             DataStatisticsEvent dataStatisticsEvent = (DataStatisticsEvent) entity;
             id = dataStatisticsEvent.getId();
         }
-        else if ( IdentifiableObject.class.isAssignableFrom( entity.getClass() ) )
+        else if ( entity instanceof IdentifiableObject )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) entity;
             id = identifiableObject.getId();
@@ -172,8 +167,7 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
         long categoryOptionComboId = dataValue.getAttributeOptionCombo().getId();
         long attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
 
-        return dataElementId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId + ";"
-            + attributeOptionComboId;
+        return new DataValue.DataValueId(dataElementId, periodId, organisationUnitId, categoryOptionComboId, attributeOptionComboId);
     }
 
     private Serializable getTrackedEntityAttributeValueId( Object entity )
