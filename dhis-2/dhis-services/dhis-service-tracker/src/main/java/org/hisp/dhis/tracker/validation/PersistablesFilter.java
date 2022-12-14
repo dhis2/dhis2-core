@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
@@ -198,7 +197,7 @@ class PersistablesFilter
                 continue;
             }
 
-            List<TrackerErrorReport> errors = addErrorsForParents( parents, entity );
+            List<Error> errors = addErrorsForParents( parents, entity );
             markAsNonDeletable( errors );
         }
     }
@@ -268,7 +267,7 @@ class PersistablesFilter
         this.markedEntities.get( entity.getTrackerType() ).add( entity.getUid() );
     }
 
-    private void mark( TrackerErrorReport error )
+    private void mark( Error error )
     {
         this.markedEntities.get( error.getTrackerType() ).add( error.getUid() );
     }
@@ -282,7 +281,7 @@ class PersistablesFilter
      * Mark parents as non-deletable for potential children. For example an
      * invalid relationship (child) referencing a valid tracked entity (parent).
      */
-    private void markAsNonDeletable( List<TrackerErrorReport> errors )
+    private void markAsNonDeletable( List<Error> errors )
     {
         errors.forEach( this::mark );
     }
@@ -315,10 +314,10 @@ class PersistablesFilter
      * Add error for valid parents in the payload with invalid child as the
      * reason. So users know why a valid entity could not be deleted.
      */
-    private <T extends TrackerDto> List<TrackerErrorReport> addErrorsForParents( List<Function<T, TrackerDto>> parents,
+    private <T extends TrackerDto> List<Error> addErrorsForParents( List<Function<T, TrackerDto>> parents,
         T entity )
     {
-        List<TrackerErrorReport> errors = parents.stream()
+        List<Error> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isValid ) // remove invalid parents
             .filter( this.bundle::exists ) // remove parents not in payload
@@ -340,7 +339,7 @@ class PersistablesFilter
             return;
         }
 
-        List<TrackerErrorReport> errors = parents.stream()
+        List<Error> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isNotValid ) // remove valid parents
             .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
@@ -348,7 +347,7 @@ class PersistablesFilter
         this.result.errors.addAll( errors );
     }
 
-    private static TrackerErrorReport error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
+    private static Error error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
     {
         String message = MessageFormat.format(
             code.getMessage(),
@@ -357,7 +356,7 @@ class PersistablesFilter
             reason.getTrackerType().getName(),
             reason.getUid() );
 
-        return new TrackerErrorReport(
+        return new Error(
             message,
             code,
             notPersistable.getTrackerType(),
@@ -410,7 +409,7 @@ class PersistablesFilter
 
         private final List<Relationship> relationships = new ArrayList<>();
 
-        private final List<TrackerErrorReport> errors = new ArrayList<>();
+        private final List<Error> errors = new ArrayList<>();
 
         private <T extends TrackerDto> void put( Class<T> type, T instance )
         {

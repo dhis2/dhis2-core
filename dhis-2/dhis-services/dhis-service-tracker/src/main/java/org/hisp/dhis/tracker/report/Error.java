@@ -25,25 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.report;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Value;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class ValidationFailFastException
-    extends RuntimeException
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Value
+@Builder
+public class Error
 {
-    private final transient List<Error> errorReportRef;
+    private final String errorMessage;
 
-    public ValidationFailFastException( List<Error> errorReportRef )
+    private final String errorCode;
+
+    private final String trackerType;
+
+    private final String uid;
+
+    @JsonCreator
+    public Error( @JsonProperty( "message" ) String errorMessage,
+        @JsonProperty( "errorCode" ) String errorCode,
+        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.errorReportRef = errorReportRef;
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
-    public List<Error> getErrors()
+    @JsonProperty
+    public String getErrorCode()
     {
-        return errorReportRef;
+        return errorCode;
+    }
+
+    @JsonProperty
+    public String getMessage()
+    {
+        return errorMessage;
+    }
+
+    @JsonProperty
+    public String getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
     }
 }

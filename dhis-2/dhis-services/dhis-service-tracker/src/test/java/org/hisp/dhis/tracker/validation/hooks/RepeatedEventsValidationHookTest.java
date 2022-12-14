@@ -50,7 +50,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.validation.Error;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -193,7 +193,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         errorReporter
-            .addError( new TrackerErrorReport( "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid() ) );
+            .addError( new Error( "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid() ) );
 
         validatorToTest.validate( errorReporter, bundle );
 

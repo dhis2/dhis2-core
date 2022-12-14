@@ -40,6 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +57,8 @@ import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
+import org.hisp.dhis.tracker.validation.Validation;
+import org.hisp.dhis.tracker.validation.ValidationResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -145,15 +149,14 @@ class TrackerBundleImportReportTest
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
         TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
         Entity entity = new Entity( TRACKED_ENTITY );
-        List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-        TrackerErrorReport errorReport1 = new TrackerErrorReport(
-            "Could not find OrganisationUnit: ``, linked to Tracked Entity.", TrackerErrorCode.E1049, TRACKED_ENTITY,
-            "BltTZV9HvEZ" );
-        TrackerErrorReport errorReport2 = new TrackerErrorReport( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
+        List<Validation> errors = new ArrayList<>();
+        Validation errorReport1 = getValidation( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
             TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
-        trackerErrorReports.add( errorReport1 );
-        trackerErrorReports.add( errorReport2 );
-        entity.getErrorReports().addAll( trackerErrorReports );
+        Validation errorReport2 = getValidation( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
+            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
+        errors.add( errorReport1 );
+        errors.add( errorReport2 );
+
         entity.setIndex( 0 );
         entity.setUid( "BltTZV9HvEZ" );
         typeReport.addEntity( entity );
@@ -172,12 +175,15 @@ class TrackerBundleImportReportTest
         timingsStats.set( PREPARE_REQUEST_OPS, "0.5 sec." );
         timingsStats.set( TOTAL_REQUEST_OPS, "0.6 sec." );
         // Build ValidationReport
-        ValidationReport tvr = new ValidationReport();
-        // Error Reports - Validation Report
-        tvr.addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
-            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
-                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
+        ValidationResult tvr = mock( ValidationResult.class );
+
+        when( tvr.getErrors() )
+            .thenReturn( List.of( getValidation( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
+                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) ) );
+        when( tvr.getWarnings() )
+            .thenReturn( List.of( getValidation( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) ) );
+        when( tvr.size() ).thenReturn( 1L );
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
@@ -253,6 +259,36 @@ class TrackerBundleImportReportTest
         assertEquals( toSerializeReport.getStats(), deserializedReport.getStats() );
     }
 
+    private Validation getValidation( String message, TrackerErrorCode code, TrackerType type, String uid )
+    {
+        return new Validation()
+        {
+            @Override
+            public String getCode()
+            {
+                return code.name();
+            }
+
+            @Override
+            public String getMessage()
+            {
+                return message;
+            }
+
+            @Override
+            public String getType()
+            {
+                return type.name();
+            }
+
+            @Override
+            public String getUid()
+            {
+                return uid;
+            }
+        };
+    }
+
     private void assertStats( ImportReport report )
     {
         assertNotNull( report.getStats() );
@@ -267,7 +303,7 @@ class TrackerBundleImportReportTest
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
         return ImportReport.withImportCompleted( Status.OK, createBundleReport(),
-            createValidationReport(), createTimingStats(), bundleSize );
+            createValidationResult(), createTimingStats(), bundleSize );
     }
 
     private TimingsStats createTimingStats()
@@ -281,13 +317,17 @@ class TrackerBundleImportReportTest
         return timingsStats;
     }
 
-    private ValidationReport createValidationReport()
+    private ValidationResult createValidationResult()
     {
-        return new ValidationReport()
-            .addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
-            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
-                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
+        ValidationResult validationResult = mock( ValidationResult.class );
+        when( validationResult.getErrors() )
+            .thenReturn( List.of( getValidation( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
+                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) ) );
+        when( validationResult.getWarnings() )
+            .thenReturn( List.of( getValidation( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) ) );
+        when( validationResult.size() ).thenReturn( 1L );
+        return validationResult;
     }
 
     private PersistenceReport createBundleReport()

@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -170,7 +169,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( skipOnError, doNotSkipOnError ),
             validators, ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 1, report.getErrors().size(), "only skip on error hook should add 1 error" );
@@ -207,7 +206,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), validators,
             ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 2, report.getErrors().size(), "both hooks should add 1 error each" );
@@ -238,7 +237,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), validators,
             ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
@@ -268,7 +267,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( hook1 ), validators,
             ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertFalse( report.hasErrors() );
     }
@@ -289,7 +288,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( hook1 ), validators,
             ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertFalse( report.hasErrors() );
     }
@@ -310,7 +309,7 @@ class DefaultTrackerValidationServiceTest
         service = new DefaultTrackerValidationService( List.of( hook1 ), validators,
             ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
@@ -336,7 +335,7 @@ class DefaultTrackerValidationServiceTest
             .build();
         service = new DefaultTrackerValidationService( List.of( hook ), validators, ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertFalse( report.hasErrors() );
         assertTrue( report.hasWarnings() );
@@ -374,7 +373,7 @@ class DefaultTrackerValidationServiceTest
             .build();
         service = new DefaultTrackerValidationService( List.of( hook ), validators, ruleEngineValidators );
 
-        ValidationReport report = service.validate( bundle );
+        ValidationResult report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 3, report.getErrors().size() );

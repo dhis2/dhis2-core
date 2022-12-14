@@ -199,9 +199,9 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         importReport = trackerImportService.importTracker( trackerImportParams1 );
 
-        ValidationReport validationReport = importReport.getValidationReport();
+        ValidationReport validationResult = importReport.getValidationReport();
 
-        assertHasOnlyErrors( validationReport, TrackerErrorCode.E1015 );
+        assertHasOnlyErrors( validationResult, TrackerErrorCode.E1015 );
     }
 
     @Test

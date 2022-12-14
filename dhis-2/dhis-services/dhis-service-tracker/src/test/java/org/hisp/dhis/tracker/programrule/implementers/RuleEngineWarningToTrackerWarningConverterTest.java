@@ -56,7 +56,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Lists;
 
 @ExtendWith( MockitoExtension.class )
-class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
+class RuleEngineWarningToTrackerWarningConverterTest extends DhisConvenienceTest
 {
 
     private final static String RULE_EVENT_ID = "Rule_event_id";

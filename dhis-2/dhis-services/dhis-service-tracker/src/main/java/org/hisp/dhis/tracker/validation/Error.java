@@ -25,23 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
 @Value
 @Builder
-public class TrackerErrorReport
+@RequiredArgsConstructor
+public class Error implements Validation
 {
     private final String errorMessage;
 
@@ -51,49 +47,37 @@ public class TrackerErrorReport
 
     private final String uid;
 
-    @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
-
-    @JsonProperty
     public TrackerErrorCode getErrorCode()
     {
         return errorCode;
     }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return errorMessage;
-    }
-
-    @JsonProperty
     public TrackerType getTrackerType()
     {
         return trackerType;
     }
 
-    @JsonProperty
-    public String getUid()
+    @Override
+    public String getCode()
     {
-        return uid;
+        return errorCode.name();
     }
 
     @Override
-    public String toString()
+    public String getMessage()
     {
-        return "TrackerErrorReport{" +
-            "message=" + errorMessage +
-            ", errorCode=" + errorCode +
-            ", trackerEntityType=" + trackerType +
-            ", uid=" + uid +
-            '}';
+        return errorMessage;
+    }
+
+    @Override
+    public String getType()
+    {
+        return trackerType.name();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return uid;
     }
 }

@@ -25,72 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Enrico Colasante
- */
-@Value
-@Builder
-public class TrackerWarningReport
+public interface Validation
 {
-    private final String warningMessage;
+    String getCode();
 
-    private final TrackerErrorCode warningCode;
+    String getMessage();
 
-    private final TrackerType trackerType;
+    String getType();
 
-    private final String uid;
-
-    @JsonCreator
-    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.warningMessage = warningMessage;
-        this.warningCode = warningCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    public TrackerErrorCode getWarningCode()
-    {
-        return warningCode;
-    }
-
-    @JsonProperty
-    public String getMessage()
-    {
-        return warningMessage;
-    }
-
-    @JsonProperty
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
-
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackerWarningReport{" +
-            "message=" + warningMessage +
-            ", warningCode=" + warningCode +
-            '}';
-    }
+    String getUid();
 }

@@ -25,25 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.report;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.Value;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
-class ValidationFailFastException
-    extends RuntimeException
+@Value
+@Builder
+public class Warning
 {
-    private final transient List<Error> errorReportRef;
+    private final String warningMessage;
 
-    public ValidationFailFastException( List<Error> errorReportRef )
+    private final String warningCode;
+
+    private final String trackerType;
+
+    private final String uid;
+
+    @JsonCreator
+    public Warning( @JsonProperty( "message" ) String warningMessage,
+        @JsonProperty( "errorCode" ) String warningCode,
+        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.errorReportRef = errorReportRef;
+        this.warningMessage = warningMessage;
+        this.warningCode = warningCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
-    public List<Error> getErrors()
+    @JsonProperty
+    public String getWarningCode()
     {
-        return errorReportRef;
+        return warningCode;
+    }
+
+    @JsonProperty
+    public String getMessage()
+    {
+        return warningMessage;
+    }
+
+    @JsonProperty
+    public String getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerWarningReport{" +
+            "message=" + warningMessage +
+            ", warningCode=" + warningCode +
+            '}';
     }
 }
