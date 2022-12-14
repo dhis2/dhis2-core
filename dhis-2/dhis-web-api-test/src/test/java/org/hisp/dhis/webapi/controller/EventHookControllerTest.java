@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
@@ -58,5 +59,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/eventHooks/",
                 "{'id':'bRNvL6NMQXb','name':'hook1','source':{'path':'metadata','fields':'id,name'},'targets':[{'type':'webhook','url':'http://localhost:8081/api/gateway','auth':{'type':'api-token','token':'EB3F6799-AA5A-47E8-B6B7-97EA54EB3873'}}]}" ) );
+
+        assertEquals( "bRNvL6NMQXb", id );
     }
 }
