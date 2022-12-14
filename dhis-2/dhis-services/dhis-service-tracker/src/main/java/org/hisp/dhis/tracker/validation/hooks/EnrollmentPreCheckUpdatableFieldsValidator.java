@@ -27,24 +27,18 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,23 +46,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PreCheckUpdatableFieldsValidationHook
-    implements TrackerValidationHook
+public class EnrollmentPreCheckUpdatableFieldsValidator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance trackedEntityInstance = bundle
-            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
-
-        reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
-            trackedEntity, E1126, "trackedEntityType" );
-    }
-
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         ProgramInstance pi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
         Program program = pi.getProgram();
@@ -78,20 +60,6 @@ public class PreCheckUpdatableFieldsValidationHook
             "program" );
         reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
             E1127, "trackedEntity" );
-    }
-
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
-        ProgramStage programStage = programStageInstance.getProgramStage();
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
-
-        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
-            "programStage" );
-        reporter.addErrorIf(
-            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            event, E1128, "enrollment" );
     }
 
     @Override
