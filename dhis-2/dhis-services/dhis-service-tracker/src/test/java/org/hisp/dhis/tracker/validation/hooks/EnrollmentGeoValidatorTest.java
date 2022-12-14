@@ -58,12 +58,12 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EnrollmentGeoValidationHookTest
+class EnrollmentGeoValidatorTest
 {
 
     private static final String PROGRAM = "Program";
 
-    private EnrollmentGeoValidationHook hookToTest;
+    private EnrollmentGeoValidator validator;
 
     @Mock
     private TrackerPreheat preheat;
@@ -75,7 +75,7 @@ class EnrollmentGeoValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new EnrollmentGeoValidationHook();
+        validator = new EnrollmentGeoValidator();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
@@ -99,7 +99,7 @@ class EnrollmentGeoValidationHookTest
             .build();
 
         // when
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -116,7 +116,7 @@ class EnrollmentGeoValidationHookTest
         when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
 
         assertThrows( NullPointerException.class,
-            () -> this.hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
+            () -> validator.validate( reporter, bundle, enrollment ) );
     }
 
     @Test
@@ -133,7 +133,7 @@ class EnrollmentGeoValidationHookTest
         Program program = new Program();
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
@@ -154,7 +154,7 @@ class EnrollmentGeoValidationHookTest
         program.setFeatureType( FeatureType.NONE );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
@@ -175,7 +175,7 @@ class EnrollmentGeoValidationHookTest
         program.setFeatureType( FeatureType.MULTI_POLYGON );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, enrollment );
 
         // then
         hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );

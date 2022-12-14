@@ -48,19 +48,19 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentInExistingValidationHook
-    implements TrackerValidationHook
+public class EnrollmentInExistingValidator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 

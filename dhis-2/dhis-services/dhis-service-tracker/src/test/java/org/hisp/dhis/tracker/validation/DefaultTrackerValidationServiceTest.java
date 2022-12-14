@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,13 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -79,6 +80,10 @@ class DefaultTrackerValidationServiceTest
 
     private TrackerValidationHook hook2;
 
+    private Validators validators;
+
+    private Validators ruleEngineValidators;
+
     @BeforeEach
     void setUp()
     {
@@ -87,6 +92,9 @@ class DefaultTrackerValidationServiceTest
 
         hook1 = mock( TrackerValidationHook.class );
         hook2 = mock( TrackerValidationHook.class );
+
+        validators = mock( Validators.class );
+        ruleEngineValidators = mock( Validators.class );
 
         bundleBuilder = newBundle();
     }
@@ -98,7 +106,8 @@ class DefaultTrackerValidationServiceTest
             .validationMode( ValidationMode.SKIP )
             .user( null )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1 ), emptyList(), validators,
+            ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -112,7 +121,8 @@ class DefaultTrackerValidationServiceTest
             .validationMode( ValidationMode.SKIP )
             .user( superUser() )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1 ), emptyList(), validators,
+            ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -126,7 +136,8 @@ class DefaultTrackerValidationServiceTest
             .validationMode( ValidationMode.FULL )
             .user( superUser() )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), emptyList(), validators,
+            ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -158,7 +169,7 @@ class DefaultTrackerValidationServiceTest
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E9999 ) )
             .build();
         service = new DefaultTrackerValidationService( List.of( skipOnError, doNotSkipOnError ),
-            Collections.emptyList() );
+            emptyList(), validators, ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -194,7 +205,8 @@ class DefaultTrackerValidationServiceTest
             .skipOnError( false )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E9999 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), emptyList(), validators,
+            ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -224,7 +236,8 @@ class DefaultTrackerValidationServiceTest
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
-        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), emptyList(), validators,
+            ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -253,7 +266,8 @@ class DefaultTrackerValidationServiceTest
         ValidationHook hook1 = ValidationHook.builder()
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1 ), emptyList(), validators,
+            ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -273,7 +287,8 @@ class DefaultTrackerValidationServiceTest
             .needsToRun( false )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1 ), emptyList(), validators,
+            ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -293,7 +308,8 @@ class DefaultTrackerValidationServiceTest
             .needsToRun( true )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook1 ), emptyList(), validators,
+            ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -319,7 +335,7 @@ class DefaultTrackerValidationServiceTest
                 }
             } )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -357,7 +373,7 @@ class DefaultTrackerValidationServiceTest
             .validateEnrollment( addErrorIfMatches( invalidEnrollment, TrackerErrorCode.E1069 ) )
             .validateEvent( addErrorIfMatches( invalidEvent, TrackerErrorCode.E1032 ) )
             .build();
-        service = new DefaultTrackerValidationService( List.of( hook ), Collections.emptyList() );
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
 
         TrackerValidationReport report = service.validate( bundle );
 
@@ -370,6 +386,98 @@ class DefaultTrackerValidationServiceTest
         assertTrue( bundle.getTrackedEntities().isEmpty() );
         assertTrue( bundle.getEnrollments().isEmpty() );
         assertTrue( bundle.getEvents().isEmpty() );
+    }
+
+    @Test
+    void shouldNotCallTrackedEntityValidatorIfPreCheckHookWithSkipOnErrorFails()
+    {
+        TrackedEntity invalidTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .trackedEntities( trackedEntities( invalidTrackedEntity ) )
+            .build();
+
+        Validator<TrackedEntity> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( true )
+            .validateTrackedEntity( addErrorIfMatches( invalidTrackedEntity, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verifyNoInteractions( validator );
+    }
+
+    @Test
+    void shouldCallTrackedEntityValidatorIfPreCheckHookWithoutSkipOnErrorFails()
+    {
+        TrackedEntity invalidTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .trackedEntities( trackedEntities( invalidTrackedEntity ) )
+            .build();
+
+        Validator<TrackedEntity> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( false )
+            .validateTrackedEntity( addErrorIfMatches( invalidTrackedEntity, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verify( validator, times( 1 ) ).validate( any(), any(), eq( invalidTrackedEntity ) );
+    }
+
+    @Test
+    void shouldNotCallEnrollmentValidatorIfPreCheckHookWithSkipOnErrorFails()
+    {
+        Enrollment invalidEnrollment = enrollment();
+        bundle = bundleBuilder
+            .enrollments( enrollments( invalidEnrollment ) )
+            .build();
+
+        Validator<Enrollment> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getEnrollmentValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( true )
+            .validateEnrollment( addErrorIfMatches( invalidEnrollment, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verifyNoInteractions( validator );
+    }
+
+    @Test
+    void shouldCallEnrollmentValidatorIfPreCheckHookWithoutSkipOnErrorFails()
+    {
+        Enrollment invalidEnrollment = enrollment();
+        bundle = bundleBuilder
+            .enrollments( enrollments( invalidEnrollment ) )
+            .build();
+
+        Validator<Enrollment> validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        when( validators.getEnrollmentValidators() ).thenReturn( List.of( validator ) );
+
+        ValidationHook hook = ValidationHook.builder()
+            .skipOnError( false )
+            .validateEnrollment( addErrorIfMatches( invalidEnrollment, TrackerErrorCode.E1090 ) )
+            .build();
+        service = new DefaultTrackerValidationService( List.of( hook ), emptyList(), validators, ruleEngineValidators );
+
+        service.validate( bundle );
+
+        verify( validator, times( 1 ) ).validate( any(), any(), eq( invalidEnrollment ) );
     }
 
     private User superUser()

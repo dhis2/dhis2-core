@@ -27,22 +27,35 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentNoteValidationHook implements TrackerValidationHook
+public class EnrollmentGeoValidator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), enrollment,
-            enrollment.getNotes() ) );
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+
+        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+
+        if ( enrollment.getGeometry() != null )
+        {
+            ValidationUtils.validateGeometry( reporter, enrollment,
+                enrollment.getGeometry(),
+                program.getFeatureType() );
+        }
     }
+
 }
