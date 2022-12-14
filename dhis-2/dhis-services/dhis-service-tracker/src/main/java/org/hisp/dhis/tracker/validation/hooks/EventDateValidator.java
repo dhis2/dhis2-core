@@ -49,8 +49,8 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -58,11 +58,11 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EventDateValidationHook
-    implements TrackerValidationHook
+public class EventDateValidator
+    implements Validator<Event>
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerPreheat preheat = bundle.getPreheat();
 

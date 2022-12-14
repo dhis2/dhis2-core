@@ -32,8 +32,26 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckSecurityOwnershipValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventDateValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventGeoValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventPreCheckSecurityOwnershipValidator;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckSecurityOwnershipValidator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,10 +65,73 @@ public class DefaultValidators implements Validators
 
     private final TrackedEntityAttributeValidator attributeValidator;
 
+    private final TrackedEntityPreCheckSecurityOwnershipValidator trackedEntityPreCheckSecurityOwnershipValidator;
+
+    private final EnrollmentPreCheckSecurityOwnershipValidator enrollmentPreCheckSecurityOwnershipValidator;
+
+    private final EnrollmentNoteValidator enrollmentNoteValidator;
+
+    private final EnrollmentInExistingValidator enrollmentInExistingValidator;
+
+    private final EnrollmentGeoValidator enrollmentGeoValidator;
+
+    private final EnrollmentDateValidator enrollmentDateValidator;
+
+    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
+    private final EventPreCheckSecurityOwnershipValidator eventPreCheckSecurityOwnershipValidator;
+
+    private final EventCategoryOptValidator eventCategoryOptValidator;
+
+    private final EventDateValidator eventDateValidator;
+
+    private final EventGeoValidator eventGeoValidator;
+
+    private final EventNoteValidator eventNoteValidator;
+
+    private final EventDataValuesValidator eventDataValuesValidator;
+
+    private final AssignedUserValidator assignedUserValidator;
+
+    private final RelationshipsValidator relationshipsValidator;
+
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
         return List.of(
+            trackedEntityPreCheckSecurityOwnershipValidator,
             attributeValidator );
+    }
+
+    @Override
+    public List<Validator<Enrollment>> getEnrollmentValidators()
+    {
+        return List.of(
+            enrollmentPreCheckSecurityOwnershipValidator,
+            enrollmentNoteValidator,
+            enrollmentInExistingValidator,
+            enrollmentGeoValidator,
+            enrollmentDateValidator,
+            enrollmentAttributeValidator );
+    }
+
+    @Override
+    public List<Validator<Event>> getEventValidators()
+    {
+        return List.of(
+            eventPreCheckSecurityOwnershipValidator,
+            eventCategoryOptValidator,
+            eventDateValidator,
+            eventGeoValidator,
+            eventNoteValidator,
+            eventDataValuesValidator,
+            assignedUserValidator );
+    }
+
+    @Override
+    public List<Validator<Relationship>> getRelationshipValidators()
+    {
+        return List.of(
+            relationshipsValidator );
     }
 }

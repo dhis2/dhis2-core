@@ -53,19 +53,19 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
 @Component
-public class EventDataValuesValidationHook
-    implements TrackerValidationHook
+public class EventDataValuesValidator
+    implements Validator<Event>
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 

@@ -27,33 +27,52 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
-import org.hisp.dhis.program.ProgramStage;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
 @Component
-public class EventGeoValidationHook
-    implements TrackerValidationHook
+public class EventRuleValidator
+    implements Validator<Event>
 {
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+    private List<RuleActionImplementer> validators;
 
-        if ( event.getGeometry() != null )
+    @Autowired( required = false )
+    public void setValidators( List<RuleActionImplementer> validators )
+    {
+        this.validators = validators;
+    }
+
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    {
+        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
+
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
         {
-            ValidationUtils.validateGeometry( reporter, event,
-                event.getGeometry(),
-                programStage.getFeatureType() );
+            return;
         }
+
+        List<ProgramRuleIssue> programRuleIssues = validators
+            .stream()
+            .flatMap(
+                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
+            .collect( Collectors.toList() );
+
+        addIssuesToReporter( reporter, event, programRuleIssues );
     }
 }

@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -44,10 +42,12 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,33 +55,33 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * @author Enrico Colasante
+ * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class EnrollmentNoteValidationHookTest
+class EventNoteValidatorTest
 {
 
     // Class under test
-    private EnrollmentNoteValidationHook hook;
+    private EventNoteValidator validator;
 
-    private Enrollment enrollment;
+    private Event event;
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerPreheat preheat;
-
     private TrackerBundle bundle;
+
+    private TrackerPreheat preheat;
 
     private ValidationErrorReporter reporter;
 
     @BeforeEach
     public void setUp()
     {
-        this.hook = new EnrollmentNoteValidationHook();
-        enrollment = rnd.nextObject( Enrollment.class );
+        this.validator = new EventNoteValidator();
+        event = rnd.nextObject( Event.class );
 
-        preheat = mock( TrackerPreheat.class );
         bundle = mock( TrackerBundle.class );
+        preheat = mock( TrackerPreheat.class );
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
@@ -93,19 +93,19 @@ class EnrollmentNoteValidationHookTest
     {
         // Given
         final Note note = rnd.nextObject( Note.class );
-
         when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        enrollment.setNotes( Collections.singletonList( note ) );
+
+        event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( warn -> E1119.equals( warn.getWarningCode() ) &&
-            ENROLLMENT.equals( warn.getTrackerType() ) &&
-            enrollment.getUid().equals( warn.getUid() ) ) );
-        assertThat( enrollment.getNotes(), hasSize( 0 ) );
+        assertTrue( reporter.hasWarningReport( r -> TrackerErrorCode.E1119.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
+        assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
     @Test
@@ -115,14 +115,14 @@ class EnrollmentNoteValidationHookTest
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
 
-        enrollment.setNotes( Collections.singletonList( note ) );
+        event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );
-        assertThat( enrollment.getNotes(), hasSize( 0 ) );
+        assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
     @Test
@@ -131,14 +131,14 @@ class EnrollmentNoteValidationHookTest
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
 
-        enrollment.setNotes( notes );
+        event.setNotes( notes );
 
         // When
-        this.hook.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // Then
         assertFalse( reporter.hasErrors() );
-        assertThat( enrollment.getNotes(), hasSize( 5 ) );
+        assertThat( event.getNotes(), hasSize( 5 ) );
     }
 
 }

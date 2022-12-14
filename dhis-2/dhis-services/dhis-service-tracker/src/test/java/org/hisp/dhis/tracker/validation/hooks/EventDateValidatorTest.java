@@ -73,14 +73,14 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EventDateValidationHookTest extends DhisConvenienceTest
+class EventDateValidatorTest extends DhisConvenienceTest
 {
 
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
 
-    private EventDateValidationHook hookToTest;
+    private EventDateValidator validator;
 
     @Mock
     private TrackerPreheat preheat;
@@ -92,7 +92,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new EventDateValidationHook();
+        validator = new EventDateValidator();
 
         User user = makeUser( "A" );
 
@@ -125,7 +125,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
             .build();
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -140,7 +140,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -156,7 +156,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.ACTIVE );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -172,7 +172,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.COMPLETED );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1031, EVENT, event.getUid() );
@@ -189,7 +189,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.SCHEDULE );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1050, EVENT, event.getUid() );
@@ -206,7 +206,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.COMPLETED );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1042, EVENT, event.getUid() );
@@ -224,7 +224,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.COMPLETED );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1043, EVENT, event.getUid() );
@@ -242,7 +242,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.SKIPPED );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1046, EVENT, event.getUid() );
@@ -259,7 +259,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setStatus( EventStatus.ACTIVE );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1047, EVENT, event.getUid() );

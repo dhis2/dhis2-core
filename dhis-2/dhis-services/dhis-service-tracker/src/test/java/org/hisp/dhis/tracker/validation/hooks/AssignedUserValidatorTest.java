@@ -55,7 +55,7 @@ import com.google.common.collect.Sets;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class AssignedUserValidationHookTest extends DhisConvenienceTest
+class AssignedUserValidatorTest extends DhisConvenienceTest
 {
 
     private static final String USER_NAME = "Username";
@@ -64,7 +64,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
     private static final String PROGRAM_STAGE = "ProgramStage";
 
-    private AssignedUserValidationHook hookToTest;
+    private AssignedUserValidator validator;
 
     private TrackerBundle bundle;
 
@@ -79,7 +79,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new AssignedUserValidationHook();
+        validator = new AssignedUserValidator();
 
         bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
@@ -106,7 +106,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -121,7 +121,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -136,7 +136,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -152,7 +152,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         // when
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -172,7 +172,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         preheat.put( programStage );
         bundle = TrackerBundle.builder().preheat( preheat ).build();
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -190,7 +190,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // when
         programStage.setEnableUserAssignment( false );
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -212,7 +212,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // when
         programStage.setEnableUserAssignment( null );
 
-        this.hookToTest.validateEvent( reporter, bundle, event );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
+import static org.hisp.dhis.organisationunit.FeatureType.NONE;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
@@ -37,10 +39,10 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
@@ -58,12 +60,12 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class EnrollmentGeoValidationHookTest
+class EventGeoValidatorTest
 {
 
-    private static final String PROGRAM = "Program";
+    private static final String PROGRAM_STAGE = "ProgramStage";
 
-    private EnrollmentGeoValidationHook hookToTest;
+    private EventGeoValidator validator;
 
     @Mock
     private TrackerPreheat preheat;
@@ -75,15 +77,16 @@ class EnrollmentGeoValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hookToTest = new EnrollmentGeoValidationHook();
+        validator = new EventGeoValidator();
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
 
-        Program program = new Program();
-        program.setFeatureType( FeatureType.POINT );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+        ProgramStage programStage = new ProgramStage();
+        programStage.setFeatureType( FeatureType.POINT );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) ) )
+            .thenReturn( programStage );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new ValidationErrorReporter( idSchemes );
@@ -93,91 +96,86 @@ class EnrollmentGeoValidationHookTest
     void testGeometryIsValid()
     {
         // given
-        Enrollment enrollment = Enrollment.builder()
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
-            .build();
+        Event event = new Event();
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
+        event.setGeometry( new GeometryFactory().createPoint() );
 
         // when
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
-    void testEnrollmentWithNoProgramThrowsAnError()
+    void testEventWithNoProgramStageThrowsAnError()
     {
         // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( null );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+        Event event = new Event();
+        event.setProgramStage( null );
+        event.setGeometry( new GeometryFactory().createPoint() );
 
-        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
+        when( preheat.getProgramStage( (MetadataIdentifier) null ) ).thenReturn( null );
 
-        assertThrows( NullPointerException.class,
-            () -> this.hookToTest.validateEnrollment( reporter, bundle, enrollment ) );
+        // when
+        assertThrows( NullPointerException.class, () -> validator.validate( reporter, bundle, event ) );
     }
 
     @Test
-    void testProgramWithNullFeatureTypeFailsGeometryValidation()
+    void testProgramStageWithNullFeatureTypeFailsGeometryValidation()
     {
         // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
-            .build();
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
+        event.setGeometry( new GeometryFactory().createPoint() );
 
         // when
-        Program program = new Program();
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, E1074, EVENT, event.getUid() );
     }
 
     @Test
-    void testProgramWithFeatureTypeNoneFailsGeometryValidation()
+    void testProgramStageWithFeatureTypeNoneFailsGeometryValidation()
     {
         // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
-            .build();
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
+        event.setGeometry( new GeometryFactory().createPoint() );
 
         // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.NONE );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+        ProgramStage programStage = new ProgramStage();
+        programStage.setFeatureType( NONE );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
     }
 
     @Test
-    void testProgramWithFeatureTypeDifferentFromGeometryFails()
+    void testProgramStageWithFeatureTypeDifferentFromGeometryFails()
     {
         // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM ) )
-            .geometry( new GeometryFactory().createPoint() )
-            .build();
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
+        event.setGeometry( new GeometryFactory().createPoint() );
 
         // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.MULTI_POLYGON );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM ) ) ).thenReturn( program );
+        ProgramStage programStage = new ProgramStage();
+        programStage.setFeatureType( MULTI_POLYGON );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+        validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
     }
 }

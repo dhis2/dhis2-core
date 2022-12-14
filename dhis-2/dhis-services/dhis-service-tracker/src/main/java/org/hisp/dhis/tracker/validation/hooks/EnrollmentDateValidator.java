@@ -42,19 +42,19 @@ import java.util.Objects;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentDateValidationHook
-    implements TrackerValidationHook
+public class EnrollmentDateValidator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         validateMandatoryDates( reporter, enrollment );
 

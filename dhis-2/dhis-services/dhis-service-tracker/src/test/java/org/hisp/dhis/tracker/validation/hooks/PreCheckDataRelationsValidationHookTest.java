@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -100,6 +99,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private PreCheckDataRelationsValidationHook hook;
 
+    @Mock
     private TrackerBundle bundle;
 
     @Mock
@@ -112,7 +112,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         hook = new PreCheckDataRelationsValidationHook();
 
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+        when( bundle.getPreheat() ).thenReturn( preheat );
+
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new ValidationErrorReporter( idSchemes );
     }
@@ -946,10 +947,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         validTrackedEntity.setUid( "validTrackedEntity" );
         when( preheat.getTrackedEntity( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
 
-        ReferenceTrackerEntity anotherValidTrackedEntity = new ReferenceTrackerEntity( "anotherValidTrackedEntity",
-            null );
-        when( preheat.getReference( "anotherValidTrackedEntity" ) )
-            .thenReturn( Optional.of( anotherValidTrackedEntity ) );
+        when( bundle.findTrackedEntityByUid( "anotherValidTrackedEntity" ) )
+            .thenReturn( Optional.of( TrackedEntity.builder().build() ) );
 
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
