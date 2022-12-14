@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.ValidationResult;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -95,7 +94,7 @@ public class Assertions
      * errors contain given codes in any order.<br>
      * <em>NOTE:</em> prefer
      * {@link #assertHasOnlyErrors(ImportReport, TrackerErrorCode...)} or
-     * {@link #assertHasErrors(ValidationResult, TrackerErrorCode...)}. Rethink
+     * {@link #assertHasErrors(ValidationReport, TrackerErrorCode...)}. Rethink
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like
@@ -114,7 +113,7 @@ public class Assertions
      * assertHasErrors asserts the report contains given count of errors and
      * errors contain given codes in any order. <em>NOTE:</em> prefer
      * {@link #assertHasOnlyErrors(ImportReport, TrackerErrorCode...)} or
-     * {@link #assertHasErrors(ValidationResult, TrackerErrorCode...)}. Rethink
+     * {@link #assertHasErrors(ValidationReport, TrackerErrorCode...)}. Rethink
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like

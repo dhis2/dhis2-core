@@ -69,8 +69,8 @@ public class AssertTrackerValidationReport
         String uid, String messageContains )
     {
         assertNotEmpty( errors );
-        assertTrue( errors.stream().anyMatch( err -> Objects.equals( code.name(), err.getErrorCode() ) &&
-            Objects.equals( type.name(), err.getTrackerType() ) &&
+        assertTrue( errors.stream().anyMatch( err -> code == err.getErrorCode() &&
+            type == err.getTrackerType() &&
             uid.equals( err.getUid() ) &&
             err.getMessage().contains( messageContains ) ),
             String.format( "error with code %s, type %s, uid %s and partial message '%s' not found in error(s) %s",

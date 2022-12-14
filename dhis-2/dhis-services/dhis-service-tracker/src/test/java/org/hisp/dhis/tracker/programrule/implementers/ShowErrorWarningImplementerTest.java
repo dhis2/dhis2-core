@@ -70,7 +70,7 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ShowWarningWarningImplementerTest extends DhisConvenienceTest
+class ShowErrorWarningImplementerTest extends DhisConvenienceTest
 {
 
     private final static String CONTENT = "SHOW ERROR DATA";

@@ -36,7 +36,7 @@ import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.Test;
 
-class ValidationWarningReporterTest
+class ValidationErrorReporterTest
 {
 
     @Test
