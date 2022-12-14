@@ -50,14 +50,13 @@ import org.springframework.stereotype.Component;
  * @author Enrico Colasante
  */
 @Component
-public class RepeatedEventsValidationHook
-    implements Validator<TrackerBundle>
+public class RepeatedEventsValidator
+    implements Validator<List<Event>>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle __, TrackerBundle bundle )
+    public void validate( Reporter reporter, TrackerBundle bundle, List<Event> events )
     {
-        Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle
-            .getEvents()
+        Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = events
             .stream()
             .filter( e -> !reporter.isInvalid( e ) )
             .filter( e -> !bundle.getStrategy( e ).isDelete() )
