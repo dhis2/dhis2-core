@@ -38,7 +38,6 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.eventhook.Target;
 import org.hisp.dhis.eventhook.targets.auth.Auth;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -64,13 +63,6 @@ public class WebhookTarget extends Target
 
     public WebhookTarget()
     {
-        this( "webhook" );
-    }
-
-    @JsonCreator
-    public WebhookTarget(
-        @JsonProperty( "type" ) String type )
-    {
-        super( type );
+        super( "webhook" );
     }
 }

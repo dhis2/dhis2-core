@@ -31,12 +31,12 @@ import java.io.Serializable;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -48,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Setter
 @Accessors( chain = true )
 @EqualsAndHashCode
-@RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
     @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" )
@@ -56,6 +55,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public abstract class Target
     implements Serializable
 {
+    @JsonCreator
+    public Target( @JsonProperty( "type" ) String type )
+    {
+        this.type = type;
+    }
+
     @JsonProperty
     protected final String type;
 }

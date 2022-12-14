@@ -35,7 +35,6 @@ import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -56,14 +55,7 @@ public class ApiTokenAuth extends Auth
 
     public ApiTokenAuth()
     {
-        this( "api-token" );
-    }
-
-    @JsonCreator
-    public ApiTokenAuth(
-        @JsonProperty( "type" ) String type )
-    {
-        super( type );
+        super( "api-token" );
     }
 
     @Override

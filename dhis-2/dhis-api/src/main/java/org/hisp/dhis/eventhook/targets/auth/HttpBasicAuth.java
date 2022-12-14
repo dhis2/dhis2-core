@@ -37,7 +37,6 @@ import lombok.experimental.Accessors;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -57,14 +56,7 @@ public class HttpBasicAuth extends Auth
 
     public HttpBasicAuth()
     {
-        this( "http-basic" );
-    }
-
-    @JsonCreator
-    public HttpBasicAuth(
-        @JsonProperty( "type" ) String type )
-    {
-        super( type );
+        super( "http-basic" );
     }
 
     @Override

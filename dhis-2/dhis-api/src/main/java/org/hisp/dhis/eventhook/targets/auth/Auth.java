@@ -31,12 +31,12 @@ import java.io.Serializable;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.springframework.util.MultiValueMap;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -48,7 +48,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Setter
 @EqualsAndHashCode
 @Accessors( chain = true )
-@RequiredArgsConstructor
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
     @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
@@ -59,6 +58,12 @@ public abstract class Auth
 {
     @JsonProperty
     protected final String type;
+
+    @JsonCreator
+    public Auth( @JsonProperty( "type" ) String type )
+    {
+        this.type = type;
+    }
 
     public abstract void apply( MultiValueMap<String, String> headers );
 }
