@@ -29,7 +29,6 @@ package org.hisp.dhis.trackerdataview;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,10 +59,10 @@ public class TrackerDataView implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private Set<String> attributes = new LinkedHashSet<>();
+    private LinkedHashSet<String> attributes = new LinkedHashSet<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private Set<String> dataElements = new LinkedHashSet<>();
+    private LinkedHashSet<String> dataElements = new LinkedHashSet<>();
 }

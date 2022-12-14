@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
+
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
@@ -102,8 +104,6 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
                 .getList( "toConstraint.trackerDataView.attributes", JsonString.class );
 
         assertEquals( 3, attributes.size() );
-        assertEquals( attrA, attributes.get( 0 ).string() );
-        assertEquals( attrB, attributes.get( 1 ).string() );
-        assertEquals( attrC, attributes.get( 2 ).string() );
+        assertEquals( List.of( attrA, attrB, attrC ), attributes.toList( JsonString::string ) );
     }
 }
