@@ -85,8 +85,8 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
  * </p>
  * <p>
  * This filter relies on preprocessing and all
- * {@link org.hisp.dhis.tracker.validation.TrackerValidationHook}s having run
- * beforehand. The following are some assumptions the filtering relies on:
+ * {@link org.hisp.dhis.tracker.validation.Validator}s having run beforehand.
+ * The following are some assumptions the filtering relies on:
  * </p>
  * <ul>
  * <li>This does not validate whether the {@link TrackerImportStrategy} matches

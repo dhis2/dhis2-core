@@ -67,6 +67,7 @@ import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMandatoryField
 import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMetaValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckUidValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
+import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckExistenceValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckMandatoryFieldsValidator;
@@ -149,6 +150,8 @@ public class DefaultValidators implements Validators
 
     private final AssignedUserValidator assignedUserValidator;
 
+    private final RepeatedEventsValidationHook repeatedEventsValidationHook;
+
     private final RelationshipPreCheckUidValidator relationshipPreCheckUidValidator;
 
     private final RelationshipPreCheckExistenceValidator relationshipPreCheckExistenceValidator;
@@ -221,5 +224,12 @@ public class DefaultValidators implements Validators
             relationshipPreCheckMetaValidator,
             relationshipPreCheckDataRelationsValidator,
             relationshipsValidator );
+    }
+
+    @Override
+    public List<Validator<TrackerBundle>> getBundleValidators()
+    {
+        return List.of(
+            repeatedEventsValidationHook );
     }
 }

@@ -199,12 +199,6 @@
       <artifactId>joda-time</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.apache.groovy</groupId>
-          <artifactId>groovy</artifactId>
-          <version>4.0.1</version>
-          <scope>compile</scope>
-      </dependency>
 
   </dependencies>
   <properties>
