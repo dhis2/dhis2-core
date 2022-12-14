@@ -607,6 +607,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
         assertEquals( expected, params.getProgramsInAttributesAndDataElements() );
     }
 
+    @Test
     void testGetAggregationType()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
