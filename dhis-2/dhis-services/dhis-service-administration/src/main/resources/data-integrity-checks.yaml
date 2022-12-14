@@ -21,4 +21,5 @@ checks:
   - option_sets/option_sets_wrong_sort_order.yaml
   - analytical_objects/visualizations_not_used_1year.yaml
   - analytical_objects/maps_not_used_1year.yaml
+  - analytical_objects/dashboards_not_used_1year.yaml
 
