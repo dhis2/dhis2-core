@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 
 import java.io.File;
