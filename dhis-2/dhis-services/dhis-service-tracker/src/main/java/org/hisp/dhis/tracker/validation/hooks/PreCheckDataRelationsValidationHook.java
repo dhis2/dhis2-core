@@ -67,8 +67,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -394,15 +392,10 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
-                .getReference( event.getEnrollment() );
-            if ( reference.isPresent() )
+            final Optional<Enrollment> enrollment = bundle.findEnrollmentByUid( event.getEnrollment() );
+            if ( enrollment.isPresent() )
             {
-                final Optional<Enrollment> enrollment = bundle.findEnrollmentByUid( event.getEnrollment() );
-                if ( enrollment.isPresent() )
-                {
-                    return bundle.getPreheat().getProgram( enrollment.get().getProgram() );
-                }
+                return bundle.getPreheat().getProgram( enrollment.get().getProgram() );
             }
         }
         return null;
@@ -434,18 +427,9 @@ public class PreCheckDataRelationsValidationHook
                 .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
         }
 
-        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
-            .getReference( enrollment.getTrackedEntity() );
-        if ( reference.isPresent() )
-        {
-            final Optional<TrackedEntity> tei = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
-            if ( tei.isPresent() )
-            {
-                return tei.get().getTrackedEntityType().isEqualTo( program.getTrackedEntityType() );
-            }
-        }
-
-        return false;
+        return bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
+            .map( te -> te.getTrackedEntityType().isEqualTo( program.getTrackedEntityType() ) )
+            .orElse( false );
     }
 
     @Override

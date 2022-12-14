@@ -34,29 +34,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDateValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventGeoValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventNoteValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventRuleValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckDataRelationsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckMandatoryFieldsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckSecurityOwnershipValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUpdatableFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -89,16 +73,6 @@ public class TrackerValidationConfig
     }
 
     @Bean
-    public List<TrackerValidationHook> ruleEngineValidationHooks()
-    {
-        return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
-            EventRuleValidationHook.class,
-            TrackedEntityAttributeValidationHook.class,
-            EnrollmentAttributeValidationHook.class,
-            EventDataValuesValidationHook.class ) );
-    }
-
-    @Bean
     public List<TrackerValidationHook> validationHooks()
     {
         return getHookByClass( ImmutableList.of( PreCheckUidValidationHook.class,
@@ -107,25 +81,6 @@ public class TrackerValidationConfig
             PreCheckMetaValidationHook.class,
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
-            PreCheckSecurityOwnershipValidationHook.class,
-
-            TrackedEntityAttributeValidationHook.class,
-
-            EnrollmentNoteValidationHook.class,
-            EnrollmentInExistingValidationHook.class,
-            EnrollmentGeoValidationHook.class,
-            EnrollmentDateValidationHook.class,
-            EnrollmentAttributeValidationHook.class,
-
-            EventCategoryOptValidationHook.class,
-            EventDateValidationHook.class,
-            EventGeoValidationHook.class,
-            EventNoteValidationHook.class,
-            EventDataValuesValidationHook.class,
-
-            RelationshipsValidationHook.class,
-
-            AssignedUserValidationHook.class,
 
             /*
              * NB! This hook must be run after all the Event validations,

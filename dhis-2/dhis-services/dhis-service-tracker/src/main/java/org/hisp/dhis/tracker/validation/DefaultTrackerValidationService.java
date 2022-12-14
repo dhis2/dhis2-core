@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
+import java.util.Collections;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -60,22 +61,26 @@ public class DefaultTrackerValidationService
     @Qualifier( "validationHooks" )
     private final List<TrackerValidationHook> validationHooks;
 
-    @Qualifier( "ruleEngineValidationHooks" )
-    private final List<TrackerValidationHook> ruleEngineValidationHooks;
+    @Qualifier( "org.hisp.dhis.tracker.validation.DefaultValidators" )
+    private final Validators validators;
+
+    @Qualifier( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )
+    private final Validators ruleEngineValidators;
 
     @Override
     public TrackerValidationReport validate( TrackerBundle bundle )
     {
-        return validate( bundle, validationHooks );
+        return validate( bundle, validationHooks, validators );
     }
 
     @Override
     public TrackerValidationReport validateRuleEngine( TrackerBundle bundle )
     {
-        return validate( bundle, ruleEngineValidationHooks );
+        return validate( bundle, Collections.emptyList(), ruleEngineValidators );
     }
 
-    private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks )
+    private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+        Validators validators )
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
@@ -95,10 +100,10 @@ public class DefaultTrackerValidationService
 
         try
         {
-            validateTrackedEntities( bundle, hooks, reporter );
-            validateEnrollments( bundle, hooks, reporter );
-            validateEvents( bundle, hooks, reporter );
-            validateRelationships( bundle, hooks, reporter );
+            validateTrackedEntities( bundle, hooks, validators, reporter );
+            validateEnrollments( bundle, hooks, validators, reporter );
+            validateEvents( bundle, hooks, validators, reporter );
+            validateRelationships( bundle, hooks, validators, reporter );
             validateBundle( bundle, hooks, reporter );
         }
         catch ( ValidationFailFastException e )
@@ -122,12 +127,13 @@ public class DefaultTrackerValidationService
         return validationReport;
     }
 
-    private void validateTrackedEntities( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+    private void validateTrackedEntities( TrackerBundle bundle, List<TrackerValidationHook> preCheckHooks,
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( TrackedEntity tei : bundle.getTrackedEntities() )
         {
-            for ( TrackerValidationHook hook : hooks )
+            boolean failed = false;
+            for ( TrackerValidationHook hook : preCheckHooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( tei ) ) )
                 {
@@ -141,7 +147,32 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, tei.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
+                    }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<TrackedEntity> validator : validators.getTrackedEntityValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( tei ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, tei );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, tei.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
                     }
                 }
             }
@@ -149,10 +180,11 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEnrollments( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
+            boolean failed = false;
             for ( TrackerValidationHook hook : hooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( enrollment ) ) )
@@ -167,7 +199,32 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
+                    }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<Enrollment> validator : validators.getEnrollmentValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( enrollment ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, enrollment );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, enrollment.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
                     }
                 }
             }
@@ -175,10 +232,11 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEvents( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( Event event : bundle.getEvents() )
         {
+            boolean failed = false;
             for ( TrackerValidationHook hook : hooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( event ) ) )
@@ -193,7 +251,32 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
+                    }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<Event> validator : validators.getEventValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( event ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, event );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
                     }
                 }
             }
@@ -201,10 +284,11 @@ public class DefaultTrackerValidationService
     }
 
     private void validateRelationships( TrackerBundle bundle, List<TrackerValidationHook> hooks,
-        ValidationErrorReporter reporter )
+        Validators validators, ValidationErrorReporter reporter )
     {
         for ( Relationship relationship : bundle.getRelationships() )
         {
+            boolean failed = false;
             for ( TrackerValidationHook hook : hooks )
             {
                 if ( hook.needsToRun( bundle.getStrategy( relationship ) ) )
@@ -219,7 +303,32 @@ public class DefaultTrackerValidationService
 
                     if ( hook.skipOnError() && didNotPassValidation( reporter, relationship.getUid() ) )
                     {
-                        break; // skip subsequent validation hooks for this invalid entity
+                        failed = true;
+                        break; // skip subsequent validation for this invalid entity
+                    }
+                }
+            }
+
+            if ( failed )
+            {
+                continue; // skip specific validations for this invalid entity
+            }
+
+            for ( Validator<Relationship> validator : validators.getRelationshipValidators() )
+            {
+                if ( validator.needsToRun( bundle.getStrategy( relationship ) ) )
+                {
+                    Timer hookTimer = Timer.startTimer();
+
+                    validator.validate( reporter, bundle, relationship );
+
+                    reporter.addTiming( new Timing(
+                        validator.getClass().getName(),
+                        hookTimer.toString() ) );
+
+                    if ( validator.skipOnError() && didNotPassValidation( reporter, relationship.getUid() ) )
+                    {
+                        break; // skip subsequent validation for this invalid entity
                     }
                 }
             }

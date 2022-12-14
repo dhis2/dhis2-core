@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +92,7 @@ class PreCheckMetaValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
+    @Mock
     private TrackerBundle bundle;
 
     private ValidationErrorReporter reporter;
@@ -102,9 +102,7 @@ class PreCheckMetaValidationHookTest
     {
         validatorToTest = new PreCheckMetaValidationHook();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
+        when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new ValidationErrorReporter( idSchemes );
@@ -185,8 +183,7 @@ class PreCheckMetaValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        when( preheat.getReference( TRACKED_ENTITY_UID ) )
-            .thenReturn( Optional.of( new ReferenceTrackerEntity( "", "" ) ) );
+        when( bundle.findTrackedEntityByUid( TRACKED_ENTITY_UID ) ).thenReturn( Optional.of( new TrackedEntity() ) );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
