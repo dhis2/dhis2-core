@@ -37,12 +37,15 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREAT
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.MAIN_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isFieldEqualToEnrolledAt;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
@@ -487,17 +490,23 @@ public class HibernateTrackedEntityInstanceStore
             select.append( ", TEI.trackedentityinstanceid AS teiid" );
         }
 
-        if ( params.getOrders() != null )
-        {
-            select.append( getOrderByQuery( params, select ) );
-        }
+        select.append( getOrderParamForSelectClause( params, select ) );
 
         select.append( SPACE );
 
         return select.toString();
     }
 
-    private String getOrderByQuery( TrackedEntityInstanceQueryParams params, StringBuilder select )
+    /**
+     * Gets all the static fields from the order parameters and appends them to
+     * the string builder, so they can be used in the query select clause
+     *
+     * @param params
+     * @param select current select statement
+     * @return all the static fields that are not yet present in the select
+     *         statement
+     */
+    private String getOrderParamForSelectClause( TrackedEntityInstanceQueryParams params, StringBuilder select )
     {
         StringBuilder orderQuery = new StringBuilder();
 
@@ -505,11 +514,12 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( isStaticColumn( orderParam.getField() ) )
             {
-                if ( ENROLLED_AT.getPropName().equalsIgnoreCase( orderParam.getField() ) )
+                if ( isFieldEqualToEnrolledAt( orderParam.getField() ) )
                 {
                     //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
                     orderQuery
-                        .append( addStaticColumn( orderParam.getField(), select.toString() ).replace( "pi", "tei" ) );
+                        .append( addStaticColumn( orderParam.getField(), select.toString() )
+                            .replace( PROGRAM_INSTANCE_ALIAS, MAIN_QUERY_ALIAS ) );
                 }
                 else
                 {
@@ -518,11 +528,18 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        select.append( SPACE );
-
         return orderQuery.toString();
     }
 
+    /**
+     * Checks if a field is a valid column and whether is present in the current
+     * query.
+     *
+     * @param field name of the field to add in the query
+     * @param sqlQuery current sql query
+     * @return the mapped column name if not present in the query, empty
+     *         otherwise
+     */
     private String addStaticColumn( String field, String sqlQuery )
     {
         String sqlField = getColumn( field );
@@ -643,7 +660,7 @@ public class HibernateTrackedEntityInstanceStore
         }
         else
         {
-            for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+            for ( QueryItem orderAttribute : getQueryItemsByAttributeAndFilters( params ) )
             {
                 orderAttributes
                     .append( ", " )
@@ -877,7 +894,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder joinOrderAttributes = new StringBuilder();
 
-        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+        for ( QueryItem orderAttribute : getQueryItemsByAttributeAndFilters( params ) )
         {
             if ( orderAttribute.hasFilter() )
             { // We already joined this if it is a filter.
@@ -994,9 +1011,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
-
-        if ( params.getOrders() != null
-            && params.getOrders().stream().anyMatch( p -> ENROLLED_AT.getPropName().equalsIgnoreCase( p.getField() ) ) )
+        if ( params.getOrders().stream().anyMatch( p -> isFieldEqualToEnrolledAt( p.getField() ) ) )
         {
             return " INNER JOIN programinstance pi ON pi.trackedentityinstanceid = TEI.trackedentityinstanceid ";
         }
@@ -1327,10 +1342,10 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.inactive " )
             .append( params.isIncludeDeleted() ? ", TEI.deleted " : "" );
 
-        if ( !getOrderAttributes( params ).isEmpty() )
+        if ( !getQueryItemsByAttributeAndFilters( params ).isEmpty() )
         {
 
-            for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+            for ( QueryItem orderAttribute : getQueryItemsByAttributeAndFilters( params ) )
             {
                 groupBy
                     .append( ", TEI." )
@@ -1363,8 +1378,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        if ( params.getOrders() != null
-            && (!isGridQuery || (params.getAttributes() != null && !params.getAttributes().isEmpty())) )
+        if ( (!isGridQuery || (params.getAttributes() != null && !params.getAttributes().isEmpty())) )
         {
             List<String> orderFields = new ArrayList<>();
 
@@ -1414,7 +1428,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
         {
             //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
-            columnName = columnName.replace( "pi", "tei" );
+            columnName = columnName.replace( PROGRAM_INSTANCE_ALIAS, MAIN_QUERY_ALIAS );
         }
 
         return columnName + " " + order.getDirection();
@@ -1490,16 +1504,6 @@ public class HibernateTrackedEntityInstanceStore
      * @return a list of QueryItem, each representing an attribute with 1 or
      *         more filters.
      */
-    private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
-    {
-        if ( params.getOrders() != null )
-        {
-            return getQueryItemsByAttributeAndFilters( params );
-        }
-
-        return Lists.newArrayList();
-    }
-
     private List<QueryItem> getQueryItemsByAttributeAndFilters( TrackedEntityInstanceQueryParams params )
     {
         List<String> ordersIdentifier = params.getOrders().stream()

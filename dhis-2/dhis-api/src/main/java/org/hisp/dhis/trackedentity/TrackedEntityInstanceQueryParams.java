@@ -94,6 +94,10 @@ public class TrackedEntityInstanceQueryParams
 
     public static final int DEFAULT_PAGE_SIZE = 50;
 
+    public static final String MAIN_QUERY_ALIAS = "tei";
+
+    public static final String PROGRAM_INSTANCE_ALIAS = "pi";
+
     /**
      * Query value, will apply to all relevant attributes.
      */
@@ -273,7 +277,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * TEI order params
      */
-    private List<OrderParam> orders;
+    private List<OrderParam> orders = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -1246,17 +1250,17 @@ public class TrackedEntityInstanceQueryParams
     @AllArgsConstructor
     public enum OrderColumn
     {
-        TRACKEDENTITY( "trackedEntity", "tei.uid" ),
+        TRACKEDENTITY( "trackedEntity", MAIN_QUERY_ALIAS + ".uid" ),
         // Ordering by id is the same as ordering by created date
-        CREATED( CREATED_ID, "tei.trackedentityinstanceid" ),
-        CREATED_AT( "createdAt", "tei.trackedentityinstanceid" ),
-        CREATED_AT_CLIENT( "createdAtClient", "tei.createdAtClient" ),
-        UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
-        UPDATED_AT_CLIENT( "updatedAtClient", "tei.lastUpdatedAtClient" ),
-        ENROLLED_AT( "enrolledAt", "pi.enrollmentDate" ),
+        CREATED( CREATED_ID, MAIN_QUERY_ALIAS + ".trackedentityinstanceid" ),
+        CREATED_AT( "createdAt", MAIN_QUERY_ALIAS + ".trackedentityinstanceid" ),
+        CREATED_AT_CLIENT( "createdAtClient", MAIN_QUERY_ALIAS + ".createdAtClient" ),
+        UPDATED_AT( "updatedAt", MAIN_QUERY_ALIAS + ".lastUpdated" ),
+        UPDATED_AT_CLIENT( "updatedAtClient", MAIN_QUERY_ALIAS + ".lastUpdatedAtClient" ),
+        ENROLLED_AT( "enrolledAt", PROGRAM_INSTANCE_ALIAS + ".enrollmentDate" ),
         // this works only for the new endpoint
-        // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
-        INACTIVE( INACTIVE_ID, "tei.inactive" );
+        // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
+        INACTIVE( INACTIVE_ID, MAIN_QUERY_ALIAS + ".inactive" );
 
         private final String propName;
 
@@ -1266,6 +1270,11 @@ public class TrackedEntityInstanceQueryParams
         {
             return Arrays.stream( OrderColumn.values() )
                 .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
+        }
+
+        public static boolean isFieldEqualToEnrolledAt( String fieldName )
+        {
+            return ENROLLED_AT.getPropName().equalsIgnoreCase( fieldName );
         }
 
         public static String getColumn( String property )

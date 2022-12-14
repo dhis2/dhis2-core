@@ -29,6 +29,11 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +60,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -107,8 +111,8 @@ class HibernateTrackedEntityInstanceStoreTest
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         params.setTrackedEntityTypes( List.of( new TrackedEntityType( "ARV commodity", "ARV commodity" ) ) );
 
-        SqlRowSet sqlRowSet = Mockito.mock( SqlRowSet.class );
-        Mockito.when( jdbcTemplate.queryForRowSet( Mockito.anyString() ) ).thenReturn( sqlRowSet );
+        SqlRowSet sqlRowSet = mock( SqlRowSet.class );
+        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( sqlRowSet );
     }
 
     @Test
@@ -121,9 +125,10 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.inactive" ) ),
+        assertAll(
+            () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.inactive" ) ),
             () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.inactive DESC" ) ) );
     }
 
@@ -137,9 +142,10 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.lastupdated" ) ),
+        assertAll(
+            () -> assertEquals( 2, countMatches( sqlQuery, ", TEI.lastupdated" ) ),
             () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.lastUpdated ASC" ) ) );
     }
 
@@ -153,9 +159,10 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
-        assertAll( () -> assertEquals( 2, countMatches( sqlQuery, ", tei.lastUpdatedAtClient" ) ),
+        assertAll(
+            () -> assertEquals( 2, countMatches( sqlQuery, ", tei.lastUpdatedAtClient" ) ),
             () -> assertEquals( 2, countMatches( sqlQuery, "ORDER BY tei.lastUpdatedAtClient ASC" ) ) );
     }
 
@@ -169,10 +176,11 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
 
-        assertAll( () -> assertEquals( 1, countMatches( sqlQuery, ", pi.enrollmentDate" ) ),
+        assertAll(
+            () -> assertEquals( 1, countMatches( sqlQuery, ", pi.enrollmentDate" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery, ", tei.enrollmentDate" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY pi.enrollmentDate DESC" ) ),
             () -> assertEquals( 1, countMatches( sqlQuery, "ORDER BY tei.enrollmentDate DESC" ) ) );
@@ -189,7 +197,7 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
         assertAll(
             () -> assertEquals( 1,
@@ -212,7 +220,7 @@ class HibernateTrackedEntityInstanceStoreTest
         store.getTrackedEntityInstanceIds( params );
 
         //then
-        Mockito.verify( jdbcTemplate, Mockito.atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
+        verify( jdbcTemplate, atLeast( 1 ) ).queryForRowSet( sqlQueryCaptor.capture() );
         String sqlQuery = sqlQueryCaptor.getValue();
 
         assertEquals( 2, countMatches( sqlQuery, "ORDER BY TEI.trackedentityinstanceid ASC" ) );
