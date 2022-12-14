@@ -110,4 +110,15 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
         assertEquals( "admin", auth.getString( "username" ).string() );
         assertEquals( "district", auth.getString( "password" ).string() );
     }
+
+    @Test
+    void testDeleteEventHookWebhookHttpBasic()
+    {
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
+        assertEquals( "bRNvL6NMQXb", id );
+
+        DELETE( "/eventHooks/" + id ).content( HttpStatus.OK );
+        GET( "/eventHooks/{id}", id ).content( HttpStatus.NOT_FOUND );
+    }
 }
