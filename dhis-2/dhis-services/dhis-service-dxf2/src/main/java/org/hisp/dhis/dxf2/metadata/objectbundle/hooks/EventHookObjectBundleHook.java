@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
 public class EventHookObjectBundleHook
     extends AbstractObjectBundleHook<EventHook>
 {
-    private final ApplicationEventPublisher publisher;;
+    private final ApplicationEventPublisher publisher;
 
     @Override
     public <E extends EventHook> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )

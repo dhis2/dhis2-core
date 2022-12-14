@@ -63,4 +63,8 @@ public final class EventUtils
             .object( object )
             .build();
     }
+
+    private EventUtils()
+    {
+    }
 }

@@ -60,7 +60,7 @@ public abstract class Auth
     protected final String type;
 
     @JsonCreator
-    public Auth( @JsonProperty( "type" ) String type )
+    protected Auth( @JsonProperty( "type" ) String type )
     {
         this.type = type;
     }

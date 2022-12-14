@@ -56,7 +56,7 @@ public abstract class Target
     implements Serializable
 {
     @JsonCreator
-    public Target( @JsonProperty( "type" ) String type )
+    protected Target( @JsonProperty( "type" ) String type )
     {
         this.type = type;
     }
