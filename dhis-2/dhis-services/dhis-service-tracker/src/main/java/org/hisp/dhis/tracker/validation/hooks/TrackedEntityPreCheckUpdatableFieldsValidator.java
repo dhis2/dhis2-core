@@ -25,37 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
 
-import java.util.function.Supplier;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.Status;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-public class Assertions
+/**
+ * @author Enrico Colasante
+ */
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityPreCheckUpdatableFieldsValidator
+    implements Validator<TrackedEntity>
 {
-
-    public static void assertNoImportErrors( ImportReport report )
+    @Override
+    public void validate( ValidationErrorReporter reporter,
+        TrackerBundle bundle, TrackedEntity trackedEntity )
     {
-        assertNotNull( report );
-        assertEquals( Status.OK, report.getStatus(), errorMessage( report ) );
+        TrackedEntityInstance trackedEntityInstance = bundle
+            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+
+        reporter.addErrorIf(
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            trackedEntity, E1126, "trackedEntityType" );
     }
 
-    private static Supplier<String> errorMessage( ImportReport report )
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return () -> {
-            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
-            report.getValidationReport().getErrors()
-                .forEach( e -> {
-                    msg.append( e.getErrorCode() );
-                    msg.append( ": " );
-                    msg.append( e.getMessage() );
-                    msg.append( '\n' );
-                } );
-            return msg.toString();
-        };
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 }

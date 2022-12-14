@@ -52,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class TrackerImportReport
+public class ImportReport
 {
 
     /**
@@ -65,33 +65,33 @@ public class TrackerImportReport
      * - ERROR - at least on Error was collected during the Import
      */
     @JsonProperty
-    TrackerStatus status;
+    Status status;
 
     /**
      * A list of all validation errors occurred during the validation process
      */
     @JsonProperty
-    TrackerValidationReport validationReport;
+    ValidationReport validationReport;
 
     /**
      * A final summary broken down by operation (Insert, Update, Delete,
      * Ignored) showing how many entities where processed
      */
     @JsonProperty
-    TrackerStats stats;
+    Stats stats;
 
     /**
      * A report object containing the elapsed time for each Import stage
      */
     @JsonProperty
-    TrackerTimingsStats timingsStats;
+    TimingsStats timingsStats;
 
     /**
      * A report containing the outcome of the commit stage (e.g. how many
      * entities were persisted)
      */
-    @JsonProperty
-    TrackerBundleReport bundleReport;
+    @JsonProperty( "bundleReport" )
+    PersistenceReport persistenceReport;
 
     /**
      * A message to attach to the report. This message is designed to be used
@@ -103,8 +103,8 @@ public class TrackerImportReport
 
     /**
      * Factory method to use in case one or more Validation errors are present
-     * in the {@link TrackerValidationReport} and the Import process needs to
-     * exit without attempting persistence.
+     * in the {@link ValidationReport} and the Import process needs to exit
+     * without attempting persistence.
      *
      * Import statistics are calculated assuming that the persistence stage was
      * never attempted, therefore all bundle objects were ignored.
@@ -114,15 +114,15 @@ public class TrackerImportReport
      * @param bundleSize The sum of all bundle objects
      *
      */
-    public static TrackerImportReport withValidationErrors(
-        TrackerValidationReport validationReport,
-        TrackerTimingsStats timingsStats, int bundleSize )
+    public static ImportReport withValidationErrors(
+        ValidationReport validationReport,
+        TimingsStats timingsStats, int bundleSize )
     {
         return builder()
-            .status( TrackerStatus.ERROR )
+            .status( Status.ERROR )
             .validationReport( validationReport )
             .timingsStats( timingsStats )
-            .stats( TrackerStats.builder().ignored( bundleSize ).build() ).build();
+            .stats( Stats.builder().ignored( bundleSize ).build() ).build();
     }
 
     /**
@@ -138,12 +138,12 @@ public class TrackerImportReport
      * @param timingsStats The timing stats if available
      *
      */
-    public static TrackerImportReport withError( String message, TrackerValidationReport validationReport,
-        TrackerTimingsStats timingsStats )
+    public static ImportReport withError( String message, ValidationReport validationReport,
+        TimingsStats timingsStats )
     {
         // TODO shall we calculate stats in this case?
         return builder()
-            .status( TrackerStatus.ERROR )
+            .status( Status.ERROR )
             .validationReport( validationReport )
             .timingsStats( timingsStats )
             .message( message )
@@ -153,51 +153,51 @@ public class TrackerImportReport
     /**
      * Factory method to use when a Tracker Import process completes.
      *
-     * Import statistics are calculated based on the {@link TrackerBundleReport}
-     * and {@link TrackerValidationReport}.
+     * Import statistics are calculated based on the {@link PersistenceReport}
+     * and {@link ValidationReport}.
      *
      * @param status The outcome of the process
-     * @param bundleReport The report containing how many bundle objects were
-     *        successfully persisted
+     * @param persistenceReport The report containing how many bundle objects
+     *        were successfully persisted
      * @param validationReport The validation report if available
      * @param timingsStats The timing stats if available
      * @param bundleSize a map containing the size of each entity type in the
      *        Bundle - before the validation
      */
-    public static TrackerImportReport withImportCompleted( TrackerStatus status, TrackerBundleReport bundleReport,
-        TrackerValidationReport validationReport,
-        TrackerTimingsStats timingsStats, Map<TrackerType, Integer> bundleSize )
+    public static ImportReport withImportCompleted( Status status, PersistenceReport persistenceReport,
+        ValidationReport validationReport,
+        TimingsStats timingsStats, Map<TrackerType, Integer> bundleSize )
     {
-        TrackerStats stats = TrackerStats.builder().build();
-        TrackerStats brs = bundleReport.getStats();
+        Stats stats = Stats.builder().build();
+        Stats brs = persistenceReport.getStats();
         stats.merge( brs );
         stats.setIgnored( Math.toIntExact( validationReport.size() ) + brs.getIgnored() );
         return builder()
             .status( status )
             .validationReport( validationReport )
             .timingsStats( timingsStats )
-            .bundleReport( processBundleReport( bundleReport, bundleSize ) )
+            .persistenceReport( processBundleReport( persistenceReport, bundleSize ) )
             .stats( stats )
             .build();
     }
 
     /**
      * Calculates the 'ignored' value for each type of entity in the
-     * {@link TrackerBundleReport}.
+     * {@link PersistenceReport}.
      *
      * The 'ignored' value is calculated by subtracting the sum of all processed
      * entities from the TrackerBundleReport (by type) from the bundle size
      * specified in the 'bundleSize' map.
      */
-    private static TrackerBundleReport processBundleReport( TrackerBundleReport bundleReport,
+    private static PersistenceReport processBundleReport( PersistenceReport persistenceReport,
         Map<TrackerType, Integer> bundleSize )
     {
         for ( final TrackerType value : TrackerType.values() )
         {
-            final TrackerTypeReport trackerTypeReport = bundleReport.getTypeReportMap().get( value );
+            final TrackerTypeReport trackerTypeReport = persistenceReport.getTypeReportMap().get( value );
             if ( trackerTypeReport != null )
             {
-                final TrackerStats stats = trackerTypeReport.getStats();
+                final Stats stats = trackerTypeReport.getStats();
                 if ( stats != null )
                 {
                     int statsSize = stats.getDeleted() + stats.getCreated() + stats.getUpdated();
@@ -205,6 +205,6 @@ public class TrackerImportReport
                 }
             }
         }
-        return bundleReport;
+        return persistenceReport;
     }
 }

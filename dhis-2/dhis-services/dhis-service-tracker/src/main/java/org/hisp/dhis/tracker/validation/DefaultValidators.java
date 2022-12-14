@@ -42,16 +42,22 @@ import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckDataRelationsValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckSecurityOwnershipValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckUpdatableFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventCategoryOptValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventDateValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventGeoValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventNoteValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventPreCheckDataRelationsValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckSecurityOwnershipValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventPreCheckUpdatableFieldsValidator;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckDataRelationsValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckSecurityOwnershipValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckUpdatableFieldsValidator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,9 +69,15 @@ import org.springframework.stereotype.Component;
 public class DefaultValidators implements Validators
 {
 
-    private final TrackedEntityAttributeValidator attributeValidator;
+    private final TrackedEntityPreCheckUpdatableFieldsValidator trackedEntityPreCheckUpdatableFieldsValidator;
 
     private final TrackedEntityPreCheckSecurityOwnershipValidator trackedEntityPreCheckSecurityOwnershipValidator;
+
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private final EnrollmentPreCheckUpdatableFieldsValidator enrollmentPreCheckUpdatableFieldsValidator;
+
+    private final EnrollmentPreCheckDataRelationsValidator enrollmentPreCheckDataRelationsValidator;
 
     private final EnrollmentPreCheckSecurityOwnershipValidator enrollmentPreCheckSecurityOwnershipValidator;
 
@@ -78,6 +90,10 @@ public class DefaultValidators implements Validators
     private final EnrollmentDateValidator enrollmentDateValidator;
 
     private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
+    private final EventPreCheckUpdatableFieldsValidator eventPreCheckUpdatableFieldsValidator;
+
+    private final EventPreCheckDataRelationsValidator eventPreCheckDataRelationsValidator;
 
     private final EventPreCheckSecurityOwnershipValidator eventPreCheckSecurityOwnershipValidator;
 
@@ -93,12 +109,15 @@ public class DefaultValidators implements Validators
 
     private final AssignedUserValidator assignedUserValidator;
 
+    private final RelationshipPreCheckDataRelationsValidator relationshipPreCheckDataRelationsValidator;
+
     private final RelationshipsValidator relationshipsValidator;
 
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
         return List.of(
+            trackedEntityPreCheckUpdatableFieldsValidator,
             trackedEntityPreCheckSecurityOwnershipValidator,
             attributeValidator );
     }
@@ -107,6 +126,8 @@ public class DefaultValidators implements Validators
     public List<Validator<Enrollment>> getEnrollmentValidators()
     {
         return List.of(
+            enrollmentPreCheckUpdatableFieldsValidator,
+            enrollmentPreCheckDataRelationsValidator,
             enrollmentPreCheckSecurityOwnershipValidator,
             enrollmentNoteValidator,
             enrollmentInExistingValidator,
@@ -119,6 +140,8 @@ public class DefaultValidators implements Validators
     public List<Validator<Event>> getEventValidators()
     {
         return List.of(
+            eventPreCheckUpdatableFieldsValidator,
+            eventPreCheckDataRelationsValidator,
             eventPreCheckSecurityOwnershipValidator,
             eventCategoryOptValidator,
             eventDateValidator,
@@ -132,6 +155,7 @@ public class DefaultValidators implements Validators
     public List<Validator<Relationship>> getRelationshipValidators()
     {
         return List.of(
+            relationshipPreCheckDataRelationsValidator,
             relationshipsValidator );
     }
 }

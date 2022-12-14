@@ -36,17 +36,17 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 
 public class AssertTrackerValidationReport
 {
 
-    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasError( ValidationReport report, TrackerErrorCode code, TrackerDto dto )
     {
         assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
+    public static void assertHasError( ValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
         assertHasError( report.getErrors(), code, type, uid );
@@ -76,12 +76,12 @@ public class AssertTrackerValidationReport
                 type, uid, messageContains, errors ) );
     }
 
-    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasWarning( ValidationReport report, TrackerErrorCode code, TrackerDto dto )
     {
         assertHasWarning( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
+    public static void assertHasWarning( ValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
         assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );

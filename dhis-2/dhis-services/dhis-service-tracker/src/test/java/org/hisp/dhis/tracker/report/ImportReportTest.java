@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerImportReportTest
+class ImportReportTest
 {
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
@@ -54,18 +54,18 @@ class TrackerImportReportTest
         final Map<TrackerType, TrackerTypeReport> trackerTypeReportMap = new HashMap<>();
         trackerTypeReportMap.put( TrackerType.TRACKED_ENTITY, createTypeReport( TrackerType.TRACKED_ENTITY, 5, 3, 0 ) );
         trackerTypeReportMap.put( TrackerType.ENROLLMENT, createTypeReport( TrackerType.ENROLLMENT, 3, 3, 0 ) );
-        TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.OK, trackerTypeReportMap );
+        PersistenceReport persistenceReport = new PersistenceReport( trackerTypeReportMap );
         // Create validation report with 3 objects
-        TrackerValidationReport validationReport = new TrackerValidationReport();
+        ValidationReport validationReport = new ValidationReport();
         validationReport.addErrors( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) );
         // Create empty Timing Stats report
-        TrackerTimingsStats timingsStats = new TrackerTimingsStats();
+        TimingsStats timingsStats = new TimingsStats();
         // Create payload map
         Map<TrackerType, Integer> originalPayload = new HashMap<>();
         originalPayload.put( TrackerType.TRACKED_ENTITY, 10 );
         originalPayload.put( TrackerType.ENROLLMENT, 8 );
         // Method under test
-        TrackerImportReport rep = TrackerImportReport.withImportCompleted( TrackerStatus.OK, bundleReport,
+        ImportReport rep = ImportReport.withImportCompleted( Status.OK, persistenceReport,
             validationReport, timingsStats, originalPayload );
         assertThat( rep.getStats().getCreated(), is( 8 ) );
         assertThat( rep.getStats().getUpdated(), is( 6 ) );
@@ -81,14 +81,14 @@ class TrackerImportReportTest
         assertThat( getBundleReportStats( rep, TrackerType.ENROLLMENT ).getIgnored(), is( 2 ) );
     }
 
-    private TrackerStats getBundleReportStats( TrackerImportReport importReport, TrackerType type )
+    private Stats getBundleReportStats( ImportReport importReport, TrackerType type )
     {
-        return importReport.getBundleReport().getTypeReportMap().get( type ).getStats();
+        return importReport.getPersistenceReport().getTypeReportMap().get( type ).getStats();
     }
 
     private TrackerTypeReport createTypeReport( TrackerType type, int created, int updated, int deleted )
     {
-        final TrackerStats teiStats = new TrackerStats();
+        final Stats teiStats = new Stats();
         teiStats.setCreated( created );
         teiStats.setUpdated( updated );
         teiStats.setDeleted( deleted );

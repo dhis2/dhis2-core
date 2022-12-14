@@ -47,8 +47,8 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.PersistenceReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,15 +102,15 @@ class TrackerImporterServiceTest
             .userId( "123" )
             .build();
 
-        TrackerBundleReport trackerBundleReport = TrackerBundleReport.builder().build();
+        PersistenceReport persistenceReport = PersistenceReport.emptyReport();
         when( trackerUserService.getUser( anyString() ) ).thenReturn( getUser() );
 
-        when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( trackerBundleReport );
+        when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( persistenceReport );
 
         when( trackerValidationService.validate( any( TrackerBundle.class ) ) )
-            .thenReturn( new TrackerValidationReport() );
+            .thenReturn( new ValidationReport() );
         when( trackerValidationService.validateRuleEngine( any( TrackerBundle.class ) ) )
-            .thenReturn( new TrackerValidationReport() );
+            .thenReturn( new ValidationReport() );
         when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) )
             .thenReturn( ParamsConverter.convert( params ) );
     }

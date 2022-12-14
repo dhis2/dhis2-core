@@ -27,71 +27,12 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Data;
-
-import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-public class TrackerObjectReport
+public enum Status
 {
-    /**
-     * Type of object this {@link TrackerObjectReport} represents.
-     */
-    @JsonProperty
-    private final TrackerType trackerType;
-
-    /**
-     * Index into list.
-     */
-    @JsonProperty
-    private Integer index;
-
-    /**
-     * UID of object (if object is id object).
-     */
-    @JsonProperty
-    private String uid;
-
-    private List<TrackerErrorReport> errorReports = new ArrayList<>();
-
-    public TrackerObjectReport( TrackerType trackerType )
-    {
-        this.trackerType = trackerType;
-    }
-
-    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-    }
-
-    @JsonCreator
-    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
-        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
-        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-        if ( errorReports != null )
-        {
-            this.errorReports = errorReports;
-        }
-    }
-
-    @JsonProperty
-    public List<TrackerErrorReport> getErrorReports()
-    {
-        return this.errorReports;
-    }
+    OK,
+    WARNING,
+    ERROR
 }
