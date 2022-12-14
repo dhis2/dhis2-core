@@ -36,6 +36,7 @@ import lombok.Data;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -45,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Luciano Fiandesio
  */
 @Data
-public class TrackerTimingsStats
+public class TimingsStats
 {
     public static final String PREHEAT_OPS = "preheat";
 
@@ -68,7 +69,7 @@ public class TrackerTimingsStats
     @JsonProperty
     private Map<String, String> timers = new LinkedHashMap<>();
 
-    private final static String DEFAULT_VALUE = "0.0 sec.";
+    private static final String DEFAULT_VALUE = "0.0 sec.";
 
     public String getPrepareRequest()
     {
@@ -106,11 +107,12 @@ public class TrackerTimingsStats
         return timers.getOrDefault( TOTAL_REQUEST_OPS, DEFAULT_VALUE );
     }
 
-    private static Timer timer;
+    @JsonIgnore
+    private Timer totalTimer;
 
-    public TrackerTimingsStats()
+    public TimingsStats()
     {
-        timer = new SystemTimer().start();
+        totalTimer = new SystemTimer().start();
     }
 
     public void set( String timedOperation, String elapsed )
@@ -156,12 +158,12 @@ public class TrackerTimingsStats
         this.set( timedOperation, timer.toString() );
     }
 
-    public TrackerTimingsStats stopTimer()
+    public TimingsStats stopTimer()
     {
-        if ( timer != null )
+        if ( totalTimer != null )
         {
-            timer.stop();
-            this.timers.put( TOTAL_OPS, timer.toString() );
+            totalTimer.stop();
+            this.timers.put( TOTAL_OPS, totalTimer.toString() );
         }
         return this;
 

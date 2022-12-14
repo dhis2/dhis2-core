@@ -32,19 +32,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.function.Supplier;
 
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 
 public class Assertions
 {
 
-    public static void assertNoImportErrors( TrackerImportReport report )
+    public static void assertNoImportErrors( ImportReport report )
     {
         assertNotNull( report );
-        assertEquals( TrackerStatus.OK, report.getStatus(), errorMessage( report ) );
+        assertEquals( Status.OK, report.getStatus(), errorMessage( report ) );
     }
 
-    private static Supplier<String> errorMessage( TrackerImportReport report )
+    private static Supplier<String> errorMessage( ImportReport report )
     {
         return () -> {
             StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );

@@ -43,7 +43,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.Timing;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -68,21 +68,21 @@ public class DefaultTrackerValidationService
     private final Validators ruleEngineValidators;
 
     @Override
-    public TrackerValidationReport validate( TrackerBundle bundle )
+    public ValidationReport validate( TrackerBundle bundle )
     {
         return validate( bundle, validationHooks, validators );
     }
 
     @Override
-    public TrackerValidationReport validateRuleEngine( TrackerBundle bundle )
+    public ValidationReport validateRuleEngine( TrackerBundle bundle )
     {
         return validate( bundle, Collections.emptyList(), ruleEngineValidators );
     }
 
-    private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks,
+    private ValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks,
         Validators validators )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
+        ValidationReport validationReport = new ValidationReport();
 
         User user = bundle.getUser();
 

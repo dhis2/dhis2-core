@@ -27,12 +27,48 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
+ * The Bundle Report is responsible for aggregating the outcome of the
+ * persistence stage of the Tracker Import.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerStatus
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PersistenceReport
 {
-    OK,
-    WARNING,
-    ERROR
+    public static PersistenceReport emptyReport()
+    {
+        return new PersistenceReport( new HashMap<>() );
+    }
+
+    @JsonProperty
+    private Map<TrackerType, TrackerTypeReport> typeReportMap;
+
+    @JsonIgnore
+    public Stats getStats()
+    {
+        Stats stats = new Stats();
+        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
+
+        return stats;
+    }
+
+    public boolean isEmpty()
+    {
+        return typeReportMap.values().stream().allMatch( TrackerTypeReport::isEmpty );
+    }
 }

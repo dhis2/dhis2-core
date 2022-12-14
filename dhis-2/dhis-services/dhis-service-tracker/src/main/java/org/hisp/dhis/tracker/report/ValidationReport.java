@@ -35,7 +35,6 @@ import java.util.function.Predicate;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -43,29 +42,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @ToString
 @EqualsAndHashCode
-public class TrackerValidationReport
+public class ValidationReport
 {
-    @JsonProperty
-    private final List<TrackerErrorReport> errorReports;
+    @JsonProperty( "errorReports" )
+    private final List<TrackerErrorReport> errors;
 
-    @JsonProperty
-    private final List<TrackerWarningReport> warningReports;
+    @JsonProperty( "warningReports" )
+    private final List<TrackerWarningReport> warnings;
 
-    @JsonIgnore
-    private final List<Timing> timings;
-
-    public TrackerValidationReport()
+    public ValidationReport()
     {
-        this.errorReports = new ArrayList<>();
-        this.warningReports = new ArrayList<>();
-        this.timings = new ArrayList<>();
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
     }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void addValidationReport( TrackerValidationReport report )
+    public void addValidationReport( ValidationReport report )
     {
         addErrors( report.getErrors() );
         addWarnings( report.getWarnings() );
@@ -73,21 +68,21 @@ public class TrackerValidationReport
 
     public List<TrackerErrorReport> getErrors()
     {
-        return Collections.unmodifiableList( errorReports );
+        return Collections.unmodifiableList( errors );
     }
 
     public List<TrackerWarningReport> getWarnings()
     {
-        return Collections.unmodifiableList( warningReports );
+        return Collections.unmodifiableList( warnings );
     }
 
-    public TrackerValidationReport addError( TrackerErrorReport error )
+    public ValidationReport addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
         return this;
     }
 
-    public TrackerValidationReport addErrors( List<TrackerErrorReport> errors )
+    public ValidationReport addErrors( List<TrackerErrorReport> errors )
     {
         for ( TrackerErrorReport error : errors )
         {
@@ -96,13 +91,13 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addWarning( TrackerWarningReport warning )
+    public ValidationReport addWarning( TrackerWarningReport warning )
     {
         addWarningIfNotExisting( warning );
         return this;
     }
 
-    public TrackerValidationReport addWarnings( List<TrackerWarningReport> warnings )
+    public ValidationReport addWarnings( List<TrackerWarningReport> warnings )
     {
         for ( TrackerWarningReport warning : warnings )
         {
@@ -113,22 +108,22 @@ public class TrackerValidationReport
 
     public boolean hasErrors()
     {
-        return !errorReports.isEmpty();
+        return !errors.isEmpty();
     }
 
     public boolean hasError( Predicate<TrackerErrorReport> test )
     {
-        return errorReports.stream().anyMatch( test );
+        return errors.stream().anyMatch( test );
     }
 
     public boolean hasWarnings()
     {
-        return !warningReports.isEmpty();
+        return !warnings.isEmpty();
     }
 
     public boolean hasWarning( Predicate<TrackerWarningReport> test )
     {
-        return warningReports.stream().anyMatch( test );
+        return warnings.stream().anyMatch( test );
     }
 
     /**
@@ -142,17 +137,17 @@ public class TrackerValidationReport
 
     private void addErrorIfNotExisting( TrackerErrorReport error )
     {
-        if ( !this.errorReports.contains( error ) )
+        if ( !this.errors.contains( error ) )
         {
-            this.errorReports.add( error );
+            this.errors.add( error );
         }
     }
 
     private void addWarningIfNotExisting( TrackerWarningReport warning )
     {
-        if ( !this.warningReports.contains( warning ) )
+        if ( !this.warnings.contains( warning ) )
         {
-            this.warningReports.add( warning );
+            this.warnings.add( warning );
         }
     }
 }
