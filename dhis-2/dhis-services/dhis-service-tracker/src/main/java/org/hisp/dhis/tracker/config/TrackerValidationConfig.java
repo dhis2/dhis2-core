@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckExistenceValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckMandatoryFieldsValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.PreCheckMetaValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.PreCheckUidValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.RepeatedEventsValidationHook;
 import org.springframework.context.annotation.Bean;
@@ -75,8 +73,6 @@ public class TrackerValidationConfig
     {
         return getHookByClass( ImmutableList.of( PreCheckUidValidationHook.class,
             PreCheckExistenceValidationHook.class,
-            PreCheckMandatoryFieldsValidationHook.class,
-            PreCheckMetaValidationHook.class,
 
             /*
              * NB! This hook must be run after all the Event validations,
