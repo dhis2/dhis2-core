@@ -27,37 +27,33 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1121;
 
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-public class AssertValidationErrorReporter
+/**
+ * @author Enrico Colasante
+ */
+@Component
+public class TrackedEntityPreCheckMandatoryFieldsValidator
+    implements Validator<TrackedEntity>
 {
-    private AssertValidationErrorReporter()
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+        TrackedEntity trackedEntity )
     {
-        throw new IllegalStateException( "utility class" );
+        reporter.addErrorIf( () -> trackedEntity.getTrackedEntityType().isBlank(), trackedEntity, E1121,
+            "trackedEntityType" );
+        reporter.addErrorIf( () -> trackedEntity.getOrgUnit().isBlank(), trackedEntity, E1121, "orgUnit" );
     }
 
-    public static void assertMissingProperty( ValidationErrorReporter reporter, TrackerType type, String entity,
-        String uid,
-        String property,
-        TrackerErrorCode errorCode )
+    @Override
+    public boolean skipOnError()
     {
-        assertHasError( reporter.getErrors(), errorCode, type, uid,
-            "Missing required " + entity + " property: `" + property + "`." );
-    }
-
-    public static void hasTrackerError( ValidationErrorReporter reporter, TrackerErrorCode code, TrackerType type,
-        String uid )
-    {
-        assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
-        assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
-            type == err.getTrackerType() &&
-            uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getErrors().size() ) );
+        return true;
     }
 }
