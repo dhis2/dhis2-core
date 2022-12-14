@@ -83,6 +83,12 @@ final class ApiDescribe
                     description.setValue( descriptions.get( key, subst ) );
                 }
             } );
+            if ( endpoint.getRequestBody().isPresent() )
+            {
+                Api.Maybe<String> description = endpoint.getRequestBody().getValue().getDescription();
+                String key = name + "request.description";
+                description.setValue( descriptions.get( key, subst ) );
+            }
             endpoint.getResponses().values().forEach( response -> {
                 String key = name + ".response." + response.getStatus().value() + ".description";
                 Api.Maybe<String> description = response.getDescription();

@@ -180,20 +180,20 @@ public class ValidationUtils
 
     public static boolean trackedEntityInstanceExist( TrackerBundle bundle, String teiUid )
     {
-        return bundle.getTrackedEntityInstance( teiUid ) != null
-            || bundle.getPreheat().getReference( teiUid ).isPresent();
+        return bundle.getPreheat().getTrackedEntity( teiUid ) != null
+            || bundle.findTrackedEntityByUid( teiUid ).isPresent();
     }
 
     public static boolean enrollmentExist( TrackerBundle bundle, String enrollmentUid )
     {
-        return bundle.getProgramInstance( enrollmentUid ) != null
-            || bundle.getPreheat().getReference( enrollmentUid ).isPresent();
+        return bundle.getPreheat().getEnrollment( enrollmentUid ) != null
+            || bundle.findEnrollmentByUid( enrollmentUid ).isPresent();
     }
 
     public static boolean eventExist( TrackerBundle bundle, String eventUid )
     {
-        return bundle.getProgramStageInstance( eventUid ) != null
-            || bundle.getPreheat().getReference( eventUid ).isPresent();
+        return bundle.getPreheat().getEvent( eventUid ) != null
+            || bundle.findEventByUid( eventUid ).isPresent();
     }
 
     public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,

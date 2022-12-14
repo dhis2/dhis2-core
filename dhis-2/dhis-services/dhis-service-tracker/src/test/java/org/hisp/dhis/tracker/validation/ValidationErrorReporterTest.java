@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
@@ -78,6 +79,25 @@ class ValidationErrorReporterTest
         reporter.addWarning( eventWarning() );
 
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
+    }
+
+    @Test
+    void hasPerfsReturnsFalse()
+    {
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+
+        assertFalse( reporter.hasTimings() );
+    }
+
+    @Test
+    void hasPerfsReturnsTrue()
+    {
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+
+        reporter.addTiming( new Timing( "1min", "validation" ) );
+
+        assertTrue( reporter.hasTimings() );
     }
 
     private TrackerErrorReport eventError()

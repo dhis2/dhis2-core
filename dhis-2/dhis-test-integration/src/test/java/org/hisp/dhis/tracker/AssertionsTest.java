@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,7 +50,7 @@ public class AssertionsTest
     void testAssertHasOnlyErrorsFailsIfReportHasNoErrors()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         assertThrows( AssertionError.class, () -> assertHasOnlyErrors( report, TrackerErrorCode.E1000 ) );
         // assertHasOnlyErrors(report, TrackerErrorCode.E1000);
@@ -60,7 +60,7 @@ public class AssertionsTest
     void testAssertHasOnlyErrorsFailsIfReportHasMoreErrors()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1019 ).build() );
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1041 ).build() );
@@ -75,7 +75,7 @@ public class AssertionsTest
     void testAssertHasOnlyErrorsFailsIfReportHasLessErrors()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
 
         assertThrows( AssertionError.class,
@@ -88,7 +88,7 @@ public class AssertionsTest
     void testAssertHasOnlyErrorsSucceeds()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
 
         assertHasOnlyErrors( report, TrackerErrorCode.E1000 );
@@ -98,7 +98,7 @@ public class AssertionsTest
     void testAssertHasErrorsFailsIfReportHasLessErrors()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1001 ).build() );
 
@@ -110,7 +110,7 @@ public class AssertionsTest
     void testAssertHasErrorsSucceeds()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1001 ).build() );
 
@@ -121,7 +121,7 @@ public class AssertionsTest
     void testAssertHasErrorFailsIfReportDoesNotHaveError()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1041 ).build() );
 
@@ -133,7 +133,7 @@ public class AssertionsTest
     void testAssertHasErrorFailsIfReportDoesNotHaveErrors()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
 
         assertThrows( AssertionError.class, () -> assertHasError( report, TrackerErrorCode.E1019 ) );
         // assertHasError( report, TrackerErrorCode.E1019 );
@@ -143,7 +143,7 @@ public class AssertionsTest
     void testAssertHasErrorSucceeds()
     {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+        ValidationReport report = new ValidationReport();
         report.addError( TrackerErrorReport.builder().errorCode( TrackerErrorCode.E1000 ).build() );
 
         assertHasError( report, TrackerErrorCode.E1000 );

@@ -36,11 +36,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+
 /**
  * Object which encapsulates parameters for a data value query.
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Shared
 @Getter
 @Setter
 @Builder
@@ -49,15 +58,20 @@ import lombok.Setter;
 public class DataSetValueQueryParams
 {
     @NotBlank
+    @OpenApi.Property( { UID.class, DataElement.class } )
     private String ds;
 
+    @OpenApi.Property( { UID.class, CategoryCombo.class } )
     private String cc;
 
+    @OpenApi.Property( { UID.class, CategoryOption.class } )
     private String cp;
 
     @NotBlank
+    @OpenApi.Property( Period.class )
     private String pe;
 
     @NotBlank
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String ou;
 }

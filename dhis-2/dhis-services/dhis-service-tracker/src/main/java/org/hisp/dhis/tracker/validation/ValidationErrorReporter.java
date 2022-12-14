@@ -28,9 +28,11 @@
 package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
@@ -42,9 +44,11 @@ import lombok.Value;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 
 /**
  * Collects {@link TrackerErrorReport}s, {@link TrackerWarningReport}s and
@@ -52,7 +56,7 @@ import org.hisp.dhis.tracker.report.TrackerWarningReport;
  * <p>
  * Long-term we would want to remove the responsibility of tracking invalid
  * entities from here. This could allow us to merge this class with
- * {@link org.hisp.dhis.tracker.report.TrackerValidationReport}.
+ * {@link ValidationReport}.
  * </p>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -67,6 +71,8 @@ public class ValidationErrorReporter
     boolean isFailFast;
 
     TrackerIdSchemeParams idSchemes;
+
+    List<Timing> timings;
 
     @Getter( AccessLevel.PACKAGE )
     /*
@@ -89,9 +95,14 @@ public class ValidationErrorReporter
     {
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
-        this.invalidDTOs = new EnumMap<>( TrackerType.class );
+        this.invalidDTOs = new EnumMap<>( Map.of(
+            TrackerType.TRACKED_ENTITY, new HashSet<>(),
+            TrackerType.ENROLLMENT, new HashSet<>(),
+            TrackerType.EVENT, new HashSet<>(),
+            TrackerType.RELATIONSHIP, new HashSet<>() ) );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
+        this.timings = new ArrayList<>();
     }
 
     /**
@@ -195,5 +206,27 @@ public class ValidationErrorReporter
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
+    }
+
+    public ValidationErrorReporter addTiming( Timing timing )
+    {
+        timings.add( timing );
+        return this;
+    }
+
+    public ValidationErrorReporter addTimings( List<Timing> timings )
+    {
+        this.timings.addAll( timings );
+        return this;
+    }
+
+    public List<Timing> getTimings()
+    {
+        return Collections.unmodifiableList( timings );
+    }
+
+    public boolean hasTimings()
+    {
+        return !timings.isEmpty();
     }
 }

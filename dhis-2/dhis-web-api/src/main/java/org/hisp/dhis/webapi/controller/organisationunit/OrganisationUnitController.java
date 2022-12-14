@@ -64,6 +64,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -304,11 +305,12 @@ public class OrganisationUnitController
         return organisationUnits;
     }
 
-    @GetMapping( value = "", produces = { "application/json+geo",
+    @GetMapping( value = { "", ".geojson" }, produces = { "application/json+geo",
         "application/json+geojson" } )
     public void getGeoJson(
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
-        @RequestParam( value = "parent", required = false ) List<String> rpParents,
+        @OpenApi.Param( { UID[].class,
+            OrganisationUnit.class } ) @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
         @CurrentUser User currentUser, HttpServletResponse response )
         throws IOException
