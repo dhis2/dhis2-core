@@ -91,4 +91,10 @@ public class RuleEngineValidators implements Validators
     {
         return Collections.emptyList();
     }
+
+    @Override
+    public List<Validator<TrackerBundle>> getBundleValidators()
+    {
+        return Collections.emptyList();
+    }
 }
