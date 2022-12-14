@@ -30,14 +30,9 @@ package org.hisp.dhis.cacheinvalidation.redis;
 import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
 
 import java.io.Serializable;
-import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.kafka.connect.data.Field;
-import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.data.Struct;
-import org.apache.kafka.connect.source.SourceRecord;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
@@ -45,18 +40,13 @@ import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -131,12 +121,10 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
 
         if ( entity instanceof DataValue )
         {
-            log.debug( "DataValue, skipping" );
             id = getDataValueId( entity );
         }
         else if ( entity instanceof TrackedEntityAttributeValue )
         {
-            log.debug( "TrackedEntityAttributeValue, skipping" );
             id = getTrackedEntityAttributeValueId( entity );
         }
         else if ( entity instanceof CompleteDataSetRegistration )
@@ -151,8 +139,7 @@ public class PostCacheEventPublisher implements PostCommitUpdateEventListener, P
         else if ( IdentifiableObject.class.isAssignableFrom( entity.getClass() ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) entity;
-            long longId = identifiableObject.getId();
-            id = Long.toString( longId );
+            id = identifiableObject.getId();
         }
 
         String op = operation.name().toLowerCase();
