@@ -55,11 +55,16 @@ public class HttpBasicAuth extends Auth
     @JsonProperty( required = true )
     private String password;
 
+    public HttpBasicAuth()
+    {
+        this( "http-basic" );
+    }
+
     @JsonCreator
     public HttpBasicAuth(
         @JsonProperty( "type" ) String type )
     {
-        super( "http-basic" );
+        super( type );
     }
 
     @Override

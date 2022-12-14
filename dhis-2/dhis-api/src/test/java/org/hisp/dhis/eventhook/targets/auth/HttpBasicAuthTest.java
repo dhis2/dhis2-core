@@ -27,53 +27,29 @@
  */
 package org.hisp.dhis.eventhook.targets.auth;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.Test;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
- * for dhis2 personal access token, but can be used anywhere the format is
- * accepted.
- *
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class ApiTokenAuth extends Auth
+class HttpBasicAuthTest
 {
-    @JsonProperty( required = true )
-    private String token;
-
-    public ApiTokenAuth()
+    @Test
+    void testAuthorizationHeaderSet()
     {
-        this( "api-token" );
-    }
+        HttpBasicAuth auth = new HttpBasicAuth()
+            .setUsername( "admin" )
+            .setPassword( "district" );
 
-    @JsonCreator
-    public ApiTokenAuth(
-        @JsonProperty( "type" ) String type )
-    {
-        super( type );
-    }
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        auth.apply( headers );
 
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !StringUtils.hasText( token ) )
-        {
-            return;
-        }
-
-        headers.set( "Authorization", "ApiToken " + token );
+        assertTrue( headers.containsKey( "Authorization" ) );
+        assertFalse( headers.get( "Authorization" ).isEmpty() );
+        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
     }
 }
