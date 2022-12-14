@@ -705,7 +705,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType()
+        if ( params.isFirstOrLastOrLastInPeriodAggregationType()
             && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )

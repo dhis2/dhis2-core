@@ -1693,7 +1693,16 @@ public class DataQueryParams
      */
     public boolean isFirstOrLastPeriodAggregationType()
     {
-        return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
+        return hasAggregationType() && getAggregationType().isFirstOrLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first", "last" or "last in period" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastOrLastInPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastOrLastInPeriodAggregationType();
     }
 
     // -------------------------------------------------------------------------
