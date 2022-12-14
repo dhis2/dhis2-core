@@ -348,7 +348,10 @@ public abstract class AbstractJdbcTableManager
         {
             String viewName = view.getViewName();
 
-            String sqlCreate = "create view " + viewName + " as select * from " + table.getTempTableName()
+            // remove existing partitions before using the views
+            dropTableCascade( viewName );
+
+            String sqlCreate = "create or replace view " + viewName + " as select * from " + table.getTempTableName()
                 + " where yearly = '" + view.getYear() + "'";
 
             log.info( "Creating view: '{}'", viewName );

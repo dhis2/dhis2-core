@@ -705,7 +705,9 @@ public enum ConfigurationKey
     /**
      * Redis based cache invalidation feature. Enable or disable.
      */
-    REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false );
+    REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false ),
+
+    ANALYTICS_EXPORT_USE_VIEWS( "analytics.export.use_views", Constants.OFF, false );
 
     private final String key;
 

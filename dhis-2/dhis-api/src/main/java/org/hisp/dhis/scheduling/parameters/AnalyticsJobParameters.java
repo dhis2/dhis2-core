@@ -58,6 +58,8 @@ public class AnalyticsJobParameters
 
     private boolean skipResourceTables = false;
 
+    private boolean viewsEnabled = false;
+
     public AnalyticsJobParameters()
     {
     }
@@ -69,6 +71,16 @@ public class AnalyticsJobParameters
         this.skipTableTypes = skipTableTypes;
         this.skipPrograms = skipPrograms;
         this.skipResourceTables = skipResourceTables;
+    }
+
+    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes,
+        Set<String> skipPrograms, boolean skipResourceTables, boolean viewsEnabled )
+    {
+        this.lastYears = lastYears;
+        this.skipTableTypes = skipTableTypes;
+        this.skipPrograms = skipPrograms;
+        this.skipResourceTables = skipResourceTables;
+        this.viewsEnabled = viewsEnabled;
     }
 
     @JsonProperty
@@ -119,6 +131,18 @@ public class AnalyticsJobParameters
     public void setSkipResourceTables( boolean skipResourceTables )
     {
         this.skipResourceTables = skipResourceTables;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isViewsEnabled()
+    {
+        return viewsEnabled;
+    }
+
+    public void setViewsEnabled( boolean viewsEnabled )
+    {
+        this.viewsEnabled = viewsEnabled;
     }
 
     @Override
