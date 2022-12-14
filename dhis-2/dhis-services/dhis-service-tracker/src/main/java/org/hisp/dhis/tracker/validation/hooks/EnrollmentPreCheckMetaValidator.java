@@ -27,57 +27,28 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.trackedEntityInstanceExist;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckMetaValidationHook
-    implements TrackerValidationHook
+public class EnrollmentPreCheckMetaValidator
+    implements Validator<Enrollment>
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
-        if ( organisationUnit == null )
-        {
-            reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
-        }
-
-        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
-        if ( entityType == null )
-        {
-            reporter.addError( tei, E1005, tei.getTrackedEntityType() );
-        }
-    }
-
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
@@ -91,32 +62,8 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
-
-        Program program = bundle.getPreheat().getProgram( event.getProgram() );
-        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
-
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
-
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
-    }
-
-    @Override
     public boolean skipOnError()
     {
         return true;
     }
-
 }

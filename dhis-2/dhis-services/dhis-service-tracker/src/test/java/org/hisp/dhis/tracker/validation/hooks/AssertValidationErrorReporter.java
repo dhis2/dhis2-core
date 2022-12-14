@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerType;
@@ -35,6 +36,19 @@ import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 
 public class AssertValidationErrorReporter
 {
+    private AssertValidationErrorReporter()
+    {
+        throw new IllegalStateException( "utility class" );
+    }
+
+    public static void assertMissingProperty( ValidationErrorReporter reporter, TrackerType type, String entity,
+        String uid,
+        String property,
+        TrackerErrorCode errorCode )
+    {
+        assertHasError( reporter.getErrors(), errorCode, type, uid,
+            "Missing required " + entity + " property: `" + property + "`." );
+    }
 
     public static void hasTrackerError( ValidationErrorReporter reporter, TrackerErrorCode code, TrackerType type,
         String uid )

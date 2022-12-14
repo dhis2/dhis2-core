@@ -25,30 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+public class TrackedEntityPreCheckMetaValidator
+    implements Validator<TrackedEntity>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
+        if ( organisationUnit == null )
+        {
+            reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
+        }
+
+        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
+        if ( entityType == null )
+        {
+            reporter.addError( tei, E1005, tei.getTrackedEntityType() );
+        }
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean skipOnError()
     {
-        return false;
+        return true;
     }
 }

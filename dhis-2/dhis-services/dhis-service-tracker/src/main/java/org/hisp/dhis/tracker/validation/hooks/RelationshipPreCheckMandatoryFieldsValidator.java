@@ -25,30 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Enrico Colasante
+ */
+@Component
+public class RelationshipPreCheckMandatoryFieldsValidator
+    implements Validator<Relationship>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
+        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
+        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
+            "relationshipType" );
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean skipOnError()
     {
-        return false;
+        return true;
     }
 }

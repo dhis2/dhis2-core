@@ -25,30 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1122;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Enrico Colasante
+ */
+@Component
+public class EnrollmentPreCheckMandatoryFieldsValidator
+    implements Validator<Enrollment>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit" );
+        reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), enrollment, E1122,
+            "trackedEntity" );
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean skipOnError()
     {
-        return false;
+        return true;
     }
 }

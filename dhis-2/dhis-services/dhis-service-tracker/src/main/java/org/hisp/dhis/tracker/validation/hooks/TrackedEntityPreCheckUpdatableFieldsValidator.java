@@ -25,30 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Enrico Colasante
+ */
+@Component
+@RequiredArgsConstructor
+public class TrackedEntityPreCheckUpdatableFieldsValidator
+    implements Validator<TrackedEntity>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter,
+        TrackerBundle bundle, TrackedEntity trackedEntity )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        TrackedEntityInstance trackedEntityInstance = bundle
+            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+
+        reporter.addErrorIf(
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            trackedEntity, E1126, "trackedEntityType" );
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return false;
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 }

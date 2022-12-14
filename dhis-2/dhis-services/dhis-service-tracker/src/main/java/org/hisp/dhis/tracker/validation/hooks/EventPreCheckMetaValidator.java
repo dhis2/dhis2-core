@@ -25,30 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+public class EventPreCheckMetaValidator
+    implements Validator<Event>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
+
+        Program program = bundle.getPreheat().getProgram( event.getProgram() );
+        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean skipOnError()
     {
-        return false;
+        return true;
     }
 }

@@ -25,30 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Enrico Colasante
+ */
+@Component
+@RequiredArgsConstructor
+public class EventPreCheckUpdatableFieldsValidator
+    implements Validator<Event>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
+        ProgramStage programStage = programStageInstance.getProgramStage();
+        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
+            "programStage" );
+        reporter.addErrorIf(
+            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            event, E1128, "enrollment" );
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return false;
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 }

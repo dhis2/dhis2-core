@@ -28,53 +28,26 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1121;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1122;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1123;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
 @Component
-public class PreCheckMandatoryFieldsValidationHook
-    implements TrackerValidationHook
+public class EventPreCheckMandatoryFieldsValidator
+    implements Validator<Event>
 {
-    private static final String ORG_UNIT = "orgUnit";
-
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        reporter.addErrorIf( () -> trackedEntity.getTrackedEntityType().isBlank(), trackedEntity, E1121,
-            "trackedEntityType" );
-        reporter.addErrorIf( () -> trackedEntity.getOrgUnit().isBlank(), trackedEntity, E1121, ORG_UNIT );
-    }
-
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, ORG_UNIT );
-        reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
-        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), enrollment, E1122,
-            "trackedEntity" );
-    }
-
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, ORG_UNIT );
+        reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit" );
         reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed
@@ -97,16 +70,6 @@ public class PreCheckMandatoryFieldsValidationHook
         }
 
         reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
-        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
-        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
-            "relationshipType" );
     }
 
     @Override
