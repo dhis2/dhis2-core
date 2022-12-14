@@ -25,14 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.Test;
 
 /**
+ * Tests the {@link EventHookController} using (mocked) REST requests.
+ *
  * @author Morten Olav Hansen
  */
-public interface EventHookStore
-    extends IdentifiableObjectStore<EventHook>
+class EventHookControllerTest extends DhisControllerIntegrationTest
 {
+    @Test
+    void testGetEventHooks()
+    {
+        JsonObject eventHooks = GET( "/eventHooks" ).content( HttpStatus.OK );
+        assertTrue( eventHooks.isObject() );
+        assertTrue( eventHooks.has( "eventHooks" ) );
+        assertTrue( eventHooks.get( "eventHooks" ).isArray() );
+        assertTrue( eventHooks.get( "eventHooks" ).asList( JsonObject.class ).isEmpty() );
+    }
 }

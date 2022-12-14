@@ -33,7 +33,7 @@
 
         <property name="source" type="jblEventHookSource" column="source" not-null="true" />
 
-        <property name="targets" type="jblEventHookTargets" column="target" not-null="true" />
+        <property name="targets" type="jblEventHookTargets" column="targets" not-null="true" />
 
     </class>
 

@@ -37,7 +37,6 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -67,7 +66,7 @@ public class EventHookListener
 
     private final List<EventHook> eventHooks = new ArrayList<>();
 
-    private final IdentifiableObjectManager manager;
+    private final EventHookService eventHookService;
 
     @Async
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
@@ -108,7 +107,7 @@ public class EventHookListener
         eventHooks.clear();
         targets.clear();
 
-        eventHooks.addAll( manager.getAll( EventHook.class ) );
+        eventHooks.addAll( eventHookService.getAll() );
 
         eventHooks.forEach( eh -> {
             targets.put( eh.getUid(), new ArrayList<>() );

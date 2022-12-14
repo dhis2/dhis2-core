@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen
@@ -39,4 +44,11 @@ import org.springframework.stereotype.Service;
 public class EventHookService
 {
     private final EventHookStore eventHookStore;
+
+    @Nonnull
+    @Transactional( readOnly = true )
+    public List<EventHook> getAll()
+    {
+        return eventHookStore.getAll();
+    }
 }

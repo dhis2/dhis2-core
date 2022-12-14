@@ -62,10 +62,15 @@ public class WebhookTarget extends Target
     @JsonProperty
     private Auth auth;
 
+    public WebhookTarget()
+    {
+        this( "webhook" );
+    }
+
     @JsonCreator
     public WebhookTarget(
         @JsonProperty( "type" ) String type )
     {
-        super( "webhook" );
+        super( type );
     }
 }
