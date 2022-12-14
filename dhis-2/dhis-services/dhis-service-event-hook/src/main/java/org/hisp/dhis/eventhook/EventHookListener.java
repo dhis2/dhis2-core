@@ -42,6 +42,7 @@ import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -68,6 +69,7 @@ public class EventHookListener
 
     private final IdentifiableObjectManager manager;
 
+    @Async
     @TransactionalEventListener( classes = Event.class, phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true )
     public void eventListener( Event event )
         throws EventHookException,
