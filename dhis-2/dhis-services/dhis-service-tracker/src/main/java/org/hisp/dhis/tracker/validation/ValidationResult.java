@@ -35,9 +35,6 @@ import java.util.function.Predicate;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @ToString
 @EqualsAndHashCode
 public class ValidationResult
@@ -51,10 +48,6 @@ public class ValidationResult
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
     }
-
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
 
     public void addValidationResult( ValidationResult report )
     {

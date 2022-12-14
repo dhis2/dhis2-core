@@ -39,40 +39,40 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 @RequiredArgsConstructor
 public class Warning implements Validation
 {
-    private final String warningMessage;
+    private final String message;
 
-    private final TrackerErrorCode warningCode;
+    private final TrackerErrorCode code;
 
-    private final TrackerType trackerType;
+    private final TrackerType type;
 
     private final String uid;
 
     public TrackerErrorCode getWarningCode()
     {
-        return warningCode;
+        return code;
     }
 
     public TrackerType getTrackerType()
     {
-        return trackerType;
+        return type;
     }
 
     @Override
     public String getCode()
     {
-        return warningCode.name();
+        return code.name();
     }
 
     @Override
     public String getMessage()
     {
-        return warningMessage;
+        return message;
     }
 
     @Override
     public String getType()
     {
-        return trackerType.name();
+        return type.name();
     }
 
     @Override

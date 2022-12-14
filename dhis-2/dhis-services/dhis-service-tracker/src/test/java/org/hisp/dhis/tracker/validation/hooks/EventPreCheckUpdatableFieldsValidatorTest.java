@@ -128,7 +128,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "programStage" ) );
     }
 
     @Test
@@ -140,7 +140,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, event );
 
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "enrollment" ) );
     }
 
     private Event validEvent()

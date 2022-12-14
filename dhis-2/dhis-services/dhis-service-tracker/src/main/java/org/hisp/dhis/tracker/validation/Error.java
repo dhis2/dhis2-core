@@ -39,40 +39,40 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 @RequiredArgsConstructor
 public class Error implements Validation
 {
-    private final String errorMessage;
+    private final String message;
 
-    private final TrackerErrorCode errorCode;
+    private final TrackerErrorCode code;
 
-    private final TrackerType trackerType;
+    private final TrackerType type;
 
     private final String uid;
 
     public TrackerErrorCode getErrorCode()
     {
-        return errorCode;
+        return code;
     }
 
     public TrackerType getTrackerType()
     {
-        return trackerType;
+        return type;
     }
 
     @Override
     public String getCode()
     {
-        return errorCode.name();
+        return code.name();
     }
 
     @Override
     public String getMessage()
     {
-        return errorMessage;
+        return message;
     }
 
     @Override
     public String getType()
     {
-        return trackerType.name();
+        return type.name();
     }
 
     @Override

@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,13 +148,6 @@ class TrackerBundleImportReportTest
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
         TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
         Entity entity = new Entity( TRACKED_ENTITY );
-        List<Validation> errors = new ArrayList<>();
-        Validation errorReport1 = getValidation( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
-        Validation errorReport2 = getValidation( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
-            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
-        errors.add( errorReport1 );
-        errors.add( errorReport2 );
 
         entity.setIndex( 0 );
         entity.setUid( "BltTZV9HvEZ" );
