@@ -118,7 +118,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
             POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
         assertEquals( "bRNvL6NMQXb", id );
 
-        DELETE( "/eventHooks/" + id ).content( HttpStatus.OK );
+        DELETE( "/eventHooks/{id}", (Object) id ).content( HttpStatus.OK );
         GET( "/eventHooks/{id}", id ).content( HttpStatus.NOT_FOUND );
     }
 }
