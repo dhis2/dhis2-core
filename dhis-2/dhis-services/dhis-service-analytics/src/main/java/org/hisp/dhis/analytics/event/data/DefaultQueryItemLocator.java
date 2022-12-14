@@ -174,6 +174,13 @@ public class DefaultQueryItemLocator
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
 
             qi = new QueryItem( at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+
+            ProgramStage programStage = getProgramStageOrFail( dimension );
+
+            if ( programStage != null )
+            {
+                qi.setProgramStage( programStage );
+            }
         }
 
         return Optional.ofNullable( qi );
