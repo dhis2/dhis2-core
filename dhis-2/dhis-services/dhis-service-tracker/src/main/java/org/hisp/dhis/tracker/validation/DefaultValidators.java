@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckDataRelationsValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckExistenceValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckMandatoryFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckMetaValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckSecurityOwnershipValidator;
@@ -53,15 +54,18 @@ import org.hisp.dhis.tracker.validation.hooks.EventDateValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventGeoValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventNoteValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckDataRelationsValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventPreCheckExistenceValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckMandatoryFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckMetaValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckSecurityOwnershipValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventPreCheckUpdatableFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckDataRelationsValidator;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckExistenceValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMandatoryFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMetaValidator;
 import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckExistenceValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckMandatoryFieldsValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckMetaValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckSecurityOwnershipValidator;
@@ -77,6 +81,8 @@ import org.springframework.stereotype.Component;
 public class DefaultValidators implements Validators
 {
 
+    private final TrackedEntityPreCheckExistenceValidator trackedEntityPreCheckExistenceValidator;
+
     private final TrackedEntityPreCheckMandatoryFieldsValidator trackedEntityPreCheckMandatoryFieldsValidator;
 
     private final TrackedEntityPreCheckMetaValidator trackedEntityPreCheckMetaValidator;
@@ -86,6 +92,8 @@ public class DefaultValidators implements Validators
     private final TrackedEntityPreCheckSecurityOwnershipValidator trackedEntityPreCheckSecurityOwnershipValidator;
 
     private final TrackedEntityAttributeValidator attributeValidator;
+
+    private final EnrollmentPreCheckExistenceValidator enrollmentPreCheckExistenceValidator;
 
     private final EnrollmentPreCheckMandatoryFieldsValidator enrollmentPreCheckMandatoryFieldsValidator;
 
@@ -106,6 +114,8 @@ public class DefaultValidators implements Validators
     private final EnrollmentDateValidator enrollmentDateValidator;
 
     private final EnrollmentAttributeValidator enrollmentAttributeValidator;
+
+    private final EventPreCheckExistenceValidator eventPreCheckExistenceValidator;
 
     private final EventPreCheckMandatoryFieldsValidator eventPreCheckMandatoryFieldsValidator;
 
@@ -129,6 +139,8 @@ public class DefaultValidators implements Validators
 
     private final AssignedUserValidator assignedUserValidator;
 
+    private final RelationshipPreCheckExistenceValidator relationshipPreCheckExistenceValidator;
+
     private final RelationshipPreCheckMandatoryFieldsValidator relationshipPreCheckMandatoryFieldsValidator;
 
     private final RelationshipPreCheckMetaValidator relationshipPreCheckMetaValidator;
@@ -141,6 +153,7 @@ public class DefaultValidators implements Validators
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
     {
         return List.of(
+            trackedEntityPreCheckExistenceValidator,
             trackedEntityPreCheckMandatoryFieldsValidator,
             trackedEntityPreCheckMetaValidator,
             trackedEntityPreCheckUpdatableFieldsValidator,
@@ -152,6 +165,7 @@ public class DefaultValidators implements Validators
     public List<Validator<Enrollment>> getEnrollmentValidators()
     {
         return List.of(
+            enrollmentPreCheckExistenceValidator,
             enrollmentPreCheckMandatoryFieldsValidator,
             enrollmentPreCheckMetaValidator,
             enrollmentPreCheckUpdatableFieldsValidator,
@@ -168,6 +182,7 @@ public class DefaultValidators implements Validators
     public List<Validator<Event>> getEventValidators()
     {
         return List.of(
+            eventPreCheckExistenceValidator,
             eventPreCheckMandatoryFieldsValidator,
             eventPreCheckMetaValidator,
             eventPreCheckUpdatableFieldsValidator,
@@ -185,6 +200,7 @@ public class DefaultValidators implements Validators
     public List<Validator<Relationship>> getRelationshipValidators()
     {
         return List.of(
+            relationshipPreCheckExistenceValidator,
             relationshipPreCheckMandatoryFieldsValidator,
             relationshipPreCheckMetaValidator,
             relationshipPreCheckDataRelationsValidator,
