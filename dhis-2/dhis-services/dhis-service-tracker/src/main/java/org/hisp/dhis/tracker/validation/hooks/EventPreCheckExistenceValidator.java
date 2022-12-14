@@ -25,30 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
+
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@FunctionalInterface
-public interface Validator<T>
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+public class EventPreCheckExistenceValidator
+    implements Validator<Event>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
-
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        TrackerImportStrategy importStrategy = bundle.getStrategy( event );
+
+        ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+
+        // If the event is soft-deleted no operation is allowed
+        if ( existingPsi != null && existingPsi.isDeleted() )
+        {
+            reporter.addError( event, E1082, event.getEvent() );
+            return;
+        }
+
+        if ( existingPsi != null && importStrategy.isCreate() )
+        {
+            reporter.addError( event, E1030, event.getEvent() );
+        }
+        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( event, E1032, event.getEvent() );
+        }
     }
 
-    default boolean skipOnError()
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return false;
+        return true;
+    }
+
+    @Override
+    public boolean skipOnError()
+    {
+        return true;
     }
 }
