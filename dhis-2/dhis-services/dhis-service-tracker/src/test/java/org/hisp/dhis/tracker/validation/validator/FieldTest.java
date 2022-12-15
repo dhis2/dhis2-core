@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.validation.validator.Field.field;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -169,7 +169,7 @@ class FieldTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1000, ENROLLMENT, enrollment.getUid(), "wrong" );
+        assertHasError( reporter, enrollment, E1000, "wrong" );
     }
 
     @Test

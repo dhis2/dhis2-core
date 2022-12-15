@@ -29,15 +29,14 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1118;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasWarning;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -109,7 +108,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -124,7 +123,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -139,7 +138,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -155,7 +154,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1118 );
     }
 
     @Test
@@ -175,7 +174,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1118 );
     }
 
     @Test
@@ -193,11 +192,8 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
-        assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
-            TrackerType.EVENT.equals( r.getTrackerType() ) &&
-            event.getUid().equals( r.getUid() ) ) );
+        assertIsEmpty( reporter.getErrors() );
+        assertHasWarning( reporter, event, E1120 );
     }
 
     @Test
@@ -215,10 +211,7 @@ class AssignedUserValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
-        assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
-            TrackerType.EVENT.equals( r.getTrackerType() ) &&
-            event.getUid().equals( r.getUid() ) ) );
+        assertIsEmpty( reporter.getErrors() );
+        assertHasWarning( reporter, event, E1120 );
     }
 }

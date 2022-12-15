@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1015;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1016;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -144,7 +143,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -170,7 +169,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -180,10 +179,9 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getErrors().size() );
-
-        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, E1015 ) );
     }
 
     @Test
@@ -198,10 +196,9 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getErrors().size() );
-
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, E1016 ) );
     }
 
     @Test
@@ -211,7 +208,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -221,10 +218,9 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getErrors().size() );
-
-        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, E1015 ) );
     }
 
     @Test
@@ -239,9 +235,9 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getErrors().size() );
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, E1016 ) );
     }
 
     @Test
@@ -251,7 +247,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -267,9 +263,9 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getErrors().size() );
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, E1016 ) );
     }
 
     @Test
@@ -285,7 +281,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
 
     }
 

@@ -29,8 +29,9 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1083;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,13 +57,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -176,7 +175,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -205,7 +204,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -232,7 +231,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -259,7 +258,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -289,7 +288,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -324,14 +323,14 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( false );
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, ValidationCode.E1102, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1102 );
 
         when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( true );
 
         reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -362,7 +361,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -390,7 +389,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1000 );
     }
 
     @Test
@@ -419,7 +418,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1000 );
     }
 
     @Test
@@ -448,7 +447,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1083, TrackerType.EVENT, event.getUid() );
+        assertHasError( reporter, event, E1083 );
     }
 
     @Test
@@ -483,7 +482,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()

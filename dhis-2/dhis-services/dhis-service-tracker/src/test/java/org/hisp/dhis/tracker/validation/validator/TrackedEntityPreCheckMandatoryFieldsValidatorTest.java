@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -38,6 +37,7 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -91,7 +91,7 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -105,7 +105,7 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertMissingProperty( reporter, trackedEntity.getUid(), "orgUnit" );
+        assertMissingProperty( reporter, trackedEntity, "orgUnit" );
     }
 
     @Test
@@ -119,12 +119,11 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertMissingProperty( reporter, trackedEntity.getUid(), "trackedEntityType" );
+        assertMissingProperty( reporter, trackedEntity, "trackedEntityType" );
     }
 
-    private void assertMissingProperty( Reporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
     {
-        AssertValidationErrorReporter.assertMissingProperty( reporter, TRACKED_ENTITY, "tracked entity", uid, property,
-            ValidationCode.E1121 );
+        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1121, property );
     }
 }

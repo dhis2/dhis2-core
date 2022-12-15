@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1049;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -92,7 +91,7 @@ class TrackedEntityPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, tei );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -104,7 +103,7 @@ class TrackedEntityPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, tei );
 
-        hasTrackerError( reporter, E1049, TRACKED_ENTITY, tei.getUid() );
+        assertHasError( reporter, tei, E1049 );
     }
 
     @Test
@@ -116,7 +115,7 @@ class TrackedEntityPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, tei );
 
-        hasTrackerError( reporter, E1005, TRACKED_ENTITY, tei.getUid() );
+        assertHasError( reporter, tei, E1005 );
     }
 
     private TrackedEntity validTei()

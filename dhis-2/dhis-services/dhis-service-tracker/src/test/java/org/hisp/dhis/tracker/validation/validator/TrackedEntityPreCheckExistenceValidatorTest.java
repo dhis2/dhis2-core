@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1002;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1063;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1114;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +91,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -105,7 +104,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -119,7 +118,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -133,7 +132,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1114, TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1114 );
     }
 
     @Test
@@ -147,7 +146,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1002, TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1002 );
     }
 
     @Test
@@ -160,7 +159,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1063, TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1063 );
     }
 
     private TrackedEntityInstance getSoftDeletedTei()
