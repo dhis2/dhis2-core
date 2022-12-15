@@ -51,10 +51,10 @@ public class AnalyticsExportSettings
 
     /**
      * Returns the respective string that represents the table type to be
-     * exported. Two types are supported: UNLOGGED and DEFAULT. See
+     * exported. Two types are supported: UNLOGGED and EMPTY. See
      * {@link AnalyticsTableType}
      *
-     * @return the string representation of {@link AnalyticsTableType}.
+     * @return the string representation of the type
      */
     public String getTableType()
     {

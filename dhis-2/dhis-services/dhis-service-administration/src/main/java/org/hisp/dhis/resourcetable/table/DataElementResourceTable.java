@@ -65,16 +65,16 @@ public class DataElementResourceTable
     public String getCreateTempTableStatement()
     {
         return "create " + tableType + " table " + getTempTableName() + " (" +
-            "dataelementid BIGINT NOT NULL PRIMARY KEY, " +
-            "dataelementuid CHARACTER(11), " +
-            "dataelementname VARCHAR(230), " +
-            "datasetid BIGINT, " +
-            "datasetuid CHARACTER(11), " +
-            "datasetname VARCHAR(230), " +
-            "datasetapprovallevel INTEGER, " +
-            "workflowid BIGINT, " +
-            "periodtypeid INTEGER, " +
-            "periodtypename VARCHAR(230))";
+            "dataelementid bigint not null primary key, " +
+            "dataelementuid character(11), " +
+            "dataelementname varchar(230), " +
+            "datasetid bigint, " +
+            "datasetuid character(11), " +
+            "datasetname varchar(230), " +
+            "datasetapprovallevel integer, " +
+            "workflowid bigint, " +
+            "periodtypeid integer, " +
+            "periodtypename varchar(230))";
     }
 
     @Override
