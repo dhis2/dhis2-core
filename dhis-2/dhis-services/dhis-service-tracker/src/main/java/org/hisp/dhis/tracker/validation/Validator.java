@@ -29,10 +29,9 @@ package org.hisp.dhis.tracker.validation;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 
 @FunctionalInterface
-public interface Validator<T extends TrackerDto>
+public interface Validator<T>
 {
     /**
      * Validates given input and adds errors and warnings to {@code reporter}.
