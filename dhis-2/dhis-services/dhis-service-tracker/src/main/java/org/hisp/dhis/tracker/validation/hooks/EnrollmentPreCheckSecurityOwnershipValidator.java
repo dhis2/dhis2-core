@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
@@ -189,7 +189,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1000, user, orgUnit );
+            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
         }
     }
 
@@ -206,14 +206,14 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1104, user, program, program.getTrackedEntityType() );
+            reporter.addError( dto, ValidationCode.E1104, user, program, program.getTrackedEntityType() );
         }
 
         if ( ownerOrganisationUnit != null
             && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
         }
     }
 
@@ -249,7 +249,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1091, user, program );
+            reporter.addError( dto, ValidationCode.E1091, user, program );
         }
     }
 }

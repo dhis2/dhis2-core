@@ -33,13 +33,13 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4010;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4013;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4010;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4013;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4014;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -62,7 +62,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,7 +140,7 @@ class RelationshipsValidatorTest
         validator.validate( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4001 ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorCode(), is( ValidationCode.E4001 ) );
         assertThat( reporter.getErrors().get( 0 ).getMessage(), is(
             "Relationship Item `from` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." ) );
     }

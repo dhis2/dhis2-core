@@ -35,26 +35,26 @@ import java.util.Objects;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.Error;
 import org.hisp.dhis.tracker.validation.Validation;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationResult;
 
 public class AssertTrackerValidationReport
 {
 
-    public static void assertHasError( ValidationResult report, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasError( ValidationResult report, ValidationCode code, TrackerDto dto )
     {
         assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void assertHasError( ValidationResult report, TrackerErrorCode code, TrackerType type,
+    public static void assertHasError( ValidationResult report, ValidationCode code, TrackerType type,
         String uid )
     {
         assertHasError( report.getErrors(), code, type, uid );
     }
 
-    public static void assertHasError( List<Validation> errors, TrackerErrorCode code, TrackerType type,
+    public static void assertHasError( List<Validation> errors, ValidationCode code, TrackerType type,
         String uid )
     {
         assertNotEmpty( errors );
@@ -65,7 +65,7 @@ public class AssertTrackerValidationReport
                 type, uid, errors ) );
     }
 
-    public static void assertHasError( List<Error> errors, TrackerErrorCode code, TrackerType type,
+    public static void assertHasError( List<Error> errors, ValidationCode code, TrackerType type,
         String uid, String messageContains )
     {
         assertNotEmpty( errors );
@@ -78,12 +78,12 @@ public class AssertTrackerValidationReport
                 type, uid, messageContains, errors ) );
     }
 
-    public static void assertHasWarning( ValidationResult result, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasWarning( ValidationResult result, ValidationCode code, TrackerDto dto )
     {
         assertHasWarning( result, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void assertHasWarning( ValidationResult result, TrackerErrorCode code, TrackerType type,
+    public static void assertHasWarning( ValidationResult result, ValidationCode code, TrackerType type,
         String uid )
     {
         assertTrue( result.hasWarnings(), "warning not found since report has no warnings" );

@@ -40,7 +40,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -154,7 +154,7 @@ class RelationshipPreCheckMandatoryFieldsValidatorTest
     private void assertMissingProperty( ValidationErrorReporter reporter, String uid, String property )
     {
         AssertValidationErrorReporter.assertMissingProperty( reporter, RELATIONSHIP, "relationship", uid, property,
-            TrackerErrorCode.E1124 );
+            ValidationCode.E1124 );
     }
 
     private String trackedEntity()

@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1049;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1049;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;

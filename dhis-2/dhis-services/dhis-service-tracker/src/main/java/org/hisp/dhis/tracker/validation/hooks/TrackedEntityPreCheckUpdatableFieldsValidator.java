@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
 
 import lombok.RequiredArgsConstructor;
 

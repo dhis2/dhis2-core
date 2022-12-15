@@ -28,11 +28,11 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1006;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1009;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1076;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1084;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateOptionSet;
 
