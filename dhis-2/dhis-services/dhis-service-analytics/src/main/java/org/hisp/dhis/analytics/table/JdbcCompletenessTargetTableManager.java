@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -168,6 +169,12 @@ public class JdbcCompletenessTargetTableManager
             "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    }
+
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

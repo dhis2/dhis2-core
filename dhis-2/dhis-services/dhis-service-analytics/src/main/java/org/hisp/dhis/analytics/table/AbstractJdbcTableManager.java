@@ -57,6 +57,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -196,7 +197,7 @@ public abstract class AbstractJdbcTableManager
         log.info( "Swapping table, master table exists: '{}', skip master table: '{}'", tableExists,
             skipMasterTable );
 
-        table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
+        table.getTablePartitions().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
         if ( !skipMasterTable )
         {
@@ -204,9 +205,30 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            table.getTablePartitions().stream()
-                .forEach( p -> swapInheritance( p.getTableName(), table.getTempTableName(), table.getTableName() ) );
-            dropTempTable( table );
+            if ( table.hasPartitionTables() )
+            {
+                table.getTablePartitions()
+                    .forEach(
+                        p -> swapInheritance(
+                            p.getTableName(),
+                            table.getTempTableName(),
+                            table.getTableName() ) );
+                dropTempTable( table );
+            }
+        }
+
+        // if table has views, then swapping
+        // means moving data from temp table into master and
+        // dropping master
+        if ( table.hasViews() )
+        {
+            String tableName = table.getTableName();
+            String tempTableName = table.getTempTableName();
+            String[] sqlSteps = {
+                "insert into " + tableName + " select * from " + tempTableName,
+                "drop table " + tempTableName
+            };
+            executeSafely( sqlSteps, true );
         }
     }
 
@@ -249,6 +271,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void populateTableViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        populateViews( params, view );
+    }
+
+    @Override
     public int invokeAnalyticsTableSqlHooks()
     {
         AnalyticsTableType type = getAnalyticsTableType();
@@ -277,6 +305,14 @@ public abstract class AbstractJdbcTableManager
      * @param partition the {@link AnalyticsTablePartition} to populate.
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
+
+    /**
+     * Populates the given analytics table view.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param view the {@link AnalyticsTablePartition} to populate.
+     */
+    protected abstract void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view );
 
     /**
      * Indicates whether data was created or updated for the given time range
@@ -435,8 +471,8 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with views based on a list of years with
-     * data.
+     * Creates a {@link AnalyticsTable} with partitions or views based on a list
+     * of years with data.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
@@ -453,7 +489,16 @@ public abstract class AbstractJdbcTableManager
 
         for ( Integer year : dataYears )
         {
-            table.addView( year );
+            if ( params.isViewsEnabled() )
+            {
+                table.addView( year );
+            }
+            else
+            {
+                Calendar calendar = PeriodType.getCalendar();
+                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
+                    PartitionUtils.getEndDate( calendar, year ) );
+            }
         }
 
         return table;

@@ -67,6 +67,7 @@ public class AnalyticsTableJob implements Job
             .withSkipPrograms( parameters.getSkipPrograms() )
             .withJobId( jobConfiguration )
             .withStartTime( new Date() )
+            .withViewsEnabled( parameters.isViewsEnabled() )
             .build();
 
         analyticsTableGenerator.generateTables( params, progress );

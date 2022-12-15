@@ -128,6 +128,9 @@ public interface AnalyticsTableManager
     void populateTablePartition( AnalyticsTableUpdateParams params,
         AnalyticsTablePartition partition );
 
+    void populateTableViews( AnalyticsTableUpdateParams params,
+        AnalyticsTableView view );
+
     /**
      * Invokes analytics table SQL hooks for the table type.
      *

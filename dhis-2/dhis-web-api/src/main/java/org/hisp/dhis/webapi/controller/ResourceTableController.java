@@ -114,8 +114,7 @@ public class ResourceTableController
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms, skipResourceTables,
-            useViews() );
+            skipPrograms, skipResourceTables, useViews() );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );

@@ -34,6 +34,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -47,6 +49,7 @@ import com.google.common.base.MoreObjects;
  *
  * @author Lars Helge Overland
  */
+@Getter
 public class AnalyticsTableUpdateParams
 {
     /**
@@ -90,48 +93,11 @@ public class AnalyticsTableUpdateParams
      */
     private Date today;
 
+    private boolean viewsEnabled;
+
     private AnalyticsTableUpdateParams()
     {
         this.startTime = new Date();
-    }
-
-    // -------------------------------------------------------------------------
-    // Get methods
-    // -------------------------------------------------------------------------
-
-    public Integer getLastYears()
-    {
-        return lastYears;
-    }
-
-    public boolean isSkipResourceTables()
-    {
-        return skipResourceTables;
-    }
-
-    public Set<AnalyticsTableType> getSkipTableTypes()
-    {
-        return skipTableTypes;
-    }
-
-    public Set<String> getSkipPrograms()
-    {
-        return skipPrograms;
-    }
-
-    public JobConfiguration getJobId()
-    {
-        return jobId;
-    }
-
-    public Date getStartTime()
-    {
-        return startTime;
-    }
-
-    public Date getLastSuccessfulUpdate()
-    {
-        return lastSuccessfulUpdate;
     }
 
     public boolean isSkipPrograms()
@@ -215,6 +181,7 @@ public class AnalyticsTableUpdateParams
         params.jobId = this.jobId;
         params.startTime = this.startTime;
         params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
+        params.viewsEnabled = this.viewsEnabled;
 
         return this;
     }
@@ -303,6 +270,12 @@ public class AnalyticsTableUpdateParams
         {
 
             this.params.today = date;
+            return this;
+        }
+
+        public Builder withViewsEnabled( boolean viewsEnabled )
+        {
+            this.params.viewsEnabled = viewsEnabled;
             return this;
         }
 

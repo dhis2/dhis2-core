@@ -63,9 +63,11 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -74,6 +76,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
@@ -86,6 +89,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -114,7 +118,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -223,7 +227,16 @@ public class JdbcEventAnalyticsTableManager
 
             for ( Integer year : dataYears )
             {
-                table.addView( year );
+                if ( !params.isViewsEnabled() )
+                {
+                    Calendar calendar = PeriodType.getCalendar();
+                    table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
+                        PartitionUtils.getEndDate( calendar, year ) );
+                }
+                else
+                {
+                    table.addView( year );
+                }
             }
 
             if ( table.hasPartitionTables() || table.hasViews() )
@@ -350,8 +363,10 @@ public class JdbcEventAnalyticsTableManager
     {
         Program program = partition.getMasterTable().getProgram();
         String start = DateUtils.getLongDateString( partition.getStartDate() );
+        String end = DateUtils.getLongDateString( partition.getEndDate() );
         String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
-            : "";
+            : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
+                + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
@@ -379,6 +394,44 @@ public class JdbcEventAnalyticsTableManager
             "and psi.deleted is false ";
 
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
+    }
+
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        Program program = view.getMasterTable().getProgram();
+        Calendar calendar = PeriodType.getCalendar();
+        String start = DateUtils.getLongDateString( PartitionUtils.getStartDate( calendar, view.getYear() ) );
+        String end = DateUtils.getLongDateString( PartitionUtils.getEndDate( calendar, view.getYear() ) );
+        String viewClause = "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
+            + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
+
+        String fromClause = "from programstageinstance psi " +
+            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
+            "inner join programstage ps on psi.programstageid=ps.programstageid " +
+            "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
+            "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "and tei.deleted is false " +
+            "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid " +
+            "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
+            "and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" +
+            "=ougs.startdate or ougs.startdate is null) " +
+            "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid " +
+            "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + viewClause +
+            "and pr.programid=" + program.getId() + " " +
+            "and psi.organisationunitid is not null " +
+            "and (" + getDateLinkedToStatus() + ") is not null " +
+            "and dps.year >= " + FIRST_YEAR_SUPPORTED + " " +
+            "and dps.year <= " + LATEST_YEAR_SUPPORTED + " " +
+            "and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
+            "and psi.deleted is false ";
+
+        populateViewInternal( view, getDimensionColumns( program ), fromClause );
     }
 
     /**

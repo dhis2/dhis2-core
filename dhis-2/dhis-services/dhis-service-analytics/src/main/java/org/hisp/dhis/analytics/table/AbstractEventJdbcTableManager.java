@@ -39,6 +39,8 @@ import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
@@ -190,6 +192,42 @@ public abstract class AbstractEventJdbcTableManager
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
+    /**
+     * Populates the given analytics table view using the given columns and join
+     * statement.
+     *
+     * @param view the {@link AnalyticsTablePartition}.
+     * @param columns the list of {@link AnalyticsTableColumn}.
+     * @param fromClause the SQL from clause.
+     */
+    protected void populateViewInternal( AnalyticsTableView view, List<AnalyticsTableColumn> columns,
+        String fromClause )
+    {
+        String tableName = view.getMasterTable().getTempTableName();
+
+        String sql = "insert into " + view.getMasterTable().getTempTableName() + " (";
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + " ";
+
+        sql += fromClause;
+
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    }
+
     protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -213,4 +251,11 @@ public abstract class AbstractEventJdbcTableManager
 
         return columns;
     }
+
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        // empty implementation to avoid implementing where not needed
+    }
+
 }

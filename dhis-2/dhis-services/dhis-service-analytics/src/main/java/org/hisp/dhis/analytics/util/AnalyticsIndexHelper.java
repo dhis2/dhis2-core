@@ -37,10 +37,12 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.RegExUtils;
 import org.hisp.dhis.analytics.AnalyticsIndex;
+import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -68,28 +70,50 @@ public class AnalyticsIndexHelper
      * @param partitions the list of {@link AnalyticsTablePartition}.
      * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
      */
-    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTablePartition> partitions )
+    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTable> tables )
     {
         List<AnalyticsIndex> indexes = new ArrayList<>();
 
-        for ( AnalyticsTablePartition partition : partitions )
+        for ( AnalyticsTable table : tables )
         {
-            List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-
-            for ( AnalyticsTableColumn col : columns )
+            if ( !table.hasPartitionTables() )
             {
-                if ( !col.isSkipIndex() )
+                indexes.addAll( getIndexes( table, table.getTempTableName() ) );
+            }
+            else
+            {
+                for ( AnalyticsTablePartition partition : table.getTablePartitions() )
                 {
-                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
-                        : Lists.newArrayList( col.getName() );
-
-                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
-
-                    maybeAddTextLowerIndex( indexes, partition.getTempTableName(), col, indexColumns );
+                    indexes.addAll( getIndexes( partition.getMasterTable(), partition.getTempTableName() ) );
                 }
+
             }
         }
 
+        return indexes;
+    }
+
+    private static List<AnalyticsTableColumn> getColumns( AnalyticsTable table )
+    {
+        return table.getDimensionColumns();
+    }
+
+    private static Collection<AnalyticsIndex> getIndexes( AnalyticsTable analyticsTable, String tableName )
+    {
+        List<AnalyticsIndex> indexes = new ArrayList<>();
+
+        for ( AnalyticsTableColumn col : getColumns( analyticsTable ) )
+        {
+            if ( !col.isSkipIndex() )
+            {
+                List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
+                    : Lists.newArrayList( col.getName() );
+
+                indexes.add( new AnalyticsIndex( tableName, indexColumns, col.getIndexType() ) );
+
+                maybeAddTextLowerIndex( indexes, tableName, col, indexColumns );
+            }
+        }
         return indexes;
     }
 

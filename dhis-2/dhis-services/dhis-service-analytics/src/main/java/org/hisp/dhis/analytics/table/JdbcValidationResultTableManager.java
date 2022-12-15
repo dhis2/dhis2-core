@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
@@ -173,7 +174,53 @@ public class JdbcValidationResultTableManager
 
         select = select.replace( "organisationunitid", "sourceid" );
 
-        String partitionClause = partition.getYear() != null ? "and ps.year = " + partition.getYear() : "";
+        select += "vrs.created as value " +
+            "from validationresult vrs " +
+            "inner join period pe on vrs.periodid=pe.periodid " +
+            "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
+            "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
+            "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
+            "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
+            "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "where ps.year = " + partition.getYear() + " " +
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and vrs.created is not null";
+
+        String sql = insert + select;
+
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    }
+
+    @Override
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        String tableName = view.getMasterTable().getTempTableName();
+
+        String insert = "insert into " + view.getMasterTable().getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = view.getMasterTable().getDimensionColumns();
+        List<AnalyticsTableColumn> values = view.getMasterTable().getValueColumns();
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
+        {
+            insert += col.getName() + ",";
+        }
+
+        insert = TextUtils.removeLastComma( insert ) + ") ";
+
+        String select = "select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            select += col.getAlias() + ",";
+        }
+
+        // Database legacy fix
+
+        select = select.replace( "organisationunitid", "sourceid" );
 
         select += "vrs.created as value " +
             "from validationresult vrs " +
@@ -184,8 +231,9 @@ public class JdbcValidationResultTableManager
             "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "where vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and vrs.created is not null " + partitionClause;
+            "where ps.year = " + view.getYear() + " " +
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and vrs.created is not null";
 
         String sql = insert + select;
 
