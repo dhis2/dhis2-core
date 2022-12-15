@@ -36,6 +36,7 @@ import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -50,6 +51,7 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -204,13 +206,15 @@ public class DefaultEventQueryPlanner
         {
             for ( QueryItem item : params.getItemsAndItemFilters() )
             {
-                System.out.println( "ITEM AGG TYPE " + item.getAggregationType() );
+                AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull(
+                    params.getAggregationType(), fromAggregationType( item.getAggregationType() ) );
+                System.out.println( "AGG TYPE " + aggregationType );
 
                 EventQueryParams.Builder query = new EventQueryParams.Builder( params )
                     .removeItems()
                     .removeItemProgramIndicators()
                     .withValue( item.getItem() )
-                    .withAggregationType( fromAggregationType( item.getAggregationType() ) );
+                    .withAggregationType( aggregationType );
 
                 if ( item.hasProgram() )
                 {
