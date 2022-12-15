@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -77,6 +78,9 @@ public class JdbcAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -89,7 +93,7 @@ public class JdbcAnalyticsTableManagerTest
             mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
-            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate );
+            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate, analyticsExportSettings );
     }
 
     @Test

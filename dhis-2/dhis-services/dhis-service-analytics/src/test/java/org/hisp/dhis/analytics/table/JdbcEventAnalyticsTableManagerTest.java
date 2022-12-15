@@ -66,6 +66,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -139,6 +140,9 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -169,7 +173,7 @@ public class JdbcEventAnalyticsTableManagerTest
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo,
-            jdbcTemplate );
+            jdbcTemplate, analyticsExportSettings );
     }
 
     @Test

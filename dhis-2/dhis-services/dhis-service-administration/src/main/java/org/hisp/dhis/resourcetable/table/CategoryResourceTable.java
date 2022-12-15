@@ -46,12 +46,15 @@ import com.google.common.collect.Lists;
 public class CategoryResourceTable
     extends ResourceTable<Category>
 {
-    private List<CategoryOptionGroupSet> groupSets;
+    private final List<CategoryOptionGroupSet> groupSets;
 
-    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets )
+    private final String tableType;
+
+    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets, String tableType )
     {
         super( objects );
         this.groupSets = groupSets;
+        this.tableType = tableType;
     }
 
     @Override
@@ -65,7 +68,7 @@ public class CategoryResourceTable
     {
         UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
 
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "categoryoptioncomboid bigint not null, " +
             "categoryoptioncomboname varchar(255), ";
 
