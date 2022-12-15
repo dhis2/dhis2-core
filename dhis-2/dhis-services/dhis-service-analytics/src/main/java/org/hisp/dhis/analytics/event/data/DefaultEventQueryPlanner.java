@@ -208,7 +208,6 @@ public class DefaultEventQueryPlanner
             {
                 AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull(
                     params.getAggregationType(), fromAggregationType( item.getAggregationType() ) );
-                System.out.println( "AGG TYPE " + aggregationType );
 
                 EventQueryParams.Builder query = new EventQueryParams.Builder( params )
                     .removeItems()
