@@ -92,7 +92,7 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        EnrollmentParams trackedEntityInstanceParams = map( fields );
+        EnrollmentParams enrollmentParams = map( fields );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
@@ -114,7 +114,7 @@ public class TrackerEnrollmentsExportController
             Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, trackedEntityInstanceParams ) )
+                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
                     .collect( Collectors.toList() )
                 : Collections.emptyList();
         }
@@ -131,10 +131,10 @@ public class TrackerEnrollmentsExportController
         throws NotFoundException
     {
 
-        EnrollmentParams trackedEntityInstanceParams = map( fields );
+        EnrollmentParams enrollmentParams = map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( id, trackedEntityInstanceParams ) );
+            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
         if ( enrollment == null )
         {
             throw new NotFoundException( "Enrollment", id );
