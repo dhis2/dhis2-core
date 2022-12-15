@@ -34,7 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityCategoryNoOptions extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "categories_no_options";
 

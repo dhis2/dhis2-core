@@ -40,7 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOptionSetUnusedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "options_sets_unused";
 
@@ -80,9 +80,9 @@ class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
         JsonList<JsonOptionSet> myOptionSets = content.getList( "optionSets", JsonOptionSet.class );
         assertEquals( 1, myOptionSets.size() );
         JsonOptionSet myOptionSet = myOptionSets.get( 0 );
-        assertEquals( myOptionSet.getId(), goodOptionSet );
+        assertEquals( goodOptionSet, myOptionSet.getId() );
         JsonList<JsonOption> optionSetOptions = myOptionSet.getOptions();
-        assertEquals( optionSetOptions.size(), 2 );
+        assertEquals( 2, optionSetOptions.size() );
 
         assertHasDataIntegrityIssues( "option_sets", check, 100, goodOptionSet, "Taste", null,
             true );
@@ -123,9 +123,9 @@ class DataIntegrityOptionSetUnused extends AbstractDataIntegrityIntegrationTest
 
         JsonObject content = GET( "/dataElements/?fields=id,name,optionSet" ).content();
         JsonList<JsonDataElement> testDataElementJSON = content.getList( "dataElements", JsonDataElement.class );
-        assertEquals( testDataElementJSON.size(), 1 );
-        assertEquals( testDataElementJSON.get( 0 ).getName(), "Candy" );
-        assertEquals( testDataElementJSON.get( 0 ).getOptionSet().getId(), goodOptionSet );
+        assertEquals( 1, testDataElementJSON.size() );
+        assertEquals( "Candy", testDataElementJSON.get( 0 ).getName() );
+        assertEquals( goodOptionSet, testDataElementJSON.get( 0 ).getOptionSet().getId() );
 
         assertHasNoDataIntegrityIssues( "option_sets", check, true );
 

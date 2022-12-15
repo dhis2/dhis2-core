@@ -97,7 +97,7 @@ class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrit
         Map mpA = new Map( "MapA", null, 0d, 0d, 0 );
         mpA.setUid( BASE_UID );
         mpA.getMapViews().add( mvA );
-        long id = mappingService.addMap( mpA );
+        mappingService.addMap( mpA );
 
     }
 }

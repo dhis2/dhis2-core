@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
@@ -87,9 +86,8 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
             .content();
         JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
         assertEquals( myOptionSet.getId(), goodOptionSet );
-        JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
-        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() )
+        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
             .collect( Collectors.toSet() );
         Set<Integer> expectedSortOrders = Set.of( 1, 4 );
         assertEquals( expectedSortOrders, sortOrders );
@@ -127,9 +125,8 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
             .content();
         JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
         assertEquals( myOptionSet.getId(), goodOptionSet );
-        JsonList<JsonOption> optionSetOptions = content.getList( "options", JsonOption.class );
 
-        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( e -> e.getSortOrder() )
+        Set<Integer> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
             .collect( Collectors.toSet() );
         Set<Integer> expectedSortOrders = Set.of( 1, 2 );
         assertEquals( expectedSortOrders, sortOrders );

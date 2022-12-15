@@ -42,8 +42,14 @@ public interface JsonOption extends JsonIdentifiableObject
 
     default Integer getSortOrder()
     {
-
-        return Integer.parseInt( get( "sortOrder" ).toString() );
+        try
+        {
+            return Integer.parseInt( get( "sortOrder" ).toString() );
+        }
+        catch ( NumberFormatException e )
+        {
+            return null;
+        }
     }
 
 }

@@ -55,7 +55,7 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
     void testUnusedDashboardExist()
     {
 
-        setUp();
+        setUpDashboards();
         Date date = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
 
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, date, "TestUser", BASE_UID );
@@ -71,7 +71,7 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
     void testUsedDashboardsExist()
     {
 
-        setUp();
+        setUpDashboards();
         long millis = System.currentTimeMillis();
         Date date = new Date( millis );
 
@@ -89,7 +89,7 @@ class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIn
         assertHasNoDataIntegrityIssues( "visualizations", check, false );
     }
 
-    void setUp()
+    void setUpDashboards()
     {
         Dashboard dashboardA = new Dashboard();
         dashboardA.setName( "Test Dashboard" );
