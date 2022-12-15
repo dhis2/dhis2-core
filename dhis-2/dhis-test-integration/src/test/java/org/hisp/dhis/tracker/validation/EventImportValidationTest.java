@@ -62,7 +62,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -102,7 +101,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService
             .importTracker( fromJson( "tracker/validations/invalid_enrollment_with_valid_event.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1070, TrackerErrorCode.E5000 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1070, ValidationCode.E5000 );
     }
 
     @Test
@@ -112,7 +111,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events-with_invalid_option_value.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1125 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1125 );
     }
 
     @Test
@@ -170,8 +169,8 @@ class EventImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1099, TrackerErrorCode.E1104,
-            TrackerErrorCode.E1096, TrackerErrorCode.E1095 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1099, ValidationCode.E1104,
+            ValidationCode.E1096, ValidationCode.E1095 );
     }
 
     @Test
@@ -183,7 +182,7 @@ class EventImportValidationTest extends TrackerTest
         User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
         ImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1000 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1000 );
     }
 
     @Test
@@ -201,7 +200,7 @@ class EventImportValidationTest extends TrackerTest
 
         importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1039 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1039 );
     }
 
     @Test
@@ -218,7 +217,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_non-default-combo.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1055 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1055 );
     }
 
     @Test
@@ -228,7 +227,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_cant-find-cat-opt-combo.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1115 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1115 );
     }
 
     @Test
@@ -238,7 +237,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_cant-find-aoc-with-subset-of-cos.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1117 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1117 );
     }
 
     @Test
@@ -248,7 +247,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_cant-find-aoc-but-co-exists.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1115 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1115 );
     }
 
     @Test
@@ -258,7 +257,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_cant-find-cat-option.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1116 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1116 );
     }
 
     @Test
@@ -268,7 +267,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events-aoc-not-in-program-cc.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1054 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1054 );
     }
 
     @Test
@@ -278,7 +277,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events-aoc-and-co-dont-match.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1117 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1117 );
     }
 
     @Test
@@ -288,7 +287,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_cant-find-cat-option-combo-for-given-cc-and-co.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1117 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1117 );
     }
 
     @Test
@@ -298,7 +297,7 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( fromJson(
             "tracker/validations/events_combo-date-wrong.json" ) );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1056, TrackerErrorCode.E1057 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1056, ValidationCode.E1057 );
     }
 
     @Test
@@ -374,7 +373,7 @@ class EventImportValidationTest extends TrackerTest
         // When
         ImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1082 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1082 );
     }
 
     @Test

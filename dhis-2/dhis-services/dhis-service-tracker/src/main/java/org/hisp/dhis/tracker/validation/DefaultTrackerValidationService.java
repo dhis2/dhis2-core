@@ -41,8 +41,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.Timing;
-import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -64,20 +62,20 @@ public class DefaultTrackerValidationService
     private final Validators ruleEngineValidators;
 
     @Override
-    public ValidationReport validate( TrackerBundle bundle )
+    public ValidationResult validate( TrackerBundle bundle )
     {
         return validate( bundle, validators );
     }
 
     @Override
-    public ValidationReport validateRuleEngine( TrackerBundle bundle )
+    public ValidationResult validateRuleEngine( TrackerBundle bundle )
     {
         return validate( bundle, ruleEngineValidators );
     }
 
-    private ValidationReport validate( TrackerBundle bundle, Validators validators )
+    private ValidationResult validate( TrackerBundle bundle, Validators validators )
     {
-        ValidationReport validationReport = new ValidationReport();
+        ValidationResult validationResult = new ValidationResult();
 
         User user = bundle.getUser();
 
@@ -85,7 +83,7 @@ public class DefaultTrackerValidationService
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return validationReport;
+            return validationResult;
         }
 
         // Note that the bundle gets cloned internally, so the original bundle
@@ -105,9 +103,6 @@ public class DefaultTrackerValidationService
         {
             // exit early when in FAIL_FAST validation mode
         }
-        validationReport
-            .addErrors( reporter.getErrors() )
-            .addWarnings( reporter.getWarnings() );
 
         PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(),
             bundle.getImportStrategy() );
@@ -117,9 +112,9 @@ public class DefaultTrackerValidationService
         bundle.setEvents( persistables.getEvents() );
         bundle.setRelationships( persistables.getRelationships() );
 
-        validationReport.addErrors( persistables.getErrors() );
+        reporter.getErrors().addAll( persistables.getErrors() );
 
-        return validationReport;
+        return new ValidationResult().addErrors( reporter.getErrors() ).addWarnings( reporter.getWarnings() );
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<Validator<TrackedEntity>> validators,

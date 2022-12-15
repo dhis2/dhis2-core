@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +78,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1125 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1125 );
     }
 
     @Test
@@ -101,7 +100,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 2, TrackerErrorCode.E1064 );
+        assertHasErrors( importReport, 2, ValidationCode.E1064 );
     }
 
     @Test
@@ -124,7 +123,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         params.setUser( user );
         params.setAtomicMode( AtomicMode.OBJECT );
         ImportReport importReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1000 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1000 );
         assertEquals( 2, importReport.getStats().getCreated() );
         assertEquals( 1, importReport.getStats().getIgnored() );
     }
@@ -169,7 +168,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         params.setAtomicMode( AtomicMode.OBJECT );
         importReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1003 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1003 );
         assertEquals( 2, importReport.getStats().getUpdated() );
         assertEquals( 1, importReport.getStats().getIgnored() );
     }
@@ -184,7 +183,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 13, TrackerErrorCode.E1001 );
+        assertHasErrors( importReport, 13, ValidationCode.E1001 );
     }
 
     @Test
@@ -217,7 +216,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         TrackerImportParams params = fromJson( "tracker/validations/te-data_error_attr-non-existing.json" );
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 2, TrackerErrorCode.E1006 );
+        assertHasErrors( importReport, 2, ValidationCode.E1006 );
     }
 
     @Test
@@ -236,7 +235,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 2, TrackerErrorCode.E1100 );
+        assertHasErrors( importReport, 2, ValidationCode.E1100 );
     }
 
     @Test

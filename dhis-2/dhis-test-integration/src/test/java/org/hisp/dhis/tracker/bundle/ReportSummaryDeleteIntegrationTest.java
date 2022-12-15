@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.PersistenceReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -138,7 +138,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasError( importReport, TrackerErrorCode.E1081 );
+        assertHasError( importReport, ValidationCode.E1081 );
     }
 
     @Test

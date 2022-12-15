@@ -25,13 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum TrackerErrorCode
+public enum ValidationCode
 {
     /* General */
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
@@ -168,7 +168,7 @@ public enum TrackerErrorCode
 
     private final String message;
 
-    TrackerErrorCode( String message )
+    ValidationCode( String message )
     {
         this.message = message;
     }

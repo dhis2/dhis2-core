@@ -31,9 +31,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import org.hisp.dhis.tracker.validation.Validation;
+import org.hisp.dhis.tracker.validation.ValidationResult;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -45,65 +49,77 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ValidationReport
 {
     @JsonProperty( "errorReports" )
-    private final List<TrackerErrorReport> errors;
+    private final List<Error> errors;
 
     @JsonProperty( "warningReports" )
-    private final List<TrackerWarningReport> warnings;
+    private final List<Warning> warnings;
 
-    public ValidationReport()
+    public static ValidationReport emptyReport()
+    {
+        return new ValidationReport();
+    }
+
+    public static ValidationReport merge( ValidationResult result, ValidationResult anotherResult )
+    {
+        return new ValidationReport();
+    }
+
+    public static ValidationReport fromResult( ValidationResult result )
+    {
+        ValidationReport validationReport = new ValidationReport();
+        validationReport.addErrors( convertToError( result.getErrors() ) );
+        validationReport.addWarnings( convertToWarning( result.getWarnings() ) );
+        return validationReport;
+    }
+
+    private static List<Error> convertToError( List<Validation> errors )
+    {
+        return errors.stream()
+            .map( e -> Error.builder()
+                .errorMessage( e.getMessage() )
+                .errorCode( e.getCode() )
+                .trackerType( e.getType() )
+                .uid( e.getUid() )
+                .build() )
+            .collect( Collectors.toList() );
+    }
+
+    private static List<Warning> convertToWarning( List<Validation> warnings )
+    {
+        return warnings.stream()
+            .map( e -> Warning.builder()
+                .warningMessage( e.getMessage() )
+                .warningCode( e.getCode() )
+                .trackerType( e.getType() )
+                .uid( e.getUid() )
+                .build() )
+            .collect( Collectors.toList() );
+    }
+
+    private ValidationReport()
     {
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
+    }
+
+    public ValidationReport( List<Error> errors, List<Warning> warnings )
+    {
+        this.errors = errors;
+        this.warnings = warnings;
     }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void addValidationReport( ValidationReport report )
-    {
-        addErrors( report.getErrors() );
-        addWarnings( report.getWarnings() );
-    }
-
-    public List<TrackerErrorReport> getErrors()
+    public List<Error> getErrors()
     {
         return Collections.unmodifiableList( errors );
     }
 
-    public List<TrackerWarningReport> getWarnings()
+    public List<Warning> getWarnings()
     {
         return Collections.unmodifiableList( warnings );
-    }
-
-    public ValidationReport addError( TrackerErrorReport error )
-    {
-        addErrorIfNotExisting( error );
-        return this;
-    }
-
-    public ValidationReport addErrors( List<TrackerErrorReport> errors )
-    {
-        for ( TrackerErrorReport error : errors )
-        {
-            addErrorIfNotExisting( error );
-        }
-        return this;
-    }
-
-    public ValidationReport addWarning( TrackerWarningReport warning )
-    {
-        addWarningIfNotExisting( warning );
-        return this;
-    }
-
-    public ValidationReport addWarnings( List<TrackerWarningReport> warnings )
-    {
-        for ( TrackerWarningReport warning : warnings )
-        {
-            addWarningIfNotExisting( warning );
-        }
-        return this;
     }
 
     public boolean hasErrors()
@@ -111,7 +127,7 @@ public class ValidationReport
         return !errors.isEmpty();
     }
 
-    public boolean hasError( Predicate<TrackerErrorReport> test )
+    public boolean hasError( Predicate<Error> test )
     {
         return errors.stream().anyMatch( test );
     }
@@ -121,7 +137,7 @@ public class ValidationReport
         return !warnings.isEmpty();
     }
 
-    public boolean hasWarning( Predicate<TrackerWarningReport> test )
+    public boolean hasWarning( Predicate<Warning> test )
     {
         return warnings.stream().anyMatch( test );
     }
@@ -132,10 +148,32 @@ public class ValidationReport
     public long size()
     {
 
-        return this.getErrors().stream().map( TrackerErrorReport::getUid ).distinct().count();
+        return this.getErrors().stream().map( Error::getUid ).distinct().count();
     }
 
-    private void addErrorIfNotExisting( TrackerErrorReport error )
+    private void addValidationReport( ValidationReport report )
+    {
+        addErrors( report.getErrors() );
+        addWarnings( report.getWarnings() );
+    }
+
+    public void addErrors( List<Error> errors )
+    {
+        for ( Error error : errors )
+        {
+            addErrorIfNotExisting( error );
+        }
+    }
+
+    public void addWarnings( List<Warning> warnings )
+    {
+        for ( Warning warning : warnings )
+        {
+            addWarningIfNotExisting( warning );
+        }
+    }
+
+    private void addErrorIfNotExisting( Error error )
     {
         if ( !this.errors.contains( error ) )
         {
@@ -143,7 +181,7 @@ public class ValidationReport
         }
     }
 
-    private void addWarningIfNotExisting( TrackerWarningReport warning )
+    private void addWarningIfNotExisting( Warning warning )
     {
         if ( !this.warnings.contains( warning ) )
         {

@@ -25,43 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
-
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.TrackerType;
 
-/**
- * @author Enrico Colasante
- */
-@Component
+@Value
+@Builder
 @RequiredArgsConstructor
-public class TrackedEntityPreCheckUpdatableFieldsValidator
-    implements Validator<TrackedEntity>
+public class Warning implements Validation
 {
-    @Override
-    public void validate( ValidationErrorReporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance trackedEntityInstance = bundle
-            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+    private final String message;
 
-        reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
-            trackedEntity, E1126, "trackedEntityType" );
+    private final ValidationCode code;
+
+    private final TrackerType type;
+
+    private final String uid;
+
+    public ValidationCode getWarningCode()
+    {
+        return code;
+    }
+
+    public TrackerType getTrackerType()
+    {
+        return type;
     }
 
     @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
+    public String getCode()
     {
-        return strategy == TrackerImportStrategy.UPDATE;
+        return code.name();
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return message;
+    }
+
+    @Override
+    public String getType()
+    {
+        return type.name();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return uid;
     }
 }

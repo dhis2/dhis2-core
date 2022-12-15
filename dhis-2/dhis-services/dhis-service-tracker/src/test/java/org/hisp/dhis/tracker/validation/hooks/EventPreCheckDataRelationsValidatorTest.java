@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -165,7 +165,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1089 ) );
     }
 
     @Test
@@ -197,7 +197,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1033 ) );
     }
 
     @Test
@@ -233,7 +233,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1079 ) );
     }
 
     @Test
@@ -270,7 +270,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1029 ) );
     }
 
     @Test
@@ -286,7 +286,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1055 ) );
     }
 
     @Test
@@ -307,9 +307,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getMessage().contains( co.getUid() ) ) );
     }
 
     @Test
@@ -356,9 +356,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getMessage().contains( co.getUid() ) ) );
     }
 
     @Test
@@ -379,9 +379,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getMessage().contains( co.getUid() ) ) );
     }
 
     @Test
@@ -442,7 +442,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1115 ) );
     }
 
     @Test
@@ -462,7 +462,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1115 ) );
     }
 
     @Test
@@ -482,9 +482,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-            r.getErrorMessage().contains( aoc.getUid() ) &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1054 &&
+            r.getMessage().contains( aoc.getUid() ) &&
+            r.getMessage().contains( program.getCategoryCombo().getUid() ) ) );
     }
 
     @Test
@@ -505,7 +505,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1055 ) );
     }
 
     @Test
@@ -525,9 +525,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-            r.getErrorMessage().contains( aoc.getUid() ) &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1054 &&
+            r.getMessage().contains( aoc.getUid() ) &&
+            r.getMessage().contains( program.getCategoryCombo().getUid() ) ) );
     }
 
     @Test
@@ -601,7 +601,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1115 ) );
     }
 
     @Test
@@ -627,7 +627,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1055 ) );
     }
 
     @Test
@@ -652,7 +652,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1116 ) );
     }
 
     @Test
@@ -683,11 +683,11 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 3, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
-            && r.getErrorMessage().contains( UNKNOWN_CO_ID1 ) ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
-            && r.getErrorMessage().contains( UNKNOWN_CO_ID2 ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1116
+            && r.getMessage().contains( UNKNOWN_CO_ID1 ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1116
+            && r.getMessage().contains( UNKNOWN_CO_ID2 ) ) );
     }
 
     @Test
@@ -712,9 +712,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( eventCO.getUid() ) &&
-            r.getErrorMessage().contains( aoc.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( eventCO.getUid() ) &&
+            r.getMessage().contains( aoc.getUid() ) ) );
     }
 
     @Test
@@ -740,9 +740,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc2.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( co1.getUid() ) &&
+            r.getMessage().contains( aoc2.getUid() ) ) );
     }
 
     @Test
@@ -766,9 +766,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1117 &&
+            r.getMessage().contains( co1.getUid() ) &&
+            r.getMessage().contains( aoc.getUid() ) ) );
     }
 
     private OrganisationUnit organisationUnit( String uid )

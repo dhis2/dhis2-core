@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1012;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1074;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
