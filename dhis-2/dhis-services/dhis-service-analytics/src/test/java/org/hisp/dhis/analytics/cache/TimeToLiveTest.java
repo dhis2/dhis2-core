@@ -51,7 +51,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith( MockitoExtension.class )
 class TimeToLiveTest
 {
-
     @Mock
     private DefaultSystemSettingManager systemSettingManager;
 
@@ -111,6 +110,23 @@ class TimeToLiveTest
 
         // When
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
+
+        // Then
+        assertThat( actualTtl, is( equalTo( expectedTtl ) ) );
+    }
+
+    @Test
+    void testComputeWhenDateObjectIsOfTypeSqlDate()
+    {
+        // Given
+        int oneDayDiff = 1;
+        int aPositiveCachingFactor = 2;
+        java.sql.Date endingDate = new java.sql.Date(
+            calculateDateFrom( new Date(), minus( oneDayDiff ), DATE ).getTime() );
+        long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+
+        // When
+        long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
         assertThat( actualTtl, is( equalTo( expectedTtl ) ) );

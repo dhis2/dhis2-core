@@ -25,43 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.security.utils;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.regex.Pattern;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerBundleReportMode
+public class CspUtils
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
+    public static final String DEFAULT_HEADER_VALUE = "script-src 'none'; ";
 
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
+    public static final Pattern p1 = Pattern.compile( "^.+/events/files$" );
 
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
+    public static final Pattern p2 = Pattern.compile( "^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$" );
 
-    private static Stream<TrackerBundleReportMode> stream()
-    {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
+    public static final Pattern p3 = Pattern.compile( "^.+/dataValues/files$" );
 
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
-    }
+    public static final Pattern p4 = Pattern.compile(
+        "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$" );
+
+    public static final Pattern p5 = Pattern.compile( "^.+fileResources/[a-zA-Z\\d]+/data$" );
+
+    public static final Pattern p6 = Pattern.compile( "^.+audits/files/[a-zA-Z\\d]+$" );
+
+    public static final Pattern p7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
+
+    public static final List<Pattern> DEFAULT_FILTERED_URL_PATTERNS = List.of( p1, p2, p3, p4, p5, p6, p7 );
 }

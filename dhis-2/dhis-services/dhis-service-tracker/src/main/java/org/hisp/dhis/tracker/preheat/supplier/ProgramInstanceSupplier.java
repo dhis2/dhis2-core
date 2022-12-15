@@ -73,7 +73,10 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
                 programInstanceStore.getByPrograms( programsWithoutRegistration ) );
 
             programInstances
-                .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+                .forEach( pi -> {
+                    preheat.putEnrollment( pi.getUid(), pi );
+                    preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi );
+                } );
         }
     }
 }

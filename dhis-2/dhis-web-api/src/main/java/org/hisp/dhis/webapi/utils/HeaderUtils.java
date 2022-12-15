@@ -25,43 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.utils;
 
-import java.util.stream.Stream;
+import javax.servlet.http.HttpServletResponse;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum TrackerBundleReportMode
+public class HeaderUtils
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
-
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
-
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
-
-    private static Stream<TrackerBundleReportMode> stream()
+    public static void setSecurityHeaders( HttpServletResponse response, String cspHeaders )
     {
-        return Stream.of( TrackerBundleReportMode.values() );
-    }
-
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-        return TrackerBundleReportMode
-            .stream()
-            .filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst()
-            .orElse( null );
+        response.setHeader( "Content-Security-Policy", cspHeaders );
+        response.setHeader( "X-Content-Type-Options", "nosniff" );
+        response.setHeader( "X-Frame-Options", "SAMEORIGIN" );
+        response.setHeader( "X-XSS-Protection", "1; mode=block" );
     }
 }

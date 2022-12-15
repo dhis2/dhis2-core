@@ -392,6 +392,12 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
+        if ( params.isOrQuery() && params.getAttributesAndFilters().isEmpty() )
+        {
+            throw new IllegalArgumentException(
+                "A query parameter is used in the request but there aren't filterable attributes" );
+        }
+
         return new StringBuilder()
             .append( getQuerySelect( params, isGridQuery ) )
             .append( "FROM " )
@@ -487,7 +493,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( " FROM trackedentityinstance TEI " )
 
             // INNER JOIN on constraints
-            .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
+            .append( getFromSubQueryJoinAttributeConditions( params ) )
             .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
             .append( getFromSubQueryJoinOrgUnitConditions( params ) )
 
@@ -646,27 +652,17 @@ public class HibernateTrackedEntityInstanceStore
      * @return a series of 1 or more SQL INNER JOINs, or empty string if no
      *         query or attribute filters exists.
      */
-    private String getFromSubQueryJoinAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinAttributeConditions( TrackedEntityInstanceQueryParams params )
     {
-        StringBuilder attributes = new StringBuilder();
-
-        List<QueryItem> filterItems = params.getAttributesAndFilters().stream()
-            .filter( QueryItem::hasFilter )
-            .collect( Collectors.toList() );
-
-        if ( !filterItems.isEmpty() || params.isOrQuery() )
+        if ( !params.isOrQuery() )
         {
-            if ( !params.isOrQuery() )
-            {
-                joinAttributeValueWithoutQueryParameter( attributes, filterItems );
-            }
-            else
-            {
-                joinAttributeValueWithQueryParameter( params, attributes );
-            }
+            return joinAttributeValueWithoutQueryParameter( params );
         }
+        else
+        {
+            return joinAttributeValueWithQueryParameter( params );
 
-        return attributes.toString();
+        }
     }
 
     /**
@@ -678,11 +674,11 @@ public class HibernateTrackedEntityInstanceStore
      * search, allowing both exact match and with wildcards (EQ or LIKE).
      *
      * @param params
-     * @param attributes
      */
-    private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
-        StringBuilder attributes )
+    private String joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params )
     {
+        StringBuilder attributes = new StringBuilder();
+
         final String regexp = statementBuilder.getRegexpMatch();
         final String wordStart = statementBuilder.getRegexpWordStart();
         final String wordEnd = statementBuilder.getRegexpWordEnd();
@@ -718,7 +714,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( SINGLE_QUOTE );
         }
 
-        attributes.append( ")" );
+        return attributes.append( ")" ).toString();
     }
 
     /**
@@ -726,11 +722,16 @@ public class HibernateTrackedEntityInstanceStore
      * can search by a range of operators. All searching is using lower() since
      * attribute values are case insensitive.
      *
-     * @param attributes
-     * @param filterItems
+     * @param params
      */
-    private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
+    private String joinAttributeValueWithoutQueryParameter( TrackedEntityInstanceQueryParams params )
     {
+        StringBuilder attributes = new StringBuilder();
+
+        List<QueryItem> filterItems = params.getAttributesAndFilters().stream()
+            .filter( QueryItem::hasFilter )
+            .collect( Collectors.toList() );
+
         for ( QueryItem queryItem : filterItems )
         {
             String col = statementBuilder.columnQuote( queryItem.getItemId() );
@@ -763,6 +764,8 @@ public class HibernateTrackedEntityInstanceStore
                         .lowerCase( filter.getSqlFilter( encodedFilter ) ) );
             }
         }
+
+        return attributes.toString();
     }
 
     /**
