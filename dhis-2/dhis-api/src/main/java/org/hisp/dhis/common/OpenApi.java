@@ -243,7 +243,9 @@ public @interface OpenApi
     @interface Params
     {
         /**
-         * As web classes cannot be used outside the web API module a {@code WebMessage} response value can also be indicated by {@link org.hisp.dhis.webmessage.WebMessageResponse}.
+         * As web classes cannot be used outside the web API module a
+         * {@code WebMessage} response value can also be indicated by
+         * {@link org.hisp.dhis.webmessage.WebMessageResponse}.
          *
          * @return a complex parameter object type. All properties of that type
          *         become individual parameters.
@@ -258,10 +260,14 @@ public @interface OpenApi
      * this effectively overrides the return type of the method as present in
      * the signature.
      *
-     * Can be annotated on exception types to link a declared exception to a particular HTTP response.
+     * Can be annotated on exception types to link all occurrences of declared
+     * exception to a particular HTTP response.
+     *
+     * Can be annotated on thrown exceptions to link a specific occurrence of a
+     * declared exception to a particular HTTP response.
      */
     @Inherited
-    @Target( {ElementType.METHOD, ElementType.TYPE} )
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.TYPE_USE } )
     @Retention( RetentionPolicy.RUNTIME )
     @Repeatable( ResponseRepeat.class )
     @interface Response
@@ -342,7 +348,7 @@ public @interface OpenApi
      */
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.PARAMETER } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ParamRepeat
     {
@@ -350,7 +356,7 @@ public @interface OpenApi
     }
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ParamsRepeat
     {
@@ -358,7 +364,7 @@ public @interface OpenApi
     }
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.TYPE_USE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ResponseRepeat
     {

@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -67,6 +68,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -137,28 +139,40 @@ public class CrudControllerAdvice
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody
-    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex ) {
-        return badRequest( ex.getMessage(), ex.getCode() );
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
+    {
+        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
+        if ( !ex.getErrorReports().isEmpty() )
+        {
+            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
+        }
+        return message;
     }
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody
-    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex ) {
-        return conflict( ex.getMessage(), ex.getCode() );
+    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex )
+    {
+        if ( ex.getObjectReport() != null )
+        {
+            return objectReport( ex.getObjectReport() );
+        }
+        return conflict( ex.getMessage(), ex.getCode() ).setDevMessage( ex.getDevMessage() );
     }
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody
-    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex ) {
+    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex )
+    {
         return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
     }
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody
-    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex ) {
+    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex )
+    {
         return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode() );
     }
-
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody

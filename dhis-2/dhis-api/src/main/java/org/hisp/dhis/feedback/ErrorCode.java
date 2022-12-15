@@ -36,10 +36,10 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
-    E1003("API query contains errors"),
-    E1004("API query cannot be performed"),
-    E1005("API query object not found"),
-    E1006("API request not permitted for the current user"),
+    E1003( "API query contains errors" ),
+    E1004( "API query cannot be performed" ),
+    E1005( "API query object not found" ),
+    E1006( "API request not permitted for the current user" ),
 
     /* Basic metadata */
     E1100( "Data element not found or not accessible: `{0}`" ),

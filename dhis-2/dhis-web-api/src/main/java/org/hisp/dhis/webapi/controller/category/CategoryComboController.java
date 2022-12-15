@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Objects;
@@ -38,6 +37,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -92,18 +92,18 @@ public class CategoryComboController
 
     @Override
     protected void prePatchEntity( CategoryCombo entity, CategoryCombo newEntity )
-        throws Exception
+        throws ConflictException
     {
         checkNoDataValueBecomesInaccessible( entity, newEntity );
     }
 
     private void checkNoDataValueBecomesInaccessible( CategoryCombo entity, CategoryCombo newEntity )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
             && dataValueService.dataValueExists( entity ) )
         {
-            throw new WebMessageException( conflict( ErrorCode.E1120 ) );
+            throw new ConflictException( ErrorCode.E1120 );
         }
     }
 
