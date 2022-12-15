@@ -137,7 +137,7 @@ public class CrudControllerAdvice
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
-    @ExceptionHandler( RestClientException.class )
+    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
     @ResponseBody
     public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
     {
@@ -149,7 +149,7 @@ public class CrudControllerAdvice
         return message;
     }
 
-    @ExceptionHandler( RestClientException.class )
+    @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
     @ResponseBody
     public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex )
     {
@@ -160,14 +160,14 @@ public class CrudControllerAdvice
         return conflict( ex.getMessage(), ex.getCode() ).setDevMessage( ex.getDevMessage() );
     }
 
-    @ExceptionHandler( RestClientException.class )
+    @ExceptionHandler( org.hisp.dhis.feedback.ForbiddenException.class )
     @ResponseBody
     public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex )
     {
         return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
     }
 
-    @ExceptionHandler( RestClientException.class )
+    @ExceptionHandler( org.hisp.dhis.feedback.NotFoundException.class )
     @ResponseBody
     public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex )
     {
