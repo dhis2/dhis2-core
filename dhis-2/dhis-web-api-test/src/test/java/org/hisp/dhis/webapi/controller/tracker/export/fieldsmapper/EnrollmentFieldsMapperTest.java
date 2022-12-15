@@ -34,7 +34,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -72,10 +72,10 @@ class EnrollmentFieldsMapperTest
     void getEnrollmentParamsMultipleCases( List<String> fields, boolean expectAttributes,
         boolean expectEvents, boolean expectRelationships )
     {
-        TrackedEntityInstanceParams params = map( fields );
+        EnrollmentParams params = map( fields );
 
-        assertEquals( expectAttributes, params.getEnrollmentParams().isIncludeAttributes() );
-        assertEquals( expectEvents, params.getEnrollmentParams().isIncludeEvents() );
-        assertEquals( expectRelationships, params.getEnrollmentParams().isIncludeRelationships() );
+        assertEquals( expectAttributes, params.isIncludeAttributes() );
+        assertEquals( expectEvents, params.isIncludeEvents() );
+        assertEquals( expectRelationships, params.isIncludeRelationships() );
     }
 }

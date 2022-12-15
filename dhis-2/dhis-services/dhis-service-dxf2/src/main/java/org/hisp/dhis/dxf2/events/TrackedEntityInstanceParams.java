@@ -30,8 +30,6 @@ package org.hisp.dhis.dxf2.events;
 import lombok.Value;
 import lombok.With;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -39,21 +37,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Value
 public class TrackedEntityInstanceParams
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, EnrollmentParams.TRUE,
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true,
+        TrackedEntityInstanceEnrollmentParams.TRUE,
         true,
         true, false, false );
 
     public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
-        EnrollmentParams.FALSE, false,
+        TrackedEntityInstanceEnrollmentParams.FALSE, false,
         false, false, false );
 
     public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
-        EnrollmentParams.TRUE,
+        TrackedEntityInstanceEnrollmentParams.TRUE,
         true, true, true, true );
 
     private boolean includeRelationships;
 
-    private EnrollmentParams enrollmentParams;
+    private TrackedEntityInstanceEnrollmentParams teiEnrollmentParams;
 
     private boolean includeProgramOwners;
 
@@ -63,37 +62,31 @@ public class TrackedEntityInstanceParams
 
     private boolean dataSynchronizationQuery;
 
-    @JsonProperty
     public boolean isIncludeRelationships()
     {
         return includeRelationships;
     }
 
-    @JsonProperty
     public boolean isIncludeEnrollments()
     {
-        return enrollmentParams.isIncludeRoot();
+        return teiEnrollmentParams.isIncludeEnrollments();
     }
 
-    @JsonProperty
     public boolean isIncludeProgramOwners()
     {
         return includeProgramOwners;
     }
 
-    @JsonProperty
     public boolean isIncludeAttributes()
     {
         return includeAttributes;
     }
 
-    @JsonProperty
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
     }
 
-    @JsonProperty
     public boolean isDataSynchronizationQuery()
     {
         return dataSynchronizationQuery;

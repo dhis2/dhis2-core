@@ -64,9 +64,9 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -280,7 +280,7 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
             }
         }
 
@@ -288,20 +288,20 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( String id, EnrollmentParams params )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
         return programInstance != null ? getEnrollment( programInstance, params ) : null;
     }
 
     @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
         boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();
@@ -348,7 +348,7 @@ public abstract class AbstractEnrollmentService
 
         enrollment.getNotes().addAll( NoteHelper.convertNotes( programInstance.getComments() ) );
 
-        if ( params.getEnrollmentParams().isIncludeEvents() )
+        if ( params.isIncludeEvents() )
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
@@ -362,7 +362,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        if ( params.getEnrollmentParams().isIncludeRelationships() )
+        if ( params.isIncludeRelationships() )
         {
             for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
             {
@@ -377,7 +377,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        if ( params.getEnrollmentParams().isIncludeAttributes() )
+        if ( params.isIncludeAttributes() )
         {
             Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
                 .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );

@@ -60,15 +60,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class TrackedEntitiesSupportService
 {
-
-    private static final String FIELD_ENROLLMENTS = "enrollments";
-
-    private static final String FIELD_RELATIONSHIPS = "relationships";
-
-    private static final String FIELD_PROGRAM_OWNERS = "programOwners";
-
-    private static final String FIELD_EVENTS = "events";
-
     @Nonnull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 

@@ -43,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -93,7 +93,7 @@ public class TrackerEnrollmentsExportController
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+        EnrollmentParams trackedEntityInstanceParams = map( fields );
 
         if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
@@ -132,7 +132,7 @@ public class TrackerEnrollmentsExportController
         throws NotFoundException
     {
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = map( fields );
+        EnrollmentParams trackedEntityInstanceParams = map( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( id, trackedEntityInstanceParams ) );
