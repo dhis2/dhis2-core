@@ -501,11 +501,11 @@ class DefaultValidationServiceTest
         when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
         service = new DefaultValidationService( validators, ruleEngineValidators );
 
-        ValidationResult report = service.validate( bundle );
+        ValidationResult result = service.validate( bundle );
 
         assertAll( "errors and warnings",
-            () -> assertFalse( report.hasErrors() ),
-            () -> assertHasWarning( report, ValidationCode.E1120, validEvent ) );
+            () -> assertFalse( result.hasErrors() ),
+            () -> assertHasWarning( result, ValidationCode.E1120, validEvent ) );
 
         assertTrue( bundle.getEvents().contains( validEvent ) );
     }

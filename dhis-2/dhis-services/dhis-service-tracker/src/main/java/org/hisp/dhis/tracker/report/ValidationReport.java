@@ -59,16 +59,16 @@ public class ValidationReport
         return new ValidationReport();
     }
 
-    public static ValidationReport merge( ValidationResult result, ValidationResult anotherResult )
+    public static ValidationReport merge( ValidationResult ValidationResult, ValidationResult anotherValidationResult )
     {
         return new ValidationReport();
     }
 
-    public static ValidationReport fromResult( ValidationResult result )
+    public static ValidationReport fromResult( ValidationResult ValidationResult )
     {
         ValidationReport validationReport = new ValidationReport();
-        validationReport.addErrors( convertToError( result.getErrors() ) );
-        validationReport.addWarnings( convertToWarning( result.getWarnings() ) );
+        validationReport.addErrors( convertToError( ValidationResult.getErrors() ) );
+        validationReport.addWarnings( convertToWarning( ValidationResult.getWarnings() ) );
         return validationReport;
     }
 

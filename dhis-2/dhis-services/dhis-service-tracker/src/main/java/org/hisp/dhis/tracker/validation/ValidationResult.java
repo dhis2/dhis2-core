@@ -27,116 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-@ToString
-@EqualsAndHashCode
-public class ValidationResult
+public interface ValidationResult
 {
-    private final List<Error> errors;
+    List<Validation> getErrors();
 
-    private final List<Warning> warnings;
+    List<Validation> getWarnings();
 
-    public ValidationResult()
-    {
-        this.errors = new ArrayList<>();
-        this.warnings = new ArrayList<>();
-    }
+    boolean hasErrors();
 
-    public void addValidationResult( ValidationResult report )
-    {
-        addErrors( report.errors );
-        addWarnings( report.warnings );
-    }
-
-    public List<Validation> getErrors()
-    {
-        return Collections.unmodifiableList( errors );
-    }
-
-    public List<Validation> getWarnings()
-    {
-        return Collections.unmodifiableList( warnings );
-    }
-
-    public ValidationResult addError( Error error )
-    {
-        addErrorIfNotExisting( error );
-        return this;
-    }
-
-    public ValidationResult addErrors( List<Error> errors )
-    {
-        for ( Error error : errors )
-        {
-            addErrorIfNotExisting( error );
-        }
-        return this;
-    }
-
-    public ValidationResult addWarning( Warning warning )
-    {
-        addWarningIfNotExisting( warning );
-        return this;
-    }
-
-    public ValidationResult addWarnings( List<Warning> warnings )
-    {
-        for ( Warning warning : warnings )
-        {
-            addWarningIfNotExisting( warning );
-        }
-        return this;
-    }
-
-    public boolean hasErrors()
-    {
-        return !errors.isEmpty();
-    }
-
-    public boolean hasError( Predicate<Error> test )
-    {
-        return errors.stream().anyMatch( test );
-    }
-
-    public boolean hasWarnings()
-    {
-        return !warnings.isEmpty();
-    }
-
-    public boolean hasWarning( Predicate<Warning> test )
-    {
-        return warnings.stream().anyMatch( test );
-    }
-
-    /**
-     * Returns the size of all the Tracker DTO that did not pass validation
-     */
-    public long size()
-    {
-
-        return this.getErrors().stream().map( Validation::getUid ).distinct().count();
-    }
-
-    private void addErrorIfNotExisting( Error error )
-    {
-        if ( !this.errors.contains( error ) )
-        {
-            this.errors.add( error );
-        }
-    }
-
-    private void addWarningIfNotExisting( Warning warning )
-    {
-        if ( !this.warnings.contains( warning ) )
-        {
-            this.warnings.add( warning );
-        }
-    }
+    boolean hasWarnings();
 }

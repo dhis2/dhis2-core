@@ -48,7 +48,7 @@ class ValidationResultTest
     void addErrorIfItDoesNotExist()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Error error = newError();
 
         report.addError( error );
@@ -66,7 +66,7 @@ class ValidationResultTest
     void addErrorsIfTheyDoNotExist()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Error error1 = newError( CodeGenerator.generateUid(), ValidationCode.E1001 );
         Error error2 = newError( CodeGenerator.generateUid(), ValidationCode.E1002 );
 
@@ -83,7 +83,7 @@ class ValidationResultTest
     void addWarningIfItDoesNotExist()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Warning warning = newWarning();
 
         report.addWarning( warning );
@@ -101,7 +101,7 @@ class ValidationResultTest
     void addWarningsIfTheyDoNotExist()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Warning warning1 = newWarning( CodeGenerator.generateUid(), ValidationCode.E1001 );
         Warning warning2 = newWarning( CodeGenerator.generateUid(), ValidationCode.E1002 );
 
@@ -118,7 +118,7 @@ class ValidationResultTest
     void hasErrorsReturnsFalse()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
 
         assertFalse( report.hasErrors() );
     }
@@ -127,7 +127,7 @@ class ValidationResultTest
     void hasErrorsReturnsTrue()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
 
         report.addError( newError() );
 
@@ -138,7 +138,7 @@ class ValidationResultTest
     void hasWarningsReturnsFalse()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
 
         assertFalse( report.hasWarnings() );
     }
@@ -147,7 +147,7 @@ class ValidationResultTest
     void hasWarningsReturnsTrue()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
 
         report.addWarning( newWarning() );
 
@@ -158,7 +158,7 @@ class ValidationResultTest
     void hasErrorReportFound()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Error error = newError();
         report.addError( error );
 
@@ -169,7 +169,7 @@ class ValidationResultTest
     void hasErrorReportNotFound()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Error error = newError( ValidationCode.E1006 );
         report.addError( error );
 
@@ -180,7 +180,7 @@ class ValidationResultTest
     void hasWarningReportFound()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Warning warning = newWarning();
         report.addWarning( warning );
 
@@ -191,7 +191,7 @@ class ValidationResultTest
     void hasWarningReportNotFound()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Warning warning = newWarning( ValidationCode.E1006 );
         report.addWarning( warning );
 
@@ -202,7 +202,7 @@ class ValidationResultTest
     void sizeReturnsErrorCountUniqueByUid()
     {
 
-        ValidationResult report = new ValidationResult();
+        Result report = new Result();
         Error error1 = newError( CodeGenerator.generateUid(), ValidationCode.E1006 );
         Error error2 = newError( error1.getUid(), ValidationCode.E1000 );
         Error error3 = newError( CodeGenerator.generateUid(), ValidationCode.E1000 );

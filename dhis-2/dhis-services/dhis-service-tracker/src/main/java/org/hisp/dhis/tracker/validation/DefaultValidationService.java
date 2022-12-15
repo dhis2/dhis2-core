@@ -75,15 +75,13 @@ public class DefaultValidationService
 
     private ValidationResult validate( TrackerBundle bundle, Validators validators )
     {
-        ValidationResult validationResult = new ValidationResult();
-
         User user = bundle.getUser();
 
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return validationResult;
+            return new Result();
         }
 
         // Note that the bundle gets cloned internally, so the original bundle
@@ -112,9 +110,10 @@ public class DefaultValidationService
         bundle.setEvents( persistables.getEvents() );
         bundle.setRelationships( persistables.getRelationships() );
 
-        reporter.getErrors().addAll( persistables.getErrors() );
-
-        return new ValidationResult().addErrors( reporter.getErrors() ).addWarnings( reporter.getWarnings() );
+        return new Result()
+            .addErrors( reporter.getErrors() )
+            .addErrors( persistables.getErrors() )
+            .addWarnings( reporter.getWarnings() );
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<Validator<TrackedEntity>> validators,

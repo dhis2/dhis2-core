@@ -87,9 +87,10 @@ public class AssertTrackerValidationReport
         String uid )
     {
         assertTrue( result.hasWarnings(), "warning not found since report has no warnings" );
-        assertTrue( result.hasWarning( warning -> Objects.equals( code.name(), warning.getCode() ) &&
-            Objects.equals( type.name(), warning.getType() ) &&
-            uid.equals( warning.getUid() ) ),
+        assertTrue(
+            result.getWarnings().stream().anyMatch( warning -> Objects.equals( code.name(), warning.getCode() ) &&
+                Objects.equals( type.name(), warning.getType() ) &&
+                uid.equals( warning.getUid() ) ),
             String.format( "warning with code %s, type %s, uid %s not found in report with warnings(s) %s", code, type,
                 uid, result.getWarnings() ) );
     }
