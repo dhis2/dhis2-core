@@ -159,12 +159,12 @@ public class TrackedEntityInstanceSupportService
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRoot( true ) );
+            params = params.withTeiEnrollmentParams( params.getTeiEnrollmentParams().withIncludeEnrollments( true ) );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( true ) );
+            params = params.withTeiEnrollmentParams( params.getTeiEnrollmentParams().withIncludeEvents( true ) );
         }
 
         if ( joined.contains( "programOwners" ) )

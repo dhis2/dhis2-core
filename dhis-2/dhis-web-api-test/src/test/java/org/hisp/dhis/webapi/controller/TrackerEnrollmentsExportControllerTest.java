@@ -160,7 +160,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     @Test
     void getEnrollmentByIdWithAttributeFields()
     {
-        trackedEntityAttributeValue();
+        saveTrackedEntityAttributeValue();
 
         assertWithAttributeResponse( (GET( "/tracker/enrollments/{id}?fields=attributes", programInstance.getUid() )
             .content( HttpStatus.OK )) );
@@ -189,7 +189,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     @Test
     void getEnrollmentByIdWithExcludedFields()
     {
-        trackedEntityAttributeValue();
+        saveTrackedEntityAttributeValue();
 
         manager.save( relationship( programInstance, tei ) );
 
@@ -201,7 +201,7 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
                 .content( HttpStatus.OK )).isEmpty() );
     }
 
-    private void trackedEntityAttributeValue()
+    private void saveTrackedEntityAttributeValue()
     {
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );

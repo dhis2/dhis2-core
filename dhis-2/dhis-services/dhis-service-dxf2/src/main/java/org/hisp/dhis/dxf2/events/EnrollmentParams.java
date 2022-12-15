@@ -30,18 +30,13 @@ package org.hisp.dhis.dxf2.events;
 import lombok.Value;
 import lombok.With;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @With
 @Value
 public class EnrollmentParams
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( true, true, true, true, false, false );
+    public static final EnrollmentParams TRUE = new EnrollmentParams( true, true, true, true, false );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false, false );
-
-    // Root is only relevant if it is a nested Param
-    private boolean includeRoot;
+    public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false );
 
     private boolean includeEvents;
 
@@ -53,45 +48,28 @@ public class EnrollmentParams
 
     private boolean dataSynchronizationQuery;
 
-    @JsonProperty
     public boolean isIncludeRelationships()
     {
         return includeRelationships;
     }
 
-    @JsonProperty
     public boolean isIncludeEvents()
     {
         return includeEvents;
     }
 
-    @JsonProperty
     public boolean isIncludeAttributes()
     {
         return includeAttributes;
     }
 
-    @JsonProperty
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
     }
 
-    @JsonProperty
     public boolean isDataSynchronizationQuery()
     {
         return dataSynchronizationQuery;
-    }
-
-    @JsonProperty
-    public boolean isIncludeEnrollments()
-    {
-        return includeRoot;
-    }
-
-    @JsonProperty
-    public boolean isIncludeProgramOwners()
-    {
-        return false;
     }
 }

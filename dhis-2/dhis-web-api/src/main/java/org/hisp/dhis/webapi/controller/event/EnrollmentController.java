@@ -51,7 +51,7 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
@@ -185,7 +185,7 @@ public class EnrollmentController
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map(
-                    enrollmentId -> enrollmentService.getEnrollment( enrollmentId, TrackedEntityInstanceParams.FALSE ) )
+                    enrollmentId -> enrollmentService.getEnrollment( enrollmentId, EnrollmentParams.FALSE ) )
                 .collect( Collectors.toList() )
                 : null;
         }
@@ -412,7 +412,7 @@ public class EnrollmentController
     private Enrollment getEnrollment( String id )
         throws NotFoundException
     {
-        Enrollment enrollment = enrollmentService.getEnrollment( id, TrackedEntityInstanceParams.FALSE );
+        Enrollment enrollment = enrollmentService.getEnrollment( id, EnrollmentParams.FALSE );
 
         if ( enrollment == null )
         {

@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 
@@ -46,7 +45,7 @@ public class EnrollmentFieldsParamMapper
     {
     }
 
-    public static TrackedEntityInstanceParams map( List<String> fields )
+    public static EnrollmentParams map( List<String> fields )
     {
         Map<String, FieldPath> roots = getRoots( fields );
         EnrollmentParams params = initUsingAllOrNoFields( roots );
@@ -55,7 +54,7 @@ public class EnrollmentFieldsParamMapper
         params = withFieldEvents( roots, params );
         params = withFieldAttributes( roots, params );
 
-        return TrackedEntityInstanceParams.FALSE.withEnrollmentParams( params );
+        return params;
     }
 
     private static EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
