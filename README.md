@@ -132,14 +132,14 @@ DHIS2 should be available at `http://localhost:8080/dhis2`.
 ##### Overriding default values
 
 You can create a local file called `docker-compose.override.yml` and override values from the main `docker-compose.yml`
-file. As an example, you might want to use a different version of the Postgres database and run it on a different port. 
+file. As an example, you might want to use a different version of the Postgres database and run it on a different port.
 More extensive documentation of this feature is available [here](https://docs.docker.com/compose/extends/). Using the override
 file you can easily customize values for your local situation.
 
 ```yaml
 version: "3.8"
 
-services:   
+services:
   db:
     image: postgis/postgis:14-3.3-alpine
     ports:
