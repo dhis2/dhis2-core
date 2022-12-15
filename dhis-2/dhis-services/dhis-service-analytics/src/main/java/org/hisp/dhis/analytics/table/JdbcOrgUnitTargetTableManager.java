@@ -43,7 +43,6 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.AnalyticsTableView;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -186,9 +185,4 @@ public class JdbcOrgUnitTargetTableManager
         return FIXED_COLS;
     }
 
-    @Override
-    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
-    {
-
-    }
 }

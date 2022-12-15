@@ -312,7 +312,11 @@ public abstract class AbstractJdbcTableManager
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param view the {@link AnalyticsTablePartition} to populate.
      */
-    protected abstract void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view );
+    protected void populateViews( AnalyticsTableUpdateParams params, AnalyticsTableView view )
+    {
+        // empty implementation to avoid implementing where not needed
+        log.warn( "Populating views is not supported for this analytics table type" );
+    }
 
     /**
      * Indicates whether data was created or updated for the given time range
