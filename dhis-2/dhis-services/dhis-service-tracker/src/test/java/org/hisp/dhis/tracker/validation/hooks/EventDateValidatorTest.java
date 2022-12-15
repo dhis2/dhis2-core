@@ -28,12 +28,12 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1031;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1042;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1043;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1046;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1047;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1050;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;

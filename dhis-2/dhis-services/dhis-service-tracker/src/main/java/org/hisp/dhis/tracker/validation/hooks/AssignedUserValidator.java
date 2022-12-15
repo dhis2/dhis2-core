@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1118;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
 
 import java.util.Optional;
 

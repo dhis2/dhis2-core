@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
@@ -126,7 +126,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            reporter.addError( trackedEntity, TrackerErrorCode.E1001, user, trackedEntityType );
+            reporter.addError( trackedEntity, ValidationCode.E1001, user, trackedEntityType );
         }
     }
 
@@ -152,7 +152,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1000, user, orgUnit );
+            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
         }
     }
 
@@ -166,7 +166,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1003, orgUnit, user );
+            reporter.addError( dto, ValidationCode.E1003, orgUnit, user );
         }
     }
 

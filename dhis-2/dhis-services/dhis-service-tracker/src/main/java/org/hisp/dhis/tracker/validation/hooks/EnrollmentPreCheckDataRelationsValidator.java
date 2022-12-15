@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1014;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1022;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1041;
 
 import java.util.List;
 import java.util.Map;

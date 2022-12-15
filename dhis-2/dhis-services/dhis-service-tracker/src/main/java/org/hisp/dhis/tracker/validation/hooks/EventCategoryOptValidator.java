@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1056;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1057;
 
 import java.time.Instant;
 import java.util.Date;

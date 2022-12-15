@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,6 +143,6 @@ class EnrollmentPreCheckMandatoryFieldsValidatorTest
     private void assertMissingProperty( ValidationErrorReporter reporter, String uid, String property )
     {
         AssertValidationErrorReporter.assertMissingProperty( reporter, ENROLLMENT, "enrollment", uid, property,
-            TrackerErrorCode.E1122 );
+            ValidationCode.E1122 );
     }
 }

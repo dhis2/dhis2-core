@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
 
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;

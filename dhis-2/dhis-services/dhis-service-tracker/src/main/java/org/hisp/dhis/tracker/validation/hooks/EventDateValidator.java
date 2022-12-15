@@ -30,12 +30,12 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1031;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1042;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1043;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1046;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1047;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1050;
 
 import java.time.Instant;
 import java.util.Date;

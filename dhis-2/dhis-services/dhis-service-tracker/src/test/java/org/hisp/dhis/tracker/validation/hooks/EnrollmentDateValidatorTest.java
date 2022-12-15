@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1020;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1021;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1023;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1025;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;

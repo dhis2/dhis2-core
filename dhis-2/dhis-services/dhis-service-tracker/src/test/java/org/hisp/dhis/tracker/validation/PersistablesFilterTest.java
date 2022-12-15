@@ -31,9 +31,9 @@ import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5000;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E5001;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E5000;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E5001;
 import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -820,7 +819,7 @@ class PersistablesFilterTest
         return persistable.get( type ).stream().map( TrackerDto::getUid ).collect( Collectors.toList() );
     }
 
-    private static void assertError(PersistablesFilter.Result result, TrackerErrorCode code, TrackerType type, String uid, String messageContains ) {
+    private static void assertError(PersistablesFilter.Result result, ValidationCode code, TrackerType type, String uid, String messageContains ) {
         assertHasError(result.getErrors(), code, type, uid, messageContains);
     }
 }

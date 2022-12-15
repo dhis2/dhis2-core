@@ -44,8 +44,6 @@ import lombok.Value;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.Timing;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
 /**
  * Collects {@link Error}s, {@link Warning}s and invalid entities the errors are
@@ -125,7 +123,7 @@ public class ValidationErrorReporter
         return errors.stream().anyMatch( test );
     }
 
-    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
     {
         if ( expression.getAsBoolean() )
         {
@@ -133,7 +131,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addErrorIfNull( Object object, TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addErrorIfNull( Object object, TrackerDto dto, ValidationCode code, Object... args )
     {
         if ( object == null )
         {
@@ -141,7 +139,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addError( TrackerDto dto, ValidationCode code, Object... args )
     {
         addError( new Error( MessageFormatter.format( idSchemes, code.getMessage(), args ),
             code, dto.getTrackerType(), dto.getUid() ) );
@@ -168,7 +166,7 @@ public class ValidationErrorReporter
         return warnings.stream().anyMatch( test );
     }
 
-    public void addWarningIf( BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addWarningIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
     {
         if ( expression.getAsBoolean() )
         {
@@ -176,7 +174,7 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addWarning( TrackerDto dto, TrackerErrorCode code, Object... args )
+    public void addWarning( TrackerDto dto, ValidationCode code, Object... args )
     {
         addWarning( new Warning( MessageFormatter.format( idSchemes, code.getMessage(), args ),
             code, dto.getTrackerType(), dto.getUid() ) );

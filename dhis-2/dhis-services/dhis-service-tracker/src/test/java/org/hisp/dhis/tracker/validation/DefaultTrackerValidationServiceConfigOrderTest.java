@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

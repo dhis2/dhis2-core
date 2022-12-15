@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 
 import org.hisp.dhis.tracker.report.Error;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,7 +53,7 @@ public class AssertionsTest
     {
         ValidationReport report = ValidationReport.emptyReport();
 
-        assertThrows( AssertionError.class, () -> assertHasOnlyErrors( report, TrackerErrorCode.E1000 ) );
+        assertThrows( AssertionError.class, () -> assertHasOnlyErrors( report, ValidationCode.E1000 ) );
     }
 
     @Test
@@ -61,13 +61,13 @@ public class AssertionsTest
     {
 
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build(),
-                Error.builder().errorCode( TrackerErrorCode.E1019.name() ).build(),
-                Error.builder().errorCode( TrackerErrorCode.E1041.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
+                Error.builder().errorCode( ValidationCode.E1019.name() ).build(),
+                Error.builder().errorCode( ValidationCode.E1041.name() ).build() ),
             List.of() );
 
         assertThrows( AssertionError.class,
-            () -> assertHasOnlyErrors( report, TrackerErrorCode.E1000, TrackerErrorCode.E1019 ) );
+            () -> assertHasOnlyErrors( report, ValidationCode.E1000, ValidationCode.E1019 ) );
     }
 
     @Test
@@ -75,11 +75,11 @@ public class AssertionsTest
     {
 
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
             List.of() );
 
         assertThrows( AssertionError.class,
-            () -> assertHasOnlyErrors( report, TrackerErrorCode.E1000, TrackerErrorCode.E1003 ) );
+            () -> assertHasOnlyErrors( report, ValidationCode.E1000, ValidationCode.E1003 ) );
     }
 
     @Test
@@ -87,21 +87,21 @@ public class AssertionsTest
     {
 
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
             List.of() );
 
-        assertHasOnlyErrors( report, TrackerErrorCode.E1000 );
+        assertHasOnlyErrors( report, ValidationCode.E1000 );
     }
 
     @Test
     void testAssertHasErrorsFailsIfReportHasLessErrors()
     {
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build(),
-                Error.builder().errorCode( TrackerErrorCode.E1001.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
+                Error.builder().errorCode( ValidationCode.E1001.name() ).build() ),
             List.of() );
 
-        assertThrows( AssertionError.class, () -> assertHasErrors( report, 3, TrackerErrorCode.E1000 ) );
+        assertThrows( AssertionError.class, () -> assertHasErrors( report, 3, ValidationCode.E1000 ) );
         // assertHasErrors( report,3, TrackerErrorCode.E1000 );
     }
 
@@ -109,11 +109,11 @@ public class AssertionsTest
     void testAssertHasErrorsSucceeds()
     {
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build(),
-                Error.builder().errorCode( TrackerErrorCode.E1001.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
+                Error.builder().errorCode( ValidationCode.E1001.name() ).build() ),
             List.of() );
 
-        assertHasErrors( report, 2, TrackerErrorCode.E1000 );
+        assertHasErrors( report, 2, ValidationCode.E1000 );
     }
 
     @Test
@@ -121,11 +121,11 @@ public class AssertionsTest
     {
 
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build(),
-                Error.builder().errorCode( TrackerErrorCode.E1041.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build(),
+                Error.builder().errorCode( ValidationCode.E1041.name() ).build() ),
             List.of() );
 
-        assertThrows( AssertionError.class, () -> assertHasError( report, TrackerErrorCode.E1019 ) );
+        assertThrows( AssertionError.class, () -> assertHasError( report, ValidationCode.E1019 ) );
     }
 
     @Test
@@ -133,7 +133,7 @@ public class AssertionsTest
     {
         ValidationReport report = ValidationReport.emptyReport();
 
-        assertThrows( AssertionError.class, () -> assertHasError( report, TrackerErrorCode.E1019 ) );
+        assertThrows( AssertionError.class, () -> assertHasError( report, ValidationCode.E1019 ) );
         // assertHasError( report, TrackerErrorCode.E1019 );
     }
 
@@ -142,9 +142,9 @@ public class AssertionsTest
     {
 
         ValidationReport report = new ValidationReport(
-            List.of( Error.builder().errorCode( TrackerErrorCode.E1000.name() ).build() ),
+            List.of( Error.builder().errorCode( ValidationCode.E1000.name() ).build() ),
             List.of() );
 
-        assertHasError( report, TrackerErrorCode.E1000 );
+        assertHasError( report, ValidationCode.E1000 );
     }
 }

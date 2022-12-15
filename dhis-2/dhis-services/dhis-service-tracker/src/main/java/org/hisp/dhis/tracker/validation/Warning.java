@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
 @Value
 @Builder
@@ -41,13 +40,13 @@ public class Warning implements Validation
 {
     private final String message;
 
-    private final TrackerErrorCode code;
+    private final ValidationCode code;
 
     private final TrackerType type;
 
     private final String uid;
 
-    public TrackerErrorCode getWarningCode()
+    public ValidationCode getWarningCode()
     {
         return code;
     }
