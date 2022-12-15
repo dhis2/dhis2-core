@@ -85,18 +85,18 @@ public class EnrollmentAggregate
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeEvents(),
+            ctx.getParams().getTeiEnrollmentParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeRelationships(),
+            ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships(),
             () -> enrollmentStore.getRelationships( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Note>> notesAsync = asyncFetch(
             () -> enrollmentStore.getNotes( enrollmentIds ), getPool() );
 
         final CompletableFuture<Multimap<String, Attribute>> attributesAsync = conditionalAsyncFetch(
-            ctx.getParams().getEnrollmentParams().isIncludeAttributes(),
+            ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes(),
             () -> enrollmentStore.getAttributes( enrollmentIds, ctx ), getPool() );
 
         return allOf( eventAsync, notesAsync, relationshipAsync, attributesAsync ).thenApplyAsync( fn -> {
@@ -108,15 +108,15 @@ public class EnrollmentAggregate
 
             for ( Enrollment enrollment : enrollments.values() )
             {
-                if ( ctx.getParams().getEnrollmentParams().isIncludeEvents() )
+                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeEvents() )
                 {
                     enrollment.setEvents( new ArrayList<>( events.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getParams().getEnrollmentParams().isIncludeRelationships() )
+                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships() )
                 {
                     enrollment.setRelationships( new HashSet<>( relationships.get( enrollment.getEnrollment() ) ) );
                 }
-                if ( ctx.getParams().getEnrollmentParams().isIncludeAttributes() )
+                if ( ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes() )
                 {
                     enrollment.setAttributes( new ArrayList<>( attributes.get( enrollment.getEnrollment() ) ) );
                 }

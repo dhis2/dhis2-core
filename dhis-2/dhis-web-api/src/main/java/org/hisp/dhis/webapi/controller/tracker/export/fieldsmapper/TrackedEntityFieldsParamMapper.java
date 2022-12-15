@@ -74,6 +74,7 @@ public class TrackedEntityFieldsParamMapper
     private static TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
     {
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
             FieldPath p = roots.get( FieldPreset.ALL );
@@ -115,12 +116,16 @@ public class TrackedEntityFieldsParamMapper
         if ( roots.containsKey( FIELD_ENROLLMENTS ) )
         {
             FieldPath p = roots.get( FIELD_ENROLLMENTS );
-            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRoot( !p.isExclude() ) );
-            params = params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( !p.isExclude() ) );
+            params = params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEnrollments( !p.isExclude() ) );
+            params = params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEvents( !p.isExclude() ) );
             params = params
-                .withEnrollmentParams( params.getEnrollmentParams().withIncludeAttributes( !p.isExclude() ) );
+                .withTeiEnrollmentParams(
+                    params.getTeiEnrollmentParams().withIncludeAttributes( !p.isExclude() ) );
             params = params
-                .withEnrollmentParams( params.getEnrollmentParams().withIncludeRelationships( !p.isExclude() ) );
+                .withTeiEnrollmentParams(
+                    params.getTeiEnrollmentParams().withIncludeRelationships( !p.isExclude() ) );
         }
         return params;
     }
@@ -138,13 +143,15 @@ public class TrackedEntityFieldsParamMapper
 
         if ( events.isExclude() )
         {
-            return params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( false ) );
+            return params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEvents( false ) );
         }
         // since exclusion takes precedence if "!enrollments" we do not need to
         // check the events field value
         if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
         {
-            return params.withEnrollmentParams( params.getEnrollmentParams().withIncludeEvents( !events.isExclude() ) );
+            return params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEvents( !events.isExclude() ) );
         }
         return params;
     }
@@ -162,14 +169,16 @@ public class TrackedEntityFieldsParamMapper
 
         if ( attribute.isExclude() )
         {
-            return params.withEnrollmentParams( params.getEnrollmentParams().withIncludeAttributes( false ) );
+            return params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeAttributes( false ) );
         }
         // since exclusion takes precedence if "!enrollments" we do not need to
         // check the attributes field value
         if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
         {
             return params
-                .withEnrollmentParams( params.getEnrollmentParams().withIncludeAttributes( !attribute.isExclude() ) );
+                .withTeiEnrollmentParams(
+                    params.getTeiEnrollmentParams().withIncludeAttributes( !attribute.isExclude() ) );
         }
         return params;
     }
@@ -187,15 +196,17 @@ public class TrackedEntityFieldsParamMapper
 
         if ( relationship.isExclude() )
         {
-            return params.withEnrollmentParams( params.getEnrollmentParams().withIncludeRelationships( false ) );
+            return params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeRelationships( false ) );
         }
         // since exclusion takes precedence if "!enrollments" we do not need to
         // check the relationship field value
         if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
         {
             return params
-                .withEnrollmentParams(
-                    params.getEnrollmentParams().withIncludeRelationships( !relationship.isExclude() ) );
+                .withTeiEnrollmentParams(
+                    params.getTeiEnrollmentParams()
+                        .withIncludeRelationships( !relationship.isExclude() ) );
         }
         return params;
     }

@@ -53,7 +53,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
     }
 
@@ -65,7 +65,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
     }
 
@@ -77,7 +77,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -89,7 +89,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -101,7 +101,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
     }
 
@@ -113,7 +113,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -125,7 +125,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
     }
 
@@ -137,7 +137,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -150,7 +150,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertTrue( params.isIncludeProgramOwners() );
     }
 
@@ -163,7 +163,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -176,7 +176,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -190,7 +190,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
 
         params = map(
@@ -198,7 +198,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
-        assertFalse( params.getEnrollmentParams().isIncludeEvents() );
+        assertFalse( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -211,7 +211,7 @@ class TrackedEntityFieldsParamMapperTest
 
         assertFalse( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
-        assertTrue( params.getEnrollmentParams().isIncludeEvents() );
+        assertTrue( params.getTeiEnrollmentParams().isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
 
@@ -247,7 +247,7 @@ class TrackedEntityFieldsParamMapperTest
 
         TrackedEntityInstanceParams params = map( fields );
 
-        assertEquals( expectEvents, params.getEnrollmentParams().isIncludeEvents() );
+        assertEquals( expectEvents, params.getTeiEnrollmentParams().isIncludeEvents() );
         assertEquals( expectEnrollments, params.isIncludeEnrollments() );
     }
 }

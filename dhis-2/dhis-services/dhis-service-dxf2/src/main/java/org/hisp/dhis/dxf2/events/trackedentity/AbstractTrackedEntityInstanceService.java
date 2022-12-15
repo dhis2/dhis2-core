@@ -1663,7 +1663,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                     && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
                 {
                     trackedEntityInstance.getEnrollments()
-                        .add( enrollmentService.getEnrollment( user, programInstance, params, true ) );
+                        .add( enrollmentService.getEnrollment( user, programInstance,
+                            params.getTeiEnrollmentParams().getEnrollmentParams(), true ) );
                 }
             }
         }
