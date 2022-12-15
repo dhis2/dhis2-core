@@ -315,7 +315,30 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
         assertEquals( 4, queries.size() );
         for ( EventQueryParams query : queries )
         {
-            assertNotNull( query.hasAggregationType() );
+            assertNotNull( query.getAggregationType() );
+            assertEquals( AggregationType.SUM, query.getAggregationType().getAggregationType() );
+            assertEquals( AggregationType.LAST, query.getAggregationType().getPeriodAggregationType() );
+            assertTrue( query.hasValueDimension() );
+        }
+    }
+
+    @Test
+    void testPlanAggregateDataQueryWithQueryOverride()
+    {
+        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
+            .withProgramDataElements( getList( pdeE ) )
+            .withOrganisationUnits( getList( ouA ) )
+            .withPeriods( createPeriods( "200101", "200103", "200105", "200107", "200109", "200111" ) )
+            .withAggregationType( new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST ) )
+            .build();
+        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
+        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
+        assertEquals( 6, queries.size() );
+        for ( EventQueryParams query : queries )
+        {
+            assertNotNull( query.getAggregationType() );
+            assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
+            assertEquals( AggregationType.FIRST, query.getAggregationType().getPeriodAggregationType() );
             assertTrue( query.hasValueDimension() );
         }
     }
