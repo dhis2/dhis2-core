@@ -137,6 +137,31 @@ public class CrudControllerAdvice
 
     @ExceptionHandler( RestClientException.class )
     @ResponseBody
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex ) {
+        return badRequest( ex.getMessage(), ex.getCode() );
+    }
+
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
+    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex ) {
+        return conflict( ex.getMessage(), ex.getCode() );
+    }
+
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
+    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex ) {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
+    }
+
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
+    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex ) {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode() );
+    }
+
+
+    @ExceptionHandler( RestClientException.class )
+    @ResponseBody
     public WebMessage restClientExceptionHandler( RestClientException ex )
     {
         return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.SERVICE_UNAVAILABLE );
