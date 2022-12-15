@@ -159,7 +159,8 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
     @Test
     void testPlanAggregateQueryA()
     {
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
@@ -168,6 +169,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
         EventQueryParams query = queries.get( 0 );
         assertEquals( new DateTime( 2010, 6, 1, 0, 0 ).toDate(), query.getStartDate() );
         assertEquals( new DateTime( 2012, 3, 20, 0, 0 ).toDate(), query.getEndDate() );
+        assertNotNull( query.getAggregationType() );
         Partitions partitions = query.getPartitions();
         Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
         assertEquals( 3, partitions.getPartitions().size() );
@@ -179,7 +181,8 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
     @Test
     void testPlanAggregateQueryB()
     {
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
             .withStartDate( new DateTime( 2010, 3, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2010, 9, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
@@ -188,6 +191,7 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
         EventQueryParams query = queries.get( 0 );
         assertEquals( new DateTime( 2010, 3, 1, 0, 0 ).toDate(), query.getStartDate() );
         assertEquals( new DateTime( 2010, 9, 20, 0, 0 ).toDate(), query.getEndDate() );
+        assertNotNull( query.getAggregationType() );
         Partitions partitions = query.getPartitions();
         Partitions expected = new Partitions( Sets.newHashSet( 2010 ) );
         assertEquals( 1, partitions.getPartitions().size() );
@@ -199,14 +203,19 @@ class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
     @Test
     void testPlanAggregateQueryC()
     {
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) ).build();
         List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
         assertEquals( 2, queries.size() );
-        assertEquals( ouA, queries.get( 0 ).getOrganisationUnits().get( 0 ) );
-        assertEquals( ouB, queries.get( 1 ).getOrganisationUnits().get( 0 ) );
+        EventQueryParams queryA = queries.get( 0 );
+        EventQueryParams queryB = queries.get( 1 );
+        assertEquals( ouA, queryA.getOrganisationUnits().get( 0 ) );
+        assertNotNull( queryA.getAggregationType() );
+        assertEquals( ouB, queryB.getOrganisationUnits().get( 0 ) );
+        assertNotNull( queryB.getAggregationType() );
         EventQueryParams query = queries.get( 0 );
         Partitions partitions = query.getPartitions();
         Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );

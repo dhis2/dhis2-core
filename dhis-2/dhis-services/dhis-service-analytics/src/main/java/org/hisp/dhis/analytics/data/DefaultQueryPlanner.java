@@ -551,7 +551,8 @@ public class DefaultQueryPlanner
 
             for ( AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet() )
             {
-                DataQueryParams query = DataQueryParams.newBuilder( params ).withAggregationType( aggregationType )
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withAggregationType( aggregationType )
                     .build();
 
                 queries.add( query );
