@@ -126,7 +126,7 @@ public class DefaultTrackerProgramRuleService
             .getTrackedEntity( enrollment.getTrackedEntity() );
 
         List<TrackedEntityAttributeValue> payloadAttributeValues = bundle
-            .getTrackedEntity( enrollment.getTrackedEntity() )
+            .findTrackedEntityByUid( enrollment.getTrackedEntity() )
             .map( tei -> attributeValueTrackerConverterService.from( bundle.getPreheat(), tei.getAttributes() ) )
             .orElse( Lists.newArrayList() );
         attributeValues.addAll( payloadAttributeValues );

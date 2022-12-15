@@ -35,12 +35,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.ValidationReport;
 import org.junit.jupiter.api.function.Executable;
 
 /**
@@ -71,7 +72,7 @@ public class Assertions
      * @param report import report to be asserted on
      * @param codes expected error codes
      */
-    public static void assertHasOnlyErrors( TrackerImportReport report, TrackerErrorCode... codes )
+    public static void assertHasOnlyErrors( ImportReport report, TrackerErrorCode... codes )
     {
         assertHasOnlyErrors( report.getValidationReport(), codes );
     }
@@ -83,7 +84,7 @@ public class Assertions
      * @param report validation report to be asserted on
      * @param codes expected error codes
      */
-    public static void assertHasOnlyErrors( TrackerValidationReport report, TrackerErrorCode... codes )
+    public static void assertHasOnlyErrors( ValidationReport report, TrackerErrorCode... codes )
     {
         assertHasErrors( report, codes.length, codes );
     }
@@ -92,18 +93,18 @@ public class Assertions
      * assertHasErrors asserts the report contains given count of errors and
      * errors contain given codes in any order.<br>
      * <em>NOTE:</em> prefer
-     * {@link #assertHasOnlyErrors(TrackerImportReport, TrackerErrorCode...)} or
-     * {@link #assertHasErrors(TrackerValidationReport, TrackerErrorCode...)}.
-     * Rethink your test if you need this assertion. If you want to make sure a
-     * certain number of errors are present, why do you not care about what
-     * errors are present? The intention of an assertion like
+     * {@link #assertHasOnlyErrors(ImportReport, TrackerErrorCode...)} or
+     * {@link #assertHasErrors(ValidationReport, TrackerErrorCode...)}. Rethink
+     * your test if you need this assertion. If you want to make sure a certain
+     * number of errors are present, why do you not care about what errors are
+     * present? The intention of an assertion like
      * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
      * clear.
      *
      * @param report import report to be asserted on
      * @param codes expected error codes
      */
-    public static void assertHasErrors( TrackerImportReport report, int count, TrackerErrorCode... codes )
+    public static void assertHasErrors( ImportReport report, int count, TrackerErrorCode... codes )
     {
         assertHasErrors( report.getValidationReport(), count, codes );
     }
@@ -111,18 +112,18 @@ public class Assertions
     /**
      * assertHasErrors asserts the report contains given count of errors and
      * errors contain given codes in any order. <em>NOTE:</em> prefer
-     * {@link #assertHasOnlyErrors(TrackerImportReport, TrackerErrorCode...)} or
-     * {@link #assertHasErrors(TrackerValidationReport, TrackerErrorCode...)}.
-     * Rethink your test if you need this assertion. If you want to make sure a
-     * certain number of errors are present, why do you not care about what
-     * errors are present? The intention of an assertion like
+     * {@link #assertHasOnlyErrors(ImportReport, TrackerErrorCode...)} or
+     * {@link #assertHasErrors(ValidationReport, TrackerErrorCode...)}. Rethink
+     * your test if you need this assertion. If you want to make sure a certain
+     * number of errors are present, why do you not care about what errors are
+     * present? The intention of an assertion like
      * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
      * clear.
      *
      * @param report validation report to be asserted on
      * @param codes expected error codes
      */
-    public static void assertHasErrors( TrackerValidationReport report, int count, TrackerErrorCode... codes )
+    public static void assertHasErrors( ValidationReport report, int count, TrackerErrorCode... codes )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
         ArrayList<Executable> executables = new ArrayList<>();
@@ -139,7 +140,7 @@ public class Assertions
      * @param report validation report to be asserted on
      * @param codes expected error codes
      */
-    public static void assertHasErrors( TrackerValidationReport report, TrackerErrorCode... codes )
+    public static void assertHasErrors( ValidationReport report, TrackerErrorCode... codes )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
         ArrayList<Executable> executables = new ArrayList<>();
@@ -147,36 +148,36 @@ public class Assertions
         assertAll( "assertHasErrors", executables );
     }
 
-    public static void assertHasError( TrackerImportReport report, TrackerErrorCode code )
+    public static void assertHasError( ImportReport report, TrackerErrorCode code )
     {
         assertNotNull( report );
         assertAll(
-            () -> assertEquals( TrackerStatus.ERROR, report.getStatus(),
+            () -> assertEquals( Status.ERROR, report.getStatus(),
                 errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) ),
             () -> assertHasError( report.getValidationReport(), code ) );
     }
 
-    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code )
+    public static void assertHasError( ValidationReport report, TrackerErrorCode code )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
-        assertTrue( report.hasError( err -> code == err.getErrorCode() ),
+        assertTrue( report.hasError( err -> Objects.equals( code.name(), err.getErrorCode() ) ),
             String.format( "error with code %s not found in report with error(s) %s", code, report.getErrors() ) );
     }
 
-    public static void assertNoErrors( TrackerImportReport report )
+    public static void assertNoErrors( ImportReport report )
     {
         assertNotNull( report );
-        assertEquals( TrackerStatus.OK, report.getStatus(),
+        assertEquals( Status.OK, report.getStatus(),
             errorMessage( "Expected import with status OK, instead got:\n", report.getValidationReport() ) );
     }
 
-    public static void assertNoErrors( TrackerValidationReport report )
+    public static void assertNoErrors( ValidationReport report )
     {
         assertNotNull( report );
         assertFalse( report.hasErrors(), errorMessage( "Expected no validation errors, instead got:\n", report ) );
     }
 
-    private static Supplier<String> errorMessage( String errorTitle, TrackerValidationReport report )
+    private static Supplier<String> errorMessage( String errorTitle, ValidationReport report )
     {
         return () -> {
             StringBuilder msg = new StringBuilder( errorTitle );

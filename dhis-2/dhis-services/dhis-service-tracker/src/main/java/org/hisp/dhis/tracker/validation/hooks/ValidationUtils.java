@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
@@ -180,20 +181,20 @@ public class ValidationUtils
 
     public static boolean trackedEntityInstanceExist( TrackerBundle bundle, String teiUid )
     {
-        return bundle.getTrackedEntityInstance( teiUid ) != null
-            || bundle.getPreheat().getReference( teiUid ).isPresent();
+        return bundle.getPreheat().getTrackedEntity( teiUid ) != null
+            || bundle.findTrackedEntityByUid( teiUid ).isPresent();
     }
 
     public static boolean enrollmentExist( TrackerBundle bundle, String enrollmentUid )
     {
-        return bundle.getProgramInstance( enrollmentUid ) != null
-            || bundle.getPreheat().getReference( enrollmentUid ).isPresent();
+        return bundle.getPreheat().getEnrollment( enrollmentUid ) != null
+            || bundle.findEnrollmentByUid( enrollmentUid ).isPresent();
     }
 
     public static boolean eventExist( TrackerBundle bundle, String eventUid )
     {
-        return bundle.getProgramStageInstance( eventUid ) != null
-            || bundle.getPreheat().getReference( eventUid ).isPresent();
+        return bundle.getPreheat().getEvent( eventUid ) != null
+            || bundle.findEventByUid( eventUid ).isPresent();
     }
 
     public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
@@ -214,4 +215,31 @@ public class ValidationUtils
                 optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
                     .collect( Collectors.joining( "," ) ) ) );
     }
+
+    public static void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter, TrackerDto dto )
+    {
+        for ( Note note : notes )
+        {
+            checkUidFormat( note.getNote(), reporter, dto, note, note.getNote() );
+        }
+    }
+
+    /**
+     * Check if the given UID has a valid format.
+     *
+     * @param checkUid a UID to be checked
+     * @param reporter a {@see ValidationErrorReporter} to which the error is
+     *        added
+     * @param dto the dto to which the report will be linked to
+     * @param args list of arguments for the Error report
+     */
+    public static void checkUidFormat( String checkUid, ValidationErrorReporter reporter, TrackerDto dto,
+        Object... args )
+    {
+        if ( !CodeGenerator.isValidUid( checkUid ) )
+        {
+            reporter.addError( dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
+        }
+    }
+
 }

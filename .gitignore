@@ -28,6 +28,7 @@ overlays/
 ./.gitattributes
 ./.gitignore
 ./.travis.yml
+.attach_pid*
 .DS_Store
 dhis-2/projectFilesBackup
 coverage
