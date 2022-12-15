@@ -27,23 +27,17 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
-
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validation represents an issue found by the validation process. It contains
+ * information that help the client to understand and fix the problem.
  */
-class ValidationFailFastException
-    extends RuntimeException
+public interface Validation
 {
-    private final transient List<Error> errorReportRef;
+    String getCode();
 
-    public ValidationFailFastException( List<Error> errorReportRef )
-    {
-        this.errorReportRef = errorReportRef;
-    }
+    String getMessage();
 
-    public List<Error> getErrors()
-    {
-        return errorReportRef;
-    }
+    String getType();
+
+    String getUid();
 }

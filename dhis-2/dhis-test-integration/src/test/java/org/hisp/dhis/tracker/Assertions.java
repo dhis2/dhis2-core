@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.hisp.dhis.tracker.report.ImportReport;
@@ -159,7 +160,7 @@ public class Assertions
     public static void assertHasError( ValidationReport report, TrackerErrorCode code )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
-        assertTrue( report.hasError( err -> code == err.getErrorCode() ),
+        assertTrue( report.hasError( err -> Objects.equals( code.name(), err.getErrorCode() ) ),
             String.format( "error with code %s not found in report with error(s) %s", code, report.getErrors() ) );
     }
 

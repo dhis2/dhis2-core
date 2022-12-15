@@ -127,7 +127,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "program" ) );
     }
 
     @Test
@@ -139,7 +139,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "trackedEntity" ) );
     }
 
     private Enrollment validEnrollment()

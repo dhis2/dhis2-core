@@ -27,23 +27,57 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class ValidationFailFastException
-    extends RuntimeException
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+
+@Value
+@Builder
+@RequiredArgsConstructor
+public class Warning implements Validation
 {
-    private final transient List<Error> errorReportRef;
+    private final String message;
 
-    public ValidationFailFastException( List<Error> errorReportRef )
+    private final TrackerErrorCode code;
+
+    private final TrackerType type;
+
+    private final String uid;
+
+    public TrackerErrorCode getWarningCode()
     {
-        this.errorReportRef = errorReportRef;
+        return code;
     }
 
-    public List<Error> getErrors()
+    public TrackerType getTrackerType()
     {
-        return errorReportRef;
+        return type;
+    }
+
+    @Override
+    public String getCode()
+    {
+        return code.name();
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return message;
+    }
+
+    @Override
+    public String getType()
+    {
+        return type.name();
+    }
+
+    @Override
+    public String getUid()
+    {
+        return uid;
     }
 }
