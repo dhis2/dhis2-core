@@ -34,19 +34,17 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidator;
-import org.hisp.dhis.tracker.validation.hooks.EventRuleValidator;
+import org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator;
 import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
 import org.springframework.stereotype.Component;
 
 /**
  * {@link Validators} used in
- * {@link TrackerValidationService#validateRuleEngine(TrackerBundle)}.
+ * {@link ValidationService#validateRuleEngine(TrackerBundle)}.
  */
 @RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )
@@ -59,9 +57,7 @@ public class RuleEngineValidators implements Validators
 
     private final EnrollmentAttributeValidator enrollmentAttributeValidator;
 
-    private final EventDataValuesValidator eventDataValuesValidator;
-
-    private final EventRuleValidator eventRuleValidator;
+    private final EventRuleEngineValidator eventRuleEngineValidator;
 
     @Override
     public List<Validator<TrackedEntity>> getTrackedEntityValidators()
@@ -79,21 +75,13 @@ public class RuleEngineValidators implements Validators
     }
 
     @Override
-    public List<Validator<Event>> getEventValidators()
+    public Validator<TrackerBundle> getEventValidator()
     {
-        return List.of(
-            eventRuleValidator,
-            eventDataValuesValidator );
+        return eventRuleEngineValidator;
     }
 
     @Override
     public List<Validator<Relationship>> getRelationshipValidators()
-    {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<Validator<TrackerBundle>> getBundleValidators()
     {
         return Collections.emptyList();
     }

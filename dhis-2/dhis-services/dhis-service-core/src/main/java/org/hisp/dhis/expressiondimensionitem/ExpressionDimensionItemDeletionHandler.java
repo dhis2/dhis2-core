@@ -25,55 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.expressiondimensionitem;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import java.util.Map;
+
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.visualization.Visualization;
+import org.springframework.stereotype.Component;
 
 /**
- * Validates given input and adds errors and warnings to a {@link Reporter}.
- * {@link TrackerBundle} is given as context.
- *
- * @param <T> type of input to be validated
+ * @author maikel arabori
  */
-@FunctionalInterface
-public interface Validator<T>
+@Component
+public class ExpressionDimensionItemDeletionHandler extends JdbcDeletionHandler
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( Reporter reporter, TrackerBundle bundle, T input );
+    private static final DeletionVeto VETO = new DeletionVeto( Visualization.class ); // Not a typo!
 
-    /**
-     * Indicates whether this {@link Validator} should be run given the
-     * {@link TrackerImportStrategy}.
-     *
-     * @param strategy import strategy
-     * @return true if this validator should be run and false otherwise
-     */
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    @Override
+    protected void register()
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        whenVetoing( ExpressionDimensionItem.class, this::allowDeleteExpressionDimensionItem );
     }
 
-    /**
-     * A signal to the orchestration of the validation that subsequent
-     * {@link Validator}s should not be run if this one fails i.e. adds an
-     * error.
-     * <p>
-     * Note: this mechanism is going to be replaced by
-     * {@link org.hisp.dhis.tracker.validation.hooks.Seq}.
-     * </p>
-     *
-     * @return true if subsequent validators should be skipped on error and
-     *         false otherwise
-     */
-    default boolean skipOnError()
+    private DeletionVeto allowDeleteExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
     {
-        return false;
+        String sql = "select 1 from datadimensionitem where expressiondimensionitemid=:id limit 1";
+        return vetoIfExists( VETO, sql, Map.of( "id", expressionDimensionItem.getId() ) );
     }
 }

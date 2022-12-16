@@ -60,10 +60,10 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DefaultTrackerValidationServiceTest
+class DefaultValidationServiceTest
 {
 
-    private DefaultTrackerValidationService service;
+    private DefaultValidationService service;
 
     private TrackerPreheat preheat;
 
@@ -91,6 +91,8 @@ class DefaultTrackerValidationServiceTest
         when( validator2.needsToRun( any() ) ).thenReturn( true );
 
         validators = mock( Validators.class );
+        when( validators.getEventValidator() ).thenReturn( ( r, b, t ) -> {
+        } );
         ruleEngineValidators = mock( Validators.class );
 
         bundleBuilder = newBundle();
@@ -105,7 +107,7 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -121,7 +123,7 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -138,12 +140,145 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1, validator2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
         verify( validator1, times( 1 ) ).validate( any(), any(), eq( trackedEntity ) );
         verify( validator2, times( 1 ) ).validate( any(), any(), eq( trackedEntity ) );
+    }
+
+    @Test
+    void failFastModePreventsFurtherValidationAfterFirstErrorIsAdded()
+    {
+        TrackedEntity validTrackedEntity = trackedEntity();
+        TrackedEntity invalidTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .validationMode( ValidationMode.FAIL_FAST )
+            .trackedEntities( trackedEntities( validTrackedEntity, invalidTrackedEntity ) )
+            .build();
+
+        Validator<TrackedEntity> v1 = ( r, b, t ) -> addErrorOnMatch( r, invalidTrackedEntity, t,
+            ValidationCode.E1032 );
+        Validator<TrackedEntity> v2 = ( r, b, t ) -> addErrorOnMatch( r, invalidTrackedEntity, t,
+            ValidationCode.E9999 );
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1, v2 ) );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
+
+        ValidationResult report = service.validate( bundle );
+
+        assertAll( "errors",
+            () -> assertTrue( report.hasErrors() ),
+            () -> assertEquals( 1, report.getErrors().size(),
+                "only first validator should add 1 error when mode is fail fast" ),
+            () -> assertHasError( report, ValidationCode.E1032, invalidTrackedEntity ) );
+
+        assertAll( "invalid events",
+            () -> assertFalse( bundle.getTrackedEntities().contains( invalidTrackedEntity ) ),
+            () -> assertTrue( bundle.getTrackedEntities().contains( validTrackedEntity ) ) );
+    }
+
+    @Test
+    void needsToRunPreventsValidatorExecutionOnImportStrategyDeleteByDefault()
+    {
+        TrackedEntity invalidTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .importStrategy( TrackerImportStrategy.DELETE )
+            .trackedEntities( trackedEntities( invalidTrackedEntity ) )
+            .build();
+        // StrategyPreProcessor sets the ImportStrategy in the bundle for every
+        // dto
+        bundle.setStrategy( invalidTrackedEntity, TrackerImportStrategy.DELETE );
+
+        Validator<TrackedEntity> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidTrackedEntity, e,
+            ValidationCode.E1032 );
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
+
+        ValidationResult report = service.validate( bundle );
+
+        assertFalse( report.hasErrors() );
+    }
+
+    @Test
+    void needsToRunPreventsValidatorExecutionIfReturnsFalse()
+    {
+        bundle = bundleBuilder
+            .importStrategy( TrackerImportStrategy.DELETE )
+            .trackedEntities( trackedEntities( trackedEntity() ) )
+            .build();
+        Validator<TrackedEntity> v1 = new Validator<>()
+        {
+            @Override
+            public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+            {
+                reporter.addError( trackedEntity, ValidationCode.E1000 );
+            }
+
+            @Override
+            public boolean needsToRun( TrackerImportStrategy strategy )
+            {
+                return false; // this validator should NOT be run
+            }
+        };
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
+
+        ValidationResult report = service.validate( bundle );
+
+        assertFalse( report.hasErrors() );
+    }
+
+    @Test
+    void needsToRunExecutesHookIfReturnsTrue()
+    {
+        TrackedEntity invalidTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .trackedEntities( trackedEntities( invalidTrackedEntity ) )
+            .build();
+
+        Validator<TrackedEntity> v1 = new Validator<>()
+        {
+            @Override
+            public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+            {
+                reporter.addError( trackedEntity, ValidationCode.E1032 );
+            }
+
+            @Override
+            public boolean needsToRun( TrackerImportStrategy strategy )
+            {
+                return true; // this validator should be run
+            }
+        };
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
+
+        ValidationResult report = service.validate( bundle );
+
+        assertTrue( report.hasErrors() );
+        assertHasError( report, ValidationCode.E1032, invalidTrackedEntity );
+    }
+
+    @Test
+    void warningsDoNotInvalidateAndRemoveEntities()
+    {
+        TrackedEntity validTrackedEntity = trackedEntity();
+        bundle = bundleBuilder
+            .trackedEntities( trackedEntities( validTrackedEntity ) )
+            .build();
+
+        Validator<TrackedEntity> v1 = ( r, b, e ) -> r.addWarning( validTrackedEntity, ValidationCode.E1120 );
+        when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
+
+        ValidationResult report = service.validate( bundle );
+
+        assertAll( "errors and warnings",
+            () -> assertFalse( report.hasErrors() ),
+            () -> assertHasWarning( report, ValidationCode.E1120, validTrackedEntity ) );
+
+        assertTrue( bundle.getTrackedEntities().contains( validTrackedEntity ) );
     }
 
     @Test
@@ -176,7 +311,7 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidTrackedEntity, e,
             ValidationCode.E9999 );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -207,7 +342,7 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidTrackedEntity, e,
             ValidationCode.E9999 );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -251,7 +386,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Enrollment> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e,
             ValidationCode.E9999 );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -280,7 +415,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Enrollment> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e, ValidationCode.E1032 );
         Validator<Enrollment> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e, ValidationCode.E9999 );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -295,219 +430,10 @@ class DefaultTrackerValidationServiceTest
             () -> assertTrue( bundle.getEnrollments().contains( validEnrollment ) ) );
     }
 
-    @Test
-    void skipOnErrorValidatorPreventsFurtherValidationOfInvalidEntityEvenInFullValidationModeOfEvents()
-    {
-        // Test shows
-        // 1. Validators with skipOnError==true will prevent subsequent validators from validating an invalid entity
-        // 2. DefaultValidationService removes invalid entities from the TrackerBundle
-        Event validEvent = event();
-        Event invalidEvent = event();
-
-        bundle = bundleBuilder
-            .events( events( invalidEvent, validEvent ) )
-            .build();
-
-        Validator<Event> skipOnError = new Validator<>()
-        {
-            @Override
-            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-            {
-                addErrorOnMatch( reporter, invalidEvent, event, ValidationCode.E1032 );
-            }
-
-            @Override
-            public boolean skipOnError()
-            {
-                return true; // subsequent validator will not be called
-            }
-        };
-
-        Validator<Event> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e,
-            ValidationCode.E9999 );
-        when( validators.getEventValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertAll( "errors",
-            () -> assertTrue( report.hasErrors() ),
-            () -> assertEquals( 1, report.getErrors().size(), "only skip on error validator should add 1 error" ),
-            () -> assertHasError( report, ValidationCode.E1032, invalidEvent ) );
-
-        assertAll( "invalid events",
-            () -> assertFalse( bundle.getEvents().contains( invalidEvent ) ),
-            () -> assertTrue( bundle.getEvents().contains( validEvent ) ) );
-    }
-
-    @Test
-    void fullValidationModeAddsAllErrorsToReportOfEvents()
-    {
-        // Test shows
-        // in ValidationMode==FULL all validators are called even with entities that
-        // are already invalid (i.e. have an error in the validation report)
-        Event validEvent = event();
-        Event invalidEvent = event();
-
-        bundle = bundleBuilder
-            .events( events( invalidEvent, validEvent ) )
-            .build();
-
-        Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
-        Validator<Event> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E9999 );
-        when( validators.getEventValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertAll( "errors",
-            () -> assertTrue( report.hasErrors() ),
-            () -> assertEquals( 2, report.getErrors().size(), "both validators should each add 1 error" ),
-            () -> assertHasError( report, ValidationCode.E1032, invalidEvent ),
-            () -> assertHasError( report, ValidationCode.E9999, invalidEvent ) );
-
-        assertAll( "invalid events",
-            () -> assertFalse( bundle.getEvents().contains( invalidEvent ) ),
-            () -> assertTrue( bundle.getEvents().contains( validEvent ) ) );
-    }
-
     private static <T extends TrackerDto> void addErrorOnMatch( Reporter reporter, T expected, T actual,
         ValidationCode code )
     {
         reporter.addErrorIf( () -> Objects.equals( expected, actual ), actual, code );
-    }
-
-    @Test
-    void failFastModePreventsFurtherValidationAfterFirstErrorIsAdded()
-    {
-        Event validEvent = event();
-        Event invalidEvent = event();
-
-        bundle = bundleBuilder
-            .validationMode( ValidationMode.FAIL_FAST )
-            .events( events( invalidEvent, validEvent ) )
-            .build();
-
-        Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
-        Validator<Event> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E9999 );
-        when( validators.getEventValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertAll( "errors",
-            () -> assertTrue( report.hasErrors() ),
-            () -> assertEquals( 1, report.getErrors().size(),
-                "only first validator should add 1 error when mode is fail fast" ),
-            () -> assertHasError( report, ValidationCode.E1032, invalidEvent ) );
-
-        assertAll( "invalid events",
-            () -> assertFalse( bundle.getEvents().contains( invalidEvent ) ),
-            () -> assertTrue( bundle.getEvents().contains( validEvent ) ) );
-    }
-
-    @Test
-    void needsToRunPreventsValidatorExecutionOnImportStrategyDeleteByDefault()
-    {
-        Event invalidEvent = event();
-
-        bundle = bundleBuilder
-            .importStrategy( TrackerImportStrategy.DELETE )
-            .events( events( invalidEvent ) )
-            .build();
-        // StrategyPreProcessor sets the ImportStrategy in the bundle for every
-        // dto
-        bundle.setStrategy( invalidEvent, TrackerImportStrategy.DELETE );
-
-        Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
-        when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertFalse( report.hasErrors() );
-    }
-
-    @Test
-    void needsToRunPreventsValidatorExecutionIfReturnsFalse()
-    {
-        bundle = bundleBuilder
-            .events( events( event() ) )
-            .build();
-
-        Validator<Event> v1 = new Validator<>()
-        {
-            @Override
-            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-            {
-                reporter.addError( event, ValidationCode.E1000 );
-            }
-
-            @Override
-            public boolean needsToRun( TrackerImportStrategy strategy )
-            {
-                return false; // this validator should NOT be run
-            }
-        };
-        when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertFalse( report.hasErrors() );
-    }
-
-    @Test
-    void needsToRunExecutesHookIfReturnsTrue()
-    {
-        Event invalidEvent = event();
-        bundle = bundleBuilder
-            .events( events( invalidEvent ) )
-            .build();
-
-        Validator<Event> v1 = new Validator<>()
-        {
-            @Override
-            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-            {
-                reporter.addError( event, ValidationCode.E1032 );
-            }
-
-            @Override
-            public boolean needsToRun( TrackerImportStrategy strategy )
-            {
-                return true; // this validator should be run
-            }
-        };
-        when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertTrue( report.hasErrors() );
-        assertHasError( report, ValidationCode.E1032, invalidEvent );
-    }
-
-    @Test
-    void warningsDoNotInvalidateAndRemoveEntities()
-    {
-        Event validEvent = event();
-
-        bundle = bundleBuilder
-            .events( events( validEvent ) )
-            .build();
-
-        Validator<Event> v1 = ( r, b, e ) -> r.addWarning( validEvent, ValidationCode.E1120 );
-        when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
-
-        ValidationResult report = service.validate( bundle );
-
-        assertAll( "errors and warnings",
-            () -> assertFalse( report.hasErrors() ),
-            () -> assertHasWarning( report, ValidationCode.E1120, validEvent ) );
-
-        assertTrue( bundle.getEvents().contains( validEvent ) );
     }
 
     @Test
@@ -532,11 +458,12 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> v1 = ( r, b, t ) -> addErrorOnMatch( r, invalidTrackedEntity, t,
             ValidationCode.E1090 );
         Validator<Enrollment> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e, ValidationCode.E1069 );
-        Validator<Event> v3 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
+        Validator<TrackerBundle> v3 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e.getEvents().get( 0 ),
+            ValidationCode.E1032 );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( v2 ) );
-        when( validators.getEventValidators() ).thenReturn( List.of( v3 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        when( validators.getEventValidator() ).thenReturn( v3 );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
