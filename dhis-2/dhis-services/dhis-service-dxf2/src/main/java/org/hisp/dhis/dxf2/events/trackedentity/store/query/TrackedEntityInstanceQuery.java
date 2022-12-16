@@ -52,7 +52,9 @@ public class TrackedEntityInstanceQuery
         GEOMETRY,
         TYPE_UID,
         ORGUNIT_UID,
-        TRACKEDENTITYINSTANCEID
+        TRACKEDENTITYINSTANCEID,
+
+        POTENTIALDUPLICATE
     }
 
     public static Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
@@ -68,6 +70,8 @@ public class TrackedEntityInstanceQuery
         .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
         .put( COLUMNS.TRACKEDENTITYINSTANCEID,
             new TableColumn( "tei", "trackedentityinstanceid", "trackedentityinstanceid" ) )
+        .put( COLUMNS.POTENTIALDUPLICATE,
+            new TableColumn( "tei", "potentialduplicate", "potentialduplicate" ) )
         .build();
 
     public static String getQuery()

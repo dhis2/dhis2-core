@@ -187,6 +187,12 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
     private boolean includeAllAttributes;
 
     /**
+     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
+     * is a potentialDuplicate or not
+     */
+    private Boolean potentialDuplicate;
+
+    /**
      * The file name in case of exporting as file
      */
     private String attachment;

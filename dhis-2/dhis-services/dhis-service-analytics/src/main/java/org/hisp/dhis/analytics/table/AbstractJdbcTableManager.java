@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -135,13 +136,15 @@ public abstract class AbstractJdbcTableManager
 
     protected final JdbcTemplate jdbcTemplate;
 
+    protected final AnalyticsExportSettings analyticsExportSettings;
+
     @Autowired
     public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate )
+        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
     {
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
@@ -153,6 +156,8 @@ public abstract class AbstractJdbcTableManager
         checkNotNull( statementBuilder );
         checkNotNull( partitionManager );
         checkNotNull( databaseInfo );
+        checkNotNull( jdbcTemplate );
+        checkNotNull( analyticsExportSettings );
 
         this.idObjectManager = idObjectManager;
         this.organisationUnitService = organisationUnitService;
@@ -165,6 +170,7 @@ public abstract class AbstractJdbcTableManager
         this.partitionManager = partitionManager;
         this.databaseInfo = databaseInfo;
         this.jdbcTemplate = jdbcTemplate;
+        this.analyticsExportSettings = analyticsExportSettings;
     }
 
     // -------------------------------------------------------------------------
@@ -409,7 +415,10 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
+        StringBuilder sqlCreate = new StringBuilder();
+
+        sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+            .append( tableName ).append( " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -439,22 +448,25 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " (";
+            StringBuilder sqlCreate = new StringBuilder();
+
+            sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+                .append( tableName ).append( "(" );
 
             if ( !checks.isEmpty() )
             {
                 StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
+                sqlCreate.append( TextUtils.removeLastComma( sqlCheck.toString() ) );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + WITH_AUTOVACUUM_ENABLED_FALSE;
+            sqlCreate.append( ") inherits (" ).append( table.getTempTableName() ).append( ") " )
+                .append( WITH_AUTOVACUUM_ENABLED_FALSE );
 
             log.info( "Creating partition table: {}", tableName );
-
             log.debug( "Create SQL: {}", sqlCreate );
 
-            jdbcTemplate.execute( sqlCreate );
+            jdbcTemplate.execute( sqlCreate.toString() );
         }
     }
 

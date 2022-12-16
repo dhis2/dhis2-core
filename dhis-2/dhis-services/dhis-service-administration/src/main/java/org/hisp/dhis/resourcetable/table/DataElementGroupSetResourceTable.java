@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class DataElementGroupSetResourceTable
     extends ResourceTable<DataElementGroupSet>
 {
-    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects )
+    private final String tableType;
+
+    public DataElementGroupSetResourceTable( List<DataElementGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class DataElementGroupSetResourceTable
     {
         UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
 
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "dataelementid bigint not null, " +
             "dataelementname varchar(230), ";
 
