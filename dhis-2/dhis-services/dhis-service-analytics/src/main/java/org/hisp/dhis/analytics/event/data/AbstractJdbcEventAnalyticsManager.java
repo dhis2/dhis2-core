@@ -456,13 +456,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
     {
         String column = getColumn( queryItem );
+
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
+
         return ColumnAndAlias.ofColumn( column );
     }
 
@@ -553,7 +552,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Event analytics aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 

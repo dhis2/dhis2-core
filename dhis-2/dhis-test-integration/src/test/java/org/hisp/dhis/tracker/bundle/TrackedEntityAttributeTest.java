@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -93,9 +93,9 @@ class TrackedEntityAttributeTest extends TrackerTest
     void testTrackedAttributeValueBundleImporter()
         throws IOException
     {
-        TrackerImportReport trackerImportReport = trackerImportService
+        ImportReport importReport = trackerImportService
             .importTracker( fromJson( "tracker/te_with_tea_data.json" ) );
-        assertNoErrors( trackerImportReport );
+        assertNoErrors( importReport );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

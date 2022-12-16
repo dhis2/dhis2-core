@@ -769,29 +769,6 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} LAST
-     */
-    public boolean isLastPeriodAggregationType()
-    {
-        return getAggregationType() != null && getAggregationType().isLastPeriodAggregationType();
-    }
-
-    /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} FIRST
-     */
-    public boolean isFirstPeriodAggregationType()
-    {
-        return getAggregationType() != null && getAggregationType().isFirstPeriodAggregationType();
-    }
-
-    public boolean isFirstOrLastPeriodAggregationType()
-    {
-        return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
-    }
-
-    /**
      * Returns true if a program indicator exists with non-default analytics
      * period boundaries.
      */

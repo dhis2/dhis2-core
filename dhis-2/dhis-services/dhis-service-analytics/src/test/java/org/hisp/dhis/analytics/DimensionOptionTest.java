@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +92,6 @@ class DimensionOptionTest extends DhisConvenienceTest
     void testGetPeriodOption()
     {
         assertEquals( peA, DimensionItem.getPeriodItem( options ) );
-        assertEquals( null, DimensionItem.getPeriodItem( null ) );
+        assertNull( DimensionItem.getPeriodItem( null ) );
     }
 }

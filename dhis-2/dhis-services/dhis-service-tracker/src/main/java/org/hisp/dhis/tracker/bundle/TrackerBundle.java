@@ -42,11 +42,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -172,11 +169,19 @@ public class TrackerBundle
     private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
 
     @Builder.Default
-    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( Map.of(
-        TrackerType.RELATIONSHIP, new HashMap<>(),
-        TrackerType.EVENT, new HashMap<>(),
-        TrackerType.ENROLLMENT, new HashMap<>(),
-        TrackerType.TRACKED_ENTITY, new HashMap<>() ) );
+    private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = initStrategyMap();
+
+    private static Map<TrackerType, Map<String, TrackerImportStrategy>> initStrategyMap()
+    {
+        Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new EnumMap<>( TrackerType.class );
+
+        resolvedStrategyMap.put( TrackerType.RELATIONSHIP, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.EVENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.ENROLLMENT, new HashMap<>() );
+        resolvedStrategyMap.put( TrackerType.TRACKED_ENTITY, new HashMap<>() );
+
+        return resolvedStrategyMap;
+    }
 
     @JsonProperty
     public String getUsername()
@@ -188,22 +193,22 @@ public class TrackerBundle
     @JsonIgnore
     private Set<String> updatedTeis = new HashSet<>();
 
-    public Optional<TrackedEntity> getTrackedEntity( String uid )
+    public Optional<TrackedEntity> findTrackedEntityByUid( String uid )
     {
         return findById( this.trackedEntities, uid );
     }
 
-    public Optional<Event> getEvent( String uid )
-    {
-        return findById( this.events, uid );
-    }
-
-    public Optional<Enrollment> getEnrollment( String uid )
+    public Optional<Enrollment> findEnrollmentByUid( String uid )
     {
         return findById( this.enrollments, uid );
     }
 
-    public Optional<Relationship> getRelationship( String uid )
+    public Optional<Event> findEventByUid( String uid )
+    {
+        return findById( this.events, uid );
+    }
+
+    public Optional<Relationship> findRelationshipByUid( String uid )
     {
         return findById( this.relationships, uid );
     }
@@ -217,7 +222,7 @@ public class TrackerBundle
     {
         return ruleEffects.stream()
             .filter( RuleEffects::isEnrollment )
-            .filter( e -> getEnrollment( e.getTrackerObjectUid() ).isPresent() )
+            .filter( e -> findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
@@ -225,7 +230,7 @@ public class TrackerBundle
     {
         return ruleEffects.stream()
             .filter( RuleEffects::isEvent )
-            .filter( e -> getEvent( e.getTrackerObjectUid() ).isPresent() )
+            .filter( e -> findEventByUid( e.getTrackerObjectUid() ).isPresent() )
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
@@ -237,21 +242,6 @@ public class TrackerBundle
     public TrackerImportStrategy getStrategy( TrackerDto dto )
     {
         return getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
-    }
-
-    public TrackedEntityInstance getTrackedEntityInstance( String id )
-    {
-        return getPreheat().getTrackedEntity( id );
-    }
-
-    public ProgramInstance getProgramInstance( String id )
-    {
-        return getPreheat().getEnrollment( id );
-    }
-
-    public ProgramStageInstance getProgramStageInstance( String event )
-    {
-        return getPreheat().getEvent( event );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -300,13 +290,13 @@ public class TrackerBundle
         switch ( type )
         {
         case TRACKED_ENTITY:
-            return getTrackedEntity( uid ).isPresent();
+            return findTrackedEntityByUid( uid ).isPresent();
         case ENROLLMENT:
-            return getEnrollment( uid ).isPresent();
+            return findEnrollmentByUid( uid ).isPresent();
         case EVENT:
-            return getEvent( uid ).isPresent();
+            return findEventByUid( uid ).isPresent();
         case RELATIONSHIP:
-            return getRelationship( uid ).isPresent();
+            return findRelationshipByUid( uid ).isPresent();
         default:
             // only reached if a new TrackerDto implementation is added
             throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );

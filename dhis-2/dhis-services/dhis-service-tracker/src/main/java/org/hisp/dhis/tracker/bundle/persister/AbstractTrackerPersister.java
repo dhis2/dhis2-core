@@ -64,7 +64,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerObjectReport;
+import org.hisp.dhis.tracker.report.Entity;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
 /**
@@ -111,7 +111,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             //
             final T trackerDto = dtos.get( idx );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
+            Entity objectReport = new Entity( getType(), trackerDto.getUid(), idx );
 
             try
             {
@@ -139,7 +139,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     session.persist( convertedDto );
                     typeReport.getStats().incCreated();
-                    typeReport.addObjectReport( objectReport );
+                    typeReport.addEntity( objectReport );
                     updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                 }
                 else
@@ -149,7 +149,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
-                        typeReport.addObjectReport( objectReport );
+                        typeReport.addEntity( objectReport );
                         Optional.ofNullable( getUpdatedTrackedEntity( convertedDto ) ).ifPresent( updatedTeiList::add );
                     }
                     else
