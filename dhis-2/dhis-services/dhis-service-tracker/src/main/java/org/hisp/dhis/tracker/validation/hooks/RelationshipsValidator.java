@@ -30,10 +30,10 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4018;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
@@ -53,7 +53,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
@@ -157,7 +157,7 @@ public class RelationshipsValidator
     {
         if ( relationshipItemValueType( item ) == null )
         {
-            reporter.addError( relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
+            reporter.addError( relationship, ValidationCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
             return;
         }
 
@@ -165,7 +165,7 @@ public class RelationshipsValidator
         {
             if ( item.getTrackedEntity() == null )
             {
-                reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
+                reporter.addError( relationship, ValidationCode.E4010, relSide,
                     TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
             }
             else
@@ -181,7 +181,7 @@ public class RelationshipsValidator
 
                             if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
                             {
-                                reporter.addError( relationship, TrackerErrorCode.E4014, relSide,
+                                reporter.addError( relationship, ValidationCode.E4014, relSide,
                                     type.identifierOf( constraint.getTrackedEntityType() ), type );
                             }
 
@@ -193,14 +193,14 @@ public class RelationshipsValidator
             if ( item.getEnrollment() == null )
             {
                 reporter.addError( relationship,
-                    TrackerErrorCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
+                    ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
                     relationshipItemValueType( item ).getName() );
             }
 
         }
         else if ( constraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) && item.getEvent() == null )
         {
-            reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
+            reporter.addError( relationship, ValidationCode.E4010, relSide,
                 TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
         }
     }

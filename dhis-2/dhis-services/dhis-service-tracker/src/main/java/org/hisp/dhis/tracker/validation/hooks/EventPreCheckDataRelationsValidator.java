@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1033;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1079;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1029;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1033;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1079;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1089;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1115;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1116;
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
@@ -221,7 +221,7 @@ public class EventPreCheckDataRelationsValidator
             hasNoAttributeCategoryOptionsSet( event ) &&
             !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( event, TrackerErrorCode.E1055 );
+            reporter.addError( event, ValidationCode.E1055 );
             return false;
         }
         CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
@@ -229,7 +229,7 @@ public class EventPreCheckDataRelationsValidator
             aoc != null && aoc.getCategoryCombo().isDefault() &&
             !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( event, TrackerErrorCode.E1055 );
+            reporter.addError( event, ValidationCode.E1055 );
             return false;
         }
 
@@ -253,7 +253,7 @@ public class EventPreCheckDataRelationsValidator
         CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1054, event.getAttributeOptionCombo(),
+            reporter.addError( event, ValidationCode.E1054, event.getAttributeOptionCombo(),
                 program.getCategoryCombo() );
             return false;
         }
@@ -328,13 +328,13 @@ public class EventPreCheckDataRelationsValidator
         // provided in the payload
         if ( hasNoAttributeOptionComboSet( event ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
+            reporter.addError( event, ValidationCode.E1117, program.getCategoryCombo(),
                 event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
                     .collect( Collectors.toSet() ).toString() );
         }
         else
         {
-            reporter.addError( event, TrackerErrorCode.E1117,
+            reporter.addError( event, ValidationCode.E1117,
                 event.getAttributeOptionCombo(),
                 event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
                     .collect( Collectors.toSet() ).toString() );

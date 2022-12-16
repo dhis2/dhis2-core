@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
 /**
  * Determines whether entities can be persisted (created, updated, deleted)
@@ -321,7 +320,7 @@ class PersistablesFilter
             .map( p -> p.apply( entity ) )
             .filter( this::isValid ) // remove invalid parents
             .filter( this.bundle::exists ) // remove parents not in payload
-            .map( p -> error( TrackerErrorCode.E5001, p, entity ) )
+            .map( p -> error( ValidationCode.E5001, p, entity ) )
             .collect( Collectors.toList() );
         this.result.errors.addAll( errors );
         return errors;
@@ -342,12 +341,12 @@ class PersistablesFilter
         List<Error> errors = parents.stream()
             .map( p -> p.apply( entity ) )
             .filter( this::isNotValid ) // remove valid parents
-            .map( p -> error( TrackerErrorCode.E5000, entity, p ) )
+            .map( p -> error( ValidationCode.E5000, entity, p ) )
             .collect( Collectors.toList() );
         this.result.errors.addAll( errors );
     }
 
-    private static Error error( TrackerErrorCode code, TrackerDto notPersistable, TrackerDto reason )
+    private static Error error( ValidationCode code, TrackerDto notPersistable, TrackerDto reason )
     {
         String message = MessageFormat.format(
             code.getMessage(),

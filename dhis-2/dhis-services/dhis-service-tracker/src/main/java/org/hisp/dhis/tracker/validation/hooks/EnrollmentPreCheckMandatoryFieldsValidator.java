@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1122;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1122;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;

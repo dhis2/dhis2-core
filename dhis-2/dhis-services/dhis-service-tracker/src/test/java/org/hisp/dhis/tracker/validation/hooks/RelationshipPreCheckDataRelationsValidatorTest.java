@@ -48,8 +48,8 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.Validation;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,7 +100,7 @@ class RelationshipPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E4012 ) );
         assertThat(
             reporter.getErrors().stream().map( Validation::getMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );

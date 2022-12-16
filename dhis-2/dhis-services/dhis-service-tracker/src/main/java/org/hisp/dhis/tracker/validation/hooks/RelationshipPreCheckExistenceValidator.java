@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4017;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4015;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4016;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4017;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
