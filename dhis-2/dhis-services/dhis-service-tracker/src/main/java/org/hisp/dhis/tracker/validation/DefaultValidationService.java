@@ -40,7 +40,6 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
@@ -95,9 +94,8 @@ public class DefaultValidationService
         {
             validateTrackedEntities( bundle, validators.getTrackedEntityValidators(), reporter );
             validateEnrollments( bundle, validators.getEnrollmentValidators(), reporter );
-            validateEvents( bundle, validators.getEventValidators(), reporter );
+            validators.getEventValidator().validate( reporter, bundle, bundle );
             validateRelationships( bundle, validators.getRelationshipValidators(), reporter );
-            validateBundle( bundle, validators.getBundleValidators(), reporter );
         }
         catch ( FailFastException e )
         {
@@ -168,32 +166,6 @@ public class DefaultValidationService
         }
     }
 
-    private void validateEvents( TrackerBundle bundle, List<Validator<Event>> validators,
-        Reporter reporter )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            for ( Validator<Event> validator : validators )
-            {
-                if ( validator.needsToRun( bundle.getStrategy( event ) ) )
-                {
-                    Timer hookTimer = Timer.startTimer();
-
-                    validator.validate( reporter, bundle, event );
-
-                    reporter.addTiming( new Timing(
-                        validator.getClass().getName(),
-                        hookTimer.toString() ) );
-
-                    if ( validator.skipOnError() && didNotPassValidation( reporter, event.getUid() ) )
-                    {
-                        break; // skip subsequent validation for this invalid entity
-                    }
-                }
-            }
-        }
-    }
-
     private void validateRelationships( TrackerBundle bundle, List<Validator<Relationship>> validators,
         Reporter reporter )
     {
@@ -217,21 +189,6 @@ public class DefaultValidationService
                     }
                 }
             }
-        }
-    }
-
-    private static void validateBundle( TrackerBundle bundle, List<Validator<TrackerBundle>> validators,
-        Reporter reporter )
-    {
-        for ( Validator<TrackerBundle> hook : validators )
-        {
-            Timer hookTimer = Timer.startTimer();
-
-            hook.validate( reporter, bundle, bundle );
-
-            reporter.addTiming( new Timing(
-                hook.getClass().getName(),
-                hookTimer.toString() ) );
         }
     }
 

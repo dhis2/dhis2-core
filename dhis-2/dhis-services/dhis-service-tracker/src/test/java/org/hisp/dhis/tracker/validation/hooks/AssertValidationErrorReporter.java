@@ -57,7 +57,20 @@ public class AssertValidationErrorReporter
         assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getErrors().size() ) );
+            String.format( "error with code %s, type %s, uid %s not found in error(s) %s", code, type,
+                uid, reporter.getErrors() ) );
+    }
+
+    public static void hasTrackerError( Reporter reporter, ValidationCode code, TrackerType type,
+        String uid, String messageContains )
+    {
+        assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
+        assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
+            type == err.getTrackerType() &&
+            uid.equals( err.getUid() ) &&
+            err.getMessage().contains( messageContains ) ),
+            String.format( "error with code %s, type %s, uid %s and (partial) message '%s' not found in error(s) %s",
+                code,
+                type, uid, messageContains, reporter.getErrors() ) );
     }
 }

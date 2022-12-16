@@ -40,6 +40,7 @@ import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -56,6 +57,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@NonFinal
 @Value
 public class Reporter
 {
@@ -121,29 +123,70 @@ public class Reporter
         return errors.stream().anyMatch( test );
     }
 
-    public void addErrorIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
+    /**
+     * Add error for given {@link TrackerDto} if expression is true.
+     *
+     * @param expression expression to be checked
+     * @param dto tracker dto to add error for
+     * @param code error code
+     * @param args args to be interpolated into the error codes message
+     * @return true if error was added and false otherwise
+     */
+    public boolean addErrorIf( BooleanSupplier expression, TrackerDto dto, ValidationCode code, Object... args )
     {
         if ( expression.getAsBoolean() )
         {
             addError( dto, code, args );
+            return true;
         }
+        return false;
     }
 
-    public void addErrorIfNull( Object object, TrackerDto dto, ValidationCode code, Object... args )
+    /**
+     * Add error for given {@link TrackerDto} if given object is null.
+     *
+     * @param object object to be checked
+     * @param dto tracker dto to add error for
+     * @param code error code
+     * @param args args to be interpolated into the error codes message
+     * @return true if error was added and false otherwise
+     */
+    public boolean addErrorIfNull( Object object, TrackerDto dto, ValidationCode code, Object... args )
     {
         if ( object == null )
         {
             addError( dto, code, args );
+            return true;
         }
+        return false;
     }
 
-    public void addError( TrackerDto dto, ValidationCode code, Object... args )
+    /**
+     * Add error for given {@link TrackerDto}.
+     *
+     * @param dto tracker dto to add error for
+     * @param code error code
+     * @param args args to be interpolated into the error codes message
+     * @return true as error was added
+     */
+    public boolean addError( TrackerDto dto, ValidationCode code, Object... args )
     {
         addError( new Error( MessageFormatter.format( idSchemes, code.getMessage(), args ),
             code, dto.getTrackerType(), dto.getUid() ) );
+        return true;
     }
 
-    public void addError( Error error )
+    /**
+     * Add error.
+     * <p>
+     * If the {@link Reporter} is configured to fail fast an
+     * {@link ValidationFailFastException} is thrown.
+     * </p>
+     *
+     * @param error error
+     * @return true as error was added
+     */
+    public boolean addError( Error error )
     {
         getErrors().add( error );
         this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new HashSet<>() ).add( error.getUid() );
@@ -152,6 +195,7 @@ public class Reporter
         {
             throw new FailFastException( getErrors() );
         }
+        return true;
     }
 
     public boolean hasWarnings()

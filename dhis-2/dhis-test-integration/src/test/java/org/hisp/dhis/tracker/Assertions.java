@@ -98,7 +98,7 @@ public class Assertions
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like
-     * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
+     * <code>assertHasErrors(report, 13, ValidationCode.E1000);</code> is not
      * clear.
      *
      * @param report import report to be asserted on
@@ -117,7 +117,7 @@ public class Assertions
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like
-     * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
+     * <code>assertHasErrors(report, 13, ValidationCode.E1000);</code> is not
      * clear.
      *
      * @param report validation report to be asserted on
