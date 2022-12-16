@@ -61,9 +61,4 @@ public class TrackedEntityPreCheckMetaValidator
         }
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

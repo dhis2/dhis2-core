@@ -246,12 +246,6 @@ public class EventPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
     private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {

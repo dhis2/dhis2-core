@@ -49,10 +49,4 @@ public class TrackedEntityPreCheckUidValidator
             trackedEntity.getTrackedEntity() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }

@@ -29,40 +29,59 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.validation.hooks.All.all;
 import static org.hisp.dhis.tracker.validation.hooks.Each.each;
+import static org.hisp.dhis.tracker.validation.hooks.Seq.seq;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
+ * Validator to validate all {@link TrackedEntity}s in the
+ * {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator" )
-public class EventRuleEngineValidator implements Validator<TrackerBundle>
+@Component( "org.hisp.dhis.tracker.validation.hooks.TrackedEntityValidator" )
+public class TrackedEntityValidator implements Validator<TrackerBundle>
 {
-    private final EventRuleValidator ruleValidator;
 
-    private final EventDataValuesValidator dataValuesValidator;
+    private final TrackedEntityPreCheckUidValidator uidValidator;
 
-    public Validator<TrackerBundle> eventValidator()
+    private final TrackedEntityPreCheckExistenceValidator existenceValidator;
+
+    private final TrackedEntityPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
+
+    private final TrackedEntityPreCheckMetaValidator metaValidator;
+
+    private final TrackedEntityPreCheckUpdatableFieldsValidator updatableFieldsValidator;
+
+    private final TrackedEntityPreCheckSecurityOwnershipValidator securityOwnershipValidator;
+
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> trackedEntityValidator()
     {
         // @formatter:off
-        return each(TrackerBundle::getEvents,
-                    all(
-                            ruleValidator,
-                            dataValuesValidator
-                    )
-        );
+        return each( TrackerBundle::getTrackedEntities,
+                        seq(
+                                uidValidator,
+                                existenceValidator,
+                                mandatoryFieldsValidator,
+                                metaValidator,
+                                updatableFieldsValidator,
+                                securityOwnershipValidator,
+                                all(
+                                        attributeValidator
+                                )
+                        )
+                );
     }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        eventValidator().validate( reporter, bundle, input );
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+
+        trackedEntityValidator().validate(reporter, bundle, input);
     }
 }
