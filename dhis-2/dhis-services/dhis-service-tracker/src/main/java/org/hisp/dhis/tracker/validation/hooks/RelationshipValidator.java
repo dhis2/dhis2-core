@@ -27,31 +27,57 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
+import static org.hisp.dhis.tracker.validation.hooks.Seq.seq;
 
-import org.hisp.dhis.relationship.RelationshipType;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link Relationship}s in the {@link TrackerBundle}.
  */
-@Component
-public class RelationshipPreCheckMetaValidator
-    implements Validator<Relationship>
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.RelationshipValidator" )
+public class RelationshipValidator implements Validator<TrackerBundle>
 {
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
+
+    private final RelationshipPreCheckUidValidator uidValidator;
+
+    private final RelationshipPreCheckExistenceValidator existenceValidator;
+
+    private final RelationshipPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
+
+    private final RelationshipPreCheckMetaValidator metaValidator;
+
+    private final RelationshipPreCheckDataRelationsValidator dataRelationsValidator;
+
+    private final RelationshipsValidator relationshipsValidator;
+
+    private Validator<TrackerBundle> relationshipValidator()
     {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
-
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
+        // @formatter:off
+        return each( TrackerBundle::getRelationships,
+                        seq(
+                                uidValidator,
+                                existenceValidator,
+                                mandatoryFieldsValidator,
+                                metaValidator,
+                                dataRelationsValidator,
+                                all(
+                                        relationshipsValidator
+                                )
+                        )
+                );
     }
+    @Override
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
 
+        relationshipValidator().validate(reporter, bundle, input);
+    }
 }

@@ -103,9 +103,4 @@ public class RelationshipPreCheckExistenceValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }
