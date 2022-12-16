@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -363,7 +362,7 @@ public class DataHandler
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
-            : singletonList( (Period) getPeriodItem( dimensionItems ) );
+            : List.of( (Period) getPeriodItem( dimensionItems ) );
 
         OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem( dimensionItems );
 

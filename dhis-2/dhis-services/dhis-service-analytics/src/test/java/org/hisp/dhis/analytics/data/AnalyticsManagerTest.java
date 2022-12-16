@@ -107,7 +107,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
             .withPeriods( getList( y2017, y2018 ) )
             .withDataPeriodType( new YearlyPeriodType() )
-            .withAggregationType( aggregationType ).build();
+            .withAggregationType( aggregationType )
+            .build();
 
         analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
             dataPeriodAggregationPeriodMap );
@@ -131,7 +132,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             .withPeriods( getList( y2012 ) )
             .withOrganisationUnits( getList( createOrganisationUnit( 'A' ) ) )
             .withDataPeriodType( new YearlyPeriodType() )
-            .withAggregationType( aggregationType ).build();
+            .withAggregationType( aggregationType )
+            .build();
 
         Map<String, Object> dataValueMap = new HashMap<>();
         dataValueMap.put( BASE_UID + "A-2012-" + BASE_UID + "A", 1d );
@@ -143,8 +145,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
         dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q3" ) );
         dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q4" ) );
 
-        analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
-            dataPeriodAggregationPeriodMap );
+        analyticsManager.replaceDataPeriodsWithAggregationPeriods(
+            dataValueMap, params, dataPeriodAggregationPeriodMap );
 
         assertEquals( 8, dataValueMap.size() );
 
