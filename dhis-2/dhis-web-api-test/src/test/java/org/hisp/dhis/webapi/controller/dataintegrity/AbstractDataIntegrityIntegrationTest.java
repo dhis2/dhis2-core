@@ -158,8 +158,8 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         /* This can be empty if comments do not exist in the JSON response. */
         if ( hasComments( issues ) && !expectedDetailsComments.isEmpty() )
         {
-            Set<JsonString> detailsComments = issues.stream().map( issue -> issue.getComment() )
-                .collect( Collectors.toSet() );
+            Set<String> detailsComments = issues.stream().map( issue -> issue.getComment().string() )
+                .collect( Collectors.toUnmodifiableSet() );
             assertEquals( expectedDetailsComments, detailsComments );
         }
 
