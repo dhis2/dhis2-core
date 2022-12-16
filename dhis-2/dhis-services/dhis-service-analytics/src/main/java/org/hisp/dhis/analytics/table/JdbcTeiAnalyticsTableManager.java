@@ -60,6 +60,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -102,11 +103,11 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
         JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService,
-        TrackedEntityAttributeService trackedEntityAttributeService )
+        TrackedEntityAttributeService trackedEntityAttributeService, AnalyticsExportSettings settings )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService,
-            tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate );
+            tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate, settings );
 
         notNull( trackedEntityAttributeService, "trackedEntityAttributeService cannot be null" );
         this.trackedEntityAttributeService = trackedEntityAttributeService;

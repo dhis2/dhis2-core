@@ -58,6 +58,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -94,11 +95,11 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
         ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService )
+        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, AnalyticsExportSettings settings )
     {
         super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate );
+            databaseInfo, jdbcTemplate, settings );
 
         notNull( trackedEntityTypeService, "trackedEntityTypeService cannot be null" );
         this.trackedEntityTypeService = trackedEntityTypeService;
