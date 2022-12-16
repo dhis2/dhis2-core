@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
@@ -54,7 +55,7 @@ public class AssertTrackerValidationReport
         assertHasError( report.getErrors(), code, type, uid );
     }
 
-    public static void assertHasError( List<Validation> errors, ValidationCode code, TrackerType type,
+    public static void assertHasError( Set<Validation> errors, ValidationCode code, TrackerType type,
         String uid )
     {
         assertNotEmpty( errors );

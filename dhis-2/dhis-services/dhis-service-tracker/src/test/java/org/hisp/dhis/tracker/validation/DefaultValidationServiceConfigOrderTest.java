@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,6 +80,6 @@ class DefaultValidationServiceConfigOrderTest extends TrackerTest
 
         assertTrue( report.hasErrors() );
         assertEquals( 1, report.getErrors().size() );
-        assertEquals( E1048.name(), report.getErrors().get( 0 ).getCode() );
+        assertThat( report.getErrors(), hasItem( hasProperty( "code", equalTo( E1048.name() ) ) ) );
     }
 }

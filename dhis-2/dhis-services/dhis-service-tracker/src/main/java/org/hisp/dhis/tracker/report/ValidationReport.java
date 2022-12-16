@@ -71,8 +71,8 @@ public class ValidationReport
     public static ValidationReport fromResult( ValidationResult validationResult )
     {
         ValidationReport validationReport = new ValidationReport();
-        validationReport.addErrors( convertToError( validationResult.getErrors() ) );
-        validationReport.addWarnings( convertToWarning( validationResult.getWarnings() ) );
+        validationReport.addErrors( convertToError( List.copyOf( validationResult.getErrors() ) ) );
+        validationReport.addWarnings( convertToWarning( List.copyOf( validationResult.getWarnings() ) ) );
         return validationReport;
     }
 

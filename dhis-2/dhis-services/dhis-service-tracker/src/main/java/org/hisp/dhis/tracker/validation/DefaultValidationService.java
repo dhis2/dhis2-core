@@ -30,10 +30,12 @@ package org.hisp.dhis.tracker.validation;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -81,7 +83,7 @@ public class DefaultValidationService
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return new Result();
+            return Result.empty();
         }
 
         // Note that the bundle gets cloned internally, so the original bundle
@@ -110,10 +112,8 @@ public class DefaultValidationService
         bundle.setEvents( persistables.getEvents() );
         bundle.setRelationships( persistables.getRelationships() );
 
-        return new Result()
-            .addErrors( reporter.getErrors() )
-            .addErrors( persistables.getErrors() )
-            .addWarnings( reporter.getWarnings() );
+        List<Error> errors = ListUtils.union( reporter.getErrors(), persistables.getErrors() );
+        return Result.withValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<Validator<TrackedEntity>> validators,

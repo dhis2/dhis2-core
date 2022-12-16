@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
@@ -43,178 +42,95 @@ import org.junit.jupiter.api.Test;
 
 class ValidationResultTest
 {
-
-    @Test
-    void addErrorIfItDoesNotExist()
-    {
-
-        Result report = new Result();
-        Error error = newError();
-
-        report.addError( error );
-
-        assertNotNull( report.getErrors() );
-        assertEquals( 1, report.getErrors().size() );
-        assertContainsOnly( List.of( error ), report.getErrors() );
-
-        report.addError( error );
-
-        assertEquals( 1, report.getErrors().size() );
-    }
-
-    @Test
-    void addErrorsIfTheyDoNotExist()
-    {
-
-        Result report = new Result();
-        Error error1 = newError( CodeGenerator.generateUid(), ValidationCode.E1001 );
-        Error error2 = newError( CodeGenerator.generateUid(), ValidationCode.E1002 );
-
-        report.addError( error1 );
-
-        assertContainsOnly( List.of( error1 ), report.getErrors() );
-
-        report.addErrors( List.of( error1, error2 ) );
-
-        assertContainsOnly( List.of( error1, error2 ), report.getErrors() );
-    }
-
-    @Test
-    void addWarningIfItDoesNotExist()
-    {
-
-        Result report = new Result();
-        Warning warning = newWarning();
-
-        report.addWarning( warning );
-
-        assertNotNull( report.getWarnings() );
-        assertEquals( 1, report.getWarnings().size() );
-        assertContainsOnly( List.of( warning ), report.getWarnings() );
-
-        report.addWarning( warning );
-
-        assertEquals( 1, report.getWarnings().size() );
-    }
-
-    @Test
-    void addWarningsIfTheyDoNotExist()
-    {
-
-        Result report = new Result();
-        Warning warning1 = newWarning( CodeGenerator.generateUid(), ValidationCode.E1001 );
-        Warning warning2 = newWarning( CodeGenerator.generateUid(), ValidationCode.E1002 );
-
-        report.addWarning( warning1 );
-
-        assertContainsOnly( List.of( warning1 ), report.getWarnings() );
-
-        report.addWarnings( List.of( warning1, warning2 ) );
-
-        assertContainsOnly( List.of( warning1, warning2 ), report.getWarnings() );
-    }
-
     @Test
     void hasErrorsReturnsFalse()
     {
 
-        Result report = new Result();
+        Result result = Result.empty();
 
-        assertFalse( report.hasErrors() );
+        assertFalse( result.hasErrors() );
     }
 
     @Test
     void hasErrorsReturnsTrue()
     {
 
-        Result report = new Result();
+        Result result = Result.withErrors( Set.of( newError() ) );
 
-        report.addError( newError() );
-
-        assertTrue( report.hasErrors() );
+        assertTrue( result.hasErrors() );
     }
 
     @Test
     void hasWarningsReturnsFalse()
     {
 
-        Result report = new Result();
+        Result result = Result.empty();
 
-        assertFalse( report.hasWarnings() );
+        assertFalse( result.hasWarnings() );
     }
 
     @Test
     void hasWarningsReturnsTrue()
     {
 
-        Result report = new Result();
+        Result result = Result.withWarnings( Set.of( newWarning() ) );
 
-        report.addWarning( newWarning() );
-
-        assertTrue( report.hasWarnings() );
+        assertTrue( result.hasWarnings() );
     }
 
     @Test
     void hasErrorReportFound()
     {
 
-        Result report = new Result();
         Error error = newError();
-        report.addError( error );
+        Result result = Result.withErrors( Set.of( error ) );
 
-        assertTrue( report.hasError( r -> error.getUid().equals( r.getUid() ) ) );
+        assertTrue( result.hasError( r -> error.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
     void hasErrorReportNotFound()
     {
 
-        Result report = new Result();
         Error error = newError( ValidationCode.E1006 );
-        report.addError( error );
+        Result result = Result.withErrors( Set.of( error ) );
 
-        assertFalse( report.hasError( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
+        assertFalse( result.hasError( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
     }
 
     @Test
     void hasWarningReportFound()
     {
 
-        Result report = new Result();
         Warning warning = newWarning();
-        report.addWarning( warning );
+        Result result = Result.withWarnings( Set.of( warning ) );
 
-        assertTrue( report.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
+        assertTrue( result.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
     void hasWarningReportNotFound()
     {
 
-        Result report = new Result();
         Warning warning = newWarning( ValidationCode.E1006 );
-        report.addWarning( warning );
+        Result result = Result.withWarnings( Set.of( warning ) );
 
-        assertFalse( report.hasWarning( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
+        assertFalse( result.hasWarning( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
     }
 
     @Test
     void sizeReturnsErrorCountUniqueByUid()
     {
 
-        Result report = new Result();
         Error error1 = newError( CodeGenerator.generateUid(), ValidationCode.E1006 );
         Error error2 = newError( error1.getUid(), ValidationCode.E1000 );
         Error error3 = newError( CodeGenerator.generateUid(), ValidationCode.E1000 );
 
-        report
-            .addError( error1 )
-            .addError( error2 )
-            .addError( error3 );
+        Result result = Result.withErrors( Set.of( error1, error2, error3 ) );
 
-        assertNotNull( report.getErrors() );
-        assertEquals( 3, report.getErrors().size() );
-        assertEquals( 2, report.size() );
+        assertNotNull( result.getErrors() );
+        assertEquals( 3, result.getErrors().size() );
+        assertEquals( 2, result.size() );
     }
 
     private Error newError()

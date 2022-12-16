@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
+import java.util.Set;
 
+/**
+ * The result of the validation step. It contains a set of {@link Validation}s
+ * divided in errors and warnings.
+ */
 public interface ValidationResult
 {
-    List<Validation> getErrors();
+    Set<Validation> getErrors();
 
-    List<Validation> getWarnings();
+    Set<Validation> getWarnings();
 
     boolean hasErrors();
 

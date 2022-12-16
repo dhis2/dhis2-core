@@ -27,72 +27,52 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 class Result implements ValidationResult
 {
-    private final List<Error> errors;
+    private final Set<Error> errors;
 
-    private final List<Warning> warnings;
+    private final Set<Warning> warnings;
 
-    public Result()
+    public static Result empty()
     {
-        this.errors = new ArrayList<>();
-        this.warnings = new ArrayList<>();
+        return new Result( Collections.emptySet(), Collections.emptySet() );
     }
 
-    public void addValidationResult( Result report )
+    public static Result withValidations( Set<Error> errors, Set<Warning> warnings )
     {
-        addErrors( report.errors );
-        addWarnings( report.warnings );
+        return new Result( errors, warnings );
     }
 
-    public List<Validation> getErrors()
+    public static Result withErrors( Set<Error> errors )
     {
-        return Collections.unmodifiableList( errors );
+        return new Result( errors, Collections.emptySet() );
     }
 
-    public List<Validation> getWarnings()
+    public static Result withWarnings( Set<Warning> warnings )
     {
-        return Collections.unmodifiableList( warnings );
+        return new Result( Collections.emptySet(), warnings );
     }
 
-    public Result addError( Error error )
+    public Set<Validation> getErrors()
     {
-        addErrorIfNotExisting( error );
-        return this;
+        return Collections.unmodifiableSet( errors );
     }
 
-    public Result addErrors( List<Error> errors )
+    public Set<Validation> getWarnings()
     {
-        for ( Error error : errors )
-        {
-            addErrorIfNotExisting( error );
-        }
-        return this;
-    }
-
-    public Result addWarning( Warning warning )
-    {
-        addWarningIfNotExisting( warning );
-        return this;
-    }
-
-    public Result addWarnings( List<Warning> warnings )
-    {
-        for ( Warning warning : warnings )
-        {
-            addWarningIfNotExisting( warning );
-        }
-        return this;
+        return Collections.unmodifiableSet( warnings );
     }
 
     public boolean hasErrors()
@@ -122,21 +102,5 @@ class Result implements ValidationResult
     {
 
         return this.getErrors().stream().map( Validation::getUid ).distinct().count();
-    }
-
-    private void addErrorIfNotExisting( Error error )
-    {
-        if ( !this.errors.contains( error ) )
-        {
-            this.errors.add( error );
-        }
-    }
-
-    private void addWarningIfNotExisting( Warning warning )
-    {
-        if ( !this.warnings.contains( warning ) )
-        {
-            this.warnings.add( warning );
-        }
     }
 }
