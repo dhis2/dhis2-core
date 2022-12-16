@@ -53,10 +53,14 @@ public class DataSetOrganisationUnitCategoryResourceTable
 {
     private CategoryOptionCombo defaultOptionCombo;
 
-    public DataSetOrganisationUnitCategoryResourceTable( List<DataSet> objects, CategoryOptionCombo defaultOptionCombo )
+    private final String tableType;
+
+    public DataSetOrganisationUnitCategoryResourceTable( List<DataSet> objects, CategoryOptionCombo defaultOptionCombo,
+        String tableType )
     {
         this.objects = objects;
         this.defaultOptionCombo = defaultOptionCombo;
+        this.tableType = tableType;
     }
 
     @Override
@@ -68,7 +72,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        return "create table " + getTempTableName() + " " +
+        return "create " + tableType + " table " + getTempTableName() +
             "(datasetid bigint not null, organisationunitid bigint not null, " +
             "attributeoptioncomboid bigint not null, costartdate date, coenddate date)";
     }
