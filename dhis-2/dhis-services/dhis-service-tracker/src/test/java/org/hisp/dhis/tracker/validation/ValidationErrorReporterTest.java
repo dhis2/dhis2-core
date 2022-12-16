@@ -32,9 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.junit.jupiter.api.Test;
 
 class ValidationErrorReporterTest
@@ -80,13 +77,32 @@ class ValidationErrorReporterTest
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
     }
 
-    private TrackerErrorReport eventError()
+    @Test
+    void hasPerfsReturnsFalse()
     {
-        return new TrackerErrorReport( "some error", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+
+        assertFalse( reporter.hasTimings() );
     }
 
-    private TrackerWarningReport eventWarning()
+    @Test
+    void hasPerfsReturnsTrue()
     {
-        return new TrackerWarningReport( "some warning", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+
+        reporter.addTiming( new Timing( "1min", "validation" ) );
+
+        assertTrue( reporter.hasTimings() );
+    }
+
+    private Error eventError()
+    {
+        return new Error( "some error", ValidationCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
+    }
+
+    private Warning eventWarning()
+    {
+        return new Warning( "some warning", ValidationCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
     }
 }
