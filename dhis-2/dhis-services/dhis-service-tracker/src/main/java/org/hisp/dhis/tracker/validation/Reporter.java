@@ -80,7 +80,7 @@ public class Reporter
     /**
      * Create a {@link Reporter} reporting all errors and warnings with
      * identifiers in given idSchemes. {@link #addError(Error)} will only throw
-     * a {@link ValidationFailFastException} if {@code failFast} true is given.
+     * a {@link FailFastException} if {@code failFast} true is given.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
      * @param failFast reporter throws exception on first error added when true
@@ -102,8 +102,7 @@ public class Reporter
     /**
      * Create a {@link Reporter} reporting all errors and warnings
      * ({@link #isFailFast} = false) with identifiers in given idSchemes.
-     * {@link #addError(Error)} will not throw a
-     * {@link ValidationFailFastException}.
+     * {@link #addError(Error)} will not throw a {@link FailFastException}.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
      */
@@ -151,7 +150,7 @@ public class Reporter
 
         if ( isFailFast() )
         {
-            throw new ValidationFailFastException( getErrors() );
+            throw new FailFastException( getErrors() );
         }
     }
 

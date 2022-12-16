@@ -99,7 +99,7 @@ public class DefaultTrackerValidationService
             validateRelationships( bundle, validators.getRelationshipValidators(), reporter );
             validateBundle( bundle, validators.getBundleValidators(), reporter );
         }
-        catch ( ValidationFailFastException e )
+        catch ( FailFastException e )
         {
             // exit early when in FAIL_FAST validation mode
         }
