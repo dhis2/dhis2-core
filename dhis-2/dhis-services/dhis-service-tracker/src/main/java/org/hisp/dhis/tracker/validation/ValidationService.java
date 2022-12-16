@@ -32,7 +32,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationService
+public interface ValidationService
 {
     /**
      * Validate tracker bundle

@@ -78,8 +78,7 @@ import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckUpdatableFiel
 import org.springframework.stereotype.Component;
 
 /**
- * {@link Validators} used in
- * {@link TrackerValidationService#validate(TrackerBundle)}.
+ * {@link Validators} used in {@link ValidationService#validate(TrackerBundle)}.
  */
 @RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.DefaultValidators" )

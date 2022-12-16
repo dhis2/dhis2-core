@@ -60,8 +60,8 @@ import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.tracker.validation.ValidationResult;
+import org.hisp.dhis.tracker.validation.ValidationService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +81,7 @@ public class DefaultTrackerImportService
     private final TrackerBundleService trackerBundleService;
 
     @Nonnull
-    private final TrackerValidationService trackerValidationService;
+    private final ValidationService validationService;
 
     @Nonnull
     private final TrackerPreprocessService trackerPreprocessService;
@@ -204,7 +204,7 @@ public class DefaultTrackerImportService
     protected ValidationResult validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
         TimingsStats opsTimer )
     {
-        ValidationResult validationResult = trackerValidationService.validate( trackerBundle );
+        ValidationResult validationResult = validationService.validate( trackerBundle );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
@@ -231,7 +231,7 @@ public class DefaultTrackerImportService
     {
         ValidationResult ruleEngineValidationResult = new ValidationResult();
 
-        ruleEngineValidationResult.addValidationResult( trackerValidationService.validateRuleEngine( trackerBundle ) );
+        ruleEngineValidationResult.addValidationResult( validationService.validateRuleEngine( trackerBundle ) );
 
         return ruleEngineValidationResult;
     }

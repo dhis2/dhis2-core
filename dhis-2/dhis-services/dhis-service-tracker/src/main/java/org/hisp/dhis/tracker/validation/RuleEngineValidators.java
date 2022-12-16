@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * {@link Validators} used in
- * {@link TrackerValidationService#validateRuleEngine(TrackerBundle)}.
+ * {@link ValidationService#validateRuleEngine(TrackerBundle)}.
  */
 @RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )

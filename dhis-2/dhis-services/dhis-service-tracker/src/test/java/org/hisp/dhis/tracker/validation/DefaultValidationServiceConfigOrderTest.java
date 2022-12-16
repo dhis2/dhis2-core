@@ -43,17 +43,17 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
+class DefaultValidationServiceConfigOrderTest extends TrackerTest
 {
     @Autowired
-    TrackerValidationService trackerValidationService;
+    ValidationService validationService;
 
     @Test
     void hooksAreExecutedInTrackerValidationConfigOrder()
     {
         // Test that hooks declared in TrackerValidationConfig validationHooks()
         // are injected
-        // into the TrackerValidationService. This is important since order
+        // into the ValidationService. This is important since order
         // matters in the current implementation.
         // Note that FAIL_FAST shows that although the event is also invalid due
         // to not having an orgUnit and more it
@@ -72,7 +72,7 @@ class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
             .events( Collections.singletonList( event ) )
             .build();
 
-        ValidationResult report = trackerValidationService.validate( bundle );
+        ValidationResult report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 1, report.getErrors().size() );
