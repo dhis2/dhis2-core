@@ -25,55 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * Validates given input and adds errors and warnings to a {@link Reporter}.
- * {@link TrackerBundle} is given as context.
- *
- * @param <T> type of input to be validated
+ * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
-@FunctionalInterface
-public interface Validator<T>
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator" )
+public class EventRuleEngineValidator implements Validator<TrackerBundle>
 {
-    /**
-     * Validates given input and adds errors and warnings to {@code reporter}.
-     *
-     * @param reporter aggregates errors and warnings
-     * @param bundle tracker bundle
-     * @param input input to validate
-     */
-    void validate( Reporter reporter, TrackerBundle bundle, T input );
+    private final EventRuleValidator eventRuleValidator;
 
-    /**
-     * Indicates whether this {@link Validator} should be run given the
-     * {@link TrackerImportStrategy}.
-     *
-     * @param strategy import strategy
-     * @return true if this validator should be run and false otherwise
-     */
-    default boolean needsToRun( TrackerImportStrategy strategy )
+    private final EventDataValuesValidator eventDataValuesValidator;
+
+    public Validator<TrackerBundle> eventValidator()
     {
-        return strategy != TrackerImportStrategy.DELETE;
+        // @formatter:off
+        return each(TrackerBundle::getEvents,
+                    all(
+                        eventRuleValidator,
+                        eventDataValuesValidator
+                    )
+        );
     }
 
-    /**
-     * A signal to the orchestration of the validation that subsequent
-     * {@link Validator}s should not be run if this one fails i.e. adds an
-     * error.
-     * <p>
-     * Note: this mechanism is going to be replaced by
-     * {@link org.hisp.dhis.tracker.validation.hooks.Seq}.
-     * </p>
-     *
-     * @return true if subsequent validators should be skipped on error and
-     *         false otherwise
-     */
-    default boolean skipOnError()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-        return false;
+        eventValidator().validate( reporter, bundle, input );
     }
 }
