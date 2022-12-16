@@ -57,11 +57,6 @@ public class XmlMessageConverter extends AbstractRootNodeMessageConverter
 
         String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
 
-        if ( pathInfo == null )
-        {
-            return super.supports( clazz );
-        }
-
         for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
         {
             if ( pathPattern.matcher( pathInfo ).matches() )
