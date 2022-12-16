@@ -42,7 +42,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +94,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // DATA ELEMENTS
             .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters( Collections.singletonList(
+            .withFilters( List.of(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     List.of(
                         new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
@@ -140,11 +139,10 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
                     Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionItemKeywords( Collections.singletonList( indicatorGroup ) ) ) ) )
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+                    new DimensionItemKeywords( List.of( indicatorGroup ) ) ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null,
+                DISPLAY_NAME_ORGUNIT, List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                    new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
             .build();
@@ -171,7 +169,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // DATA ELEMENTS
             .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters( Collections.singletonList(
+            .withFilters( List.of(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
@@ -206,8 +204,8 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                     List.of(
                         createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionItemKeywords( Collections.singletonList( dataElementGroup ) ) ) ) )
-            .withFilters( Collections.singletonList(
+                    new DimensionItemKeywords( List.of( dataElementGroup ) ) ) ) )
+            .withFilters( List.of(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
             .withIgnoreLimit( true )
