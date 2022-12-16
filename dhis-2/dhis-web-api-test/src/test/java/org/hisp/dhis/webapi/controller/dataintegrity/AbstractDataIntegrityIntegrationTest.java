@@ -244,4 +244,21 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         } );
 
     }
+
+    protected final HttpResponse postNewDataValue( String period, String value, String comment, boolean followup,
+        String dataElementId, String orgUnitId )
+    {
+        String defaultCOC = getDefaultCOC();
+        return POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
+    }
+
+    protected final String getDefaultCOC()
+    {
+        JsonObject ccDefault = GET(
+            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
+                .content().getObject( 0 );
+        String categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
+        return categoryOptionComboId;
+    }
 }
