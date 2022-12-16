@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import io.lettuce.core.api.StatefulRedisConnection;
+import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+
+import java.io.Serializable;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.event.spi.*;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -38,9 +42,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +51,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-
-import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+import io.lettuce.core.api.StatefulRedisConnection;
 
 /**
  * It listens for events from Hibernate and publishes a message to Redis when an
@@ -167,7 +167,8 @@ public class PostCacheEventPublisher
         long categoryOptionComboId = dataValue.getAttributeOptionCombo().getId();
         long attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
 
-        return new DataValue.DataValueId(dataElementId, periodId, organisationUnitId, categoryOptionComboId, attributeOptionComboId);
+        return dataElementId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId + ";"
+            + attributeOptionComboId;
     }
 
     private Serializable getTrackedEntityAttributeValueId( Object entity )

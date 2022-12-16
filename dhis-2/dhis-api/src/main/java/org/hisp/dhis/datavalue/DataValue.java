@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 
 import lombok.Builder;
 
-import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -112,20 +111,6 @@ public class DataValue
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-
-    @Value
-    public static class DataValueId implements Serializable
-    {
-        long dataElementId;
-
-        long periodId;
-
-        long organisationUnitId;
-
-        long categoryOptionComboId;
-
-        long attributeOptionComboId;
-    }
 
     public DataValue()
     {

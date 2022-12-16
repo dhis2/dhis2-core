@@ -121,7 +121,6 @@ public class DefaultAdminUserPopulator
         User user = new User();
         user.setUid( "M5zQapPyTZI" );
         user.setCode( "admin" );
-        user.setUsername( username );
         user.setFirstName( username );
         user.setSurname( username );
 
