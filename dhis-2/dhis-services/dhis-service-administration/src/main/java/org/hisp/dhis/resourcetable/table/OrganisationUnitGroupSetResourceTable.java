@@ -46,16 +46,19 @@ import com.google.common.collect.Lists;
 public class OrganisationUnitGroupSetResourceTable
     extends ResourceTable<OrganisationUnitGroupSet>
 {
-    private boolean supportsPartialIndexes;
+    private final boolean supportsPartialIndexes;
 
-    private int organisationUnitLevels;
+    private final int organisationUnitLevels;
+
+    private final String tableType;
 
     public OrganisationUnitGroupSetResourceTable( List<OrganisationUnitGroupSet> objects,
-        boolean supportsPartialIndexes, int organisationUnitLevels )
+        boolean supportsPartialIndexes, int organisationUnitLevels, String tableType )
     {
         super( objects );
         this.supportsPartialIndexes = supportsPartialIndexes;
         this.organisationUnitLevels = organisationUnitLevels;
+        this.tableType = tableType;
     }
 
     @Override
@@ -69,7 +72,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
 
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "organisationunitid bigint not null, " +
             "organisationunitname varchar(230), " +
             "startdate date, ";

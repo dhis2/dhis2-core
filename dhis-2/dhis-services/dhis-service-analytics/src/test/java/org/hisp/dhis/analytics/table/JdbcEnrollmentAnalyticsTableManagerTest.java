@@ -32,10 +32,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -77,6 +80,9 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -90,7 +96,8 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
         subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
-            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
+            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate,
+            analyticsExportSettings );
     }
 
     @Test

@@ -43,9 +43,12 @@ import com.google.common.collect.Lists;
 public class DataApprovalMinLevelResourceTable
     extends ResourceTable<OrganisationUnitLevel>
 {
-    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects )
+    private final String tableType;
+
+    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -57,15 +60,13 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + "(" +
+        return "create " + tableType + " table " + getTempTableName() + "(" +
             "workflowid bigint not null, " +
             "periodid bigint not null, " +
             "organisationunitid bigint not null, " +
             "attributeoptioncomboid bigint not null, " +
             "minlevel integer not null, " +
             "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
-
-        return sql;
     }
 
     @Override

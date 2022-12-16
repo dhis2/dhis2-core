@@ -45,9 +45,12 @@ import com.google.common.collect.Lists;
 public class IndicatorGroupSetResourceTable
     extends ResourceTable<IndicatorGroupSet>
 {
-    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects )
+    private final String tableType;
+
+    public IndicatorGroupSetResourceTable( List<IndicatorGroupSet> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class IndicatorGroupSetResourceTable
     {
         UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
 
-        String statement = "create table " + getTempTableName() + " (" +
+        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
             "indicatorid bigint not null, " +
             "indicatorname varchar(230), ";
 
