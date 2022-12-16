@@ -36,6 +36,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.Fields
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -116,16 +117,8 @@ public class TrackedEntityFieldsParamMapper
         if ( roots.containsKey( FIELD_ENROLLMENTS ) )
         {
             FieldPath p = roots.get( FIELD_ENROLLMENTS );
-            params = params.withTeiEnrollmentParams(
-                params.getTeiEnrollmentParams().withIncludeEnrollments( !p.isExclude() ) );
-            params = params.withTeiEnrollmentParams(
-                params.getTeiEnrollmentParams().withIncludeEvents( !p.isExclude() ) );
-            params = params
-                .withTeiEnrollmentParams(
-                    params.getTeiEnrollmentParams().withIncludeAttributes( !p.isExclude() ) );
-            params = params
-                .withTeiEnrollmentParams(
-                    params.getTeiEnrollmentParams().withIncludeRelationships( !p.isExclude() ) );
+            params = params.withTeiEnrollmentParams( !p.isExclude() ? TrackedEntityInstanceEnrollmentParams.TRUE
+                : TrackedEntityInstanceEnrollmentParams.FALSE );
         }
         return params;
     }
