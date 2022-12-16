@@ -49,16 +49,19 @@ import com.google.common.collect.Lists;
 public class OrganisationUnitStructureResourceTable
     extends ResourceTable<OrganisationUnit>
 {
-    private OrganisationUnitService organisationUnitService; // Nasty
+    private final OrganisationUnitService organisationUnitService; // Nasty
 
-    private int organisationUnitLevels;
+    private final int organisationUnitLevels;
+
+    private final String tableType;
 
     public OrganisationUnitStructureResourceTable( List<OrganisationUnit> objects,
-        OrganisationUnitService organisationUnitService, int organisationUnitLevels )
+        OrganisationUnitService organisationUnitService, int organisationUnitLevels, String tableType )
     {
         super( objects );
         this.organisationUnitService = organisationUnitService;
         this.organisationUnitLevels = organisationUnitLevels;
+        this.tableType = tableType;
     }
 
     @Override
@@ -72,8 +75,9 @@ public class OrganisationUnitStructureResourceTable
     {
         StringBuilder sql = new StringBuilder();
 
-        sql.append( "create table " ).append( getTempTableName() ).append(
-            " (organisationunitid bigint not null primary key, organisationunituid character(11), level integer" );
+        sql.append( "create " ).append( tableType ).append( " table " ).append( getTempTableName() )
+            .append( "(organisationunitid bigint not null primary key," )
+            .append( "organisationunituid character(11), level integer" );
 
         for ( int k = 1; k <= organisationUnitLevels; k++ )
         {

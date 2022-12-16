@@ -97,7 +97,7 @@
     <datasource-proxy.version>1.7</datasource-proxy.version>
 
     <!-- Servlet-->
-    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
     <!-- Struts -->
     <struts.version>2.5.30</struts.version>

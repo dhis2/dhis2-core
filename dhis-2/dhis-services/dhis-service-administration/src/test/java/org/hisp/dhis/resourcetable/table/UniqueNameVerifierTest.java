@@ -54,15 +54,16 @@ public class UniqueNameVerifierTest
 
         String cogsName = RandomStringUtils.randomAlphabetic( 49 );
 
-        final List<Category> categories = IntStream.of( 1, 2, 3 )
+        List<Category> categories = IntStream.of( 1, 2, 3 )
             .mapToObj( i -> new Category( categoryName + i, DataDimensionType.ATTRIBUTE ) )
             .peek( c -> c.setUid( CodeGenerator.generateUid() ) ).collect( Collectors.toList() );
 
-        final List<CategoryOptionGroupSet> categoryOptionGroupSets = IntStream.of( 1, 2, 3 )
+        List<CategoryOptionGroupSet> categoryOptionGroupSets = IntStream.of( 1, 2, 3 )
             .mapToObj( i -> new CategoryOptionGroupSet( cogsName + i ) )
             .peek( c -> c.setUid( CodeGenerator.generateUid() ) ).collect( Collectors.toList() );
 
-        CategoryResourceTable categoryResourceTable = new CategoryResourceTable( categories, categoryOptionGroupSets );
+        CategoryResourceTable categoryResourceTable = new CategoryResourceTable( categories, categoryOptionGroupSets,
+            "" );
 
         final String sql = categoryResourceTable.getCreateTempTableStatement();
 
@@ -73,7 +74,6 @@ public class UniqueNameVerifierTest
         assertEquals( countMatches( sql, "\"" + cogsName + "1\"" ), 1 );
         assertEquals( countMatches( sql, "\"" + cogsName + "2\"" ), 1 );
         assertEquals( countMatches( sql, "\"" + cogsName + "3\"" ), 1 );
-
     }
 
     @Test
@@ -84,18 +84,17 @@ public class UniqueNameVerifierTest
         // short-names
         String indicatorGroupSetName = RandomStringUtils.randomAlphabetic( 50 );
 
-        final List<IndicatorGroupSet> indicatorGroupSets = IntStream.of( 1, 2, 3 )
+        List<IndicatorGroupSet> indicatorGroupSets = IntStream.of( 1, 2, 3 )
             .mapToObj( i -> new IndicatorGroupSet( indicatorGroupSetName + 1 ) )
             .peek( c -> c.setUid( CodeGenerator.generateUid() ) ).collect( Collectors.toList() );
 
         IndicatorGroupSetResourceTable indicatorGroupSetResourceTable = new IndicatorGroupSetResourceTable(
-            indicatorGroupSets );
+            indicatorGroupSets, "" );
 
-        final String sql = indicatorGroupSetResourceTable.getCreateTempTableStatement();
+        String sql = indicatorGroupSetResourceTable.getCreateTempTableStatement();
 
         assertEquals( countMatches( sql, "\"" + indicatorGroupSets.get( 0 ).getName() + "\"" ), 1 );
         assertEquals( countMatches( sql, "\"" + indicatorGroupSets.get( 0 ).getName() + "1\"" ), 1 );
         assertEquals( countMatches( sql, "\"" + indicatorGroupSets.get( 0 ).getName() + "2\"" ), 1 );
-
     }
 }
