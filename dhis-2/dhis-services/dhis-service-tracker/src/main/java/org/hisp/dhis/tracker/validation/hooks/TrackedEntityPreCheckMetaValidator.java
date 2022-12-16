@@ -33,8 +33,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ public class TrackedEntityPreCheckMetaValidator
     implements Validator<TrackedEntity>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )

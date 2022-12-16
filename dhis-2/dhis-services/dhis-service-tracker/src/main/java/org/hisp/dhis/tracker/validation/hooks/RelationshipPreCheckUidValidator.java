@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.checkUidFor
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class RelationshipPreCheckUidValidator
     implements Validator<Relationship>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship )
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
         checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
             relationship.getRelationship() );

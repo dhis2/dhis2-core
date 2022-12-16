@@ -50,8 +50,8 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.util.Constant;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
@@ -71,7 +71,7 @@ public abstract class AttributeValidationHook
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
+    protected void validateAttrValueType( Reporter reporter, TrackerPreheat preheat, TrackerDto dto,
         Attribute attr,
         TrackedEntityAttribute teAttr )
     {
@@ -115,7 +115,7 @@ public abstract class AttributeValidationHook
         }
     }
 
-    protected void validateAttributeValue( ValidationErrorReporter reporter, TrackerDto trackerDto,
+    protected void validateAttributeValue( Reporter reporter, TrackerDto trackerDto,
         TrackedEntityAttribute tea,
         String value )
     {
@@ -140,7 +140,7 @@ public abstract class AttributeValidationHook
         reporter.addErrorIf( () -> result != null, trackerDto, E1085, tea, result );
     }
 
-    protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
+    protected void validateAttributeUniqueness( Reporter reporter,
         TrackerPreheat preheat, TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,

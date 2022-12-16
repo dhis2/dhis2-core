@@ -161,7 +161,7 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> skipOnError = new Validator<>()
         {
             @Override
-            public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+            public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
             {
                 addErrorOnMatch( reporter, invalidTrackedEntity, trackedEntity, ValidationCode.E1032 );
             }
@@ -236,7 +236,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Enrollment> skipOnError = new Validator<>()
         {
             @Override
-            public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+            public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
             {
                 addErrorOnMatch( reporter, invalidEnrollment, enrollment, ValidationCode.E1032 );
             }
@@ -311,7 +311,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> skipOnError = new Validator<>()
         {
             @Override
-            public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
             {
                 addErrorOnMatch( reporter, invalidEvent, event, ValidationCode.E1032 );
             }
@@ -371,7 +371,7 @@ class DefaultTrackerValidationServiceTest
             () -> assertTrue( bundle.getEvents().contains( validEvent ) ) );
     }
 
-    private static <T extends TrackerDto> void addErrorOnMatch( ValidationErrorReporter reporter, T expected, T actual,
+    private static <T extends TrackerDto> void addErrorOnMatch( Reporter reporter, T expected, T actual,
         ValidationCode code )
     {
         reporter.addErrorIf( () -> Objects.equals( expected, actual ), actual, code );
@@ -438,7 +438,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> v1 = new Validator<>()
         {
             @Override
-            public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
             {
                 reporter.addError( event, ValidationCode.E1000 );
             }
@@ -468,7 +468,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> v1 = new Validator<>()
         {
             @Override
-            public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+            public void validate( Reporter reporter, TrackerBundle bundle, Event event )
             {
                 reporter.addError( event, ValidationCode.E1032 );
             }

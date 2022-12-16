@@ -61,8 +61,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,7 +108,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
     private User user;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private OrganisationUnit organisationUnit;
 
@@ -142,7 +142,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
         programStage.setUid( PS_ID );
 
         idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator = new EventPreCheckSecurityOwnershipValidator( aclService, ownershipAccessManager,
             organisationUnitService );
@@ -328,7 +328,7 @@ class EventPreCheckSecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( true );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );

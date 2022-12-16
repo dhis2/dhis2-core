@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ class EventDataValuesValidatorTest
     @Mock
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private TrackerIdSchemeParams idSchemes;
 
@@ -98,7 +98,7 @@ class EventDataValuesValidatorTest
 
         idSchemes = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -642,7 +642,7 @@ class EventDataValuesValidatorTest
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
@@ -681,7 +681,7 @@ class EventDataValuesValidatorTest
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
@@ -693,7 +693,7 @@ class EventDataValuesValidatorTest
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
@@ -858,7 +858,7 @@ class EventDataValuesValidatorTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );

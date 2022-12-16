@@ -45,8 +45,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +71,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -83,7 +83,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -166,7 +166,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
         assertMissingProperty( reporter, event.getUid(), "orgUnit" );
     }
 
-    private void assertMissingProperty( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, String uid, String property )
     {
         AssertValidationErrorReporter.assertMissingProperty( reporter, EVENT, "event", uid, property,
             ValidationCode.E1123 );

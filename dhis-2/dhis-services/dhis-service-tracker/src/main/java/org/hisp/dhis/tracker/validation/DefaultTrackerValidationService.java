@@ -88,7 +88,7 @@ public class DefaultTrackerValidationService
 
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle.getPreheat().getIdSchemes(),
+        Reporter reporter = new Reporter( bundle.getPreheat().getIdSchemes(),
             bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         try
@@ -118,7 +118,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<Validator<TrackedEntity>> validators,
-        ValidationErrorReporter reporter )
+        Reporter reporter )
     {
         for ( TrackedEntity tei : bundle.getTrackedEntities() )
         {
@@ -144,7 +144,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEnrollments( TrackerBundle bundle, List<Validator<Enrollment>> validators,
-        ValidationErrorReporter reporter )
+        Reporter reporter )
     {
         for ( Enrollment enrollment : bundle.getEnrollments() )
         {
@@ -170,7 +170,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateEvents( TrackerBundle bundle, List<Validator<Event>> validators,
-        ValidationErrorReporter reporter )
+        Reporter reporter )
     {
         for ( Event event : bundle.getEvents() )
         {
@@ -196,7 +196,7 @@ public class DefaultTrackerValidationService
     }
 
     private void validateRelationships( TrackerBundle bundle, List<Validator<Relationship>> validators,
-        ValidationErrorReporter reporter )
+        Reporter reporter )
     {
         for ( Relationship relationship : bundle.getRelationships() )
         {
@@ -222,7 +222,7 @@ public class DefaultTrackerValidationService
     }
 
     private static void validateBundle( TrackerBundle bundle, List<Validator<TrackerBundle>> validators,
-        ValidationErrorReporter reporter )
+        Reporter reporter )
     {
         for ( Validator<TrackerBundle> hook : validators )
         {
@@ -236,7 +236,7 @@ public class DefaultTrackerValidationService
         }
     }
 
-    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
+    private boolean didNotPassValidation( Reporter reporter, String uid )
     {
         return reporter.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }

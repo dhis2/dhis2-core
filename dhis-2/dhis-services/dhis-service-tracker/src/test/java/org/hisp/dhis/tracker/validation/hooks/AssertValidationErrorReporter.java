@@ -31,8 +31,8 @@ import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationRepo
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 
 public class AssertValidationErrorReporter
 {
@@ -41,7 +41,7 @@ public class AssertValidationErrorReporter
         throw new IllegalStateException( "utility class" );
     }
 
-    public static void assertMissingProperty( ValidationErrorReporter reporter, TrackerType type, String entity,
+    public static void assertMissingProperty( Reporter reporter, TrackerType type, String entity,
         String uid,
         String property,
         ValidationCode errorCode )
@@ -50,7 +50,7 @@ public class AssertValidationErrorReporter
             "Missing required " + entity + " property: `" + property + "`." );
     }
 
-    public static void hasTrackerError( ValidationErrorReporter reporter, ValidationCode code, TrackerType type,
+    public static void hasTrackerError( Reporter reporter, ValidationCode code, TrackerType type,
         String uid )
     {
         assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
