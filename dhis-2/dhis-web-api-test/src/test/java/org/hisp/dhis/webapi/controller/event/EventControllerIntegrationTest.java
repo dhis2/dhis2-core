@@ -28,7 +28,10 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -106,5 +109,15 @@ class EventControllerIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( HttpStatus.OK, res.status() );
         assertEquals( "application/json+zip", res.header( "Content-Type" ) );
         assertEquals( "attachment; filename=events.json.zip", res.header( "Content-Disposition" ) );
+    }
+
+    @Test
+    void testSkipPaging()
+    {
+        JsonResponse res = GET( "/events.json?skipPaging=true" ).content( HttpStatus.OK );
+        assertFalse( res.get( "pager" ).exists() );
+
+        res = GET( "/events.json?skipPaging=false" ).content( HttpStatus.OK );
+        assertTrue( res.get( "pager" ).exists() );
     }
 }

@@ -38,9 +38,9 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,10 +51,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RepeatedEventsValidationHook
-    implements TrackerValidationHook
+    implements Validator<TrackerBundle>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle __, TrackerBundle bundle )
     {
         Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle
             .getEvents()
@@ -74,7 +74,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    reporter.addError( event, ValidationCode.E1039, mapEntry.getKey().getLeft() );
                 }
             }
         }
@@ -85,7 +85,7 @@ public class RepeatedEventsValidationHook
 
     private void validateNotMultipleEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
         TrackerImportStrategy strategy = bundle.getStrategy( event );
@@ -95,7 +95,7 @@ public class RepeatedEventsValidationHook
             && bundle.getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
                 event.getEnrollment() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
+            reporter.addError( event, ValidationCode.E1039, event.getProgramStage() );
         }
     }
 

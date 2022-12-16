@@ -67,8 +67,8 @@ public class AtomicModeTests
             .body( "stats.ignored", equalTo( 3 ) );
 
         response.validateErrorReport()
-            .body( "", hasSize( 3 ) )
-            .body( "errorCode", contains( "E1121", "E4014", "E4011" ) );
+            .body( "", hasSize( 2 ) )
+            .body( "errorCode", contains( "E1121", "E4014" ) );
     }
 
     @Test
@@ -84,8 +84,8 @@ public class AtomicModeTests
             .body( "stats.created", equalTo( 1 ) );
 
         response.validateErrorReport()
-            .body( "", hasSize( 3 ) )
-            .body( "errorCode", contains( "E1121", "E4014", "E4011" ) );
+            .body( "", hasSize( 2 ) )
+            .body( "errorCode", contains( "E1121", "E4014" ) );
     }
 
     private JsonObject createWrongPayload()
