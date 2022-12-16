@@ -25,43 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
+import lombok.Builder;
+import lombok.Value;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Enrico Colasante
- */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityPreCheckUpdatableFieldsValidator
-    implements Validator<TrackedEntity>
+@Value
+@Builder
+public class Error
 {
-    @Override
-    public void validate( ValidationErrorReporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance trackedEntityInstance = bundle
-            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+    private final String errorMessage;
 
-        reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
-            trackedEntity, E1126, "trackedEntityType" );
+    private final String errorCode;
+
+    private final String trackerType;
+
+    private final String uid;
+
+    @JsonCreator
+    public Error( @JsonProperty( "message" ) String errorMessage,
+        @JsonProperty( "errorCode" ) String errorCode,
+        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
+    {
+        this.errorMessage = errorMessage;
+        this.errorCode = errorCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
+    @JsonProperty
+    public String getErrorCode()
     {
-        return strategy == TrackerImportStrategy.UPDATE;
+        return errorCode;
+    }
+
+    @JsonProperty
+    public String getMessage()
+    {
+        return errorMessage;
+    }
+
+    @JsonProperty
+    public String getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
     }
 }

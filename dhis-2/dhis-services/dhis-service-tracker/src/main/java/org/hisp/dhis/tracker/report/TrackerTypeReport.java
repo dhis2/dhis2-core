@@ -107,9 +107,9 @@ public class TrackerTypeReport
         this.entityReport.put( entity.getIndex(), entity );
     }
 
-    private List<TrackerErrorReport> getErrorReports()
+    private List<Error> getErrorReports()
     {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        List<Error> errorReports = new ArrayList<>();
         entityReport.values().forEach( entity -> errorReports.addAll( entity.getErrorReports() ) );
 
         return errorReports;

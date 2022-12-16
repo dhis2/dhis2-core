@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1123;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1008;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1123;
 
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;

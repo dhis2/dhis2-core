@@ -30,52 +30,49 @@ package org.hisp.dhis.tracker.report;
 import lombok.Builder;
 import lombok.Value;
 
-import org.hisp.dhis.tracker.TrackerType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
 @Value
 @Builder
-public class TrackerErrorReport
+public class Warning
 {
-    private final String errorMessage;
+    private final String warningMessage;
 
-    private final TrackerErrorCode errorCode;
+    private final String warningCode;
 
-    private final TrackerType trackerType;
+    private final String trackerType;
 
     private final String uid;
 
     @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
+    public Warning( @JsonProperty( "message" ) String warningMessage,
+        @JsonProperty( "errorCode" ) String warningCode,
+        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
     {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
+        this.warningMessage = warningMessage;
+        this.warningCode = warningCode;
         this.trackerType = trackerType;
         this.uid = uid;
     }
 
     @JsonProperty
-    public TrackerErrorCode getErrorCode()
+    public String getWarningCode()
     {
-        return errorCode;
+        return warningCode;
     }
 
     @JsonProperty
     public String getMessage()
     {
-        return errorMessage;
+        return warningMessage;
     }
 
     @JsonProperty
-    public TrackerType getTrackerType()
+    public String getTrackerType()
     {
         return trackerType;
     }
@@ -89,11 +86,9 @@ public class TrackerErrorReport
     @Override
     public String toString()
     {
-        return "TrackerErrorReport{" +
-            "message=" + errorMessage +
-            ", errorCode=" + errorCode +
-            ", trackerEntityType=" + trackerType +
-            ", uid=" + uid +
+        return "TrackerWarningReport{" +
+            "message=" + warningMessage +
+            ", warningCode=" + warningCode +
             '}';
     }
 }

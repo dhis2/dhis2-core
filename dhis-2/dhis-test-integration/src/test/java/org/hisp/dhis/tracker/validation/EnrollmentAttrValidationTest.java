@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,7 +71,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
             "tracker/validations/enrollments_te_with_invalid_option_value.json" );
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1125 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1125 );
     }
 
     @Test
@@ -96,7 +95,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1075 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1075 );
     }
 
     @Test
@@ -106,7 +105,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
         TrackerImportParams params = fromJson(
             "tracker/validations/enrollments_te_attr-missing-value.json" );
         ImportReport importReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1076 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1076 );
     }
 
     @Test
@@ -115,7 +114,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_attr-non-existing.json" );
         ImportReport importReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1006 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1006 );
     }
 
     @Test
@@ -125,7 +124,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
         TrackerImportParams params = fromJson(
             "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
         ImportReport importReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1018 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1018 );
     }
 
     @Test
@@ -166,7 +165,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
 
         importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1064 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1064 );
     }
 
     @Test
@@ -181,7 +180,7 @@ class EnrollmentAttrValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 2, TrackerErrorCode.E1064 );
+        assertHasErrors( importReport, 2, ValidationCode.E1064 );
     }
 
     @Test
@@ -193,6 +192,6 @@ class EnrollmentAttrValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1019 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1019 );
     }
 }

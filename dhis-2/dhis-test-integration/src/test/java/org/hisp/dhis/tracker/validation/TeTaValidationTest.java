@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -122,7 +121,7 @@ class TeTaValidationTest extends TrackerTest
         assertTrue( fileResource.isAssigned() );
         trackerImportParams = fromJson( "tracker/validations/te-program_with_tea_fileresource_data2.json" );
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1009 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1009 );
     }
 
     @Test
@@ -133,7 +132,7 @@ class TeTaValidationTest extends TrackerTest
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1084 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1084 );
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 0, trackedEntityInstances.size() );
     }
@@ -147,7 +146,7 @@ class TeTaValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1077 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1077 );
     }
 
     @Test
@@ -159,7 +158,7 @@ class TeTaValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1085 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1085 );
     }
 
     @Test
@@ -171,7 +170,7 @@ class TeTaValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1085, TrackerErrorCode.E1007 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1085, ValidationCode.E1007 );
     }
 
     @Test
@@ -183,6 +182,6 @@ class TeTaValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1076 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1076 );
     }
 }

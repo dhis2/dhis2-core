@@ -59,7 +59,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -186,7 +186,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
         assertFalse( errors.isEmpty() );
         errors.forEach( e -> {
             assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
-            assertEquals( TrackerErrorCode.E1301, e.getIssueCode() );
+            assertEquals( ValidationCode.E1301, e.getIssueCode() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
             assertEquals( Lists.newArrayList( dataElementA.getUid() ), e.getArgs() );
         } );
@@ -262,7 +262,7 @@ class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 
         errors.forEach( e -> {
             assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
-            assertEquals( TrackerErrorCode.E1306, e.getIssueCode() );
+            assertEquals( ValidationCode.E1306, e.getIssueCode() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
             assertEquals( Lists.newArrayList( ATTRIBUTE_ID ), e.getArgs() );
         } );

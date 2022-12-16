@@ -38,7 +38,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
@@ -74,7 +74,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    reporter.addError( event, ValidationCode.E1039, mapEntry.getKey().getLeft() );
                 }
             }
         }
@@ -95,7 +95,7 @@ public class RepeatedEventsValidationHook
             && bundle.getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
                 event.getEnrollment() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
+            reporter.addError( event, ValidationCode.E1039, event.getProgramStage() );
         }
     }
 

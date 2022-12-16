@@ -25,32 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
-
-import javax.annotation.Nonnull;
-
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.tracker.validation;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validation hook.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validation represents an issue found by the validation process. It contains
+ * information that help the client to understand and fix the problem.
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+public interface Validation
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    String getCode();
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    String getMessage();
+
+    String getType();
+
+    String getUid();
 }
