@@ -25,54 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.hooks.EventValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityValidator;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * {@link Validators} used in {@link ValidationService#validate(TrackerBundle)}.
+ * Validator to validate the {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.DefaultValidators" )
-public class DefaultValidators implements Validators
+@Component( "org.hisp.dhis.tracker.validation.hooks.RuleEngineValidator" )
+public class RuleEngineValidator implements Validator<TrackerBundle>
 {
 
-    private final TrackedEntityValidator trackedEntityValidator;
+    private final TrackedEntityRuleEngineValidator trackedEntityValidator;
 
-    private final EnrollmentValidator enrollmentValidator;
+    private final EnrollmentRuleEngineValidator enrollmentValidator;
 
-    private final EventValidator eventValidator;
+    private final EventRuleEngineValidator eventValidator;
 
-    private final RelationshipValidator relationshipValidator;
-
-    @Override
-    public Validator<TrackerBundle> getTrackedEntityValidator()
+    private Validator<TrackerBundle> bundleValidator()
     {
-        return trackedEntityValidator;
+        // @formatter:off
+        return all(
+                trackedEntityValidator,
+                enrollmentValidator,
+                eventValidator
+        );
     }
 
     @Override
-    public Validator<TrackerBundle> getEnrollmentValidator()
-    {
-        return enrollmentValidator;
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+        bundleValidator().validate(reporter, bundle, input);
     }
 
     @Override
-    public Validator<TrackerBundle> getEventValidator()
-    {
-        return eventValidator;
-    }
-
-    @Override
-    public Validator<TrackerBundle> getRelationshipValidator()
-    {
-        return relationshipValidator;
+    public boolean needsToRun(TrackerImportStrategy strategy) {
+        return true; // this main validator should always run
     }
 }

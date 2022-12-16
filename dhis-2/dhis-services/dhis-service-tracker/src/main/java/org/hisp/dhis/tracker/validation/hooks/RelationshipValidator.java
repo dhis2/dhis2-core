@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Seq.seq;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.Reporter;
@@ -79,5 +80,10 @@ public class RelationshipValidator implements Validator<TrackerBundle>
     public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
 
         relationshipValidator().validate(reporter, bundle, input);
+    }
+
+    @Override
+    public boolean needsToRun(TrackerImportStrategy strategy) {
+        return true; // this main validator should always run
     }
 }

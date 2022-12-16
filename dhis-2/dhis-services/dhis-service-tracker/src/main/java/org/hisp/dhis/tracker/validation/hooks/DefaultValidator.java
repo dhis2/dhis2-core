@@ -25,18 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
-public interface Validators
+/**
+ * Validator to validate the {@link TrackerBundle}.
+ */
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.DefaultValidator" )
+public class DefaultValidator implements Validator<TrackerBundle>
 {
 
-    Validator<TrackerBundle> getTrackedEntityValidator();
+    private final TrackedEntityValidator trackedEntityValidator;
 
-    Validator<TrackerBundle> getEnrollmentValidator();
+    private final EnrollmentValidator enrollmentValidator;
 
-    Validator<TrackerBundle> getEventValidator();
+    private final EventValidator eventValidator;
 
-    Validator<TrackerBundle> getRelationshipValidator();
+    private final RelationshipValidator relationshipValidator;
+
+    private Validator<TrackerBundle> bundleValidator()
+    {
+        // @formatter:off
+        return all(
+                trackedEntityValidator,
+                enrollmentValidator,
+                eventValidator,
+                relationshipValidator
+        );
+    }
+
+    @Override
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+        bundleValidator().validate(reporter, bundle, input);
+    }
+
+    @Override
+    public boolean needsToRun(TrackerImportStrategy strategy) {
+        return true; // this main validator should always run
+    }
 }

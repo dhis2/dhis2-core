@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.validation.hooks.Seq.seq;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.validation.Reporter;
@@ -97,5 +98,10 @@ public class EnrollmentValidator implements Validator<TrackerBundle>
     public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
 
         enrollmentValidator().validate(reporter, bundle, input);
+    }
+
+    @Override
+    public boolean needsToRun(TrackerImportStrategy strategy) {
+        return true; // this main validator should always run
     }
 }
