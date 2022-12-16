@@ -29,22 +29,20 @@ package org.hisp.dhis.tracker.validation;
 
 import java.util.List;
 
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ValidationFailFastException
     extends RuntimeException
 {
-    private final transient List<TrackerErrorReport> errorReportRef;
+    private final transient List<Error> errorReportRef;
 
-    public ValidationFailFastException( List<TrackerErrorReport> errorReportRef )
+    public ValidationFailFastException( List<Error> errorReportRef )
     {
         this.errorReportRef = errorReportRef;
     }
 
-    public List<TrackerErrorReport> getErrors()
+    public List<Error> getErrors()
     {
         return errorReportRef;
     }
