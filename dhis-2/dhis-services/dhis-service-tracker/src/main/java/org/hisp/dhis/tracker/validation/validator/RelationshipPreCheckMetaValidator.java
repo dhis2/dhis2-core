@@ -25,32 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class RelationshipPreCheckMetaValidator
+    implements Validator<Relationship>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship )
+    {
+        TrackerPreheat preheat = bundle.getPreheat();
+        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
+    }
+
 }

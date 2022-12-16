@@ -25,32 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import java.util.Optional;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+public class RelationshipValidationUtils
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    private RelationshipValidationUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
+    public static TrackerType relationshipItemValueType( RelationshipItem item )
+    {
+        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
+        {
+            return TrackerType.TRACKED_ENTITY;
+        }
+        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
+        {
+            return TrackerType.ENROLLMENT;
+        }
+        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
+        {
+            return TrackerType.EVENT;
+        }
+        return null;
+    }
+
+    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
+    {
+        return Optional
+            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
+    }
 }

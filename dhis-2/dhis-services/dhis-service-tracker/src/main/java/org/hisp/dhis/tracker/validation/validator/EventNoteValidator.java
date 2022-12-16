@@ -25,32 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
-
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class EventNoteValidator implements Validator<Event>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
-
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    {
+        event
+            .setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), event, event.getNotes() ) );
+    }
 }

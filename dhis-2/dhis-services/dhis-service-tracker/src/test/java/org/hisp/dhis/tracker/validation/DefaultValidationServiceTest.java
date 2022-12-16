@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasWarning;
+import static org.hisp.dhis.tracker.validation.validator.AssertTrackerValidationReport.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

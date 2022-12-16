@@ -25,32 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.validator.Each.each;
 
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component( "org.hisp.dhis.tracker.validation.validator.EnrollmentRuleEngineValidator" )
+public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    private final EnrollmentRuleValidator ruleValidator;
+
+    private final EnrollmentAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> enrollmentValidator()
+    {
+        // @formatter:off
+        return each( TrackerBundle::getEnrollments,
+                        all(
+                                ruleValidator,
+                                attributeValidator
+                        )
+                );
+    }
+    @Override
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+
+        enrollmentValidator().validate(reporter, bundle, input);
+    }
+
+    @Override
+    public boolean needsToRun(TrackerImportStrategy strategy) {
+        return true; // this main validator should always run
+    }
 }

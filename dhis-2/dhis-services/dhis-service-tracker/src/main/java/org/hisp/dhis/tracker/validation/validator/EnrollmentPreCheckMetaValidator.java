@@ -25,32 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1068;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1069;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1070;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.trackedEntityInstanceExist;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class EnrollmentPreCheckMetaValidator
+    implements Validator<Enrollment>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
+
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
+            enrollment,
+            E1068, enrollment.getTrackedEntity() );
+    }
+
 }
