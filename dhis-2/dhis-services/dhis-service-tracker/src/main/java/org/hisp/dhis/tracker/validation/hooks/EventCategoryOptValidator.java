@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1056;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1057;
 
 import java.time.Instant;
 import java.util.Date;
@@ -45,7 +45,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -67,7 +67,7 @@ public class EventCategoryOptValidator
     }
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         Program program = bundle.getPreheat().getProgram( event.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1033;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1079;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1089;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1115;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1116;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1029;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1033;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1079;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1089;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1115;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1116;
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -69,7 +69,7 @@ public class EventPreCheckDataRelationsValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
@@ -81,7 +81,7 @@ public class EventPreCheckDataRelationsValidator
         validateEventCategoryOptionCombo( reporter, bundle.getPreheat(), event, program );
     }
 
-    private void validateProgramStageInProgram( ValidationErrorReporter reporter, Event event,
+    private void validateProgramStageInProgram( Reporter reporter, Event event,
         ProgramStage programStage, Program program )
     {
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
@@ -90,7 +90,7 @@ public class EventPreCheckDataRelationsValidator
         }
     }
 
-    private void validateRegistrationProgram( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateRegistrationProgram( Reporter reporter, TrackerBundle bundle, Event event,
         Program eventProgram )
     {
         if ( eventProgram.isRegistration() )
@@ -111,7 +111,7 @@ public class EventPreCheckDataRelationsValidator
         }
     }
 
-    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, TrackerPreheat preheat, Event event,
+    private void validateProgramHasOrgUnit( Reporter reporter, TrackerPreheat preheat, Event event,
         OrganisationUnit organisationUnit, Program program )
     {
         if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
@@ -127,7 +127,7 @@ public class EventPreCheckDataRelationsValidator
             || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
-    private void validateEventCategoryOptionCombo( ValidationErrorReporter reporter,
+    private void validateEventCategoryOptionCombo( Reporter reporter,
         TrackerPreheat preheat, Event event, Program program )
     {
         boolean isValid = validateAttributeOptionComboExists( reporter, preheat, event );
@@ -155,7 +155,7 @@ public class EventPreCheckDataRelationsValidator
         validateAttributeOptionComboMatchesCategoryOptions( reporter, preheat, event, program, aoc );
     }
 
-    private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, TrackerPreheat preheat,
+    private boolean validateAttributeOptionComboExists( Reporter reporter, TrackerPreheat preheat,
         Event event )
     {
         if ( hasNoAttributeOptionComboSet( event ) )
@@ -177,7 +177,7 @@ public class EventPreCheckDataRelationsValidator
         return event.getAttributeOptionCombo().isBlank();
     }
 
-    private boolean validateCategoryOptionsExist( ValidationErrorReporter reporter, TrackerPreheat preheat,
+    private boolean validateCategoryOptionsExist( Reporter reporter, TrackerPreheat preheat,
         Event event )
     {
         if ( hasNoAttributeCategoryOptionsSet( event ) )
@@ -213,7 +213,7 @@ public class EventPreCheckDataRelationsValidator
      * @return return true if event program is default with valid aoc and co
      *         combinations
      */
-    private boolean validateDefaultProgramCategoryCombo( ValidationErrorReporter reporter, TrackerPreheat preheat,
+    private boolean validateDefaultProgramCategoryCombo( Reporter reporter, TrackerPreheat preheat,
         Event event,
         Program program )
     {
@@ -221,7 +221,7 @@ public class EventPreCheckDataRelationsValidator
             hasNoAttributeCategoryOptionsSet( event ) &&
             !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( event, TrackerErrorCode.E1055 );
+            reporter.addError( event, ValidationCode.E1055 );
             return false;
         }
         CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
@@ -229,7 +229,7 @@ public class EventPreCheckDataRelationsValidator
             aoc != null && aoc.getCategoryCombo().isDefault() &&
             !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( event, TrackerErrorCode.E1055 );
+            reporter.addError( event, ValidationCode.E1055 );
             return false;
         }
 
@@ -241,7 +241,7 @@ public class EventPreCheckDataRelationsValidator
         return !hasNoAttributeOptionComboSet( event );
     }
 
-    private boolean validateAttributeOptionComboIsInProgramCategoryCombo( ValidationErrorReporter reporter,
+    private boolean validateAttributeOptionComboIsInProgramCategoryCombo( Reporter reporter,
         TrackerPreheat preheat, Event event,
         Program program )
     {
@@ -253,7 +253,7 @@ public class EventPreCheckDataRelationsValidator
         CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1054, event.getAttributeOptionCombo(),
+            reporter.addError( event, ValidationCode.E1054, event.getAttributeOptionCombo(),
                 program.getCategoryCombo() );
             return false;
         }
@@ -293,7 +293,7 @@ public class EventPreCheckDataRelationsValidator
         return categoryOptions;
     }
 
-    private boolean validateAttributeOptionComboFound( ValidationErrorReporter reporter, Event event, Program program,
+    private boolean validateAttributeOptionComboFound( Reporter reporter, Event event, Program program,
         CategoryOptionCombo aoc )
     {
         if ( aoc != null )
@@ -305,7 +305,7 @@ public class EventPreCheckDataRelationsValidator
         return false;
     }
 
-    private void validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter,
+    private void validateAttributeOptionComboMatchesCategoryOptions( Reporter reporter,
         TrackerPreheat preheat, Event event,
         Program program,
         CategoryOptionCombo aoc )
@@ -322,19 +322,19 @@ public class EventPreCheckDataRelationsValidator
 
     }
 
-    private void addAOCAndCOCombinationError( Event event, ValidationErrorReporter reporter, Program program )
+    private void addAOCAndCOCombinationError( Event event, Reporter reporter, Program program )
     {
         // we used the program CC in finding the AOC id, if the AOC id was not
         // provided in the payload
         if ( hasNoAttributeOptionComboSet( event ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
+            reporter.addError( event, ValidationCode.E1117, program.getCategoryCombo(),
                 event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
                     .collect( Collectors.toSet() ).toString() );
         }
         else
         {
-            reporter.addError( event, TrackerErrorCode.E1117,
+            reporter.addError( event, ValidationCode.E1117,
                 event.getAttributeOptionCombo(),
                 event.getAttributeCategoryOptions().stream().map( MetadataIdentifier::getIdentifierOrAttributeValue )
                     .collect( Collectors.toSet() ).toString() );
@@ -370,9 +370,4 @@ public class EventPreCheckDataRelationsValidator
         return null;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

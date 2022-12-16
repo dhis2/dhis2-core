@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -46,12 +46,12 @@ public class TrackedEntityPreCheckMetaValidator
     implements Validator<TrackedEntity>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
-            reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
+            reporter.addError( tei, ValidationCode.E1049, tei.getOrgUnit() );
         }
 
         TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
@@ -61,9 +61,4 @@ public class TrackedEntityPreCheckMetaValidator
         }
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

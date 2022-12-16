@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
@@ -49,8 +49,8 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -72,7 +72,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
     private final OrganisationUnitService organisationUnitService;
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( trackedEntity );
         User user = bundle.getUser();
@@ -115,7 +115,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
         checkTeiTypeWriteAccess( reporter, bundle, trackedEntity, trackedEntityType );
     }
 
-    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void checkTeiTypeWriteAccess( Reporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
@@ -126,7 +126,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            reporter.addError( trackedEntity, TrackerErrorCode.E1001, user, trackedEntityType );
+            reporter.addError( trackedEntity, ValidationCode.E1001, user, trackedEntityType );
         }
     }
 
@@ -136,13 +136,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -152,11 +146,11 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1000, user, orgUnit );
+            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
         }
     }
 
-    private void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInSearchScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -166,7 +160,7 @@ public class TrackedEntityPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1003, orgUnit, user );
+            reporter.addError( dto, ValidationCode.E1003, orgUnit, user );
         }
     }
 

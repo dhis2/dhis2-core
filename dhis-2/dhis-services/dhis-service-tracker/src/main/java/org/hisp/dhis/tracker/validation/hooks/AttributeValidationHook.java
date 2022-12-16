@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1077;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1085;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1112;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
@@ -49,9 +49,9 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
@@ -71,7 +71,7 @@ public abstract class AttributeValidationHook
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
+    protected void validateAttrValueType( Reporter reporter, TrackerPreheat preheat, TrackerDto dto,
         Attribute attr,
         TrackedEntityAttribute teAttr )
     {
@@ -111,11 +111,11 @@ public abstract class AttributeValidationHook
 
         if ( error != null )
         {
-            reporter.addError( dto, TrackerErrorCode.E1007, valueType, error );
+            reporter.addError( dto, ValidationCode.E1007, valueType, error );
         }
     }
 
-    protected void validateAttributeValue( ValidationErrorReporter reporter, TrackerDto trackerDto,
+    protected void validateAttributeValue( Reporter reporter, TrackerDto trackerDto,
         TrackedEntityAttribute tea,
         String value )
     {
@@ -140,7 +140,7 @@ public abstract class AttributeValidationHook
         reporter.addErrorIf( () -> result != null, trackerDto, E1085, tea, result );
     }
 
-    protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
+    protected void validateAttributeUniqueness( Reporter reporter,
         TrackerPreheat preheat, TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
@@ -170,7 +170,7 @@ public abstract class AttributeValidationHook
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                reporter.addError( dto, TrackerErrorCode.E1064, value, trackedEntityAttribute );
+                reporter.addError( dto, ValidationCode.E1064, value, trackedEntityAttribute );
                 return;
             }
         }

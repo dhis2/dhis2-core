@@ -54,9 +54,9 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +88,7 @@ class TrackedEntityAttributeValidatorTest
 
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private TrackerIdSchemeParams idSchemes;
 
@@ -100,7 +100,7 @@ class TrackedEntityAttributeValidatorTest
             .build();
         idSchemes = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -162,7 +162,7 @@ class TrackedEntityAttributeValidatorTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
         assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1090 ).count() );
+            .filter( e -> e.getErrorCode() == ValidationCode.E1090 ).count() );
     }
 
     @Test
@@ -181,7 +181,7 @@ class TrackedEntityAttributeValidatorTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 2, reporter.getErrors().size() );
         assertEquals( 2, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1006 ).count() );
+            .filter( e -> e.getErrorCode() == ValidationCode.E1006 ).count() );
     }
 
     @Test
@@ -215,7 +215,7 @@ class TrackedEntityAttributeValidatorTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
         assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1076 ).count() );
+            .filter( e -> e.getErrorCode() == ValidationCode.E1076 ).count() );
     }
 
     @Test
@@ -236,7 +236,7 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1077.equals( err.getErrorCode() ) &&
+        assertTrue( reporter.hasErrorReport( err -> ValidationCode.E1077.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
             te.getTrackedEntity().equals( err.getUid() ) ) );
     }
@@ -252,7 +252,7 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1085.equals( err.getErrorCode() ) &&
+        assertTrue( reporter.hasErrorReport( err -> ValidationCode.E1085.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
             te.getTrackedEntity().equals( err.getUid() ) ) );
     }
@@ -275,7 +275,7 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1112.equals( err.getErrorCode() ) &&
+        assertTrue( reporter.hasErrorReport( err -> ValidationCode.E1112.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
             te.getTrackedEntity().equals( err.getUid() ) ) );
     }
@@ -300,7 +300,7 @@ class TrackedEntityAttributeValidatorTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
         assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
+            .filter( e -> e.getErrorCode() == ValidationCode.E1125 ).count() );
     }
 
     @Test
@@ -384,7 +384,7 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -424,9 +424,9 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         trackedEntity.setTrackedEntity( "XYZ" );
         fileResource.setFileResourceOwner( "ABC" );
@@ -437,9 +437,9 @@ class TrackedEntityAttributeValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getErrors().size() );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         trackedEntity.setTrackedEntity( "ABC" );
         fileResource.setFileResourceOwner( "ABC" );

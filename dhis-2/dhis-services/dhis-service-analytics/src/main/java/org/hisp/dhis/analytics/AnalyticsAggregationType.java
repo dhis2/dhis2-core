@@ -110,9 +110,9 @@ public class AnalyticsAggregationType
     public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
         AnalyticsAggregationType analyticsAggregationType;
+
         switch ( aggregationType )
         {
-
         case AVERAGE_SUM_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
             break;

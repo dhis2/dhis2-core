@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -98,12 +98,12 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteDataValue( event, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1308,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1308,
                     Lists.newArrayList( actionRule.getField(), event.getEvent() ), IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1307,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1307,
                     Lists.newArrayList( actionRule.getField(), actionRule.getData() ), IssueType.ERROR ) );
             }
         }
@@ -135,13 +135,13 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteAttribute( enrollment, actionRule, bundle );
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1310,
                     Lists.newArrayList( actionRule.getField(), actionRule.getData() ),
                     IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1309,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), ValidationCode.E1309,
                     Lists.newArrayList( actionRule.getField(), enrollment.getEnrollment() ),
                     IssueType.ERROR ) );
             }

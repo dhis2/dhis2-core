@@ -60,7 +60,8 @@ import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.TrackerValidationService;
+import org.hisp.dhis.tracker.validation.ValidationResult;
+import org.hisp.dhis.tracker.validation.ValidationService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +81,7 @@ public class DefaultTrackerImportService
     private final TrackerBundleService trackerBundleService;
 
     @Nonnull
-    private final TrackerValidationService trackerValidationService;
+    private final ValidationService validationService;
 
     @Nonnull
     private final TrackerPreprocessService trackerPreprocessService;
@@ -102,9 +103,7 @@ public class DefaultTrackerImportService
 
         startImport( params );
 
-        ValidationReport validationReport = new ValidationReport();
-
-        PersistenceReport persistenceReport;
+        ValidationResult validationResult = new ValidationResult();
 
         try
         {
@@ -114,18 +113,18 @@ public class DefaultTrackerImportService
 
             preProcess( opsTimer, trackerBundle );
 
-            if ( addToValidationReport( params, opsTimer, validationReport, trackerBundle ) )
+            if ( addToValidationReport( params, opsTimer, validationResult, trackerBundle ) )
             {
-                return buildReportAndNotify( params, validationReport, opsTimer, bundleSize );
+                return buildReportAndNotify( params, validationResult, opsTimer, bundleSize );
             }
 
-            persistenceReport = commit( params, opsTimer, trackerBundle );
+            PersistenceReport persistenceReport = commit( params, opsTimer, trackerBundle );
 
             postCommit( trackerBundle );
 
             ImportReport importReport = ImportReport.withImportCompleted(
                 Status.OK,
-                persistenceReport, validationReport,
+                persistenceReport, validationResult,
                 opsTimer.stopTimer(), bundleSize );
 
             endImport( params, importReport );
@@ -137,7 +136,7 @@ public class DefaultTrackerImportService
             log.error( "Exception thrown during import.", e );
 
             ImportReport report = ImportReport.withError( "Exception:" + e.getMessage(),
-                validationReport, opsTimer.stopTimer() );
+                validationResult, opsTimer.stopTimer() );
 
             endImportWithError( params, report, e );
 
@@ -162,22 +161,22 @@ public class DefaultTrackerImportService
     }
 
     private boolean addToValidationReport( TrackerImportParams params, TimingsStats opsTimer,
-        ValidationReport validationReport, TrackerBundle trackerBundle )
+        ValidationResult validationResult, TrackerBundle trackerBundle )
     {
-        validationReport.addValidationReport( opsTimer.exec( VALIDATION_OPS,
+        validationResult.addValidationResult( opsTimer.exec( VALIDATION_OPS,
             () -> validateBundle( params, trackerBundle, opsTimer ) ) );
 
-        if ( exitOnError( validationReport, params ) )
+        if ( exitOnError( validationResult, params ) )
         {
             return true;
         }
 
         if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
-            validationReport.addValidationReport( execRuleEngine( params, opsTimer, trackerBundle ) );
+            validationResult.addValidationResult( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
 
-        return exitOnError( validationReport, params );
+        return exitOnError( validationResult, params );
     }
 
     private PersistenceReport commit( TrackerImportParams params, TimingsStats opsTimer,
@@ -202,17 +201,17 @@ public class DefaultTrackerImportService
         trackerBundleService.postCommit( trackerBundle );
     }
 
-    protected ValidationReport validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
+    protected ValidationResult validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
         TimingsStats opsTimer )
     {
-        ValidationReport validationReport = trackerValidationService.validate( trackerBundle );
+        ValidationResult validationResult = validationService.validate( trackerBundle );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
-        return validationReport;
+        return validationResult;
     }
 
-    private ValidationReport execRuleEngine( TrackerImportParams params, TimingsStats opsTimer,
+    private ValidationResult execRuleEngine( TrackerImportParams params, TimingsStats opsTimer,
         TrackerBundle trackerBundle )
     {
         opsTimer.execVoid( PROGRAMRULE_OPS,
@@ -220,7 +219,7 @@ public class DefaultTrackerImportService
 
         notifyOps( params, PROGRAMRULE_OPS, opsTimer );
 
-        ValidationReport report = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
+        ValidationResult report = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
             () -> validateRuleEngine( trackerBundle ) );
 
         notifyOps( params, VALIDATE_PROGRAMRULE_OPS, opsTimer );
@@ -228,20 +227,20 @@ public class DefaultTrackerImportService
         return report;
     }
 
-    protected ValidationReport validateRuleEngine( TrackerBundle trackerBundle )
+    protected ValidationResult validateRuleEngine( TrackerBundle trackerBundle )
     {
-        ValidationReport ruleEngineValidationReport = new ValidationReport();
+        ValidationResult ruleEngineValidationResult = new ValidationResult();
 
-        ruleEngineValidationReport.addValidationReport( trackerValidationService.validateRuleEngine( trackerBundle ) );
+        ruleEngineValidationResult.addValidationResult( validationService.validateRuleEngine( trackerBundle ) );
 
-        return ruleEngineValidationReport;
+        return ruleEngineValidationResult;
     }
 
     private ImportReport buildReportAndNotify( TrackerImportParams params,
-        ValidationReport validationReport,
+        ValidationResult validationResult,
         TimingsStats opsTimer, Map<TrackerType, Integer> bundleSize )
     {
-        ImportReport importReport = ImportReport.withValidationErrors( validationReport,
+        ImportReport importReport = ImportReport.withValidationErrors( validationResult,
             opsTimer.stopTimer(),
             bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
 
@@ -250,9 +249,9 @@ public class DefaultTrackerImportService
         return importReport;
     }
 
-    private boolean exitOnError( ValidationReport validationReport, TrackerImportParams params )
+    private boolean exitOnError( ValidationResult validationResult, TrackerImportParams params )
     {
-        return validationReport.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
+        return validationResult.hasErrors() && params.getAtomicMode() == AtomicMode.ALL;
     }
 
     private Map<TrackerType, Integer> calculatePayloadSize( TrackerBundle bundle )
@@ -385,7 +384,7 @@ public class DefaultTrackerImportService
             .message( originalImportReport.getMessage() );
 
         ValidationReport originalValidationReport = originalImportReport.getValidationReport();
-        ValidationReport validationReport = new ValidationReport();
+        ValidationReport validationReport = ValidationReport.emptyReport();
         if ( originalValidationReport != null )
         {
             validationReport.addErrors( originalValidationReport.getErrors() );
@@ -400,6 +399,7 @@ public class DefaultTrackerImportService
                 .addWarnings( originalValidationReport.getWarnings() );
             importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
         }
+
         importReportBuilder.validationReport( validationReport );
 
         return importReportBuilder.build();

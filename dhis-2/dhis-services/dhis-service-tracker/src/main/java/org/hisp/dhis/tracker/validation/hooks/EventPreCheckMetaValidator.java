@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ public class EventPreCheckMetaValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
@@ -60,9 +60,4 @@ public class EventPreCheckMetaValidator
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

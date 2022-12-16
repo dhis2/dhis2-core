@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1068;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1069;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1070;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.trackedEntityInstanceExist;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ public class EnrollmentPreCheckMetaValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
@@ -61,9 +61,4 @@ public class EnrollmentPreCheckMetaValidator
             E1068, enrollment.getTrackedEntity() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

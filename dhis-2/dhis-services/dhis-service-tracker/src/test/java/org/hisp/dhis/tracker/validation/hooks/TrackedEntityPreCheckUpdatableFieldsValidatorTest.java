@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,7 +48,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +85,7 @@ class TrackedEntityPreCheckUpdatableFieldsValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -104,7 +104,7 @@ class TrackedEntityPreCheckUpdatableFieldsValidatorTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
-        reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
     }
 
     @Test

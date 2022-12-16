@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1123;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1008;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1123;
 
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ public class EventPreCheckMandatoryFieldsValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit" );
         reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
@@ -72,9 +72,4 @@ public class EventPreCheckMandatoryFieldsValidator
         reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

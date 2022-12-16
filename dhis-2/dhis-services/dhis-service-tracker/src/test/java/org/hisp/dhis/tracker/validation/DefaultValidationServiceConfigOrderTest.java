@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,21 +40,20 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.config.TrackerTest;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
+class DefaultValidationServiceConfigOrderTest extends TrackerTest
 {
     @Autowired
-    TrackerValidationService trackerValidationService;
+    ValidationService validationService;
 
     @Test
     void hooksAreExecutedInTrackerValidationConfigOrder()
     {
         // Test that hooks declared in TrackerValidationConfig validationHooks()
         // are injected
-        // into the TrackerValidationService. This is important since order
+        // into the ValidationService. This is important since order
         // matters in the current implementation.
         // Note that FAIL_FAST shows that although the event is also invalid due
         // to not having an orgUnit and more it
@@ -73,10 +72,10 @@ class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
             .events( Collections.singletonList( event ) )
             .build();
 
-        ValidationReport report = trackerValidationService.validate( bundle );
+        ValidationResult report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 1, report.getErrors().size() );
-        assertEquals( E1048, report.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( E1048.name(), report.getErrors().get( 0 ).getCode() );
     }
 }

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1122;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1122;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +44,7 @@ public class EnrollmentPreCheckMandatoryFieldsValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit" );
         reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
@@ -52,9 +52,4 @@ public class EnrollmentPreCheckMandatoryFieldsValidator
             "trackedEntity" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

@@ -47,8 +47,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,7 +72,7 @@ class EventNoteValidatorTest
 
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -85,7 +85,7 @@ class EventNoteValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -102,7 +102,7 @@ class EventNoteValidatorTest
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( r -> TrackerErrorCode.E1119.equals( r.getWarningCode() ) &&
+        assertTrue( reporter.hasWarningReport( r -> ValidationCode.E1119.equals( r.getWarningCode() ) &&
             TrackerType.EVENT.equals( r.getTrackerType() ) &&
             event.getUid().equals( r.getUid() ) ) );
         assertThat( event.getNotes(), hasSize( 0 ) );

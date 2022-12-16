@@ -32,7 +32,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateNot
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -44,17 +44,11 @@ public class EventPreCheckUidValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
 
         validateNotesUid( event.getNotes(), reporter, event );
-    }
-
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
     }
 
 }

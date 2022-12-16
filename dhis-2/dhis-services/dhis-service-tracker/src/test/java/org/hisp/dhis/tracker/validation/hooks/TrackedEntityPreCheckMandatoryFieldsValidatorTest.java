@@ -39,8 +39,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +65,7 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -77,7 +77,7 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -122,9 +122,9 @@ class TrackedEntityPreCheckMandatoryFieldsValidatorTest
         assertMissingProperty( reporter, trackedEntity.getUid(), "trackedEntityType" );
     }
 
-    private void assertMissingProperty( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, String uid, String property )
     {
         AssertValidationErrorReporter.assertMissingProperty( reporter, TRACKED_ENTITY, "tracked entity", uid, property,
-            TrackerErrorCode.E1121 );
+            ValidationCode.E1121 );
     }
 }

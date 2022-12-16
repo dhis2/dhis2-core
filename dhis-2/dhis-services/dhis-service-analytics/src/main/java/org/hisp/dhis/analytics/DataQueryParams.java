@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -1669,6 +1668,42 @@ public class DataQueryParams
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "last" {@link AggregationType}".
+     */
+    public boolean isLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is
+     * "first" {@link AggregationType}.
+     */
+    public boolean isFirstPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first" or "last" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first", "last" or "last in period" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastOrLastInPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastOrLastInPeriodAggregationType();
+    }
+
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
@@ -2758,7 +2793,7 @@ public class DataQueryParams
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 
-            return singletonList( period );
+            return List.of( period );
         }
 
         return emptyList();

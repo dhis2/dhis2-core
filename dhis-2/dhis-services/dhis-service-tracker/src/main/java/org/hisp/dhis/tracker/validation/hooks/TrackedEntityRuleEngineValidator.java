@@ -25,27 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import java.util.List;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
 
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link TrackedEntity}s in the
+ * {@link TrackerBundle}.
  */
-class ValidationFailFastException
-    extends RuntimeException
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.TrackedEntityRuleEngineValidator" )
+public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle>
 {
-    private final transient List<TrackerErrorReport> errorReportRef;
 
-    public ValidationFailFastException( List<TrackerErrorReport> errorReportRef )
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> trackedEntityValidator()
     {
-        this.errorReportRef = errorReportRef;
+        return each( TrackerBundle::getTrackedEntities, attributeValidator );
     }
 
-    public List<TrackerErrorReport> getErrors()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-        return errorReportRef;
+
+        trackedEntityValidator().validate( reporter, bundle, input );
     }
 }

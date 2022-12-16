@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1020;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1021;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1023;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1025;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +67,7 @@ class EnrollmentDateValidatorTest
 
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -79,7 +79,7 @@ class EnrollmentDateValidatorTest
             .build();
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test

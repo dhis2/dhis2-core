@@ -25,27 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.report;
 
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.ValidationReport;
+import lombok.Builder;
+import lombok.Value;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public interface TrackerValidationService
+@Value
+@Builder
+public class Warning
 {
-    /**
-     * Validate tracker bundle
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationReport validate( TrackerBundle bundle );
+    private final String warningMessage;
 
-    /**
-     * Validate tracker bundle with validations created by rule engine
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationReport validateRuleEngine( TrackerBundle bundle );
+    private final String warningCode;
+
+    private final String trackerType;
+
+    private final String uid;
+
+    @JsonCreator
+    public Warning( @JsonProperty( "message" ) String warningMessage,
+        @JsonProperty( "errorCode" ) String warningCode,
+        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
+    {
+        this.warningMessage = warningMessage;
+        this.warningCode = warningCode;
+        this.trackerType = trackerType;
+        this.uid = uid;
+    }
+
+    @JsonProperty
+    public String getWarningCode()
+    {
+        return warningCode;
+    }
+
+    @JsonProperty
+    public String getMessage()
+    {
+        return warningMessage;
+    }
+
+    @JsonProperty
+    public String getTrackerType()
+    {
+        return trackerType;
+    }
+
+    @JsonProperty
+    public String getUid()
+    {
+        return uid;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "TrackerWarningReport{" +
+            "message=" + warningMessage +
+            ", warningCode=" + warningCode +
+            '}';
+    }
 }

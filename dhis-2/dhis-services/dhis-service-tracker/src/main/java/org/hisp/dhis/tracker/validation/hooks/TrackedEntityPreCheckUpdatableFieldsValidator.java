@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,7 +35,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ public class TrackedEntityPreCheckUpdatableFieldsValidator
     implements Validator<TrackedEntity>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter,
+    public void validate( Reporter reporter,
         TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityInstance trackedEntityInstance = bundle

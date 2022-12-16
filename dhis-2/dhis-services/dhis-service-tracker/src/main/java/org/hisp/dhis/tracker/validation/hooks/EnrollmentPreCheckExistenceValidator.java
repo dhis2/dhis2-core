@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1080;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1081;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1113;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +47,7 @@ public class EnrollmentPreCheckExistenceValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
 
@@ -76,9 +76,4 @@ public class EnrollmentPreCheckExistenceValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

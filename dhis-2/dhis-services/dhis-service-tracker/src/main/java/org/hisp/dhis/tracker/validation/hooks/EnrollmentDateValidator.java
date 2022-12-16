@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1020;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1021;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1023;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1025;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 
@@ -42,7 +42,7 @@ import java.util.Objects;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class EnrollmentDateValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         validateMandatoryDates( reporter, enrollment );
 
@@ -69,7 +69,7 @@ public class EnrollmentDateValidator
         }
     }
 
-    private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
+    private void validateMandatoryDates( Reporter reporter, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -79,7 +79,7 @@ public class EnrollmentDateValidator
         }
     }
 
-    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
+    private void validateEnrollmentDatesNotInFuture( Reporter reporter, Program program,
         Enrollment enrollment )
     {
         checkNotNull( program, PROGRAM_CANT_BE_NULL );

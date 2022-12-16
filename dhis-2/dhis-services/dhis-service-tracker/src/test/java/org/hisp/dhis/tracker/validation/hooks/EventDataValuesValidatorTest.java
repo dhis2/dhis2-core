@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ class EventDataValuesValidatorTest
     @Mock
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private TrackerIdSchemeParams idSchemes;
 
@@ -98,7 +98,7 @@ class EventDataValuesValidatorTest
 
         idSchemes = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -183,7 +183,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1304, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1304, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -216,7 +216,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1303, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1303, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -314,7 +314,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1305, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1305, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -368,7 +368,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -395,7 +395,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1084, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1084, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -442,7 +442,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -467,7 +467,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -492,7 +492,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -541,7 +541,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -638,11 +638,11 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
@@ -674,26 +674,26 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
         event.setEvent( "XYZ" );
         fileResource.setFileResourceOwner( "ABC" );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
         event.setEvent( "ABC" );
         fileResource.setFileResourceOwner( "ABC" );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator.validate( reporter, bundle, event );
 
@@ -784,7 +784,7 @@ class EventDataValuesValidatorTest
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getErrors(), hasSize( 1 ) );
         assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
+            .filter( e -> e.getErrorCode() == ValidationCode.E1125 ).count() );
     }
 
     @Test
@@ -810,7 +810,7 @@ class EventDataValuesValidatorTest
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1007, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1007, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -858,11 +858,11 @@ class EventDataValuesValidatorTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertEquals( ValidationCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     private DataElement dataElement( ValueType type )

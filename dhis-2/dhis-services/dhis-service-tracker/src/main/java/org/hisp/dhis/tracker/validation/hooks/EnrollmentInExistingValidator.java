@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1016;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1015;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1016;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
@@ -48,7 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +60,7 @@ public class EnrollmentInExistingValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -82,7 +82,7 @@ public class EnrollmentInExistingValidator
         validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
     }
 
-    private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateTeiNotEnrolledAlready( Reporter reporter, TrackerBundle bundle,
         Enrollment enrollment, Program program )
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );

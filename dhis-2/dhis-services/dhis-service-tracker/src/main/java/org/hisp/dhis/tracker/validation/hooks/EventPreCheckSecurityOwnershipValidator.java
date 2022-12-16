@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
@@ -64,8 +64,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -92,7 +92,7 @@ public class EventPreCheckSecurityOwnershipValidator
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( event );
         TrackerPreheat preheat = bundle.getPreheat();
@@ -159,7 +159,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void validateCreateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateCreateEvent( Reporter reporter, TrackerBundle bundle, Event event,
         User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
         OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
@@ -179,7 +179,7 @@ public class EventPreCheckSecurityOwnershipValidator
             teiUid, isCreatableInSearchScope );
     }
 
-    private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateUpdateAndDeleteEvent( Reporter reporter, TrackerBundle bundle, Event event,
         ProgramStageInstance programStageInstance,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
@@ -246,13 +246,7 @@ public class EventPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -262,11 +256,11 @@ public class EventPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1000, user, orgUnit );
+            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
         }
     }
 
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
         String trackedEntityInstance,
         OrganisationUnit ownerOrganisationUnit,
@@ -279,18 +273,18 @@ public class EventPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1104, user, program, program.getTrackedEntityType() );
+            reporter.addError( dto, ValidationCode.E1104, user, program, program.getTrackedEntityType() );
         }
 
         if ( ownerOrganisationUnit != null
             && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
         }
     }
 
-    private void checkEventWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void checkEventWriteAccess( Reporter reporter, TrackerBundle bundle, Event event,
         ProgramStage programStage,
         OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
@@ -330,7 +324,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, Event event,
+    private void checkEventOrgUnitWriteAccess( Reporter reporter, Event event,
         OrganisationUnit eventOrgUnit,
         boolean isCreatableInSearchScope, User user )
     {
@@ -343,11 +337,11 @@ public class EventPreCheckSecurityOwnershipValidator
             ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
             : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1000, user, eventOrgUnit );
+            reporter.addError( event, ValidationCode.E1000, user, eventOrgUnit );
         }
     }
 
-    private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramReadAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {
@@ -356,11 +350,11 @@ public class EventPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1096, user, program );
+            reporter.addError( dto, ValidationCode.E1096, user, program );
         }
     }
 
-    private void checkProgramStageWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramStageWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         ProgramStage programStage )
     {
@@ -369,11 +363,11 @@ public class EventPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, programStage ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1095, user, programStage );
+            reporter.addError( dto, ValidationCode.E1095, user, programStage );
         }
     }
 
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {
@@ -382,11 +376,11 @@ public class EventPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1091, user, program );
+            reporter.addError( dto, ValidationCode.E1091, user, program );
         }
     }
 
-    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user, TrackerDto dto,
+    public void checkWriteCategoryOptionComboAccess( Reporter reporter, User user, TrackerDto dto,
         CategoryOptionCombo categoryOptionCombo )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -396,7 +390,7 @@ public class EventPreCheckSecurityOwnershipValidator
         {
             if ( !aclService.canDataWrite( user, categoryOption ) )
             {
-                reporter.addError( dto, TrackerErrorCode.E1099, user, categoryOption );
+                reporter.addError( dto, ValidationCode.E1099, user, categoryOption );
             }
         }
     }

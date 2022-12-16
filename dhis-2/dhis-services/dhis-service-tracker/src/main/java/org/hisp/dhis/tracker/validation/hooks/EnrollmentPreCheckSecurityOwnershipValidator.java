@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -83,7 +83,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( enrollment );
         TrackerPreheat preheat = bundle.getPreheat();
@@ -135,7 +135,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
     }
 
-    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void checkEnrollmentOrgUnit( Reporter reporter, TrackerBundle bundle,
         TrackerImportStrategy strategy, Enrollment enrollment, Program program )
     {
         OrganisationUnit enrollmentOrgUnit;
@@ -173,13 +173,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -189,11 +183,11 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1000, user, orgUnit );
+            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
         }
     }
 
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
         String trackedEntityInstance,
         OrganisationUnit ownerOrganisationUnit,
@@ -206,18 +200,18 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1104, user, program, program.getTrackedEntityType() );
+            reporter.addError( dto, ValidationCode.E1104, user, program, program.getTrackedEntityType() );
         }
 
         if ( ownerOrganisationUnit != null
             && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
         }
     }
 
-    private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void checkWriteEnrollmentAccess( Reporter reporter, TrackerBundle bundle,
         Enrollment enrollment, Program program,
         OrganisationUnit ownerOrgUnit )
     {
@@ -240,7 +234,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {
@@ -249,7 +243,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
 
         if ( !aclService.canDataWrite( user, program ) )
         {
-            reporter.addError( dto, TrackerErrorCode.E1091, user, program );
+            reporter.addError( dto, ValidationCode.E1091, user, program );
         }
     }
 }

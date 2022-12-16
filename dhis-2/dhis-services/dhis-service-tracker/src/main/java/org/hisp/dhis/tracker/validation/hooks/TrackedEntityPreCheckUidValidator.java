@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.checkUidFor
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -43,16 +43,10 @@ public class TrackedEntityPreCheckUidValidator
     implements Validator<TrackedEntity>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
             trackedEntity.getTrackedEntity() );
-    }
-
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
     }
 
 }

@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
 
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ public class RelationshipPreCheckMetaValidator
     implements Validator<Relationship>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         TrackerPreheat preheat = bundle.getPreheat();
@@ -54,9 +54,4 @@ public class RelationshipPreCheckMetaValidator
         reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

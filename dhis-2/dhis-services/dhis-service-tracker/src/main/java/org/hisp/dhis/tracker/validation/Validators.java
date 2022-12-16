@@ -27,24 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 
 public interface Validators
 {
 
-    List<Validator<TrackedEntity>> getTrackedEntityValidators();
+    Validator<TrackerBundle> getTrackedEntityValidator();
 
-    List<Validator<Enrollment>> getEnrollmentValidators();
+    Validator<TrackerBundle> getEnrollmentValidator();
 
-    List<Validator<Event>> getEventValidators();
+    Validator<TrackerBundle> getEventValidator();
 
-    List<Validator<Relationship>> getRelationshipValidators();
-
-    List<Validator<TrackerBundle>> getBundleValidators();
+    Validator<TrackerBundle> getRelationshipValidator();
 }

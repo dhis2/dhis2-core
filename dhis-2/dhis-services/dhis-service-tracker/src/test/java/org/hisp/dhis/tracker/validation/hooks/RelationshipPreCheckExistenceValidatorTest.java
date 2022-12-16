@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4017;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4015;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4016;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4017;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +71,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
     private RelationshipPreCheckExistenceValidator validator;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -79,7 +79,7 @@ class RelationshipPreCheckExistenceValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator = new RelationshipPreCheckExistenceValidator();
     }

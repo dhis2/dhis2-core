@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1002;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1063;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1114;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,7 +69,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
 
     private TrackedEntityPreCheckExistenceValidator validator;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -77,7 +77,7 @@ class TrackedEntityPreCheckExistenceValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator = new TrackedEntityPreCheckExistenceValidator();
     }

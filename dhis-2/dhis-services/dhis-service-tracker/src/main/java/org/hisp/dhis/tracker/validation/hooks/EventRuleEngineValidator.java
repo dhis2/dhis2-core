@@ -25,32 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation.hooks;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
 
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validation hook.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component( "org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator" )
+public class EventRuleEngineValidator implements Validator<TrackerBundle>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    private final EventRuleValidator ruleValidator;
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    private final EventDataValuesValidator dataValuesValidator;
+
+    public Validator<TrackerBundle> eventValidator()
+    {
+        // @formatter:off
+        return each(TrackerBundle::getEvents,
+                    all(
+                            ruleValidator,
+                            dataValuesValidator
+                    )
+        );
+    }
+
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+        eventValidator().validate( reporter, bundle, input );
+    }
 }

@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +56,7 @@ class EnrollmentPreCheckUidValidatorTest
 
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -64,7 +64,7 @@ class EnrollmentPreCheckUidValidatorTest
         TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         preheat.setIdSchemes( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         bundle = TrackerBundle.builder().preheat( preheat ).build();
 
         validator = new EnrollmentPreCheckUidValidator();

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1014;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1022;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1041;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1014;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1022;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1041;
 
 import java.util.List;
 import java.util.Map;
@@ -42,7 +42,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +55,7 @@ public class EnrollmentPreCheckDataRelationsValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = bundle.getPreheat()
@@ -79,7 +79,7 @@ public class EnrollmentPreCheckDataRelationsValidator
             || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
-    private void validateTrackedEntityTypeMatchesPrograms( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateTrackedEntityTypeMatchesPrograms( Reporter reporter, TrackerBundle bundle,
         Program program,
         Enrollment enrollment )
     {
@@ -110,9 +110,4 @@ public class EnrollmentPreCheckDataRelationsValidator
             .orElse( false );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

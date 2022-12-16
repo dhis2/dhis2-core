@@ -46,8 +46,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,7 +81,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -91,7 +91,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -139,7 +139,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1014 ) );
     }
 
     @Test
@@ -163,7 +163,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1041 ) );
     }
 
     @Test
@@ -189,7 +189,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1022 ) );
     }
 
     @Test
@@ -219,7 +219,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1022 ) );
     }
 
     private OrganisationUnit organisationUnit( String uid )

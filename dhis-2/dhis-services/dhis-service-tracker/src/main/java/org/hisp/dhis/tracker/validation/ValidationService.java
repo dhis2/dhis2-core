@@ -25,75 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.tracker.validation;
 
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Value
-@Builder
-public class TrackerErrorReport
+public interface ValidationService
 {
-    private final String errorMessage;
+    /**
+     * Validate tracker bundle
+     *
+     * @param bundle Bundle to validate
+     */
+    ValidationResult validate( TrackerBundle bundle );
 
-    private final TrackerErrorCode errorCode;
-
-    private final TrackerType trackerType;
-
-    private final String uid;
-
-    @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    public TrackerErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
-
-    @JsonProperty
-    public String getMessage()
-    {
-        return errorMessage;
-    }
-
-    @JsonProperty
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
-
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackerErrorReport{" +
-            "message=" + errorMessage +
-            ", errorCode=" + errorCode +
-            ", trackerEntityType=" + trackerType +
-            ", uid=" + uid +
-            '}';
-    }
+    /**
+     * Validate tracker bundle with validations created by rule engine
+     *
+     * @param bundle Bundle to validate
+     */
+    ValidationResult validateRuleEngine( TrackerBundle bundle );
 }

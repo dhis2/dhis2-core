@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
 import com.google.common.collect.Lists;
 
@@ -114,7 +114,7 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
 
                 return Pair.of( actionRule.getRuleUid(), stringBuilder.toString() );
             } )
-            .map( message -> new ProgramRuleIssue( message.getKey(), TrackerErrorCode.E1300,
+            .map( message -> new ProgramRuleIssue( message.getKey(), ValidationCode.E1300,
                 Lists.newArrayList( message.getValue() ), getIssueType() ) )
             .collect( Collectors.toList() );
     }

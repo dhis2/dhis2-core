@@ -30,12 +30,12 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.Duration.ofDays;
 import static java.time.Instant.now;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1031;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1042;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1043;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1046;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1047;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1050;
 
 import java.time.Instant;
 import java.util.Date;
@@ -49,7 +49,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -62,7 +62,7 @@ public class EventDateValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerPreheat preheat = bundle.getPreheat();
 
@@ -84,7 +84,7 @@ public class EventDateValidator
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateExpiryDays( Reporter reporter, TrackerBundle bundle, Event event,
         Program program )
     {
         User actingUser = bundle.getUser();
@@ -114,7 +114,7 @@ public class EventDateValidator
         }
     }
 
-    private void validatePeriodType( ValidationErrorReporter reporter, Event event, Program program )
+    private void validatePeriodType( Reporter reporter, Event event, Program program )
     {
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

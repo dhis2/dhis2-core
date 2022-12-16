@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1127;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,7 +50,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,7 +87,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -106,7 +106,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
-        reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
     }
 
     @Test
@@ -127,7 +127,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "program" ) );
     }
 
     @Test
@@ -139,7 +139,7 @@ class EnrollmentPreCheckUpdatableFieldsValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
+        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "trackedEntity" ) );
     }
 
     private Enrollment validEnrollment()
