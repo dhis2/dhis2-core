@@ -98,7 +98,7 @@ public class CacheInvalidationListener
         if ( serverInstanceId.equals( uid ) )
         {
             log.debug( "Message came from this server, ignoring." );
-            return;
+//            return;
         }
 
         log.debug( "Incoming invalidating cache message from other server with UID: " + uid );
