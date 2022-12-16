@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,7 +69,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -95,11 +93,11 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // PERIOD
             .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
             // DATA ELEMENTS
-            .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
             // FILTERS (OU)
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of(
+                    List.of(
                         new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
                     new DimensionItemKeywords(
@@ -145,7 +143,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                     new DimensionItemKeywords( Collections.singletonList( indicatorGroup ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
@@ -171,11 +169,11 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // PERIOD
             .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
             // DATA ELEMENTS
-            .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
             // FILTERS (OU)
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
                     new DimensionItemKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ) ) ) )
@@ -202,16 +200,16 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
         dataElementGroup.setUid( "wjP19dkFeIk" );
         DataQueryParams params = DataQueryParams.newBuilder()
             // DATA ELEMENTS
-            .withDimensions( Lists.newArrayList(
+            .withDimensions( List.of(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    ImmutableList.of(
+                    List.of(
                         createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ),
                     new DimensionItemKeywords( Collections.singletonList( dataElementGroup ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
             .build();
