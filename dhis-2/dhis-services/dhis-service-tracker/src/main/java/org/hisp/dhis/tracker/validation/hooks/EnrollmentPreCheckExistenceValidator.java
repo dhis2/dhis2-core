@@ -76,9 +76,4 @@ public class EnrollmentPreCheckExistenceValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

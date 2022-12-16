@@ -27,40 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentDateValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentGeoValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentInExistingValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentNoteValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckDataRelationsValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckExistenceValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckMandatoryFieldsValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckMetaValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckSecurityOwnershipValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckUidValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentPreCheckUpdatableFieldsValidator;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckDataRelationsValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckExistenceValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMandatoryFieldsValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckMetaValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipPreCheckUidValidator;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipsValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckExistenceValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckMandatoryFieldsValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckMetaValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckSecurityOwnershipValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckUidValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityPreCheckUpdatableFieldsValidator;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,87 +44,24 @@ import org.springframework.stereotype.Component;
 public class DefaultValidators implements Validators
 {
 
-    private final TrackedEntityPreCheckUidValidator trackedEntityPreCheckUidValidator;
+    private final TrackedEntityValidator trackedEntityValidator;
 
-    private final TrackedEntityPreCheckExistenceValidator trackedEntityPreCheckExistenceValidator;
-
-    private final TrackedEntityPreCheckMandatoryFieldsValidator trackedEntityPreCheckMandatoryFieldsValidator;
-
-    private final TrackedEntityPreCheckMetaValidator trackedEntityPreCheckMetaValidator;
-
-    private final TrackedEntityPreCheckUpdatableFieldsValidator trackedEntityPreCheckUpdatableFieldsValidator;
-
-    private final TrackedEntityPreCheckSecurityOwnershipValidator trackedEntityPreCheckSecurityOwnershipValidator;
-
-    private final TrackedEntityAttributeValidator attributeValidator;
+    private final EnrollmentValidator enrollmentValidator;
 
     private final EventValidator eventValidator;
 
-    private final EnrollmentPreCheckUidValidator enrollmentPreCheckUidValidator;
-
-    private final EnrollmentPreCheckExistenceValidator enrollmentPreCheckExistenceValidator;
-
-    private final EnrollmentPreCheckMandatoryFieldsValidator enrollmentPreCheckMandatoryFieldsValidator;
-
-    private final EnrollmentPreCheckMetaValidator enrollmentPreCheckMetaValidator;
-
-    private final EnrollmentPreCheckUpdatableFieldsValidator enrollmentPreCheckUpdatableFieldsValidator;
-
-    private final EnrollmentPreCheckDataRelationsValidator enrollmentPreCheckDataRelationsValidator;
-
-    private final EnrollmentPreCheckSecurityOwnershipValidator enrollmentPreCheckSecurityOwnershipValidator;
-
-    private final EnrollmentNoteValidator enrollmentNoteValidator;
-
-    private final EnrollmentInExistingValidator enrollmentInExistingValidator;
-
-    private final EnrollmentGeoValidator enrollmentGeoValidator;
-
-    private final EnrollmentDateValidator enrollmentDateValidator;
-
-    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
-
-    private final RelationshipPreCheckUidValidator relationshipPreCheckUidValidator;
-
-    private final RelationshipPreCheckExistenceValidator relationshipPreCheckExistenceValidator;
-
-    private final RelationshipPreCheckMandatoryFieldsValidator relationshipPreCheckMandatoryFieldsValidator;
-
-    private final RelationshipPreCheckMetaValidator relationshipPreCheckMetaValidator;
-
-    private final RelationshipPreCheckDataRelationsValidator relationshipPreCheckDataRelationsValidator;
-
-    private final RelationshipsValidator relationshipsValidator;
+    private final RelationshipValidator relationshipValidator;
 
     @Override
-    public List<Validator<TrackedEntity>> getTrackedEntityValidators()
+    public Validator<TrackerBundle> getTrackedEntityValidator()
     {
-        return List.of(
-            trackedEntityPreCheckUidValidator,
-            trackedEntityPreCheckExistenceValidator,
-            trackedEntityPreCheckMandatoryFieldsValidator,
-            trackedEntityPreCheckMetaValidator,
-            trackedEntityPreCheckUpdatableFieldsValidator,
-            trackedEntityPreCheckSecurityOwnershipValidator,
-            attributeValidator );
+        return trackedEntityValidator;
     }
 
     @Override
-    public List<Validator<Enrollment>> getEnrollmentValidators()
+    public Validator<TrackerBundle> getEnrollmentValidator()
     {
-        return List.of(
-            enrollmentPreCheckUidValidator,
-            enrollmentPreCheckExistenceValidator,
-            enrollmentPreCheckMandatoryFieldsValidator,
-            enrollmentPreCheckMetaValidator,
-            enrollmentPreCheckUpdatableFieldsValidator,
-            enrollmentPreCheckDataRelationsValidator,
-            enrollmentPreCheckSecurityOwnershipValidator,
-            enrollmentNoteValidator,
-            enrollmentInExistingValidator,
-            enrollmentGeoValidator,
-            enrollmentDateValidator,
-            enrollmentAttributeValidator );
+        return enrollmentValidator;
     }
 
     @Override
@@ -161,14 +71,8 @@ public class DefaultValidators implements Validators
     }
 
     @Override
-    public List<Validator<Relationship>> getRelationshipValidators()
+    public Validator<TrackerBundle> getRelationshipValidator()
     {
-        return List.of(
-            relationshipPreCheckUidValidator,
-            relationshipPreCheckExistenceValidator,
-            relationshipPreCheckMandatoryFieldsValidator,
-            relationshipPreCheckMetaValidator,
-            relationshipPreCheckDataRelationsValidator,
-            relationshipsValidator );
+        return relationshipValidator;
     }
 }

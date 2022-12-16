@@ -61,9 +61,4 @@ public class EnrollmentPreCheckMetaValidator
             E1068, enrollment.getTrackedEntity() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

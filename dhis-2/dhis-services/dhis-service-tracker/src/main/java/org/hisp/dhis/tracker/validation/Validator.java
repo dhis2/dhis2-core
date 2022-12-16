@@ -60,20 +60,4 @@ public interface Validator<T>
         return strategy != TrackerImportStrategy.DELETE;
     }
 
-    /**
-     * A signal to the orchestration of the validation that subsequent
-     * {@link Validator}s should not be run if this one fails i.e. adds an
-     * error.
-     * <p>
-     * Note: this mechanism is going to be replaced by
-     * {@link org.hisp.dhis.tracker.validation.hooks.Seq}.
-     * </p>
-     *
-     * @return true if subsequent validators should be skipped on error and
-     *         false otherwise
-     */
-    default boolean skipOnError()
-    {
-        return false;
-    }
 }

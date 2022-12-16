@@ -27,31 +27,42 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
 
-import org.hisp.dhis.relationship.RelationshipType;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
  */
-@Component
-public class RelationshipPreCheckMetaValidator
-    implements Validator<Relationship>
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleEngineValidator" )
+public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
 {
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
+
+    private final EnrollmentRuleValidationHook ruleValidator;
+
+    private final EnrollmentAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> enrollmentValidator()
     {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
-
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
+        // @formatter:off
+        return each( TrackerBundle::getEnrollments,
+                        all(
+                                ruleValidator,
+                                attributeValidator
+                        )
+                );
     }
+    @Override
+    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
 
+        enrollmentValidator().validate(reporter, bundle, input);
+    }
 }

@@ -89,10 +89,4 @@ public class RelationshipPreCheckDataRelationsValidator
         }
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }
