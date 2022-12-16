@@ -43,7 +43,7 @@ jobs:
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
-          key: sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
+          key: sierra-leone-db-analytics-${{ env.SIERRA_LEONE_DB_VERSION }}
 
       - name: Download Sierra Leone DB
         if: ${{ steps.cache-sierra-leone-db.outputs.cache-hit != 'true' }}

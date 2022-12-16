@@ -63,6 +63,7 @@ public class EventQueryTest extends AnalyticsApiTest
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
             .add( "totalPages=false" )
+            .add( "desc=eventdate" )
             .add( "relativePeriodDate=2022-09-27" );
 
         // When
@@ -130,13 +131,13 @@ public class EventQueryTest extends AnalyticsApiTest
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 1,
-            List.of( "onXW2DQHRGS",
+            List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:28.015",
+                "2018-04-12 16:05:16.957",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
                 "0.0",
@@ -148,13 +149,13 @@ public class EventQueryTest extends AnalyticsApiTest
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 2,
-            List.of( "A7vnB73x5Xw",
+            List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:16.957",
+                "2018-04-12 16:05:28.015",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
                 "0.0",
@@ -175,6 +176,7 @@ public class EventQueryTest extends AnalyticsApiTest
             .add( "stage=dBwrot7S420" )
             .add( "displayProperty=NAME" )
             .add( "outputType=EVENT" )
+            .add( "desc=eventdate" )
             .add( "relativePeriodDate=2022-09-22" );
 
         // When
@@ -242,13 +244,13 @@ public class EventQueryTest extends AnalyticsApiTest
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 1,
-            List.of( "onXW2DQHRGS",
+            List.of( "A7vnB73x5Xw",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:28.015",
+                "2018-04-12 16:05:16.957",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
                 "0.0",
@@ -260,13 +262,13 @@ public class EventQueryTest extends AnalyticsApiTest
                 "DiszpKrYNg8" ) );
 
         validateRow( response, 2,
-            List.of( "A7vnB73x5Xw",
+            List.of( "onXW2DQHRGS",
                 "dBwrot7S420",
                 "2022-04-01 00:00:00.0",
                 "",
                 "",
                 "",
-                "2018-04-12 16:05:16.957",
+                "2018-04-12 16:05:28.015",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-11.4197,8.1039]}",
                 "0.0",

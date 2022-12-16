@@ -61,7 +61,7 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
     private static AtomicBoolean run = new AtomicBoolean( false );
 
     @Override
-    public void beforeAll( final ExtensionContext context )
+    public void beforeAll( ExtensionContext context )
     {
         if ( run.compareAndSet( false, true ) )
         {
@@ -70,14 +70,14 @@ public class AnalyticsSetupExtension implements BeforeAllCallback
             // Login into the current DHIS2 instance.
             new LoginActions().loginAsAdmin();
 
-            final StopWatch watcher = new StopWatch();
+            StopWatch watcher = new StopWatch();
             watcher.start();
 
             // Invoke the analytics table generation process.
-            final ApiResponse response = new ResourceTableActions().post( "/analytics", EMPTY )
+            ApiResponse response = new ResourceTableActions().post( "/analytics", EMPTY )
                 .validateStatus( 200 );
 
-            final String analyticsTaskId = response.extractString( "response.id" );
+            String analyticsTaskId = response.extractString( "response.id" );
 
             // Wait until the process is completed.
             new SystemActions().waitUntilTaskCompleted( "ANALYTICS_TABLE", analyticsTaskId, TIMEOUT );
