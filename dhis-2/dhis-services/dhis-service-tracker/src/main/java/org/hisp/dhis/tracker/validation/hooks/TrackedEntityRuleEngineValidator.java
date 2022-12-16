@@ -27,31 +27,36 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
 
-import org.hisp.dhis.relationship.RelationshipType;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link TrackedEntity}s in the
+ * {@link TrackerBundle}.
  */
-@Component
-public class RelationshipPreCheckMetaValidator
-    implements Validator<Relationship>
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.TrackedEntityRuleEngineValidator" )
+public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle>
 {
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
 
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> trackedEntityValidator()
+    {
+        return each( TrackerBundle::getTrackedEntities, attributeValidator );
     }
 
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+
+        trackedEntityValidator().validate( reporter, bundle, input );
+    }
 }

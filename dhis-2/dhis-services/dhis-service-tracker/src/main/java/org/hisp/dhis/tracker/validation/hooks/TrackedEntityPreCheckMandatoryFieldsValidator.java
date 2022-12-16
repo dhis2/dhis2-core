@@ -51,9 +51,4 @@ public class TrackedEntityPreCheckMandatoryFieldsValidator
         reporter.addErrorIf( () -> trackedEntity.getOrgUnit().isBlank(), trackedEntity, E1121, "orgUnit" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

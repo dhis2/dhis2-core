@@ -51,10 +51,4 @@ public class EnrollmentPreCheckUidValidator
         validateNotesUid( enrollment.getNotes(), reporter, enrollment );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }

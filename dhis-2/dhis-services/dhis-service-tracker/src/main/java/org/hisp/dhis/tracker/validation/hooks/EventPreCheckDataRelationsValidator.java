@@ -370,9 +370,4 @@ public class EventPreCheckDataRelationsValidator
         return null;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

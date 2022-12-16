@@ -60,9 +60,4 @@ public class EventPreCheckMetaValidator
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

@@ -98,9 +98,4 @@ public class RepeatedEventsValidator
         }
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

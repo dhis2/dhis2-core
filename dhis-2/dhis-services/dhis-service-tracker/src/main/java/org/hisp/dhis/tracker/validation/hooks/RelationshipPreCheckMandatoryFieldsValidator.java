@@ -52,9 +52,4 @@ public class RelationshipPreCheckMandatoryFieldsValidator
             "relationshipType" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

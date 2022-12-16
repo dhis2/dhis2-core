@@ -110,9 +110,4 @@ public class EnrollmentPreCheckDataRelationsValidator
             .orElse( false );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

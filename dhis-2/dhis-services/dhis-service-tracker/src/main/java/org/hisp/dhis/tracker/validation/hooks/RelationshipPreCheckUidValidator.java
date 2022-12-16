@@ -49,10 +49,4 @@ public class RelationshipPreCheckUidValidator
             relationship.getRelationship() );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }
