@@ -113,7 +113,7 @@ public class DefaultValidationService
         bundle.setRelationships( persistables.getRelationships() );
 
         List<Error> errors = ListUtils.union( reporter.getErrors(), persistables.getErrors() );
-        return Result.withValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
+        return Result.ofValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
     }
 
     private void validateTrackedEntities( TrackerBundle bundle, List<Validator<TrackedEntity>> validators,

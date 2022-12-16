@@ -50,17 +50,17 @@ class Result implements ValidationResult
         return new Result( Collections.emptySet(), Collections.emptySet() );
     }
 
-    public static Result withValidations( Set<Error> errors, Set<Warning> warnings )
+    public static Result ofValidations( Set<Error> errors, Set<Warning> warnings )
     {
         return new Result( errors, warnings );
     }
 
-    public static Result withErrors( Set<Error> errors )
+    public static Result ofErrors( Set<Error> errors )
     {
         return new Result( errors, Collections.emptySet() );
     }
 
-    public static Result withWarnings( Set<Warning> warnings )
+    public static Result ofWarnings( Set<Warning> warnings )
     {
         return new Result( Collections.emptySet(), warnings );
     }
@@ -93,14 +93,5 @@ class Result implements ValidationResult
     public boolean hasWarning( Predicate<Warning> test )
     {
         return warnings.stream().anyMatch( test );
-    }
-
-    /**
-     * Returns the size of all the Tracker DTO that did not pass validation
-     */
-    public long size()
-    {
-
-        return this.getErrors().stream().map( Validation::getUid ).distinct().count();
     }
 }

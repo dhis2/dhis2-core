@@ -55,7 +55,7 @@ class ValidationResultTest
     void hasErrorsReturnsTrue()
     {
 
-        Result result = Result.withErrors( Set.of( newError() ) );
+        Result result = Result.ofErrors( Set.of( newError() ) );
 
         assertTrue( result.hasErrors() );
     }
@@ -73,7 +73,7 @@ class ValidationResultTest
     void hasWarningsReturnsTrue()
     {
 
-        Result result = Result.withWarnings( Set.of( newWarning() ) );
+        Result result = Result.ofWarnings( Set.of( newWarning() ) );
 
         assertTrue( result.hasWarnings() );
     }
@@ -83,7 +83,7 @@ class ValidationResultTest
     {
 
         Error error = newError();
-        Result result = Result.withErrors( Set.of( error ) );
+        Result result = Result.ofErrors( Set.of( error ) );
 
         assertTrue( result.hasError( r -> error.getUid().equals( r.getUid() ) ) );
     }
@@ -93,7 +93,7 @@ class ValidationResultTest
     {
 
         Error error = newError( ValidationCode.E1006 );
-        Result result = Result.withErrors( Set.of( error ) );
+        Result result = Result.ofErrors( Set.of( error ) );
 
         assertFalse( result.hasError( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
     }
@@ -103,7 +103,7 @@ class ValidationResultTest
     {
 
         Warning warning = newWarning();
-        Result result = Result.withWarnings( Set.of( warning ) );
+        Result result = Result.ofWarnings( Set.of( warning ) );
 
         assertTrue( result.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
     }
@@ -113,7 +113,7 @@ class ValidationResultTest
     {
 
         Warning warning = newWarning( ValidationCode.E1006 );
-        Result result = Result.withWarnings( Set.of( warning ) );
+        Result result = Result.ofWarnings( Set.of( warning ) );
 
         assertFalse( result.hasWarning( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
     }
@@ -126,11 +126,10 @@ class ValidationResultTest
         Error error2 = newError( error1.getUid(), ValidationCode.E1000 );
         Error error3 = newError( CodeGenerator.generateUid(), ValidationCode.E1000 );
 
-        Result result = Result.withErrors( Set.of( error1, error2, error3 ) );
+        Result result = Result.ofErrors( Set.of( error1, error2, error3 ) );
 
         assertNotNull( result.getErrors() );
         assertEquals( 3, result.getErrors().size() );
-        assertEquals( 2, result.size() );
     }
 
     private Error newError()
