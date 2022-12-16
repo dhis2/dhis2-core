@@ -352,6 +352,11 @@ public enum ConfigurationKey
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
 
     /**
+     * Use unlogged tables during analytics export. (default: off)
+     */
+    ANALYTICS_TABLE_UNLOGGED( "analytics.table.unlogged", Constants.OFF ),
+
+    /**
      * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded
      * Artemis which lives in the same process as your DHIS2 instance), NATIVE
      * (connects to an external Artemis instance, remember to set username /
