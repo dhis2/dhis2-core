@@ -53,8 +53,8 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +67,7 @@ public class RelationshipsValidator
 {
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         boolean isValid = validateMandatoryData( reporter, relationship,
@@ -86,7 +86,7 @@ public class RelationshipsValidator
         }
     }
 
-    private void validateDuplication( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateDuplication( Reporter reporter, Relationship relationship,
         TrackerBundle bundle )
     {
         if ( bundle.getPreheat().isDuplicate( relationship ) )
@@ -100,7 +100,7 @@ public class RelationshipsValidator
         }
     }
 
-    private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,
+    private void validateRelationshipLinkToOneEntity( Reporter reporter,
         Relationship relationship )
     {
         // make sure that both Relationship Item only contain *one* reference
@@ -111,7 +111,7 @@ public class RelationshipsValidator
             relationship, E4001, "to", relationship.getRelationship() );
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateRelationshipConstraint( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
@@ -123,7 +123,7 @@ public class RelationshipsValidator
             } );
     }
 
-    private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
+    private boolean validateMandatoryData( Reporter reporter, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
         reporter.addErrorIf(
@@ -141,7 +141,7 @@ public class RelationshipsValidator
         return relationshipsTypes.stream().filter( relationshipType::isEqualTo ).findFirst();
     }
 
-    private void validateAutoRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    private void validateAutoRelationship( Reporter reporter, Relationship relationship )
     {
         if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
@@ -149,7 +149,7 @@ public class RelationshipsValidator
         }
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateRelationshipConstraint( Reporter reporter, TrackerBundle bundle,
         Relationship relationship,
         String relSide,
         RelationshipItem item,

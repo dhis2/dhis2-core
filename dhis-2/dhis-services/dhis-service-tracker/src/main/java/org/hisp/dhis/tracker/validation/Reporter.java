@@ -57,7 +57,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Value
-public class ValidationErrorReporter
+public class Reporter
 {
     List<Error> errors;
 
@@ -72,21 +72,20 @@ public class ValidationErrorReporter
     @Getter( AccessLevel.PACKAGE )
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
-     * least one Error in the ValidationErrorReporter) encountered during the
-     * validation process.
+     * least one Error in the Reporter) encountered during the validation
+     * process.
      */
     EnumMap<TrackerType, Set<String>> invalidDTOs;
 
     /**
-     * Create a {@link ValidationErrorReporter} reporting all errors and
-     * warnings with identifiers in given idSchemes. {@link #addError(Error)}
-     * will only throw a {@link ValidationFailFastException} if {@code failFast}
-     * true is given.
+     * Create a {@link Reporter} reporting all errors and warnings with
+     * identifiers in given idSchemes. {@link #addError(Error)} will only throw
+     * a {@link ValidationFailFastException} if {@code failFast} true is given.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
      * @param failFast reporter throws exception on first error added when true
      */
-    public ValidationErrorReporter( TrackerIdSchemeParams idSchemes, boolean failFast )
+    public Reporter( TrackerIdSchemeParams idSchemes, boolean failFast )
     {
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
@@ -101,14 +100,14 @@ public class ValidationErrorReporter
     }
 
     /**
-     * Create a {@link ValidationErrorReporter} reporting all errors and
-     * warnings ({@link #isFailFast} = false) with identifiers in given
-     * idSchemes. {@link #addError(Error)} will not throw a
+     * Create a {@link Reporter} reporting all errors and warnings
+     * ({@link #isFailFast} = false) with identifiers in given idSchemes.
+     * {@link #addError(Error)} will not throw a
      * {@link ValidationFailFastException}.
      *
      * @param idSchemes idSchemes in which to report errors and warnings
      */
-    public ValidationErrorReporter( TrackerIdSchemeParams idSchemes )
+    public Reporter( TrackerIdSchemeParams idSchemes )
     {
         this( idSchemes, false );
     }
@@ -187,7 +186,7 @@ public class ValidationErrorReporter
 
     /**
      * Checks if a TrackerDto is invalid (i.e. has at least one Error in the
-     * ValidationErrorReporter).
+     * Reporter).
      */
     public boolean isInvalid( TrackerDto dto )
     {
@@ -196,20 +195,20 @@ public class ValidationErrorReporter
 
     /**
      * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
-     * least one Error in the ValidationErrorReporter).
+     * least one Error in the Reporter).
      */
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
     }
 
-    public ValidationErrorReporter addTiming( Timing timing )
+    public Reporter addTiming( Timing timing )
     {
         timings.add( timing );
         return this;
     }
 
-    public ValidationErrorReporter addTimings( List<Timing> timings )
+    public Reporter addTimings( List<Timing> timings )
     {
         this.timings.addAll( timings );
         return this;

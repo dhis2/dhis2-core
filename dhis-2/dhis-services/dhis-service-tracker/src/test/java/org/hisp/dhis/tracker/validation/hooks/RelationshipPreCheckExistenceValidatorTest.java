@@ -44,7 +44,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,7 +71,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
     private RelationshipPreCheckExistenceValidator validator;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -79,7 +79,7 @@ class RelationshipPreCheckExistenceValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         validator = new RelationshipPreCheckExistenceValidator();
     }

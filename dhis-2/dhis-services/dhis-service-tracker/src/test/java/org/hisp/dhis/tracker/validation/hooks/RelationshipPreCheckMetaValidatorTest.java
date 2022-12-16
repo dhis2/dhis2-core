@@ -40,7 +40,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,7 +63,7 @@ class RelationshipPreCheckMetaValidatorTest
     @Mock
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -73,7 +73,7 @@ class RelationshipPreCheckMetaValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test

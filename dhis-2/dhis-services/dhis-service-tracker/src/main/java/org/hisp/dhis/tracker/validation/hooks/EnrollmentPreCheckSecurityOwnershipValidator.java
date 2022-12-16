@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -83,7 +83,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( enrollment );
         TrackerPreheat preheat = bundle.getPreheat();
@@ -135,7 +135,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
     }
 
-    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void checkEnrollmentOrgUnit( Reporter reporter, TrackerBundle bundle,
         TrackerImportStrategy strategy, Enrollment enrollment, Program program )
     {
         OrganisationUnit enrollmentOrgUnit;
@@ -179,7 +179,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -193,7 +193,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
         String trackedEntityInstance,
         OrganisationUnit ownerOrganisationUnit,
@@ -217,7 +217,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void checkWriteEnrollmentAccess( Reporter reporter, TrackerBundle bundle,
         Enrollment enrollment, Program program,
         OrganisationUnit ownerOrgUnit )
     {
@@ -240,7 +240,7 @@ public class EnrollmentPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {

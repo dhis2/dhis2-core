@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
@@ -75,7 +75,7 @@ public class TrackedEntityAttributeValidator extends AttributeValidationHook
     }
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
@@ -88,7 +88,7 @@ public class TrackedEntityAttributeValidator extends AttributeValidationHook
         validateAttributes( reporter, bundle, trackedEntity, tei, organisationUnit, trackedEntityType );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateMandatoryAttributes( Reporter reporter, TrackerBundle bundle,
         TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
@@ -112,7 +112,7 @@ public class TrackedEntityAttributeValidator extends AttributeValidationHook
         }
     }
 
-    protected void validateAttributes( ValidationErrorReporter reporter,
+    protected void validateAttributes( Reporter reporter,
         TrackerBundle bundle, TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
         TrackedEntityType trackedEntityType )
     {
@@ -165,7 +165,7 @@ public class TrackedEntityAttributeValidator extends AttributeValidationHook
         }
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackerBundle bundle,
+    protected void validateFileNotAlreadyAssigned( Reporter reporter, TrackerBundle bundle,
         TrackedEntity te,
         Attribute attr, Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap )
     {

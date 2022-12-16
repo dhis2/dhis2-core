@@ -34,14 +34,14 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.junit.jupiter.api.Test;
 
-class ValidationErrorReporterTest
+class ReporterTest
 {
 
     @Test
     void hasErrorReportFound()
     {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
         reporter.addError( eventError() );
 
         assertTrue( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
@@ -51,7 +51,7 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
         reporter.addError( eventError() );
 
         assertFalse( reporter.hasErrorReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
@@ -61,7 +61,7 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
         reporter.addWarning( eventWarning() );
 
         assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
@@ -71,7 +71,7 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
         reporter.addWarning( eventWarning() );
 
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
@@ -81,7 +81,7 @@ class ValidationErrorReporterTest
     void hasPerfsReturnsFalse()
     {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
 
         assertFalse( reporter.hasTimings() );
     }
@@ -89,7 +89,7 @@ class ValidationErrorReporterTest
     @Test
     void hasPerfsReturnsTrue()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
 
         reporter.addTiming( new Timing( "1min", "validation" ) );
 

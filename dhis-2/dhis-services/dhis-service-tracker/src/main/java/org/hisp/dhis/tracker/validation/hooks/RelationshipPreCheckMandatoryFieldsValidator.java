@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class RelationshipPreCheckMandatoryFieldsValidator
     implements Validator<Relationship>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );

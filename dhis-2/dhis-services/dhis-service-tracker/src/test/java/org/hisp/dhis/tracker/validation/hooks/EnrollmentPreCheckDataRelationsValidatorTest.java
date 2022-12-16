@@ -46,8 +46,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,7 +81,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     void setUp()
@@ -91,7 +91,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test

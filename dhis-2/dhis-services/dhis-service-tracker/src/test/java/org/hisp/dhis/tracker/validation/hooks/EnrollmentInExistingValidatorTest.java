@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,7 +80,7 @@ class EnrollmentInExistingValidatorTest
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private static final String programUid = "program";
 
@@ -112,7 +112,7 @@ class EnrollmentInExistingValidatorTest
         when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test

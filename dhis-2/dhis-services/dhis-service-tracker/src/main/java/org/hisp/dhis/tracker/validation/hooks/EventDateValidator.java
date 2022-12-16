@@ -49,7 +49,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -62,7 +62,7 @@ public class EventDateValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerPreheat preheat = bundle.getPreheat();
 
@@ -84,7 +84,7 @@ public class EventDateValidator
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateExpiryDays( Reporter reporter, TrackerBundle bundle, Event event,
         Program program )
     {
         User actingUser = bundle.getUser();
@@ -114,7 +114,7 @@ public class EventDateValidator
         }
     }
 
-    private void validatePeriodType( ValidationErrorReporter reporter, Event event, Program program )
+    private void validatePeriodType( Reporter reporter, Event event, Program program )
     {
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );

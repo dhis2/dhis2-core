@@ -37,7 +37,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +58,7 @@ public class EnrollmentRuleValidationHook
     }
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
 

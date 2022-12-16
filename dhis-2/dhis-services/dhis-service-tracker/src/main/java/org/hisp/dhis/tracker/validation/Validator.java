@@ -40,7 +40,7 @@ public interface Validator<T>
      * @param bundle tracker bundle
      * @param input input to validate
      */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
+    void validate( Reporter reporter, TrackerBundle bundle, T input );
 
     default boolean needsToRun( TrackerImportStrategy strategy )
     {

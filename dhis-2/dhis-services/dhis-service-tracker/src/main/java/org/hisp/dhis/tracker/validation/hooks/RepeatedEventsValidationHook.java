@@ -38,8 +38,8 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class RepeatedEventsValidationHook
     implements Validator<TrackerBundle>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle __, TrackerBundle bundle )
+    public void validate( Reporter reporter, TrackerBundle __, TrackerBundle bundle )
     {
         Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle
             .getEvents()
@@ -83,7 +83,7 @@ public class RepeatedEventsValidationHook
             .forEach( e -> validateNotMultipleEvents( reporter, bundle, e ) );
     }
 
-    private void validateNotMultipleEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    private void validateNotMultipleEvents( Reporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );

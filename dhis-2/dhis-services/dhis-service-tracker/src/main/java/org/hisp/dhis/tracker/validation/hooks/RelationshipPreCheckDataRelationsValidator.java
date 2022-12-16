@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -55,14 +55,14 @@ public class RelationshipPreCheckDataRelationsValidator
     implements Validator<Relationship>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
         validateRelationshipReference( reporter, bundle, relationship, relationship.getFrom() );
         validateRelationshipReference( reporter, bundle, relationship, relationship.getTo() );
     }
 
-    private void validateRelationshipReference( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateRelationshipReference( Reporter reporter, TrackerBundle bundle,
         Relationship relationship,
         RelationshipItem item )
     {

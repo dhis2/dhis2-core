@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Error;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,7 +86,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -97,7 +97,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setPreheat( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
