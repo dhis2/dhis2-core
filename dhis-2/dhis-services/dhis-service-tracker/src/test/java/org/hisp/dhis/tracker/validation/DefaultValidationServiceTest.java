@@ -60,10 +60,10 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DefaultTrackerValidationServiceTest
+class DefaultValidationServiceTest
 {
 
-    private DefaultTrackerValidationService service;
+    private DefaultValidationService service;
 
     private TrackerPreheat preheat;
 
@@ -105,7 +105,7 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -121,7 +121,7 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -138,7 +138,7 @@ class DefaultTrackerValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity ) )
             .build();
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( validator1, validator2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         service.validate( bundle );
 
@@ -176,7 +176,7 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidTrackedEntity, e,
             ValidationCode.E9999 );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -207,7 +207,7 @@ class DefaultTrackerValidationServiceTest
         Validator<TrackedEntity> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidTrackedEntity, e,
             ValidationCode.E9999 );
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -251,7 +251,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Enrollment> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e,
             ValidationCode.E9999 );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -280,7 +280,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Enrollment> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e, ValidationCode.E1032 );
         Validator<Enrollment> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEnrollment, e, ValidationCode.E9999 );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -326,7 +326,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> doNotSkipOnError = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e,
             ValidationCode.E9999 );
         when( validators.getEventValidators() ).thenReturn( List.of( skipOnError, doNotSkipOnError ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -356,7 +356,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
         Validator<Event> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E9999 );
         when( validators.getEventValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -391,7 +391,7 @@ class DefaultTrackerValidationServiceTest
         Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
         Validator<Event> v2 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E9999 );
         when( validators.getEventValidators() ).thenReturn( List.of( v1, v2 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -421,7 +421,7 @@ class DefaultTrackerValidationServiceTest
 
         Validator<Event> v1 = ( r, b, e ) -> addErrorOnMatch( r, invalidEvent, e, ValidationCode.E1032 );
         when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -450,7 +450,7 @@ class DefaultTrackerValidationServiceTest
             }
         };
         when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -480,7 +480,7 @@ class DefaultTrackerValidationServiceTest
             }
         };
         when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -499,7 +499,7 @@ class DefaultTrackerValidationServiceTest
 
         Validator<Event> v1 = ( r, b, e ) -> r.addWarning( validEvent, ValidationCode.E1120 );
         when( validators.getEventValidators() ).thenReturn( List.of( v1 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 
@@ -536,7 +536,7 @@ class DefaultTrackerValidationServiceTest
         when( validators.getTrackedEntityValidators() ).thenReturn( List.of( v1 ) );
         when( validators.getEnrollmentValidators() ).thenReturn( List.of( v2 ) );
         when( validators.getEventValidators() ).thenReturn( List.of( v3 ) );
-        service = new DefaultTrackerValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validators, ruleEngineValidators );
 
         ValidationResult report = service.validate( bundle );
 

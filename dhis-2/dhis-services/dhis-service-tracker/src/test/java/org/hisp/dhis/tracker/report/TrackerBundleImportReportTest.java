@@ -55,10 +55,10 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.tracker.validation.Validation;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.ValidationResult;
+import org.hisp.dhis.tracker.validation.ValidationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -78,7 +78,7 @@ class TrackerBundleImportReportTest
     private TrackerBundleService trackerBundleService;
 
     @Mock
-    private TrackerValidationService trackerValidationService;
+    private ValidationService validationService;
 
     @Mock
     private TrackerPreprocessService trackerPreprocessService;

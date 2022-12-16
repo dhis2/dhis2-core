@@ -51,8 +51,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultTrackerValidationService
-    implements TrackerValidationService
+public class DefaultValidationService
+    implements ValidationService
 {
 
     @Qualifier( "org.hisp.dhis.tracker.validation.DefaultValidators" )
