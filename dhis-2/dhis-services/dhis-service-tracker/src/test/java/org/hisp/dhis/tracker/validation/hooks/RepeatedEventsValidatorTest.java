@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Error;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,7 +64,7 @@ import com.google.common.collect.Lists;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class RepeatedEventsValidationHookTest extends DhisConvenienceTest
+class RepeatedEventsValidatorTest extends DhisConvenienceTest
 {
 
     private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
@@ -79,25 +79,25 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
     private final static String ENROLLMENT_B = "ENROLLMENT_B";
 
-    private RepeatedEventsValidationHook validator;
+    private RepeatedEventsValidator validator;
 
     private TrackerBundle bundle;
 
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
     {
-        validator = new RepeatedEventsValidationHook();
+        validator = new RepeatedEventsValidator();
 
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -109,7 +109,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertTrue( reporter.getErrors().isEmpty() );
     }
@@ -131,7 +131,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.hasProgramStageWithEvents( event.getProgramStage(), event.getEnrollment() ) ).thenReturn( true );
         bundle.setEvents( Lists.newArrayList( event ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         // then
         assertEquals( 1, reporter.getErrors().size() );
@@ -152,7 +152,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertEquals( 2, reporter.getErrors().size() );
         assertThat( reporter.getErrors().get( 0 ).getErrorCode(), is( E1039 ) );
@@ -178,7 +178,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertTrue( reporter.getErrors().isEmpty() );
     }
@@ -195,7 +195,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         reporter
             .addError( new Error( "", E9999, invalidEvent.getTrackerType(), invalidEvent.getUid() ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertFalse( reporter.hasErrorReport( e -> E1039 == e.getErrorCode() ) );
     }
@@ -212,7 +212,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertTrue( reporter.getErrors().isEmpty() );
     }
@@ -228,7 +228,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
-        validator.validate( reporter, bundle, bundle );
+        validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertTrue( reporter.getErrors().isEmpty() );
     }

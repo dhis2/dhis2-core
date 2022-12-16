@@ -42,7 +42,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +55,7 @@ public class EnrollmentPreCheckDataRelationsValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = bundle.getPreheat()
@@ -79,7 +79,7 @@ public class EnrollmentPreCheckDataRelationsValidator
             || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
-    private void validateTrackedEntityTypeMatchesPrograms( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateTrackedEntityTypeMatchesPrograms( Reporter reporter, TrackerBundle bundle,
         Program program,
         Enrollment enrollment )
     {

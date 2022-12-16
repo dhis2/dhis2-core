@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E4017;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ public class RelationshipPreCheckExistenceValidator
     implements Validator<Relationship>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle,
+    public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
 
@@ -60,7 +60,7 @@ public class RelationshipPreCheckExistenceValidator
         validateUpdatedOrDeletedRelationshipExists( reporter, existingRelationship, relationship, importStrategy );
     }
 
-    private void validateRelationshipNotDeleted( ValidationErrorReporter reporter,
+    private void validateRelationshipNotDeleted( Reporter reporter,
         org.hisp.dhis.relationship.Relationship existingRelationship,
         Relationship relationship )
     {
@@ -68,7 +68,7 @@ public class RelationshipPreCheckExistenceValidator
             E4017, relationship.getRelationship() );
     }
 
-    private void validateRelationshipNotUpdated( ValidationErrorReporter reporter,
+    private void validateRelationshipNotUpdated( Reporter reporter,
         org.hisp.dhis.relationship.Relationship existingRelationship,
         Relationship relationship,
         TrackerImportStrategy importStrategy )
@@ -78,7 +78,7 @@ public class RelationshipPreCheckExistenceValidator
             relationship, E4015, relationship.getRelationship() );
     }
 
-    private void validateNewRelationshipNotExistAlready( ValidationErrorReporter reporter,
+    private void validateNewRelationshipNotExistAlready( Reporter reporter,
         org.hisp.dhis.relationship.Relationship existingRelationship,
         Relationship relationship,
         TrackerImportStrategy importStrategy )
@@ -88,7 +88,7 @@ public class RelationshipPreCheckExistenceValidator
             relationship, E4015, relationship.getRelationship() );
     }
 
-    private void validateUpdatedOrDeletedRelationshipExists( ValidationErrorReporter reporter,
+    private void validateUpdatedOrDeletedRelationshipExists( Reporter reporter,
         org.hisp.dhis.relationship.Relationship existingRelationship,
         Relationship relationship,
         TrackerImportStrategy importStrategy )

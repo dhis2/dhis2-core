@@ -64,8 +64,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -92,7 +92,7 @@ public class EventPreCheckSecurityOwnershipValidator
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( event );
         TrackerPreheat preheat = bundle.getPreheat();
@@ -159,7 +159,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void validateCreateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateCreateEvent( Reporter reporter, TrackerBundle bundle, Event event,
         User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
         OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
@@ -179,7 +179,7 @@ public class EventPreCheckSecurityOwnershipValidator
             teiUid, isCreatableInSearchScope );
     }
 
-    private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateUpdateAndDeleteEvent( Reporter reporter, TrackerBundle bundle, Event event,
         ProgramStageInstance programStageInstance,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
@@ -252,7 +252,7 @@ public class EventPreCheckSecurityOwnershipValidator
         return true;
     }
 
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
         User user = bundle.getUser();
@@ -266,7 +266,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
         String trackedEntityInstance,
         OrganisationUnit ownerOrganisationUnit,
@@ -290,7 +290,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkEventWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void checkEventWriteAccess( Reporter reporter, TrackerBundle bundle, Event event,
         ProgramStage programStage,
         OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
@@ -330,7 +330,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, Event event,
+    private void checkEventOrgUnitWriteAccess( Reporter reporter, Event event,
         OrganisationUnit eventOrgUnit,
         boolean isCreatableInSearchScope, User user )
     {
@@ -347,7 +347,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramReadAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {
@@ -360,7 +360,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkProgramStageWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramStageWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         ProgramStage programStage )
     {
@@ -373,7 +373,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramWriteAccess( Reporter reporter, TrackerDto dto,
         User user,
         Program program )
     {
@@ -386,7 +386,7 @@ public class EventPreCheckSecurityOwnershipValidator
         }
     }
 
-    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, User user, TrackerDto dto,
+    public void checkWriteCategoryOptionComboAccess( Reporter reporter, User user, TrackerDto dto,
         CategoryOptionCombo categoryOptionCombo )
     {
         checkNotNull( user, USER_CANT_BE_NULL );

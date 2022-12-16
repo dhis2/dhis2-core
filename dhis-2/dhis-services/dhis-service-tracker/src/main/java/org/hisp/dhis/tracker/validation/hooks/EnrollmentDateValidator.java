@@ -42,7 +42,7 @@ import java.util.Objects;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class EnrollmentDateValidator
     implements Validator<Enrollment>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         validateMandatoryDates( reporter, enrollment );
 
@@ -69,7 +69,7 @@ public class EnrollmentDateValidator
         }
     }
 
-    private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
+    private void validateMandatoryDates( Reporter reporter, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -79,7 +79,7 @@ public class EnrollmentDateValidator
         }
     }
 
-    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
+    private void validateEnrollmentDatesNotInFuture( Reporter reporter, Program program,
         Enrollment enrollment )
     {
         checkNotNull( program, PROGRAM_CANT_BE_NULL );

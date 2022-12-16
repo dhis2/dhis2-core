@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
@@ -78,7 +78,7 @@ public class EnrollmentAttributeValidator extends AttributeValidationHook
     }
 
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );
@@ -120,7 +120,7 @@ public class EnrollmentAttributeValidator extends AttributeValidationHook
         validateMandatoryAttributes( reporter, bundle, program, attributeValueMap, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerPreheat preheat,
+    protected void validateRequiredProperties( Reporter reporter, TrackerPreheat preheat,
         Enrollment enrollment,
         Attribute attribute, Program program )
     {
@@ -144,7 +144,7 @@ public class EnrollmentAttributeValidator extends AttributeValidationHook
         reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackerBundle bundle,
+    private void validateMandatoryAttributes( Reporter reporter, TrackerBundle bundle,
         Program program, Map<MetadataIdentifier, String> enrollmentNonEmptyAttributes, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory

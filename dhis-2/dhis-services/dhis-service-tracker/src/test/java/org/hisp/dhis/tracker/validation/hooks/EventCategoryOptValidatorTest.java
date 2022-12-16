@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,7 +99,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
     private Event event;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private final Date ONE_YEAR_BEFORE_EVENT = getDate( 2020, 1, 1 );
 
@@ -150,7 +150,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
         when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
     }
 
     @Test

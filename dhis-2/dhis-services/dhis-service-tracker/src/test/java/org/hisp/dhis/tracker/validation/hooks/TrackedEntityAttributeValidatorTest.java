@@ -55,8 +55,8 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.util.Constant;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +88,7 @@ class TrackedEntityAttributeValidatorTest
 
     private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     private TrackerIdSchemeParams idSchemes;
 
@@ -100,7 +100,7 @@ class TrackedEntityAttributeValidatorTest
             .build();
         idSchemes = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -426,7 +426,7 @@ class TrackedEntityAttributeValidatorTest
         assertEquals( 1, reporter.getErrors().size() );
         assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         trackedEntity.setTrackedEntity( "XYZ" );
         fileResource.setFileResourceOwner( "ABC" );
@@ -439,7 +439,7 @@ class TrackedEntityAttributeValidatorTest
         assertEquals( 1, reporter.getErrors().size() );
         assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
 
-        reporter = new ValidationErrorReporter( idSchemes );
+        reporter = new Reporter( idSchemes );
 
         trackedEntity.setTrackedEntity( "ABC" );
         fileResource.setFileResourceOwner( "ABC" );

@@ -25,26 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static org.hisp.dhis.tracker.validation.hooks.All.all;
+import static org.hisp.dhis.tracker.validation.hooks.Each.each;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
-public interface TrackerValidationService
+@RequiredArgsConstructor
+@Component( "org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator" )
+public class EventRuleEngineValidator implements Validator<TrackerBundle>
 {
-    /**
-     * Validate tracker bundle
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationResult validate( TrackerBundle bundle );
+    private final EventRuleValidator eventRuleValidator;
 
-    /**
-     * Validate tracker bundle with validations created by rule engine
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationResult validateRuleEngine( TrackerBundle bundle );
+    private final EventDataValuesValidator eventDataValuesValidator;
+
+    public Validator<TrackerBundle> eventValidator()
+    {
+        // @formatter:off
+        return each(TrackerBundle::getEvents,
+                    all(
+                        eventRuleValidator,
+                        eventDataValuesValidator
+                    )
+        );
+    }
+
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+        eventValidator().validate( reporter, bundle, input );
+    }
 }

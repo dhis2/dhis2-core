@@ -30,6 +30,12 @@ package org.hisp.dhis.tracker.validation;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
+/**
+ * Validates given input and adds errors and warnings to a {@link Reporter}.
+ * {@link TrackerBundle} is given as context.
+ *
+ * @param <T> type of input to be validated
+ */
 @FunctionalInterface
 public interface Validator<T>
 {
@@ -40,13 +46,32 @@ public interface Validator<T>
      * @param bundle tracker bundle
      * @param input input to validate
      */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
+    void validate( Reporter reporter, TrackerBundle bundle, T input );
 
+    /**
+     * Indicates whether this {@link Validator} should be run given the
+     * {@link TrackerImportStrategy}.
+     *
+     * @param strategy import strategy
+     * @return true if this validator should be run and false otherwise
+     */
     default boolean needsToRun( TrackerImportStrategy strategy )
     {
         return strategy != TrackerImportStrategy.DELETE;
     }
 
+    /**
+     * A signal to the orchestration of the validation that subsequent
+     * {@link Validator}s should not be run if this one fails i.e. adds an
+     * error.
+     * <p>
+     * Note: this mechanism is going to be replaced by
+     * {@link org.hisp.dhis.tracker.validation.hooks.Seq}.
+     * </p>
+     *
+     * @return true if subsequent validators should be skipped on error and
+     *         false otherwise
+     */
     default boolean skipOnError()
     {
         return false;

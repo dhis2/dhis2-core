@@ -129,6 +129,23 @@ environment variable
 
 DHIS2 should be available at `http://localhost:8080/dhis2`.
 
+##### Overriding default values
+
+You can create a local file called `docker-compose.override.yml` and override values from the main `docker-compose.yml`
+file. As an example, you might want to use a different version of the Postgres database and run it on a different port.
+More extensive documentation of this feature is available [here](https://docs.docker.com/compose/extends/). Using the override
+file you can easily customize values for your local situation.
+
+```yaml
+version: "3.8"
+
+services:
+  db:
+    image: postgis/postgis:14-3.3-alpine
+    ports:
+      - 127.0.0.1:6432:5432
+```
+
 ##### DHIS2_HOME
 
 [Previously](https://github.com/dhis2/dhis2-core/blob/b4d4242fb30d974254de2a72b86cc5511f70c9c0/docker/tomcat-debian/Dockerfile#L9),
@@ -142,5 +159,4 @@ variable `DHIS2_HOME` like
       DHIS2_HOME: /DHIS2_home
 ```
 
-in a docker-compose file. Or passing the system property `-Ddhis2.home`. You need to ensure that
-this `DHIS2_HOME` is writeable yourself!
+in a `docker-compose.override.yml` file. Alternatively, you can pass the system property `-Ddhis2.home` directly from the command line. You need to ensure that this `DHIS2_HOME` is writeable yourself!

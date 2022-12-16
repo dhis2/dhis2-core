@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -236,6 +237,13 @@ public class CrudControllerAdvice
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
         return error( getExceptionMessage( ex ) );
+    }
+
+    @ExceptionHandler( PersistenceException.class )
+    @ResponseBody
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
+    {
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -464,7 +472,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )

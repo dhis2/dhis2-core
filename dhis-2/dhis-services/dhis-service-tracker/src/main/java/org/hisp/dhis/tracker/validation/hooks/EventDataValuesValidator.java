@@ -52,8 +52,8 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
@@ -65,7 +65,7 @@ public class EventDataValuesValidator
     implements Validator<Event>
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
@@ -91,7 +91,7 @@ public class EventDataValuesValidator
         validateDataValueDataElementIsConnectedToProgramStage( reporter, bundle, event, programStage );
     }
 
-    private void validateMandatoryDataValues( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
+    private void validateMandatoryDataValues( Reporter reporter, TrackerBundle bundle, Event event )
     {
         if ( event.getProgramStage().isBlank() )
         {
@@ -111,7 +111,7 @@ public class EventDataValuesValidator
             .forEach( de -> reporter.addError( event, E1303, de ) );
     }
 
-    private void validateDataValue( ValidationErrorReporter reporter, TrackerBundle bundle, DataElement dataElement,
+    private void validateDataValue( Reporter reporter, TrackerBundle bundle, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
         String status = null;
@@ -149,7 +149,7 @@ public class EventDataValuesValidator
         }
     }
 
-    private void validateNullDataValues( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateNullDataValues( Reporter reporter, DataElement dataElement,
         ProgramStage programStage, DataValue dataValue, Event event )
     {
         if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
@@ -170,7 +170,7 @@ public class EventDataValuesValidator
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
+    private void validateDataValueDataElementIsConnectedToProgramStage( Reporter reporter,
         TrackerBundle bundle, Event event,
         ProgramStage programStage )
     {
@@ -193,7 +193,7 @@ public class EventDataValuesValidator
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateFileNotAlreadyAssigned( Reporter reporter, TrackerBundle bundle, Event event,
         DataValue dataValue,
         DataElement dataElement )
     {
@@ -225,7 +225,7 @@ public class EventDataValuesValidator
         }
     }
 
-    private void validateOrgUnitValueType( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+    private void validateOrgUnitValueType( Reporter reporter, TrackerBundle bundle, Event event,
         DataValue dataValue,
         DataElement dataElement )
     {

@@ -50,7 +50,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,7 +87,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private Reporter reporter;
 
     @BeforeEach
     public void setUp()
@@ -106,7 +106,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
-        reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
+        reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
     }
 
     @Test

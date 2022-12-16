@@ -27,23 +27,24 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ValidationFailFastException
-    extends RuntimeException
+public interface ValidationService
 {
-    private final transient List<Error> errorReportRef;
+    /**
+     * Validate tracker bundle
+     *
+     * @param bundle Bundle to validate
+     */
+    ValidationResult validate( TrackerBundle bundle );
 
-    public ValidationFailFastException( List<Error> errorReportRef )
-    {
-        this.errorReportRef = errorReportRef;
-    }
-
-    public List<Error> getErrors()
-    {
-        return errorReportRef;
-    }
+    /**
+     * Validate tracker bundle with validations created by rule engine
+     *
+     * @param bundle Bundle to validate
+     */
+    ValidationResult validateRuleEngine( TrackerBundle bundle );
 }
