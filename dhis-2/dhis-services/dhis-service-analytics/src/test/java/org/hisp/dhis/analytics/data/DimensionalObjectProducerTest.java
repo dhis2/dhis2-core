@@ -279,8 +279,7 @@ class DimensionalObjectProducerTest
 
         // When
         BaseDimensionalObject dimensionalObject = target.getOrgUnitDimension( itemsUid, DisplayProperty.NAME,
-            organisationUnits,
-            UID );
+            organisationUnits, UID );
 
         // Then
         assertEquals( "ou", dimensionalObject.getDimension() );
