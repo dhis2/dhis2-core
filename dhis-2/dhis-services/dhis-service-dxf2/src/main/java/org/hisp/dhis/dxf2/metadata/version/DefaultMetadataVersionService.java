@@ -152,8 +152,8 @@ public class DefaultMetadataVersionService implements MetadataVersionService
             return versionStore.getCurrentVersion();
         }
         catch ( Exception ex ) // Will have to catch Exception, as we want to
-                               // throw a deterministic exception from this
-                               // layer
+                              // throw a deterministic exception from this
+                              // layer
         {
             log.error( ex.getMessage(), ex );
             throw new MetadataVersionServiceException( ex.getMessage(), ex );
@@ -375,7 +375,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService
             renderService.toJson( os, metadata );
         }
         catch ( Exception ex ) // We have to catch the "Exception" object as no
-                               // specific exception on the contract.
+                              // specific exception on the contract.
         {
             String message = "Exception occurred while exporting metadata for capturing a metadata version"
                 + ex.getMessage();

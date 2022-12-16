@@ -396,7 +396,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
         if ( limitToHierarchy )
         {
             orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include
-                                                                             // self
+                                                                            // self
             orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
 
             recipients = recipients.stream()

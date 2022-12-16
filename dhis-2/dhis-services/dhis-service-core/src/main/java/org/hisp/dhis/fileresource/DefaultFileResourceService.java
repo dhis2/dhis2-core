@@ -226,6 +226,15 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public byte[] copyFileResourceContent( FileResource fileResource )
+        throws IOException,
+        NoSuchElementException
+    {
+        return fileResourceContentStore.copyContent( fileResource.getStorageKey() );
+    }
+
+    @Override
     @Transactional
     public boolean fileResourceExists( String uid )
     {

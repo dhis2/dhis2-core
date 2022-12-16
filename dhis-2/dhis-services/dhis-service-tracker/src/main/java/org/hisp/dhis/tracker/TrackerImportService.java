@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.ImportReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +42,7 @@ public interface TrackerImportService
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)
      */
-    TrackerImportReport importTracker( TrackerImportParams params );
+    ImportReport importTracker( TrackerImportParams params );
 
     /**
      * Build the report based on the mode selected by the client.
@@ -50,5 +50,5 @@ public interface TrackerImportService
      * @param importReport report with all the data collected during import
      * @return TrackerImportReport report with filtered data based on reportMode
      */
-    TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );
+    ImportReport buildImportReport( ImportReport importReport, TrackerBundleReportMode reportMode );
 }

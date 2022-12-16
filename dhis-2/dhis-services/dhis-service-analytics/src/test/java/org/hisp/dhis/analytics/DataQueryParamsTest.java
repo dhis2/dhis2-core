@@ -608,6 +608,26 @@ class DataQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testGetAggregationType()
+    {
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.LAST ) )
+            .build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withAggregationType( AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) )
+            .build();
+
+        assertTrue( paramsA.isLastPeriodAggregationType() );
+        assertTrue( paramsA.isFirstOrLastPeriodAggregationType() );
+        assertTrue( paramsA.isFirstOrLastOrLastInPeriodAggregationType() );
+
+        assertFalse( paramsB.isLastPeriodAggregationType() );
+        assertFalse( paramsB.isFirstOrLastPeriodAggregationType() );
+        assertFalse( paramsB.isFirstOrLastOrLastInPeriodAggregationType() );
+    }
+
+    @Test
     void testGetKey()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()

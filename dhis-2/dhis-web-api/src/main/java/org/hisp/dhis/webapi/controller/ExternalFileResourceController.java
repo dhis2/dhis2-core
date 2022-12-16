@@ -40,6 +40,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceService;
@@ -47,6 +49,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -69,6 +72,9 @@ public class ExternalFileResourceController
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
     /**
      * Returns a file associated with the externalFileResource resolved from the
@@ -108,6 +114,8 @@ public class ExternalFileResourceController
         response.setContentType( fileResource.getContentType() );
         response.setContentLengthLong( fileResource.getContentLength() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
         setNoStore( response );
 
         try
