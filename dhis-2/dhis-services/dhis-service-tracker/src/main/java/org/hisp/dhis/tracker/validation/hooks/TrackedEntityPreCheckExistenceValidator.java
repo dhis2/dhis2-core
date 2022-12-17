@@ -77,9 +77,4 @@ public class TrackedEntityPreCheckExistenceValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

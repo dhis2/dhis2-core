@@ -47,55 +47,55 @@ import org.springframework.stereotype.Component;
 @Component( "org.hisp.dhis.tracker.validation.hooks.EventValidator" )
 public class EventValidator implements Validator<TrackerBundle>
 {
-    private final EventPreCheckUidValidator eventPreCheckUidValidator;
+    private final EventPreCheckUidValidator uidValidator;
 
-    private final EventPreCheckExistenceValidator eventPreCheckExistenceValidator;
+    private final EventPreCheckExistenceValidator existenceValidator;
 
-    private final EventPreCheckMandatoryFieldsValidator eventPreCheckMandatoryFieldsValidator;
+    private final EventPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
 
-    private final EventPreCheckMetaValidator eventPreCheckMetaValidator;
+    private final EventPreCheckMetaValidator metaValidator;
 
-    private final EventPreCheckUpdatableFieldsValidator eventPreCheckUpdatableFieldsValidator;
+    private final EventPreCheckUpdatableFieldsValidator updatableFieldsValidator;
 
-    private final EventPreCheckDataRelationsValidator eventPreCheckDataRelationsValidator;
+    private final EventPreCheckDataRelationsValidator dataRelationsValidator;
 
-    private final EventPreCheckSecurityOwnershipValidator eventPreCheckSecurityOwnershipValidator;
+    private final EventPreCheckSecurityOwnershipValidator securityOwnershipValidator;
 
-    private final EventCategoryOptValidator eventCategoryOptValidator;
+    private final EventCategoryOptValidator categoryOptValidator;
 
-    private final EventDateValidator eventDateValidator;
+    private final EventDateValidator dateValidator;
 
-    private final EventGeoValidator eventGeoValidator;
+    private final EventGeoValidator geoValidator;
 
-    private final EventNoteValidator eventNoteValidator;
+    private final EventNoteValidator noteValidator;
 
-    private final EventDataValuesValidator eventDataValuesValidator;
+    private final EventDataValuesValidator dataValuesValidator;
 
     private final AssignedUserValidator assignedUserValidator;
 
     private final RepeatedEventsValidator repeatedEventsValidator;
 
-    public Validator<TrackerBundle> eventValidator()
+    private Validator<TrackerBundle> eventValidator()
     {
         // @formatter:off
         return all(
                 each( TrackerBundle::getEvents,
                     seq(
-                        eventPreCheckUidValidator,
-                        eventPreCheckExistenceValidator,
-                        eventPreCheckMandatoryFieldsValidator,
-                        eventPreCheckMetaValidator,
-                        eventPreCheckUpdatableFieldsValidator,
-                        eventPreCheckDataRelationsValidator,
-                        eventPreCheckSecurityOwnershipValidator,
-                        all(
-                            eventCategoryOptValidator,
-                            eventDateValidator,
-                            eventGeoValidator,
-                            eventNoteValidator,
-                            eventDataValuesValidator,
-                            assignedUserValidator
-                        )
+                            uidValidator,
+                            existenceValidator,
+                            mandatoryFieldsValidator,
+                            metaValidator,
+                            updatableFieldsValidator,
+                            dataRelationsValidator,
+                            securityOwnershipValidator,
+                            all(
+                                categoryOptValidator,
+                                dateValidator,
+                                geoValidator,
+                                noteValidator,
+                                dataValuesValidator,
+                                assignedUserValidator
+                            )
                     )
                 ),
                 field( TrackerBundle::getEvents, repeatedEventsValidator )

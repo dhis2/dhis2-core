@@ -51,10 +51,4 @@ public class EventPreCheckUidValidator
         validateNotesUid( event.getNotes(), reporter, event );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
 }

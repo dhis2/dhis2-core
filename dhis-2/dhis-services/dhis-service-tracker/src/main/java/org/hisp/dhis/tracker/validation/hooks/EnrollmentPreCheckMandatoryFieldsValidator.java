@@ -52,9 +52,4 @@ public class EnrollmentPreCheckMandatoryFieldsValidator
             "trackedEntity" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }
