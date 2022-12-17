@@ -99,14 +99,14 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
         ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
-        List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );
-        assertEquals( Lists.newArrayList( deA, deB ),
+        List<DimensionalItemObject> list = List.of( deA, deB, pdeA, pdeB, piA );
+        assertEquals( List.of( deA, deB ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, list ) );
-        assertEquals( Lists.newArrayList( pdeA, pdeB ),
+        assertEquals( List.of( pdeA, pdeB ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, list ) );
-        assertEquals( Lists.newArrayList( piA ),
+        assertEquals( List.of( piA ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, list ) );
-        assertEquals( Lists.newArrayList(),
+        assertEquals( List.of(),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, list ) );
     }
 
@@ -270,7 +270,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
             DimensionalObjectUtils.getList( deA, inA, dsA ) );
         DimensionalObject ou = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) );
+            DimensionType.ORGANISATION_UNIT, List.of( ouA, ouB ) );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( dx ).addDimension( ou )
             .withDisplayProperty( DisplayProperty.NAME ).build();
         Map<String, String> map = AnalyticsUtils.getDimensionItemNameMap( params );
@@ -295,7 +295,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccB );
         DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) );
+            List.of( deA, deB ) );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( dx )
             .withDisplayProperty( DisplayProperty.NAME ).build();
         Map<String, String> map = AnalyticsUtils.getCocNameMap( params );
@@ -308,7 +308,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
     {
         Grid grid = new ListGrid();
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) )
             .build();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
@@ -346,7 +346,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DataElementOperand dxE = new DataElementOperand( dxA, ocA );
         DataElementOperand dxF = new DataElementOperand( dxB, ocA );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( new BaseDimensionalObject( DATA_X_DIM_ID,
-            DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) ).build();
+            DimensionType.DATA_X, List.of( dxA, dxB, dxC, dxD, dxE, dxF ) ) ).build();
         Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
@@ -651,7 +651,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         Period p1 = PeriodType.getPeriodFromIsoString( "202001" );
         Period p2 = PeriodType.getPeriodFromIsoString( "202002" );
         Period p3 = PeriodType.getPeriodFromIsoString( "202003" );
-        List<DimensionalItemObject> periods = Lists.newArrayList( p1, p2, p3 );
+        List<DimensionalItemObject> periods = List.of( p1, p2, p3 );
         assertTrue( AnalyticsUtils.isPeriodInPeriods( "202001", periods ) );
         assertFalse( AnalyticsUtils.isPeriodInPeriods( "202005", periods ) );
     }
@@ -668,7 +668,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         ProgramIndicator pi4 = new ProgramIndicator();
         pi4.setUid( pi1.getUid() );
         List<DimensionalItemObject> dimensionalItems = AnalyticsUtils.findDimensionalItems( pi1.getUid(),
-            Lists.newArrayList( pi1, pi2, pi3, pi4 ) );
+            List.of( pi1, pi2, pi3, pi4 ) );
         assertEquals( dimensionalItems.size(), 2 );
     }
 
