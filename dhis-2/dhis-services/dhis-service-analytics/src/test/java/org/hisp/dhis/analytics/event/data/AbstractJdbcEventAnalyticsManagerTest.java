@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -388,10 +387,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+            List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
@@ -423,10 +422,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+            List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
@@ -456,13 +455,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
+            DimensionType.PERIOD, List.of( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
 
         DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
-            newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ),
-                createOrganisationUnit( 'C' ) ) );
+            List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ), createOrganisationUnit( 'C' ) ) );
 
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )
@@ -793,10 +790,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DataElement deA = createDataElement( 'A', TEXT, AggregationType.NONE );
 
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "202201" ) ) );
+            List.of( MonthlyPeriodType.getPeriodFromIsoString( "202201" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", List.of( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 

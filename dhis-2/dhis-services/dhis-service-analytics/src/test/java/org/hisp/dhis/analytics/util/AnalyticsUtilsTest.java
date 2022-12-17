@@ -83,8 +83,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -99,14 +97,14 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prA, deA );
         ProgramDataElementDimensionItem pdeB = new ProgramDataElementDimensionItem( prA, deB );
         ProgramIndicator piA = createProgramIndicator( 'A', prA, null, null );
-        List<DimensionalItemObject> list = Lists.newArrayList( deA, deB, pdeA, pdeB, piA );
-        assertEquals( Lists.newArrayList( deA, deB ),
+        List<DimensionalItemObject> list = List.of( deA, deB, pdeA, pdeB, piA );
+        assertEquals( List.of( deA, deB ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, list ) );
-        assertEquals( Lists.newArrayList( pdeA, pdeB ),
+        assertEquals( List.of( pdeA, pdeB ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, list ) );
-        assertEquals( Lists.newArrayList( piA ),
+        assertEquals( List.of( piA ),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, list ) );
-        assertEquals( Lists.newArrayList(),
+        assertEquals( List.of(),
             AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, list ) );
     }
 
@@ -270,7 +268,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
             DimensionalObjectUtils.getList( deA, inA, dsA ) );
         DimensionalObject ou = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) );
+            DimensionType.ORGANISATION_UNIT, List.of( ouA, ouB ) );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( dx ).addDimension( ou )
             .withDisplayProperty( DisplayProperty.NAME ).build();
         Map<String, String> map = AnalyticsUtils.getDimensionItemNameMap( params );
@@ -295,7 +293,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccB );
         DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) );
+            List.of( deA, deB ) );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( dx )
             .withDisplayProperty( DisplayProperty.NAME ).build();
         Map<String, String> map = AnalyticsUtils.getCocNameMap( params );
@@ -308,7 +306,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
     {
         Grid grid = new ListGrid();
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList() ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) )
             .build();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
@@ -346,18 +344,18 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         DataElementOperand dxE = new DataElementOperand( dxA, ocA );
         DataElementOperand dxF = new DataElementOperand( dxB, ocA );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( new BaseDimensionalObject( DATA_X_DIM_ID,
-            DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) ).build();
+            DimensionType.DATA_X, List.of( dxA, dxB, dxC, dxD, dxE, dxF ) ) ).build();
         Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA", "ouA", "peA", 1d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB", "ouA", "peA", 2d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghC", "ouA", "peA", 3d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghD", "ouA", "peA", 4d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA.ceabcdefghA", "ouA", "peA", 5d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB.ceabcdefghA", "ouA", "peA", 6d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghA", "ouA", "peA", 1d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghB", "ouA", "peA", 2d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghC", "ouA", "peA", 3d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghD", "ouA", "peA", 4d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghA.ceabcdefghA", "ouA", "peA", 5d ) );
+        grid.addRow().addValuesAsList( List.of( "deabcdefghB.ceabcdefghA", "ouA", "peA", 6d ) );
         assertEquals( 4, grid.getWidth() );
         assertEquals( 6, grid.getHeight() );
         AnalyticsUtils.handleGridForDataValueSet( params, grid );
@@ -423,16 +421,16 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", null, null, 4d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", "coA", null, 5d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, "aoA", 7 ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", "coB", null, 9d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", null, null, 10 ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peB", null, null, 2d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peB", null, null, 4d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peA", "coA", null, 5d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peA", null, "aoA", 7 ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peB", null, null, 8d ) );
+        grid.addRow().addValuesAsList( List.of( "dxD", "ouA", "peA", "coB", null, 9d ) );
+        grid.addRow().addValuesAsList( List.of( "dxE", "ouA", "peB", null, null, 10 ) );
 
         DataValueSet dvs = AnalyticsUtils.getDataValueSet( DataQueryParams.newBuilder().build(), grid );
         assertNotNull( dvs );
@@ -485,20 +483,20 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", null, null, 1d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peA", null, null, 1d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peB", null, null, 2d ) );
         // Duplicate
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", null, null, 4d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", null, null, 5d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peB", null, null, 2d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peB", null, null, 4d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peA", null, null, 5d ) );
         // Duplicate
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", null, null, 5d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", null, null, 6d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, null, 7d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peA", null, null, 5d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peB", null, null, 6d ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peA", null, null, 7d ) );
         // Duplicate
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, null, 7d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peA", null, null, 7d ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peB", null, null, 8d ) );
         DataValueSet dvs = AnalyticsUtils
             .getDataValueSet( DataQueryParams.newBuilder().withDuplicatesOnly( true ).build(), grid );
         assertNotNull( dvs );
@@ -516,16 +514,16 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", "coB", "aoB", 2d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", null, null, 3d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", "coA", null, 4d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", "coA", null, 5d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", null, "aoA", 7 ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", null, null, 8d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", "coB", null, 9d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", null, null, 10 ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouA", "peB", "coB", "aoB", 2d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peA", null, null, 3d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "ouB", "peB", "coA", null, 4d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peA", "coA", null, 5d ) );
+        grid.addRow().addValuesAsList( List.of( "dxB", "ouA", "peB", "coA", "aoB", 6d ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peA", null, "aoA", 7 ) );
+        grid.addRow().addValuesAsList( List.of( "dxC", "ouA", "peB", null, null, 8d ) );
+        grid.addRow().addValuesAsList( List.of( "dxD", "ouA", "peA", "coB", null, 9d ) );
+        grid.addRow().addValuesAsList( List.of( "dxE", "ouA", "peB", null, null, 10 ) );
 
         Grid dvs = AnalyticsUtils.getDataValueSetAsGrid( grid );
         assertNotNull( dvs );
@@ -571,7 +569,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "peA", "coA", "aoA", 1d ) );
+        grid.addRow().addValuesAsList( List.of( "dxA", "peA", "coA", "aoA", 1d ) );
 
         assertThrows( IllegalArgumentException.class, () -> AnalyticsUtils.getDataValueSetAsGrid( grid ) );
     }
@@ -651,7 +649,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         Period p1 = PeriodType.getPeriodFromIsoString( "202001" );
         Period p2 = PeriodType.getPeriodFromIsoString( "202002" );
         Period p3 = PeriodType.getPeriodFromIsoString( "202003" );
-        List<DimensionalItemObject> periods = Lists.newArrayList( p1, p2, p3 );
+        List<DimensionalItemObject> periods = List.of( p1, p2, p3 );
         assertTrue( AnalyticsUtils.isPeriodInPeriods( "202001", periods ) );
         assertFalse( AnalyticsUtils.isPeriodInPeriods( "202005", periods ) );
     }
@@ -668,7 +666,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest
         ProgramIndicator pi4 = new ProgramIndicator();
         pi4.setUid( pi1.getUid() );
         List<DimensionalItemObject> dimensionalItems = AnalyticsUtils.findDimensionalItems( pi1.getUid(),
-            Lists.newArrayList( pi1, pi2, pi3, pi4 ) );
+            List.of( pi1, pi2, pi3, pi4 ) );
         assertEquals( dimensionalItems.size(), 2 );
     }
 

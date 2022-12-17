@@ -37,6 +37,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -62,8 +63,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -109,9 +108,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest
 
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
 
-        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        p1.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( p1 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
             .withStartTime( START_TIME ).build();

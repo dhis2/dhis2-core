@@ -61,8 +61,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
@@ -76,12 +74,6 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     private DataElement deA;
 
     private DataElement deB;
-
-    private DataElement deC;
-
-    private DataElement deD;
-
-    private DataElement deE;
 
     private OrganisationUnit ouA;
 
@@ -107,12 +99,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
         prB = createProgram( 'B' );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
+        deB = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
@@ -129,7 +116,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
+            .withOrganisationUnits( List.of( ouA ) ).build();
 
         eventQueryValidator.validate( params );
     }
@@ -141,7 +128,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withTimeField( TimeField.INCIDENT_DATE.name() ).build();
 
         eventQueryValidator.validate( params );
@@ -154,7 +141,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .addItem( new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
@@ -169,7 +156,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
             .build();
@@ -184,7 +171,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+            .withOrganisationUnits( List.of( ouB ) ).build();
 
         assertValidatonError( ErrorCode.E7205, params );
     }
@@ -194,7 +181,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+            .withOrganisationUnits( List.of( ouB ) ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
 
@@ -208,7 +195,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
         assertValidatonError( ErrorCode.E7215, params );
@@ -221,7 +208,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
         assertValidatonError( ErrorCode.E7210, params );
@@ -234,7 +221,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .withOrganisationUnits( List.of( ouA ) )
             .withOrgUnitField( new OrgUnitField( "notAUid" ) ).build();
 
         assertValidatonError( ErrorCode.E7211, params );
@@ -247,7 +234,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withPage( -2 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -262,7 +249,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withPageSize( -1 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -280,7 +267,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .withOrganisationUnits( List.of( ouB ) )
             .withLimit( 200 ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
@@ -295,8 +282,8 @@ class EventQueryValidatorTest extends DhisConvenienceTest
             .withProgram( prA )
             .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
             .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouB ) )
-            .withCoordinateFields( List.of( deE.getUid() ) )
+            .withOrganisationUnits( List.of( ouB ) )
+            .withCoordinateFields( List.of( deB.getUid() ) )
             .withClusterSize( -3L ).build();
 
         ErrorMessage error = eventQueryValidator.validateForErrorMessage( params );
