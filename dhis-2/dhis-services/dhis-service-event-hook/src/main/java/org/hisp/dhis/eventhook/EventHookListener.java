@@ -37,7 +37,9 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
+import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.springframework.context.event.EventListener;
@@ -117,6 +119,10 @@ public class EventHookListener
                 if ( target.getType().equals( "webhook" ) )
                 {
                     targets.get( eh.getUid() ).add( new WebhookHandler( (WebhookTarget) target ) );
+                }
+                else if ( target.getType().equals( "console" ) )
+                {
+                    targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
                 }
             }
         } );

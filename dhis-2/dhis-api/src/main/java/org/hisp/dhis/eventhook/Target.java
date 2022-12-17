@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -50,7 +51,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @EqualsAndHashCode
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
 @JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" )
+    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ),
+    @JsonSubTypes.Type( value = ConsoleTarget.class, name = "console" )
 } )
 public abstract class Target
     implements Serializable

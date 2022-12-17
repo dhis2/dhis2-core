@@ -30,53 +30,21 @@ package org.hisp.dhis.eventhook.handlers;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.eventhook.Handler;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.hisp.dhis.eventhook.targets.ConsoleTarget;
 
 /**
  * @author Morten Olav Hansen
  */
 @Slf4j
-public class WebhookHandler implements Handler
+public class ConsoleHandler implements Handler
 {
-    private final RestTemplate restTemplate;
-
-    private final WebhookTarget webhookTarget;
-
-    public WebhookHandler( WebhookTarget target )
+    public ConsoleHandler( ConsoleTarget target )
     {
-        this.webhookTarget = target;
-        this.restTemplate = new RestTemplate();
+
     }
 
     public void run( String payload )
     {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
-        httpHeaders.setAll( webhookTarget.getHeaders() );
-
-        if ( webhookTarget.getAuth() != null )
-        {
-            webhookTarget.getAuth().apply( httpHeaders );
-        }
-
-        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
-
-        try
-        {
-            ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
-                String.class );
-            log.info( response.getStatusCode().name() );
-            log.info( response.getBody() );
-        }
-        catch ( RestClientException ex )
-        {
-            log.error( ex.getMessage() );
-        }
+        log.info( payload );
     }
 }

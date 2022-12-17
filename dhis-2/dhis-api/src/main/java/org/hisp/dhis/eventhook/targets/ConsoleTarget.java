@@ -25,58 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.handlers;
+package org.hisp.dhis.eventhook.targets;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.Handler;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.hisp.dhis.eventhook.Target;
 
 /**
  * @author Morten Olav Hansen
  */
-@Slf4j
-public class WebhookHandler implements Handler
+@Getter
+@Setter
+@EqualsAndHashCode( callSuper = true )
+@Accessors( chain = true )
+public class ConsoleTarget extends Target
 {
-    private final RestTemplate restTemplate;
-
-    private final WebhookTarget webhookTarget;
-
-    public WebhookHandler( WebhookTarget target )
+    public ConsoleTarget()
     {
-        this.webhookTarget = target;
-        this.restTemplate = new RestTemplate();
-    }
-
-    public void run( String payload )
-    {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
-        httpHeaders.setAll( webhookTarget.getHeaders() );
-
-        if ( webhookTarget.getAuth() != null )
-        {
-            webhookTarget.getAuth().apply( httpHeaders );
-        }
-
-        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
-
-        try
-        {
-            ResponseEntity<String> response = restTemplate.postForEntity( webhookTarget.getUrl(), httpEntity,
-                String.class );
-            log.info( response.getStatusCode().name() );
-            log.info( response.getBody() );
-        }
-        catch ( RestClientException ex )
-        {
-            log.error( ex.getMessage() );
-        }
+        super( "console" );
     }
 }
