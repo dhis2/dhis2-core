@@ -345,8 +345,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         objects.forEach( object -> {
             T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-            objectBundleHooks.getObjectHooks( object )
-                .forEach( hook -> hook.postUpdate( persistedObject, bundle ) );
+            objectBundleHooks.getObjectHooks( object ).forEach(
+                hook -> hook.postUpdate( persistedObject, bundle ) );
             eventHookPublisher.publishEvent( EventUtils.metadataUpdate( (BaseIdentifiableObject) object ) );
         } );
 
@@ -399,9 +399,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
         }
 
-        objects.forEach( object -> {
-            eventHookPublisher.publishEvent( EventUtils.metadataDelete( klass, object.getUid() ) );
-        } );
+        objects.forEach(
+            object -> eventHookPublisher.publishEvent( EventUtils.metadataDelete( klass, object.getUid() ) ) );
 
         return typeReport;
     }
