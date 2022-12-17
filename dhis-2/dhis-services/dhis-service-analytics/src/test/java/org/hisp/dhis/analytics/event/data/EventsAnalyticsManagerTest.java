@@ -474,7 +474,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = " from (select \"yearly\",\"" + programDataElement.getUid()
+        String expectedLastSubquery = " from (select \"psi\",\"yearly\",\"" + programDataElement.getUid()
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
             + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
