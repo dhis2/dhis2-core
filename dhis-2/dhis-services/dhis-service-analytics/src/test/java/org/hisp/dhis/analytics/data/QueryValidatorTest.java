@@ -227,7 +227,7 @@ class QueryValidatorTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withOrganisationUnits( getList( ouA, ouB ) )
             .withPeriods( getList( peA, peB ) )
-            .withDataDimensionItems( getList( deA, deB ) )
+            .withDataElements( getList( deA, deB ) )
             .build();
 
         queryValidator.validate( params );
@@ -240,6 +240,18 @@ class QueryValidatorTest
             .withFilterOrganisationUnits( List.of( ouA, ouB ) )
             .withPeriods( List.of( peA, peB ) )
             .withDataDimensionItems( List.of( deA, deB, pdeA, pdeB, pdeE ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    void validateSuccessC()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withIndicators( List.of( inA, inB ) )
+            .withFilterPeriods( List.of( peA, peB ) )
+            .withFilterOrganisationUnits( List.of( ouA, ouB ) )
             .build();
 
         queryValidator.validate( params );
