@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +147,7 @@ class JdbcAnalyticsTableManagerTest
             .withLatestPartition()
             .build();
 
-        List<Map<String, Object>> queryResp = Lists.newArrayList();
+        List<Map<String, Object>> queryResp = new ArrayList<>();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
 
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
