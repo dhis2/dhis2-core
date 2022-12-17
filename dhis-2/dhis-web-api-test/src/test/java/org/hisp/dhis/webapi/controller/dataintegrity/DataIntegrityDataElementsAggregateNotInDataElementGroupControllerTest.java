@@ -36,6 +36,11 @@ import org.hisp.dhis.webapi.json.domain.JsonDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonDataElementGroup;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for data elements which are not part of any data element group.
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "aggregate_data_element_no_groups";

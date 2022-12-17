@@ -38,6 +38,14 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ *
+ * Tests for dashboards which have not been actively viewed in the past year.*
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_not_used_1year.yaml
+ * }
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 

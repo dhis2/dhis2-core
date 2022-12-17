@@ -34,6 +34,13 @@ import java.util.Set;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Generally, non-numeric data elements should have their aggregation type set
+ * to NONE, while numeric data elements should have their aggregation type set
+ * to something other than NONE.
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityDataElementsAggregationOperatorControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "aggregate_data_elements_aggregation_operator";

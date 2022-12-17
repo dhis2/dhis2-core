@@ -40,6 +40,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Test for maps which have not been viewed in at least a year.
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityMapsNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 

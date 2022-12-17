@@ -36,6 +36,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for multiple roots in the organisation unit hierarchy.
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "orgunit_multiple_roots";

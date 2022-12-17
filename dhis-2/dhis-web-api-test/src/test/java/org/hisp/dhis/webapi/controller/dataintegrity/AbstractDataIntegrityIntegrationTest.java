@@ -253,6 +253,15 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
     }
 
+    protected final String getDefaultCatCombo()
+    {
+        JsonObject ccDefault = GET(
+            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
+                .content().getObject( 0 );
+        String categoryComboId = ccDefault.getString( "id" ).string();
+        return (categoryComboId);
+    }
+
     protected final String getDefaultCOC()
     {
         JsonObject ccDefault = GET(

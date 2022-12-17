@@ -36,6 +36,11 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonOption;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for option sets with no options.
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityOptionSetNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "options_sets_empty";

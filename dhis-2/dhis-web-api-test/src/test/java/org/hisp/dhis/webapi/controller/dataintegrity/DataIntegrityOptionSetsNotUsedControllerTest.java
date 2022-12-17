@@ -40,6 +40,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test for option sets which are not used.
+ *
+ * @s
+ * @author Jason P. Pickering
+ */
 class DataIntegrityOptionSetUnusedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "options_sets_unused";
