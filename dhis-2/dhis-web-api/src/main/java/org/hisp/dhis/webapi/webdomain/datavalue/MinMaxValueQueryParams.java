@@ -36,11 +36,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+
 /**
  * Object which encapsulates parameters for a min-max value query.
  *
  * @author Lars Helge Overland
  */
+@OpenApi.Shared
 @Getter
 @Setter
 @Builder
@@ -49,11 +56,14 @@ import lombok.Setter;
 public class MinMaxValueQueryParams
 {
     @NotBlank
+    @OpenApi.Property( { UID.class, DataElement.class } )
     private String de;
 
     @NotBlank
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String ou;
 
     @NotBlank
+    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
     private String co;
 }

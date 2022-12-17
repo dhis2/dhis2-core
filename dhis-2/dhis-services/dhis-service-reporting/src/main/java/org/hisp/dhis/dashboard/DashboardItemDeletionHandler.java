@@ -123,7 +123,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
         {
             while ( item.getReports().contains( report ) ) // In case of
-                                                           // duplicates
+                                                          // duplicates
             {
                 item.getReports().remove( report );
             }
@@ -140,7 +140,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
         {
             while ( item.getResources().contains( document ) ) // In case of
-                                                               // duplicates
+                                                              // duplicates
             {
                 item.getResources().remove( document );
             }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -61,16 +60,9 @@ public class EventStrategy implements ClassBasedSupplierStrategy
         {
             List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getIncludingDeleted( ids );
 
-            final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
-                .collect( Collectors.toList() );
-
             preheat.putEvents(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    programStageInstances ),
-                params.getEvents().stream()
-                    .filter(
-                        e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEvent() ) )
-                    .collect( Collectors.toList() ) );
+                    programStageInstances ) );
         }
     }
 }

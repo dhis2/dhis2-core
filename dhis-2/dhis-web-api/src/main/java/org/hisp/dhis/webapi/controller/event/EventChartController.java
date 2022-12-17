@@ -152,7 +152,7 @@ public class EventChartController
         WebMessageException
     {
         EventChart chart = eventChartService.getEventChart( uid ); // TODO no
-                                                                   // acl?
+                                                                  // acl?
 
         if ( chart == null )
         {

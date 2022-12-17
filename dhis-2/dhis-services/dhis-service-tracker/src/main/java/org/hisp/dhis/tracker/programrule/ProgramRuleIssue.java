@@ -32,7 +32,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
  * A single issue from rule engine that can be either be a Warning or an Error.
@@ -45,7 +45,7 @@ public class ProgramRuleIssue
 {
     private final String ruleUid;
 
-    private final TrackerErrorCode issueCode;
+    private final ValidationCode issueCode;
 
     private final List<String> args;
 

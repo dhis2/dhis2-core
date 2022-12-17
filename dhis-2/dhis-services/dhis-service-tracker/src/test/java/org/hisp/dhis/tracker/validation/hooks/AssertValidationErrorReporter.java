@@ -27,23 +27,50 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 
 public class AssertValidationErrorReporter
 {
+    private AssertValidationErrorReporter()
+    {
+        throw new IllegalStateException( "utility class" );
+    }
 
-    public static void hasTrackerError( ValidationErrorReporter reporter, TrackerErrorCode code, TrackerType type,
+    public static void assertMissingProperty( Reporter reporter, TrackerType type, String entity,
+        String uid,
+        String property,
+        ValidationCode errorCode )
+    {
+        assertHasError( reporter.getErrors(), errorCode, type, uid,
+            "Missing required " + entity + " property: `" + property + "`." );
+    }
+
+    public static void hasTrackerError( Reporter reporter, ValidationCode code, TrackerType type,
         String uid )
     {
         assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
         assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
             type == err.getTrackerType() &&
             uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getReportList().size() ) );
+            String.format( "error with code %s, type %s, uid %s not found in error(s) %s", code, type,
+                uid, reporter.getErrors() ) );
+    }
+
+    public static void hasTrackerError( Reporter reporter, ValidationCode code, TrackerType type,
+        String uid, String messageContains )
+    {
+        assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
+        assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
+            type == err.getTrackerType() &&
+            uid.equals( err.getUid() ) &&
+            err.getMessage().contains( messageContains ) ),
+            String.format( "error with code %s, type %s, uid %s and (partial) message '%s' not found in error(s) %s",
+                code,
+                type, uid, messageContains, reporter.getErrors() ) );
     }
 }

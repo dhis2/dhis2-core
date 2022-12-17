@@ -146,8 +146,8 @@ public class DefaultDataApprovalAuditService
         }
 
         Map<CategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local
-                                                                                  // cached
-                                                                                  // results
+                                                                                 // cached
+                                                                                 // results
 
         for ( Iterator<DataApprovalAudit> i = audits.iterator(); i.hasNext(); )
         {

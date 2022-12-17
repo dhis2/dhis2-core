@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -151,7 +150,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         TrackedEntityAttribute teA = createTrackedEntityAttribute( 'A', ValueType.ORGANISATION_UNIT );
         teA.setUid( deD.getUid() );
         ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA );
-        prC.setProgramAttributes( Collections.singletonList( pteA ) );
+        prC.setProgramAttributes( List.of( pteA ) );
         peA = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() );
         peB = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         peC = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() );

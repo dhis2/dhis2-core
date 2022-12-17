@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -124,15 +120,14 @@ public class JsonGenerator
 
     final void addArrayMember( String name, Collection<String> values )
     {
-        addArrayMember( name, values.stream(), value -> addStringMember( null, value ) );
+        addArrayMember( name, values, value -> addStringMember( null, value ) );
     }
 
-    final <E> void addArrayMember( String name, Stream<E> items, Consumer<E> forEach )
+    final <E> void addArrayMember( String name, Collection<E> items, Consumer<E> forEach )
     {
-        List<E> l = items.collect( toList() );
-        if ( !l.isEmpty() )
+        if ( !items.isEmpty() )
         {
-            addArrayMember( name, () -> l.forEach( forEach ) );
+            addArrayMember( name, () -> items.forEach( forEach ) );
         }
     }
 

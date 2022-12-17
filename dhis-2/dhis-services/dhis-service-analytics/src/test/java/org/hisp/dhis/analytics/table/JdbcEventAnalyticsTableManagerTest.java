@@ -57,7 +57,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +65,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -139,6 +139,9 @@ class JdbcEventAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     private JdbcEventAnalyticsTableManager subject;
 
     private Date today;
@@ -166,7 +169,7 @@ class JdbcEventAnalyticsTableManagerTest
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo,
-            jdbcTemplate );
+            jdbcTemplate, analyticsExportSettings );
     }
 
     @Test
@@ -345,7 +348,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         ProgramTrackedEntityAttribute tea = new ProgramTrackedEntityAttribute( program, tea1 );
 
-        program.setProgramAttributes( Collections.singletonList( tea ) );
+        program.setProgramAttributes( List.of( tea ) );
 
         DataElement d1 = createDataElement( 'Z', ValueType.TEXT, AggregationType.SUM );
 
@@ -503,7 +506,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
@@ -538,7 +541,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -567,7 +570,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
