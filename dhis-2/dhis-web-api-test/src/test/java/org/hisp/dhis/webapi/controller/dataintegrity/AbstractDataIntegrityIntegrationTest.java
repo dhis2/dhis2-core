@@ -77,7 +77,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 
-    private void checkDataIntegritySummary( String check, Integer expectedCount,
+    void checkDataIntegritySummary( String check, Integer expectedCount,
         Integer expectedPercentage, Boolean hasPercentage )
     {
 
@@ -104,7 +104,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         return (containsComments);
     }
 
-    private void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
+    void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
         String expectedDetailsNames, String expectedDetailsComments, String issueType )
     {
 
@@ -130,7 +130,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( issueType, details.getIssuesIdType() );
     }
 
-    private void checkDataIntegrityDetailsIssues( String check, Set<String> expectedDetailsUnits,
+    void checkDataIntegrityDetailsIssues( String check, Set<String> expectedDetailsUnits,
         Set<String> expectedDetailsNames, Set<String> expectedDetailsComments, String issueType )
     {
 
