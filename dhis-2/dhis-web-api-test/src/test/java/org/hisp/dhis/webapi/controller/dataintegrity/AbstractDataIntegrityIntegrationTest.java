@@ -107,13 +107,13 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
         String expectedDetailsNames, String expectedDetailsComments, String issueType )
     {
-
         postDetails( check );
 
         JsonDataIntegrityDetails details = getDetails( check );
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
+        assertEquals( expectedDetailsUnits, issues.get( 0 ).getId().toString() );
 
         if ( expectedDetailsNames != null )
         {
