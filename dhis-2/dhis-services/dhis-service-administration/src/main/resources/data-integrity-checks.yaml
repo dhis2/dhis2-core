@@ -27,4 +27,5 @@ checks:
   - data_elements/aggregate_des_no_groups.yaml
   - data_elements/aggregate_des_abandoned.yaml
   - data_elements/aggregate_des_inconsistent_agg_operator.yaml
+  - indicators/indicator_duplicate_types.yaml
 
