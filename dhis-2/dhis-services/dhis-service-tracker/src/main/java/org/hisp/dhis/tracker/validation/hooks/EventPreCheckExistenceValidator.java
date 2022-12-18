@@ -76,9 +76,4 @@ public class EventPreCheckExistenceValidator
         return true;
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

@@ -27,19 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.Collections;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidator;
-import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.EnrollmentRuleEngineValidator;
 import org.hisp.dhis.tracker.validation.hooks.EventRuleEngineValidator;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidator;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityRuleEngineValidator;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,38 +44,34 @@ import org.springframework.stereotype.Component;
 public class RuleEngineValidators implements Validators
 {
 
-    private final TrackedEntityAttributeValidator attributeValidator;
+    private final TrackedEntityRuleEngineValidator trackedEntityValidator;
 
-    private final EnrollmentRuleValidationHook enrollmentRuleValidationHook;
+    private final EnrollmentRuleEngineValidator enrollmentValidator;
 
-    private final EnrollmentAttributeValidator enrollmentAttributeValidator;
-
-    private final EventRuleEngineValidator eventRuleEngineValidator;
+    private final EventRuleEngineValidator eventValidator;
 
     @Override
-    public List<Validator<TrackedEntity>> getTrackedEntityValidators()
+    public Validator<TrackerBundle> getTrackedEntityValidator()
     {
-        return List.of(
-            attributeValidator );
+        return trackedEntityValidator;
     }
 
     @Override
-    public List<Validator<Enrollment>> getEnrollmentValidators()
+    public Validator<TrackerBundle> getEnrollmentValidator()
     {
-        return List.of(
-            enrollmentRuleValidationHook,
-            enrollmentAttributeValidator );
+        return enrollmentValidator;
     }
 
     @Override
     public Validator<TrackerBundle> getEventValidator()
     {
-        return eventRuleEngineValidator;
+        return eventValidator;
     }
 
     @Override
-    public List<Validator<Relationship>> getRelationshipValidators()
+    public Validator<TrackerBundle> getRelationshipValidator()
     {
-        return Collections.emptyList();
+        return ( r, b, t ) -> {
+        };
     }
 }

@@ -72,9 +72,4 @@ public class EventPreCheckMandatoryFieldsValidator
         reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
     }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
 }

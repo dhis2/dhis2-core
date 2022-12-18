@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -64,9 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -145,13 +141,13 @@ class EventQueryParamsTest extends DhisConvenienceTest
         psB.addDataElement( deB, 1 );
         // Program Stage C
         psC.addDataElement( deA, 0 );
-        prA = createProgram( 'A', Sets.newHashSet( psA ), ouA );
-        prB = createProgram( 'B', Sets.newHashSet( psB ), ouA );
-        prC = createProgram( 'C', Sets.newHashSet( psC ), ouA );
+        prA = createProgram( 'A', Set.of( psA ), ouA );
+        prB = createProgram( 'B', Set.of( psB ), ouA );
+        prC = createProgram( 'C', Set.of( psC ), ouA );
         TrackedEntityAttribute teA = createTrackedEntityAttribute( 'A', ValueType.ORGANISATION_UNIT );
         teA.setUid( deD.getUid() );
         ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA );
-        prC.setProgramAttributes( Collections.singletonList( pteA ) );
+        prC.setProgramAttributes( List.of( pteA ) );
         peA = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() );
         peB = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         peC = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() );
@@ -164,15 +160,15 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA, ouB ) ) )
+                List.of( ouA, ouB ) ) )
             .addItem( qiA ).addItem( qiB ).build();
         EventQueryParams paramsB = new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB ) ) )
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB ) ) )
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA ) ) )
+                List.of( ouA ) ) )
             .addItem( qiA ).addItem( qiB ).withGeometryOnly( true ).build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
@@ -186,7 +182,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
             .build();
         assertNull( params.getStartDate() );
         assertNull( params.getEndDate() );
@@ -202,7 +198,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         // Given
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peB, peC ) ) )
             .build();
 
         // When
@@ -225,7 +221,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         // Given
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peA, peC ) ) )
             .build();
 
         // When
@@ -248,7 +244,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         LegendSet lsA = createLegendSet( 'A', leA, leB );
         QueryItem qiA = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
         EventQueryParams params = new EventQueryParams.Builder().addItem( qiA ).build();
-        Set<Legend> expected = Sets.newHashSet( leA, leB );
+        Set<Legend> expected = Set.of( leA, leB );
         assertEquals( expected, params.getItemLegends() );
     }
 
@@ -258,7 +254,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );
         QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), osB );
         EventQueryParams params = new EventQueryParams.Builder().addItem( qiA ).addItem( qiB ).build();
-        Set<Option> expected = Sets.newHashSet( opA, opB, opC, opD );
+        Set<Option> expected = Set.of( opA, opB, opC, opD );
         assertEquals( expected, params.getItemOptions() );
     }
 

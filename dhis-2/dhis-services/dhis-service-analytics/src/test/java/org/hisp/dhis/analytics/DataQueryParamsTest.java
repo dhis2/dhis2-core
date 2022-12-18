@@ -87,9 +87,6 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -210,19 +207,19 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testAddDimension()
     {
         DimensionalObject doA = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, Lists.newArrayList() );
+            DimensionType.ORGANISATION_UNIT, List.of() );
         DimensionalObject doB = new BaseDimensionalObject( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID,
-            DimensionType.CATEGORY_OPTION_COMBO, Lists.newArrayList() );
+            DimensionType.CATEGORY_OPTION_COMBO, List.of() );
         DimensionalObject doC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList() );
+            List.of() );
         DimensionalObject doD = new BaseDimensionalObject( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID,
-            DimensionType.ATTRIBUTE_OPTION_COMBO, Lists.newArrayList() );
+            DimensionType.ATTRIBUTE_OPTION_COMBO, List.of() );
         DimensionalObject doE = new BaseDimensionalObject( "WpDi1seZU0Z", DimensionType.DATA_ELEMENT_GROUP_SET,
-            Lists.newArrayList() );
+            List.of() );
         DimensionalObject doF = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList() );
+            List.of() );
         DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
-            Lists.newArrayList() );
+            List.of() );
         DataQueryParams params = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doB )
             .addDimension( doC ).addDimension( doD ).addDimension( doE ).addDimension( doF ).addDimension( doG )
             .build();
@@ -240,8 +237,8 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testSetGetDataElementsReportingRates()
     {
-        List<? extends DimensionalItemObject> dataElements = Lists.newArrayList( deA, deB, deC );
-        List<? extends DimensionalItemObject> reportingRates = Lists.newArrayList( rrA, rrB );
+        List<? extends DimensionalItemObject> dataElements = List.of( deA, deB, deC );
+        List<? extends DimensionalItemObject> reportingRates = List.of( rrA, rrB );
         DataQueryParams params = DataQueryParams.newBuilder().withDataElements( dataElements )
             .withReportingRates( reportingRates ).build();
         assertEquals( 3, params.getDataElements().size() );
@@ -260,7 +257,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testGetDimensionItemsFromParam()
     {
-        List<String> expected = new ArrayList<>( Lists.newArrayList( "D348asd782j", "kj78HnH6hgT", "9ds9dS98s2" ) );
+        List<String> expected = List.of( "D348asd782j", "kj78HnH6hgT", "9ds9dS98s2" );
         assertEquals( expected,
             DimensionalObjectUtils.getDimensionItemsFromParam( "de:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
     }
@@ -268,11 +265,9 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testGetDimensionItemsFromParamForPeriods()
     {
-        List<String> expected = new ArrayList<>(
-            Lists.newArrayList( "TODAY:LAST_UPDATED", "LAST_WEEK:INCIDENT_DATE", "YESTERDAY" ) );
-        assertEquals( expected,
-            DimensionalObjectUtils
-                .getDimensionItemsFromParam( "pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE;YESTERDAY" ) );
+        List<String> expected = List.of( "TODAY:LAST_UPDATED", "LAST_WEEK:INCIDENT_DATE", "YESTERDAY" );
+        assertEquals( expected, DimensionalObjectUtils
+            .getDimensionItemsFromParam( "pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE;YESTERDAY" ) );
     }
 
     @Test
@@ -298,13 +293,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
         assertFalse( params.hasPeriods() );
         List<DimensionalItemObject> periods = new ArrayList<>();
         params = DataQueryParams.newBuilder( params )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
+            .withPeriods( periods )
+            .build();
         assertFalse( params.hasPeriods() );
         params = DataQueryParams.newBuilder().removeDimension( PERIOD_DIM_ID ).build();
         assertFalse( params.hasPeriods() );
         periods.add( new Period() );
         params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
+            .withPeriods( periods )
+            .build();
         assertTrue( params.hasPeriods() );
     }
 
@@ -312,17 +309,18 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testPruneToDimensionType()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null,
-                Lists.newArrayList( createIndicator( 'A', null ), createIndicator( 'B', null ) ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                null, null, Lists.newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ) ) ) )
-            .addFilter( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, null,
-                Lists.newArrayList( createPeriod( "201201" ), createPeriod( "201202" ) ) ) )
+            .withDataDimensionItems( List.of( createIndicator( 'A', null ), createIndicator( 'B', null ) ) )
+            .withOrganisationUnits( List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ) ) )
+            .withFilterPeriods( List.of( createPeriod( "201201" ), createPeriod( "201202" ) ) )
             .build();
+
         assertEquals( 2, params.getDimensions().size() );
         assertEquals( 1, params.getFilters().size() );
+
         params = DataQueryParams.newBuilder( params )
-            .pruneToDimensionType( DimensionType.ORGANISATION_UNIT ).build();
+            .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
+            .build();
+
         assertEquals( 1, params.getDimensions().size() );
         assertEquals( DimensionType.ORGANISATION_UNIT, params.getDimensions().get( 0 ).getDimensionType() );
         assertEquals( 0, params.getFilters().size() );
@@ -331,12 +329,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testRetainDataDimension()
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( inA, inB, deA, deB, deC, rrA, rrB );
+        List<DimensionalItemObject> items = List.of( inA, inB, deA, deB, deC, rrA, rrB );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items ).build();
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items )
+            .build();
         assertEquals( 7, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
+
         params = DataQueryParams.newBuilder( params )
-            .retainDataDimension( DataDimensionItemType.DATA_ELEMENT ).build();
+            .retainDataDimension( DataDimensionItemType.DATA_ELEMENT )
+            .build();
         assertEquals( 3, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deA ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deB ) );
@@ -346,12 +347,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testRetainDataDimensions()
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( inA, inB, deA, deB, deC, rrA, rrB );
+        List<DimensionalItemObject> items = List.of( inA, inB, deA, deB, deC, rrA, rrB );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items ).build();
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items )
+            .build();
         assertEquals( 7, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
+
         params = DataQueryParams.newBuilder( params )
-            .retainDataDimensions( DataDimensionItemType.DATA_ELEMENT, DataDimensionItemType.REPORTING_RATE ).build();
+            .retainDataDimensions( DataDimensionItemType.DATA_ELEMENT, DataDimensionItemType.REPORTING_RATE )
+            .build();
         assertEquals( 5, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deA ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( deB ) );
@@ -365,10 +369,11 @@ class DataQueryParamsTest extends DhisConvenienceTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null,
-                Lists.newArrayList( deA, deB, deC ) )
+                List.of( deA, deB, deC ) )
             .addOrSetDimensionOptions( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null,
-                Lists.newArrayList( peA, peB ) )
+                List.of( peA, peB ) )
             .build();
+
         List<DimensionalItemObject> items = params
             .getDimensionItemsExplodeCoc( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID );
         assertEquals( 2, items.size() );
@@ -379,12 +384,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testRetainDataDimensionReportingRates()
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( inA, inB, deA, deB, deC, rrA, rrB, rrC, rrD );
+        List<DimensionalItemObject> items = List.of( inA, inB, deA, deB, deC, rrA, rrB, rrC, rrD );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items ).build();
+            .addOrSetDimensionOptions( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, items )
+            .build();
         assertEquals( 9, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
+
         params = DataQueryParams.newBuilder( params )
-            .retainDataDimensionReportingRates( ReportingRateMetric.REPORTING_RATE ).build();
+            .retainDataDimensionReportingRates( ReportingRateMetric.REPORTING_RATE )
+            .build();
         assertEquals( 2, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrA ) );
         assertTrue( params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().contains( rrB ) );
@@ -393,28 +401,33 @@ class DataQueryParamsTest extends DhisConvenienceTest
     @Test
     void testSetDimensionOptions()
     {
-        List<DimensionalItemObject> itemsBefore = Lists.newArrayList( createIndicator( 'A', null ),
+        List<DimensionalItemObject> itemsBefore = List.of( createIndicator( 'A', null ),
             createIndicator( 'B', null ), createIndicator( 'C', null ), createIndicator( 'D', null ) );
-        List<DimensionalItemObject> itemsAfter = Lists.newArrayList( createIndicator( 'A', null ),
+        List<DimensionalItemObject> itemsAfter = List.of( createIndicator( 'A', null ),
             createIndicator( 'B', null ) );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null,
-                itemsBefore ) )
+            .addDimension( new BaseDimensionalObject(
+                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null, itemsBefore ) )
             .build();
         assertEquals( itemsBefore, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems() );
+
         params = DataQueryParams.newBuilder( params )
-            .withDimensionOptions( DimensionalObject.DATA_X_DIM_ID, itemsAfter ).build();
+            .withDimensionOptions( DimensionalObject.DATA_X_DIM_ID, itemsAfter )
+            .build();
         assertEquals( itemsAfter, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems() );
     }
 
     @Test
     void testGetDaysForAvgSumIntAggregation()
     {
-        List<DimensionalItemObject> dataElements = Lists.newArrayList( deA, deB, deC );
-        List<DimensionalItemObject> periods = Lists.newArrayList( peA, peB );
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( dataElements ).withPeriods( periods )
+        List<DimensionalItemObject> dataElements = List.of( deA, deB, deC );
+        List<DimensionalItemObject> periods = List.of( peA, peB );
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withPeriods( periods )
             .build();
         assertEquals( peA.getDaysInPeriod(), params.getDaysForAvgSumIntAggregation() );
+
         params = DataQueryParams.newBuilder().withDataElements( dataElements ).withFilterPeriods( periods ).build();
         int totalDays = peA.getDaysInPeriod() + peB.getDaysInPeriod();
         assertEquals( totalDays, params.getDaysForAvgSumIntAggregation() );
@@ -424,12 +437,12 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetDimensionsAndFiltersByDimensionTypes()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .withDataElements( List.of( deA, deB, deC ) )
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
             .build();
         List<DimensionalObject> dimensions = params
-            .getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
+            .getDimensionsAndFilters( Set.of( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
         assertEquals( 2, dimensions.size() );
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );
@@ -442,11 +455,13 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period feb_2016 = PeriodType.getPeriodFromIsoString( "201602" );
         Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603" );
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( jan_2016 ) )
-            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) ).build();
+            .withPeriods( List.of( jan_2016 ) )
+            .withFilterPeriods( List.of( feb_2016, mar_2016 ) )
+            .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( mar_2016 ) )
-            .withFilterPeriods( Lists.newArrayList( jan_2016, feb_2016 ) ).build();
+            .withPeriods( List.of( mar_2016 ) )
+            .withFilterPeriods( List.of( jan_2016, feb_2016 ) )
+            .build();
         assertEquals( mar_2016, paramsA.getLatestPeriod() );
         assertEquals( mar_2016, paramsB.getLatestPeriod() );
     }
@@ -459,13 +474,16 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Calendar today = Calendar.getInstance();
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withEndDate( today.getTime() )
-            .withPeriods( Lists.newArrayList( q1_2016 ) )
-            .withFilterPeriods( Lists.newArrayList( q2_2016 ) ).build();
+            .withPeriods( List.of( q1_2016 ) )
+            .withFilterPeriods( List.of( q2_2016 ) )
+            .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .withEndDate( q1_2016.getEndDate() ).build();
+            .withEndDate( q1_2016.getEndDate() )
+            .build();
         DataQueryParams paramsC = DataQueryParams.newBuilder()
-            .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
-            .withPeriods( Lists.newArrayList( q1_2016 ) ).build();
+            .withFilterPeriods( List.of( q2_2016 ) )
+            .withPeriods( List.of( q1_2016 ) )
+            .build();
         assertEquals( today.getTime(), paramsA.getLatestEndDate() );
         assertEquals( q1_2016.getEndDate(), paramsB.getLatestEndDate() );
         assertEquals( q2_2016.getEndDate(), paramsC.getLatestEndDate() );
@@ -479,14 +497,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period mar_2016 = PeriodType.getPeriodFromIsoString( "201603" );
         Date dec_2015 = getDate( 2015, 12, 1 );
         DataQueryParams paramsA = DataQueryParams.newBuilder().withStartDate( dec_2015 )
-            .withPeriods( Lists.newArrayList( jan_2016 ) )
-            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
+            .withPeriods( List.of( jan_2016 ) )
+            .withFilterPeriods( List.of( feb_2016, mar_2016 ) )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
             .withStartDate( jan_2016.getStartDate() ).build();
         DataQueryParams paramsC = DataQueryParams.newBuilder()
-            .withFilterPeriods( Lists.newArrayList( feb_2016, mar_2016 ) )
-            .withPeriods( Lists.newArrayList( jan_2016 ) )
+            .withFilterPeriods( List.of( feb_2016, mar_2016 ) )
+            .withPeriods( List.of( jan_2016 ) )
             .build();
         assertEquals( dec_2015, paramsA.getEarliestStartDate() );
         assertEquals( jan_2016.getStartDate(), paramsB.getEarliestStartDate() );
@@ -500,11 +518,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period apr_2016 = PeriodType.getPeriodFromIsoString( "201604" );
         Period may_2016 = PeriodType.getPeriodFromIsoString( "201605" );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( mar_2016, apr_2016, may_2016 ) ).build();
+            .withPeriods( List.of( mar_2016, apr_2016, may_2016 ) )
+            .build();
         assertEquals( 3, params.getPeriods().size() );
+
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withEarliestStartDateLatestEndDate()
-            .withPeriodDimensionWithoutOptions().build();
+            .withPeriodDimensionWithoutOptions()
+            .build();
         assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
         assertEquals( 0, query.getPeriods().size() );
         assertEquals( getDate( 2016, 3, 1 ), query.getStartDate() );
@@ -515,11 +536,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testSetPeriodDimensionWithoutOptionsB()
     {
         DataQueryParams params = DataQueryParams.newBuilder().withStartDate( getDate( 2017, 3, 1 ) )
-            .withEndDate( getDate( 2017, 5, 31 ) ).build();
+            .withEndDate( getDate( 2017, 5, 31 ) )
+            .build();
         assertEquals( 0, params.getPeriods().size() );
+
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withEarliestStartDateLatestEndDate()
-            .withPeriodDimensionWithoutOptions().build();
+            .withPeriodDimensionWithoutOptions()
+            .build();
         assertNotNull( query.getDimension( DimensionalObject.PERIOD_DIM_ID ) );
         assertEquals( 0, query.getPeriods().size() );
         assertEquals( getDate( 2017, 3, 1 ), query.getStartDate() );
@@ -530,12 +554,10 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetAllTypedOrganisationUnits()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA, ouB ) ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .addFilter( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA, ouB ) ) )
+            .withFilterOrganisationUnits( List.of( ouA, ouB ) )
             .build();
         assertEquals( 2, paramsA.getAllTypedOrganisationUnits().size() );
         assertEquals( 2, paramsB.getAllTypedOrganisationUnits().size() );
@@ -545,10 +567,11 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetDataElements()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataDimensionItems( Lists.newArrayList( deA, deB, inA, inB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .withReportingRates( Lists.newArrayList( rrA, rrB, rrC ) ).build();
-        List<DimensionalItemObject> expected = Lists.newArrayList( deA, deB );
+            .withDataDimensionItems( List.of( deA, deB, inA, inB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withReportingRates( List.of( rrA, rrB, rrC ) )
+            .build();
+        List<DimensionalItemObject> expected = List.of( deA, deB );
         assertEquals( expected, params.getDataElements() );
     }
 
@@ -556,10 +579,11 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetDataElementsOperandsProgramDataElements()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataDimensionItems( Lists.newArrayList( inA, deoA, deoB, rrA, pdeA, deC ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .withReportingRates( Lists.newArrayList( rrA, rrB, rrC ) ).build();
-        List<DimensionalItemObject> expected = Lists.newArrayList( deA, deB, deC );
+            .withDataDimensionItems( List.of( inA, deoA, deoB, rrA, pdeA, deC ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withReportingRates( List.of( rrA, rrB, rrC ) )
+            .build();
+        List<DimensionalItemObject> expected = List.of( deA, deB, deC );
         assertContainsOnly( expected, params.getDataElementsOperandsProgramDataElements() );
     }
 
@@ -567,10 +591,11 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetAllDataSets()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
-            .withReportingRates( Lists.newArrayList( rrA, rrB, rrC ) ).build();
-        Set<DimensionalItemObject> expected = Sets.newHashSet( dsA, dsB, dsC );
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withReportingRates( List.of( rrA, rrB, rrC ) )
+            .build();
+        Set<DimensionalItemObject> expected = Set.of( dsA, dsB, dsC );
         assertEquals( expected, params.getAllDataSets() );
     }
 
@@ -578,19 +603,23 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetCategoryOptions()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) ).withCategory( caA ).build();
-        Set<DimensionalItemObject> expected = Sets.newHashSet( coA, coB );
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withCategory( caA )
+            .build();
+        Set<DimensionalItemObject> expected = Set.of( coA, coB );
         assertEquals( expected, params.getCategoryOptions() );
     }
 
     @Test
     void testGetDataElementGroups()
     {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElementGroupSet( degsA )
-            .withPeriods( Lists.newArrayList( peA, peB ) ).withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElementGroupSet( degsA )
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
             .build();
-        List<DimensionalItemObject> expected = Lists.newArrayList( degA, degB );
+        List<DimensionalItemObject> expected = List.of( degA, degB );
         assertEquals( expected, params.getAllDataElementGroups() );
     }
 
@@ -600,10 +629,12 @@ class DataQueryParamsTest extends DhisConvenienceTest
         ProgramTrackedEntityAttributeDimensionItem ptaA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
         ProgramDataElementDimensionItem pdeA = new ProgramDataElementDimensionItem( prB, deA );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withProgramAttributes( Lists.newArrayList( ptaA ) )
-            .withProgramDataElements( Lists.newArrayList( pdeA ) ).withPeriods( Lists.newArrayList( peA, peB ) )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) ).build();
-        Set<Program> expected = Sets.newHashSet( prA, prB );
+            .withProgramAttributes( List.of( ptaA ) )
+            .withProgramDataElements( List.of( pdeA ) )
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .build();
+        Set<Program> expected = Set.of( prA, prB );
         assertEquals( expected, params.getProgramsInAttributesAndDataElements() );
     }
 
@@ -631,21 +662,16 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetKey()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-                Lists.newArrayList( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( peA ) ) )
+            .withDataDimensionItems( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA ) )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-                Lists.newArrayList( deA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                Lists.newArrayList( ouA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( peB ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+            .withDataDimensionItems( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( List.of( peB ) )
+            .withAggregationType( AnalyticsAggregationType.AVERAGE )
+            .build();
         assertNotNull( paramsA.getKey() );
         assertEquals( 40, paramsA.getKey().length() );
         assertNotNull( paramsB.getKey() );
@@ -658,8 +684,9 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testFinancialYearPeriodResultsInTwoAggregationYears()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peC ) ) )
-            .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) ).build();
+            .withPeriods( List.of( peC ) )
+            .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) )
+            .build();
         ListMap<DimensionalItemObject, DimensionalItemObject> periodMap = params.getDataPeriodAggregationPeriodMap();
         assertThat( periodMap.entrySet(), hasSize( 2 ) );
         assertThat( periodMap.keySet(), IsIterableContainingInAnyOrder.containsInAnyOrder(
@@ -679,11 +706,13 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period todayPeriod = new DailyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( weeklyPeriod, todayPeriod ) ) )
+                List.of( weeklyPeriod, todayPeriod ) ) )
             .build();
 
         // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods()
+            .build();
 
         // Then
         assertEquals( 2, params.getDateRangeList().size() );
@@ -703,11 +732,13 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
+                List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
             .build();
 
         // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods()
+            .build();
 
         // Then
         assertEquals( 3, params.getDateRangeList().size() );
@@ -730,11 +761,13 @@ class DataQueryParamsTest extends DhisConvenienceTest
         Period monthlyPeriod = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() );
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
+                List.of( weeklyPeriod, todayPeriod, monthlyPeriod ) ) )
             .build();
 
         // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods()
+            .build();
 
         // Then
         assertEquals( 3, params.getDateRangeList().size() );
