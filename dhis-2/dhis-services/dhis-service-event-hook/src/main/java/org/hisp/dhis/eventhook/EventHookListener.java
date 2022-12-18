@@ -28,9 +28,9 @@
 package org.hisp.dhis.eventhook;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -64,7 +64,7 @@ public class EventHookListener
 
     private final FieldFilterService fieldFilterService;
 
-    private final Map<String, List<Handler>> targets = new HashMap<>();
+    private final Map<String, List<Handler>> targets = new ConcurrentHashMap<>();
 
     private final List<EventHook> eventHooks = new ArrayList<>();
 
@@ -106,10 +106,13 @@ public class EventHookListener
     @EventListener( ReloadEventHookListener.class )
     public void reload()
     {
-        eventHooks.clear();
-        targets.clear();
+        synchronized ( this )
+        {
+            eventHooks.clear();
+            targets.clear();
 
-        eventHooks.addAll( eventHookService.getAll() );
+            eventHooks.addAll( eventHookService.getAll() );
+        }
 
         eventHooks.forEach( eh -> {
             targets.put( eh.getUid(), new ArrayList<>() );
