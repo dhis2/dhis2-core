@@ -119,11 +119,11 @@ public class EventHookListener
 
             for ( Target target : eh.getTargets() )
             {
-                if ( "webhook".equals(target.getType()) )
+                if ( "webhook".equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new WebhookHandler( (WebhookTarget) target ) );
                 }
-                else if ( "console".equals(target.getType()) )
+                else if ( "console".equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
                 }
