@@ -327,8 +327,10 @@ class QueryItemHelperTest extends DhisConvenienceTest
         Map<String, List<Option>> options = QueryItemHelper.getItemOptions( grid, params );
 
         // Then
-        assertTrue(
-            options.values().stream().flatMap( Collection::stream ).collect( Collectors.toList() ).contains( option ) );
+        assertTrue( options.values().stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() )
+            .contains( option ) );
     }
 
     @Test

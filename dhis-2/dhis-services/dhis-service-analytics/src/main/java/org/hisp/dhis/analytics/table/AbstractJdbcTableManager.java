@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -132,6 +133,8 @@ public abstract class AbstractJdbcTableManager
     protected final DatabaseInfo databaseInfo;
 
     protected final JdbcTemplate jdbcTemplate;
+
+    protected final AnalyticsExportSettings analyticsExportSettings;
 
     private static final String WITH_AUTOVACUUM_ENABLED_FALSE = "with(autovacuum_enabled = false)";
 
@@ -437,7 +440,10 @@ public abstract class AbstractJdbcTableManager
 
         String tableName = table.getTempTableName();
 
-        StringBuilder sqlCreate = new StringBuilder( "create table " + tableName + " (" );
+        StringBuilder sqlCreate = new StringBuilder();
+
+        sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+            .append( tableName ).append( " (" );
 
         for ( AnalyticsTableColumn col : ListUtils.union( table.getDimensionColumns(), table.getValueColumns() ) )
         {
@@ -473,22 +479,25 @@ public abstract class AbstractJdbcTableManager
 
             dropViewSilentlyIfExists( table );
 
-            String sqlCreate = "create table " + tableName + " (";
+            StringBuilder sqlCreate = new StringBuilder();
+
+            sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
+                .append( tableName ).append( "(" );
 
             if ( !checks.isEmpty() )
             {
                 StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
+                sqlCreate.append( TextUtils.removeLastComma( sqlCheck.toString() ) );
             }
 
-            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate.append( ") inherits (" ).append( table.getTempTableName() ).append( ") " )
+                .append( getTableOptions() );
 
             log.info( "Creating partition table: '{}'", tableName );
-
             log.debug( "Create SQL: {}", sqlCreate );
 
-            jdbcTemplate.execute( sqlCreate );
+            jdbcTemplate.execute( sqlCreate.toString() );
         }
     }
 

@@ -49,9 +49,12 @@ import com.google.common.collect.Lists;
 public class CategoryOptionComboNameResourceTable
     extends ResourceTable<CategoryCombo>
 {
-    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects )
+    private final String tableType;
+
+    public CategoryOptionComboNameResourceTable( List<CategoryCombo> objects, String tableType )
     {
         super( objects );
+        this.tableType = tableType;
     }
 
     @Override
@@ -63,7 +66,7 @@ public class CategoryOptionComboNameResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        return "create table " + getTempTableName() +
+        return "create " + tableType + " table " + getTempTableName() +
             " (categoryoptioncomboid bigint not null primary key, " +
             "categoryoptioncomboname varchar(255), approvallevel integer, " +
             "startdate date, enddate date)";

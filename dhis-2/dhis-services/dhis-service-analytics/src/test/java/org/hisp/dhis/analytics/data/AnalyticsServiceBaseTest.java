@@ -135,7 +135,8 @@ abstract class AnalyticsServiceBaseTest
 
         when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )
             .thenReturn( false );
-        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
+        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() )
+            .thenReturn( 0L );
     }
 
     void initMock( DataQueryParams params )
