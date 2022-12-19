@@ -887,9 +887,9 @@ public class EventQueryParams
      */
     public boolean isValueTypeAggregateable()
     {
-        return hasValueTypedValueDimension()
-            ? getValueDimensionValueType().isAggregatable( getAggregationTypeFallback().getAggregationType() )
-            : false;
+        ValueType valueType = getValueDimensionValueType();
+        AggregationType aggregationType = getAggregationTypeFallback().getAggregationType();
+        return valueType != null ? valueType.isAggregatable( aggregationType ) : false;
     }
 
     /**
