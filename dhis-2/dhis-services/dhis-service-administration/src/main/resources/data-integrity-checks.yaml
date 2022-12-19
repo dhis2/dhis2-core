@@ -29,4 +29,5 @@ checks:
   - data_elements/aggregate_des_inconsistent_agg_operator.yaml
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml
+  - indicators/indicator_noanalysis.yaml
 
