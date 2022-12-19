@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.category.CategoryCombo;
@@ -125,13 +126,16 @@ class EventQueryParamsTest extends DhisConvenienceTest
         osA = createOptionSet( 'A', opA, opB );
         osB = createOptionSet( 'B', opC, opD );
         deA = createDataElement( 'A' );
+        deA.setValueType( ValueType.INTEGER );
         deB = createDataElement( 'B' );
+        deB.setValueType( ValueType.INTEGER );
         deC = createDataElement( 'C' );
         deC.setValueType( ValueType.DATE );
         deD = createDataElement( 'D' );
         deD.setValueType( ValueType.ORGANISATION_UNIT );
         deE = createDataElement( 'E' );
         deE.setValueType( ValueType.TEXT );
+        deE.setAggregationType( AggregationType.NONE );
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         psA = createProgramStage( 'A', prA );
@@ -161,7 +165,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testHasDimensionValue()
+    void testHasValueDimension()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )
@@ -177,7 +181,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testHasValueTypedDimensionValue()
+    void testHasValueTypedValueDimension()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )
@@ -194,7 +198,36 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testHasNumericDimensionValue()
+    void testIsValueTypeAggregateable()
+    {
+        DataElement deX = createDataElement( 'X' );
+        deX.setValueType( ValueType.TEXT );
+        deX.setAggregationType( AggregationType.SUM );
+
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withValue( deA )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withValue( deE )
+            .build();
+
+        EventQueryParams paramsC = new EventQueryParams.Builder()
+            .withValue( deX )
+            .build();
+
+        EventQueryParams paramsD = new EventQueryParams.Builder()
+            .withValue( piA )
+            .build();
+
+        assertTrue( paramsA.isValueTypeAggregateable() );
+        assertTrue( paramsB.isValueTypeAggregateable() );
+        assertFalse( paramsC.isValueTypeAggregateable() );
+        assertFalse( paramsD.isValueTypeAggregateable() );
+    }
+
+    @Test
+    void testHasNumericValueDimension()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )
@@ -211,7 +244,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
-    void testHasTextDimensionValue()
+    void testHasTextValueDimension()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )

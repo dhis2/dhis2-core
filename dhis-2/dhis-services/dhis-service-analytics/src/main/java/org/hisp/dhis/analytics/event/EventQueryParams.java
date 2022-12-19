@@ -73,6 +73,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -866,6 +867,32 @@ public class EventQueryParams
     }
 
     /**
+     * Returns the {@link ValueType} of the value typed value dimension. Returns
+     * null if a value typed value dimension does not exists.
+     *
+     * @return the {@link ValueType} of the value typed value dimension, or null
+     *         if it does not exist.
+     */
+    private ValueType getValueDimensionValueType()
+    {
+        return hasValueTypedValueDimension() ? ((ValueTypedDimensionalItemObject) value).getValueType() : null;
+    }
+
+    /**
+     * Indicates whether the combination of value type and aggregation type is
+     * considered aggregateable. If a value typed value dimension does not
+     * exists, false is returned.
+     *
+     * @return true if the value type and aggregation type are aggregateable.
+     */
+    public boolean isValueTypeAggregateable()
+    {
+        return hasValueTypedValueDimension()
+            ? getValueDimensionValueType().isAggregatable( getAggregationTypeFallback().getAggregationType() )
+            : false;
+    }
+
+    /**
      * Checks if a value dimension with a numeric value type exists.
      *
      * @return true if a value dimension with a numeric value type exists, false
@@ -877,6 +904,12 @@ public class EventQueryParams
             ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
     }
 
+    /**
+     * Checks if a value dimension with a text value type exists.
+     *
+     * @return true if a value dimension with a text value type exists, false if
+     *         not.
+     */
     public boolean hasTextValueDimension()
     {
         return hasValueTypedValueDimension() &&

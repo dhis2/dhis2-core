@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -90,7 +91,7 @@ class EventQueryValidatorTest extends DhisConvenienceTest
     private QueryValidator queryValidator;
 
     @InjectMocks
-    private DefaultEventQueryValidator eventQueryValidator;
+    private EventQueryValidator eventQueryValidator;
 
     @BeforeEach
     public void setUpTest()
