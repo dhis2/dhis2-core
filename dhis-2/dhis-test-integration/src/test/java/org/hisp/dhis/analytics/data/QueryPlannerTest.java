@@ -525,7 +525,7 @@ class QueryPlannerTest extends TransactionalIntegrationTest
     {
         DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
+            .withPeriods( List.of( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
                 createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) )
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
