@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -39,6 +38,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -97,7 +97,7 @@ class RelationshipPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -113,7 +113,7 @@ class RelationshipPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship.getUid(), "from" );
+        assertMissingProperty( reporter, relationship, "from" );
     }
 
     @Test
@@ -129,7 +129,7 @@ class RelationshipPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship.getUid(), "to" );
+        assertMissingProperty( reporter, relationship, "to" );
     }
 
     @Test
@@ -148,13 +148,12 @@ class RelationshipPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship.getUid(), "relationshipType" );
+        assertMissingProperty( reporter, relationship, "relationshipType" );
     }
 
-    private void assertMissingProperty( Reporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
     {
-        AssertValidationErrorReporter.assertMissingProperty( reporter, RELATIONSHIP, "relationship", uid, property,
-            ValidationCode.E1124 );
+        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1124, property );
     }
 
     private String trackedEntity()

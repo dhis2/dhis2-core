@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -38,6 +37,7 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -92,7 +92,7 @@ class EnrollmentPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -107,7 +107,7 @@ class EnrollmentPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertMissingProperty( reporter, enrollment.getUid(), "trackedEntity" );
+        assertMissingProperty( reporter, enrollment, "trackedEntity" );
     }
 
     @Test
@@ -122,7 +122,7 @@ class EnrollmentPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertMissingProperty( reporter, enrollment.getUid(), "program" );
+        assertMissingProperty( reporter, enrollment, "program" );
     }
 
     @Test
@@ -137,12 +137,11 @@ class EnrollmentPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertMissingProperty( reporter, enrollment.getUid(), "orgUnit" );
+        assertMissingProperty( reporter, enrollment, "orgUnit" );
     }
 
-    private void assertMissingProperty( Reporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
     {
-        AssertValidationErrorReporter.assertMissingProperty( reporter, ENROLLMENT, "enrollment", uid, property,
-            ValidationCode.E1122 );
+        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1122, property );
     }
 }

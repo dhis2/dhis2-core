@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1030;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1032;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1082;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +91,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -105,7 +104,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -119,7 +118,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -133,7 +132,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1082, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1082 );
     }
 
     @Test
@@ -147,7 +146,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1030, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1030 );
     }
 
     @Test
@@ -160,7 +159,7 @@ class EventPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1032, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1032 );
     }
 
     private ProgramStageInstance getSoftDeletedEvent()

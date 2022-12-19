@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -79,7 +78,7 @@ class EnrollmentPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -89,7 +88,7 @@ class EnrollmentPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1048 );
     }
 
     @Test
@@ -101,6 +100,6 @@ class EnrollmentPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1048 );
     }
 }

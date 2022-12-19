@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -78,7 +77,7 @@ class EventPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -88,7 +87,7 @@ class EventPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1048 );
     }
 
     @Test
@@ -99,6 +98,6 @@ class EventPreCheckUidValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1048 );
     }
 }

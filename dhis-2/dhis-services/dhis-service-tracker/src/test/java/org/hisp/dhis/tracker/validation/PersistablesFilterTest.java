@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E5000;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E5001;
-import static org.hisp.dhis.tracker.validation.validator.AssertTrackerValidationReport.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -61,6 +60,7 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.validator.AssertValidations;
 import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -176,7 +176,7 @@ class PersistablesFilterTest
         assertAll(
                 () -> assertIsEmpty( persistable.get( TrackedEntity.class ) ),
                 () -> assertIsEmpty( persistable.get( Enrollment.class ) ),
-                () -> assertError(persistable, E5000, ENROLLMENT, "t1zaUjKgT3p", "because \"trackedEntity\" `xK7H53f4Hc2`")
+                () -> assertHasError(persistable, ENROLLMENT, "t1zaUjKgT3p", E5000, "because \"trackedEntity\" `xK7H53f4Hc2`")
         );
     }
 
@@ -218,7 +218,7 @@ class PersistablesFilterTest
                 () -> assertContainsOnly( persistable, TrackedEntity.class, "xK7H53f4Hc2" ),
                 () -> assertIsEmpty( persistable.get( Enrollment.class ) ),
                 () -> assertIsEmpty( persistable.get( Event.class ) ),
-                () -> assertError(persistable, E5000, EVENT, "Qck4PQ7TMun", "because \"enrollment\" `t1zaUjKgT3p`")
+                () -> assertHasError(persistable, EVENT, "Qck4PQ7TMun", E5000, "because \"enrollment\" `t1zaUjKgT3p`")
         );
     }
 
@@ -306,7 +306,7 @@ class PersistablesFilterTest
         assertAll(
                 () -> assertContainsOnly( persistable, TrackedEntity.class,  "xK7H53f4Hc2" ),
                 () -> assertIsEmpty( persistable.get( Relationship.class ) ),
-                () -> assertError(persistable, E5000, RELATIONSHIP, "Te3IC6TpnBB", "because \"enrollment\" `QxGbKYwChDM`")
+                () -> assertHasError(persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "because \"enrollment\" `QxGbKYwChDM`")
         );
     }
 
@@ -330,7 +330,7 @@ class PersistablesFilterTest
                 () -> assertContainsOnly( persistable, TrackedEntity.class,  "xK7H53f4Hc2" ),
                 () -> assertContainsOnly( persistable, Enrollment.class,  "QxGbKYwChDM" ),
                 () -> assertIsEmpty( persistable.get( Relationship.class ) ),
-                () -> assertError(persistable, E5000, RELATIONSHIP, "Te3IC6TpnBB", "because \"event\" `QxGbKYwChDM`")
+                () -> assertHasError(persistable, RELATIONSHIP, "Te3IC6TpnBB", E5000, "because \"event\" `QxGbKYwChDM`")
         );
     }
 
@@ -463,9 +463,9 @@ class PersistablesFilterTest
                 () -> assertContainsOnly( persistable, Enrollment.class, "Ok4Fe5moc3N"),
                 () -> assertIsEmpty(persistable.get(Event.class)),
                 () -> assertIsEmpty(persistable.get(Relationship.class)),
-                () -> assertError(persistable, E5001, TRACKED_ENTITY, "xK7H53f4Hc2", "because \"relationship\" `Te3IC6TpnBB`"),
-                () -> assertError(persistable, E5001, ENROLLMENT, "t1zaUjKgT3p", "because \"event\" `Qck4PQ7TMun`"),
-                () -> assertError(persistable, E5001, EVENT, "Qck4PQ7TMun", "because \"relationship\" `Te3IC6TpnBB`")
+                () -> assertHasError(persistable, TRACKED_ENTITY, "xK7H53f4Hc2", E5001, "because \"relationship\" `Te3IC6TpnBB`"),
+                () -> assertHasError(persistable, ENROLLMENT, "t1zaUjKgT3p", E5001, "because \"event\" `Qck4PQ7TMun`"),
+                () -> assertHasError(persistable, EVENT, "Qck4PQ7TMun", E5001, "because \"relationship\" `Te3IC6TpnBB`")
         );
     }
 
@@ -493,8 +493,8 @@ class PersistablesFilterTest
                 () -> assertContainsOnly( persistable, Enrollment.class, "Ok4Fe5moc3N"),
                 () -> assertContainsOnly( persistable, Event.class, "Ox1qBWsnVwE"),
                 () -> assertIsEmpty(persistable.get(Relationship.class)),
-                () -> assertError(persistable, E5001, ENROLLMENT, "t1zaUjKgT3p", "because \"relationship\" `Te3IC6TpnBB`"),
-                () -> assertError(persistable, E5001, EVENT, "QxGbKYwChDM", "because \"relationship\" `Te3IC6TpnBB`")
+                () -> assertHasError(persistable, ENROLLMENT, "t1zaUjKgT3p", E5001, "because \"relationship\" `Te3IC6TpnBB`"),
+                () -> assertHasError(persistable, EVENT, "QxGbKYwChDM", E5001, "because \"relationship\" `Te3IC6TpnBB`")
         );
     }
 
@@ -819,7 +819,20 @@ class PersistablesFilterTest
         return persistable.get( type ).stream().map( TrackerDto::getUid ).collect( Collectors.toList() );
     }
 
-    private static void assertError(PersistablesFilter.Result result, ValidationCode code, TrackerType type, String uid, String messageContains ) {
-        assertHasError(result.getErrors(), code, type, uid, messageContains);
+    private static void assertHasError(PersistablesFilter.Result result, TrackerType type, String uid, ValidationCode code, String messageContains ) {
+        AssertValidations.assertHasError(result.getErrors(), dto(type, uid), code, messageContains);
+    }
+
+    private static TrackerDto dto(TrackerType type, String uid) {
+        return new TrackerDto() {
+            @Override
+            public TrackerType getTrackerType() {
+                return type;
+            }
+            @Override
+            public String getUid() {
+                return uid;
+            }
+        };
     }
 }

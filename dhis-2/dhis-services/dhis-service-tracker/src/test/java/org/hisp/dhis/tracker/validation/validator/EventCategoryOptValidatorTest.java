@@ -29,11 +29,10 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1056;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1057;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -161,7 +160,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -171,7 +170,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -183,7 +182,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -194,7 +193,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1056, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1056 );
     }
 
     @Test
@@ -205,7 +204,7 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1057, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1057 );
     }
 
     @Test
@@ -217,6 +216,6 @@ class EventCategoryOptValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 }
