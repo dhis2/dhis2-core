@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -68,7 +68,7 @@ public class AtomicModeTests
 
         response.validateErrorReport()
             .body( "", hasSize( 2 ) )
-            .body( "errorCode", contains( "E1121", "E4014" ) );
+            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
     }
 
     @Test
@@ -85,7 +85,7 @@ public class AtomicModeTests
 
         response.validateErrorReport()
             .body( "", hasSize( 2 ) )
-            .body( "errorCode", contains( "E1121", "E4014" ) );
+            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
     }
 
     private JsonObject createWrongPayload()

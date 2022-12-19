@@ -36,7 +36,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.validation.ValidationResult;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -104,24 +103,24 @@ public class ImportReport
 
     /**
      * Factory method to use in case one or more Validation errors are present
-     * in the {@link ValidationResult} and the Import process needs to exit
+     * in the {@link ValidationReport} and the Import process needs to exit
      * without attempting persistence.
      *
      * Import statistics are calculated assuming that the persistence stage was
      * never attempted, therefore all bundle objects were ignored.
      *
-     * @param validationResult The validation report
+     * @param validationReport The validation report
      * @param timingsStats The timing stats
      * @param bundleSize The sum of all bundle objects
      *
      */
     public static ImportReport withValidationErrors(
-        ValidationResult validationResult,
+        ValidationReport validationReport,
         TimingsStats timingsStats, int bundleSize )
     {
         return builder()
             .status( Status.ERROR )
-            .validationReport( ValidationReport.fromResult( validationResult ) )
+            .validationReport( validationReport )
             .timingsStats( timingsStats )
             .stats( Stats.builder().ignored( bundleSize ).build() ).build();
     }
@@ -135,17 +134,17 @@ public class ImportReport
      * Import statistics are not calculated.
      *
      * @param message The error message
-     * @param validationResult The validation report if available
+     * @param validationReport The validation report if available
      * @param timingsStats The timing stats if available
      *
      */
-    public static ImportReport withError( String message, ValidationResult validationResult,
+    public static ImportReport withError( String message, ValidationReport validationReport,
         TimingsStats timingsStats )
     {
         // TODO shall we calculate stats in this case?
         return builder()
             .status( Status.ERROR )
-            .validationReport( ValidationReport.fromResult( validationResult ) )
+            .validationReport( validationReport )
             .timingsStats( timingsStats )
             .message( message )
             .build();
@@ -155,27 +154,27 @@ public class ImportReport
      * Factory method to use when a Tracker Import process completes.
      *
      * Import statistics are calculated based on the {@link PersistenceReport}
-     * and {@link ValidationResult}.
+     * and {@link ValidationReport}.
      *
      * @param status The outcome of the process
      * @param persistenceReport The report containing how many bundle objects
      *        were successfully persisted
-     * @param validationResult The validation report if available
+     * @param validationReport The validation report if available
      * @param timingsStats The timing stats if available
      * @param bundleSize a map containing the size of each entity type in the
      *        Bundle - before the validation
      */
     public static ImportReport withImportCompleted( Status status, PersistenceReport persistenceReport,
-        ValidationResult validationResult,
+        ValidationReport validationReport,
         TimingsStats timingsStats, Map<TrackerType, Integer> bundleSize )
     {
         Stats stats = Stats.builder().build();
         Stats brs = persistenceReport.getStats();
         stats.merge( brs );
-        stats.setIgnored( Math.toIntExact( validationResult.size() ) + brs.getIgnored() );
+        stats.setIgnored( Math.toIntExact( validationReport.size() ) + brs.getIgnored() );
         return builder()
             .status( status )
-            .validationReport( ValidationReport.fromResult( validationResult ) )
+            .validationReport( validationReport )
             .timingsStats( timingsStats )
             .persistenceReport( processBundleReport( persistenceReport, bundleSize ) )
             .stats( stats )
