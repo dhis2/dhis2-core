@@ -29,6 +29,8 @@ package org.hisp.dhis.eventhook;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +41,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EventHookPublisher
 {
+    private final DhisConfigurationProvider dhisConfig;
+
     private final ApplicationEventPublisher publisher;
 
     public void publishEvent( Event event )
     {
-        publisher.publishEvent( event );
+        if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED ) )
+        {
+            publisher.publishEvent( event );
+        }
     }
 }

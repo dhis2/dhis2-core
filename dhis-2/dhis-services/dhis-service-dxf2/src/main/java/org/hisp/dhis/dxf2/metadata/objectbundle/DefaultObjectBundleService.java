@@ -50,6 +50,7 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.eventhook.EventUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -91,6 +92,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private final MergeService mergeService;
 
     private final ObjectBundleHooks objectBundleHooks;
+
+    private final DhisConfigurationProvider dhisConfig;
 
     private final EventHookPublisher eventHookPublisher;
 

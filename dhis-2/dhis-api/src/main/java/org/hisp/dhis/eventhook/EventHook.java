@@ -52,6 +52,9 @@ public class EventHook
     implements MetadataObject
 {
     @JsonProperty
+    private boolean enabled = true;
+
+    @JsonProperty
     private String description;
 
     @JsonProperty( required = true )

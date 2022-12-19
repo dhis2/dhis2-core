@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventhook;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,9 +86,25 @@ public class EventHookListener
                     continue;
                 }
 
-                ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
-                    List.of( eventHook.getSource().getFields() ) );
-                event.setObject( objectNode );
+                if ( event.getObject() instanceof Collection )
+                {
+                    Collection<ObjectNode> objects = new ArrayList<>();
+
+                    ((Collection<?>) event.getObject()).forEach( object -> {
+                        ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
+                            List.of( eventHook.getSource().getFields() ) );
+                        objects.add( objectNode );
+                    } );
+
+                    event.setObject( objects );
+                }
+                else
+                {
+                    ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
+                        List.of( eventHook.getSource().getFields() ) );
+                    event.setObject( objectNode );
+                }
+
                 String payload = objectMapper.writeValueAsString( event );
 
                 List<Handler> handlers = targets.get( eventHook.getUid() );
@@ -114,6 +131,11 @@ public class EventHookListener
 
         for ( EventHook eh : eventHooks )
         {
+            if ( !eh.isEnabled() )
+            {
+                continue;
+            }
+
             targets.put( eh.getUid(), new ArrayList<>() );
 
             for ( Target target : eh.getTargets() )
