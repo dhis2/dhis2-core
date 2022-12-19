@@ -59,12 +59,12 @@ public class AnalyticsAggregationType
     /**
      * General aggregation type.
      */
-    private AggregationType aggregationType;
+    private final AggregationType aggregationType;
 
     /**
      * Aggregation type for the period dimension.
      */
-    private AggregationType periodAggregationType;
+    private final AggregationType periodAggregationType;
 
     /**
      * Analytics data type.
@@ -146,6 +146,11 @@ public class AnalyticsAggregationType
     public boolean isAggregationType( AggregationType type )
     {
         return this.aggregationType == type;
+    }
+
+    public boolean isAggregateable()
+    {
+        return this.aggregationType.isAggregatable();
     }
 
     public boolean isPeriodAggregationType( AggregationType type )

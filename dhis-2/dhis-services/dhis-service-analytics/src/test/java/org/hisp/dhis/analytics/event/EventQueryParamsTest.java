@@ -105,6 +105,8 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
     private ProgramStage psC;
 
+    private ProgramIndicator piA;
+
     private Period peA;
 
     private Period peB;
@@ -148,6 +150,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         teA.setUid( deD.getUid() );
         ProgramTrackedEntityAttribute pteA = createProgramTrackedEntityAttribute( prC, teA );
         prC.setProgramAttributes( List.of( pteA ) );
+        piA = createProgramIndicator( 'A', prA, "", "" );
         peA = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() );
         peB = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 5, 1, 0, 0 ).toDate() );
         peC = new MonthlyPeriodType().createPeriod( new DateTime( 2014, 6, 1, 0, 0 ).toDate() );
@@ -161,7 +164,29 @@ class EventQueryParamsTest extends DhisConvenienceTest
             .withValue( deA )
             .build();
 
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .build();
+
         assertTrue( paramsA.hasValueDimension() );
+        assertFalse( paramsB.hasValueDimension() );
+    }
+
+    @Test
+    void testHasValueTypedDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( piA )
+            .build();
+
+        assertTrue( paramsA.hasValueTypedValueDimension() );
+        assertFalse( paramsB.hasValueTypedValueDimension() );
     }
 
     @Test

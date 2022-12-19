@@ -855,6 +855,17 @@ public class EventQueryParams
     }
 
     /**
+     * Checks if a value dimension with a value type exists.
+     *
+     * @return true if value dimension with a value type exists.
+     */
+    public boolean hasValueTypedValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject;
+    }
+
+    /**
      * Checks if a value dimension with a numeric value type exists.
      *
      * @return true if a value dimension with a numeric value type exists, false
@@ -862,9 +873,14 @@ public class EventQueryParams
      */
     public boolean hasNumericValueDimension()
     {
-        return hasValueDimension() &&
-            value instanceof ValueTypedDimensionalItemObject &&
+        return hasValueTypedValueDimension() &&
             ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
+    }
+
+    public boolean hasTextValueDimension()
+    {
+        return hasValueTypedValueDimension() &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isText();
     }
 
     @Override

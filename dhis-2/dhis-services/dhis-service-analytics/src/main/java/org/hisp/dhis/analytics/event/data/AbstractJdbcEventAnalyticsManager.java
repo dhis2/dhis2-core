@@ -72,6 +72,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -658,6 +659,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasNumericValueDimension() )
         {
+            Validate.isTrue( params.getAggregationType().isAggregateable() );
+
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
             String expression = quoteAlias( params.getValue().getUid() );
