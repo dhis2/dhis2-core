@@ -112,6 +112,35 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
     }
 
     @Test
+    void testCreateEventHookWebhookHttpBasicDefaultEnabled()
+    {
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
+        assertEquals( "bRNvL6NMQXb", id );
+
+        JsonObject eventHook = GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
+        assertTrue( eventHook.has( "id", "name", "enabled", "source", "targets" ) );
+        assertEquals( true, eventHook.getBoolean( "enabled" ).bool() );
+        assertEquals( "bRNvL6NMQXb", eventHook.getString( "id" ).string() );
+        assertEquals( "WebhookHttpBasic", eventHook.getString( "name" ).string() );
+        assertEquals( "metadata", eventHook.get( "source" ).asObject().getString( "path" ).string() );
+        assertEquals( "id,name", eventHook.get( "source" ).asObject().getString( "fields" ).string() );
+
+        JsonList<JsonObject> targets = eventHook.get( "targets" ).asList( JsonObject.class );
+        assertFalse( targets.isEmpty() );
+
+        JsonObject target = targets.get( 0 ).asObject();
+        assertTrue( target.has( "type", "url", "auth" ) );
+        assertEquals( "webhook", target.getString( "type" ).string() );
+
+        JsonObject auth = target.getObject( "auth" );
+        assertTrue( auth.has( "type", "username", "password" ) ); // remove password when encryption implemented
+        assertEquals( "http-basic", auth.getString( "type" ).string() );
+        assertEquals( "admin", auth.getString( "username" ).string() );
+        assertEquals( "district", auth.getString( "password" ).string() );
+    }
+
+    @Test
     void testDeleteEventHookWebhookHttpBasic()
     {
         String id = assertStatus( HttpStatus.CREATED,
