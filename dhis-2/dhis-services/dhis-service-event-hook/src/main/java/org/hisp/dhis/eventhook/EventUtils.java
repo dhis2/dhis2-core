@@ -31,6 +31,8 @@ import java.util.Map;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
+import com.google.common.base.CaseFormat;
+
 /**
  * @author Morten Olav Hansen
  */
@@ -48,8 +50,10 @@ public final class EventUtils
 
     public static Event metadataDelete( Class<?> type, String uid )
     {
+        String name = camelCase( type.getSimpleName() );
+
         return Event.builder()
-            .path( "metadata." + type.getSimpleName() + "." + uid )
+            .path( "metadata." + name + "." + uid )
             .meta( Map.of( "op", "delete" ) )
             .object( Map.of( "id", uid ) )
             .build();
@@ -57,11 +61,18 @@ public final class EventUtils
 
     private static Event metadata( BaseIdentifiableObject object, String op )
     {
+        String name = camelCase( object.getClass().getSimpleName() );
+
         return Event.builder()
-            .path( "metadata." + object.getClass().getSimpleName() + "." + object.getUid() )
+            .path( "metadata." + name + "." + object.getUid() )
             .meta( Map.of( "op", op ) )
             .object( object )
             .build();
+    }
+
+    public static String camelCase( String name )
+    {
+        return CaseFormat.UPPER_CAMEL.to( CaseFormat.LOWER_CAMEL, name );
     }
 
     private EventUtils()
