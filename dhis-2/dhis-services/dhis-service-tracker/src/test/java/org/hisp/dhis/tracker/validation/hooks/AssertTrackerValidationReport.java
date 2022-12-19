@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
@@ -54,7 +55,7 @@ public class AssertTrackerValidationReport
         assertHasError( report.getErrors(), code, type, uid );
     }
 
-    public static void assertHasError( List<Validation> errors, ValidationCode code, TrackerType type,
+    public static void assertHasError( Set<Validation> errors, ValidationCode code, TrackerType type,
         String uid )
     {
         assertNotEmpty( errors );
@@ -87,9 +88,10 @@ public class AssertTrackerValidationReport
         String uid )
     {
         assertTrue( result.hasWarnings(), "warning not found since report has no warnings" );
-        assertTrue( result.hasWarning( warning -> Objects.equals( code.name(), warning.getCode() ) &&
-            Objects.equals( type.name(), warning.getType() ) &&
-            uid.equals( warning.getUid() ) ),
+        assertTrue(
+            result.getWarnings().stream().anyMatch( warning -> Objects.equals( code.name(), warning.getCode() ) &&
+                Objects.equals( type.name(), warning.getType() ) &&
+                uid.equals( warning.getUid() ) ),
             String.format( "warning with code %s, type %s, uid %s not found in report with warnings(s) %s", code, type,
                 uid, result.getWarnings() ) );
     }
