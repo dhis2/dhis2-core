@@ -189,7 +189,7 @@ class QueryValidatorTest
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
         deD = createDataElement( 'D', ValueType.EMAIL, AggregationType.NONE );
-        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.LAST_NONE_ORG_UNIT );
+        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.LAST_LAST_ORG_UNIT );
 
         deA.setCategoryCombo( ccA );
         deB.setCategoryCombo( ccA );

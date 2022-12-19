@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD;
 import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT;
-import static org.hisp.dhis.analytics.AggregationType.LAST_NONE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.LAST_LAST_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
@@ -56,7 +56,7 @@ class AnalyticsAggregationTypeTest
         assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
         assertAggregationType( fromAggregationType( LAST ), SUM, LAST );
         assertAggregationType( fromAggregationType( LAST_AVERAGE_ORG_UNIT ), AVERAGE, LAST );
-        assertAggregationType( fromAggregationType( LAST_NONE_ORG_UNIT ), NONE, LAST );
+        assertAggregationType( fromAggregationType( LAST_LAST_ORG_UNIT ), NONE, LAST );
         assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
         assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
         assertAggregationType( fromAggregationType( SUM ), SUM, SUM );

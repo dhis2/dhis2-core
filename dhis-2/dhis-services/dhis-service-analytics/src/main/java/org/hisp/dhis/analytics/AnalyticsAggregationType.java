@@ -122,7 +122,7 @@ public class AnalyticsAggregationType
         case LAST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
             break;
-        case LAST_NONE_ORG_UNIT:
+        case LAST_LAST_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.NONE, AggregationType.LAST );
             break;
         case LAST_IN_PERIOD:
@@ -139,7 +139,7 @@ public class AnalyticsAggregationType
         case FIRST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST );
             break;
-        case FIRST_NONE_ORG_UNIT:
+        case FIRST_FIRST_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.NONE, AggregationType.FIRST );
             break;
         default:
@@ -168,14 +168,14 @@ public class AnalyticsAggregationType
     {
         return AggregationType.LAST == periodAggregationType
             || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType
-            || AggregationType.LAST_NONE_ORG_UNIT == periodAggregationType;
+            || AggregationType.LAST_LAST_ORG_UNIT == periodAggregationType;
     }
 
     public boolean isFirstPeriodAggregationType()
     {
         return AggregationType.FIRST == periodAggregationType
             || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType
-            || AggregationType.LAST_NONE_ORG_UNIT == periodAggregationType;
+            || AggregationType.LAST_LAST_ORG_UNIT == periodAggregationType;
     }
 
     public boolean isLastInPeriodAggregationType()

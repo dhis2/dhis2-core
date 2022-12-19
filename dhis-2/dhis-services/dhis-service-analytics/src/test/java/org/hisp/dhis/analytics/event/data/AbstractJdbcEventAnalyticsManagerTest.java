@@ -269,7 +269,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         de.setUid( dataElementA.getUid() );
 
-        de.setAggregationType( AggregationType.LAST_NONE_ORG_UNIT );
+        de.setAggregationType( AggregationType.LAST_LAST_ORG_UNIT );
 
         de.setValueType( TEXT );
 
