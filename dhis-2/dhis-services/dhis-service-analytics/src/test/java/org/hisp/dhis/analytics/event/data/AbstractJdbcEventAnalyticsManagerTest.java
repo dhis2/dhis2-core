@@ -49,7 +49,6 @@ import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -260,26 +259,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         // Then
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
-    }
-
-    @Test
-    void verifyGetAggregateClauseWithValueFails()
-    {
-        // Given
-        DataElement de = new DataElement();
-
-        de.setAggregationType( AggregationType.CUSTOM );
-
-        de.setValueType( NUMBER );
-
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withValue( de )
-            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
-            .build();
-
-        // When
-        // Then
-        assertThrows( IllegalArgumentException.class, () -> eventSubject.getAggregateClause( params ) );
     }
 
     @Test
