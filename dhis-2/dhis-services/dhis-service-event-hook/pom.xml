@@ -25,29 +25,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-field-filtering</artifactId>
     </dependency>
-    <!--
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-commons</artifactId>
+      <artifactId>dhis-support-external</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-dxf2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-analytics</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-system</artifactId>
-    </dependency>
-    -->
 
     <!-- Application -->
     <dependency>
@@ -90,6 +71,10 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
     </dependency>
   </dependencies>
 
