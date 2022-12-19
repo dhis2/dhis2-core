@@ -39,13 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
@@ -54,6 +54,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,7 +79,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     @Mock
     private ExecutionPlanStore executionPlanStore;
 
-    private AnalyticsManager analyticsManager;
+    private JdbcAnalyticsManager analyticsManager;
 
     private static Stream<Arguments> data()
     {
@@ -87,11 +88,16 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             arguments( "2017Nov", 26.5D ) );
     }
 
+    @BeforeEach
+    void before()
+    {
+        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
+    }
+
     @ParameterizedTest
     @MethodSource( "data" )
     public void testWeightedAverage( String financialYear, Double weightedAverage )
     {
-        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
@@ -126,24 +132,22 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     void testGetNumericValueColumn()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .withAggregationType( new AnalyticsAggregationType( SUM, AVERAGE, NUMERIC ) )
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( SUM, AVERAGE, NUMERIC, false ) )
             .build();
 
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC ) )
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC, false ) )
             .build();
 
-        String sqlA = "";
-        String sqlB = "";
-
-        assertEquals( sqlA, null );
-        assertEquals( sqlB, null );
+        assertEquals( "sum(daysxvalue) / 31", analyticsManager.getNumericValueColumn( paramsA ) );
+        assertEquals( "max(value)", analyticsManager.getNumericValueColumn( paramsB ) );
     }
 
     @Test
     void testReplaceDataPeriodsWithAggregationPeriods()
     {
-        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
         Period y2012 = createPeriod( "2012" );
 
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
