@@ -184,7 +184,7 @@ public class DefaultDataApprovalService
                     da.getDataApprovalLevel().getLevel() >= status.getActionLevel().getLevel() )
                 {
                     continue; // Already approved at or above the level
-                              // requested
+                             // requested
                 }
 
                 DataApprovalLevel nextLevel = nextHigherLevel( status.getActionLevel(), da.getWorkflow() );
@@ -393,7 +393,7 @@ public class DefaultDataApprovalService
                 da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel() )
             {
                 continue; // Already unaccepted at or not approved up to this
-                          // level
+                         // level
             }
 
             if ( !status.getPermissions().isMayUnaccept() )

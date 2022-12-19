@@ -96,6 +96,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -1159,7 +1160,7 @@ public class JdbcEventStore implements EventStore
                 "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) " )
                 .append(
                     "inner join organisationunit psiou on (coalesce(po.organisationunitid, psi.organisationunitid)=psiou.organisationunitid) " )
-                .append( "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
+                .append( "inner join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) " );
         }
         else
         {
@@ -1345,9 +1346,9 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.hasAssignedUsers() )
+        if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {
-            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUsers() );
+            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUserQueryParam().getAssignedUsers() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid in (" )
@@ -1355,13 +1356,13 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
+        if ( AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode() )
         {
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is null) " );
         }
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode() )
         {
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is not null) " );
@@ -1693,9 +1694,9 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.hasAssignedUsers() )
+        if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {
-            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUsers() );
+            mapSqlParameterSource.addValue( "au_uid", params.getAssignedUserQueryParam().getAssignedUsers() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid in (" )
@@ -1703,13 +1704,13 @@ public class JdbcEventStore implements EventStore
                 .append( ")) " );
         }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
+        if ( AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode() )
         {
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is null) " );
         }
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode() )
         {
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (au.uid is not null) " );

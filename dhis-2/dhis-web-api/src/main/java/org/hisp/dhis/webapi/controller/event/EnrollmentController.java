@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -92,6 +93,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = EnrollmentController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

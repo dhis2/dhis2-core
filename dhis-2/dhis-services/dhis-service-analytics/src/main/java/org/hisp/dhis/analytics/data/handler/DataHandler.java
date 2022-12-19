@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -69,6 +68,7 @@ import static org.hisp.dhis.analytics.util.PeriodOffsetUtils.isYearToDate;
 import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
+import static org.hisp.dhis.common.DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
 import static org.hisp.dhis.common.DataDimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
@@ -148,7 +148,9 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -232,39 +234,99 @@ public class DataHandler
 
             List<Indicator> indicators = resolveIndicatorExpressions( dataSourceParams );
 
-            // Try to get filters periods from dimension (pe), or else fall back
-            // to "startDate/endDate" periods
+            addIndicatorValues( params, dataSourceParams, indicators, grid );
+        }
+    }
 
-            List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
-                ? dataSourceParams.getTypedFilterPeriods()
-                : dataSourceParams.getStartEndDatesToSingleList();
+    /**
+     * Adds expressions values to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the {@link Grid}.
+     */
+    void addExpressionDimensionItemValues( DataQueryParams params, Grid grid )
+    {
+        if ( !params.getExpressionDimensionItems().isEmpty() && !params.isSkipData() )
+        {
+            DataQueryParams dataSourceParams = newBuilder( params )
+                .retainDataDimension( EXPRESSION_DIMENSION_ITEM )
+                .withIncludeNumDen( false ).build();
 
-            // -----------------------------------------------------------------
-            // Get indicator values
-            // -----------------------------------------------------------------
+            List<ExpressionDimensionItem> expressionDimensionItems = resolveExpressionDimensionItemExpressions(
+                dataSourceParams );
 
-            Map<String, Map<String, Integer>> permutationOrgUnitTargetMap = getOrgUnitTargetMap( dataSourceParams,
-                indicators );
+            List<Indicator> indicators = expressionDimensionItemsToIndicators( expressionDimensionItems );
 
-            List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
+            addIndicatorValues( params, dataSourceParams, indicators, grid );
+        }
+    }
 
-            Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
-                .getIndicatorDimensionalItemMap( indicators );
+    /**
+     * Transform expression dimension item object in the indicator object with
+     * some default values missing in expression dimension item
+     *
+     * @param expressionDimensionItems
+     * @return
+     */
+    private List<Indicator> expressionDimensionItemsToIndicators(
+        List<ExpressionDimensionItem> expressionDimensionItems )
+    {
+        return expressionDimensionItems.stream()
+            .map( edi -> {
+                IndicatorType indicatorType = new IndicatorType();
+                indicatorType.setNumber( true );
+                indicatorType.setFactor( 1 );
 
-            Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap(
-                params, new ArrayList<>( itemMap.values() ) );
+                Indicator indicator = new Indicator();
+                indicator.setUid( edi.getUid() );
+                indicator.setName( edi.getName() );
+                indicator.setCode( edi.getCode() );
+                indicator.setIndicatorType( indicatorType );
+                indicator.setNumerator( edi.getExpression() );
+                indicator.setNumeratorDescription( edi.getDescription() );
+                indicator.setDenominator( "1" );
+                indicator.setDecimals( 1 );
+                indicator.setAnnualized( false );
 
-            handleEmptyDimensionItemPermutations( dimensionItemPermutations );
+                return indicator;
+            } ).collect( toList() );
+    }
 
-            for ( Indicator indicator : indicators )
+    private void addIndicatorValues( DataQueryParams dataQueryParams, DataQueryParams dataSourceParams,
+        List<Indicator> indicators, Grid grid )
+    {
+        // Try to get filters periods from dimension (pe), or else fall back
+        // to "startDate/endDate" periods
+        List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
+            ? dataSourceParams.getTypedFilterPeriods()
+            : dataSourceParams.getStartEndDatesToSingleList();
+
+        // -----------------------------------------------------------------
+        // Get indicator values
+        // -----------------------------------------------------------------
+
+        Map<String, Map<String, Integer>> permutationOrgUnitTargetMap = getOrgUnitTargetMap( dataSourceParams,
+            indicators );
+
+        List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
+
+        Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+            .getIndicatorDimensionalItemMap( indicators );
+
+        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap(
+            dataQueryParams, new ArrayList<>( itemMap.values() ) );
+
+        handleEmptyDimensionItemPermutations( dimensionItemPermutations );
+
+        for ( Indicator indicator : indicators )
+        {
+            for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
             {
-                for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
-                {
-                    IndicatorValue value = getIndicatorValue( filterPeriods, itemMap,
-                        permutationOrgUnitTargetMap, permutationDimensionItemValueMap, indicator, dimensionItems );
+                IndicatorValue value = getIndicatorValue( filterPeriods, itemMap,
+                    permutationOrgUnitTargetMap, permutationDimensionItemValueMap, indicator, dimensionItems );
 
-                    addIndicatorValuesToGrid( params, grid, dataSourceParams, indicator, dimensionItems, value );
-                }
+                addIndicatorValuesToGrid( dataQueryParams, grid, dataSourceParams, indicator, dimensionItems, value );
             }
         }
     }
@@ -300,7 +362,7 @@ public class DataHandler
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
-            : singletonList( (Period) getPeriodItem( dimensionItems ) );
+            : List.of( (Period) getPeriodItem( dimensionItems ) );
 
         OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem( dimensionItems );
 
@@ -918,6 +980,27 @@ public class DataHandler
         }
 
         return indicators;
+    }
+
+    /**
+     * Resolves expressions of expression dimension items in the data query.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the resolved list of expression dimension items.
+     */
+    private List<ExpressionDimensionItem> resolveExpressionDimensionItemExpressions( DataQueryParams params )
+    {
+        List<ExpressionDimensionItem> expressionDimensionItems = asTypedList( params.getExpressionDimensionItems() );
+
+        for ( ExpressionDimensionItem item : expressionDimensionItems )
+        {
+            for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
+            {
+                item.setExpression( resolver.resolve( item.getExpression() ) );
+            }
+        }
+
+        return expressionDimensionItems;
     }
 
     /**

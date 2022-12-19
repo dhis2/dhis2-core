@@ -70,11 +70,6 @@ public enum AggregationType
         return value;
     }
 
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-
     public boolean isAggregatable()
     {
         return aggregatable;

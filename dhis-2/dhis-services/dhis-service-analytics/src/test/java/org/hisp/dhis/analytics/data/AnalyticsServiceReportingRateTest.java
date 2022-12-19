@@ -28,15 +28,14 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -92,10 +91,10 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
             // DATA ELEMENTS
-            .withDataElements( newArrayList( reportingRateA, reportingRateB, reportingRateC ) ).withIgnoreLimit( true )
+            .withDataElements( newArrayList( reportingRateA, reportingRateB, reportingRateC ) )
+            .withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
             .build();
 
         initMock( params );
@@ -140,20 +139,23 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         OrganisationUnit ou = new OrganisationUnit( "aaaa" );
 
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withOrganisationUnit( ou )
             // DATA ELEMENTS
-            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
+            .withDataElements( newArrayList( reportingRateA ) )
+            .withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
             .build();
 
         initMock( params );
 
+        // NO VALUES
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                                                                        // VALUES
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) );
+
         Map<String, Object> reportingRate = new HashMap<>();
+
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
@@ -183,8 +185,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
             // DATA ELEMENTS
             .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
             // FILTERS (OU)
-            .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
             .build();
 
         initMock( params );
@@ -195,11 +196,10 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( actualReports ) );
 
+        // NO TARGET RETURNED
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                          // TARGET
-                                                                          // RETURNED
+                .thenReturn( CompletableFuture.completedFuture( null ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -227,8 +227,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
             .withPeriods( periods )
-            .withFilters( singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, singletonList( ou ) ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, List.of( ou ) ) ) )
             .build();
 
         initMock( params );
@@ -274,8 +273,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
             .withPeriods( periods )
-            .withFilters( singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, singletonList( ou ) ) ) )
+            .withFilters( List.of( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, List.of( ou ) ) ) )
             .build();
 
         initMock( params );

@@ -77,8 +77,8 @@ public class DefaultFieldParser implements FieldParser
                         builder.append( c );
                     }
                     else if ( insideParameters && c.equals( ";" ) ) // allow
-                                                                    // parameter
-                                                                    // separator
+                                                                   // parameter
+                                                                   // separator
                     {
                         builder.append( c );
                     }
@@ -88,8 +88,8 @@ public class DefaultFieldParser implements FieldParser
                         break;
                     }
                     else if ( c.equals( "," ) || (c.equals( "[" ) && !insideParameters) ) // rewind
-                                                                                          // and
-                                                                                          // break
+                                                                                         // and
+                                                                                         // break
                     {
                         i--;
                         break;

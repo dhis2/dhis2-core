@@ -44,10 +44,12 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -105,6 +107,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "messaging" )
 @Controller
 @RequestMapping( value = MessageConversationSchemaDescriptor.API_ENDPOINT )
 public class MessageConversationController
@@ -130,6 +133,9 @@ public class MessageConversationController
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
     @Override
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
@@ -940,7 +946,7 @@ public class MessageConversationController
             throw new WebMessageException( conflict( "Invalid messageattachment." ) );
         }
 
-        fileResourceUtils.configureFileResourceResponse( response, fr );
+        fileResourceUtils.configureFileResourceResponse( response, fr, dhisConfig );
     }
 
     // --------------------------------------------------------------------------

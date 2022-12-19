@@ -125,7 +125,7 @@
     </dependencies>
     <properties>
         <rootDir>../../</rootDir>
-        <jib.version>3.3.0</jib.version>
+        <jib.version>3.3.1</jib.version>
         <jib.from.image>tomcat:9.0-jre11</jib.from.image>
         <jib.to.image>dhis2/core-dev:local</jib.to.image>
         <!-- uid=65534(nobody) present in Tomcat image -->

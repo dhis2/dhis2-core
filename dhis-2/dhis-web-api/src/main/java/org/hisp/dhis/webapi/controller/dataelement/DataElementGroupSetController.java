@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSetSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( "metadata" )
 @Controller
 @RequestMapping( value = DataElementGroupSetSchemaDescriptor.API_ENDPOINT )
 public class DataElementGroupSetController

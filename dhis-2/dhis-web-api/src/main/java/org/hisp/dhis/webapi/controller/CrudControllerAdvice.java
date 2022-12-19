@@ -37,11 +37,19 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
+import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -68,6 +76,7 @@ import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.ConflictException;
+import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -97,6 +106,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -110,11 +120,20 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
+    private final List<Class<?>> enumClasses;
+
+    public CrudControllerAdvice()
+    {
+        this.enumClasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
+    }
+
     @InitBinder
     protected void initBinder( WebDataBinder binder )
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+        this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -129,6 +148,18 @@ public class CrudControllerAdvice
     public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
     {
         return conflict( ex.getMessage(), ex.getErrorCode() );
+    }
+
+    @ExceptionHandler( InvalidEnumValueException.class )
+    @ResponseBody
+    public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
+    {
+        String validValues = StringUtils
+            .join( Arrays.stream( ex.getEnumKlass().getEnumConstants() ).map( Objects::toString )
+                .collect( Collectors.toList() ), ", " );
+        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
+            ex.getInvalidValue(), ex.getFieldName(), validValues );
+        return badRequest( errorMessage );
     }
 
     @ExceptionHandler( Dhis2ClientException.class )
@@ -206,6 +237,13 @@ public class CrudControllerAdvice
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
         return error( getExceptionMessage( ex ) );
+    }
+
+    @ExceptionHandler( PersistenceException.class )
+    @ResponseBody
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
+    {
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -434,7 +472,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )
@@ -447,6 +484,25 @@ public class CrudControllerAdvice
             throws IllegalArgumentException
         {
             setValue( fromText.apply( text ) );
+        }
+    }
+
+    private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
+    {
+        private final Class<T> enumClass;
+
+        private ConvertEnum( Class<T> enumClass )
+        {
+            this.enumClass = enumClass;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
+
+            setValue( enumValue != null ? enumValue : text );
         }
     }
 }
