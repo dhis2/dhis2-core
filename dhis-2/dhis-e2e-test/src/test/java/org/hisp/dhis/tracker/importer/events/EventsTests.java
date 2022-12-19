@@ -182,7 +182,7 @@ public class EventsTests
 
     @ParameterizedTest
     @ValueSource( strings = { "true", "false" } )
-    public void shouldImportEventWithOrgUnitDifferentFromEnrollmentOrgUnit( Boolean repeatableStage )
+    public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit( Boolean repeatableStage )
         throws Exception
     {
         String programId = Constants.TRACKER_PROGRAM_ID;
