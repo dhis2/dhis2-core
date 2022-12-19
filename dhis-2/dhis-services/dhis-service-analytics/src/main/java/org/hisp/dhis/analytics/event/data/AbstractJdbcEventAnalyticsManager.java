@@ -228,7 +228,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else
             {
                 // Query returns UIDs but we want sorting on name or shortName
-                // (depending on DisplayProperty) for OUGS and COGS
+                // depending on the display property for OUGS and COGS
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( DimensionalObject::hasItems )

@@ -29,6 +29,10 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -116,6 +120,24 @@ class AnalyticsManagerTest extends DhisConvenienceTest
         assertEquals( 1, dataValueMap.size() );
 
         assertThat( dataValueMap.get( BASE_UID + "-" + finYear2017.getIsoDate() ), is( weightedAverage ) );
+    }
+
+    @Test
+    void testGetNumericValueColumn()
+    {
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withAggregationType( new AnalyticsAggregationType( SUM, AVERAGE, NUMERIC ) )
+            .build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC ) )
+            .build();
+
+        String sqlA = "";
+        String sqlB = "";
+
+        assertEquals( sqlA, null );
+        assertEquals( sqlB, null );
     }
 
     @Test
