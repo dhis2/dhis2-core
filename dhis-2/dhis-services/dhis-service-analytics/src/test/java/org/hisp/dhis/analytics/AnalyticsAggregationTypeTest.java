@@ -35,6 +35,8 @@ import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD;
 import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.LAST_NONE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,6 +56,7 @@ class AnalyticsAggregationTypeTest
         assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
         assertAggregationType( fromAggregationType( LAST ), SUM, LAST );
         assertAggregationType( fromAggregationType( LAST_AVERAGE_ORG_UNIT ), AVERAGE, LAST );
+        assertAggregationType( fromAggregationType( LAST_NONE_ORG_UNIT ), NONE, LAST );
         assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
         assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
         assertAggregationType( fromAggregationType( SUM ), SUM, SUM );
@@ -68,6 +71,13 @@ class AnalyticsAggregationTypeTest
         assertFalse( new AnalyticsAggregationType( AggregationType.CUSTOM, AggregationType.CUSTOM ).isAggregateable() );
     }
 
+    /**
+     * Asserts the analytics aggregation type.
+     *
+     * @param analyticsAggregationType the {@link AnalyticsAggregationType}.
+     * @param aggregationType the main {@link AggregationType}.
+     * @param periodAggregationType the period {@link AggregationType}.
+     */
     private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,
         AggregationType aggregationType, AggregationType periodAggregationType )
     {

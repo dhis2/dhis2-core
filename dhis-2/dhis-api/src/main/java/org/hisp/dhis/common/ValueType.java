@@ -225,7 +225,8 @@ public enum ValueType
 
         if ( this == TEXT )
         {
-            return aggregationType == AggregationType.NONE || aggregationType.isFirstOrLast();
+            return Set.of( AggregationType.NONE, AggregationType.LAST_NONE_ORG_UNIT,
+                AggregationType.FIRST_NONE_ORG_UNIT ).contains( aggregationType );
         }
 
         return aggregationType != AggregationType.NONE;

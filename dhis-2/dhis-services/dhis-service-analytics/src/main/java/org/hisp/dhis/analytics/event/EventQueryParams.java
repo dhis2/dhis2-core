@@ -732,7 +732,7 @@ public class EventQueryParams
         {
             return aggregationType;
         }
-        else if ( hasValueDimension() && value.getAggregationType() != null )
+        else if ( hasValueDimension() && value.hasAggregationType() )
         {
             return AnalyticsAggregationType.fromAggregationType( value.getAggregationType() );
         }
@@ -889,6 +889,8 @@ public class EventQueryParams
     {
         ValueType valueType = getValueDimensionValueType();
         AggregationType aggregationType = getAggregationTypeFallback().getAggregationType();
+        System.out.println( "VAL TYPE " + valueType );
+        System.out.println( "AGG TYPE " + aggregationType );
         return valueType != null && valueType.isAggregatable( aggregationType );
     }
 

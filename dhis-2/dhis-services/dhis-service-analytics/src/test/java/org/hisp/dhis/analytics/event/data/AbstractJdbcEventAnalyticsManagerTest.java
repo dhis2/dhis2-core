@@ -262,6 +262,32 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
+    void verifyGetAggregateClauseWithTextValueLastValueAggregationType()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setUid( dataElementA.getUid() );
+
+        de.setAggregationType( AggregationType.LAST_NONE_ORG_UNIT );
+
+        de.setValueType( TEXT );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .build();
+
+        // When
+        String clause = eventSubject.getAggregateClause( params );
+
+        // Then
+
+        assertTrue( params.isValueTypeAggregateable() );
+
+        assertThat( clause, is( "ax.\"fWIAEtYVEGk\"" ) );
+    }
+
+    @Test
     void verifyGetAggregateClauseWithValueFails()
     {
         // Given
