@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Objects;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -55,7 +52,7 @@ class ValidationResultTest
     void hasErrorsReturnsTrue()
     {
 
-        Result result = Result.ofErrors( Set.of( newError() ) );
+        Result result = new Result( null, null, null, null, Set.of( newError() ), null );
 
         assertTrue( result.hasErrors() );
     }
@@ -73,63 +70,9 @@ class ValidationResultTest
     void hasWarningsReturnsTrue()
     {
 
-        Result result = Result.ofWarnings( Set.of( newWarning() ) );
+        Result result = new Result( null, null, null, null, null, Set.of( newWarning() ) );
 
         assertTrue( result.hasWarnings() );
-    }
-
-    @Test
-    void hasErrorReportFound()
-    {
-
-        Error error = newError();
-        Result result = Result.ofErrors( Set.of( error ) );
-
-        assertTrue( result.hasError( r -> error.getUid().equals( r.getUid() ) ) );
-    }
-
-    @Test
-    void hasErrorReportNotFound()
-    {
-
-        Error error = newError( ValidationCode.E1006 );
-        Result result = Result.ofErrors( Set.of( error ) );
-
-        assertFalse( result.hasError( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
-    }
-
-    @Test
-    void hasWarningReportFound()
-    {
-
-        Warning warning = newWarning();
-        Result result = Result.ofWarnings( Set.of( warning ) );
-
-        assertTrue( result.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
-    }
-
-    @Test
-    void hasWarningReportNotFound()
-    {
-
-        Warning warning = newWarning( ValidationCode.E1006 );
-        Result result = Result.ofWarnings( Set.of( warning ) );
-
-        assertFalse( result.hasWarning( r -> Objects.equals( ValidationCode.E1048.name(), r.getCode() ) ) );
-    }
-
-    @Test
-    void sizeReturnsErrorCountUniqueByUid()
-    {
-
-        Error error1 = newError( CodeGenerator.generateUid(), ValidationCode.E1006 );
-        Error error2 = newError( error1.getUid(), ValidationCode.E1000 );
-        Error error3 = newError( CodeGenerator.generateUid(), ValidationCode.E1000 );
-
-        Result result = Result.ofErrors( Set.of( error1, error2, error3 ) );
-
-        assertNotNull( result.getErrors() );
-        assertEquals( 3, result.getErrors().size() );
     }
 
     private Error newError()

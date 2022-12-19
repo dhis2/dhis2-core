@@ -28,41 +28,53 @@
 package org.hisp.dhis.tracker.validation;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
-import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+
 @ToString
 @EqualsAndHashCode
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor
 class Result implements ValidationResult
 {
+    @Getter
+    private final List<TrackedEntity> trackedEntities;
+
+    @Getter
+    private final List<Enrollment> enrollments;
+
+    @Getter
+    private final List<Event> events;
+
+    @Getter
+    private final List<Relationship> relationships;
+
     private final Set<Error> errors;
 
     private final Set<Warning> warnings;
 
+    private Result()
+    {
+        this.trackedEntities = Collections.emptyList();
+        this.enrollments = Collections.emptyList();
+        this.events = Collections.emptyList();
+        this.relationships = Collections.emptyList();
+        this.errors = Collections.emptySet();
+        this.warnings = Collections.emptySet();
+    }
+
     public static Result empty()
     {
-        return new Result( Collections.emptySet(), Collections.emptySet() );
-    }
-
-    public static Result ofValidations( Set<Error> errors, Set<Warning> warnings )
-    {
-        return new Result( errors, warnings );
-    }
-
-    public static Result ofErrors( Set<Error> errors )
-    {
-        return new Result( errors, Collections.emptySet() );
-    }
-
-    public static Result ofWarnings( Set<Warning> warnings )
-    {
-        return new Result( Collections.emptySet(), warnings );
+        return new Result();
     }
 
     public Set<Validation> getErrors()
@@ -80,18 +92,8 @@ class Result implements ValidationResult
         return !errors.isEmpty();
     }
 
-    public boolean hasError( Predicate<Error> test )
-    {
-        return errors.stream().anyMatch( test );
-    }
-
     public boolean hasWarnings()
     {
         return !warnings.isEmpty();
-    }
-
-    public boolean hasWarning( Predicate<Warning> test )
-    {
-        return warnings.stream().anyMatch( test );
     }
 }
