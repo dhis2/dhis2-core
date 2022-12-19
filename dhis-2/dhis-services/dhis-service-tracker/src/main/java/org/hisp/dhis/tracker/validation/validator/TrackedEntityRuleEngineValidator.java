@@ -25,32 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.validator.Each.each;
 
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Validator to validate all {@link TrackedEntity}s in the
+ * {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component( "org.hisp.dhis.tracker.validation.validator.TrackedEntityRuleEngineValidator" )
+public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    private final TrackedEntityAttributeValidator attributeValidator;
+
+    private Validator<TrackerBundle> trackedEntityValidator()
+    {
+        return each( TrackerBundle::getTrackedEntities, attributeValidator );
+    }
+
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+
+        trackedEntityValidator().validate( reporter, bundle, input );
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return true; // this main validator should always run
+    }
 }

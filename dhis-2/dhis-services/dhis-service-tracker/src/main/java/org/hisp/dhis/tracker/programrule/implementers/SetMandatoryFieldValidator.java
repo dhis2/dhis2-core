@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.ValidationCode;
-import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
+import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;

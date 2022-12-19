@@ -52,28 +52,27 @@ public class DefaultValidationService
     implements ValidationService
 {
 
-    @Qualifier( "org.hisp.dhis.tracker.validation.DefaultValidators" )
-    private final Validators validators;
+    @Qualifier( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
+    private final Validator<TrackerBundle> validator;
 
-    @Qualifier( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )
-    private final Validators ruleEngineValidators;
+    @Qualifier( "org.hisp.dhis.tracker.validation.validator.RuleEngineValidator" )
+    private final Validator<TrackerBundle> ruleEngineValidator;
 
     @Override
     public ValidationResult validate( TrackerBundle bundle )
     {
-        return validate( bundle, validators );
+        return validate( bundle, validator );
     }
 
     @Override
     public ValidationResult validateRuleEngine( TrackerBundle bundle )
     {
-        return validate( bundle, ruleEngineValidators );
+        return validate( bundle, ruleEngineValidator );
     }
 
-    private ValidationResult validate( TrackerBundle bundle, Validators validators )
+    private ValidationResult validate( TrackerBundle bundle, Validator<TrackerBundle> validator )
     {
         User user = bundle.getUser();
-
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
@@ -81,17 +80,12 @@ public class DefaultValidationService
             return Result.empty();
         }
 
-        // Note that the bundle gets cloned internally, so the original bundle
-        // is always available
         Reporter reporter = new Reporter( bundle.getPreheat().getIdSchemes(),
             bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         try
         {
-            validators.getTrackedEntityValidator().validate( reporter, bundle, bundle );
-            validators.getEnrollmentValidator().validate( reporter, bundle, bundle );
-            validators.getEventValidator().validate( reporter, bundle, bundle );
-            validators.getRelationshipValidator().validate( reporter, bundle, bundle );
+            validator.validate( reporter, bundle, bundle );
         }
         catch ( FailFastException e )
         {

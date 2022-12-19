@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1122;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class EnrollmentPreCheckMandatoryFieldsValidator
+    implements Validator<Enrollment>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    {
+        reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit" );
+        reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), enrollment, E1122,
+            "trackedEntity" );
+    }
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
 }

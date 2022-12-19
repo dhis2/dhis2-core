@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class RelationshipPreCheckMandatoryFieldsValidator
+    implements Validator<Relationship>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship )
+    {
+        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
+        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
+        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
+            "relationshipType" );
+    }
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
 }

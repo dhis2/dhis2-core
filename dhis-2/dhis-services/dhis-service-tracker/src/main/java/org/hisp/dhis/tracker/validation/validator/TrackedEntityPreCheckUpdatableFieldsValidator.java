@@ -25,32 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
 
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
+@Component
 @RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+public class TrackedEntityPreCheckUpdatableFieldsValidator
+    implements Validator<TrackedEntity>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter,
+        TrackerBundle bundle, TrackedEntity trackedEntity )
+    {
+        TrackedEntityInstance trackedEntityInstance = bundle
+            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+        reporter.addErrorIf(
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            trackedEntity, E1126, "trackedEntityType" );
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy == TrackerImportStrategy.UPDATE;
+    }
 }

@@ -25,32 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.validator;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.stereotype.Component;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+@Component
+public class EventPreCheckMetaValidator
+    implements Validator<Event>
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    {
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+        Program program = bundle.getPreheat().getProgram( event.getProgram() );
+        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
+    }
+
 }
