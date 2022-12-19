@@ -262,6 +262,25 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
+    void verifyGetAggregateClauseWithValueFails()
+    {
+        // Given
+        DataElement de = new DataElement();
+
+        de.setAggregationType( AggregationType.CUSTOM );
+        de.setValueType( NUMBER );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( de )
+            .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
+            .build();
+
+        String clause = eventSubject.getAggregateClause( params );
+
+        assertThat( clause, is( "" ) );
+    }
+
+    @Test
     void verifyGetAggregateClauseWithEventFallback()
     {
         // Given
