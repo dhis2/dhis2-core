@@ -28,12 +28,11 @@
 package org.hisp.dhis.tracker.validation;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasWarning;
+import static org.hisp.dhis.tracker.validation.validator.AssertTrackerValidationReport.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -46,11 +45,8 @@ import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
@@ -68,13 +64,9 @@ class DefaultValidationServiceTest
 
     private TrackerBundle bundle;
 
-    private Validator validator1;
+    private Validator validator;
 
-    private Validator validator2;
-
-    private Validators validators;
-
-    private Validators ruleEngineValidators;
+    private Validator ruleEngineValidator;
 
     @BeforeEach
     void setUp()
@@ -82,19 +74,9 @@ class DefaultValidationServiceTest
         preheat = mock( TrackerPreheat.class );
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
 
-        validator1 = mock( Validator.class );
-        validator2 = mock( Validator.class );
-        when( validator1.needsToRun( any() ) ).thenReturn( true );
-        when( validator2.needsToRun( any() ) ).thenReturn( true );
-
-        validators = mock( Validators.class );
-        when( validators.getEnrollmentValidator() ).thenReturn( ( r, b, t ) -> {
-        } );
-        when( validators.getEventValidator() ).thenReturn( ( r, b, t ) -> {
-        } );
-        when( validators.getRelationshipValidator() ).thenReturn( ( r, b, t ) -> {
-        } );
-        ruleEngineValidators = mock( Validators.class );
+        validator = mock( Validator.class );
+        when( validator.needsToRun( any() ) ).thenReturn( true );
+        ruleEngineValidator = mock( Validator.class );
 
         bundleBuilder = newBundle();
     }
@@ -107,12 +89,11 @@ class DefaultValidationServiceTest
             .user( null )
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
-        when( validators.getTrackedEntityValidator() ).thenReturn( validator1 );
-        service = new DefaultValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validator, ruleEngineValidator );
 
         service.validate( bundle );
 
-        verifyNoInteractions( validator1 );
+        verifyNoInteractions( validator );
     }
 
     @Test
@@ -123,12 +104,11 @@ class DefaultValidationServiceTest
             .user( superUser() )
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
-        when( validators.getTrackedEntityValidator() ).thenReturn( validator1 );
-        service = new DefaultValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validator, ruleEngineValidator );
 
         service.validate( bundle );
 
-        verifyNoInteractions( validator1 );
+        verifyNoInteractions( validator );
     }
 
     @Test
@@ -140,12 +120,11 @@ class DefaultValidationServiceTest
             .user( superUser() )
             .trackedEntities( trackedEntities( trackedEntity ) )
             .build();
-        when( validators.getTrackedEntityValidator() ).thenReturn( validator1 );
-        service = new DefaultValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( validator, ruleEngineValidator );
 
         service.validate( bundle );
 
-        verify( validator1, times( 1 ) ).validate( any(), any(), eq( bundle ) );
+        verify( validator, times( 1 ) ).validate( any(), any(), eq( bundle ) );
     }
 
     @Test
@@ -156,15 +135,13 @@ class DefaultValidationServiceTest
             .trackedEntities( trackedEntities( trackedEntity() ) )
             .build();
 
-        when( validators.getTrackedEntityValidator() ).thenReturn( validator1 );
-        when( validators.getEnrollmentValidator() ).thenReturn( validator2 );
-        doThrow( new FailFastException( emptyList() ) ).when( validator1 ).validate( any(), any(), any() );
-        service = new DefaultValidationService( validators, ruleEngineValidators );
+        doThrow( new FailFastException( emptyList() ) ).when( validator ).validate( any(), any(), any() );
+        service = new DefaultValidationService( validator, ruleEngineValidator );
 
         service.validate( bundle );
 
-        verify( validator1, times( 1 ) ).validate( any(), any(), any() );
-        verifyNoInteractions( validator2 );
+        verify( validator, times( 1 ) ).validate( any(), any(), any() );
+        verifyNoInteractions( ruleEngineValidator );
     }
 
     @Test
@@ -176,8 +153,7 @@ class DefaultValidationServiceTest
             .build();
 
         Validator<TrackerBundle> v1 = ( r, b, e ) -> r.addWarning( validTrackedEntity, ValidationCode.E1120 );
-        when( validators.getTrackedEntityValidator() ).thenReturn( v1 );
-        service = new DefaultValidationService( validators, ruleEngineValidators );
+        service = new DefaultValidationService( v1, ruleEngineValidator );
 
         ValidationResult report = service.validate( bundle );
 
@@ -200,43 +176,9 @@ class DefaultValidationServiceTest
         return TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
     }
 
-    private Enrollment enrollment( String trackedEntity )
-    {
-        return Enrollment.builder().enrollment( CodeGenerator.generateUid() ).trackedEntity( trackedEntity ).build();
-    }
-
-    private Enrollment enrollment()
-    {
-        String trackedEntity = CodeGenerator.generateUid();
-        when( preheat.exists( argThat(
-            t -> t != null && t.getTrackerType() == TrackerType.TRACKED_ENTITY
-                && trackedEntity.equals( t.getUid() ) ) ) )
-                    .thenReturn( true );
-        return Enrollment.builder().enrollment( CodeGenerator.generateUid() ).trackedEntity( trackedEntity ).build();
-    }
-
-    private Event event()
-    {
-        String enrollment = CodeGenerator.generateUid();
-        when( preheat.exists( argThat(
-            t -> t != null && t.getTrackerType() == TrackerType.ENROLLMENT && enrollment.equals( t.getUid() ) ) ) )
-                .thenReturn( true );
-        return Event.builder().event( CodeGenerator.generateUid() ).enrollment( enrollment ).build();
-    }
-
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
     {
         return List.of( trackedEntities );
-    }
-
-    private List<Enrollment> enrollments( Enrollment... enrollments )
-    {
-        return List.of( enrollments );
-    }
-
-    private List<Event> events( Event... events )
-    {
-        return List.of( events );
     }
 
     private TrackerBundle.TrackerBundleBuilder newBundle()

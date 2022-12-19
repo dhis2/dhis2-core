@@ -79,6 +79,9 @@ class TrackerImporterServiceTest
     @Mock
     private Notifier notifier;
 
+    @Mock
+    private ValidationResult validationResult;
+
     private DefaultTrackerImportService subject;
 
     private TrackerImportParams params = null;
@@ -108,9 +111,9 @@ class TrackerImporterServiceTest
         when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( persistenceReport );
 
         when( validationService.validate( any( TrackerBundle.class ) ) )
-            .thenReturn( new ValidationResult() );
+            .thenReturn( validationResult );
         when( validationService.validateRuleEngine( any( TrackerBundle.class ) ) )
-            .thenReturn( new ValidationResult() );
+            .thenReturn( validationResult );
         when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) )
             .thenReturn( ParamsConverter.convert( params ) );
     }
