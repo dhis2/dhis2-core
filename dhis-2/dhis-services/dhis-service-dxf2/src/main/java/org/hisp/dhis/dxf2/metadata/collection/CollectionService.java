@@ -31,6 +31,10 @@ import java.util.Collection;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.TypeReport;
 
 /**
@@ -40,15 +44,24 @@ public interface CollectionService
 {
     TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException;
 
     TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException;
 
     TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException;
 
     /**
      * Perform addition and deletion of given {@link IdentifiableObjects} to
@@ -62,5 +75,8 @@ public interface CollectionService
      * @return {@link TypeReport}
      */
     TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
-        throws Exception;
+        throws ForbiddenException,
+        ConflictException,
+        NotFoundException,
+        BadRequestException;
 }

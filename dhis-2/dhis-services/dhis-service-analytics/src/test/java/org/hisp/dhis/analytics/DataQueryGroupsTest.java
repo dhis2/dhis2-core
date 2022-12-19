@@ -51,9 +51,6 @@ import org.junit.jupiter.api.Test;
  */
 class DataQueryGroupsTest extends DhisConvenienceTest
 {
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
     private DataElement deA;
 
     private DataElement deB;
@@ -78,9 +75,6 @@ class DataQueryGroupsTest extends DhisConvenienceTest
 
     private OrganisationUnit ouE;
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
     @BeforeEach
     void before()
     {
@@ -104,31 +98,37 @@ class DataQueryGroupsTest extends DhisConvenienceTest
     @Test
     void planQueryA()
     {
-        DataQueryParams paramsA = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
-        DataQueryParams paramsB = DataQueryParams.newBuilder().withDataElements( getList( deC, deD ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
+            .build();
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withDataElements( getList( deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
-        DataQueryParams paramsC = DataQueryParams.newBuilder().withDataElements( getList( deE ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
+            .build();
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
+            .withDataElements( getList( deE ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).build();
-        DataQueryParams paramsD = DataQueryParams.newBuilder().withDataElements( getList( deF, deG ) )
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
+            .build();
+        DataQueryParams paramsD = DataQueryParams.newBuilder()
+            .withDataElements( getList( deF, deG ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+            .withPeriods( createPeriods( "2000Q1", "2000Q2", "2000Q3", "2000Q4", "2001Q1", "2001Q2" ) )
+            .withAggregationType( AnalyticsAggregationType.AVERAGE )
+            .build();
+
         List<DataQueryParams> queries = new ArrayList<>();
         queries.add( paramsA );
         queries.add( paramsB );
         queries.add( paramsC );
         queries.add( paramsD );
+
         DataQueryGroups queryGroups = DataQueryGroups.newBuilder().withQueries( queries ).build();
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getAllQueries().size() );
@@ -141,14 +141,18 @@ class DataQueryGroupsTest extends DhisConvenienceTest
     @Test
     void getQueryA()
     {
-        DimensionalObject dimA = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            getList( deA, deB ) );
-        DimensionalObject dimB = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, getList( ouA, ouB, ouC ) );
-        DimensionalObject dimC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            getList( createPeriod( "2000Q1" ) ) );
-        DataQueryParams paramsA = DataQueryParams.newBuilder().addDimension( dimA ).addDimension( dimB )
+        DimensionalObject dimA = new BaseDimensionalObject(
+            DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of( deA, deB ) );
+        DimensionalObject dimB = new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of( ouA, ouB, ouC ) );
+        DimensionalObject dimC = new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, createPeriods( "2000Q1" ) );
+
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .addDimension( dimA )
+            .addDimension( dimB )
             .addFilter( dimC ).build();
+
         assertNotNull( paramsA.getDimension( DimensionalObject.DATA_X_DIM_ID ) );
         assertNotNull( paramsA.getDimension( DimensionalObject.ORGUNIT_DIM_ID ) );
         assertNotNull( paramsA.getFilter( DimensionalObject.PERIOD_DIM_ID ) );
