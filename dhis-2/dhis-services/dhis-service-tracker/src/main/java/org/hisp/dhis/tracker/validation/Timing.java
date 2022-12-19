@@ -37,7 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This class is used for timing (performance) reports of the individual
- * validation hook.
+ * validators.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
