@@ -32,6 +32,7 @@ import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * API for scheduler list and named queues (sequences).
  *
@@ -84,20 +87,28 @@ public class JobSchedulerController
     @Value
     static class SchedulerEntry
     {
+        @JsonProperty
         String name;
 
+        @JsonProperty
         String type;
 
+        @JsonProperty
         String cronExpression;
 
+        @JsonProperty
         Date nextExecutionTime;
 
+        @JsonProperty
         JobStatus status;
 
+        @JsonProperty
         boolean enabled;
 
+        @JsonProperty
         boolean configurable;
 
+        @JsonProperty
         List<SchedulerEntryJob> sequence;
 
         static SchedulerEntry of( JobConfiguration config )
@@ -120,12 +131,16 @@ public class JobSchedulerController
             {
                 return of( trigger );
             }
+            JobStatus queueStatus = queue.stream()
+                .map( JobConfiguration::getJobStatus )
+                .filter( status -> status == JobStatus.RUNNING )
+                .findAny().orElse( trigger.getJobStatus() );
             return new SchedulerEntry(
                 trigger.getQueueName(),
                 "Sequence",
                 trigger.getCronExpression(),
                 trigger.getNextExecutionTime(),
-                trigger.getJobStatus(),
+                queueStatus,
                 trigger.isEnabled(),
                 true,
                 queue.stream()
@@ -136,20 +151,25 @@ public class JobSchedulerController
     }
 
     @Value
-    @OpenApi.Property
     static class SchedulerEntryJob
     {
+        @JsonProperty
         @OpenApi.Property( { UID.class, JobConfiguration.class } )
         String id;
 
+        @JsonProperty
         String name;
 
+        @JsonProperty
         JobType type;
 
+        @JsonProperty
         String cronExpression;
 
+        @JsonProperty
         Date nextExecutionTime;
 
+        @JsonProperty
         JobStatus status;
 
         static SchedulerEntryJob of( JobConfiguration config )
@@ -188,6 +208,7 @@ public class JobSchedulerController
             .filter( config -> config.getQueueName() == null )
             .filter( nameFilter )
             .map( SchedulerEntry::of )
+            .sorted( comparing( SchedulerEntry::getName ) )
             .collect( toList() );
     }
 
@@ -197,21 +218,24 @@ public class JobSchedulerController
     @OpenApi.Property
     static class SchedulerQueue
     {
+        @JsonProperty
         String name;
 
+        @JsonProperty( required = true )
         String cronExpression;
 
+        @JsonProperty( required = true )
         @OpenApi.Property( { UID[].class, JobConfiguration.class } )
-        List<String> sequence;
+        List<String> sequence = new ArrayList<>();
     }
 
-    @GetMapping( "/queue/" )
+    @GetMapping( "/queues/" )
     public Set<String> getQueueNames()
     {
         return jobQueueService.getQueueNames();
     }
 
-    @GetMapping( "/queue/{name}" )
+    @GetMapping( "/queues/{name}" )
     public SchedulerQueue getQueue( @PathVariable String name )
         throws NotFoundException
     {
@@ -221,7 +245,7 @@ public class JobSchedulerController
             sequence.stream().map( IdentifiableObject::getUid ).collect( toList() ) );
     }
 
-    @PostMapping( "/queue/{name}" )
+    @PostMapping( "/queues/{name}" )
     @ResponseStatus( HttpStatus.CREATED )
     public void createQueue( @PathVariable String name, @RequestBody SchedulerQueue queue )
         throws NotFoundException,
@@ -230,7 +254,7 @@ public class JobSchedulerController
         jobQueueService.createQueue( name, queue.getCronExpression(), queue.getSequence() );
     }
 
-    @PutMapping( "/queue/{name}" )
+    @PutMapping( "/queues/{name}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateQueue( @PathVariable String name, @RequestBody SchedulerQueue queue )
         throws NotFoundException,
@@ -239,7 +263,7 @@ public class JobSchedulerController
         jobQueueService.updateQueue( name, queue.getCronExpression(), queue.getSequence() );
     }
 
-    @DeleteMapping( "/queue/{name}" )
+    @DeleteMapping( "/queues/{name}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteQueue( @PathVariable String name )
         throws NotFoundException

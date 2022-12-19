@@ -62,6 +62,7 @@ public class DefaultJobQueueService implements JobQueueService
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     @Override
+    @Transactional( readOnly = true )
     public Set<String> getQueueNames()
     {
         return jobConfigurationStore.getAll().stream()
@@ -71,6 +72,7 @@ public class DefaultJobQueueService implements JobQueueService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<JobConfiguration> getQueue( String name )
         throws NotFoundException
     {
@@ -136,6 +138,11 @@ public class DefaultJobQueueService implements JobQueueService
     private void validateQueue( String name, Collection<JobConfiguration> sequence )
         throws ConflictException
     {
+        // sequence must be at least 2 entries long
+        if ( sequence.size() < 2 )
+        {
+            throw new ConflictException( ErrorCode.E7024 );
+        }
         // job is not already part of another queue
         Optional<JobConfiguration> alreadyInQueue = sequence.stream()
             .filter( config -> !name.equals( config.getQueueName() ) && config.getQueueName() != null )

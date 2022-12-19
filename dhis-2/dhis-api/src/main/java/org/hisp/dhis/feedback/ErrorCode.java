@@ -336,6 +336,7 @@ public enum ErrorCode
     E7021( "Job Queue already exist: `{0}`" ),
     E7022( "Job `{0}` is already used in another queue: `{1}`" ),
     E7023( "Job `{0}` is a system job and as such cannot be added to a queue.`" ),
+    E7024( "Job Queue must have at least two jobs." ),
 
     /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),
