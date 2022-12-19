@@ -31,8 +31,6 @@ import static java.util.Comparator.comparing;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Date;
 import java.util.List;
@@ -47,7 +45,8 @@ import lombok.Value;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
@@ -209,17 +208,14 @@ public class JobSchedulerController
     @GetMapping( "/queue/" )
     public Set<String> getQueueNames()
     {
-        return jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( config -> config.getQueueName() != null )
-            .map( JobConfiguration::getQueueName )
-            .collect( toUnmodifiableSet() );
+        return jobQueueService.getQueueNames();
     }
 
     @GetMapping( "/queue/{name}" )
     public SchedulerQueue getQueue( @PathVariable String name )
-        throws WebMessageException
+        throws NotFoundException
     {
-        List<JobConfiguration> sequence = getQueueSequence( name );
+        List<JobConfiguration> sequence = jobQueueService.getQueue( name );
         JobConfiguration trigger = sequence.get( 0 );
         return new SchedulerQueue( trigger.getQueueName(), trigger.getCronExpression(),
             sequence.stream().map( IdentifiableObject::getUid ).collect( toList() ) );
@@ -228,6 +224,8 @@ public class JobSchedulerController
     @PostMapping( "/queue/{name}" )
     @ResponseStatus( HttpStatus.CREATED )
     public void createQueue( @PathVariable String name, @RequestBody SchedulerQueue queue )
+        throws NotFoundException,
+        ConflictException
     {
         jobQueueService.createQueue( name, queue.getCronExpression(), queue.getSequence() );
     }
@@ -235,6 +233,8 @@ public class JobSchedulerController
     @PutMapping( "/queue/{name}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateQueue( @PathVariable String name, @RequestBody SchedulerQueue queue )
+        throws NotFoundException,
+        ConflictException
     {
         jobQueueService.updateQueue( name, queue.getCronExpression(), queue.getSequence() );
     }
@@ -242,21 +242,9 @@ public class JobSchedulerController
     @DeleteMapping( "/queue/{name}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteQueue( @PathVariable String name )
+        throws NotFoundException
     {
         jobQueueService.deleteQueue( name );
     }
 
-    private List<JobConfiguration> getQueueSequence( String name )
-        throws WebMessageException
-    {
-        List<JobConfiguration> sequence = jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( config -> name.equals( config.getQueueName() ) )
-            .sorted( comparing( JobConfiguration::getQueuePosition ) )
-            .collect( toList() );
-        if ( sequence.isEmpty() )
-        {
-            throw new WebMessageException( notFound( SchedulerQueue.class, name ) );
-        }
-        return sequence;
-    }
 }

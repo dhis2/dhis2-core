@@ -27,18 +27,26 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,53 +62,117 @@ public class DefaultJobQueueService implements JobQueueService
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     @Override
+    public Set<String> getQueueNames()
+    {
+        return jobConfigurationStore.getAll().stream()
+            .map( JobConfiguration::getQueueName )
+            .filter( Objects::nonNull )
+            .collect( toUnmodifiableSet() );
+    }
+
+    @Override
+    public List<JobConfiguration> getQueue( String name )
+        throws NotFoundException
+    {
+        List<JobConfiguration> sequence = jobConfigurationStore.getAll().stream()
+            .filter( config -> name.equals( config.getQueueName() ) )
+            .sorted( comparing( JobConfiguration::getQueuePosition ) )
+            .collect( toList() );
+        if ( sequence.isEmpty() )
+        {
+            throw new NotFoundException( ErrorCode.E7020, name );
+        }
+        return sequence;
+    }
+
+    @Override
     @Transactional
     public void createQueue( String name, String cronExpression, List<String> sequence )
+        throws NotFoundException,
+        ConflictException
     {
-        //TODO name not already used
-        Map<String, JobConfiguration> queueJobs = getQueueJobConfigurationsById( sequence );
-        validateQueue( queueJobs.values() );
-        for ( int pos = 0; pos < sequence.size(); pos++ )
+        if ( !getQueueJobsByQueueName( name ).isEmpty() )
         {
-            addToQueue( queueJobs.get( sequence.get( pos ) ), name, pos, cronExpression );
+            throw new ConflictException( ErrorCode.E7021, name );
         }
+        Map<String, JobConfiguration> queueJobs = getQueueJobsByIds( sequence );
+        validateQueue( name, queueJobs.values() );
+        addSequenceToQueue( name, cronExpression, sequence, queueJobs );
     }
 
     @Override
     @Transactional
     public void updateQueue( String name, String newCronExpression, List<String> newSequence )
+        throws NotFoundException,
+        ConflictException
     {
-        Map<String, JobConfiguration> oldQueueJobs = getQueueJobConfigurationsById( name );
-        //TODO check is not empty
-        Map<String, JobConfiguration> newQueueJobs = getQueueJobConfigurationsById( newSequence );
-        validateQueue( newQueueJobs.values() );
-        for ( int pos = 0; pos < newSequence.size(); pos++ )
+        Map<String, JobConfiguration> oldQueueJobs = getQueueJobsByQueueName( name );
+        if ( oldQueueJobs.isEmpty() )
         {
-            addToQueue( newQueueJobs.get( newSequence.get( pos ) ), name, pos, newCronExpression );
+            throw new NotFoundException( ErrorCode.E7020, name );
         }
+        Map<String, JobConfiguration> newQueueJobs = getQueueJobsByIds( newSequence );
+        validateQueue( name, newQueueJobs.values() );
+        addSequenceToQueue( name, newCronExpression, newSequence, newQueueJobs );
         oldQueueJobs.entrySet().stream()
             .filter( e -> !newQueueJobs.containsKey( e.getKey() ) )
             .map( Map.Entry::getValue )
-            .forEach( this::removeFromQueue );
+            .forEach( this::removeJobFromQueue );
     }
 
     @Override
     @Transactional
     public void deleteQueue( String name )
+        throws NotFoundException
     {
-        getQueueJobConfigurationsById( name ).values().forEach( this::removeFromQueue );
+        Collection<JobConfiguration> jobs = getQueueJobsByQueueName( name ).values();
+        if ( jobs.isEmpty() )
+        {
+            throw new NotFoundException( ErrorCode.E7020, name );
+        }
+        jobs.forEach( this::removeJobFromQueue );
     }
 
-    private void validateQueue( Collection<JobConfiguration> queue )
+    private void validateQueue( String name, Collection<JobConfiguration> sequence )
+        throws ConflictException
     {
-
+        // job is not already part of another queue
+        Optional<JobConfiguration> alreadyInQueue = sequence.stream()
+            .filter( config -> !name.equals( config.getQueueName() ) && config.getQueueName() != null )
+            .findFirst();
+        if ( alreadyInQueue.isPresent() )
+        {
+            JobConfiguration config = alreadyInQueue.get();
+            throw new ConflictException( ErrorCode.E7022, config.getUid(), config.getQueueName() );
+        }
+        // job is a system job
+        Optional<JobConfiguration> systemJob = sequence.stream().filter( config -> !config.isConfigurable() )
+            .findFirst();
+        if ( systemJob.isPresent() )
+        {
+            JobConfiguration config = systemJob.get();
+            throw new ConflictException( ErrorCode.E7023, config.getUid() );
+        }
     }
 
-    private void addToQueue( JobConfiguration config, String name, int position, String cronExpression )
+    private void addSequenceToQueue( String name, String cronExpression, List<String> sequence,
+        Map<String, JobConfiguration> queueJobs )
+        throws NotFoundException
+    {
+        for ( int pos = 0; pos < sequence.size(); pos++ )
+        {
+            String jobId = sequence.get( pos );
+            addJobToQueue( jobId, queueJobs.get( jobId ), name, pos, cronExpression );
+        }
+    }
+
+    private void addJobToQueue( String jobId, JobConfiguration config, String name, int position,
+        String cronExpression )
+        throws NotFoundException
     {
         if ( config == null )
         {
-            throw new IllegalQueryException( "No job with ID: " );
+            throw new NotFoundException( JobConfiguration.class, jobId );
         }
         config.setQueueName( name );
         config.setQueuePosition( position );
@@ -108,7 +180,7 @@ public class DefaultJobQueueService implements JobQueueService
         jobConfigurationStore.update( config );
     }
 
-    private void removeFromQueue( JobConfiguration config )
+    private void removeJobFromQueue( JobConfiguration config )
     {
         config.setQueueName( null );
         config.setQueuePosition( null );
@@ -117,14 +189,14 @@ public class DefaultJobQueueService implements JobQueueService
         jobConfigurationStore.update( config );
     }
 
-    private Map<String, JobConfiguration> getQueueJobConfigurationsById( String name )
+    private Map<String, JobConfiguration> getQueueJobsByQueueName( String name )
     {
         return jobConfigurationStore.getAll().stream()
             .filter( c -> name.equals( c.getQueueName() ) )
             .collect( toMap( IdentifiableObject::getUid, Function.identity() ) );
     }
 
-    private Map<String, JobConfiguration> getQueueJobConfigurationsById( List<String> sequence )
+    private Map<String, JobConfiguration> getQueueJobsByIds( List<String> sequence )
     {
         return jobConfigurationStore.getByUid( sequence ).stream()
             .collect( toMap( IdentifiableObject::getUid, Function.identity() ) );

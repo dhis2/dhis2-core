@@ -28,6 +28,10 @@
 package org.hisp.dhis.scheduling;
 
 import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * Job Queue API
@@ -39,6 +43,18 @@ import java.util.List;
  */
 public interface JobQueueService
 {
+    Set<String> getQueueNames();
+
+    /**
+     * Returns the jobs in queue sequence order.
+     *
+     * @param name name of the queue
+     * @return all jobs that are part of the queue in execution order
+     * @throws NotFoundException when no such queue exists
+     */
+    List<JobConfiguration> getQueue( String name )
+        throws NotFoundException;
+
     /**
      * Create a new queue sequence.
      *
@@ -46,7 +62,9 @@ public interface JobQueueService
      * @param cronExpression trigger CRON expression to start the queue sequence
      * @param sequence UIDs of the {@link JobConfiguration}s to run
      */
-    void createQueue( String name, String cronExpression, List<String> sequence );
+    void createQueue( String name, String cronExpression, List<String> sequence )
+        throws NotFoundException,
+        ConflictException;
 
     /**
      * Update a queue sequence.
@@ -56,7 +74,9 @@ public interface JobQueueService
      *        sequence
      * @param newSequence UIDs of the {@link JobConfiguration}s to run
      */
-    void updateQueue( String name, String newCronExpression, List<String> newSequence );
+    void updateQueue( String name, String newCronExpression, List<String> newSequence )
+        throws NotFoundException,
+        ConflictException;
 
     /**
      * Deletes a queue sequence.
@@ -71,5 +91,6 @@ public interface JobQueueService
      *
      * @param name name of the queue
      */
-    void deleteQueue( String name );
+    void deleteQueue( String name )
+        throws NotFoundException;
 }
