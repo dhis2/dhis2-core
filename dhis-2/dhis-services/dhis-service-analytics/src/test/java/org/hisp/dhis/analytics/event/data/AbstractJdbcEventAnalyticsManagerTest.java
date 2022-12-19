@@ -139,8 +139,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         eventSubject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
             programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
 
-        // data init
-
         programA = createProgram( 'A' );
 
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
@@ -204,14 +202,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetCoordinateColumn()
     {
-        // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
         QueryItem item = new QueryItem( dio );
 
-        // When
         String column = eventSubject.getCoordinateColumn( item ).asSql();
 
-        // Then
         String colName = quote( item.getItemName() );
 
         assertThat( column, is( "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
@@ -241,7 +236,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetAggregateClauseWithValue()
     {
-        // Given
         DataElement de = new DataElement();
 
         de.setUid( dataElementA.getUid() );
@@ -255,17 +249,14 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withAggregationType( AnalyticsAggregationType.SUM )
             .build();
 
-        // When
         String clause = eventSubject.getAggregateClause( params );
 
-        // Then
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
     @Test
     void verifyGetAggregateClauseWithValueFails()
     {
-        // Given
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.CUSTOM );
@@ -277,15 +268,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
             .build();
 
-        // When
-        // Then
         assertThrows( IllegalArgumentException.class, () -> eventSubject.getAggregateClause( params ) );
     }
 
     @Test
     void verifyGetAggregateClauseWithEventFallback()
     {
-        // Given
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.NONE );
@@ -297,17 +285,15 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
             .withOutputType( EventOutputType.EVENT )
             .build();
-        // When
+
         String aggregateClause = eventSubject.getAggregateClause( params );
 
-        // Then
         assertEquals( "count(ax.\"psi\")", aggregateClause );
     }
 
     @Test
     void verifyGetAggregateClauseWithEnrollmentFallback()
     {
-        // Given
         DataElement de = new DataElement();
 
         de.setAggregationType( AggregationType.SUM );
@@ -320,10 +306,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withOutputType( EventOutputType.ENROLLMENT )
             .build();
 
-        // When
         String aggregateClause = eventSubject.getAggregateClause( params );
 
-        // Then
         assertEquals( "count(distinct ax.\"pi\")", aggregateClause );
     }
 
@@ -351,7 +335,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         programIndicator.setAggregationType( AggregationType.CUSTOM );
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withProgramIndicator( programIndicator ).build();
+            .withProgramIndicator( programIndicator )
+            .build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
@@ -383,8 +368,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
-        // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
@@ -394,7 +377,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
-        // When
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )
             .addDimension( orgUnits )
@@ -406,8 +388,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         List<String> columns = this.eventSubject.getSelectColumns( params, false );
 
-        // Then
-
         assertThat( columns, hasSize( 3 ) );
         assertThat( columns, containsInAnyOrder( "ax.\"pe\"", "ax.\"ou\"",
             "'[' || round(ST_X(ST_Centroid(\"" + deA.getUid() + "_geom"
@@ -418,8 +398,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
-        // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             List.of( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
@@ -429,7 +407,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
-        // When
         EventQueryParams params = new EventQueryParams.Builder()
             .addDimension( periods )
             .addDimension( orgUnits )
@@ -446,14 +423,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         String whereClause = this.eventSubject.getWhereClause( params );
 
-        // Then
         assertThat( whereClause, containsString( "and coalesce(ax.\"" + deA.getUid() + "_geom" + "\") is not null" ) );
     }
 
     @Test
     void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
-        // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
             DimensionType.PERIOD, List.of( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
 
@@ -470,10 +445,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEndDate( new Date() )
             .build();
 
-        // When
         String whereClause = this.eventSubject.getWhereClause( params );
 
-        // Then
         assertThat( whereClause,
             containsString(
                 "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
@@ -482,16 +455,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void testValidCoordinatesFieldInSqlWhereClauseForEvent()
     {
-        // Given
         EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
             List.of( "pigeometry", "psigeometry", "teigeometry", "ougeometry" ) );
 
-        // When
         String whereClause = this.eventSubject.getWhereClause( params );
 
-        // Then
-        // the order of geometry fields does not matter in where clause (is not
-        // null test)
         assertThat( whereClause, containsString(
             "coalesce(ax.\"pigeometry\",ax.\"psigeometry\",ax.\"teigeometry\",ax.\"ougeometry\") is not null" ) );
     }
@@ -499,27 +467,21 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause()
     {
-        // Given
         EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest(
             List.of( "pigeometry", "teigeometry", "ougeometry" ) );
 
-        // When
         String whereClause = this.eventSubject.getSelectClause( params );
 
-        // Then
         assertThat( whereClause, containsString( "coalesce(ax.\"pigeometry\",ax.\"teigeometry\",ax.\"ougeometry\")" ) );
     }
 
     @Test
     void testValidExplicitCoordinatesFieldInSqlSelectClause()
     {
-        // Given
         EventQueryParams params = getEventQueryParamsForCoordinateFieldsTest( List.of( "ougeometry", "psigeometry" ) );
 
-        // When
         String whereClause = this.eventSubject.getSelectClause( params );
 
-        // Then
         assertThat( whereClause, containsString( "coalesce(ax.\"ougeometry\",ax.\"psigeometry\")" ) );
     }
 
@@ -694,7 +656,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void testAddGridValueForDoubleObject()
         throws SQLException
     {
-        // Given
         Double doubleObject = 35.5d;
         int index = 1;
 
@@ -717,10 +678,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
 
-        // When
         eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
-        // Then
         assertTrue( grid.getColumn( 0 ).contains( doubleObject ), "Should contain value " + doubleObject );
     }
 
@@ -728,7 +687,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void testAddGridValueForNull()
         throws SQLException
     {
-        // Given
         Double nullObject = null;
         int index = 1;
 
@@ -751,10 +709,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
 
-        // When
         eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
-        // Then
         assertTrue( grid.getColumn( 0 ).contains( EMPTY ), "Should contain empty value" );
     }
 
