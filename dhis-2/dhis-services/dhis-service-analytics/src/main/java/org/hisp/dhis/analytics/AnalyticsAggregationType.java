@@ -87,16 +87,10 @@ public class AnalyticsAggregationType
     }
 
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
-        DataType dataType )
+        DataType dataType, boolean disaggregation )
     {
         this( aggregationType, periodAggregationType );
         this.dataType = dataType;
-    }
-
-    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
-        DataType dataType, boolean disaggregation )
-    {
-        this( aggregationType, periodAggregationType, dataType );
         this.disaggregation = disaggregation;
     }
 
