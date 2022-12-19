@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1128;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -116,7 +113,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -127,8 +124,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "programStage" ) );
+        assertHasError( reporter, event, E1128, "programStage" );
     }
 
     @Test
@@ -139,8 +135,7 @@ class EventPreCheckUpdatableFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getErrors().get( 0 ).getMessage(), containsString( "enrollment" ) );
+        assertHasError( reporter, event, E1128, "enrollment" );
     }
 
     private Event validEvent()

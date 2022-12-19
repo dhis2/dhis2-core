@@ -59,15 +59,18 @@ public class RuleEngineValidator implements Validator<TrackerBundle>
                 enrollmentValidator,
                 eventValidator
         );
+        // @formatter:on
     }
 
     @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+        bundleValidator().validate( reporter, bundle, input );
     }
 
     @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
         return true; // this main validator should always run
     }
 }

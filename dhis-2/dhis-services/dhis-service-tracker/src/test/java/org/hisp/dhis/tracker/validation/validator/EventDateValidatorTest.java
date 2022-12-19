@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1031;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1042;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1043;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1046;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1050;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -128,7 +127,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -143,7 +142,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1031 );
     }
 
     @Test
@@ -159,7 +158,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1031 );
     }
 
     @Test
@@ -175,7 +174,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1031 );
     }
 
     @Test
@@ -192,7 +191,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1050, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1050 );
     }
 
     @Test
@@ -209,7 +208,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1042, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1042 );
     }
 
     @Test
@@ -227,7 +226,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1043, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1043 );
     }
 
     @Test
@@ -245,7 +244,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1046, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1046 );
     }
 
     @Test
@@ -262,7 +261,7 @@ class EventDateValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1047, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1047 );
     }
 
     private Program getProgramWithRegistration()

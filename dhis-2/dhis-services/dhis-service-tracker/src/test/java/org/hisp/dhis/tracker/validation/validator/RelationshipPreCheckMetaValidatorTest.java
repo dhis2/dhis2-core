@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -85,7 +84,7 @@ class RelationshipPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -95,7 +94,7 @@ class RelationshipPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        hasTrackerError( reporter, E4006, RELATIONSHIP, relationship.getUid() );
+        assertHasError( reporter, relationship, E4006 );
     }
 
     private Relationship validRelationship()

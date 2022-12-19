@@ -29,14 +29,16 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Set;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -118,7 +120,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -140,7 +142,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -162,7 +164,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -176,14 +178,16 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( dataValue() ) ).build();
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1304, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1304 ) );
     }
 
     @Test
@@ -209,14 +213,16 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( dataValue() ) ).build();
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1303, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1303 ) );
     }
 
     @Test
@@ -248,7 +254,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -279,7 +285,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -307,14 +313,16 @@ class EventDataValuesValidatorTest
         DataValue notPresentDataValue = dataValue();
         notPresentDataValue.setDataElement( MetadataIdentifier.ofUid( "de_not_present_in_program_stage" ) );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( dataValue(), notPresentDataValue ) ).build();
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1305, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1305 ) );
     }
 
     @Test
@@ -345,7 +353,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -360,6 +368,7 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( dataValue() ) )
@@ -367,8 +376,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1302 ) );
     }
 
     @Test
@@ -385,6 +395,7 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) )
@@ -394,8 +405,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1084, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1084 ) );
     }
 
     @Test
@@ -418,7 +430,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -434,6 +446,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( validDataValue ) )
@@ -441,8 +454,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
     }
 
     @Test
@@ -459,6 +473,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( validDataValue ) )
@@ -466,8 +481,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
     }
 
     @Test
@@ -484,6 +500,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( validDataValue ) )
@@ -491,8 +508,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
     }
 
     @Test
@@ -516,7 +534,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -533,6 +551,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( validDataValue ) )
@@ -540,8 +559,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
     }
 
     @Test
@@ -564,7 +584,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -587,7 +607,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -610,7 +630,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -628,6 +648,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) )
@@ -637,8 +658,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1009 ) );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
@@ -646,7 +668,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 0 ) );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -664,6 +686,7 @@ class EventDataValuesValidatorTest
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) )
@@ -673,8 +696,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1009 ) );
 
         event.setEvent( "XYZ" );
         fileResource.setFileResourceOwner( "ABC" );
@@ -697,7 +721,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 0 ) );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -748,7 +772,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -774,6 +798,7 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) )
@@ -781,10 +806,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == ValidationCode.E1125 ).count() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1125 ) );
     }
 
     @Test
@@ -802,6 +826,7 @@ class EventDataValuesValidatorTest
             .thenReturn( programStage );
 
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( invalidDataValue ) )
@@ -809,8 +834,9 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1007, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1007 ) );
     }
 
     @Test
@@ -837,7 +863,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
@@ -853,6 +879,7 @@ class EventDataValuesValidatorTest
         validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
         validDataValue.setValue( value );
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .programStage( idSchemes.toMetadataIdentifier( programStage ) )
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) )
@@ -861,8 +888,9 @@ class EventDataValuesValidatorTest
         reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, event, ValidationCode.E1302 ) );
     }
 
     private DataElement dataElement( ValueType type )

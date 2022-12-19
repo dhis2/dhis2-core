@@ -28,7 +28,8 @@
 package org.hisp.dhis.tracker.validation;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.tracker.validation.validator.AssertTrackerValidationReport.assertHasWarning;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -155,11 +156,11 @@ class DefaultValidationServiceTest
         Validator<TrackerBundle> v1 = ( r, b, e ) -> r.addWarning( validTrackedEntity, ValidationCode.E1120 );
         service = new DefaultValidationService( v1, ruleEngineValidator );
 
-        ValidationResult report = service.validate( bundle );
+        ValidationResult result = service.validate( bundle );
 
         assertAll( "errors and warnings",
-            () -> assertFalse( report.hasErrors() ),
-            () -> assertHasWarning( report, ValidationCode.E1120, validTrackedEntity ) );
+            () -> assertFalse( result.hasErrors() ),
+            () -> assertHasWarning( result, validTrackedEntity, E1120 ) );
 
         assertTrue( bundle.getTrackedEntities().contains( validTrackedEntity ) );
     }

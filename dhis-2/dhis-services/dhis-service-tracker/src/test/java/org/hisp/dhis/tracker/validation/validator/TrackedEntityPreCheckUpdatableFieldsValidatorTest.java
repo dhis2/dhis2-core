@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1126;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -114,7 +113,7 @@ class TrackedEntityPreCheckUpdatableFieldsValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -125,7 +124,7 @@ class TrackedEntityPreCheckUpdatableFieldsValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1126 );
     }
 
     private TrackedEntity validTei()

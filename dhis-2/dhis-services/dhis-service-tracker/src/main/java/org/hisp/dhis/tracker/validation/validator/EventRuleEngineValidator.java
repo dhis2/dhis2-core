@@ -59,6 +59,7 @@ public class EventRuleEngineValidator implements Validator<TrackerBundle>
                             dataValuesValidator
                     )
         );
+        // @formatter:on
     }
 
     @Override
@@ -68,7 +69,8 @@ public class EventRuleEngineValidator implements Validator<TrackerBundle>
     }
 
     @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
         return true; // this main validator should always run
     }
 }

@@ -180,7 +180,7 @@ public class Reporter
      * Add error.
      * <p>
      * If the {@link Reporter} is configured to fail fast an
-     * {@link ValidationFailFastException} is thrown.
+     * {@link FailFastException} is thrown.
      * </p>
      *
      * @param error error

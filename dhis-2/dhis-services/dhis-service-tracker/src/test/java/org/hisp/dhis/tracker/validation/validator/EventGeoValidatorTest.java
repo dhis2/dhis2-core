@@ -29,11 +29,10 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
 import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1012;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1074;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -104,7 +103,7 @@ class EventGeoValidatorTest
         validator.validate( reporter, bundle, event );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -136,7 +135,7 @@ class EventGeoValidatorTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1074, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1074 );
     }
 
     @Test
@@ -156,7 +155,7 @@ class EventGeoValidatorTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1012 );
     }
 
     @Test
@@ -176,6 +175,6 @@ class EventGeoValidatorTest
         validator.validate( reporter, bundle, event );
 
         // then
-        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1012 );
     }
 }

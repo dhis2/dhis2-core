@@ -29,10 +29,9 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1008;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +43,7 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
@@ -98,7 +98,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -113,7 +113,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertMissingProperty( reporter, event.getUid(), "program" );
+        assertMissingProperty( reporter, event, "program" );
     }
 
     @Test
@@ -133,7 +133,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getErrors(), hasSize( 1 ) );
-        hasTrackerError( reporter, E1008, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1008 );
     }
 
     @Test
@@ -148,7 +148,7 @@ class EventPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertMissingProperty( reporter, event.getUid(), "programStage" );
+        assertMissingProperty( reporter, event, "programStage" );
     }
 
     @Test
@@ -163,12 +163,11 @@ class EventPreCheckMandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertMissingProperty( reporter, event.getUid(), "orgUnit" );
+        assertMissingProperty( reporter, event, "orgUnit" );
     }
 
-    private void assertMissingProperty( Reporter reporter, String uid, String property )
+    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
     {
-        AssertValidationErrorReporter.assertMissingProperty( reporter, EVENT, "event", uid, property,
-            ValidationCode.E1123 );
+        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1123, property );
     }
 }

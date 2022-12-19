@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -98,7 +97,7 @@ class EventPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -113,7 +112,7 @@ class EventPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1010, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1010 );
     }
 
     @Test
@@ -127,7 +126,7 @@ class EventPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1013, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1013 );
     }
 
     @Test
@@ -141,7 +140,7 @@ class EventPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        hasTrackerError( reporter, E1011, EVENT, event.getUid() );
+        assertHasError( reporter, event, E1011 );
     }
 
     private Event validEvent()

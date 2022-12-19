@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1080;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1081;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1113;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +91,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -105,7 +104,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -119,7 +118,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -133,7 +132,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1113, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1113 );
     }
 
     @Test
@@ -147,7 +146,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1080, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1080 );
     }
 
     @Test
@@ -160,7 +159,7 @@ class EnrollmentPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1081, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1081 );
     }
 
     private ProgramInstance getSoftDeletedEnrollment()
