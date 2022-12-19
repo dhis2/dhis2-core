@@ -112,7 +112,8 @@ public class EventHookListener
             eventHooks.addAll( eventHookService.getAll() );
         }
 
-        eventHooks.forEach( eh -> {
+        for ( EventHook eh : eventHooks )
+        {
             targets.put( eh.getUid(), new ArrayList<>() );
 
             for ( Target target : eh.getTargets() )
@@ -126,6 +127,6 @@ public class EventHookListener
                     targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
                 }
             }
-        } );
+        }
     }
 }
