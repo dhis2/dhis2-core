@@ -225,9 +225,9 @@ class QueryValidatorTest
     void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withOrganisationUnits( getList( ouA, ouB ) )
-            .withPeriods( getList( peA, peB ) )
-            .withDataElements( getList( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .withDataElements( List.of( deA, deB ) )
             .build();
 
         queryValidator.validate( params );
