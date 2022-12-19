@@ -87,10 +87,8 @@ public class EventHookListener
 
                 ObjectNode objectNode = fieldFilterService.toObjectNode( event.getObject(),
                     List.of( eventHook.getSource().getFields() ) );
-                String payload = objectMapper.writeValueAsString( Map.of(
-                    "path", event.getPath(),
-                    "meta", event.getMeta(),
-                    "object", objectNode ) );
+                event.setObject( objectNode );
+                String payload = objectMapper.writeValueAsString( event );
 
                 List<Handler> handlers = targets.get( eventHook.getUid() );
 

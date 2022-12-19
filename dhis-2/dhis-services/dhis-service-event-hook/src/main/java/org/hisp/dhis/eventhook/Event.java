@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.eventhook;
 
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 import lombok.Builder;
@@ -43,6 +44,10 @@ public class Event
 {
     @JsonProperty
     private String path;
+
+    @JsonProperty
+    @Builder.Default
+    private ZonedDateTime createdAt = ZonedDateTime.now();
 
     @JsonProperty
     @Builder.Default
