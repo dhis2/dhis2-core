@@ -25,54 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.feedback;
 
-import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author David Katuscak <katuscak.d@gmail.com>
- */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class DataSynchronizationJobParameters implements JobParameters
+public interface Error
 {
-    private static final long serialVersionUID = 153645562301563469L;
+    ErrorCode getCode();
 
-    static final int PAGE_SIZE_MIN = 50;
+    String getMessage();
 
-    public static final int PAGE_SIZE_MAX = 30000;
-
-    private int pageSize = 10000;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
+    static <V, R extends RuntimeException, E extends Exception> V rethrow( Class<R> exception, Function<String, E> as,
+        Supplier<V> operation )
+        throws E
     {
-        return pageSize;
+        return rethrowMapped( exception, ex -> as.apply( ex.getMessage() ), operation );
     }
 
-    public void setPageSize( final int pageSize )
+    static <V, R extends RuntimeException, E extends Exception> V rethrowMapped( Class<R> whenThrown,
+        Function<R, E> wrapAs, Supplier<V> operation )
+        throws E
     {
-        this.pageSize = pageSize;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
+        try
         {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "pageSize", PAGE_SIZE_MIN, PAGE_SIZE_MAX, pageSize ) );
+            return operation.get();
         }
-
-        return Optional.empty();
+        catch ( RuntimeException ex )
+        {
+            if ( whenThrown.isAssignableFrom( ex.getClass() ) )
+            {
+                throw wrapAs.apply( whenThrown.cast( ex ) );
+            }
+            throw ex;
+        }
     }
 }
