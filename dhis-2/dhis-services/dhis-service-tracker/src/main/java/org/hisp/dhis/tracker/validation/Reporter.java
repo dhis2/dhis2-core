@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
  * <p>
  * Long-term we would want to remove the responsibility of tracking invalid
  * entities from here. This could allow us to merge this class with
- * {@link ValidationResult}.
+ * {@link Result}.
  * </p>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -180,7 +180,7 @@ public class Reporter
      * Add error.
      * <p>
      * If the {@link Reporter} is configured to fail fast an
-     * {@link ValidationFailFastException} is thrown.
+     * {@link FailFastException} is thrown.
      * </p>
      *
      * @param error error

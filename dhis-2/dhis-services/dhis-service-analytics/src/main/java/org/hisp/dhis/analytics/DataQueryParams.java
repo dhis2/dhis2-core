@@ -1298,8 +1298,8 @@ public class DataQueryParams
      * the number of days in the first period. In these cases, queries should
      * contain periods with the same number of days only. If period is filter,
      * use the sum of days in all periods. If the period is defined by
-     * "startDate" and "endDate" params, these two will be considered (default
-     * option).
+     * "startDate" and "endDate" parameters, these two will be considered
+     * (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1329,7 +1329,7 @@ public class DataQueryParams
             return totalDays;
         }
 
-        // Default to "startDate" and "endDate" URL params
+        // Default to "startDate" and "endDate" URL parameters
         return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
