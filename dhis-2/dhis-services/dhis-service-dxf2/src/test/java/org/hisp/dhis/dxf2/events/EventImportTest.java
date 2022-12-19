@@ -496,7 +496,7 @@ public class EventImportTest
     }
 
     @Test
-    void testAddEventWithDueDateForProgramWithoutRegistration()
+    public void testAddEventWithDueDateForProgramWithoutRegistration()
     {
         String eventUid = CodeGenerator.generateUid();
 
