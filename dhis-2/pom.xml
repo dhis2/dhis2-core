@@ -200,7 +200,7 @@
     <!-- Test -->
     <junit.version>4.13.1</junit.version>
     <junit5.version>5.8.2</junit5.version>
-    <mockito.version>4.1.0</mockito.version>
+    <mockito.version>4.10.0</mockito.version>
     <hamcrest-core.version>1.3</hamcrest-core.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
     <hamcrest-library.version>1.3</hamcrest-library.version>
