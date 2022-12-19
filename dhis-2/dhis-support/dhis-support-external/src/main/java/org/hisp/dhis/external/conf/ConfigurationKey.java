@@ -707,7 +707,7 @@ public enum ConfigurationKey
      */
     REDIS_CACHE_INVALIDATION_ENABLED( "redis.cache.invalidation.enabled", Constants.OFF, false ),
 
-    ANALYTICS_EXPORT_USE_VIEWS( "analytics.export.use_views", Constants.ON, false );
+    ANALYTICS_EXPORT_USE_VIEWS( "analytics.export.use_views", Constants.OFF, false );
 
     private final String key;
 

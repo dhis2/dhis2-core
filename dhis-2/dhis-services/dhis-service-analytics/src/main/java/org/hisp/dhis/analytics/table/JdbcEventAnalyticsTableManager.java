@@ -216,6 +216,8 @@ public class JdbcEventAnalyticsTableManager
                 .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
                 .collect( toList() );
 
+        Calendar calendar = PeriodType.getCalendar();
+
         for ( Program program : programs )
         {
             List<Integer> dataYears = getDataYears( params, program );
@@ -229,7 +231,6 @@ public class JdbcEventAnalyticsTableManager
             {
                 if ( !params.isViewsEnabled() )
                 {
-                    Calendar calendar = PeriodType.getCalendar();
                     table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
                         PartitionUtils.getEndDate( calendar, year ) );
                 }

@@ -191,45 +191,69 @@ public abstract class AbstractJdbcTableManager
     public void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table )
     {
         boolean tableExists = partitionManager.tableExists( table.getTableName() );
-        boolean skipMasterTable = params.isPartialUpdate() && tableExists
-            && table.getTableType().hasLatestPartition();
+        boolean shouldSwapMasterTable =
+            // partial update is supported only on partitioned table / views
+            !(params.isPartialUpdate() &&
+                tableExists &&
+                // table type support the latest partition
+                table.getTableType().hasLatestPartition());
 
-        log.info( "Swapping table, master table exists: '{}', skip master table: '{}'", tableExists,
-            skipMasterTable );
+        boolean shouldSwapPartitions = table.hasPartitionTables();
+        boolean shouldSwapViews = table.hasViews();
+
+        log.info( "Swapping table, master table exists: '{}', swap master table: '{}'",
+            tableExists,
+            shouldSwapMasterTable );
 
         table.getTablePartitions().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
-        if ( !skipMasterTable )
+        if ( shouldSwapMasterTable )
         {
             swapTable( table.getTempTableName(), table.getTableName() );
+            return;
         }
-        else
+        if ( shouldSwapPartitions )
         {
-            if ( table.hasPartitionTables() )
-            {
-                table.getTablePartitions()
-                    .forEach(
-                        p -> swapInheritance(
-                            p.getTableName(),
-                            table.getTempTableName(),
-                            table.getTableName() ) );
-                dropTempTable( table );
-            }
+            swapPartitions( table );
+            return;
         }
+        if ( shouldSwapViews )
+        {
+            swapViews( table );
+        }
+    }
 
-        // if table has views, then swapping
-        // means moving data from temp table into master and
-        // dropping master
-        if ( table.hasViews() )
-        {
-            String tableName = table.getTableName();
-            String tempTableName = table.getTempTableName();
-            String[] sqlSteps = {
-                "insert into " + tableName + " select * from " + tempTableName,
-                "drop table " + tempTableName
-            };
-            executeSafely( sqlSteps, true );
-        }
+    private void swapViews( AnalyticsTable table )
+    {
+        // comma separated list of years affected by (partial) export
+        String years = table.getTableViews().stream()
+            .map( AnalyticsTableView::getYear )
+            .map( String::valueOf )
+            .map( s -> "'" + s + "'" )
+            .collect( Collectors.joining( "," ) );
+
+        String tableName = table.getTableName();
+        String tempTableName = table.getTempTableName();
+        String[] sqlSteps = {
+            // delete from master table
+            "delete " + tableName + " where year in (" + years + ")",
+            // insert exported data into master table
+            "insert into " + tableName + " select * from " + tempTableName,
+            // delete exported data from temp table
+            "drop table " + tempTableName
+        };
+        executeSafely( sqlSteps, true );
+    }
+
+    private void swapPartitions( AnalyticsTable table )
+    {
+        table.getTablePartitions()
+            .forEach(
+                p -> swapInheritance(
+                    p.getTableName(),
+                    table.getTempTableName(),
+                    table.getTableName() ) );
+        dropTempTable( table );
     }
 
     @Override
@@ -447,6 +471,8 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
+            dropViewSilentlyIfExists( table );
+
             String sqlCreate = "create table " + tableName + " (";
 
             if ( !checks.isEmpty() )
@@ -464,6 +490,11 @@ public abstract class AbstractJdbcTableManager
 
             jdbcTemplate.execute( sqlCreate );
         }
+    }
+
+    private void dropViewSilentlyIfExists( AnalyticsTable table )
+    {
+        executeSafely( "drop view if exists " + table.getTempTableName() );
     }
 
     /**

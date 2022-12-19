@@ -76,7 +76,7 @@ public class AnalyticsIndexHelper
 
         for ( AnalyticsTable table : tables )
         {
-            if ( !table.hasPartitionTables() )
+            if ( table.hasViews() )
             {
                 indexes.addAll( getIndexes( table, table.getTempTableName() ) );
             }
