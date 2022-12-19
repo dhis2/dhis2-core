@@ -35,13 +35,12 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -75,7 +74,7 @@ public class ResourceTableController
 
     private final CurrentUserService currentUserService;
 
-    private final DhisConfigurationProvider config;
+    private final AnalyticsExportSettings settings;
 
     @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -86,7 +85,8 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipEvents,
         @RequestParam( required = false ) boolean skipEnrollment,
         @RequestParam( required = false ) boolean skipOrgUnitOwnership,
-        @RequestParam( required = false ) Integer lastYears )
+        @RequestParam( required = false ) Integer lastYears,
+        @RequestParam( required = false ) boolean useViews )
     {
         Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
         Set<String> skipPrograms = new HashSet<>();
@@ -114,19 +114,13 @@ public class ResourceTableController
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms, skipResourceTables, useViews() );
+            skipPrograms, skipResourceTables, useViews || settings.isViewEnabled() );
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
         return execute( analyticsTableJob );
-    }
-
-    private boolean useViews()
-    {
-        return DhisConfigurationProvider.isOn(
-            config.getProperty( ConfigurationKey.ANALYTICS_EXPORT_USE_VIEWS ) );
     }
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )

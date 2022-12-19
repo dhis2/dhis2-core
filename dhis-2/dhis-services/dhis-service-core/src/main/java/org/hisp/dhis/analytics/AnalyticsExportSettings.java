@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_USE_VIEWS;
 
 import lombok.RequiredArgsConstructor;
 
@@ -64,5 +65,10 @@ public class AnalyticsExportSettings
         }
 
         return EMPTY;
+    }
+
+    public boolean isViewEnabled()
+    {
+        return dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_USE_VIEWS );
     }
 }

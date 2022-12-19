@@ -730,8 +730,7 @@ public enum ConfigurationKey
      */
     CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false ),
 
-    ANALYTICS_EXPORT_USE_VIEWS( "analytics.table.use_views", Constants.OFF, false );
-
+    ANALYTICS_TABLE_USE_VIEWS( "analytics.table.use_views", Constants.OFF, false );
 
     private final String key;
 
