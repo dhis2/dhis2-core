@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -176,8 +176,9 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        hasTrackerError( reporter, ValidationCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, ValidationCode.E1076 ) );
     }
 
     @Test
@@ -205,7 +206,7 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertThat( reporter.getErrors(), hasSize( 0 ) );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -233,8 +234,9 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        hasTrackerError( reporter, ValidationCode.E1085, TrackerType.ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, ValidationCode.E1085 ) );
     }
 
     @Test
@@ -261,9 +263,10 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, ValidationCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
-        hasTrackerError( reporter, ValidationCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getErrors(), hasSize( 2 ) );
+        assertAll(
+            () -> assertEquals( 2, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, ValidationCode.E1076 ),
+            () -> assertHasError( reporter, enrollment, ValidationCode.E1018 ) );
     }
 
     @Test
@@ -286,10 +289,8 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        hasTrackerError( reporter,
-            ValidationCode.E1006,
-            TrackerType.ENROLLMENT,
-            enrollment.getUid() );
+        assertAll(
+            () -> assertEquals( 1, reporter.getErrors().size() ),
+            () -> assertHasError( reporter, enrollment, ValidationCode.E1006 ) );
     }
 }

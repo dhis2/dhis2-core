@@ -29,8 +29,9 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1119;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasWarning;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,13 +43,11 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,11 +100,8 @@ class EventNoteValidatorTest
         validator.validate( reporter, bundle, event );
 
         // Then
-        assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( r -> ValidationCode.E1119.equals( r.getWarningCode() ) &&
-            TrackerType.EVENT.equals( r.getTrackerType() ) &&
-            event.getUid().equals( r.getUid() ) ) );
-        assertThat( event.getNotes(), hasSize( 0 ) );
+        assertHasWarning( reporter, event, E1119 );
+        assertIsEmpty( event.getNotes() );
     }
 
     @Test
@@ -121,8 +117,8 @@ class EventNoteValidatorTest
         validator.validate( reporter, bundle, event );
 
         // Then
-        assertFalse( reporter.hasErrors() );
-        assertThat( event.getNotes(), hasSize( 0 ) );
+        assertIsEmpty( reporter.getErrors() );
+        assertIsEmpty( event.getNotes() );
     }
 
     @Test
@@ -137,8 +133,7 @@ class EventNoteValidatorTest
         validator.validate( reporter, bundle, event );
 
         // Then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
         assertThat( event.getNotes(), hasSize( 5 ) );
     }
-
 }

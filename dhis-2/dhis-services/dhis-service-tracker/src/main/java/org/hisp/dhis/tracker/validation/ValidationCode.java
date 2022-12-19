@@ -113,7 +113,7 @@ public enum ValidationCode
     E1118( "Assigned user `{0}` is not valid." ),
     E1119( "A Tracker Note with uid `{0}` already exists." ),
     E1120( "ProgramStage `{0}` does not allow user assignment" ),
-    E1121( "Missing required tracked entity property: `{0}`." ),
+    E1121( "Missing required trackedEntity property: `{0}`." ),
     E1122( "Missing required enrollment property: `{0}`." ),
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),

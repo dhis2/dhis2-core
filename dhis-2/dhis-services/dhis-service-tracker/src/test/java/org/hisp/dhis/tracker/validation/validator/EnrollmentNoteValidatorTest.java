@@ -29,10 +29,9 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1119;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasWarning;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -99,10 +98,7 @@ class EnrollmentNoteValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // Then
-        assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( warn -> E1119.equals( warn.getWarningCode() ) &&
-            ENROLLMENT.equals( warn.getTrackerType() ) &&
-            enrollment.getUid().equals( warn.getUid() ) ) );
+        assertHasWarning( reporter, enrollment, E1119 );
         assertThat( enrollment.getNotes(), hasSize( 0 ) );
     }
 
@@ -119,7 +115,7 @@ class EnrollmentNoteValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // Then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
         assertThat( enrollment.getNotes(), hasSize( 0 ) );
     }
 
@@ -135,7 +131,7 @@ class EnrollmentNoteValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // Then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
         assertThat( enrollment.getNotes(), hasSize( 5 ) );
     }
 

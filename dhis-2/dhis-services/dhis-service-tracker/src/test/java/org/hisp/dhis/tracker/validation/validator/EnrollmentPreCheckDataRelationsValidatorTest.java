@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -117,7 +117,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -139,7 +139,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1014 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1014 );
     }
 
     @Test
@@ -163,7 +163,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1041 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1041 );
     }
 
     @Test
@@ -189,7 +189,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1022 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1022 );
     }
 
     @Test
@@ -219,7 +219,7 @@ class EnrollmentPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1022 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1022 );
     }
 
     private OrganisationUnit organisationUnit( String uid )

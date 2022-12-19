@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1012;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1074;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -102,7 +101,7 @@ class EnrollmentGeoValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // then
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -136,7 +135,7 @@ class EnrollmentGeoValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // then
-        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1074 );
     }
 
     @Test
@@ -157,7 +156,7 @@ class EnrollmentGeoValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1012 );
     }
 
     @Test
@@ -178,6 +177,6 @@ class EnrollmentGeoValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1012 );
     }
 }

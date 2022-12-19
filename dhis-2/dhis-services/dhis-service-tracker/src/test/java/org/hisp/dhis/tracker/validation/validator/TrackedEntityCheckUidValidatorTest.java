@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -78,7 +77,7 @@ class TrackedEntityCheckUidValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -91,6 +90,6 @@ class TrackedEntityCheckUidValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1048 );
     }
 }

@@ -29,18 +29,16 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4015;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4016;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4017;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasWarning;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -95,7 +93,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, rel );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
         assertThat( reporter.getWarnings(), empty() );
     }
 
@@ -109,10 +107,8 @@ class RelationshipPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, rel );
 
-        assertFalse( reporter.hasErrors() );
-        assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
-            TrackerType.RELATIONSHIP.equals( r.getTrackerType() ) &&
-            rel.getUid().equals( r.getUid() ) ) );
+        assertIsEmpty( reporter.getErrors() );
+        assertHasWarning( reporter, rel, E4015 );
     }
 
     @Test
@@ -125,7 +121,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, rel );
 
-        hasTrackerError( reporter, E4015, RELATIONSHIP, rel.getUid() );
+        assertHasError( reporter, rel, E4015 );
     }
 
     @Test
@@ -139,7 +135,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, rel );
 
-        hasTrackerError( reporter, E4016, RELATIONSHIP, rel.getUid() );
+        assertHasError( reporter, rel, E4016 );
     }
 
     @Test
@@ -154,7 +150,7 @@ class RelationshipPreCheckExistenceValidatorTest
 
         validator.validate( reporter, bundle, rel );
 
-        hasTrackerError( reporter, E4017, RELATIONSHIP, rel.getUid() );
+        assertHasError( reporter, rel, E4017 );
     }
 
     private Relationship getPayloadRelationship()

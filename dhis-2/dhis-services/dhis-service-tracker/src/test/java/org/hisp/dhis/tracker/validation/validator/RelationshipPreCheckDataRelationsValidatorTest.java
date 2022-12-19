@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -49,7 +46,6 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.Validation;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,14 +95,10 @@ class RelationshipPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E4012 ) );
-        assertThat(
-            reporter.getErrors().stream().map( Validation::getMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
-        assertThat(
-            reporter.getErrors().stream().map( Validation::getMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." ) );
+        assertHasError( reporter, relationship, ValidationCode.E4012,
+            "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." );
+        assertHasError( reporter, relationship, ValidationCode.E4012,
+            "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." );
     }
 
     @Test
@@ -131,7 +123,7 @@ class RelationshipPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )

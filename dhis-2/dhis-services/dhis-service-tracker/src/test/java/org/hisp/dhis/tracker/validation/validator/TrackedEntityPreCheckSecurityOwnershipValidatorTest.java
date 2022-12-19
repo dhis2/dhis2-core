@@ -31,8 +31,8 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1001;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1003;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1100;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -49,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -150,7 +149,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -171,7 +170,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -193,7 +192,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -215,7 +214,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -236,7 +235,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -257,7 +256,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -279,7 +278,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -299,7 +298,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1100, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1100 );
     }
 
     @Test
@@ -321,7 +320,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1000, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1000 );
     }
 
     @Test
@@ -343,7 +342,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1003 );
     }
 
     @Test
@@ -365,7 +364,7 @@ class TrackedEntityPreCheckSecurityOwnershipValidatorTest extends DhisConvenienc
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        hasTrackerError( reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+        assertHasError( reporter, trackedEntity, E1001 );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()

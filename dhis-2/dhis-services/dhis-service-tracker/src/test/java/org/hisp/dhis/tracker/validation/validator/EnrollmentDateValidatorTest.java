@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1020;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1021;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1023;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1025;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -95,7 +95,7 @@ class EnrollmentDateValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1025 );
     }
 
     @Test
@@ -113,8 +113,9 @@ class EnrollmentDateValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
-        hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
+        assertAll(
+            () -> assertHasError( reporter, enrollment, E1020 ),
+            () -> assertHasError( reporter, enrollment, E1021 ) );
     }
 
     @Test
@@ -132,7 +133,7 @@ class EnrollmentDateValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -153,7 +154,7 @@ class EnrollmentDateValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -171,7 +172,7 @@ class EnrollmentDateValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1023 );
     }
 
 }

@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1068;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1069;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1070;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidationErrorReporter.hasTrackerError;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -98,7 +97,7 @@ class EnrollmentPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -112,7 +111,7 @@ class EnrollmentPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertFalse( reporter.hasErrors() );
+        assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
@@ -124,7 +123,7 @@ class EnrollmentPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1070, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1070 );
     }
 
     @Test
@@ -137,7 +136,7 @@ class EnrollmentPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1068, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1068 );
     }
 
     @Test
@@ -150,7 +149,7 @@ class EnrollmentPreCheckMetaValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        hasTrackerError( reporter, E1069, ENROLLMENT, enrollment.getUid() );
+        assertHasError( reporter, enrollment, E1069 );
     }
 
     private Enrollment validEnrollment()
