@@ -27,9 +27,15 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webmessage.WebMessageResponse;
+
 /**
  * @author Morten Olav Hansen
  */
+@OpenApi.Response( status = BAD_REQUEST, value = WebMessageResponse.class )
 public class JsonPatchException extends Exception
 {
     public JsonPatchException( String message )

@@ -25,54 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.feedback;
 
-import java.util.Optional;
+import static org.hisp.dhis.common.OpenApi.Response.Status.FORBIDDEN;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
+import java.text.MessageFormat;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
-/**
- * @author David Katuscak <katuscak.d@gmail.com>
- */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class DataSynchronizationJobParameters implements JobParameters
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webmessage.WebMessageResponse;
+
+@Getter
+@Accessors( chain = true )
+@OpenApi.Response( status = FORBIDDEN, value = WebMessageResponse.class )
+public final class ForbiddenException extends Exception implements Error
 {
-    private static final long serialVersionUID = 153645562301563469L;
-
-    static final int PAGE_SIZE_MIN = 50;
-
-    public static final int PAGE_SIZE_MAX = 30000;
-
-    private int pageSize = 10000;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
+    public static <E extends RuntimeException, V> V on( Class<E> type, Supplier<V> operation )
+        throws ForbiddenException
     {
-        return pageSize;
+        return Error.rethrow( type, ForbiddenException::new, operation );
     }
 
-    public void setPageSize( final int pageSize )
+    public static <E extends RuntimeException, V> V on( Class<E> type, Function<E, ForbiddenException> map,
+        Supplier<V> operation )
+        throws ForbiddenException
     {
-        this.pageSize = pageSize;
+        return Error.rethrowMapped( type, map, operation );
     }
 
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "pageSize", PAGE_SIZE_MIN, PAGE_SIZE_MAX, pageSize ) );
-        }
+    private final ErrorCode code;
 
-        return Optional.empty();
+    public ForbiddenException( String message )
+    {
+        super( message );
+        this.code = ErrorCode.E1006;
+    }
+
+    public ForbiddenException( ErrorCode code, Object... args )
+    {
+        super( MessageFormat.format( code.getMessage(), args ) );
+        this.code = code;
     }
 }
