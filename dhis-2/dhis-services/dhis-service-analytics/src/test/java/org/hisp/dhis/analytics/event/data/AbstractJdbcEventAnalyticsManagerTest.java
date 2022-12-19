@@ -277,7 +277,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
 
         String clause = eventSubject.getAggregateClause( params );
 
-        assertThat( clause, is( "" ) );
+        assertThat( clause, is( "count(ax.\"psi\")" ) );
     }
 
     @Test
