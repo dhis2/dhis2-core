@@ -111,7 +111,6 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -658,9 +657,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasNumericValueDimension() )
         {
-            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
-                "Event query aggregation type must be aggregatable" );
-
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
             String expression = quoteAlias( params.getValue().getUid() );
