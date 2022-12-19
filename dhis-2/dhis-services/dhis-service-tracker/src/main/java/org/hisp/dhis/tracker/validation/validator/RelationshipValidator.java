@@ -75,15 +75,19 @@ public class RelationshipValidator implements Validator<TrackerBundle>
                                 )
                         )
                 );
-    }
-    @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-
-        relationshipValidator().validate(reporter, bundle, input);
+        // @formatter:on
     }
 
     @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+
+        relationshipValidator().validate( reporter, bundle, input );
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
         return true; // this main validator should always run
     }
 }

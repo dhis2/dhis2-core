@@ -101,6 +101,7 @@ public class EventValidator implements Validator<TrackerBundle>
                 ),
                 field( TrackerBundle::getEvents, repeatedEventsValidator )
         );
+        // @formatter:on
     }
 
     @Override
@@ -110,7 +111,8 @@ public class EventValidator implements Validator<TrackerBundle>
     }
 
     @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
         return true; // this main validator should always run
     }
 }
