@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.common.OpenApi.Response.Status.*;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -174,6 +173,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Param( OpenApi.EntityType.class )
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @SuppressWarnings( "java:S1130" )
     public void partialUpdateObject(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
@@ -470,6 +470,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Param( OpenApi.EntityType.class )
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage postJsonObject( HttpServletRequest request )
         throws IOException,
         ForbiddenException,
@@ -484,6 +485,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Param( OpenApi.EntityType.class )
     @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage postXmlObject( HttpServletRequest request )
         throws IOException,
         ForbiddenException,
@@ -602,6 +604,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @OpenApi.Param( OpenApi.EntityType.class )
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage putJsonObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @CurrentUser User currentUser,
         HttpServletRequest request )
@@ -758,6 +761,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
+    @SuppressWarnings( "java:S1130" )
     public WebMessage deleteObject( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
