@@ -29,9 +29,13 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
+import java.util.List;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.user.User;
@@ -68,14 +72,12 @@ public class DefaultValidationService
 
     private ValidationResult validate( TrackerBundle bundle, Validator<TrackerBundle> validator )
     {
-        ValidationResult validationResult = new ValidationResult();
-
         User user = bundle.getUser();
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return validationResult;
+            return Result.empty();
         }
 
         Reporter reporter = new Reporter( bundle.getPreheat().getIdSchemes(),
@@ -98,8 +100,7 @@ public class DefaultValidationService
         bundle.setEvents( persistables.getEvents() );
         bundle.setRelationships( persistables.getRelationships() );
 
-        reporter.getErrors().addAll( persistables.getErrors() );
-
-        return new ValidationResult().addErrors( reporter.getErrors() ).addWarnings( reporter.getWarnings() );
+        List<Error> errors = ListUtils.union( reporter.getErrors(), persistables.getErrors() );
+        return Result.ofValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
     }
 }

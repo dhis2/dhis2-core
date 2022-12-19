@@ -57,6 +57,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -109,9 +110,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
@@ -185,7 +184,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program prB = createProgram( 'B' );
         Program prC = createProgram( 'C' );
         Program prD = createProgram( 'D' );
-        List<Program> programs = Lists.newArrayList( prA, prB, prC, prD );
+        List<Program> programs = List.of( prA, prB, prC, prD );
 
         Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
@@ -198,8 +197,8 @@ class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( startTime )
             .withLatestPartition().withSkipPrograms( skipPrograms ).build();
 
-        List<Map<String, Object>> queryResp = Lists.newArrayList();
-        queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
+        List<Map<String, Object>> queryResp = new ArrayList<>();
+        queryResp.add( Map.of( "dataelementid", 1 ) );
 
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
             .thenReturn( lastFullTableUpdate );
@@ -281,9 +280,9 @@ class JdbcEventAnalyticsTableManagerTest
         DataElement d6 = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
         DataElement d7 = createDataElement( 'U', ValueType.COORDINATE, AggregationType.NONE );
 
-        ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d1, d2, d3, d4, d5, d6, d7 ) );
+        ProgramStage ps1 = createProgramStage( 'A', Set.of( d1, d2, d3, d4, d5, d6, d7 ) );
 
-        program.setProgramStages( Sets.newHashSet( ps1 ) );
+        program.setProgramStages( Set.of( ps1 ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
@@ -352,9 +351,9 @@ class JdbcEventAnalyticsTableManagerTest
 
         DataElement d1 = createDataElement( 'Z', ValueType.TEXT, AggregationType.SUM );
 
-        ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d1 ) );
+        ProgramStage ps1 = createProgramStage( 'A', Set.of( d1 ) );
 
-        program.setProgramStages( Sets.newHashSet( ps1 ) );
+        program.setProgramStages( Set.of( ps1 ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
@@ -397,9 +396,9 @@ class JdbcEventAnalyticsTableManagerTest
 
         DataElement d5 = createDataElement( 'G', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
 
-        ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d5 ) );
+        ProgramStage ps1 = createProgramStage( 'A', Set.of( d5 ) );
 
-        programA.setProgramStages( Sets.newHashSet( ps1 ) );
+        programA.setProgramStages( Set.of( ps1 ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
@@ -436,7 +435,7 @@ class JdbcEventAnalyticsTableManagerTest
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
             tea );
 
-        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
@@ -474,7 +473,7 @@ class JdbcEventAnalyticsTableManagerTest
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
             tea );
 
-        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
@@ -506,7 +505,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
@@ -541,7 +540,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -570,7 +569,7 @@ class JdbcEventAnalyticsTableManagerTest
         Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
@@ -641,7 +640,7 @@ class JdbcEventAnalyticsTableManagerTest
         ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
             tea );
 
-        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( List.of( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 

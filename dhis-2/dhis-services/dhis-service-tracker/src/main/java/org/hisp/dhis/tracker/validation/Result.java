@@ -27,19 +27,71 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.function.Predicate;
 
-/**
- * The result of the validation step. It contains a set of {@link Validation}s
- * divided in errors and warnings.
- */
-public interface ValidationResult
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+
+@ToString
+@EqualsAndHashCode
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+class Result implements ValidationResult
 {
-    Set<Validation> getErrors();
+    private final Set<Error> errors;
 
-    Set<Validation> getWarnings();
+    private final Set<Warning> warnings;
 
-    boolean hasErrors();
+    public static Result empty()
+    {
+        return new Result( Collections.emptySet(), Collections.emptySet() );
+    }
 
-    boolean hasWarnings();
+    public static Result ofValidations( Set<Error> errors, Set<Warning> warnings )
+    {
+        return new Result( errors, warnings );
+    }
+
+    public static Result ofErrors( Set<Error> errors )
+    {
+        return new Result( errors, Collections.emptySet() );
+    }
+
+    public static Result ofWarnings( Set<Warning> warnings )
+    {
+        return new Result( Collections.emptySet(), warnings );
+    }
+
+    public Set<Validation> getErrors()
+    {
+        return Collections.unmodifiableSet( errors );
+    }
+
+    public Set<Validation> getWarnings()
+    {
+        return Collections.unmodifiableSet( warnings );
+    }
+
+    public boolean hasErrors()
+    {
+        return !errors.isEmpty();
+    }
+
+    public boolean hasError( Predicate<Error> test )
+    {
+        return errors.stream().anyMatch( test );
+    }
+
+    public boolean hasWarnings()
+    {
+        return !warnings.isEmpty();
+    }
+
+    public boolean hasWarning( Predicate<Warning> test )
+    {
+        return warnings.stream().anyMatch( test );
+    }
 }

@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.validation.Error;
-import org.hisp.dhis.tracker.validation.ValidationResult;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -58,8 +56,8 @@ class ImportReportTest
         trackerTypeReportMap.put( TrackerType.ENROLLMENT, createTypeReport( TrackerType.ENROLLMENT, 3, 3, 0 ) );
         PersistenceReport persistenceReport = new PersistenceReport( trackerTypeReportMap );
         // Create validation report with 3 objects
-        ValidationResult validationResult = new ValidationResult();
-        validationResult.addErrors( rnd.objects( Error.class, 3 ).collect( Collectors.toList() ) );
+        ValidationReport validationReport = ValidationReport.emptyReport();
+        validationReport.addErrors( rnd.objects( Error.class, 3 ).collect( Collectors.toList() ) );
         // Create empty Timing Stats report
         TimingsStats timingsStats = new TimingsStats();
         // Create payload map
@@ -68,7 +66,7 @@ class ImportReportTest
         originalPayload.put( TrackerType.ENROLLMENT, 8 );
         // Method under test
         ImportReport rep = ImportReport.withImportCompleted( Status.OK, persistenceReport,
-            validationResult, timingsStats, originalPayload );
+            validationReport, timingsStats, originalPayload );
         assertThat( rep.getStats().getCreated(), is( 8 ) );
         assertThat( rep.getStats().getUpdated(), is( 6 ) );
         assertThat( rep.getStats().getIgnored(), is( 3 ) );
