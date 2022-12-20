@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
-import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -60,12 +58,8 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
                 "{ 'name': 'ANC3', 'shortName': 'ANC3', 'valueType' : 'TEXT'," +
                     "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
 
-        Set<String> failedDataElementIDs = Set.of( dataElementA, dataElementB );
-        Set<String> failedDataElementNames = Set.of( "ANC1", "ANC3" );
-        Set<String> failedDataElementComments = Set.of( "NUMBER (NONE)", "TEXT (SUM)" );
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 66,
-            failedDataElementIDs, failedDataElementNames, failedDataElementComments,
-            true );
+        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 33,
+            dataElementB, "ANC3", null, true );
 
     }
 
