@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
-import java.util.List;
-import java.util.Set;
+import java.util.HashSet;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,12 +94,12 @@ public class DefaultValidationService
         PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(),
             bundle.getImportStrategy() );
 
-        bundle.setTrackedEntities( persistables.getTrackedEntities() );
-        bundle.setEnrollments( persistables.getEnrollments() );
-        bundle.setEvents( persistables.getEvents() );
-        bundle.setRelationships( persistables.getRelationships() );
-
-        List<Error> errors = ListUtils.union( reporter.getErrors(), persistables.getErrors() );
-        return Result.ofValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
+        return new Result(
+            persistables.getTrackedEntities(),
+            persistables.getEnrollments(),
+            persistables.getEvents(),
+            persistables.getRelationships(),
+            new HashSet<>( ListUtils.union( reporter.getErrors(), persistables.getErrors() ) ),
+            new HashSet<>( reporter.getWarnings() ) );
     }
 }

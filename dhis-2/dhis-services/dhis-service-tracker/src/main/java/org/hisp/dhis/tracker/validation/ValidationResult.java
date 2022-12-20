@@ -27,14 +27,36 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+
 /**
- * The result of the validation step. It contains a set of {@link Validation}s
- * divided in errors and warnings.
+ * ValidationResult is the result of the validation step. The tracked entities,
+ * enrollments, events and relationships are persistable entities meaning they
+ * can be created, updated, or deleted. The meaning of persisted i.e. create,
+ * update, delete comes from the context which includes the
+ * {@link TrackerImportStrategy} and whether the entity existed or not. The
+ * persistable entities can thus be trusted to be in a valid state. Any entity
+ * that passed through the validation but cannot be persisted will have an error
+ * in {@link #getErrors()}. Persistable entities might have
+ * {@link #getWarnings()} attached to them.
  */
 public interface ValidationResult
 {
+    List<TrackedEntity> getTrackedEntities();
+
+    List<Enrollment> getEnrollments();
+
+    List<Event> getEvents();
+
+    List<Relationship> getRelationships();
+
     Set<Validation> getErrors();
 
     Set<Validation> getWarnings();
