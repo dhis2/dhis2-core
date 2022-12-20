@@ -426,47 +426,10 @@ public class JdbcAnalyticsManager
         String sql = "";
 
         // ---------------------------------------------------------------------
-        // Dimensions
+        // Dimensions and filters
         // ---------------------------------------------------------------------
 
-        for ( DimensionalObject dim : params.getDimensions() )
-        {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
-            {
-                String col = quoteAlias( dim.getDimensionName() );
-
-                sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Filters
-        // ---------------------------------------------------------------------
-
-        ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
-
-        for ( String dimension : filterMap.keySet() )
-        {
-            List<DimensionalObject> filters = filterMap.get( dimension );
-
-            if ( DimensionalObjectUtils.anyDimensionHasItems( filters ) )
-            {
-                sql += sqlHelper.whereAnd() + " ( ";
-
-                for ( DimensionalObject filter : filters )
-                {
-                    if ( filter.hasItems() )
-                    {
-                        String col = quoteAlias( filter.getDimensionName() );
-
-                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
-                    }
-                }
-
-                sql = removeLastOr( sql ) + ") ";
-            }
-        }
+        sql += getDimensionFilterSql( params, sqlHelper );
 
         // ---------------------------------------------------------------------
         // Data approval
@@ -550,6 +513,63 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates where filters for dimensions and filters.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param sqlHelper the {@link SqlHelper}.
+     * @return a SQL filter.
+     */
+    private String getDimensionFilterSql( DataQueryParams params, SqlHelper sqlHelper )
+    {
+        String sql = "";
+
+        // ---------------------------------------------------------------------
+        // Dimensions
+        // ---------------------------------------------------------------------
+
+        for ( DimensionalObject dim : params.getDimensions() )
+        {
+            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
+            {
+                String col = quoteAlias( dim.getDimensionName() );
+
+                sql += sqlHelper.whereAnd() + " " + col + " in ("
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Filters
+        // ---------------------------------------------------------------------
+
+        ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
+
+        for ( String dimension : filterMap.keySet() )
+        {
+            List<DimensionalObject> filters = filterMap.get( dimension );
+
+            if ( DimensionalObjectUtils.anyDimensionHasItems( filters ) )
+            {
+                sql += sqlHelper.whereAnd() + " ( ";
+
+                for ( DimensionalObject filter : filters )
+                {
+                    if ( filter.hasItems() )
+                    {
+                        String col = quoteAlias( filter.getDimensionName() );
+
+                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
+                    }
+                }
+
+                sql = removeLastOr( sql ) + ") ";
+            }
+        }
+
+        return sql;
+    }
+
+    /**
      * Generates the group by clause of the query SQL.
      *
      * @param params the {@link DataQueryParams}.
@@ -598,8 +618,8 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliestDate ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
             "and (value is not null or textvalue is not null))";
 
         return sql;
