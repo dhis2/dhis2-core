@@ -64,7 +64,7 @@ public class ErrorCodeException
     /**
      * Constructor.
      *
-     * @param errorMessage the {@link ErroreMessage}.
+     * @param errorMessage the {@link ErrorMessage}.
      */
     public ErrorCodeException( ErrorMessage errorMessage )
     {

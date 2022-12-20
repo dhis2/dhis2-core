@@ -29,9 +29,13 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.hisp.dhis.tracker.validation.PersistablesFilter.filter;
 
+import java.util.List;
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.user.User;
@@ -48,48 +52,40 @@ public class DefaultValidationService
     implements ValidationService
 {
 
-    @Qualifier( "org.hisp.dhis.tracker.validation.DefaultValidators" )
-    private final Validators validators;
+    @Qualifier( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
+    private final Validator<TrackerBundle> validator;
 
-    @Qualifier( "org.hisp.dhis.tracker.validation.RuleEngineValidators" )
-    private final Validators ruleEngineValidators;
+    @Qualifier( "org.hisp.dhis.tracker.validation.validator.RuleEngineValidator" )
+    private final Validator<TrackerBundle> ruleEngineValidator;
 
     @Override
     public ValidationResult validate( TrackerBundle bundle )
     {
-        return validate( bundle, validators );
+        return validate( bundle, validator );
     }
 
     @Override
     public ValidationResult validateRuleEngine( TrackerBundle bundle )
     {
-        return validate( bundle, ruleEngineValidators );
+        return validate( bundle, ruleEngineValidator );
     }
 
-    private ValidationResult validate( TrackerBundle bundle, Validators validators )
+    private ValidationResult validate( TrackerBundle bundle, Validator<TrackerBundle> validator )
     {
-        ValidationResult validationResult = new ValidationResult();
-
         User user = bundle.getUser();
-
         if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return validationResult;
+            return Result.empty();
         }
 
-        // Note that the bundle gets cloned internally, so the original bundle
-        // is always available
         Reporter reporter = new Reporter( bundle.getPreheat().getIdSchemes(),
             bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         try
         {
-            validators.getTrackedEntityValidator().validate( reporter, bundle, bundle );
-            validators.getEnrollmentValidator().validate( reporter, bundle, bundle );
-            validators.getEventValidator().validate( reporter, bundle, bundle );
-            validators.getRelationshipValidator().validate( reporter, bundle, bundle );
+            validator.validate( reporter, bundle, bundle );
         }
         catch ( FailFastException e )
         {
@@ -104,8 +100,7 @@ public class DefaultValidationService
         bundle.setEvents( persistables.getEvents() );
         bundle.setRelationships( persistables.getRelationships() );
 
-        reporter.getErrors().addAll( persistables.getErrors() );
-
-        return new ValidationResult().addErrors( reporter.getErrors() ).addWarnings( reporter.getWarnings() );
+        List<Error> errors = ListUtils.union( reporter.getErrors(), persistables.getErrors() );
+        return Result.ofValidations( Set.copyOf( errors ), Set.copyOf( reporter.getWarnings() ) );
     }
 }

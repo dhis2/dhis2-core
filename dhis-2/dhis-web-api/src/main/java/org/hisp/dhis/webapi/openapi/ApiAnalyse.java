@@ -30,7 +30,9 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import java.lang.annotation.Annotation;
@@ -62,7 +64,9 @@ import lombok.Value;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -236,18 +240,8 @@ final class ApiAnalyse
 
         Map<HttpStatus, Api.Response> res = new LinkedHashMap<>();
         // response(s) declared via annotation(s)
-        getAnnotations( source, OpenApi.Response.class ).forEach( a -> {
-            List<HttpStatus> statuses = a.status().length == 0
-                ? List.of( signatureStatus )
-                : stream( a.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() );
-            Set<Api.Header> headers = stream( a.headers() )
-                .map( header -> new Api.Header( header.name(), header.description(),
-                    analyseParamSchema( endpoint, null, a.value() ) ) )
-                .collect( toSet() );
-            statuses.forEach( status -> res.put( status, new Api.Response( status )
-                .add( produces, analyseResponseSchema( endpoint, source.getGenericReturnType(), a.value() ) )
-                .add( headers ) ) );
-        } );
+        getAnnotations( source, OpenApi.Response.class ).forEach( a -> res.putAll(
+            analyseResponses( endpoint, a, produces, List.of( signatureStatus ), source.getGenericReturnType() ) ) );
         // response from method signature
         Class<?> type = source.getReturnType();
         res.computeIfAbsent( signatureStatus, status -> {
@@ -258,7 +252,32 @@ final class ApiAnalyse
             }
             return response;
         } );
+        // error response(s) from annotated exception types in method signature and
+        // error response(s) from annotations on exceptions in method signature
+        Stream.concat( stream( source.getExceptionTypes() ), stream( source.getAnnotatedExceptionTypes() ) )
+            .map( ex -> ex.getAnnotationsByType( OpenApi.Response.class ) )
+            .flatMap( Stream::of )
+            .forEach( a -> res.putAll( analyseResponses( endpoint, a, produces, List.of(), null ) ) );
+
         return res;
+    }
+
+    private static Map<HttpStatus, Api.Response> analyseResponses( Api.Endpoint endpoint, OpenApi.Response response,
+        Set<MediaType> defaultProduces, List<HttpStatus> defaultStatuses, Type defaultResponseType )
+    {
+        List<HttpStatus> statuses = response.status().length == 0
+            ? defaultStatuses
+            : stream( response.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() );
+        Set<Api.Header> headers = stream( response.headers() )
+            .map( header -> new Api.Header( header.name(), header.description(),
+                analyseParamSchema( endpoint, null, response.value() ) ) )
+            .collect( toSet() );
+        Set<MediaType> produces = response.mediaTypes().length == 0
+            ? defaultProduces
+            : stream( response.mediaTypes() ).map( MediaType::valueOf ).collect( toUnmodifiableSet() );
+        return statuses.stream().collect( toMap( Function.identity(), status -> new Api.Response( status )
+            .add( produces, analyseResponseSchema( endpoint, defaultResponseType, response.value() ) )
+            .add( headers ) ) );
     }
 
     private static void analyseParameters( Api.Endpoint endpoint, Set<MediaType> consumes )
@@ -645,6 +664,10 @@ final class ApiAnalyse
         if ( type == OpenApi.EntityType[].class && endpoint.getEntityType() != null )
         {
             return Array.newInstance( endpoint.getEntityType(), 0 ).getClass();
+        }
+        if ( type == WebMessageResponse.class )
+        {
+            return WebMessage.class;
         }
         return type;
     }
