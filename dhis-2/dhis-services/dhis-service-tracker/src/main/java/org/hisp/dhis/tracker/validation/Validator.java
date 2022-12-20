@@ -29,10 +29,15 @@ package org.hisp.dhis.tracker.validation;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 
+/**
+ * Validates given input and adds errors and warnings to a {@link Reporter}.
+ * {@link TrackerBundle} is given as context.
+ *
+ * @param <T> type of input to be validated
+ */
 @FunctionalInterface
-public interface Validator<T extends TrackerDto>
+public interface Validator<T>
 {
     /**
      * Validates given input and adds errors and warnings to {@code reporter}.
@@ -41,15 +46,18 @@ public interface Validator<T extends TrackerDto>
      * @param bundle tracker bundle
      * @param input input to validate
      */
-    void validate( ValidationErrorReporter reporter, TrackerBundle bundle, T input );
+    void validate( Reporter reporter, TrackerBundle bundle, T input );
 
+    /**
+     * Indicates whether this {@link Validator} should be run given the
+     * {@link TrackerImportStrategy}.
+     *
+     * @param strategy import strategy
+     * @return true if this validator should be run and false otherwise
+     */
     default boolean needsToRun( TrackerImportStrategy strategy )
     {
         return strategy != TrackerImportStrategy.DELETE;
     }
 
-    default boolean skipOnError()
-    {
-        return false;
-    }
 }

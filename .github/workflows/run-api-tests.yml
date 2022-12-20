@@ -48,9 +48,6 @@ jobs:
           docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
           docker push $DOCKER_CHANNEL:$PR_NUMBER
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test

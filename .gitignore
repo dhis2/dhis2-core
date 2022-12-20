@@ -34,6 +34,7 @@ dhis-2/projectFilesBackup
 coverage
 node_modules
 **/rebel.xml
-
 # ignore generated artifact directory
 docker/artifacts
+# ignore local docker override files
+docker-compose.override.yml

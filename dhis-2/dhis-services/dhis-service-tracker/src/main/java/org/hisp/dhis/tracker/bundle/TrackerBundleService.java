@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.PersistenceReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -60,7 +60,7 @@ public interface TrackerBundleService
      *
      * @param bundle TrackerBundle to commit.
      */
-    TrackerBundleReport commit( TrackerBundle bundle );
+    PersistenceReport commit( TrackerBundle bundle );
 
     /**
      * Carry out side effect for TrackerImporter i.e audits, notifications and
@@ -77,7 +77,7 @@ public interface TrackerBundleService
      *
      * @param bundle TrackerBundle to delete.
      */
-    TrackerBundleReport delete( TrackerBundle bundle );
+    PersistenceReport delete( TrackerBundle bundle );
 
     /**
      * Finalize bundle objects
