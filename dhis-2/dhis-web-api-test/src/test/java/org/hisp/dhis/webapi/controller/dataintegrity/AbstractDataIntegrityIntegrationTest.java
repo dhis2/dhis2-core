@@ -99,9 +99,8 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     private Boolean hasComments( JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues )
     {
-        Boolean containsComments = issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
+        return issues.stream().map( issue -> issue.has( "comment" ) ).reduce( Boolean.FALSE,
             Boolean::logicalOr );
-        return (containsComments);
     }
 
     void checkDataIntegrityDetailsIssues( String check, String expectedDetailsUnits,
@@ -150,7 +149,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         assertEquals( expectedDetailsUnits.size(), issues.size() );
 
         /* Always check the UIDs */
-        Set issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
+        Set<String> issueUIDs = issues.stream().map( issue -> issue.getId() ).collect( Collectors.toSet() );
         assertEquals( issueUIDs, expectedDetailsUnits );
 
         /*
