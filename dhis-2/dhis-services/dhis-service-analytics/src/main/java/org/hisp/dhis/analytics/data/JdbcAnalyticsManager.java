@@ -620,7 +620,7 @@ public class JdbcAnalyticsManager
             "from " + fromSourceClause + " " +
             "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
             "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null))";
+            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
     }
