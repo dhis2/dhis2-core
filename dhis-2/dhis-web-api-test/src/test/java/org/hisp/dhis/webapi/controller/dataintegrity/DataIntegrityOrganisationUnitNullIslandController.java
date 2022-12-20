@@ -30,16 +30,19 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Checks for organisation units with coordinates close to Null Island (0 N, 0
+ * E).
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_null_island.yaml}
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     private String nullIsland;
-
-    private String notNullIsland;
 
     final String check = "orgunit_null_island";
 
@@ -52,7 +55,7 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
 
-        notNullIsland = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
@@ -71,7 +74,7 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
                 "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }" ) );
 
-        notNullIsland = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits",
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
@@ -87,18 +90,4 @@ class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractData
 
     }
 
-    @BeforeEach
-    public void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    public void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", nullIsland );
-        deleteMetadataObject( "organisationUnits", notNullIsland );
-
-    }
 }

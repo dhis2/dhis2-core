@@ -38,6 +38,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test for option sets with no options.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/option_sets_empty.yaml
+ * }
  *
  * @author Jason P. Pickering
  */

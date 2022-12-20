@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
  * Generally, non-numeric data elements should have their aggregation type set
  * to NONE, while numeric data elements should have their aggregation type set
  * to something other than NONE.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_inconsistent_agg_operator.yaml}
  *
  * @author Jason P. Pickering
  */
@@ -49,21 +50,10 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
 
     private String dataElementB;
 
-    private String dataElementGroupA;
-
     @Test
     void testDataElementInconsistentAggregation()
     {
-
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'NONE'  }" ) );
-
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+        setUpDataElements();
 
         dataElementB = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",
@@ -83,15 +73,7 @@ class DataIntegrityDataElementsAggregationOperatorControllerTest extends Abstrac
     void testDataElementsConsistentAggregation()
     {
 
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'AVERAGE'  }" ) );
+        setUpDataElements();
 
         dataElementB = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements",

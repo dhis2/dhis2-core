@@ -43,7 +43,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Test for option sets which are not used.
  *
- * @s
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/unused_option_sets.yaml}
+ *
  * @author Jason P. Pickering
  */
 class DataIntegrityOptionSetUnusedControllerTest extends AbstractDataIntegrityIntegrationTest

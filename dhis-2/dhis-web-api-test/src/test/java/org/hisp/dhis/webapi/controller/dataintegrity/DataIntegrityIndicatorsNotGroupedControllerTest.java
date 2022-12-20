@@ -37,6 +37,12 @@ import org.hisp.dhis.webapi.json.domain.JsonIndicator;
 import org.hisp.dhis.webapi.json.domain.JsonIndicatorGroup;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test metadata check for indicators which are not part of an indicator group
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_nongrouped.yaml}
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityIndicatorsNotGroupedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 

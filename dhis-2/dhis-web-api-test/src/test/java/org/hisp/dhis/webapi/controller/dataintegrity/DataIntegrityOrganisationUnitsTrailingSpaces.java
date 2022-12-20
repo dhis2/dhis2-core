@@ -40,7 +40,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests for orgunits whose closed dates are after their opening dates
+ * Tests for organisation units with trailing spaces. Currently, the API should
+ * trim trailing spaces from organisation units but this may still be an issue
+ * with legacy databases.
+ *
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
  *
  * @author Jason P. Pickering
  */

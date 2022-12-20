@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests for orgunits which have multiple spaces in their names or shortnames
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_spaces.yaml}
  *
  * @author Jason P. Pickering
  */

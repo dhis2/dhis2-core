@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test metadata check for indicators not used in any analysis
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_noanalysis.yaml}
  *
  * @author Jason P. Pickering
  */

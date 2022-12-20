@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test for data elements which are not part of any data element group.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_no_groups.yaml}
  *
  * @author Jason P. Pickering
  */

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Checks for organisation units with no geometry.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_no_geometry.yaml}
  *
  * @author Jason P. Pickering
  */

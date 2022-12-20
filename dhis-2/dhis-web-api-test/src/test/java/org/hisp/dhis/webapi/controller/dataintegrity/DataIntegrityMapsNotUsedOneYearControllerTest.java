@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Test for maps which have not been viewed in at least a year.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/maps_not_used_1year.yaml}
  *
  * @author Jason P. Pickering
  */

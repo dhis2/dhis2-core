@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Checks for organisation units which are part of multiple organisation unit
  * groups within the same group set.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_excess_group_memberships.yaml}
  *
  * @author Jason P. Pickering
  */

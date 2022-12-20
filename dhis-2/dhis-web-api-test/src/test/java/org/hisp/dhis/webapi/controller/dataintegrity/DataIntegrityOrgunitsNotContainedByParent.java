@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
  * Checks for organisation units which have point coordinates which are not
  * contained by their parent organisation unit. This only applies to situations
  * where the parent has geometry of type Polygon or Multipolygon.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
  *
  * @author Jason P. Pickering
  */

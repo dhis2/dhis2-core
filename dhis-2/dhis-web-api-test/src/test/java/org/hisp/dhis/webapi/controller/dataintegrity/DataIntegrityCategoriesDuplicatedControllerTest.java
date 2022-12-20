@@ -34,6 +34,13 @@ import java.util.Set;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the metadata check for categories with the same category options.
+ *
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/categories_same_category_options.yaml}
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     private final String check = "categories_same_category_options";

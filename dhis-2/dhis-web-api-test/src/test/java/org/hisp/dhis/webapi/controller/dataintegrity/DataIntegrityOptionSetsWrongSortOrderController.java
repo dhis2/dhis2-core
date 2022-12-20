@@ -45,19 +45,17 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Test for option sets which are not used.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/option_sets_wrong_sort_order.yaml}
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     @Autowired
     private OptionService myOptionService;
-
-    private Option optionA;
-
-    private Option optionB;
-
-    private Option optionC;
-
-    private OptionSet optionSetA;
 
     private String goodOptionSet;
 
@@ -68,10 +66,10 @@ class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIn
     void testOptionSetWrongSortOrder()
     {
 
-        optionA = new Option( "Sweet", "SWEET", 1 );
-        optionB = new Option( "Sour", "SOUR", 2 );
-        optionC = new Option( "Salty", "SALTY", 3 );
-        optionSetA = new OptionSet( "Taste", ValueType.TEXT );
+        Option optionA = new Option( "Sweet", "SWEET", 1 );
+        Option optionB = new Option( "Sour", "SOUR", 2 );
+        Option optionC = new Option( "Salty", "SALTY", 3 );
+        OptionSet optionSetA = new OptionSet( "Taste", ValueType.TEXT );
         optionSetA.addOption( optionA );
         optionSetA.addOption( optionB );
         optionSetA.addOption( optionC );

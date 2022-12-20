@@ -42,6 +42,9 @@ import org.junit.jupiter.api.Test;
  * it is not possible to create a proper unit test for the scenario of
  * identifying abandoned data elements.
  *
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_abandoned.yaml
+ * }
+ *
  * @author Jason P. Pickering
  */
 class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataIntegrityIntegrationTest

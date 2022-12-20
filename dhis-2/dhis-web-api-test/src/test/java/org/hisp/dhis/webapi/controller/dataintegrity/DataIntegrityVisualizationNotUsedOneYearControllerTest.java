@@ -41,6 +41,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Test for visualizations which have not been viewed in the past year.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
+ * }
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
@@ -64,7 +71,7 @@ class DataIntegrityVisualizationNotUsedOneYearControllerTest extends AbstractDat
 
         SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd" );
         String dateInString = "2015-10-01";
-        Date date = null;
+        Date date;
         try
         {
             date = formatter.parse( dateInString );

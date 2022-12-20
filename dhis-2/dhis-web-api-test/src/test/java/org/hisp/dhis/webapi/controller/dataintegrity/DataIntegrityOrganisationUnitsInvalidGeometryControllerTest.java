@@ -30,14 +30,13 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * Checks for organisation units which have an invalid geometry. The reasons for
  * this may vary, but in this test case, we look for a polygon with
  * self-intersection.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_invalid_geometry.yaml}
  *
  * @author Jason P. Pickering
  */
@@ -108,18 +107,4 @@ class DataIntegrityOrganisationUnitsInvalidGeometryControllerTest extends Abstra
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", clinicB );
-        deleteMetadataObject( "organisationUnits", clinicA );
-        deleteMetadataObject( "organisationUnits", districtA );
-    }
 }

@@ -34,6 +34,13 @@ import java.util.Set;
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for duplicated indicator types, namely those which have the same
+ * factor.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicate_types.yaml}
+ *
+ * @author Jason P. Pickering
+ */
 class DataIntegrityIndicatorsDuplicatedFactorsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
