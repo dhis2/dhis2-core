@@ -33,17 +33,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
+
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DashboardControllerTest extends DhisControllerConvenienceTest
+class DashboardControllerTest extends DhisControllerIntegrationTest
 {
     @Autowired
     private AclService aclService;
@@ -52,32 +54,33 @@ class DashboardControllerTest extends DhisControllerConvenienceTest
     void testUpdateWithNonAccessibleItems()
     {
         POST( "/metadata", Body( "dashboard/create_dashboard.json" ) ).content( HttpStatus.OK );
-
         User userA = userService.getUser( "XThzKnyzeYW" );
 
+        // Verify if all objects created correctly.
         Dashboard dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
         assertNotNull( dashboard );
         assertEquals( 1, dashboard.getItems().size() );
-
         Visualization visualization = dashboard.getItems().stream()
             .filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) ).findFirst().get().getVisualization();
         assertNotNull( visualization );
-        assertFalse( aclService.canRead( userA, visualization ) );
 
         switchContextToUser( userA );
+        // UserA can't read visualization but can update Dashboard.
         assertTrue( aclService.canUpdate( userA, dashboard ) );
-        assertTrue( aclService.canRead( userA, dashboard ) );
-        System.out.println( "dashboard.getSharing() = " + dashboard.getSharing() );
+        assertFalse( aclService.canRead( userA, visualization ) );
 
-        // UserA update dashboard without read access permission to
-        // Visualization.
-        HttpResponse response = PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) );
-        JsonResponse jsonResponse = response.content( HttpStatus.OK );
+        // Add one more DashboardItem to the created Dashboard
+        PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) ).content( HttpStatus.OK );
         dashboard = manager.get( Dashboard.class, "f1OijtLnf8a" );
+
+        // Dashboard should have 2 items after update.
         assertEquals( 2, dashboard.getItems().size() );
-        visualization = dashboard.getItems().stream().filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) )
-            .findFirst().get().getVisualization();
-        assertNotNull( visualization );
-        assertEquals( "gyYXi0rXAIc", visualization.getUid() );
+
+        // Visualization is still attached to the dashboard item.
+        Optional<DashboardItem> dashboardItem = dashboard.getItems().stream()
+            .filter( item -> item.getUid().equals( "KnmKNIFiAwC" ) )
+            .findFirst();
+        assertTrue( dashboardItem.isPresent() );
+        assertEquals( "gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid() );
     }
 }

@@ -60,6 +60,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.document.Document;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -67,6 +68,7 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
+import org.hisp.dhis.report.Report;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -296,6 +298,14 @@ public class DefaultPreheatService implements PreheatService
         return preheat;
     }
 
+    /**
+     * This is to allow preheating all DashboardItem's objects without sharing
+     * check.
+     *
+     * @param params {@link PreheatParams} contains parameters use for
+     *        preheating object.s
+     * @param preheat {@link Preheat} store objects retrieved from database.
+     */
     private void handleDashboard( PreheatParams params, Preheat preheat )
     {
         List<IdentifiableObject> dashboards = params.getObjects().get( Dashboard.class );
@@ -305,22 +315,41 @@ public class DefaultPreheatService implements PreheatService
             return;
         }
 
-        Map<Class<? extends IdentifiableObject>, List<String>> ids = new HashMap<>();
-        dashboards.forEach( dashboard -> {
-            List<DashboardItem> items = ((Dashboard) dashboard).getItems();
-            if ( !CollectionUtils.isEmpty( items ) )
-            {
-                items.forEach( item -> {
-                    if ( item.getEmbeddedItem() != null )
-                    {
-                        ids.computeIfAbsent( item.getEmbeddedItem().getClass(), key -> new ArrayList<>() )
-                            .add( item.getEmbeddedItem().getUid() );
-                    }
-                } );
-            }
-        } );
+        Map<Class<? extends IdentifiableObject>, Set<String>> mapItemObjectIDs = new HashMap<>();
 
-        ids.forEach( ( key, value ) -> queryAndPreheat( key, preheat, params, value ) );
+        dashboards.forEach( dashboard -> ((Dashboard) dashboard).getItems()
+            .forEach( item -> collectDashboardItemObjects( item, mapItemObjectIDs ) ) );
+
+        mapItemObjectIDs.forEach( ( klass, ids ) -> queryAndPreheat( preheat, params, klass, ids ) );
+    }
+
+    /**
+     * Collect all DashboardItem's embedded objects to given map
+     *
+     * @param dashboardItem {@link DashboardItem} used to collect objects.
+     * @param mapItemObjectIDs Map stored all object IDs belong to given
+     *        {@link DashboardItem}
+     */
+    private void collectDashboardItemObjects( DashboardItem dashboardItem,
+        Map<Class<? extends IdentifiableObject>, Set<String>> mapItemObjectIDs )
+    {
+        if ( dashboardItem.getEmbeddedItem() != null )
+        {
+            mapItemObjectIDs.computeIfAbsent( dashboardItem.getEmbeddedItem().getClass(), key -> new HashSet<>() )
+                .add( dashboardItem.getEmbeddedItem().getUid() );
+        }
+
+        mapItemObjectIDs.computeIfAbsent( Document.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getResources().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
+
+        mapItemObjectIDs.computeIfAbsent( Report.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getReports().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
+
+        mapItemObjectIDs.computeIfAbsent( User.class, key -> new HashSet<>() )
+            .addAll( dashboardItem.getUsers().stream().map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toSet() ) );
     }
 
     private void handleSharing( PreheatParams params, Preheat preheat )
@@ -1071,12 +1100,26 @@ public class DefaultPreheatService implements PreheatService
         User.populateUserCredentialsDtoFields( (User) object );
     }
 
-    private void queryAndPreheat( Class<? extends IdentifiableObject> klass, Preheat preheat, PreheatParams params,
-        List<String> ids )
+    /**
+     * Execute select query for given klass and list of IDs, then put returned
+     * objects to {@link Preheat}.
+     *
+     * @param preheat {@link Preheat} to store returned objects.
+     * @param params {@link PreheatParams}
+     * @param klass Class for querying objects from database.
+     * @param ids IDs for querying objects from database.
+     */
+    private void queryAndPreheat( Preheat preheat, PreheatParams params,
+        Class<? extends IdentifiableObject> klass, Set<String> ids )
     {
+        if ( CollectionUtils.isEmpty( ids ) )
+        {
+            return;
+        }
+
         Query query = Query.from( schemaService.getDynamicSchema( klass ) );
         query.setUser( preheat.getUser() );
-        query.add( Restrictions.in( params.getPreheatIdentifier().getPreheatColumnName(), ids ) );
+        query.add( Restrictions.in( params.getPreheatIdentifier().getIdentifierColumnName(), ids ) );
         query.setSkipSharing( true );
         List<? extends IdentifiableObject> objects = queryService.query( query );
         preheat.put( PreheatIdentifier.UID, objects );

@@ -95,7 +95,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -557,7 +556,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = getParamsFromContext();
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
@@ -609,7 +608,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = getParamsFromContext()
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
             .setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
@@ -1114,15 +1113,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
-    }
-
-    /**
-     * Extract {@link MetadataImportParams} from
-     * {@link ContextService#getParameterValuesMap()}. Can be overridden by
-     * inherited controller in order to add more import parameters.
-     */
-    protected MetadataImportParams getParamsFromContext()
-    {
-        return importService.getParamsFromMap( contextService.getParameterValuesMap() );
     }
 }

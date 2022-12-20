@@ -85,11 +85,6 @@ public class ObjectBundleParams
 
     private boolean metadataSyncImport;
 
-    /**
-     * Skip METADATA_READ permission check for all preheat queries.
-     */
-    private boolean skipPreheatSharingCheck;
-
     private JobConfiguration jobId;
 
     public ObjectBundleParams()
@@ -248,17 +243,6 @@ public class ObjectBundleParams
     public ObjectBundleParams setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
-        return this;
-    }
-
-    public boolean isSkipPreheatSharingCheck()
-    {
-        return skipPreheatSharingCheck;
-    }
-
-    public ObjectBundleParams setSkipPreheatSharingCheck( boolean skipPreheatSharingCheck )
-    {
-        this.skipPreheatSharingCheck = skipPreheatSharingCheck;
         return this;
     }
 
