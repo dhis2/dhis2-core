@@ -694,19 +694,6 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * Maps each order to its order field name provided they are static and
-     * match a column from the OrderColumn enum
-     *
-     * @param orders
-     * @return a list of strings with the mapped order fields
-     */
-    private List<String> getOrderFields( List<OrderParam> orders )
-    {
-        return orders.stream().filter( op -> isStaticColumn( op.getField() ) && !getColumn( op.getField() ).isEmpty() )
-            .map( OrderParam::getField ).collect( Collectors.toList() );
-    }
-
-    /**
      * Generates the WHERE-clause of the subquery SQL related to tracked entity
      * instances.
      *

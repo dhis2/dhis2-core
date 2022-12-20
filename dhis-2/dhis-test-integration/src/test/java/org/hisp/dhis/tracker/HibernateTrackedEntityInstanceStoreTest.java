@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
@@ -42,6 +43,9 @@ import org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
@@ -69,14 +73,23 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         params = new TrackedEntityInstanceQueryParams();
     }
 
-    @Test
-    void whenOrderingByCreatedAtThenEntitiesAreSortedById()
+    @ParameterizedTest
+    @MethodSource( "provideOrderParamsAndExpectedResult" )
+    void whenOrderingByBasicStaticFieldsThenEntitiesAreSortedAccordingly( String input, String expected )
     {
-        params.setOrders( List.of( new OrderParam( "createdAt", OrderParam.SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( input, OrderParam.SortDirection.ASC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
 
-        assertEquals( "[1, 2, 3, 4]", list.toString() );
+        assertEquals( expected, list.toString() );
+    }
+
+    private static Stream<Arguments> provideOrderParamsAndExpectedResult()
+    {
+        return Stream.of(
+            Arguments.of( "createdAt", "[1, 2, 3, 4]" ),
+            Arguments.of( "enrolledAt", "[3, 2, 1, 4]" ),
+            Arguments.of( "trackedEntity", "[1, 4, 2, 3]" ) );
     }
 
     @Test
@@ -90,16 +103,6 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
     }
 
     @Test
-    void whenOrderingByEnrolledAtThenEntitiesAreSortedByEnrolledAt()
-    {
-        params.setOrders( List.of( new OrderParam( "enrolledAt", OrderParam.SortDirection.ASC ) ) );
-
-        List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
-
-        assertEquals( "[3, 2, 1, 4]", list.toString() );
-    }
-
-    @Test
     void whenOrderingByMultipleStaticFieldsThenEntitiesAreSortedAndOrderOfParamsIsKept()
     {
         params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ),
@@ -108,16 +111,6 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
 
         assertEquals( "[2, 3, 4, 1]", list.toString() );
-    }
-
-    @Test
-    void whenOrderingByTrackedEntityThenEntitiesAreSortedByTeiUid()
-    {
-        params.setOrders( List.of( new OrderParam( "trackedEntity", OrderParam.SortDirection.ASC ) ) );
-
-        List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
-
-        assertEquals( "[1, 4, 2, 3]", list.toString() );
     }
 
     @Test
