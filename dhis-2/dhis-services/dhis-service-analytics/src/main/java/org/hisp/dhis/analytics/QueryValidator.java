@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics;
 import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
@@ -73,13 +72,4 @@ public interface QueryValidator
      */
     void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
         throws IllegalQueryException;
-
-    /**
-     * Checks whether the analytics engine is in maintenance mode.
-     *
-     * @throws MaintenanceModeException if analytics engine is in maintenance
-     *         mode.
-     */
-    void validateMaintenanceMode()
-        throws MaintenanceModeException;
 }
