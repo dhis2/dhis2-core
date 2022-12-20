@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -169,7 +170,7 @@ public class EventQueryParamsTest
     public void testHasDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
-            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withOrganisationUnits( getList( ouA, ouB ) )
             .withValue( deA )
             .build();
 
@@ -180,12 +181,12 @@ public class EventQueryParamsTest
     public void testHasNumericDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
-            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withOrganisationUnits( getList( ouA, ouB ) )
             .withValue( deA )
             .build();
 
         EventQueryParams paramsB = new EventQueryParams.Builder()
-            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withOrganisationUnits( getList( ouA, ouB ) )
             .withValue( deC )
             .build();
 
