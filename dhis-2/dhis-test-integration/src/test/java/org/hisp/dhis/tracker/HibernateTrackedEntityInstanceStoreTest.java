@@ -32,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -80,6 +82,7 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         params.setOrders( List.of( new OrderParam( input, OrderParam.SortDirection.ASC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( expected, list.toString() );
     }
@@ -98,6 +101,7 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( "[3, 2, 4, 1]", list.toString() );
     }
@@ -109,6 +113,7 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
             new OrderParam( "enrolledAt", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( "[2, 3, 4, 1]", list.toString() );
     }
@@ -119,6 +124,7 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         params.setOrders( Collections.emptyList() );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( "[1, 2, 3, 4]", list.toString() );
     }
@@ -132,6 +138,7 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         params.setOrders( List.of( new OrderParam( "p5TPww5Uhrd", OrderParam.SortDirection.ASC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( "[3, 2, 1, 4]", list.toString() );
     }
@@ -143,7 +150,22 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
             new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
+        list = reduceListValuesToStartCountingFromOne( list );
 
         assertEquals( "[3, 2, 1, 4]", list.toString() );
+    }
+
+    /**
+     * When running integration tests, we will not be aware of the tei id used,
+     * this method receives the list of id's created and reduces them to start
+     * counting at one
+     *
+     * @param list
+     * @return list of ids starting from one
+     */
+    private List<Long> reduceListValuesToStartCountingFromOne( List<Long> list )
+    {
+        long minValue = list.stream().min( Comparator.naturalOrder() ).orElse( 0L );
+        return list.stream().map( n -> n - minValue + 1 ).collect( Collectors.toList() );
     }
 }
