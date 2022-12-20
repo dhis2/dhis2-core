@@ -355,7 +355,20 @@ public class ListUtils
     }
 
     /**
-     * Creates a new list based on the given items.
+     * Returns a mutable copy of the given collection. Accepts nulls as
+     * collection items.
+     *
+     * @param <T>
+     * @param collection the {@link Collection}.
+     * @return a {@link List}.
+     */
+    public static <T> List<T> mutableCopy( Collection<T> collection )
+    {
+        return new ArrayList<>( collection );
+    }
+
+    /**
+     * Creates a new mutable list based on the given items.
      *
      * @param items the items.
      * @return a list.
