@@ -61,7 +61,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -453,7 +452,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
+        if ( params.hasNumericValueDimension() )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
@@ -739,19 +738,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
             log.warn( ErrorCode.E7131.getMessage(), ex );
             throw new QueryRuntimeException( ErrorCode.E7131, ex );
         }
-    }
-
-    /**
-     * Checks if the ValueType, in the given params, is of type NUMERIC.
-     *
-     * @param params the {@link EventQueryParams}
-     * @return true if params ValueType is NUMERIC, false otherwise
-     */
-    private boolean isParamsValueTypeNumeric( EventQueryParams params )
-    {
-        return params != null &&
-            params.getValue() instanceof ValueTypedDimensionalItemObject &&
-            ((ValueTypedDimensionalItemObject) params.getValue()).getValueType() == ValueType.NUMBER;
     }
 
     /**
