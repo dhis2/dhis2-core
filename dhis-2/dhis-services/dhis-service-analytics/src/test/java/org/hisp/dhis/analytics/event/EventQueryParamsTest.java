@@ -166,7 +166,7 @@ public class EventQueryParamsTest
     }
 
     @Test
-    void testHasDimensionValue()
+    public void testHasDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )
@@ -177,7 +177,7 @@ public class EventQueryParamsTest
     }
 
     @Test
-    void testHasNumericDimensionValue()
+    public void testHasNumericDimensionValue()
     {
         EventQueryParams paramsA = new EventQueryParams.Builder()
             .withOrganisationUnits( List.of( ouA, ouB ) )
