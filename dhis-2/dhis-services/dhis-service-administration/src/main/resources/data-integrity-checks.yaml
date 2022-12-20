@@ -31,4 +31,5 @@ checks:
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml
   - periods/periods-same-start-end-date.yaml
+  - periods/periods-3y-future.yaml
 
