@@ -41,6 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -70,6 +72,13 @@ public class DefaultGatewayAdministrationService
     // -------------------------------------------------------------------------
     // GatewayAdministrationService implementation
     // -------------------------------------------------------------------------
+
+    @EventListener
+    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
+    {
+        initState();
+        updateHasGatewaysState();
+    }
 
     public synchronized void initState()
     {
