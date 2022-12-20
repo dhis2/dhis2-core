@@ -27,116 +27,41 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Set;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 
-@ToString
-@EqualsAndHashCode
-public class ValidationResult
+/**
+ * ValidationResult is the result of the validation step. The tracked entities,
+ * enrollments, events and relationships are persistable entities meaning they
+ * can be created, updated, or deleted. The meaning of persisted i.e. create,
+ * update, delete comes from the context which includes the
+ * {@link TrackerImportStrategy} and whether the entity existed or not. The
+ * persistable entities can thus be trusted to be in a valid state. Any entity
+ * that passed through the validation but cannot be persisted will have an error
+ * in {@link #getErrors()}. Persistable entities might have
+ * {@link #getWarnings()} attached to them.
+ */
+public interface ValidationResult
 {
-    private final List<Error> errors;
+    List<TrackedEntity> getTrackedEntities();
 
-    private final List<Warning> warnings;
+    List<Enrollment> getEnrollments();
 
-    public ValidationResult()
-    {
-        this.errors = new ArrayList<>();
-        this.warnings = new ArrayList<>();
-    }
+    List<Event> getEvents();
 
-    public void addValidationResult( ValidationResult report )
-    {
-        addErrors( report.errors );
-        addWarnings( report.warnings );
-    }
+    List<Relationship> getRelationships();
 
-    public List<Validation> getErrors()
-    {
-        return Collections.unmodifiableList( errors );
-    }
+    Set<Validation> getErrors();
 
-    public List<Validation> getWarnings()
-    {
-        return Collections.unmodifiableList( warnings );
-    }
+    Set<Validation> getWarnings();
 
-    public ValidationResult addError( Error error )
-    {
-        addErrorIfNotExisting( error );
-        return this;
-    }
+    boolean hasErrors();
 
-    public ValidationResult addErrors( List<Error> errors )
-    {
-        for ( Error error : errors )
-        {
-            addErrorIfNotExisting( error );
-        }
-        return this;
-    }
-
-    public ValidationResult addWarning( Warning warning )
-    {
-        addWarningIfNotExisting( warning );
-        return this;
-    }
-
-    public ValidationResult addWarnings( List<Warning> warnings )
-    {
-        for ( Warning warning : warnings )
-        {
-            addWarningIfNotExisting( warning );
-        }
-        return this;
-    }
-
-    public boolean hasErrors()
-    {
-        return !errors.isEmpty();
-    }
-
-    public boolean hasError( Predicate<Error> test )
-    {
-        return errors.stream().anyMatch( test );
-    }
-
-    public boolean hasWarnings()
-    {
-        return !warnings.isEmpty();
-    }
-
-    public boolean hasWarning( Predicate<Warning> test )
-    {
-        return warnings.stream().anyMatch( test );
-    }
-
-    /**
-     * Returns the size of all the Tracker DTO that did not pass validation
-     */
-    public long size()
-    {
-
-        return this.getErrors().stream().map( Validation::getUid ).distinct().count();
-    }
-
-    private void addErrorIfNotExisting( Error error )
-    {
-        if ( !this.errors.contains( error ) )
-        {
-            this.errors.add( error );
-        }
-    }
-
-    private void addWarningIfNotExisting( Warning warning )
-    {
-        if ( !this.warnings.contains( warning ) )
-        {
-            this.warnings.add( warning );
-        }
-    }
+    boolean hasWarnings();
 }

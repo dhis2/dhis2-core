@@ -60,7 +60,7 @@ import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.PersistenceReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.report.TimingsStats;
-import org.hisp.dhis.tracker.validation.ValidationResult;
+import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -153,7 +153,7 @@ class TrackerImportControllerTest
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationResult(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() ) );
 
@@ -189,7 +189,7 @@ class TrackerImportControllerTest
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationResult(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() ) );
 
@@ -224,7 +224,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
-            new ValidationResult(),
+            ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
         // Then
@@ -258,7 +258,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
-            new ValidationResult(),
+            ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
         // Then
@@ -321,7 +321,7 @@ class TrackerImportControllerTest
         ImportReport importReport = ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationResult(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() );
 

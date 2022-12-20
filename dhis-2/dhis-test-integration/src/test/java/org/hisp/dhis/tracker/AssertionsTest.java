@@ -102,7 +102,7 @@ public class AssertionsTest
             List.of() );
 
         assertThrows( AssertionError.class, () -> assertHasErrors( report, 3, ValidationCode.E1000 ) );
-        // assertHasErrors( report,3, TrackerErrorCode.E1000 );
+        // assertHasErrors( report,3, ValidationCode.E1000 );
     }
 
     @Test
@@ -134,7 +134,7 @@ public class AssertionsTest
         ValidationReport report = ValidationReport.emptyReport();
 
         assertThrows( AssertionError.class, () -> assertHasError( report, ValidationCode.E1019 ) );
-        // assertHasError( report, TrackerErrorCode.E1019 );
+        // assertHasError( report, ValidationCode.E1019 );
     }
 
     @Test

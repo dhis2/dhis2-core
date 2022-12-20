@@ -54,14 +54,14 @@ import org.junit.jupiter.api.function.Executable;
  * using assertAll its documentation does not mention that it is designed for
  * this use. Keep that in mind when using the assertions in this class in tests.
  *
- * Note: some assertions are duplicates of AssertTrackerValidationReport. This
- * is due to a constraint in our dependencies. dhis-test-integration cannot use
- * test scope dependency on dhis-service-tracker otherwise it would not report
- * coverage for tracker code. This means we do not have access to test code
- * within dhis-service-tracker. Moving the assertions into dhis-support-test
- * would need a dependency on tracker, which would make it not a generic test
- * module. We will have to live with the duplicated assertion code until we have
- * a better solution.
+ * Note: some assertions are duplicates of AssertValidations. This is due to a
+ * constraint in our dependencies. dhis-test-integration cannot use test scope
+ * dependency on dhis-service-tracker otherwise it would not report coverage for
+ * tracker code. This means we do not have access to test code within
+ * dhis-service-tracker. Moving the assertions into dhis-support-test would need
+ * a dependency on tracker, which would make it not a generic test module. We
+ * will have to live with the duplicated assertion code until we have a better
+ * solution.
  */
 public class Assertions
 {
@@ -98,7 +98,7 @@ public class Assertions
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like
-     * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
+     * <code>assertHasErrors(report, 13, ValidationCode.E1000);</code> is not
      * clear.
      *
      * @param report import report to be asserted on
@@ -117,7 +117,7 @@ public class Assertions
      * your test if you need this assertion. If you want to make sure a certain
      * number of errors are present, why do you not care about what errors are
      * present? The intention of an assertion like
-     * <code>assertHasErrors(report, 13, TrackerErrorCode.E1000);</code> is not
+     * <code>assertHasErrors(report, 13, ValidationCode.E1000);</code> is not
      * clear.
      *
      * @param report validation report to be asserted on
