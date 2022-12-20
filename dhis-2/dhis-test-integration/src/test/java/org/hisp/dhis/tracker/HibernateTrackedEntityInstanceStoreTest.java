@@ -96,17 +96,6 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
     }
 
     @Test
-    void whenOrderingByInactiveThenEntitiesAreSortedByInactive()
-    {
-        params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
-
-        List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
-        list = reduceListValuesToStartCountingFromOne( list );
-
-        assertEquals( "[3, 2, 4, 1]", list.toString() );
-    }
-
-    @Test
     void whenOrderingByMultipleStaticFieldsThenEntitiesAreSortedAndOrderOfParamsIsKept()
     {
         params.setOrders( List.of( new OrderParam( "inactive", OrderParam.SortDirection.DESC ),
