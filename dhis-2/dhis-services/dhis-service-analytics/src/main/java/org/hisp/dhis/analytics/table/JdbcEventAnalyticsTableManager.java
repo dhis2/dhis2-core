@@ -72,6 +72,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -219,7 +220,7 @@ public class JdbcEventAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            List<Integer> dataYears = getDataYears( params, program );
+            List<Integer> dataYears = ListUtils.mutableCopy( getDataYears( params, program ) );
 
             Collections.sort( dataYears );
 
