@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,7 +102,7 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
         assertFalse( issues.isEmpty() );
         assertEquals( WARNING, issues.get( 0 ).getIssueType() );
         assertEquals( RULE_EVENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( TrackerErrorCode.E1300, issues.get( 0 ).getIssueCode() );
+        assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
         assertEquals( EVENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
     }
 
@@ -116,7 +116,7 @@ class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
         assertFalse( issues.isEmpty() );
         assertEquals( WARNING, issues.get( 0 ).getIssueType() );
         assertEquals( RULE_ENROLLMENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( TrackerErrorCode.E1300, issues.get( 0 ).getIssueCode() );
+        assertEquals( ValidationCode.E1300, issues.get( 0 ).getIssueCode() );
         assertEquals( ENROLLMENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
     }
 

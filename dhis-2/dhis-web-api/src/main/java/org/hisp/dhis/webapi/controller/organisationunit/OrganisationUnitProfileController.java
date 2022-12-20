@@ -34,7 +34,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
@@ -63,7 +63,7 @@ public class OrganisationUnitProfileController
     @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
     public void saveProfile( @RequestBody OrgUnitProfile profile )
-        throws WebMessageException
+        throws BadRequestException
     {
         validateAndThrowErrors( () -> orgUnitProfileService.validateOrgUnitProfile( profile ) );
 

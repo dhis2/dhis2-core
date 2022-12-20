@@ -70,13 +70,7 @@ public class DataSynchronizationJobParameters implements JobParameters
         if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
         {
             return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "pageSize",
-                    PAGE_SIZE_MIN,
-                    PAGE_SIZE_MAX,
-                    pageSize ) );
+                new ErrorReport( getClass(), ErrorCode.E4008, "pageSize", PAGE_SIZE_MIN, PAGE_SIZE_MAX, pageSize ) );
         }
 
         return Optional.empty();

@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import( { TrackerValidationConfig.class, ConfigProviderConfiguration.class } )
+@Import( { ConfigProviderConfiguration.class } )
 @ComponentScan( "org.hisp.dhis.tracker.validation" )
 @ExtendWith( MockitoExtension.class )
 public class TrackerTestConfig

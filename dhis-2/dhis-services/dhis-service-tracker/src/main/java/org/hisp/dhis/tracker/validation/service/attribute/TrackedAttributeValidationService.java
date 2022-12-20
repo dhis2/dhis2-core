@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.service.attribute;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;

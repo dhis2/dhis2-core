@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -45,6 +46,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -67,6 +69,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -133,6 +136,43 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
+    @ResponseBody
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
+    {
+        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
+        if ( !ex.getErrorReports().isEmpty() )
+        {
+            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
+        }
+        return message;
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
+    @ResponseBody
+    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex )
+    {
+        if ( ex.getObjectReport() != null )
+        {
+            return objectReport( ex.getObjectReport() );
+        }
+        return conflict( ex.getMessage(), ex.getCode() ).setDevMessage( ex.getDevMessage() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ForbiddenException.class )
+    @ResponseBody
+    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.NotFoundException.class )
+    @ResponseBody
+    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode() );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -236,6 +276,13 @@ public class CrudControllerAdvice
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
         return error( getExceptionMessage( ex ) );
+    }
+
+    @ExceptionHandler( PersistenceException.class )
+    @ResponseBody
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
+    {
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -464,7 +511,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )

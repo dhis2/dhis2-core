@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -91,7 +92,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     @Override
     protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
         entity.setKey( null );
     }
@@ -129,7 +129,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         final ApiToken apiToken = deserializeJsonEntity( request );
 
