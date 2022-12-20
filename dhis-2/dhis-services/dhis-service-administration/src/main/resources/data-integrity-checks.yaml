@@ -30,6 +30,7 @@ checks:
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml
-  - periods/periods-same-start-end-date.yaml
-  - periods/periods-3y-future.yaml
+  - periods/periods_same_start_end_date.yaml
+  - periods/periods_3y_future.yaml
+  - periods/periods_distant_past.yaml
 

@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * recreate in current versions of DHIS2 because of a unique constraint placed
  * on the period type, start date and end date. Here, we will only test that the
  * check actually runs.*
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods-same-start-end-date.yaml}
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
  *
  * @author Jason P. Pickering
  */
