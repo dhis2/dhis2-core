@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsTrailingSpacesTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends AbstractDataIntegrityIntegrationTest
 {
     @Autowired
     private OrganisationUnitService orgUnitService;

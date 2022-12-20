@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsNoGeometryontrollerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitsNoGeometryControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     private String clinicA;

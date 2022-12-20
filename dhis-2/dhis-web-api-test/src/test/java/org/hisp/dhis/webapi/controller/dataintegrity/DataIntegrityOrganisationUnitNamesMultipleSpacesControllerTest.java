@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitNamesMultipleSpacesTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     private String orgunitA;
