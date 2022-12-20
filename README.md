@@ -159,4 +159,8 @@ variable `DHIS2_HOME` like
       DHIS2_HOME: /DHIS2_home
 ```
 
-in a `docker-compose.override.yml` file. Alternatively, you can pass the system property `-Ddhis2.home` directly from the command line. You need to ensure that this `DHIS2_HOME` is writeable yourself!
+in a `docker-compose.override.yml` file. Alternatively, you can pass the system property
+`-Ddhis2.home` directly from the command line. `/DHIS2_home` is only added for
+backwards-compatibility with Docker images created before we used Jib. `/DHIS2_home` will be removed
+from DHIS2 Docker images once DHIS2 2.38 is EOL.
+

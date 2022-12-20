@@ -81,6 +81,12 @@
                                         <glob>/opt/dhis2/**</glob>
                                         <ownership>${jib.container.user}:${jib.container.user}</ownership>
                                     </rule>
+                                    <!-- Remove /DHIS2_home in favor of default /opt/dhis2 when DHIS2 2.38 is EOL. It
+                                    is only added for backwards-compatibility.-->
+                                    <rule>
+                                        <glob>/DHIS2_home</glob>
+                                        <ownership>${jib.container.user}:${jib.container.user}</ownership>
+                                    </rule>
                                 </rules>
                             </configuration>
                         </pluginExtension>

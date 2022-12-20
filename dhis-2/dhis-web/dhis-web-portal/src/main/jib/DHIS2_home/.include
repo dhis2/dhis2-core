@@ -1,0 +1,5 @@
+# Used to create parent folder structure by Jib
+# /DHIS2_home is added for backwards-compatibility with Docker images created before we used Jib
+# So that tools like d2 can create DHIS2 containers of images created with and without Jib
+# Pre-Jib images created /DHIS2_home with permissions for DHIS2 to write to it
+# /DHIS2_home will be removed once DHIS2 2.38 is EOL
