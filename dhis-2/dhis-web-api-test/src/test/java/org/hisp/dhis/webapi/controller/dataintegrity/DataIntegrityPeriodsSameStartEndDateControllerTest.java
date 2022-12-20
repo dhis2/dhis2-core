@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import java.time.ZonedDateTime;
+import java.util.Date;
+
 import org.hisp.dhis.period.*;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,13 +57,12 @@ class DataIntegrityPeriodsSameStartEndDateControllerTest extends AbstractDataInt
     {
 
         PeriodType periodType = new MonthlyPeriodType();
-
-        DateTime testDate = new DateTime( 2022, 12, 10, 0, 0 );
-        Period periodA = periodType.createPeriod( testDate.toDate() );
+        Date date_future = Date.from( ZonedDateTime.now().plusYears( 1 ).plusDays( 1 ).toInstant() );
+        Period periodA = periodType.createPeriod( date_future );
         periodService.addPeriod( periodA );
 
-        testDate = new DateTime( 2021, 11, 10, 0, 0 );
-        Period periodC = periodType.createPeriod( testDate.toDate() );
+        Date date_past = Date.from( ZonedDateTime.now().minusMonths( 5 ).toInstant() );
+        Period periodC = periodType.createPeriod( date_past );
         periodService.addPeriod( periodC );
         dbmsManager.clearSession();
 
