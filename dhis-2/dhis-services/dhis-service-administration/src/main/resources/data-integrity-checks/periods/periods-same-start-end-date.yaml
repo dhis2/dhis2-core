@@ -44,13 +44,15 @@
     FROM bad_periods;
   details_uid: v12ImzFZQCd
   details_sql: >-
-    select p1.periodtypeid, p1.startdate, p1.enddate
+    select pt.name as uid,
+    CAST( p1.startdate as text) as name 
     from period p1
     inner join period p2
     on p1.periodtypeid = p2.periodtypeid
     and p1.startdate = p2.startdate
+    INNER JOIN periodtype pt on p1.periodtypeid = pt.periodtypeid 
     where p1.periodid != p2.periodid
-    order by p1.periodtypeid, p1.startdate, p1.enddate
+    order by p1.periodtypeid, p1.startdate;
   severity: CRITICAL
   introduction: >
     Different periods should not have exactly the same start and end date.

@@ -30,4 +30,5 @@ checks:
   - indicators/indicator_duplicate_types.yaml
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml
+  - periods/periods-same-start-end-date.yaml
 
