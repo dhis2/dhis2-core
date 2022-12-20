@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E9999;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
@@ -131,11 +130,8 @@ class RepeatedEventsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, bundle.getEvents() );
 
         // then
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, E1039,
-                "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
-                    "`, is not repeatable and an event already exists." ) );
+        assertHasError( reporter, event, E1039, "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
+            "`, is not repeatable and an event already exists." );
     }
 
     @Test
@@ -150,7 +146,6 @@ class RepeatedEventsValidatorTest extends DhisConvenienceTest
         validator.validate( reporter, bundle, bundle.getEvents() );
 
         assertAll(
-            () -> assertEquals( 2, reporter.getErrors().size() ),
             () -> assertHasError( reporter, events.get( 0 ), E1039,
                 "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION
                     + "`, is not repeatable and an event already exists." ),
