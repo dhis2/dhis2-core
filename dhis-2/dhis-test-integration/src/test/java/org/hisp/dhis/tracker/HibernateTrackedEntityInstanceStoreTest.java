@@ -37,9 +37,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
@@ -118,30 +119,31 @@ class HibernateTrackedEntityInstanceStoreTest extends TrackerTest
         assertEquals( "[1, 2, 3, 4]", list.toString() );
     }
 
-    //@Test
+    @Test
     void whenOrderingByNonStaticFieldThenEntitiesAreSortedByProvidedNonStaticField()
     {
-        DimensionalItemObject dimensionalObject = createTrackedEntityAttribute( 'C', ValueType.ORGANISATION_UNIT );
-        //DimensionalItemObject dimensionalObject = new BaseDimensionalItemObject();
-        params.setAttributes( List.of( new QueryItem( dimensionalObject ) ) );
-        params.setOrders( List.of( new OrderParam( "p5TPww5Uhrd", OrderParam.SortDirection.ASC ) ) );
+        params.setAttributes( List.of( queryItem( "toUpdate000" ) ) );
+        params.setOrders( List.of( new OrderParam( "toUpdate000", OrderParam.SortDirection.ASC ) ) );
 
         List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
         list = reduceListValuesToStartCountingFromOne( list );
 
-        assertEquals( "[3, 2, 1, 4]", list.toString() );
+        assertEquals( "[1, 2, 3, 4]", list.toString() );
     }
 
-    //@Test
-    void whenOrderingByStaticAndNonStaticFieldsThenEntitiesAreSortedAndOrderOfParamsIsKept()
+    private static QueryItem queryItem( String teaUid )
     {
-        params.setOrders( List.of( new OrderParam( "p5TPww5Uhrd", OrderParam.SortDirection.ASC ),
-            new OrderParam( "inactive", OrderParam.SortDirection.DESC ) ) );
+        return queryItem( teaUid, ValueType.TEXT );
+    }
 
-        List<Long> list = teiStore.getTrackedEntityInstanceIds( params );
-        list = reduceListValuesToStartCountingFromOne( list );
-
-        assertEquals( "[3, 2, 1, 4]", list.toString() );
+    private static QueryItem queryItem( String teaUid, ValueType valueType )
+    {
+        TrackedEntityAttribute at = new TrackedEntityAttribute();
+        at.setUid( teaUid );
+        at.setValueType( valueType );
+        at.setAggregationType( AggregationType.NONE );
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(),
+            at.isUnique() );
     }
 
     /**

@@ -62,7 +62,7 @@
             "idScheme": "UID",
             "identifier": "toUpdate000"
           },
-          "value": "summer day"
+          "value": "a first random value"
         },
         {
           "valueType": "INTEGER",
@@ -106,7 +106,7 @@
             "idScheme": "UID",
             "identifier": "toUpdate000"
           },
-          "value": "rainy day"
+          "value": "a second random value"
         },
         {
           "valueType": "TEXT",
@@ -158,7 +158,7 @@
             "idScheme": "UID",
             "identifier": "toUpdate000"
           },
-          "value": "rainy day"
+          "value": "random value"
         },
         {
           "valueType": "TEXT",
@@ -210,7 +210,7 @@
             "idScheme": "UID",
             "identifier": "toUpdate000"
           },
-          "value": "rainy day"
+          "value": "test value"
         },
         {
           "valueType": "TEXT",
