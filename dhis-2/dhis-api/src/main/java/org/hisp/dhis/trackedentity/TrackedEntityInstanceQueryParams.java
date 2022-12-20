@@ -1277,14 +1277,43 @@ public class TrackedEntityInstanceQueryParams
             return ENROLLED_AT.getPropName().equalsIgnoreCase( fieldName );
         }
 
+        /**
+         * Gets the column in this enum that matches the property
+         *
+         * @param property to match with a column
+         * @return a column matching the provided field or an exception if no
+         *         column is found
+         */
         public static String getColumn( String property )
         {
-            return Arrays.stream( values() )
+            return getColumn( property, "" );
+        }
+
+        /**
+         * Gets the column in this enum that matches the property and
+         * substitutes the default alias with the one given as a parameter
+         *
+         * @param property to match with a column
+         * @param alias to replace the default with, if empty, the default will
+         *        be kept
+         * @return a column with the provided alias or an exception if no column
+         *         is found
+         */
+        public static String getColumn( String property, String alias )
+        {
+            String column = Arrays.stream( values() )
                 .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
                 .map( OrderColumn::getColumn )
                 .findFirst()
                 .orElseThrow(
                     () -> new IllegalArgumentException( "Property" + property + " is not defined as order column" ) );
+
+            if ( !alias.isEmpty() )
+            {
+                return column.replace( column.substring( 0, column.indexOf( "." ) ), alias );
+            }
+
+            return column;
         }
     }
 }

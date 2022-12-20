@@ -28,7 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparing;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -40,12 +40,10 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.MAIN_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isFieldEqualToEnrolledAt;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
@@ -516,10 +514,9 @@ public class HibernateTrackedEntityInstanceStore
             {
                 if ( isFieldEqualToEnrolledAt( orderParam.getField() ) )
                 {
-                    //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
+                    //In the main query, we need to use the main query alias to fetch the value of the field enrolledAt
                     orderQuery
-                        .append( addStaticColumn( orderParam.getField(), select.toString() )
-                            .replace( PROGRAM_INSTANCE_ALIAS, MAIN_QUERY_ALIAS ) );
+                        .append( addStaticColumn( orderParam.getField(), select.toString(), MAIN_QUERY_ALIAS ) );
                 }
                 else
                 {
@@ -543,6 +540,28 @@ public class HibernateTrackedEntityInstanceStore
     private String addStaticColumn( String field, String sqlQuery )
     {
         String sqlField = getColumn( field );
+
+        if ( !StringUtils.containsIgnoreCase( sqlQuery, sqlField ) )
+        {
+            return ", " + sqlField;
+        }
+
+        return "";
+    }
+
+    /**
+     * If the field is a valid column and not present in the query, it will be
+     * added. The provided alias will be used instead of the default one.
+     *
+     * @param field name of the field to add in the query
+     * @param sqlQuery current sql query
+     * @param alias alias to use with the provided field
+     * @return the mapped column name if not present in the query, empty
+     *         otherwise
+     */
+    private String addStaticColumn( String field, String sqlQuery, String alias )
+    {
+        String sqlField = getColumn( field, alias );
 
         if ( !StringUtils.containsIgnoreCase( sqlQuery, sqlField ) )
         {
@@ -639,34 +658,35 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * OrderColumn Generates a list of columns for projections based on the
-     * params we are ordering by.
+     * OrderColumn Generates a string containing the columns for projections
+     * based on the params we are ordering by.
      *
      * @param params
-     * @return a list of columns to be used in the subquery SQL projection, or
-     *         empty string if no attributes nor order params are used for
-     *         ordering.
+     * @return a string containing the columns to be used in the subquery SQL
+     *         projection, or empty string if no attributes nor order params are
+     *         used for ordering.
      */
     private String getSubqueryFromClauseOrderFields( TrackedEntityInstanceQueryParams params, String query )
     {
         StringBuilder orderAttributes = new StringBuilder();
 
-        if ( params.getAttributesAndFilters().isEmpty() && params.getOrders() != null )
+        for ( OrderParam orderParam : params.getOrders() )
         {
-            for ( String orderField : getOrderFields( params.getOrders() ) )
+            if ( isStaticColumn( orderParam.getField() ) )
             {
-                orderAttributes.append( addStaticColumn( orderField, query ) );
+                orderAttributes.append( addStaticColumn( orderParam.getField(), query ) );
             }
-        }
-        else
-        {
-            for ( QueryItem orderAttribute : getQueryItemsByAttributeAndFilters( params ) )
+            else
             {
-                orderAttributes
+                Optional<QueryItem> orderAttribute = params.getAttributesAndFilters().stream()
+                    .filter( queryItem -> orderParam.getField().equalsIgnoreCase( queryItem.getItemId() ) )
+                    .findFirst();
+
+                orderAttribute.ifPresent( queryItem -> orderAttributes
                     .append( ", " )
-                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                    .append( statementBuilder.columnQuote( queryItem.getItemId() ) )
                     .append( ".value AS " )
-                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
+                    .append( statementBuilder.columnQuote( queryItem.getItemId() ) ) );
             }
         }
 
@@ -1344,15 +1364,33 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( !getQueryItemsByAttributeAndFilters( params ).isEmpty() )
         {
-
-            for ( QueryItem orderAttribute : getQueryItemsByAttributeAndFilters( params ) )
+            for ( OrderParam orderParam : params.getOrders() )
             {
-                groupBy
-                    .append( ", TEI." )
-                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
-                    .append( SPACE );
-            }
+                if ( isStaticColumn( orderParam.getField() ) )
+                {
+                    //In the main query, we need to use the main query alias to fetch the value of the field enrolledAt
+                    if ( isFieldEqualToEnrolledAt( orderParam.getField() ) )
+                    {
+                        groupBy
+                            .append( addStaticColumn( orderParam.getField(), groupBy.toString(), MAIN_QUERY_ALIAS ) );
+                    }
+                    else
+                    {
+                        groupBy.append( addStaticColumn( orderParam.getField(), groupBy.toString() ) );
+                    }
+                }
+                else
+                {
+                    Optional<QueryItem> orderAttribute = params.getAttributesAndFilters().stream()
+                        .filter( queryItem -> orderParam.getField().equalsIgnoreCase( queryItem.getItemId() ) )
+                        .findFirst();
 
+                    orderAttribute.ifPresent( attribute -> groupBy
+                        .append( ", TEI." )
+                        .append( statementBuilder.columnQuote( attribute.getItemId() ) )
+                        .append( SPACE ) );
+                }
+            }
         }
 
         return groupBy.toString();
@@ -1413,8 +1451,8 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Gets column name based on the OrderParam enum + the order direction (ASC
      * or DESC). In case the order parameter is enrolledAt, and we are building
-     * the main query (inner order is false), the method will replace the alias
-     * from "pi" to "tei" to match the one from the main query.
+     * the main query (inner order is false), we send its alias to be able to
+     * use the sql field.
      *
      * @param order
      * @param innerOrder boolean to represent whether this is build for the main
@@ -1423,12 +1461,14 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String extractStaticOrderFields( OrderParam order, boolean innerOrder )
     {
-        String columnName = getColumn( order.getField() );
-
-        if ( !innerOrder && ENROLLED_AT.getColumn().equalsIgnoreCase( columnName ) )
+        String columnName = "";
+        if ( !innerOrder && isFieldEqualToEnrolledAt( order.getField() ) )
         {
-            //In the main query, we need to use the alias "tei" to fetch the value of the field enrolledAt
-            columnName = columnName.replace( PROGRAM_INSTANCE_ALIAS, MAIN_QUERY_ALIAS );
+            columnName = getColumn( order.getField(), MAIN_QUERY_ALIAS );
+        }
+        else
+        {
+            columnName = getColumn( order.getField() );
         }
 
         return columnName + " " + order.getDirection();
