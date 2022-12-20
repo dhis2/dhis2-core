@@ -40,8 +40,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.MAIN_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isFieldEqualToEnrolledAt;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
@@ -512,7 +512,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( isStaticColumn( orderParam.getField() ) )
             {
-                if ( isFieldEqualToEnrolledAt( orderParam.getField() ) )
+                if ( ENROLLED_AT.isPropertyEqualTo( orderParam.getField() ) )
                 {
                     //In the main query, we need to use the main query alias to fetch the value of the field enrolledAt
                     orderQuery
@@ -1025,7 +1025,7 @@ public class HibernateTrackedEntityInstanceStore
      */
     private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.getOrders().stream().anyMatch( p -> isFieldEqualToEnrolledAt( p.getField() ) ) )
+        if ( params.getOrders().stream().anyMatch( p -> ENROLLED_AT.isPropertyEqualTo( p.getField() ) ) )
         {
             return " INNER JOIN programinstance pi ON pi.trackedentityinstanceid = TEI.trackedentityinstanceid ";
         }
@@ -1363,7 +1363,7 @@ public class HibernateTrackedEntityInstanceStore
                 if ( isStaticColumn( orderParam.getField() ) )
                 {
                     //In the main query, we need to use the main query alias to fetch the value of the field enrolledAt
-                    if ( isFieldEqualToEnrolledAt( orderParam.getField() ) )
+                    if ( ENROLLED_AT.isPropertyEqualTo( orderParam.getField() ) )
                     {
                         groupBy
                             .append( addStaticColumn( orderParam.getField(), groupBy.toString(), MAIN_QUERY_ALIAS ) );
@@ -1456,7 +1456,7 @@ public class HibernateTrackedEntityInstanceStore
     private String extractStaticOrderFields( OrderParam order, boolean innerOrder )
     {
         String columnName = "";
-        if ( !innerOrder && isFieldEqualToEnrolledAt( order.getField() ) )
+        if ( !innerOrder && ENROLLED_AT.isPropertyEqualTo( order.getField() ) )
         {
             columnName = getColumn( order.getField(), MAIN_QUERY_ALIAS );
         }

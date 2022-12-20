@@ -1299,7 +1299,7 @@ public class TrackedEntityInstanceQueryParams
                 .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
         }
 
-        public static boolean isFieldEqualToEnrolledAt( String fieldName )
+        public boolean isPropertyEqualTo( String fieldName )
         {
             return ENROLLED_AT.getPropName().equalsIgnoreCase( fieldName );
         }
