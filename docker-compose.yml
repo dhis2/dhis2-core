@@ -12,7 +12,9 @@ services:
         condition: service_healthy
 
   db:
-    image: postgis/postgis:10-2.5-alpine
+    image: ghcr.io/baosystems/postgis:12-3.3
+    ports:
+      - 127.0.0.1:5432:5432
     volumes:
       - db-dump:/docker-entrypoint-initdb.d/
     environment:
