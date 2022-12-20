@@ -159,6 +159,34 @@ class EventQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testHasDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        assertTrue( paramsA.hasValueDimension() );
+    }
+
+    @Test
+    void testHasNumericDimensionValue()
+    {
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deA )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( deC )
+            .build();
+
+        assertTrue( paramsA.hasNumericValueDimension() );
+        assertFalse( paramsB.hasNumericValueDimension() );
+    }
+
+    @Test
     void testGetKey()
     {
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), osA );

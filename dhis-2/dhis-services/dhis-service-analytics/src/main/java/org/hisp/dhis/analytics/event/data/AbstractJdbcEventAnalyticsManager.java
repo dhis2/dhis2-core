@@ -96,7 +96,6 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -224,18 +223,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.hasRepeatableStageParams() )
-                {
-                    sql += quote( item.getRepeatableStageParams().getDimension() );
-                }
-                else if ( item.getProgramStage() != null )
-                {
-                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
-                }
-                else
-                {
-                    sql += quote( item.getItem().getUid() );
-                }
+                sql += getSortColumnForDataElementDimensionType( item );
             }
             else
             {
@@ -254,6 +242,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    private String getSortColumnForDataElementDimensionType( QueryItem item )
+    {
+        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        {
+            return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
+        }
+
+        if ( item.hasRepeatableStageParams() )
+        {
+            return quote( item.getRepeatableStageParams().getDimension() );
+        }
+
+        if ( item.getProgramStage() != null )
+        {
+            return quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+        }
+
+        return quote( item.getItem().getUid() );
     }
 
     /**
@@ -451,13 +459,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
     {
         String column = getColumn( queryItem );
+
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
+
         return ColumnAndAlias.ofColumn( column );
     }
 
@@ -548,7 +555,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Event analytics aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -655,7 +662,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
+        if ( params.hasNumericValueDimension() )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
@@ -815,19 +822,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
         }
-    }
-
-    /**
-     * Checks if the ValueType, in the given params, is of type NUMERIC.
-     *
-     * @param params the {@link EventQueryParams}
-     * @return true if params ValueType is NUMERIC, false otherwise
-     */
-    private boolean isParamsValueTypeNumeric( EventQueryParams params )
-    {
-        return params != null &&
-            params.getValue() instanceof ValueTypedDimensionalItemObject &&
-            ((ValueTypedDimensionalItemObject) params.getValue()).getValueType() == ValueType.NUMBER;
     }
 
     /**

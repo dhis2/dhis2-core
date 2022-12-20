@@ -25,21 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.integration;
+package org.hisp.dhis.analytics;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 
-import org.junit.jupiter.api.Tag;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Component responsible for exposing analytics table export settings. Can hold
+ * settings living in configuration files (ie. dhis.conf) or in system settings.
+ *
+ * @author maikel arabori
  */
-@Target( { ElementType.TYPE, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-@Tag( "integration" )
-public @interface IntegrationTest
+@Component
+@RequiredArgsConstructor
+public class AnalyticsExportSettings
 {
+    private final DhisConfigurationProvider dhisConfigurationProvider;
+
+    private static final String UNLOGGED = "unlogged";
+
+    /**
+     * Returns the respective string that represents the table type to be
+     * exported. Two types are supported: UNLOGGED and EMPTY. See
+     * {@link AnalyticsTableType}
+     *
+     * @return the string representation of the type
+     */
+    public String getTableType()
+    {
+        if ( dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_UNLOGGED ) )
+        {
+            return UNLOGGED;
+        }
+
+        return EMPTY;
+    }
 }

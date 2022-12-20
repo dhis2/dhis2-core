@@ -1669,6 +1669,42 @@ public class DataQueryParams
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "last" {@link AggregationType}".
+     */
+    public boolean isLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is
+     * "first" {@link AggregationType}.
+     */
+    public boolean isFirstPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first" or "last" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first", "last" or "last in period" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastOrLastInPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastOrLastInPeriodAggregationType();
+    }
+
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
