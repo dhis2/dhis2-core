@@ -97,6 +97,12 @@ public enum ConfigurationKey
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
+
+    /**
+     * Use unlogged tables during analytics export. (default: off)
+     */
+    ANALYTICS_TABLE_UNLOGGED( "analytics.table.unlogged", Constants.OFF ),
+
     ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
     ARTEMIS_HOST( "artemis.host", "127.0.0.1" ),
     ARTEMIS_PORT( "artemis.port", "25672" ),

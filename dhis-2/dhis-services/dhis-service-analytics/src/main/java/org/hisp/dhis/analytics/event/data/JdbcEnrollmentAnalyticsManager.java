@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -42,6 +43,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -463,7 +465,7 @@ public class JdbcEnrollmentAnalyticsManager
      *         ax."enrollmentdate"
      */
     @Override
-    protected String getColumn( final QueryItem item, final String suffix )
+    protected String getColumn( QueryItem item, String suffix )
     {
         String colName = item.getItemName();
 
@@ -472,19 +474,43 @@ public class JdbcEnrollmentAnalyticsManager
             assertProgram( item );
 
             colName = quote( colName + suffix );
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
-            final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+            return getSelectForColumn( eventTableName, colName, Optional.of( item.getProgramStage().getUid() ) );
+        }
+        else if ( OU_NAME_COL_SUFFIX.equalsIgnoreCase( suffix ) )
+        {
+            colName = quote( colName + suffix );
+            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
-            return "(select " + colName
-                + " from " + eventTableName
-                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+            return getSelectForColumn( eventTableName, colName, Optional.empty() );
         }
         else
         {
             return quoteAlias( colName );
         }
+    }
+
+    /**
+     * Creates a select statement responsible for retrieving the value of a
+     * given table/column. It will take in consideration the program stage uid
+     * if one is present.
+     *
+     * @param tableName the table to be used in the select statement
+     * @param columnName the table's column name to be used in the select
+     *        statement
+     * @param programStageUid the uid of the program stage, if any
+     * @return the select statement
+     */
+    private String getSelectForColumn( String tableName, String columnName, Optional<String> programStageUid )
+    {
+        String programStageClause = programStageUid.isPresent() ? "and ps = '" + programStageUid.get() + "' " : EMPTY;
+
+        return "(select " + columnName
+            + " from " + tableName
+            + " where " + tableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+            "and " + columnName + " is not null " + programStageClause +
+            ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
     }
 
     /**

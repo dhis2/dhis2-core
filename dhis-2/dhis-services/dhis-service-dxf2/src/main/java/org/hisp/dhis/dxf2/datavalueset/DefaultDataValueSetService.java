@@ -912,12 +912,16 @@ public class DefaultDataValueSetService implements DataValueSetService
 
         if ( !context.isDryRun() )
         {
-            DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
-            if ( valueContext.getDataElement().isFileType() && actualDataValue != null )
+            if ( valueContext.getDataElement().isFileType() )
             {
-                FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+                DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
 
-                fileResourceService.updateFileResource( fr );
+                if ( actualDataValue != null )
+                {
+                    FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
+
+                    fileResourceService.updateFileResource( fr );
+                }
             }
 
             context.getDataValueBatchHandler().updateObject( internalValue );
