@@ -33,6 +33,7 @@ checks:
   - indicators/indicator_nongrouped.yaml
   - indicators/indicator_noanalysis.yaml
   - indicators/indicator_duplicated_terms.yaml
+  - indicators/indicator_exact_duplicates.yaml
   - periods/periods_same_start_end_date.yaml
   - periods/periods_3y_future.yaml
   - periods/periods_distant_past.yaml
