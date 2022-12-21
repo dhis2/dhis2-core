@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.importer.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import java.io.File;
@@ -68,7 +70,11 @@ import io.restassured.http.ContentType;
 public class EventsTests
     extends TrackerNtiApiTest
 {
+    private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
+
     private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
+
+    private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
 
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
@@ -172,6 +178,47 @@ public class EventsTests
             response.validateErrorReport()
                 .body( "errorCode", hasItem( "E1039" ) );
         }
+    }
+
+    @Test
+    public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit()
+        throws Exception
+    {
+        String programId = Constants.TRACKER_PROGRAM_ID;
+        String programStageId = "nlXNK4b7LVr";
+
+        TrackerApiResponse response = importTeiWithEnrollment( programId );
+
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+
+        JsonObject event = new EventDataBuilder()
+            .setEnrollment( enrollmentId )
+            .array( OU_ID_0, programId, programStageId );
+
+        response = trackerActions.postAndGetJobReport( event )
+            .validateSuccessfulImport();
+
+        String eventId = response.extractImportedEvents().get( 0 );
+
+        trackerActions
+            .get( "/enrollments/" + enrollmentId )
+            .validate().statusCode( 200 )
+            .body( "orgUnit", equalTo( OU_ID ) );
+
+        trackerActions
+            .get( "/events/" + eventId + "?fields=*" )
+            .validate().statusCode( 200 )
+            .body( "orgUnit", equalTo( OU_ID_0 ) );
+
+        QueryParamsBuilder builder = new QueryParamsBuilder()
+            .add( "ouMode", "DESCENDANTS" )
+            .add( "orgUnit", OU_ID_2 )
+            .add( "program", programId );
+
+        eventActions.get( builder.build() )
+            .validate().statusCode( 200 )
+            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "events[0].orgUnit", equalTo( OU_ID_0 ) );
     }
 
     @Test
