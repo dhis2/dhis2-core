@@ -159,9 +159,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1090 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1090 );
     }
 
     @Test
@@ -212,9 +210,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1076 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1076 );
     }
 
     @Test
@@ -233,9 +229,7 @@ class TrackedEntityAttributeValidatorTest
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         validator.validateAttributeValue( reporter, te, trackedEntityAttribute, sbString.toString() );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, te, ValidationCode.E1077 ) );
+        assertHasError( reporter, te, ValidationCode.E1077 );
     }
 
     @Test
@@ -247,9 +241,7 @@ class TrackedEntityAttributeValidatorTest
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         validator.validateAttributeValue( reporter, te, trackedEntityAttribute, "value" );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, te, ValidationCode.E1085 ) );
+        assertHasError( reporter, te, ValidationCode.E1085 );
     }
 
     @Test
@@ -268,9 +260,7 @@ class TrackedEntityAttributeValidatorTest
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         validator.validateAttributeValue( reporter, te, trackedEntityAttribute, "value" );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, te, ValidationCode.E1112 ) );
+        assertHasError( reporter, te, ValidationCode.E1112 );
     }
 
     @Test
@@ -291,9 +281,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1125 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1125 );
     }
 
     @Test
@@ -374,9 +362,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1076 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1076 );
     }
 
     @Test
@@ -415,9 +401,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1009 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1009 );
 
         reporter = new Reporter( idSchemes );
 
@@ -428,9 +412,7 @@ class TrackedEntityAttributeValidatorTest
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, trackedEntity, ValidationCode.E1009 ) );
+        assertHasError( reporter, trackedEntity, ValidationCode.E1009 );
 
         reporter = new Reporter( idSchemes );
 

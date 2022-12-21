@@ -432,11 +432,13 @@ public abstract class AbstractJdbcTableManager
     {
         Calendar calendar = PeriodType.getCalendar();
 
-        Collections.sort( dataYears );
+        List<Integer> years = ListUtils.mutableCopy( dataYears );
+
+        Collections.sort( years );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
-        for ( Integer year : dataYears )
+        for ( Integer year : years )
         {
             table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
                 PartitionUtils.getEndDate( calendar, year ) );
