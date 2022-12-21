@@ -431,7 +431,7 @@ public class JdbcAnalyticsManager
 
         for ( DimensionalObject dim : params.getDimensions() )
         {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
+            if ( dim.hasItems() && !dim.isFixed() )
             {
                 String col = quoteAlias( dim.getDimensionName() );
 
