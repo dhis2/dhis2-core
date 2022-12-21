@@ -54,7 +54,7 @@ class DataIntegrityYamlReaderTest
             sql -> check -> new DataIntegritySummary( check, new Date(), null, 1, 100d ),
             sql -> check -> new DataIntegrityDetails( check, new Date(), null,
                 List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 35, checks.size() );
+        assertEquals( 36, checks.size() );
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );

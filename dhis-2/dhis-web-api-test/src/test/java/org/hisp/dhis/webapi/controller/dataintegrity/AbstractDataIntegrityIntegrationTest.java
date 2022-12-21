@@ -112,6 +112,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();
         assertTrue( issues.exists() );
         assertEquals( 1, issues.size() );
+
         if ( expectedDetailsUnits != null )
         {
             assertEquals( expectedDetailsUnits, issues.get( 0 ).getId() );
