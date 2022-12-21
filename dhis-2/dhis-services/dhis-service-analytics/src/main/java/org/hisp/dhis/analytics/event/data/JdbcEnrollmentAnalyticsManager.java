@@ -78,7 +78,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -100,7 +99,7 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String IS_NOT_NULL = " is not null ";
 
-    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
+    private List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
