@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.validator;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -176,9 +175,7 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, ValidationCode.E1076 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1076 );
     }
 
     @Test
@@ -234,9 +231,7 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, ValidationCode.E1085 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1085 );
     }
 
     @Test
@@ -264,7 +259,6 @@ class EnrollmentAttributeValidatorTest
         validator.validate( reporter, bundle, enrollment );
 
         assertAll(
-            () -> assertEquals( 2, reporter.getErrors().size() ),
             () -> assertHasError( reporter, enrollment, ValidationCode.E1076 ),
             () -> assertHasError( reporter, enrollment, ValidationCode.E1018 ) );
     }
@@ -289,8 +283,6 @@ class EnrollmentAttributeValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, ValidationCode.E1006 ) );
+        assertHasError( reporter, enrollment, ValidationCode.E1006 );
     }
 }

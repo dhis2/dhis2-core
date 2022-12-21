@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -199,9 +198,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1033 ) );
+        assertHasError( reporter, event, ValidationCode.E1033 );
     }
 
     @Test
@@ -236,9 +233,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1079 ) );
+        assertHasError( reporter, event, ValidationCode.E1079 );
     }
 
     @Test
@@ -274,9 +269,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1029 ) );
+        assertHasError( reporter, event, ValidationCode.E1029 );
     }
 
     @Test
@@ -291,9 +284,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1055 ) );
+        assertHasError( reporter, event, ValidationCode.E1055 );
     }
 
     @Test
@@ -448,9 +439,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1115 ) );
+        assertHasError( reporter, event, ValidationCode.E1115 );
     }
 
     @Test
@@ -469,9 +458,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1115 ) );
+        assertHasError( reporter, event, ValidationCode.E1115 );
     }
 
     @Test
@@ -513,9 +500,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1055 ) );
+        assertHasError( reporter, event, ValidationCode.E1055 );
     }
 
     @Test
@@ -610,9 +595,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1115 ) );
+        assertHasError( reporter, event, ValidationCode.E1115 );
     }
 
     @Test
@@ -637,9 +620,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1055 ) );
+        assertHasError( reporter, event, ValidationCode.E1055 );
     }
 
     @Test
@@ -663,9 +644,7 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1116 ) );
+        assertHasError( reporter, event, ValidationCode.E1116 );
     }
 
     @Test
@@ -695,12 +674,9 @@ class EventPreCheckDataRelationsValidatorTest extends DhisConvenienceTest
 
         validator.validate( reporter, bundle, event );
 
-        assertEquals( 3, reporter.getErrors().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1115 ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1116
-            && r.getMessage().contains( UNKNOWN_CO_ID1 ) ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == ValidationCode.E1116
-            && r.getMessage().contains( UNKNOWN_CO_ID2 ) ) );
+        assertHasError( reporter, event, ValidationCode.E1115 );
+        assertHasError( reporter, event, ValidationCode.E1116, UNKNOWN_CO_ID1 );
+        assertHasError( reporter, event, ValidationCode.E1116, UNKNOWN_CO_ID2 );
     }
 
     @Test
