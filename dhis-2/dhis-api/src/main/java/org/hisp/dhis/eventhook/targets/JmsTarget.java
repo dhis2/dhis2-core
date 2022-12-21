@@ -25,46 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
-
-import java.io.Serializable;
+package org.hisp.dhis.eventhook.targets;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.eventhook.Target;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
+@EqualsAndHashCode( callSuper = true )
 @Accessors( chain = true )
-@EqualsAndHashCode
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ),
-    @JsonSubTypes.Type( value = ConsoleTarget.class, name = "console" ),
-    @JsonSubTypes.Type( value = JmsTarget.class, name = "jms" )
-} )
-public abstract class Target
-    implements Serializable
+public class JmsTarget extends Target
 {
-    @JsonCreator
-    protected Target( @JsonProperty( "type" ) String type )
-    {
-        this.type = type;
-    }
+    @JsonProperty( required = true )
+    private String name = "DHIS2-" + CodeGenerator.generateUid();
 
     @JsonProperty
-    protected final String type;
+    private String username;
+
+    @JsonProperty
+    private String password;
+
+    @JsonProperty( required = true )
+    private String url;
+
+    public JmsTarget()
+    {
+        super( "jms" );
+    }
 }

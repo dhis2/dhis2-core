@@ -39,8 +39,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.eventhook.handlers.ConsoleHandler;
+import org.hisp.dhis.eventhook.handlers.JmsHandler;
 import org.hisp.dhis.eventhook.handlers.WebhookHandler;
 import org.hisp.dhis.eventhook.targets.ConsoleTarget;
+import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.springframework.context.event.EventListener;
@@ -120,6 +122,7 @@ public class EventHookListener
     @PostConstruct
     @EventListener( ReloadEventHookListener.class )
     public void reload()
+        throws Exception
     {
         synchronized ( this )
         {
@@ -147,6 +150,10 @@ public class EventHookListener
                 else if ( "console".equals( target.getType() ) )
                 {
                     targets.get( eh.getUid() ).add( new ConsoleHandler( (ConsoleTarget) target ) );
+                }
+                else if ( "jms".equals( target.getType() ) )
+                {
+                    targets.get( eh.getUid() ).add( new JmsHandler( (JmsTarget) target ) );
                 }
             }
         }

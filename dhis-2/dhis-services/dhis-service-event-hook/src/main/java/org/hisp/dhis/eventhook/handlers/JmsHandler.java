@@ -25,46 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook;
+package org.hisp.dhis.eventhook.handlers;
 
-import java.io.Serializable;
+import lombok.extern.slf4j.Slf4j;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
+import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.WebhookTarget;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@Setter
-@Accessors( chain = true )
-@EqualsAndHashCode
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = WebhookTarget.class, name = "webhook" ),
-    @JsonSubTypes.Type( value = ConsoleTarget.class, name = "console" ),
-    @JsonSubTypes.Type( value = JmsTarget.class, name = "jms" )
-} )
-public abstract class Target
-    implements Serializable
+@Slf4j
+public class JmsHandler implements Handler
 {
-    @JsonCreator
-    protected Target( @JsonProperty( "type" ) String type )
+    private final JmsTarget target;
+
+    public JmsHandler( JmsTarget target )
     {
-        this.type = type;
+        this.target = target;
     }
 
-    @JsonProperty
-    protected final String type;
+    public void run( String payload )
+    {
+        log.info( payload );
+    }
 }
