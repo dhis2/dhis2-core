@@ -527,11 +527,15 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Collections.sort( dataYears );
+        Calendar calendar = PeriodType.getCalendar();
+
+        List<Integer> years = ListUtils.mutableCopy( dataYears );
+
+        Collections.sort( years );
 
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
-        for ( Integer year : dataYears )
+        for ( Integer year : years )
         {
             if ( params.isViewsEnabled() )
             {
@@ -539,7 +543,6 @@ public abstract class AbstractJdbcTableManager
             }
             else
             {
-                Calendar calendar = PeriodType.getCalendar();
                 table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
                     PartitionUtils.getEndDate( calendar, year ) );
             }

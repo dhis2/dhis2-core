@@ -44,7 +44,6 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
@@ -75,7 +74,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -156,7 +154,7 @@ class QueryValidatorTest
     @BeforeEach
     public void setUp()
     {
-        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
+        queryValidator = new DefaultQueryValidator();
         PeriodType pt = new MonthlyPeriodType();
 
         coA = createCategoryOption( 'A' );
