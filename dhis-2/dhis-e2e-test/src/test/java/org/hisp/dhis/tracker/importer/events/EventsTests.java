@@ -180,8 +180,7 @@ public class EventsTests
         }
     }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "true", "false" } )
+    @Test
     public void shouldImportAndGetEventWithOrgUnitDifferentFromEnrollmentOrgUnit()
         throws Exception
     {
