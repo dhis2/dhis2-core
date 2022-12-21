@@ -153,7 +153,7 @@ class TrackerImportControllerTest
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationReport(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() ) );
 
@@ -189,7 +189,7 @@ class TrackerImportControllerTest
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationReport(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() ) );
 
@@ -224,7 +224,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
-            new ValidationReport(),
+            ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
         // Then
@@ -258,7 +258,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importTracker( any() ) ).thenReturn( ImportReport.withError( "errorMessage",
-            new ValidationReport(),
+            ValidationReport.emptyReport(),
             new TimingsStats() ) );
 
         // Then
@@ -321,7 +321,7 @@ class TrackerImportControllerTest
         ImportReport importReport = ImportReport.withImportCompleted(
             Status.OK,
             PersistenceReport.emptyReport(),
-            new ValidationReport(),
+            ValidationReport.emptyReport(),
             new TimingsStats(),
             new HashMap<>() );
 

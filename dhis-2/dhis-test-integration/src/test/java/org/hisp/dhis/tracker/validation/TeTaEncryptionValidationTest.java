@@ -37,7 +37,6 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -87,6 +86,6 @@ class TeTaEncryptionValidationTest extends TrackerTest
 
         importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1064 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1064 );
     }
 }

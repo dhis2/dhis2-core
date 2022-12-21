@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -236,7 +235,7 @@ class EventSecurityImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1095, TrackerErrorCode.E1096 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1095, ValidationCode.E1096 );
     }
 
     @Test
@@ -268,6 +267,6 @@ class EventSecurityImportValidationTest extends TrackerTest
         trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         importReport = trackerImportService.importTracker( trackerBundleParams );
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1083 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1083 );
     }
 }

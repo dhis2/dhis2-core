@@ -145,7 +145,6 @@ public class EventReportController
 
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
         report.populateAnalyticalProperties();
 
