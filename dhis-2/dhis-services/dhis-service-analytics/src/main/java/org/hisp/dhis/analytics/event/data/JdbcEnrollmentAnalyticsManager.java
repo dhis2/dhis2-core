@@ -99,7 +99,7 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String IS_NOT_NULL = " is not null ";
 
-    private List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
+    private static final List<String> COLUMNS = List.of( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
