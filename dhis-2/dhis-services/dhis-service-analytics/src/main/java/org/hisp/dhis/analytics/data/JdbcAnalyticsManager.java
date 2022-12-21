@@ -601,6 +601,8 @@ public class JdbcAnalyticsManager
      */
     private String getFirstOrLastValueSubquerySql( DataQueryParams params, Date earliestDate )
     {
+        SqlHelper sqlHelper = new SqlHelper();
+
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
@@ -618,9 +620,13 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
-            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
-            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
+            getDimensionFilterSql( params, sqlHelper ) +
+            sqlHelper.whereAnd() + " " +
+            quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            sqlHelper.whereAnd() + " " +
+            quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
+            sqlHelper.whereAnd() + " (" +
+            quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
     }
