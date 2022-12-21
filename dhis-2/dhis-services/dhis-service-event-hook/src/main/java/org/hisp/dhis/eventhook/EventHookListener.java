@@ -122,7 +122,6 @@ public class EventHookListener
     @PostConstruct
     @EventListener( ReloadEventHookListener.class )
     public void reload()
-        throws Exception
     {
         synchronized ( this )
         {
