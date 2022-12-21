@@ -197,26 +197,34 @@ public class DefaultTrackerImportService
         trackerBundleService.postCommit( trackerBundle );
     }
 
-    protected ValidationResult validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
+    protected ValidationResult validateBundle( TrackerImportParams params, TrackerBundle bundle,
         TimingsStats opsTimer )
     {
-        ValidationResult validationResult = validationService.validate( trackerBundle );
+        ValidationResult result = validationService.validate( bundle );
+        bundle.setTrackedEntities( result.getTrackedEntities() );
+        bundle.setEnrollments( result.getEnrollments() );
+        bundle.setEvents( result.getEvents() );
+        bundle.setRelationships( result.getRelationships() );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
-        return validationResult;
+        return result;
     }
 
     private ValidationResult execRuleEngine( TrackerImportParams params, TimingsStats opsTimer,
-        TrackerBundle trackerBundle )
+        TrackerBundle bundle )
     {
         opsTimer.execVoid( PROGRAMRULE_OPS,
-            () -> trackerBundleService.runRuleEngine( trackerBundle ) );
+            () -> trackerBundleService.runRuleEngine( bundle ) );
 
         notifyOps( params, PROGRAMRULE_OPS, opsTimer );
 
         ValidationResult result = opsTimer.exec( VALIDATE_PROGRAMRULE_OPS,
-            () -> validationService.validateRuleEngine( trackerBundle ) );
+            () -> validationService.validateRuleEngine( bundle ) );
+        bundle.setTrackedEntities( result.getTrackedEntities() );
+        bundle.setEnrollments( result.getEnrollments() );
+        bundle.setEvents( result.getEvents() );
+        bundle.setRelationships( result.getRelationships() );
 
         notifyOps( params, VALIDATE_PROGRAMRULE_OPS, opsTimer );
 

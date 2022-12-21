@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -185,9 +181,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1304 ) );
+        assertHasError( reporter, event, ValidationCode.E1304 );
     }
 
     @Test
@@ -220,9 +214,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1303 ) );
+        assertHasError( reporter, event, ValidationCode.E1303 );
     }
 
     @Test
@@ -320,9 +312,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1305 ) );
+        assertHasError( reporter, event, ValidationCode.E1305 );
     }
 
     @Test
@@ -376,9 +366,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1302 ) );
+        assertHasError( reporter, event, ValidationCode.E1302 );
     }
 
     @Test
@@ -405,9 +393,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1084 ) );
+        assertHasError( reporter, event, ValidationCode.E1084 );
     }
 
     @Test
@@ -454,9 +440,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
+        assertHasError( reporter, event, ValidationCode.E1076 );
     }
 
     @Test
@@ -481,9 +465,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
+        assertHasError( reporter, event, ValidationCode.E1076 );
     }
 
     @Test
@@ -508,9 +490,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
+        assertHasError( reporter, event, ValidationCode.E1076 );
     }
 
     @Test
@@ -559,9 +539,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1076 ) );
+        assertHasError( reporter, event, ValidationCode.E1076 );
     }
 
     @Test
@@ -658,9 +636,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1009 ) );
+        assertHasError( reporter, event, ValidationCode.E1009 );
 
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
@@ -696,9 +672,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1009 ) );
+        assertHasError( reporter, event, ValidationCode.E1009 );
 
         event.setEvent( "XYZ" );
         fileResource.setFileResourceOwner( "ABC" );
@@ -709,8 +683,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( ValidationCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+        assertHasError( reporter, event, ValidationCode.E1009 );
 
         event.setEvent( "ABC" );
         fileResource.setFileResourceOwner( "ABC" );
@@ -806,9 +779,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1125 ) );
+        assertHasError( reporter, event, ValidationCode.E1125 );
     }
 
     @Test
@@ -834,9 +805,7 @@ class EventDataValuesValidatorTest
 
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1007 ) );
+        assertHasError( reporter, event, ValidationCode.E1007 );
     }
 
     @Test
@@ -888,9 +857,7 @@ class EventDataValuesValidatorTest
         reporter = new Reporter( idSchemes );
         validator.validate( reporter, bundle, event );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, event, ValidationCode.E1302 ) );
+        assertHasError( reporter, event, ValidationCode.E1302 );
     }
 
     private DataElement dataElement( ValueType type )
