@@ -363,13 +363,13 @@ public class JdbcAnalyticsManager
             Date earliest = addYears( params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET );
             sql += getFirstOrLastValueSubquerySql( params, earliest );
         }
-        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
-        {
-            sql += getPreMeasureCriteriaSubquerySql( params );
-        }
         else if ( params.getAggregationType().isLastInPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
+        }
+        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        {
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -598,9 +598,9 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliestDate ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null))";
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
+            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
     }
