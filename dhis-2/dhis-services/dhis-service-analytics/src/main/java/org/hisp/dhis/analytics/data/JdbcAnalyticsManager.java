@@ -62,7 +62,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -773,7 +772,7 @@ public class JdbcAnalyticsManager
     {
         StringBuilder builder = new StringBuilder();
 
-        if ( CollectionUtils.isNotEmpty( dimensions ) )
+        if ( dimensions != null && !dimensions.isEmpty() )
         {
             for ( DimensionalObject dimension : dimensions )
             {
