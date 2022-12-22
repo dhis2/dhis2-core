@@ -32,7 +32,6 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dashboard.Dashboard;
-import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -54,14 +53,6 @@ abstract class CascadeSharingTest extends DhisSpringTest
         return baseDimensionalItemObject;
     }
 
-    protected DashboardItem createDashboardItem( String name )
-    {
-        DashboardItem dashboardItem = new DashboardItem();
-        dashboardItem.setName( "dashboardItem" + name );
-        dashboardItem.setAutoFields();
-        return dashboardItem;
-    }
-
     protected DataElement createDEWithDefaultSharing( char name )
     {
         DataElement dataElement = createDataElement( name );
@@ -72,16 +63,6 @@ abstract class CascadeSharingTest extends DhisSpringTest
     protected Sharing defaultSharing()
     {
         return Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).build();
-    }
-
-    protected Dashboard createDashboardWithItem( String name, Sharing sharing )
-    {
-        DashboardItem dashboardItem = createDashboardItem( "A" );
-        Dashboard dashboard = new Dashboard();
-        dashboard.setName( "dashboard" + name );
-        dashboard.setSharing( sharing );
-        dashboard.getItems().add( dashboardItem );
-        return dashboard;
     }
 
     protected Dashboard createDashboard( String name, Sharing sharing )
