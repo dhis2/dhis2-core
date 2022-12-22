@@ -592,10 +592,12 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
+        String orgUnitColumn = getOrgUnitPartitionColumn( params );
+
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         sql += "row_number() over (" +
-            "partition by dx, ou, co, ao " +
+            "partition by dx, " + orgUnitColumn + ", co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
@@ -603,6 +605,23 @@ public class JdbcAnalyticsManager
             "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
+    }
+
+    /**
+     * Returns the organisation unit partition column.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the organisation unit partition column.
+     */
+    private String getOrgUnitPartitionColumn( DataQueryParams params )
+    {
+        AggregationType aggregationType = params.getAggregationType().getAggregationType();
+
+        DimensionalObject orgUnitDimension = params.getDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
+
+        boolean isFirstOrLast = AggregationType.LAST == aggregationType || AggregationType.FIRST == aggregationType;
+
+        return orgUnitDimension != null && isFirstOrLast ? orgUnitDimension.getDimensionName() : "ou";
     }
 
     /**

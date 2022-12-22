@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.util.ObjectUtils;
 
 import com.google.common.base.MoreObjects;
@@ -59,12 +60,12 @@ public class AnalyticsAggregationType
     /**
      * General aggregation type.
      */
-    private AggregationType aggregationType;
+    private final AggregationType aggregationType;
 
     /**
      * Aggregation type for the period dimension.
      */
-    private AggregationType periodAggregationType;
+    private final AggregationType periodAggregationType;
 
     /**
      * Analytics data type.
@@ -84,6 +85,8 @@ public class AnalyticsAggregationType
     {
         this.aggregationType = aggregationType;
         this.periodAggregationType = periodAggregationType;
+        Validate.notNull( this.aggregationType );
+        Validate.notNull( this.periodAggregationType );
     }
 
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
@@ -122,6 +125,9 @@ public class AnalyticsAggregationType
         case LAST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
             break;
+        case LAST_LAST_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+            break;
         case LAST_IN_PERIOD:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM,
                 AggregationType.LAST_IN_PERIOD );
@@ -135,6 +141,9 @@ public class AnalyticsAggregationType
             break;
         case FIRST_AVERAGE_ORG_UNIT:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST );
+            break;
+        case FIRST_FIRST_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
             break;
         default:
             analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );

@@ -39,10 +39,12 @@ public enum AggregationType
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
     LAST( "last", true ), // Sum org unit
     LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
+    LAST_LAST_ORG_UNIT( "last_last_org_unit", true ),
     LAST_IN_PERIOD( "last_analytics_period", true ), // Sum org unit
     LAST_IN_PERIOD_AVERAGE_ORG_UNIT( "last_analytics_period_avg_org_unit", true ),
     FIRST( "first", true ),
     FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
+    FIRST_FIRST_ORG_UNIT( "first_first_org_unit" ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),
@@ -53,10 +55,10 @@ public enum AggregationType
     DEFAULT( "default", false );
 
     private static final Set<AggregationType> LAST_TYPES = Set.of(
-        LAST, LAST_AVERAGE_ORG_UNIT );
+        LAST, LAST_AVERAGE_ORG_UNIT, LAST_LAST_ORG_UNIT );
 
     private static final Set<AggregationType> FIRST_TYPES = Set.of(
-        FIRST, FIRST_AVERAGE_ORG_UNIT );
+        FIRST, FIRST_AVERAGE_ORG_UNIT, FIRST_FIRST_ORG_UNIT );
 
     private final String value;
 
