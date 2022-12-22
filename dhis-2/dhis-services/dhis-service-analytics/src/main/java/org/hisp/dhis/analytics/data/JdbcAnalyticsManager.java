@@ -584,6 +584,8 @@ public class JdbcAnalyticsManager
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
+        String orgUnitColumn = quoteAlias( getOrgUnitPartitionColumn( params ) );
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         String sql = "(select ";
 
@@ -591,10 +593,6 @@ public class JdbcAnalyticsManager
         {
             sql += col + ",";
         }
-
-        String orgUnitColumn = quoteAlias( getOrgUnitPartitionColumn( params ) );
-
-        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         sql += "row_number() over (" +
             "partition by dx, " + orgUnitColumn + ", co, ao " +
