@@ -155,14 +155,12 @@ public class AnalyticsAggregationType
 
     public boolean isLastPeriodAggregationType()
     {
-        return AggregationType.LAST == periodAggregationType
-            || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
+        return periodAggregationType != null && periodAggregationType.isLast();
     }
 
     public boolean isFirstPeriodAggregationType()
     {
-        return AggregationType.FIRST == periodAggregationType
-            || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType;
+        return periodAggregationType != null && periodAggregationType.isFirst();
     }
 
     public boolean isLastInPeriodAggregationType()
