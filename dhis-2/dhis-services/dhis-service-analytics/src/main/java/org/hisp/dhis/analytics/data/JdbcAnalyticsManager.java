@@ -739,16 +739,12 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * <<<<<<< HEAD Generates a comma-delimited string based on the dimension
-     * names of the given dimensions where each dimension name is quoted.
-     * ======= Generates a comma-delimited string with the dimension names of
-     * the given dimensions where each dimension name is quoted. Dimensions
-     * which are considered fixed will be excluded.
+     * Generates a comma-delimited string with the dimension names of the given
+     * dimensions where each dimension name is quoted. Dimensions which are
+     * considered fixed will be excluded.
      *
      * @param dimensions the collection of {@link Dimension}.
-     * @return a comma-delimited string of quoted dimension names. >>>>>>>
-     *         18e6a0d7e3 (fix: Centralize aggregation types [DHIS2-13449]
-     *         (#12641))
+     * @return a comma-delimited string of quoted dimension names.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {
