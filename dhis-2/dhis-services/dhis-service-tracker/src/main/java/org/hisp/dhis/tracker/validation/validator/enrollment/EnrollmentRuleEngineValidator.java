@@ -25,56 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.validator.Each.each;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
-import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
+@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
+public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
 {
 
-    private final TrackedEntityValidator trackedEntityValidator;
+    private final EnrollmentRuleValidator ruleValidator;
 
-    private final EnrollmentValidator enrollmentValidator;
+    private final EnrollmentAttributeValidator attributeValidator;
 
-    private final EventValidator eventValidator;
-
-    private final RelationshipValidator relationshipValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    private Validator<TrackerBundle> enrollmentValidator()
     {
         // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
+        return each( TrackerBundle::getEnrollments,
+                        all(
+                                ruleValidator,
+                                attributeValidator
+                        )
+                );
+        // @formatter:on
     }
 
     @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    {
+
+        enrollmentValidator().validate( reporter, bundle, input );
     }
 
     @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
         return true; // this main validator should always run
     }
 }

@@ -25,56 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1128;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
-import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
+@Component
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
+public class EventPreCheckUpdatableFieldsValidator
+    implements Validator<Event>
 {
-
-    private final TrackedEntityValidator trackedEntityValidator;
-
-    private final EnrollmentValidator enrollmentValidator;
-
-    private final EventValidator eventValidator;
-
-    private final RelationshipValidator relationshipValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
+        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
+        ProgramStage programStage = programStageInstance.getProgramStage();
+        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
+            "programStage" );
+        reporter.addErrorIf(
+            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            event, E1128, "enrollment" );
     }
 
     @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
-    }
-
-    @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
-        return true; // this main validator should always run
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 }

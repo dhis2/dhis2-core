@@ -25,56 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1118;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
 
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
-import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate the {@link TrackerBundle}.
- */
-@RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
+@Component
+public class AssignedUserValidator
+    implements Validator<Event>
 {
-
-    private final TrackedEntityValidator trackedEntityValidator;
-
-    private final EnrollmentValidator enrollmentValidator;
-
-    private final EventValidator eventValidator;
-
-    private final RelationshipValidator relationshipValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
+        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
+        {
+            if ( assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
+            {
+                reporter.addError( event, E1118, event.getAssignedUser().toString() );
+            }
+            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
+            {
+                reporter.addWarning( event, E1120, event.getProgramStage() );
+            }
+        }
     }
 
-    @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
+    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
+    {
+        Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
+
+        return !Optional.ofNullable( userAssignmentEnabled )
+            .orElse( false );
     }
 
-    @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
-        return true; // this main validator should always run
+    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
+    {
+        return event.getAssignedUser().getUsername() == null ||
+            preheat.getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
     }
 }
