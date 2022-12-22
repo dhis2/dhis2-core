@@ -592,7 +592,7 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
-        String orgUnitColumn = getOrgUnitPartitionColumn( params );
+        String orgUnitColumn = quoteAlias( getOrgUnitPartitionColumn( params ) );
 
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
@@ -608,7 +608,13 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns the organisation unit partition column.
+     * Returns the organisation unit partition column. For "last" and "first"
+     * aggregation types, the window function will be partitioned by the "ou"
+     * column in order to return the last value in time for each data org unit.
+     * For {@link AggregationType#LAST_LAST_ORG_UNIT} and
+     * {@link AggregationType#FIRST_FIRST_ORG_UNIT}, the window function will be
+     * partitioned by the org unit dimension name, to return the last value in
+     * time and the org unit hierarchy for the request org unit.
      *
      * @param params the {@link DataQueryParams}.
      * @return the organisation unit partition column.
