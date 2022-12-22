@@ -485,7 +485,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
                 new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList( piA, piB ) ) )
             .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.DATA_X, getList( peA ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) )
+            .build();
 
         final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
@@ -517,7 +518,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " iax where iax.\"executiondate\" >= '1990-03-31' "
-            + "and iax.\"executiondate\" <= '2000-03-31' and \"" + programDataElement.getUid() + "\" is not null)";
+            + "and iax.\"executiondate\" <= '2000-03-31' and iax.\"" + programDataElement.getUid() + "\" is not null)";
 
         assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
 

@@ -112,7 +112,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql( "desc" );
+        assertExpectedLastSql( "desc" );
     }
 
     @Test
@@ -122,7 +122,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedSql( "desc" );
+        assertExpectedLastSql( "desc" );
     }
 
     @Test
@@ -132,7 +132,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql( "desc" );
+        assertExpectedLastInPeriodSql( "desc" );
     }
 
     @Test
@@ -142,7 +142,7 @@ class JdbcAnalyticsManagerTest
 
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
-        assertExpectedLastSql( "desc" );
+        assertExpectedLastInPeriodSql( "desc" );
     }
 
     private void mockRowSet()
@@ -153,7 +153,6 @@ class JdbcAnalyticsManagerTest
 
     private DataQueryParams createParams( AggregationType aggregationType )
     {
-
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, aggregationType );
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         Period peA = PeriodType.getPeriodFromIsoString( "201501" );
@@ -166,30 +165,27 @@ class JdbcAnalyticsManagerTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
-    private void assertExpectedSql( String sortOrder )
-    {
-
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
-            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
-            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
-            + sortOrder + ") as pe_rank "
-            + "from analytics as ax where pestartdate >= '2005-01-31' and pestartdate <= '2015-01-31' "
-            + "and (value is not null or textvalue is not null))";
-
-        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
-    }
-
     private void assertExpectedLastSql( String sortOrder )
     {
-
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "
-            + "from analytics as ax where pestartdate >= '2015-01-01' and pestartdate <= '2015-01-31' "
-            + "and (value is not null or textvalue is not null))";
+            + "from analytics as ax where ax.\"pestartdate\" >= '2005-01-31' and ax.\"pestartdate\" <= '2015-01-31' "
+            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
 
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
     }
 
+    private void assertExpectedLastInPeriodSql( String sortOrder )
+    {
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
+            + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
+            + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
+            + sortOrder + ") as pe_rank "
+            + "from analytics as ax where ax.\"pestartdate\" >= '2015-01-01' and ax.\"pestartdate\" <= '2015-01-31' "
+            + "and (ax.\"value\" is not null or ax.\"textvalue\" is not null))";
+
+        assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
+    }
 }
