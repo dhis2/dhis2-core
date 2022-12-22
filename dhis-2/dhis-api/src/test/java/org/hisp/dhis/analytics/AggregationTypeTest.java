@@ -25,32 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.analytics;
 
-import javax.annotation.Nonnull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+class AggregationTypeTest
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    @Test
+    void testIsFirst()
+    {
+        assertTrue( AggregationType.FIRST.isFirst() );
+        assertTrue( AggregationType.FIRST_AVERAGE_ORG_UNIT.isFirst() );
+        assertFalse( AggregationType.SUM.isFirst() );
+        assertFalse( AggregationType.LAST.isFirst() );
+    }
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    @Test
+    void testIsLast()
+    {
+        assertTrue( AggregationType.LAST.isLast() );
+        assertTrue( AggregationType.LAST_AVERAGE_ORG_UNIT.isLast() );
+        assertFalse( AggregationType.SUM.isLast() );
+        assertFalse( AggregationType.FIRST.isLast() );
+    }
 }

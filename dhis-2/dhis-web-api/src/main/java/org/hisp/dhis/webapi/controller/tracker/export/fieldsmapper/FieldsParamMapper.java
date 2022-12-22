@@ -25,33 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.TEI_UID;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.getColumnName;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * @author Luciano Fiandesio
+ * Provides basic methods to transform input fields into {@link FieldPath }
+ * based on {@link FieldFilterParser }. It follows the principles of
+ * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-public class TrackedEntityAttributeRowCallbackHandler
-    extends
-    AbstractMapper<Attribute> implements AttributeMapper
+public class FieldsParamMapper
 {
-    @Override
-    Attribute getItem( ResultSet rs )
-        throws SQLException
+    private FieldsParamMapper()
     {
-        return getAttribute( rs );
     }
 
-    @Override
-    String getKeyColumn()
+    static final String FIELD_RELATIONSHIPS = "relationships";
+
+    static final String FIELD_EVENTS = "events";
+
+    static final String FIELD_ATTRIBUTES = "attributes";
+
+    static Map<String, FieldPath> getRoots( List<String> fields )
     {
-        return getColumnName( TEI_UID );
+        return rootFields( getFieldPaths( fields ) );
+    }
+
+    static List<FieldPath> getFieldPaths( List<String> fields )
+    {
+        return FieldFilterParser
+            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
+    }
+
+    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    {
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
     }
 }

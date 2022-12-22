@@ -902,8 +902,7 @@ public class DataQueryParams
     {
         return orgUnitLevels.stream()
             .map( l -> new BaseDimensionalObject( PREFIX_ORG_UNIT_LEVEL + l.getLevel(),
-                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(),
-                Lists.newArrayList() ) )
+                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(), List.of() ) )
             .collect( Collectors.toList() );
     }
 
@@ -1806,7 +1805,7 @@ public class DataQueryParams
     private void setPeriodDimensionWithoutOptions()
     {
         removeDimension( PERIOD_DIM_ID );
-        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, List.of() );
     }
 
     /**
