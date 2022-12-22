@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
@@ -40,12 +41,15 @@ import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -65,6 +69,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
@@ -103,6 +108,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import io.github.classgraph.ClassGraph;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,11 +122,57 @@ public class CrudControllerAdvice
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
+    private final List<Class<?>> enumClasses;
+
+    public CrudControllerAdvice()
+    {
+        this.enumClasses = new ClassGraph().acceptPackages( "org.hisp.dhis" )
+            .enableClassInfo().scan().getAllClasses().getEnums().loadClasses();
+    }
+
     @InitBinder
     protected void initBinder( WebDataBinder binder )
     {
         binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+        this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
+    @ResponseBody
+    public WebMessage badRequestException( org.hisp.dhis.feedback.BadRequestException ex )
+    {
+        WebMessage message = badRequest( ex.getMessage(), ex.getCode() );
+        if ( !ex.getErrorReports().isEmpty() )
+        {
+            message.setResponse( new ErrorReportsWebMessageResponse( ex.getErrorReports() ) );
+        }
+        return message;
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ConflictException.class )
+    @ResponseBody
+    public WebMessage conflictException( org.hisp.dhis.feedback.ConflictException ex )
+    {
+        if ( ex.getObjectReport() != null )
+        {
+            return objectReport( ex.getObjectReport() );
+        }
+        return conflict( ex.getMessage(), ex.getCode() ).setDevMessage( ex.getDevMessage() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.ForbiddenException.class )
+    @ResponseBody
+    public WebMessage forbiddenException( org.hisp.dhis.feedback.ForbiddenException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.FORBIDDEN, ex.getCode() );
+    }
+
+    @ExceptionHandler( org.hisp.dhis.feedback.NotFoundException.class )
+    @ResponseBody
+    public WebMessage notFoundException( org.hisp.dhis.feedback.NotFoundException ex )
+    {
+        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode() );
     }
 
     @ExceptionHandler( RestClientException.class )
@@ -224,6 +276,13 @@ public class CrudControllerAdvice
     public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
     {
         return error( getExceptionMessage( ex ) );
+    }
+
+    @ExceptionHandler( PersistenceException.class )
+    @ResponseBody
+    public WebMessage persistenceExceptionHandler( PersistenceException ex )
+    {
+        return conflict( ex.getMessage() );
     }
 
     @ExceptionHandler( MaintenanceModeException.class )
@@ -452,7 +511,6 @@ public class CrudControllerAdvice
      */
     private static final class FromTextPropertyEditor extends PropertyEditorSupport
     {
-
         private final Function<String, Object> fromText;
 
         private FromTextPropertyEditor( Function<String, Object> fromText )
@@ -465,6 +523,25 @@ public class CrudControllerAdvice
             throws IllegalArgumentException
         {
             setValue( fromText.apply( text ) );
+        }
+    }
+
+    private static final class ConvertEnum<T extends Enum<T>> extends PropertyEditorSupport
+    {
+        private final Class<T> enumClass;
+
+        private ConvertEnum( Class<T> enumClass )
+        {
+            this.enumClass = enumClass;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            Enum<T> enumValue = EnumUtils.getEnum( enumClass, text.toUpperCase() );
+
+            setValue( enumValue != null ? enumValue : text );
         }
     }
 }

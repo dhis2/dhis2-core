@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.icon.Icon;
@@ -62,6 +63,7 @@ import com.google.common.net.MediaType;
 /**
  * @author Kristian Wærstad
  */
+@OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = IconSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )

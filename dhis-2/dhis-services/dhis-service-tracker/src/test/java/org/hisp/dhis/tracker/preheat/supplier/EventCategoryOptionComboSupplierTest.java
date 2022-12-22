@@ -196,7 +196,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
                 .thenReturn( o ) );
         when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
             .thenReturn( false ) // first event will not have its AOC in the
-                                 // preheat
+            // preheat
             .thenReturn( true ); // second event should see AOC from preheat
         when( categoryService.getCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
             .thenReturn( aoc );
@@ -239,7 +239,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
                 .thenReturn( o ) );
         when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
             .thenReturn( false ) // first event will not have the result of
-                                 // fetching the AOC stored
+            // fetching the AOC stored
             .thenReturn( true ); // second event will have it
         when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) )
             .thenReturn( null ); // AOC cannot be found

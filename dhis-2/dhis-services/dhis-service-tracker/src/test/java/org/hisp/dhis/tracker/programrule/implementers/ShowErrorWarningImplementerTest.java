@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -247,7 +247,7 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         errors.forEach( e -> {
             assertEquals( "", e.getRuleUid() );
             assertEquals( issueType, e.getIssueType() );
-            assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+            assertEquals( ValidationCode.E1300, e.getIssueCode() );
             assertTrue( e.getArgs().get( 0 ).contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) );
         } );
     }
@@ -257,7 +257,7 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         errors.forEach( e -> {
             assertEquals( "", e.getRuleUid() );
             assertEquals( IssueType.ERROR, e.getIssueType() );
-            assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+            assertEquals( ValidationCode.E1300, e.getIssueCode() );
             assertEquals( IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")",
                 e.getArgs().get( 0 ) );
         } );

@@ -151,7 +151,7 @@ public class JdbcEventAnalyticsManager
      */
     private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
-        log.debug( String.format( "Analytics event query SQL: %s", sql ) );
+        log.debug( "Analytics event query SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -215,7 +215,7 @@ public class JdbcEventAnalyticsManager
             sqlClusterFields + "), 4326), 3785), " +
             params.getClusterSize() + ") ";
 
-        log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
+        log.debug( "Analytics event cluster SQL: '{}'", sql );
 
         SqlRowSet rowSet = queryForRows( sql );
 
@@ -244,7 +244,7 @@ public class JdbcEventAnalyticsManager
 
         try
         {
-            log.debug( "Analytics event count SQL: " + sql );
+            log.debug( "Analytics event count SQL: '{}'", sql );
 
             if ( params.analyzeOnly() )
             {
@@ -284,7 +284,7 @@ public class JdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        log.debug( String.format( "Analytics event count and extent SQL: %s", sql ) );
+        log.debug( "Analytics event count and extent SQL: '{}'", sql );
 
         Rectangle rectangle = new Rectangle();
 
@@ -444,8 +444,7 @@ public class JdbcEventAnalyticsManager
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets, categories and category option group
-        // set
+        // Organisation unit group sets, categories, category option group sets
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
@@ -590,12 +589,19 @@ public class JdbcEventAnalyticsManager
             .collect( joining( " and " ) );
     }
 
-    private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
+    /**
+     * Generates an in condition.
+     *
+     * @param orgUnit the org unit identifier.
+     * @param organisationUnits the list of {@link OrganisationUnit}.
+     * @return a SQL in condition.
+     */
+    private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
     {
         return organisationUnits.stream()
             .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
             .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( joining( ",", org + OPEN_IN, ") " ) );
+            .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
 
     /**
@@ -650,7 +656,7 @@ public class JdbcEventAnalyticsManager
 
         String valueItem = params.getValue().getDimensionItem();
 
-        List<String> cols = Lists.newArrayList( "yearly", valueItem );
+        List<String> cols = Lists.newArrayList( "psi", "yearly", valueItem );
 
         cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
 

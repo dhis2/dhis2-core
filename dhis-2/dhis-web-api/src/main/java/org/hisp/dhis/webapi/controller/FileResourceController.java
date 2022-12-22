@@ -39,9 +39,12 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -52,6 +55,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
+import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,6 +71,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Halvdan Hoem Grelland
  */
+@OpenApi.Tags( "system" )
 @RestController
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
 @Slf4j
@@ -77,6 +82,8 @@ public class FileResourceController
     private final FileResourceService fileResourceService;
 
     private final FileResourceUtils fileResourceUtils;
+
+    private final DhisConfigurationProvider dhisConfig;
 
     @GetMapping( value = "/{uid}" )
     public FileResource getFileResource( @PathVariable String uid,
@@ -122,6 +129,7 @@ public class FileResourceController
         response.setHeader( HttpHeaders.CONTENT_LENGTH,
             String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
 
         try
         {

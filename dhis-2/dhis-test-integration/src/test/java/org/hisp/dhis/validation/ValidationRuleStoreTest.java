@@ -40,6 +40,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -88,6 +89,10 @@ class ValidationRuleStoreTest extends TransactionalIntegrationTest
         ruleA = validationRuleStore.get( ruleA.getId() );
         assertValidationRule( 'A', ruleA );
         assertEquals( equal_to, ruleA.getOperator() );
+        //Test the defaults if not specified
+        assertEquals( MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING, ruleA.getLeftSide().getMissingValueStrategy() );
+        assertEquals( MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING, ruleA.getRightSide().getMissingValueStrategy() );
+
     }
 
     @Test

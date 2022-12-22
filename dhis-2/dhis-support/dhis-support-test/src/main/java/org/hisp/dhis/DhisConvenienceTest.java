@@ -52,6 +52,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -252,6 +254,10 @@ public abstract class DhisConvenienceTest
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
+
+    protected static final String FIRST_NAME = "FirstName";
+
+    protected static final String SURNAME = "Surname";
 
     private static Date date;
 
@@ -1126,6 +1132,16 @@ public abstract class DhisConvenienceTest
     public static Period createPeriod( String isoPeriod )
     {
         return PeriodType.getPeriodFromIsoString( isoPeriod );
+    }
+
+    /**
+     * @param isoPeriod the ISO period strings.
+     */
+    public static List<Period> createPeriods( String... isoPeriod )
+    {
+        return Stream.of( isoPeriod )
+            .map( PeriodType::getPeriodFromIsoString )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -2769,8 +2785,8 @@ public abstract class DhisConvenienceTest
     {
         User user = new User();
         user.setCode( "Code" + uniquePart );
-        user.setFirstName( "FirstName" + uniquePart );
-        user.setSurname( "Surname" + uniquePart );
+        user.setFirstName( FIRST_NAME + uniquePart );
+        user.setSurname( SURNAME + uniquePart );
         return user;
     }
 

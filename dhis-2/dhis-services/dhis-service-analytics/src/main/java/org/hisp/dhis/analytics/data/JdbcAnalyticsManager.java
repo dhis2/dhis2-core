@@ -116,6 +116,8 @@ public class JdbcAnalyticsManager
 
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
 
+    private static final Set<AggregationType> SIMPLE_AGGREGATION_TYPES = Set.of( COUNT, STDDEV, VARIANCE, MIN, MAX );
+
     private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String> builder()
         .put( MeasureFilter.EQ, "=" )
         .put( MeasureFilter.GT, ">" )
@@ -309,7 +311,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL numeric value column.
      */
-    private String getNumericValueColumn( DataQueryParams params )
+    protected String getNumericValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -330,25 +332,9 @@ public class JdbcAnalyticsManager
         {
             sql = "sum(daysxvalue) / sum(daysno) * 100";
         }
-        else if ( aggType.isAggregationType( COUNT ) )
+        else if ( SIMPLE_AGGREGATION_TYPES.contains( aggType.getAggregationType() ) )
         {
-            sql = "count(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( STDDEV ) )
-        {
-            sql = "stddev(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( VARIANCE ) )
-        {
-            sql = "variance(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( MIN ) )
-        {
-            sql = "min(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( MAX ) )
-        {
-            sql = "max(" + valueColumn + ")";
+            sql = String.format( "%s(%s)", aggType.getAggregationType().getValue(), valueColumn );
         }
         else if ( aggType.isAggregationType( NONE ) )
         {
@@ -408,7 +394,7 @@ public class JdbcAnalyticsManager
 
             return PartitionUtils.getPartitionName( params.getTableName(), partition );
         }
-        else if ( (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple()) )
+        else if ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasMultiple() )
         {
             String sql = "(";
 
@@ -445,7 +431,7 @@ public class JdbcAnalyticsManager
 
         for ( DimensionalObject dim : params.getDimensions() )
         {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
+            if ( dim.hasItems() && !dim.isFixed() )
             {
                 String col = quoteAlias( dim.getDimensionName() );
 

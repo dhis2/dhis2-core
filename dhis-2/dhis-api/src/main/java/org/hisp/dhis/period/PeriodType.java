@@ -647,6 +647,25 @@ public abstract class PeriodType
     // -------------------------------------------------------------------------
 
     /**
+     * Computes future open periods.
+     *
+     * @param periodOffset number of period length shifts into the future
+     *        starting from the last period. This means the current period is at
+     *        offset 1, the one following it at 2 and so on.
+     * @return The future {@link Period} for the given offset
+     */
+    public final Period getFuturePeriod( int periodOffset )
+    {
+        Period period = createPeriod();
+
+        // Rewind one as 0 open periods implies current period is locked
+
+        period = getPreviousPeriod( period );
+
+        return getNextPeriod( period, periodOffset );
+    }
+
+    /**
      * Returns a period shifted from the given period. If the offset is
      * positive, the result will be from following periods. If the offset is
      * negative, the result will be from previous periods. If the offset is

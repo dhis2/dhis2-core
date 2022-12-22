@@ -86,8 +86,7 @@ public class CronUtils
             String.valueOf( hours ),
             null,
             null,
-            Weekday.values()[(dayOfWeek % 7)].name // both 0 and 7 are valid as
-                                                   // Sunday in crontab patterns
+            Weekday.values()[(dayOfWeek % 7)].name // both 0 and 7 are valid as Sunday in crontab patterns
         );
     }
 

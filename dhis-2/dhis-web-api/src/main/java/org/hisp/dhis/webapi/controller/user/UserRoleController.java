@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
@@ -58,6 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Tags( { "user", "management" } )
 @Controller
 @RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
 public class UserRoleController
@@ -69,7 +68,7 @@ public class UserRoleController
     @Override
     protected List<UserRole> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
-        throws QueryParserException
+        throws BadRequestException
     {
         List<UserRole> entityList = super.getEntityList( metadata, options, filters, orders );
 
@@ -86,25 +85,26 @@ public class UserRoleController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId,
         @CurrentUser User currentUser, HttpServletResponse response )
-        throws WebMessageException
+        throws NotFoundException,
+        ForbiddenException
     {
         UserRole userRole = userService.getUserRole( pvId );
 
         if ( userRole == null )
         {
-            throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
+            throw new NotFoundException( getEntityClass(), pvId );
         }
 
         User user = userService.getUser( pvUserId );
 
         if ( user == null )
         {
-            throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
+            throw new NotFoundException( "User does not exist: " + pvUserId );
         }
 
         if ( !aclService.canUpdate( currentUser, userRole ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
 
         if ( !user.getUserRoles().contains( userRole ) )
@@ -118,25 +118,26 @@ public class UserRoleController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeUserFromRole( @PathVariable( value = "id" ) String pvId,
         @PathVariable( "userId" ) String pvUserId, @CurrentUser User currentUser, HttpServletResponse response )
-        throws WebMessageException
+        throws NotFoundException,
+        ForbiddenException
     {
         UserRole userRole = userService.getUserRole( pvId );
 
         if ( userRole == null )
         {
-            throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
+            throw new NotFoundException( getEntityClass(), pvId );
         }
 
         User user = userService.getUser( pvUserId );
 
         if ( user == null )
         {
-            throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
+            throw new NotFoundException( "User does not exist: " + pvUserId );
         }
 
         if ( !aclService.canUpdate( currentUser, userRole ) )
         {
-            throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to delete this object." );
         }
 
         if ( user.getUserRoles().contains( userRole ) )

@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
@@ -40,7 +41,6 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -61,12 +61,11 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author vanyas
  */
-
+@OpenApi.Tags( "metadata" )
 @RestController
 @RequestMapping( "/metadata/sync" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataSyncController
-    extends CrudControllerAdvice
 {
     @Autowired
     private ContextService contextService;
@@ -136,7 +135,7 @@ public class MetadataSyncController
             }
         }
 
-        return new ResponseEntity<MetadataSyncSummary>( metadataSyncSummary, HttpStatus.OK );
+        return new ResponseEntity<>( metadataSyncSummary, HttpStatus.OK );
     }
 
     private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary )

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -68,6 +70,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@OpenApi.Tags( { "user", "login" } )
 @Controller
 @RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
 @RequiredArgsConstructor
@@ -89,7 +92,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     @Override
     protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
-        throws Exception
     {
         entity.setKey( null );
     }
@@ -127,7 +129,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         final ApiToken apiToken = deserializeJsonEntity( request );
 
