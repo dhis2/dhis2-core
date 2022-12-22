@@ -27,18 +27,15 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.TEI_UID;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.getColumnName;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.COLUMNS.PI_UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.ProgramAttributeQuery.getColumnName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 
-/**
- * @author Luciano Fiandesio
- */
-public class TrackedEntityAttributeRowCallbackHandler
+public class ProgramAttributeRowCallbackHandler
     extends
     AbstractMapper<Attribute> implements AttributeMapper
 {
@@ -52,6 +49,6 @@ public class TrackedEntityAttributeRowCallbackHandler
     @Override
     String getKeyColumn()
     {
-        return getColumnName( TEI_UID );
+        return getColumnName( PI_UID );
     }
 }

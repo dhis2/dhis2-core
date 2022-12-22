@@ -25,32 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 
-import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validators.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Provides basic methods to transform input fields into {@link FieldPath }
+ * based on {@link FieldFilterParser }. It follows the principles of
+ * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class Timing
+public class FieldsParamMapper
 {
-    @Nonnull
-    @JsonProperty
-    public final String totalTime;
+    private FieldsParamMapper()
+    {
+    }
 
-    @Nonnull
-    @JsonProperty
-    public final String name;
+    static final String FIELD_RELATIONSHIPS = "relationships";
+
+    static final String FIELD_EVENTS = "events";
+
+    static final String FIELD_ATTRIBUTES = "attributes";
+
+    static Map<String, FieldPath> getRoots( List<String> fields )
+    {
+        return rootFields( getFieldPaths( fields ) );
+    }
+
+    static List<FieldPath> getFieldPaths( List<String> fields )
+    {
+        return FieldFilterParser
+            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
+    }
+
+    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    {
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
+    }
 }
