@@ -62,6 +62,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -762,7 +763,8 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates a comma-delimited string with the dimension names of the given
-     * dimensions where each dimension name is quoted.
+     * dimensions where each dimension name is quoted. Dimensions which are
+     * considered fixed will be excluded.
      *
      * @param dimensions the collection of {@link Dimension}.
      * @return a comma-delimited string of quoted dimension names.
@@ -771,7 +773,7 @@ public class JdbcAnalyticsManager
     {
         StringBuilder builder = new StringBuilder();
 
-        if ( dimensions != null && !dimensions.isEmpty() )
+        if ( CollectionUtils.isNotEmpty( dimensions ) )
         {
             for ( DimensionalObject dimension : dimensions )
             {
