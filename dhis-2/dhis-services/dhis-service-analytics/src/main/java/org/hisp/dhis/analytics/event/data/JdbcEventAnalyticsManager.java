@@ -623,7 +623,7 @@ public class JdbcEventAnalyticsManager
         String alias = "iax";
         String valueItem = quote( alias, params.getValue().getDimensionItem() );
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String orgUnitColumn = quoteAlias( getOrgUnitPartitionColumn( params ) );
+        String orgUnitColumn = quote( alias, getOrgUnitPartitionColumn( params ) );
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
