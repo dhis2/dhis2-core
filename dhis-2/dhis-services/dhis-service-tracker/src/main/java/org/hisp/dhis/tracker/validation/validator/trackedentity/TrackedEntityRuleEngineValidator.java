@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
 import static org.hisp.dhis.tracker.validation.validator.Each.each;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -42,23 +40,20 @@ import org.springframework.stereotype.Component;
  * Validator to validate all {@link TrackedEntity}s in the
  * {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityRuleEngineValidator" )
 public class TrackedEntityRuleEngineValidator implements Validator<TrackerBundle>
 {
+    private final Validator<TrackerBundle> validator;
 
-    private final TrackedEntityAttributeValidator attributeValidator;
-
-    private Validator<TrackerBundle> trackedEntityValidator()
+    public TrackedEntityRuleEngineValidator( AttributeValidator attributeValidator )
     {
-        return each( TrackerBundle::getTrackedEntities, attributeValidator );
+        validator = each( TrackerBundle::getTrackedEntities, attributeValidator );
     }
 
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-
-        trackedEntityValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override

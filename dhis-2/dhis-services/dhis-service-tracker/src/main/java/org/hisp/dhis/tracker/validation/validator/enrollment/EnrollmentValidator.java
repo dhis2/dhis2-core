@@ -31,8 +31,6 @@ import static org.hisp.dhis.tracker.validation.validator.All.all;
 import static org.hisp.dhis.tracker.validation.validator.Each.each;
 import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -43,64 +41,40 @@ import org.springframework.stereotype.Component;
 /**
  * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator" )
 public class EnrollmentValidator implements Validator<TrackerBundle>
 {
+    private final Validator<TrackerBundle> validator;
 
-    private final EnrollmentPreCheckUidValidator uidValidator;
-
-    private final EnrollmentPreCheckExistenceValidator existenceValidator;
-
-    private final EnrollmentPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
-
-    private final EnrollmentPreCheckMetaValidator metaValidator;
-
-    private final EnrollmentPreCheckUpdatableFieldsValidator updatableFieldsValidator;
-
-    private final EnrollmentPreCheckDataRelationsValidator dataRelationsValidator;
-
-    private final EnrollmentPreCheckSecurityOwnershipValidator securityOwnershipValidator;
-
-    private final EnrollmentNoteValidator noteValidator;
-
-    private final EnrollmentInExistingValidator inExistingValidator;
-
-    private final EnrollmentGeoValidator geoValidator;
-
-    private final EnrollmentDateValidator dateValidator;
-
-    private final EnrollmentAttributeValidator attributeValidator;
-
-    private Validator<TrackerBundle> enrollmentValidator()
+    public EnrollmentValidator( SecurityOwnershipValidator securityOwnershipValidator,
+        AttributeValidator attributeValidator )
     {
         // @formatter:off
-        return each( TrackerBundle::getEnrollments,
+        validator = each( TrackerBundle::getEnrollments,
                         seq(
-                                uidValidator,
-                                existenceValidator,
-                                mandatoryFieldsValidator,
-                                metaValidator,
-                                updatableFieldsValidator,
-                                dataRelationsValidator,
+                                new UidValidator(),
+                                new ExistenceValidator(),
+                                new MandatoryFieldsValidator(),
+                                new MetaValidator(),
+                                new UpdatableFieldsValidator(),
+                                new DataRelationsValidator(),
                                 securityOwnershipValidator,
                                 all(
-                                        noteValidator,
-                                        inExistingValidator,
-                                        geoValidator,
-                                        dateValidator,
+                                        new NoteValidator(),
+                                        new ExistingEnrollmentValidator(),
+                                        new GeoValidator(),
+                                        new DateValidator(),
                                         attributeValidator
                                 )
                         )
-                );
+        );
         // @formatter:on
     }
 
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-
-        enrollmentValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override

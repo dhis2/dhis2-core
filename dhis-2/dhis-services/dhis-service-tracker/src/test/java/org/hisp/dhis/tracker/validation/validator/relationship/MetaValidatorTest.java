@@ -25,71 +25,83 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4006;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Enrico Colasante
  */
-class TrackedEntityCheckUidValidatorTest
+@ExtendWith( MockitoExtension.class )
+class MetaValidatorTest
 {
+    private static final String RELATIONSHIP_TYPE_UID = "RelationshipTypeUid";
 
-    private static final String INVALID_UID = "InvalidUID";
+    private MetaValidator validator;
 
-    private UidValidator validator;
+    @Mock
+    private TrackerPreheat preheat;
 
+    @Mock
     private TrackerBundle bundle;
 
     private Reporter reporter;
 
     @BeforeEach
-    void setUp()
+    public void setUp()
     {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+        validator = new MetaValidator();
 
-        validator = new UidValidator();
+        when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
-    void verifyTrackedEntityValidationSuccess()
+    void verifyRelationshipValidationSuccess()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .build();
+        Relationship relationship = validRelationship();
+        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) ) )
+            .thenReturn( new RelationshipType() );
 
-        validator.validate( reporter, bundle, trackedEntity );
+        validator.validate( reporter, bundle, relationship );
 
         assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
-    void verifyTrackedEntityWithInvalidUidFails()
+    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( INVALID_UID )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+        Relationship relationship = validRelationship();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E4006 );
+    }
+
+    private Relationship validRelationship()
+    {
+        return Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .relationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) )
             .build();
-
-        validator.validate( reporter, bundle, trackedEntity );
-
-        assertHasError( reporter, trackedEntity, E1048 );
     }
 }

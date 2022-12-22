@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1049;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -40,56 +43,87 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Enrico Colasante
  */
-class TrackedEntityCheckUidValidatorTest
+@ExtendWith( MockitoExtension.class )
+class MetaValidatorTest
 {
+    private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-    private static final String INVALID_UID = "InvalidUID";
+    private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
 
-    private UidValidator validator;
+    private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
 
+    private MetaValidator validator;
+
+    @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerBundle bundle;
 
     private Reporter reporter;
 
     @BeforeEach
-    void setUp()
+    public void setUp()
     {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+        validator = new MetaValidator();
 
-        validator = new UidValidator();
+        when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
     void verifyTrackedEntityValidationSuccess()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .build();
+        TrackedEntity tei = validTei();
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
 
-        validator.validate( reporter, bundle, trackedEntity );
+        validator.validate( reporter, bundle, tei );
 
         assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
-    void verifyTrackedEntityWithInvalidUidFails()
+    void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( INVALID_UID )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+        TrackedEntity tei = validTei();
+        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) ) )
+            .thenReturn( new TrackedEntityType() );
+
+        validator.validate( reporter, bundle, tei );
+
+        assertHasError( reporter, tei, E1049 );
+    }
+
+    @Test
+    void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
+    {
+        TrackedEntity tei = validTei();
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
+
+        validator.validate( reporter, bundle, tei );
+
+        assertHasError( reporter, tei, E1005 );
+    }
+
+    private TrackedEntity validTei()
+    {
+        return TrackedEntity.builder()
+            .trackedEntity( TRACKED_ENTITY_UID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_UID ) )
             .build();
-
-        validator.validate( reporter, bundle, trackedEntity );
-
-        assertHasError( reporter, trackedEntity, E1048 );
     }
 }

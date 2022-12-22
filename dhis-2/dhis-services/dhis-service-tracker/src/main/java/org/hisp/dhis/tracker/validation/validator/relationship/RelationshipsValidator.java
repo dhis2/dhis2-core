@@ -34,8 +34,8 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4009;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4018;
-import static org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidationUtils.getUidFromRelationshipItem;
-import static org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidationUtils.relationshipItemValueType;
+import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.getUidFromRelationshipItem;
+import static org.hisp.dhis.tracker.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,13 +56,11 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
-@Component
-public class RelationshipsValidator
+class RelationshipsValidator
     implements Validator<Relationship>
 {
 

@@ -27,45 +27,36 @@
  */
 package org.hisp.dhis.tracker.validation.validator.enrollment;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1068;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1069;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1070;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.trackedEntityInstanceExist;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
-public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
+class MetaValidator
+    implements Validator<Enrollment>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public EnrollmentRuleEngineValidator( RuleEngineValidator ruleValidator, AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        all(
-                                ruleValidator,
-                                attributeValidator
-                        )
-        );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        validator.validate( reporter, bundle, input );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
+
+        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
+
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
+            enrollment,
+            E1068, enrollment.getTrackedEntity() );
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
 }

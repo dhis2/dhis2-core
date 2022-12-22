@@ -25,47 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import java.util.Optional;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 
 /**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
-public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
+class ValidationUtils
 {
-    private final Validator<TrackerBundle> validator;
 
-    public EnrollmentRuleEngineValidator( RuleEngineValidator ruleValidator, AttributeValidator attributeValidator )
+    private ValidationUtils()
     {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        all(
-                                ruleValidator,
-                                attributeValidator
-                        )
-        );
-        // @formatter:on
+        throw new IllegalStateException( "Utility class" );
     }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public static TrackerType relationshipItemValueType( RelationshipItem item )
     {
-        validator.validate( reporter, bundle, input );
+        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
+        {
+            return TrackerType.TRACKED_ENTITY;
+        }
+        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
+        {
+            return TrackerType.ENROLLMENT;
+        }
+        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
+        {
+            return TrackerType.EVENT;
+        }
+        return null;
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
+    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
     {
-        return true; // this main validator should always run
+        return Optional
+            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
     }
 }

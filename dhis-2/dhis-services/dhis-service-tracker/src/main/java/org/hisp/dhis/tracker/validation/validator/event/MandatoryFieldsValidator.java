@@ -27,47 +27,47 @@
  */
 package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1118;
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1008;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1123;
 
-import java.util.Optional;
-
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
-class AssignedUserValidator
+/**
+ * @author Enrico Colasante
+ */
+class MandatoryFieldsValidator
     implements Validator<Event>
 {
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
+        reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit" );
+        reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
+
+        // TODO remove if once metadata import is fixed
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        if ( programStage != null )
         {
-            if ( assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
-            {
-                reporter.addError( event, E1118, event.getAssignedUser().toString() );
-            }
-            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
-            {
-                reporter.addWarning( event, E1120, event.getProgramStage() );
-            }
+            // Program stages should always have a program! Due to how metadata
+            // import is currently implemented
+            // it's possible that users run into the edge case that a program
+            // stage does not have an associated
+            // program. Tell the user it's an issue with the metadata and not
+            // the event itself. This should be
+            // fixed in the metadata import. For more see
+            // https://jira.dhis2.org/browse/DHIS2-12123
+            reporter.addErrorIfNull( programStage.getProgram(), event, E1008, event.getProgramStage() );
+            // return since program is not a required field according to our API
+            // and the issue is with the missing reference in
+            // the DB entry of the program stage and not the payload itself
+            return;
         }
+
+        reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
     }
 
-    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
-    {
-        Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
-
-        return !Optional.ofNullable( userAssignmentEnabled )
-            .orElse( false );
-    }
-
-    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
-    {
-        return event.getAssignedUser().getUsername() == null ||
-            preheat.getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
-    }
 }

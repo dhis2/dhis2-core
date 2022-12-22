@@ -25,47 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
-public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
+class MandatoryFieldsValidator
+    implements Validator<Relationship>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public EnrollmentRuleEngineValidator( RuleEngineValidator ruleValidator, AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        all(
-                                ruleValidator,
-                                attributeValidator
-                        )
-        );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        Relationship relationship )
     {
-        validator.validate( reporter, bundle, input );
+        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
+        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
+        reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
+            "relationshipType" );
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
 }

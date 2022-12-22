@@ -25,57 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1128;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator" )
-public class TrackedEntityValidator implements Validator<TrackerBundle>
+class UpdatableFieldsValidator
+    implements Validator<Event>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public TrackedEntityValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getTrackedEntities,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        attributeValidator
-                                )
-                        )
-                );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        validator.validate( reporter, bundle, input );
+        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
+        ProgramStage programStage = programStageInstance.getProgramStage();
+        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
+            "programStage" );
+        reporter.addErrorIf(
+            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            event, E1128, "enrollment" );
     }
 
     @Override
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return true; // this main validator should always run
+        return strategy == TrackerImportStrategy.UPDATE;
     }
 }

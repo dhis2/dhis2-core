@@ -27,55 +27,38 @@
  */
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1005;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator" )
-public class TrackedEntityValidator implements Validator<TrackerBundle>
+@Component
+class MetaValidator
+    implements Validator<TrackedEntity>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public TrackedEntityValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getTrackedEntities,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        attributeValidator
-                                )
-                        )
-                );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity tei )
     {
-        validator.validate( reporter, bundle, input );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
+        if ( organisationUnit == null )
+        {
+            reporter.addError( tei, ValidationCode.E1049, tei.getOrgUnit() );
+        }
+
+        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
+        if ( entityType == null )
+        {
+            reporter.addError( tei, E1005, tei.getTrackedEntityType() );
+        }
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
 }

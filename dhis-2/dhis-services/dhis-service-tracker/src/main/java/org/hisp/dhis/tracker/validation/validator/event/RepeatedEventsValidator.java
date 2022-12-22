@@ -41,7 +41,6 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
  * This validator checks if in the payload there is more than one valid event
@@ -49,8 +48,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Enrico Colasante
  */
-@Component
-public class RepeatedEventsValidator
+class RepeatedEventsValidator
     implements Validator<List<Event>>
 {
     @Override

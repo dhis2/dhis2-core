@@ -66,7 +66,7 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    private EnrollmentPreCheckExistenceValidator validator;
+    private ExistenceValidator validator;
 
     private Reporter reporter;
 
@@ -78,7 +78,7 @@ class EnrollmentPreCheckExistenceValidatorTest
         TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
         reporter = new Reporter( idSchemes );
 
-        validator = new EnrollmentPreCheckExistenceValidator();
+        validator = new ExistenceValidator();
     }
 
     @Test

@@ -25,47 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1010;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1011;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1013;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
-public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
+class MetaValidator
+    implements Validator<Event>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public EnrollmentRuleEngineValidator( RuleEngineValidator ruleValidator, AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        all(
-                                ruleValidator,
-                                attributeValidator
-                        )
-        );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        validator.validate( reporter, bundle, input );
+        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
+
+        Program program = bundle.getPreheat().getProgram( event.getProgram() );
+        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
 }

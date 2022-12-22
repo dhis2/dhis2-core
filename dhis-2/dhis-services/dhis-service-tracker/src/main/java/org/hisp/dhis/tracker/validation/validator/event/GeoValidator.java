@@ -25,47 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.enrollment;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors;
+import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 
 /**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator" )
-public class EnrollmentRuleEngineValidator implements Validator<TrackerBundle>
+class GeoValidator
+    implements Validator<Event>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public EnrollmentRuleEngineValidator( RuleEngineValidator ruleValidator, AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        all(
-                                ruleValidator,
-                                attributeValidator
-                        )
-        );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        validator.validate( reporter, bundle, input );
-    }
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
+        if ( event.getGeometry() != null )
+        {
+            ValidationUtils.validateGeometry( reporter, event,
+                event.getGeometry(),
+                programStage.getFeatureType() );
+        }
     }
 }

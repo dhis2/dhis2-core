@@ -32,8 +32,6 @@ import static org.hisp.dhis.tracker.validation.validator.Each.each;
 import static org.hisp.dhis.tracker.validation.validator.Field.field;
 import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -44,62 +42,36 @@ import org.springframework.stereotype.Component;
 /**
  * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.validator.event.EventValidator" )
 public class EventValidator implements Validator<TrackerBundle>
 {
-    private final EventPreCheckUidValidator uidValidator;
+    private final Validator<TrackerBundle> validator;
 
-    private final EventPreCheckExistenceValidator existenceValidator;
-
-    private final EventPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
-
-    private final EventPreCheckMetaValidator metaValidator;
-
-    private final EventPreCheckUpdatableFieldsValidator updatableFieldsValidator;
-
-    private final EventPreCheckDataRelationsValidator dataRelationsValidator;
-
-    private final EventPreCheckSecurityOwnershipValidator securityOwnershipValidator;
-
-    private final EventCategoryOptValidator categoryOptValidator;
-
-    private final EventDateValidator dateValidator;
-
-    private final EventGeoValidator geoValidator;
-
-    private final EventNoteValidator noteValidator;
-
-    private final EventDataValuesValidator dataValuesValidator;
-
-    private final AssignedUserValidator assignedUserValidator;
-
-    private final RepeatedEventsValidator repeatedEventsValidator;
-
-    private Validator<TrackerBundle> eventValidator()
+    public EventValidator( SecurityOwnershipValidator securityOwnershipValidator,
+        CategoryOptValidator categoryOptValidator )
     {
         // @formatter:off
-        return all(
-                each( TrackerBundle::getEvents,
-                    seq(
-                            uidValidator,
-                            existenceValidator,
-                            mandatoryFieldsValidator,
-                            metaValidator,
-                            updatableFieldsValidator,
-                            dataRelationsValidator,
-                            securityOwnershipValidator,
-                            all(
-                                categoryOptValidator,
-                                dateValidator,
-                                geoValidator,
-                                noteValidator,
-                                dataValuesValidator,
-                                assignedUserValidator
+        validator = all(
+                        each( TrackerBundle::getEvents,
+                            seq(
+                                    new UidValidator(),
+                                    new ExistenceValidator(),
+                                    new MandatoryFieldsValidator(),
+                                    new MetaValidator(),
+                                    new UpdatableFieldsValidator(),
+                                    new DataRelationsValidator(),
+                                    securityOwnershipValidator,
+                                    all(
+                                        categoryOptValidator,
+                                        new DateValidator(),
+                                        new GeoValidator(),
+                                        new NoteValidator(),
+                                        new DataValuesValidator(),
+                                        new AssignedUserValidator()
+                                    )
                             )
-                    )
-                ),
-                field( TrackerBundle::getEvents, repeatedEventsValidator )
+                        ),
+                        field( TrackerBundle::getEvents, new RepeatedEventsValidator() )
         );
         // @formatter:on
     }
@@ -107,7 +79,7 @@ public class EventValidator implements Validator<TrackerBundle>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-        eventValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override

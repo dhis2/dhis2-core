@@ -25,57 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.validation.validator.enrollment;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1080;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1081;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1113;
 
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator" )
-public class TrackedEntityValidator implements Validator<TrackerBundle>
+class ExistenceValidator
+    implements Validator<Enrollment>
 {
-    private final Validator<TrackerBundle> validator;
-
-    public TrackedEntityValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getTrackedEntities,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        attributeValidator
-                                )
-                        )
-                );
-        // @formatter:on
-    }
-
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        validator.validate( reporter, bundle, input );
+        TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
+
+        ProgramInstance existingPi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
+
+        // If the tracked entity is soft-deleted no operation is allowed
+        if ( existingPi != null && existingPi.isDeleted() )
+        {
+            reporter.addError( enrollment, E1113, enrollment.getEnrollment() );
+            return;
+        }
+
+        if ( existingPi != null && importStrategy.isCreate() )
+        {
+            reporter.addError( enrollment, E1080, enrollment.getEnrollment() );
+        }
+        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( enrollment, E1081, enrollment.getEnrollment() );
+        }
     }
 
     @Override
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return true; // this main validator should always run
+        return true;
     }
+
 }

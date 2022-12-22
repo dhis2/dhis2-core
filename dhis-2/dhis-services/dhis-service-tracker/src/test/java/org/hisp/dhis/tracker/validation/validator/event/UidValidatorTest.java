@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.validation.validator.event;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
@@ -34,17 +34,19 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Enrico Colasante
  */
-class TrackedEntityCheckUidValidatorTest
+class UidValidatorTest
 {
 
     private static final String INVALID_UID = "InvalidUID";
@@ -68,28 +70,34 @@ class TrackedEntityCheckUidValidatorTest
     }
 
     @Test
-    void verifyTrackedEntityValidationSuccess()
+    void verifyEventValidationSuccess()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .build();
+        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+        validator.validate( reporter, bundle, event );
 
         assertIsEmpty( reporter.getErrors() );
     }
 
     @Test
-    void verifyTrackedEntityWithInvalidUidFails()
+    void verifyEventWithInvalidUidFails()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( INVALID_UID )
-            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .build();
+        Event event = Event.builder().event( INVALID_UID ).build();
 
-        validator.validate( reporter, bundle, trackedEntity );
+        validator.validate( reporter, bundle, event );
 
-        assertHasError( reporter, trackedEntity, E1048 );
+        assertHasError( reporter, event, E1048 );
+    }
+
+    @Test
+    void verifyEventWithNoteWithInvalidUidFails()
+    {
+        Note note = Note.builder().note( INVALID_UID ).build();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
+
+        validator.validate( reporter, bundle, event );
+
+        assertHasError( reporter, event, E1048 );
     }
 }

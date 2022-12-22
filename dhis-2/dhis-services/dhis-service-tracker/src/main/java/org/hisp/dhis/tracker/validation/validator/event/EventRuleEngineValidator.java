@@ -30,8 +30,6 @@ package org.hisp.dhis.tracker.validation.validator.event;
 import static org.hisp.dhis.tracker.validation.validator.All.all;
 import static org.hisp.dhis.tracker.validation.validator.Each.each;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -42,22 +40,19 @@ import org.springframework.stereotype.Component;
 /**
  * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.validator.event.EventRuleEngineValidator" )
 public class EventRuleEngineValidator implements Validator<TrackerBundle>
 {
-    private final EventRuleValidator ruleValidator;
+    private final Validator<TrackerBundle> validator;
 
-    private final EventDataValuesValidator dataValuesValidator;
-
-    public Validator<TrackerBundle> eventValidator()
+    public EventRuleEngineValidator( RuleEngineValidator ruleEngineValidator )
     {
         // @formatter:off
-        return each(TrackerBundle::getEvents,
-                    all(
-                            ruleValidator,
-                            dataValuesValidator
-                    )
+        validator = each(TrackerBundle::getEvents,
+                        all(
+                                ruleEngineValidator,
+                                new DataValuesValidator()
+                        )
         );
         // @formatter:on
     }
@@ -65,7 +60,7 @@ public class EventRuleEngineValidator implements Validator<TrackerBundle>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-        eventValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override

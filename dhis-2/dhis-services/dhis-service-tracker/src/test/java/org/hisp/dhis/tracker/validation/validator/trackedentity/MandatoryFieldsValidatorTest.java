@@ -27,44 +27,58 @@
  */
 package org.hisp.dhis.tracker.validation.validator.trackedentity;
 
-import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.validation.validator.AssertValidations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-class TrackedEntityCheckUidValidatorTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class MandatoryFieldsValidatorTest
 {
 
-    private static final String INVALID_UID = "InvalidUID";
+    private MandatoryFieldsValidator validator;
 
-    private UidValidator validator;
-
+    @Mock
     private TrackerBundle bundle;
+
+    @Mock
+    private TrackerPreheat preheat;
 
     private Reporter reporter;
 
     @BeforeEach
-    void setUp()
+    public void setUp()
     {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+        validator = new MandatoryFieldsValidator();
 
-        validator = new UidValidator();
+        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( bundle.getPreheat() ).thenReturn( preheat );
+
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        reporter = new Reporter( idSchemes );
     }
 
     @Test
@@ -72,6 +86,7 @@ class TrackedEntityCheckUidValidatorTest
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
+            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -81,15 +96,35 @@ class TrackedEntityCheckUidValidatorTest
     }
 
     @Test
-    void verifyTrackedEntityWithInvalidUidFails()
+    void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( INVALID_UID )
+            .trackedEntity( CodeGenerator.generateUid() )
+            .trackedEntityType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .orgUnit( MetadataIdentifier.EMPTY_UID )
+            .build();
+
+        validator.validate( reporter, bundle, trackedEntity );
+
+        assertMissingProperty( reporter, trackedEntity, "orgUnit" );
+    }
+
+    @Test
+    void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( CodeGenerator.generateUid() )
+            .trackedEntityType( MetadataIdentifier.EMPTY_UID )
             .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         validator.validate( reporter, bundle, trackedEntity );
 
-        assertHasError( reporter, trackedEntity, E1048 );
+        assertMissingProperty( reporter, trackedEntity, "trackedEntityType" );
+    }
+
+    private void assertMissingProperty( Reporter reporter, TrackerDto dto, String property )
+    {
+        AssertValidations.assertMissingProperty( reporter, dto, ValidationCode.E1121, property );
     }
 }

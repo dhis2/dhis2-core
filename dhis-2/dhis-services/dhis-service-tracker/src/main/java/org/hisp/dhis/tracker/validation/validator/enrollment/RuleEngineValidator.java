@@ -25,57 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.validation.validator.enrollment;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
-import static org.hisp.dhis.tracker.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate all {@link TrackedEntity}s in the
- * {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator" )
-public class TrackedEntityValidator implements Validator<TrackerBundle>
+@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.RuleEngineValidator" )
+class RuleEngineValidator
+    implements Validator<Enrollment>
 {
-    private final Validator<TrackerBundle> validator;
+    private List<RuleActionImplementer> validators;
 
-    public TrackedEntityValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
+    @Autowired( required = false )
+    public void setValidators( List<RuleActionImplementer> validators )
     {
-        // @formatter:off
-        validator = each( TrackerBundle::getTrackedEntities,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        attributeValidator
-                                )
-                        )
-                );
-        // @formatter:on
+        this.validators = validators;
     }
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        validator.validate( reporter, bundle, input );
-    }
+        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        {
+            return;
+        }
+
+        List<ProgramRuleIssue> programRuleIssues = validators
+            .stream()
+            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
+            .collect( Collectors.toList() );
+
+        addIssuesToReporter( reporter, enrollment, programRuleIssues );
     }
 }

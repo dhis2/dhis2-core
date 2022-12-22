@@ -31,8 +31,6 @@ import static org.hisp.dhis.tracker.validation.validator.All.all;
 import static org.hisp.dhis.tracker.validation.validator.Each.each;
 import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -43,35 +41,23 @@ import org.springframework.stereotype.Component;
 /**
  * Validator to validate all {@link Relationship}s in the {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
 @Component( "org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator" )
 public class RelationshipValidator implements Validator<TrackerBundle>
 {
+    private final Validator<TrackerBundle> validator;
 
-    private final RelationshipPreCheckUidValidator uidValidator;
-
-    private final RelationshipPreCheckExistenceValidator existenceValidator;
-
-    private final RelationshipPreCheckMandatoryFieldsValidator mandatoryFieldsValidator;
-
-    private final RelationshipPreCheckMetaValidator metaValidator;
-
-    private final RelationshipPreCheckDataRelationsValidator dataRelationsValidator;
-
-    private final RelationshipsValidator relationshipsValidator;
-
-    private Validator<TrackerBundle> relationshipValidator()
+    public RelationshipValidator()
     {
         // @formatter:off
-        return each( TrackerBundle::getRelationships,
+        validator = each( TrackerBundle::getRelationships,
                         seq(
-                                uidValidator,
-                                existenceValidator,
-                                mandatoryFieldsValidator,
-                                metaValidator,
-                                dataRelationsValidator,
+                                new UidValidator(),
+                                new ExistenceValidator(),
+                                new MandatoryFieldsValidator(),
+                                new MetaValidator(),
+                                new DataRelationsValidator(),
                                 all(
-                                        relationshipsValidator
+                                        new RelationshipsValidator()
                                 )
                         )
                 );
@@ -81,8 +67,7 @@ public class RelationshipValidator implements Validator<TrackerBundle>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-
-        relationshipValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override
