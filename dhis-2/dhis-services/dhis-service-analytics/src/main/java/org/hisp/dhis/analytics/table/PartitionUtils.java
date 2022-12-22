@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -45,8 +46,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.springframework.util.Assert;
-
-import com.google.common.collect.Lists;
 
 /**
  * Utilities for analytics table partition handling.
@@ -213,7 +212,7 @@ public class PartitionUtils
      */
     public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
     {
-        List<AnalyticsTablePartition> partitions = Lists.newArrayList();
+        List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
         for ( AnalyticsTable table : tables )
         {

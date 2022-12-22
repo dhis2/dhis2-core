@@ -31,8 +31,6 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1015;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1016;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -179,9 +177,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, E1015 ) );
+        assertHasError( reporter, enrollment, E1015 );
     }
 
     @Test
@@ -196,9 +192,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, E1016 ) );
+        assertHasError( reporter, enrollment, E1016 );
     }
 
     @Test
@@ -218,9 +212,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, E1015 ) );
+        assertHasError( reporter, enrollment, E1015 );
     }
 
     @Test
@@ -235,9 +227,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, E1016 ) );
+        assertHasError( reporter, enrollment, E1016 );
     }
 
     @Test
@@ -263,9 +253,7 @@ class EnrollmentInExistingValidatorTest
 
         validator.validate( reporter, bundle, enrollment );
 
-        assertAll(
-            () -> assertEquals( 1, reporter.getErrors().size() ),
-            () -> assertHasError( reporter, enrollment, E1016 ) );
+        assertHasError( reporter, enrollment, E1016 );
     }
 
     @Test

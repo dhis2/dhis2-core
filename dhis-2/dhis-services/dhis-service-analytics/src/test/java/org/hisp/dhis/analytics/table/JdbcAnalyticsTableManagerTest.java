@@ -68,7 +68,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -102,7 +101,7 @@ class JdbcAnalyticsTableManagerTest
     void testGetRegularAnalyticsTable()
     {
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
-        List<Integer> dataYears = Lists.newArrayList( 2018, 2019 );
+        List<Integer> dataYears = List.of( 2018, 2019 );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withStartTime( startTime )
