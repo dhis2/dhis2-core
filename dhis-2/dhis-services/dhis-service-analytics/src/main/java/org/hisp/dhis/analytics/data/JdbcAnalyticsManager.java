@@ -608,29 +608,6 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns the organisation unit partition column. For "last" and "first"
-     * aggregation types, the window function will be partitioned by the "ou"
-     * column in order to return the last value in time for each data org unit.
-     * For {@link AggregationType#LAST_LAST_ORG_UNIT} and
-     * {@link AggregationType#FIRST_FIRST_ORG_UNIT}, the window function will be
-     * partitioned by the org unit dimension name, to return the last value in
-     * time and the org unit hierarchy for the request org unit.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return the organisation unit partition column.
-     */
-    private String getOrgUnitPartitionColumn( DataQueryParams params )
-    {
-        AggregationType aggregationType = params.getAggregationType().getAggregationType();
-
-        DimensionalObject orgUnitDimension = params.getDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
-
-        boolean isFirstOrLast = AggregationType.LAST == aggregationType || AggregationType.FIRST == aggregationType;
-
-        return orgUnitDimension != null && isFirstOrLast ? orgUnitDimension.getDimensionName() : "ou";
-    }
-
-    /**
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub
      * query. It is assumed that {@link AggregationType#LAST} type only applies
      * to aggregate data analytics. The period dimension is replaced by the name
@@ -673,6 +650,29 @@ public class JdbcAnalyticsManager
         }
 
         return cols;
+    }
+
+    /**
+     * Returns the organisation unit partition column. For "last" and "first"
+     * aggregation types, the window function will be partitioned by the "ou"
+     * column in order to return the last value in time for each data org unit.
+     * For {@link AggregationType#LAST_LAST_ORG_UNIT} and
+     * {@link AggregationType#FIRST_FIRST_ORG_UNIT}, the window function will be
+     * partitioned by the org unit dimension name, to return the last value in
+     * time and the org unit hierarchy for the request org unit.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the organisation unit partition column.
+     */
+    private String getOrgUnitPartitionColumn( DataQueryParams params )
+    {
+        AggregationType aggregationType = params.getAggregationType().getAggregationType();
+
+        DimensionalObject orgUnitDimension = params.getDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
+
+        boolean isFirstOrLast = AggregationType.LAST == aggregationType || AggregationType.FIRST == aggregationType;
+
+        return orgUnitDimension != null && isFirstOrLast ? orgUnitDimension.getDimensionName() : "ou";
     }
 
     /**
