@@ -50,8 +50,8 @@ import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.validation.hooks.ValidationUtils;
+import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -99,7 +99,7 @@ public class SetMandatoryFieldValidator
             Lists.newArrayList( mandatoryDataElementsByActionRule.keySet() ) )
             .stream()
             .map( e -> new ProgramRuleIssue( mandatoryDataElementsByActionRule.get( e ).getRuleUid(),
-                TrackerErrorCode.E1301,
+                ValidationCode.E1301,
                 Lists.newArrayList( e.getIdentifierOrAttributeValue() ), IssueType.ERROR ) )
             .collect( Collectors.toList() );
     }
@@ -127,7 +127,7 @@ public class SetMandatoryFieldValidator
                 if ( any.isEmpty() || StringUtils.isEmpty( any.get().getValue() ) )
                 {
                     return new ProgramRuleIssue( action.getRuleUid(),
-                        TrackerErrorCode.E1306,
+                        ValidationCode.E1306,
                         Lists.newArrayList(
                             idSchemes.toMetadataIdentifier( ruleAttribute ).getIdentifierOrAttributeValue() ),
                         IssueType.ERROR );

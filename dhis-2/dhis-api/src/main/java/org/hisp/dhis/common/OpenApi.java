@@ -164,20 +164,25 @@ public @interface OpenApi
         // marker annotation
     }
 
+    /**
+     * Annotate on type it makes all properties being picked up unless they are
+     * annotated with {@link Ignore}. This is so some members can be annotated
+     * with this annotation to detail their type without at the same time
+     * exclude members.
+     */
     @Inherited
-    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER } )
+    @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.TYPE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface Property
     {
         String name() default "";
 
         /**
-         * When left the default value {@link Object} the type is inferred from
-         * the annotated element.
+         * When empty the type is inferred from the annotated element.
          *
          * @return the type to use for the property
          */
-        Class<?> type() default Object.class;
+        Class<?>[] value() default {};
 
         boolean required() default false;
     }
@@ -238,6 +243,10 @@ public @interface OpenApi
     @interface Params
     {
         /**
+         * As web classes cannot be used outside the web API module a
+         * {@code WebMessage} response value can also be indicated by
+         * {@link org.hisp.dhis.webmessage.WebMessageResponse}.
+         *
          * @return a complex parameter object type. All properties of that type
          *         become individual parameters.
          */
@@ -250,9 +259,15 @@ public @interface OpenApi
      * If the {@link #status()} is the same as the success status of the method
      * this effectively overrides the return type of the method as present in
      * the signature.
+     *
+     * Can be annotated on exception types to link all occurrences of declared
+     * exception to a particular HTTP response.
+     *
+     * Can be annotated on thrown exceptions to link a specific occurrence of a
+     * declared exception to a particular HTTP response.
      */
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.TYPE_USE } )
     @Retention( RetentionPolicy.RUNTIME )
     @Repeatable( ResponseRepeat.class )
     @interface Response
@@ -333,7 +348,7 @@ public @interface OpenApi
      */
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.PARAMETER } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ParamRepeat
     {
@@ -341,7 +356,7 @@ public @interface OpenApi
     }
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ParamsRepeat
     {
@@ -349,7 +364,7 @@ public @interface OpenApi
     }
 
     @Inherited
-    @Target( ElementType.METHOD )
+    @Target( { ElementType.METHOD, ElementType.TYPE, ElementType.TYPE_USE } )
     @Retention( RetentionPolicy.RUNTIME )
     @interface ResponseRepeat
     {

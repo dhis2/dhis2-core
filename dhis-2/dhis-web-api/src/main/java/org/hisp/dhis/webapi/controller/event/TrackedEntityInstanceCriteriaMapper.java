@@ -186,7 +186,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setEventStatus( criteria.getEventStatus() )
             .setEventStartDate( criteria.getEventStartDate() )
             .setEventEndDate( criteria.getEventEndDate() )
-            .setUserWithAssignedUsers( user, criteria.getAssignedUserMode(), criteria.getAssignedUsers() )
+            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, criteria.getAssignedUsers() )
             .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
@@ -195,6 +195,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setSkipPaging( criteria.isSkipPaging() )
             .setIncludeDeleted( criteria.isIncludeDeleted() )
             .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
+            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
             .setOrders( orderParams );
 
         return params;

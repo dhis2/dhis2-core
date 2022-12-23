@@ -404,10 +404,10 @@ public class DefaultPatchService implements PatchService
                     Query query = Query.from( schema );
 
                     query.add( Restrictions.eq( "id", (T) object ) ); // optimize
-                                                                      // by
-                                                                      // using
-                                                                      // .in(..)
-                                                                      // query
+                                                                     // by
+                                                                     // using
+                                                                     // .in(..)
+                                                                     // query
 
                     List<? extends IdentifiableObject> objects = queryService.query( query );
 

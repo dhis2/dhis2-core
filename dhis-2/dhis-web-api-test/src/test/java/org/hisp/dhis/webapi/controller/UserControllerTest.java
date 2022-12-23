@@ -235,7 +235,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testResetToInvite_NoSuchUser()
     {
-        assertEquals( "Object not found for uid: does-not-exist",
+        assertEquals( "User with id does-not-exist could not be found.",
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 

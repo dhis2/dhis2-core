@@ -90,11 +90,11 @@ public class StdDevOutlierAnalysisService
                     categoryOptionCombos, parentsPaths, from );
 
                 MapMap<Long, Long, Integer> lowBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                             // orgUnitId,
-                                                                             // lowBound
+                                                                            // orgUnitId,
+                                                                            // lowBound
                 MapMap<Long, Long, Integer> highBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                              // orgUnitId,
-                                                                              // highBound
+                                                                             // orgUnitId,
+                                                                             // highBound
 
                 for ( DataAnalysisMeasures measures : measuresList )
                 {

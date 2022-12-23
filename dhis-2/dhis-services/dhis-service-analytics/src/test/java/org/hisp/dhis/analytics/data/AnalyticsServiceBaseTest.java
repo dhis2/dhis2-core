@@ -52,7 +52,6 @@ import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -122,20 +121,17 @@ abstract class AnalyticsServiceBaseTest
     @BeforeEach
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
-
         HeaderHandler headerHandler = new HeaderHandler();
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager,
-            resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
+            resolvers, expressionService, queryPlanner, systemSettingManager, analyticsManager,
             organisationUnitService, executionPlanStore );
 
         target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
         target.feedHandlers();
 
-        when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )
-            .thenReturn( false );
-        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
+        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() )
+            .thenReturn( 0L );
     }
 
     void initMock( DataQueryParams params )

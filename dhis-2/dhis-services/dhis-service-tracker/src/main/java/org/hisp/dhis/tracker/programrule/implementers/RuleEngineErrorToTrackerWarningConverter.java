@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -70,7 +70,7 @@ public class RuleEngineErrorToTrackerWarningConverter
     List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
     {
         return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), TrackerErrorCode.E1300,
+            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
                 Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
             .collect( Collectors.toList() );
     }
@@ -80,7 +80,7 @@ public class RuleEngineErrorToTrackerWarningConverter
         TrackerBundle bundle )
     {
         return enrollmentActionRules.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), TrackerErrorCode.E1300,
+            .map( e -> new ProgramRuleIssue( e.getRuleUid(), ValidationCode.E1300,
                 Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
             .collect( Collectors.toList() );
     }

@@ -183,9 +183,6 @@ public class TrackedEntityInstanceQueryParams
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
     @Getter
     private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
@@ -272,6 +269,12 @@ public class TrackedEntityInstanceQueryParams
      * synchronized
      */
     private Date skipChangedBefore;
+
+    /**
+     * Potential Duplicate query parameter value. If null, we don't check
+     * whether a TEI is a potentialDuplicate or not
+     */
+    private Boolean potentialDuplicate;
 
     /**
      * TEI order params
@@ -406,9 +409,7 @@ public class TrackedEntityInstanceQueryParams
 
     public boolean hasFilterForEvents()
     {
-        return this.getAssignedUserQueryParam().hasAssignedUsers()
-            || AssignedUserSelectionMode.ANY == this.getAssignedUserQueryParam().getMode()
-            || AssignedUserSelectionMode.NONE == this.getAssignedUserQueryParam().getMode()
+        return this.getAssignedUserQueryParam().getMode() != AssignedUserSelectionMode.ALL
             || hasEventStatus();
     }
 
@@ -705,6 +706,14 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Check whether we are filtering for potential duplicate property.
+     */
+    public boolean hasPotentialDuplicateFilter()
+    {
+        return potentialDuplicate != null;
+    }
+
+    /**
      * Checks if there is atleast one unique filter in the params. In attributes
      * or filters.
      *
@@ -837,7 +846,9 @@ public class TrackedEntityInstanceQueryParams
             .add( "synchronizationQuery", synchronizationQuery )
             .add( "skipChangedBefore", skipChangedBefore )
             .add( "orders", orders )
-            .add( "user", user ).toString();
+            .add( "user", user )
+            .add( "potentialDuplicate", potentialDuplicate )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -935,6 +946,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
+    }
+
+    public Boolean getPotentialDuplicate()
+    {
+        return this.potentialDuplicate;
+    }
+
+    public TrackedEntityInstanceQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
+    {
+        this.potentialDuplicate = potentialDuplicate;
         return this;
     }
 
@@ -1224,12 +1246,12 @@ public class TrackedEntityInstanceQueryParams
      * the query. Non-empty assigned users are only allowed with mode PROVIDED
      * (or null).
      *
-     * @param current current user with which query is made
      * @param mode assigned user mode
+     * @param current current user with which query is made
      * @param assignedUsers assigned user uids
      * @return this
      */
-    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( User current, AssignedUserSelectionMode mode,
+    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
         Set<String> assignedUsers )
     {
         this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );

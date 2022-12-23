@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.exception;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_REQUEST;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author anilkumk.
  */
 @ResponseStatus( HttpStatus.BAD_REQUEST )
+@OpenApi.Response( status = BAD_REQUEST, value = WebMessage.class )
 public class BadRequestException extends Exception
 {
 

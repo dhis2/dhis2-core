@@ -257,7 +257,7 @@ public class DefaultMaintenanceService
         PageRange range = new PageRange( userCount ).setPageSize( 200 );
         List<int[]> pages = range.getPages();
         Collections.reverse( pages ); // Iterate from end since users are
-                                      // deleted
+                                     // deleted
 
         log.debug( "Pages: " + pages );
 
