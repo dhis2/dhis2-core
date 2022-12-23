@@ -68,7 +68,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -108,7 +107,7 @@ public class JdbcValidationResultTableManager
         AnalyticsTable table = params.isLatestUpdate() ? new AnalyticsTable()
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return (table.hasPartitionTables() || table.hasViews()) ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return (table.hasPartitionTables() || table.hasViews()) ? List.of( table ) : List.of();
     }
 
     @Override
@@ -140,8 +139,7 @@ public class JdbcValidationResultTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList(
-            "year = " + partition.getYear() + "" );
+        return List.of( "year = " + partition.getYear() );
     }
 
     @Override
@@ -298,7 +296,7 @@ public class JdbcValidationResultTableManager
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
+        return List.of( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
     }
 
     @Override

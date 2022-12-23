@@ -25,33 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
+package org.hisp.dhis.dxf2.events;
 
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.TEI_UID;
-import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.getColumnName;
+import lombok.Value;
+import lombok.With;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-
-/**
- * @author Luciano Fiandesio
- */
-public class TrackedEntityAttributeRowCallbackHandler
-    extends
-    AbstractMapper<Attribute> implements AttributeMapper
+@With
+@Value
+public class EnrollmentParams
 {
-    @Override
-    Attribute getItem( ResultSet rs )
-        throws SQLException
+    public static final EnrollmentParams TRUE = new EnrollmentParams( true, true, true, true, false );
+
+    public static final EnrollmentParams FALSE = new EnrollmentParams( false, false, false, false, false );
+
+    private boolean includeEvents;
+
+    private boolean includeRelationships;
+
+    private boolean includeAttributes;
+
+    private boolean includeDeleted;
+
+    private boolean dataSynchronizationQuery;
+
+    public boolean isIncludeRelationships()
     {
-        return getAttribute( rs );
+        return includeRelationships;
     }
 
-    @Override
-    String getKeyColumn()
+    public boolean isIncludeEvents()
     {
-        return getColumnName( TEI_UID );
+        return includeEvents;
+    }
+
+    public boolean isIncludeAttributes()
+    {
+        return includeAttributes;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public boolean isDataSynchronizationQuery()
+    {
+        return dataSynchronizationQuery;
     }
 }
