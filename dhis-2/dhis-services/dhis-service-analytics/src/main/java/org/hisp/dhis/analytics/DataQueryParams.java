@@ -2436,9 +2436,7 @@ public class DataQueryParams
 
     public String getValueColumn()
     {
-        return (valueColumn != null)
-            ? valueColumn
-            : VALUE_COLUMN_NAME;
+        return ObjectUtils.firstNonNull( valueColumn, VALUE_COLUMN_NAME );
     }
 
     public String getPeriodType()

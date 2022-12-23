@@ -289,6 +289,21 @@ public class JdbcAnalyticsManager
     {
         String sql = "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
 
+        sql += getValueClause( params );
+
+        return sql;
+    }
+
+    /**
+     * Generates the value clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL value clause.
+     */
+    private String getValueClause( DataQueryParams params )
+    {
+        String sql = "";
+
         if ( params.isDataType( TEXT ) )
         {
             sql += params.getValueColumn();
@@ -298,9 +313,7 @@ public class JdbcAnalyticsManager
             sql += getNumericValueColumn( params );
         }
 
-        sql += " as value ";
-
-        return sql;
+        return sql + " as value ";
     }
 
     /**
