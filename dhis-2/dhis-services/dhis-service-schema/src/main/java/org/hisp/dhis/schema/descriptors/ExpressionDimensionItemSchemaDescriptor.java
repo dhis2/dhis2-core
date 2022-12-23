@@ -51,11 +51,17 @@ public class ExpressionDimensionItemSchemaDescriptor
     public Schema getSchema()
     {
         Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+
         schema.setOrder( 1000 );
+
+        schema.setDefaultPrivate( true );
+
         schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
             Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PUBLIC_ADD" ) ) );
+
         schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
             Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PRIVATE_ADD" ) ) );
+
         schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_DELETE" ) ) );
 
         return schema;

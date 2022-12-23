@@ -381,7 +381,8 @@ public class SharingController
         }
         else if ( object instanceof Visualization )
         {
-            syncSharingForExpressionDimensionItems( (Visualization) object, sharing.getObject().getUserAccesses() );
+            syncSharingForExpressionDimensionItems( (Visualization) object,
+                sharing.getObject().getUserAccesses(), sharing.getObject().getUserGroupAccesses() );
         }
 
         log.info( sharingToString( object ) );
@@ -508,7 +509,7 @@ public class SharingController
     }
 
     private void syncSharingForExpressionDimensionItems( Visualization visualization,
-        List<SharingUserAccess> sharingUserAccesses )
+        List<SharingUserAccess> sharingUserAccesses, List<SharingUserGroupAccess> sharingUserGroupAccesses )
     {
         List<ExpressionDimensionItem> expressionDimensionItems = visualization.getDataDimensionItems()
             .stream()
@@ -516,12 +517,20 @@ public class SharingController
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
 
-        expressionDimensionItems.forEach( edi -> {
+        List<IdentifiableObject> identifiableObjects = expressionDimensionItems.stream().peek( edi -> {
             org.hisp.dhis.user.sharing.Sharing sharing = edi.getSharing();
+
             Set<UserAccess> userAccess = sharingUserAccesses.stream()
                 .map( sua -> new UserAccess( sua.getAccess(), sua.getId() ) ).collect( Collectors.toUnmodifiableSet() );
             sharing.setUserAccesses( userAccess );
-            manager.update( edi );
-        } );
+
+            Set<UserGroupAccess> userGroupAccess = sharingUserGroupAccesses.stream()
+                .map( sua -> new UserGroupAccess( sua.getAccess(), sua.getId() ) )
+                .collect( Collectors.toUnmodifiableSet() );
+
+            sharing.setUserGroupAccess( userGroupAccess );
+        } ).collect( Collectors.toList() );
+
+        manager.update( identifiableObjects );
     }
 }
