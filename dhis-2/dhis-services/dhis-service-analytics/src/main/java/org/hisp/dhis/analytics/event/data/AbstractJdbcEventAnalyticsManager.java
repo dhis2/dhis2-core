@@ -57,6 +57,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -114,7 +115,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Markus Bekken
@@ -337,7 +337,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause, boolean isAggregated )
     {
-        List<String> columns = Lists.newArrayList();
+        List<String> columns = new ArrayList<>();
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
