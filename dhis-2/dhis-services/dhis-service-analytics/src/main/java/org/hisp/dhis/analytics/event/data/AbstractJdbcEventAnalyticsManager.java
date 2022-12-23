@@ -1008,9 +1008,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( header.hasOptionSet() )
         {
-            Optional<Option> option = header.getOptionSetObject()
-                .getOptions()
-                .stream()
+            Optional<Option> option = header.getOptionSetObject().getOptions().stream()
                 .filter( o -> NumberUtils.isCreatable( o.getCode() ) &&
                     MathUtils.isEqual( NumberUtils.createDouble( o.getCode() ), value ) )
                 .findFirst();
