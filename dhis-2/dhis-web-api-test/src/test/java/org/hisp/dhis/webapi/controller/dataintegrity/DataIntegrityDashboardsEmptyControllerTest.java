@@ -38,8 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
- * Tests for dashboards which have not been actively viewed in the past year.*
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_not_used_1year.yaml
+ * Tests for dashboards which do not have any content
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_empty.yaml
  * }
  *
  * @author Jason P. Pickering
@@ -105,10 +105,4 @@ class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIn
         assertHasNoDataIntegrityIssues( "visualizations", check, false );
     }
 
-    void setUpDashboards()
-    {
-
-        dbmsManager.clearSession();
-
-    }
 }
