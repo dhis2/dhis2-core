@@ -619,9 +619,9 @@ public class JdbcEventAnalyticsManager
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String valueItem = quote( params.getValue().getDimensionItem() );
-        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String alias = "iax";
+        String valueItem = quote( alias, params.getValue().getDimensionItem() );
+        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 

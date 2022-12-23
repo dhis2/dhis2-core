@@ -27,24 +27,20 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerType;
 
 @Value
-@Builder
-@RequiredArgsConstructor
 public class Error implements Validation
 {
-    private final String message;
+    String message;
 
-    private final ValidationCode code;
+    ValidationCode code;
 
-    private final TrackerType type;
+    TrackerType type;
 
-    private final String uid;
+    String uid;
 
     public ValidationCode getErrorCode()
     {
