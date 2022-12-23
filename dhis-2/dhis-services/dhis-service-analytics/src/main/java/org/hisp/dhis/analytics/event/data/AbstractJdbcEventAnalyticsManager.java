@@ -73,6 +73,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -243,7 +244,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private String getSortColumnForDataElementDimensionType( QueryItem item )
     {
-        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
         {
             return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
         }
@@ -746,10 +747,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
             stCentroidFunction = "ST_Centroid";
         }
 
-        return ColumnAndAlias.ofColumnAndAlias(
-            "'[' || round(ST_X(" + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y("
-                + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ']'",
-            colName );
+        return ColumnAndAlias.ofColumnAndAlias( "'[' || round(ST_X(" + stCentroidFunction +
+            "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y(" + stCentroidFunction + "(" +
+            quote( colName ) + "))::numeric, 6) || ']'", colName );
     }
 
     /**
@@ -793,8 +793,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
 
             return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
-                programIndicator,
-                startDate, endDate );
+                programIndicator, startDate, endDate );
         }
         else
         {
@@ -932,6 +931,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * Adds a value from the given row set to the grid.
+     *
+     * @param grid the {@link Grid}.
+     * @param header the {@link GridHeader}.
+     * @param index the row set index.
+     * @param sqlRowSet the {@link SqlRowSet}.
+     * @param params the {@link EventQueryParams}.
+     */
     protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
     {
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
@@ -989,7 +997,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * string interpretation of code coming from Option/Code can vary from
      * Option/value (double) fetched from database ("1" vs "1.0") By the
      * equality (both are converted to double) of both the Option/Code is used
-     * as a value
+     * as a value.
      *
      * @param value the value.
      * @param grid the {@link Grid}.
@@ -1003,16 +1011,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             Optional<Option> option = header.getOptionSetObject()
                 .getOptions()
                 .stream()
-                .filter( o -> {
-                    try
-                    {
-                        return Double.parseDouble( o.getCode() ) == value;
-                    }
-                    catch ( Exception ignored )
-                    {
-                        return false;
-                    }
-                } )
+                .filter( o -> NumberUtils.isCreatable( o.getCode() ) &&
+                    MathUtils.isEqual( NumberUtils.createDouble( o.getCode() ), value ) )
                 .findFirst();
 
             if ( option.isPresent() )
