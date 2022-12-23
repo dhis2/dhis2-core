@@ -55,7 +55,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -511,13 +510,13 @@ public class SharingController
     private void syncSharingForExpressionDimensionItems( Visualization visualization,
         List<SharingUserAccess> sharingUserAccesses, List<SharingUserGroupAccess> sharingUserGroupAccesses )
     {
-        List<ExpressionDimensionItem> expressionDimensionItems = visualization.getDataDimensionItems()
+        List<IdentifiableObject> expressionDimensionItems = visualization.getDataDimensionItems()
             .stream()
             .map( DataDimensionItem::getExpressionDimensionItem )
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
 
-        List<IdentifiableObject> identifiableObjects = expressionDimensionItems.stream().peek( edi -> {
+        expressionDimensionItems.forEach( edi -> {
             org.hisp.dhis.user.sharing.Sharing sharing = edi.getSharing();
 
             Set<UserAccess> userAccess = sharingUserAccesses.stream()
@@ -529,8 +528,8 @@ public class SharingController
                 .collect( Collectors.toUnmodifiableSet() );
 
             sharing.setUserGroupAccess( userGroupAccess );
-        } ).collect( Collectors.toList() );
+        } );
 
-        manager.update( identifiableObjects );
+        manager.update( expressionDimensionItems );
     }
 }
