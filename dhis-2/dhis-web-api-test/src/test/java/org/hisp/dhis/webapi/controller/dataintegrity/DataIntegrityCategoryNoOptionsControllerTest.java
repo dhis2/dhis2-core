@@ -49,8 +49,6 @@ class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrity
 
     private String categoryWithOptions;
 
-    private String categoryOptionSour;
-
     private String categoryOptionRed;
 
     @Test
@@ -84,7 +82,7 @@ class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrity
     void testCategoriesAreValid()
     {
 
-        categoryOptionSour = assertStatus( HttpStatus.CREATED,
+        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
 

@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -109,19 +107,4 @@ class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends A
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-
-    }
-
-    @AfterEach
-    void tearDown()
-        throws Exception
-    {
-        deleteMetadataObject( "organisationUnits", clinicA );
-        deleteMetadataObject( "organisationUnits", clinicB );
-        deleteMetadataObject( "organisationUnits", districtA );
-    }
 }

@@ -220,14 +220,9 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         deleteAllMetadataObjects( "organisationUnits" );
     }
 
-    boolean deleteMetadataObject( String endpoint, String uid )
+    void deleteMetadataObject( String endpoint, String uid )
 
     {
-
-        if ( endpoint == null )
-        {
-            return false;
-        }
 
         if ( uid != null )
         {
@@ -236,7 +231,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             assertStatus( HttpStatus.NOT_FOUND,
                 GET( "/" + endpoint + "/" + uid ) );
         }
-        return true;
+
     }
 
     @Autowired
@@ -265,8 +260,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
                 .content().getObject( 0 );
-        String categoryComboId = ccDefault.getString( "id" ).string();
-        return (categoryComboId);
+        return ccDefault.getString( "id" ).string();
     }
 
     protected final String getDefaultCOC()
@@ -274,7 +268,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
                 .content().getObject( 0 );
-        String categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
-        return categoryOptionComboId;
+        return ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
+
     }
 }

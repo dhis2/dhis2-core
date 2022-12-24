@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests metadata check for potentially duplicated indicator formulas. The check
- * should identify formulas with the same term, regardless of order an spaces.
+ * should identify formulas with the same term, regardless of order and spaces.
  *
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicated_terms.yaml}
  *

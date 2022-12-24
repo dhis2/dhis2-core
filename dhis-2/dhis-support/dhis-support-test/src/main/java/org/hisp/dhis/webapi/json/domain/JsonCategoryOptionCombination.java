@@ -33,15 +33,21 @@ import org.hisp.dhis.jsontree.JsonList;
  *
  * @author Jason Pickering
  */
-public interface JsonCategoryOption extends JsonIdentifiableObject
+public interface JsonCategoryOptionCombination extends JsonIdentifiableObject
 {
-    default JsonList<JsonCategory> getCategories()
+    default JsonCategoryCombination getCategoryCombo()
     {
-        return getList( "categories", JsonCategory.class );
+        return get( "categoryCombo", JsonCategoryCombination.class );
     }
 
-    default JsonList<JsonCategoryOptionCombination> getCatOptionCombos()
+    default JsonList<JsonCategoryOption> getCategoryOptions()
     {
-        return getList( "categoryOptionCombos", JsonCategoryOptionCombination.class );
+        return getList( "categoryOptions", JsonCategoryOption.class );
+
+    }
+
+    default Boolean getIgnoreApproval()
+    {
+        return getBoolean( "ignoreApproval" ).bool();
     }
 }

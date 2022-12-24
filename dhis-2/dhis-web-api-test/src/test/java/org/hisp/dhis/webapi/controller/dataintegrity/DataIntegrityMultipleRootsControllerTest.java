@@ -32,8 +32,6 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import java.util.Set;
 
 import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,7 +42,7 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "orgunit_multiple_roots";
+    private static final String check = "orgunit_multiple_roots";
 
     private String nullIsland;
 
@@ -64,8 +62,11 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
                 "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
                     "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
 
-        Set orgUnitUIDs = Set.of( nullIsland, notNullIsland );
-
+        Set<String> orgUnitUIDs = Set.of();
+        if ( nullIsland != null && notNullIsland != null )
+        {
+            orgUnitUIDs = Set.of( nullIsland, notNullIsland );
+        }
         assertHasDataIntegrityIssues( "orgunits", "orgunit_multiple_roots", 100, orgUnitUIDs, Set.of(), Set.of(),
             true );
 
@@ -97,18 +98,4 @@ class DataIntegrityMultipleRootsControllerTest extends AbstractDataIntegrityInte
 
     }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteMetadataObject( "organisationUnits", notNullIsland );
-        deleteMetadataObject( "organisationUnits", nullIsland );
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", notNullIsland );
-        deleteMetadataObject( "organisationUnits", nullIsland );
-
-    }
 }

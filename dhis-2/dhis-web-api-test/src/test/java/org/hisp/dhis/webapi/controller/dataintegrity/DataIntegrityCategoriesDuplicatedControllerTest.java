@@ -45,8 +45,6 @@ class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegr
 {
     private final String check = "categories_same_category_options";
 
-    private String categoryNoOptions;
-
     private String categoryWithOptionsA;
 
     private String categoryWithOptionsB;

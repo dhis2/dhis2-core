@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombination;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -43,7 +44,7 @@ import org.junit.jupiter.api.Test;
  * }
  *
  * @implNote The test for disjoint category option combinations is impossible to
- *           setup in current versions of DHIS2, as when a category option is
+ *           set up in current versions of DHIS2, as when a category option is
  *           deleted from a category, any corresponding category option
  *           combinations associated with it are also deleted. If there is data
  *           associated with the category option combination, the DELETE
@@ -69,7 +70,8 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
         setupTest();
         //We should have three cat option combos now. The two we created and default.
         JsonResponse response = GET( "/categoryOptionCombos?fields=id,name" ).content();
-        JsonList catOptionCombos = response.getList( "categoryOptionCombos", JsonList.class );
+        JsonList<JsonCategoryOptionCombination> catOptionCombos = response.getList( "categoryOptionCombos",
+            JsonCategoryOptionCombination.class );
         assertEquals( 3, catOptionCombos.size() );
 
         //Delete the category option
@@ -81,7 +83,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
 
         //The deletion of the category option cascades to the category option combo.
         response = GET( "/categoryOptionCombos?fields=id,name" ).content();
-        catOptionCombos = response.getList( "categoryOptionCombos", JsonList.class );
+        catOptionCombos = response.getList( "categoryOptionCombos", JsonCategoryOptionCombination.class );
         assertEquals( 2, catOptionCombos.size() );
 
         assertHasNoDataIntegrityIssues( "categories", check, true );

@@ -25,47 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataintegrity;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-
-import org.hisp.dhis.web.HttpStatus;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.jsontree.JsonList;
 
 /**
- * Test for visualizations which have not been viewed in the past year.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/visualizations_not_used_1year.yaml
- * }
+ * Web API equivalent of a {@link org.hisp.dhis.category.Category}.
  *
- * @implNote The API and service layer will coerce a missing value strategy to a
- *           non-null type, thus it is not possible to create a test for this
- *           situation.
+ * @author Jan Bernitt
  * @author Jason P. Pickering
  */
-class DataIntegrityValidationRulesMissingStrategyControllerTest extends AbstractDataIntegrityIntegrationTest
+public interface JsonCategoryCombination extends JsonIdentifiableObject
 {
-
-    private static final String check = "missing_value_strategy_null";
-
-    @Test
-    void testUsedVisualizationsExist()
+    default JsonList<JsonCategory> getCategories()
     {
-
-        String ruleMissingStrategy = assertStatus( HttpStatus.CREATED,
-            POST( "/validationRules",
-                "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', "
-                    + "" +
-                    "'description':'Test','expression':'#{FTRrcoaog83.qk6n4eMAdtK}'}," +
-                    "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
-                    "'expression':'#{FTRrcoaog83.sqGRzCziswD}'},'periodType':'Monthly','name':'Test rule'}" ) );
-
-        assertHasNoDataIntegrityIssues( "validation_rules", check, true );
+        return getList( "categories", JsonCategory.class );
     }
 
-    @Test
-    void testValidationRulesMissingStrategyRuns()
+    default String getDimensionType()
     {
-        assertHasNoDataIntegrityIssues( "visualizations", "visualizations_notviewed_1y", false );
+        return getString( "dimensionType" ).string();
     }
-
 }
