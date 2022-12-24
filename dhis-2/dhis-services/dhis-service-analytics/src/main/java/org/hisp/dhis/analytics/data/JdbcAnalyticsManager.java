@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
@@ -300,29 +299,29 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL value clause.
      */
-    private String getValueClause( DataQueryParams params )
+    protected String getValueClause( DataQueryParams params )
     {
         String sql = "";
 
-        if ( params.isDataType( TEXT ) )
+        if ( params.isAggregation() )
+        {
+            sql += getAggregateValueColumn( params );
+        }
+        else
         {
             sql += params.getValueColumn();
-        }
-        else // NUMERIC and BOOLEAN
-        {
-            sql += getNumericValueColumn( params );
         }
 
         return sql + " as value ";
     }
 
     /**
-     * Returns a aggregate clause for the numeric value column.
+     * Returns an aggregate clause for the numeric value column.
      *
      * @param params the {@link DataQueryParams}.
      * @return a SQL numeric value column.
      */
-    private String getNumericValueColumn( DataQueryParams params )
+    protected String getAggregateValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -362,10 +361,6 @@ public class JdbcAnalyticsManager
         else if ( aggType.isAggregationType( MAX ) )
         {
             sql = "max(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( NONE ) )
-        {
-            sql = valueColumn;
         }
         else // SUM and no value
         {
@@ -722,7 +717,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
+                + OPERATOR_SQL_MAP.get( filter )
                 + " " + criterion + " ";
         }
 
