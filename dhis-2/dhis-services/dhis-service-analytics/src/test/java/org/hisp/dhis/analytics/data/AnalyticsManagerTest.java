@@ -141,8 +141,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC, false ) )
             .build();
 
-        assertEquals( "sum(daysxvalue) / 31", analyticsManager.getNumericValueColumn( paramsA ) );
-        assertEquals( "max(value)", analyticsManager.getNumericValueColumn( paramsB ) );
+        assertEquals( "sum(daysxvalue) / 31", analyticsManager.getAggregateValueColumn( paramsA ) );
+        assertEquals( "max(value)", analyticsManager.getAggregateValueColumn( paramsB ) );
     }
 
     @Test

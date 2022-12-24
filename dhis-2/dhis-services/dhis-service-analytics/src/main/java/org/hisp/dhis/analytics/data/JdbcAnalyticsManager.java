@@ -305,25 +305,25 @@ public class JdbcAnalyticsManager
     {
         String sql = "";
 
-        if ( !params.isAggregation() )
+        if ( params.isAggregation() )
+        {
+            sql += getAggregateValueColumn( params );
+        }
+        else
         {
             sql += params.getValueColumn();
-        }
-        else // NUMERIC and BOOLEAN
-        {
-            sql += getNumericValueColumn( params );
         }
 
         return sql + " as value ";
     }
 
     /**
-     * Returns a aggregate clause for the numeric value column.
+     * Returns an aggregate clause for the numeric value column.
      *
      * @param params the {@link DataQueryParams}.
      * @return a SQL numeric value column.
      */
-    protected String getNumericValueColumn( DataQueryParams params )
+    protected String getAggregateValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -703,7 +703,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
+                + OPERATOR_SQL_MAP.get( filter )
                 + " " + criterion + " ";
         }
 
