@@ -301,7 +301,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL value clause.
      */
-    private String getValueClause( DataQueryParams params )
+    protected String getValueClause( DataQueryParams params )
     {
         String sql = "";
 
