@@ -31,10 +31,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -131,6 +129,12 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     }
 
     @Test
+    void testGetValueColumn()
+    {
+        //TODO
+    }
+
+    @Test
     void testGetAggregateValueColumn()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
@@ -143,14 +147,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC, false ) )
             .build();
 
-        DataQueryParams paramsC = DataQueryParams.newBuilder()
-            .withPeriods( List.of( createPeriod( "202201" ) ) )
-            .withAggregationType( new AnalyticsAggregationType( NONE, NONE, TEXT, false ) )
-            .build();
-
         assertEquals( "sum(daysxvalue) / 31", analyticsManager.getAggregateValueColumn( paramsA ) );
         assertEquals( "max(value)", analyticsManager.getAggregateValueColumn( paramsB ) );
-        assertEquals( "value", analyticsManager.getAggregateValueColumn( paramsC ) );
     }
 
     @Test
