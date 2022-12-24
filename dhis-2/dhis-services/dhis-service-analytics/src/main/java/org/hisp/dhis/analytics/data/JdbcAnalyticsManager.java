@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
@@ -306,7 +305,7 @@ public class JdbcAnalyticsManager
     {
         String sql = "";
 
-        if ( params.isDataType( TEXT ) )
+        if ( !params.isAggregation() )
         {
             sql += params.getValueColumn();
         }
@@ -348,10 +347,6 @@ public class JdbcAnalyticsManager
         else if ( SIMPLE_AGGREGATION_TYPES.contains( aggType.getAggregationType() ) )
         {
             sql = String.format( "%s(%s)", aggType.getAggregationType().getValue(), valueColumn );
-        }
-        else if ( aggType.isAggregationType( NONE ) )
-        {
-            sql = valueColumn;
         }
         else // SUM and no value
         {
