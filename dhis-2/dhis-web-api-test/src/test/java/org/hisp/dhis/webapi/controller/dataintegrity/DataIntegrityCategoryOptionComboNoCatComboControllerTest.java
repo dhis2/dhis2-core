@@ -34,84 +34,52 @@ import org.junit.jupiter.api.Test;
 
 /**
  *
- * Tests metadata integrity check for categories with no options.
- *
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/categories_no_options.yaml
+ * Tests metadata integrity check for category option combinations without a
+ * category combination.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/coc_no_category_combo.yaml
  * }
  *
+ * @implNote The test for category combinations without a category combo is
+ *           impossible to set up in current versions of DHIS2 through the API.
  * @author Jason P. Pickering
  */
-class DataIntegrityCategoryNoOptionsControllerTest extends AbstractDataIntegrityIntegrationTest
+
+class DataIntegrityCategoryOptionComboNoCatComboControllerTest extends AbstractDataIntegrityIntegrationTest
 {
-    private final String check = "categories_no_options";
-
-    private String categoryNoOptions;
-
-    private String categoryWithOptions;
-
-    private String categoryOptionSour;
-
-    private String categoryOptionRed;
+    private static final String check = "catoptioncombos_no_catcombo";
 
     @Test
-    void testCategoriesInvalid()
+    void testCategoryOptionCombosWithCatCombosExist()
     {
-
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
-
-        categoryWithOptions = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
-
-        categoryNoOptions = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' }" ) );
-
-        assertNamedMetadataObjectExists( "categories", "default" );
-        assertNamedMetadataObjectExists( "categoryOptions", "default" );
-        /*
-         * Note that the default category is implicit here, so the percentage
-         * need to take that into account
-         */
-        assertHasDataIntegrityIssues( "categories", check, 33, categoryNoOptions, "Taste", null,
-            true );
-
-    }
-
-    @Test
-    void testCategoriesAreValid()
-    {
-
-        categoryOptionSour = assertStatus( HttpStatus.CREATED,
+        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
 
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
+        String categoryOptionSweet = assertStatus( HttpStatus.CREATED,
+            POST( "/categoryOptions",
+                "{ 'name': 'Sweet', 'shortName': 'Sweet' }" ) );
+
+        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
             POST( "/categoryOptions",
                 "{ 'name': 'Red', 'shortName': 'Red' }" ) );
 
-        categoryWithOptions = assertStatus( HttpStatus.CREATED,
+        String categoryColor = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
                     "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
 
-        categoryNoOptions = assertStatus( HttpStatus.CREATED,
+        String categoryTaste = assertStatus( HttpStatus.CREATED,
             POST( "/categories",
                 "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'} ] }" ) );
+                    "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'}, {'id' : '" +
+                    categoryOptionSweet + "'} ] }" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
+                "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
+                "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
 
         assertHasNoDataIntegrityIssues( "categories", check, true );
-
-    }
-
-    @Test
-    void testInvalidCategoriesDivideByZero()
-    {
-
-        assertHasNoDataIntegrityIssues( "categories", check, true );
-
     }
 
 }
