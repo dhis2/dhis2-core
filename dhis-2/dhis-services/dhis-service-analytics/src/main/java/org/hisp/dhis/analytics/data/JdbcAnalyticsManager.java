@@ -592,7 +592,6 @@ public class JdbcAnalyticsManager
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
-        String orgUnitColumn = quoteAlias( getOrgUnitPartitionColumn( params ) );
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         String sql = "(select ";
@@ -603,7 +602,7 @@ public class JdbcAnalyticsManager
         }
 
         sql += "row_number() over (" +
-            "partition by dx, " + orgUnitColumn + ", co, ao " +
+            "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
@@ -656,29 +655,6 @@ public class JdbcAnalyticsManager
         }
 
         return cols;
-    }
-
-    /**
-     * Returns the organisation unit partition column. For "last" and "first"
-     * aggregation types, the window function will be partitioned by the "ou"
-     * column in order to return the last value in time for each data org unit.
-     * For {@link AggregationType#LAST_LAST_ORG_UNIT} and
-     * {@link AggregationType#FIRST_FIRST_ORG_UNIT}, the window function will be
-     * partitioned by the org unit dimension name, to return the last value in
-     * time and the org unit hierarchy for the request org unit.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return the organisation unit partition column.
-     */
-    private String getOrgUnitPartitionColumn( DataQueryParams params )
-    {
-        AggregationType aggregationType = params.getAggregationType().getAggregationType();
-
-        DimensionalObject orgUnitDimension = params.getDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
-
-        boolean isFirstOrLast = AggregationType.LAST == aggregationType || AggregationType.FIRST == aggregationType;
-
-        return orgUnitDimension != null && isFirstOrLast ? orgUnitDimension.getDimensionName() : "ou";
     }
 
     /**
