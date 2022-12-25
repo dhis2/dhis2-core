@@ -255,6 +255,14 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
             dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
     }
 
+    protected final HttpResponse deleteDataValue( String period, String value, String comment, boolean followup,
+        String dataElementId, String orgUnitId )
+    {
+        String defaultCOC = getDefaultCOC();
+        return DELETE( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId, period, orgUnitId, defaultCOC, value, comment, followup );
+    }
+
     protected final String getDefaultCatCombo()
     {
         JsonObject ccDefault = GET(
