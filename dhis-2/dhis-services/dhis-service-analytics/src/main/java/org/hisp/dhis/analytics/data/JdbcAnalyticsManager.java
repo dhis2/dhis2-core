@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -612,6 +613,20 @@ public class JdbcAnalyticsManager
         return sql;
     }
 
+    private String getFirstOrLastPartitionColumns( DataQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.LAST, AggregationType.FIRST ) )
+        {
+            return List.of( "dx", "ou", "co", "ao" ).stream()
+                .map( AnalyticsSqlUtils::quoteAlias )
+                .collect( Collectors.joining( "," ) );
+        }
+        else
+        {
+            return getCommaDelimitedQuotedColumns( params.getDimensions() ); // Remove period dimension
+        }
+    }
+
     /**
      * Returns quoted names of columns for the {@link AggregationType#LAST} sub
      * query. It is assumed that {@link AggregationType#LAST} type only applies
@@ -780,7 +795,7 @@ public class JdbcAnalyticsManager
     {
         StringBuilder builder = new StringBuilder();
 
-        if ( dimensions != null && !dimensions.isEmpty() )
+        if ( isNotEmpty( dimensions ) )
         {
             for ( DimensionalObject dimension : dimensions )
             {

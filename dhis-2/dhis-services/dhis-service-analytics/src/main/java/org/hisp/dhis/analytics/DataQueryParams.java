@@ -113,6 +113,7 @@ import org.springframework.util.Assert;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -960,7 +961,15 @@ public class DataQueryParams
      */
     public boolean isAggregationType( AggregationType type )
     {
-        return aggregationType != null && aggregationType.isAggregationType( type );
+        return hasAggregationType() && aggregationType.isAggregationType( type );
+    }
+
+    /**
+     * Indicates whether this query has any of the given aggregation types.
+     */
+    public boolean isAnyAggregationType( AggregationType... types )
+    {
+        return hasAggregationType() && Sets.newHashSet( types ).contains( aggregationType.getAggregationType() );
     }
 
     /**

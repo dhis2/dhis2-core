@@ -220,8 +220,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
             List.of() );
         DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
             List.of() );
-        DataQueryParams params = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doB )
-            .addDimension( doC ).addDimension( doD ).addDimension( doE ).addDimension( doF ).addDimension( doG )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
             .build();
         List<DimensionalObject> dimensions = params.getDimensions();
         assertEquals( 7, dimensions.size() );
@@ -235,12 +241,41 @@ class DataQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testIsAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withAggregationType( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ) )
+            .build();
+
+        assertFalse( params.isAggregationType( AggregationType.MAX ) );
+        assertFalse( params.isAggregationType( AggregationType.AVERAGE ) );
+        assertFalse( params.isAggregationType( null ) );
+        assertTrue( params.isAggregationType( AggregationType.SUM ) );
+    }
+
+    @Test
+    void testIsAnyAggregationType()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withAggregationType( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ) )
+            .build();
+
+        assertFalse( params.isAnyAggregationType( AggregationType.MAX, AggregationType.MIN ) );
+        assertFalse( params.isAnyAggregationType( AggregationType.AVERAGE, AggregationType.FIRST ) );
+        assertFalse( params.isAnyAggregationType( null, null ) );
+        assertTrue( params.isAnyAggregationType( AggregationType.SUM ) );
+        assertTrue( params.isAnyAggregationType( AggregationType.SUM, AggregationType.MAX ) );
+    }
+
+    @Test
     void testSetGetDataElementsReportingRates()
     {
         List<? extends DimensionalItemObject> dataElements = List.of( deA, deB, deC );
         List<? extends DimensionalItemObject> reportingRates = List.of( rrA, rrB );
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( dataElements )
-            .withReportingRates( reportingRates ).build();
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withReportingRates( reportingRates )
+            .build();
         assertEquals( 3, params.getDataElements().size() );
         assertTrue( params.getDataElements().containsAll( dataElements ) );
         assertEquals( 2, params.getReportingRates().size() );
