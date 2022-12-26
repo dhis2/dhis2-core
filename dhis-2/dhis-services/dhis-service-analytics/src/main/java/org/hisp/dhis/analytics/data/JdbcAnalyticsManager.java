@@ -590,7 +590,7 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
             "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
