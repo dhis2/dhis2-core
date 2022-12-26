@@ -613,7 +613,7 @@ public class JdbcAnalyticsManager
         return sql;
     }
 
-    private String getFirstOrLastPartitionColumns( DataQueryParams params )
+    String getFirstOrLastPartitionColumns( DataQueryParams params )
     {
         if ( params.isAnyAggregationType( AggregationType.LAST, AggregationType.FIRST ) )
         {
