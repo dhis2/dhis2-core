@@ -70,7 +70,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     }
 
     @Test
-    void testDataElementGroupSizeOK()
+    void testProgramIndicatorGroupSizeOK()
     {
 
         setUpTest();
@@ -83,7 +83,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     }
 
     @Test
-    void testDataElementGroupSizeRuns()
+    void testProgramIndicatorGroupSizeRuns()
     {
 
         assertHasNoDataIntegrityIssues( "group_size", check, false );
