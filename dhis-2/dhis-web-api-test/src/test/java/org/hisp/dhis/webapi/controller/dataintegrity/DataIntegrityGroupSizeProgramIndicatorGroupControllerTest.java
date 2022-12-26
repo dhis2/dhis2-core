@@ -50,11 +50,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
 
     private ProgramIndicatorGroup programIndicatorGroupA;
 
-    private ProgramIndicator testPIa;
-
     private ProgramIndicator testPIb;
-
-    private Program programA;
 
     @Test
     void testProgramIndicatorGroupsTooSmall()
@@ -93,7 +89,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     public void setUpTest()
     {
 
-        programA = new Program();
+        Program programA = new Program();
         programA.setName( "Program A" );
         programA.setShortName( "Program A" );
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
@@ -105,7 +101,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         programIndicatorGroupA.setAutoFields();
         programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
 
-        testPIa = new ProgramIndicator();
+        ProgramIndicator testPIa = new ProgramIndicator();
         testPIa.setAutoFields();
         testPIa.setName( "Test PI A" );
         testPIa.setShortName( "Test PI A" );
