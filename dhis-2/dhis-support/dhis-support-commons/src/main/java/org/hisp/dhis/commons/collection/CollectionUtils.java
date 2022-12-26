@@ -245,7 +245,7 @@ public class CollectionUtils
     /**
      * Indicates whether the given collection is null or empty.
      *
-     * @param collection the collection.
+     * @param collection the collection, may be null.
      * @return true if the given collection is null or empty, false otherwise.
      */
     public static boolean isEmpty( Collection<?> collection )
