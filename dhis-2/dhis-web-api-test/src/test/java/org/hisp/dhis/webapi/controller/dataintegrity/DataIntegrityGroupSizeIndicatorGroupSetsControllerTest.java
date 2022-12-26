@@ -67,7 +67,7 @@ class DataIntegrityGroupSizeIndicatorGroupSetControllerTest extends AbstractData
     {
 
         setUpTest();
-        String indicatorGroupSetA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/indicatorGroupSets",
                 "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
                     + indicatorGroupA + "'}, " +
