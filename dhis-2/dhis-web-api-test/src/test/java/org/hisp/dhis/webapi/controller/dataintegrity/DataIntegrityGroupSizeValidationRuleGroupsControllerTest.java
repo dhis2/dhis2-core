@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Test metadata check for minimum validation rule group size.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/group_size_validation_rule_groups.yaml}
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_validation_rule_groups.yaml}
  *
  * @author Jason P. Pickering
  */

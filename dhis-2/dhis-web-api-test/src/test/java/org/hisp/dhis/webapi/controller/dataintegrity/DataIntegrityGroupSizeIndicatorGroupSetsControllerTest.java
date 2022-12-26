@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeIndicatorGroupSetControllerTest extends AbstractDataIntegrityIntegrationTest
+class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDataIntegrityIntegrationTest
 {
 
     private static final String check = "group_size_indicator_group_sets";
