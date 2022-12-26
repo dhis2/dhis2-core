@@ -1,0 +1,127 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.controller.dataintegrity;
+
+import org.hisp.dhis.program.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * Minimal test for program indicator groups which contain less than two
+ * members.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_program_indicator_groups.yaml}
+ *
+ * @author Jason P. Pickering
+ */
+class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends AbstractDataIntegrityIntegrationTest
+{
+    private final String check = "group_size_program_indicator_groups";
+
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
+
+    @Autowired
+    private ProgramService programService;
+
+    private ProgramIndicatorGroup programIndicatorGroupA;
+
+    private ProgramIndicator testPIa;
+
+    private ProgramIndicator testPIb;
+
+    private Program programA;
+
+    @Test
+    void testProgramIndicatorGroupsTooSmall()
+    {
+
+        setUpTest();
+        dbmsManager.clearSession();
+
+        assertHasDataIntegrityIssues( "group_size", check, 100, programIndicatorGroupA.getUid(), "Test PI Group A",
+            null,
+            true );
+
+    }
+
+    @Test
+    void testDataElementGroupSizeOK()
+    {
+
+        setUpTest();
+        programIndicatorGroupA.addProgramIndicator( testPIb );
+        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
+        dbmsManager.clearSession();
+
+        assertHasNoDataIntegrityIssues( "group_size", check, true );
+
+    }
+
+    @Test
+    void testDataElementGroupSizeRuns()
+    {
+
+        assertHasNoDataIntegrityIssues( "group_size", check, false );
+
+    }
+
+    public void setUpTest()
+    {
+
+        programA = new Program();
+        programA.setName( "Program A" );
+        programA.setShortName( "Program A" );
+        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        categoryService.getCategoryCombo( getDefaultCatCombo() );
+        programA.setCategoryCombo( categoryService.getCategoryCombo( getDefaultCatCombo() ) );
+        programService.addProgram( programA );
+
+        programIndicatorGroupA = new ProgramIndicatorGroup( "Test PI Group A" );
+        programIndicatorGroupA.setAutoFields();
+        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
+
+        testPIa = new ProgramIndicator();
+        testPIa.setAutoFields();
+        testPIa.setName( "Test PI A" );
+        testPIa.setShortName( "Test PI A" );
+        testPIa.setProgram( programA );
+
+        programIndicatorService.addProgramIndicator( testPIa );
+
+        testPIb = new ProgramIndicator();
+        testPIb.setAutoFields();
+        testPIb.setName( "Test PI B" );
+        testPIb.setShortName( "Test PI B" );
+        testPIb.setProgram( programA );
+        programIndicatorService.addProgramIndicator( testPIb );
+
+        //Only add one of the indicators to the group
+        programIndicatorGroupA.addProgramIndicator( testPIa );
+
+    }
+}
