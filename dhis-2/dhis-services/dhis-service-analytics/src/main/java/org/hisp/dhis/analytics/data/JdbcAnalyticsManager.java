@@ -617,9 +617,7 @@ public class JdbcAnalyticsManager
     {
         if ( params.isAnyAggregationType( AggregationType.LAST, AggregationType.FIRST ) )
         {
-            return List.of( "dx", "ou", "co", "ao" ).stream()
-                .map( AnalyticsSqlUtils::quoteAlias )
-                .collect( Collectors.joining( "," ) );
+            return AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
         }
         else
         {
