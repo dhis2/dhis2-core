@@ -59,6 +59,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -92,11 +93,16 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             arguments( "2017Nov", 26.5D ) );
     }
 
+    @BeforeEach
+    void before()
+    {
+        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
+    }
+
     @ParameterizedTest
     @MethodSource( "data" )
     public void testWeightedAverage( String financialYear, Double weightedAverage )
     {
-        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
