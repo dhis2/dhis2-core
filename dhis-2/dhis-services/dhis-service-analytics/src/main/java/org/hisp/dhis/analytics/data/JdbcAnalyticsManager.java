@@ -734,9 +734,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
-                + OPERATOR_SQL_MAP.get( filter )
-                + " " + criterion + " ";
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " " +
+                OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
         return sql;
