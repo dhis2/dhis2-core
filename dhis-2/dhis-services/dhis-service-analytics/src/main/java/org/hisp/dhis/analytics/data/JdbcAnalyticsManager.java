@@ -593,8 +593,9 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
+        String partitionColumns = getFirstOrLastPartitionColumns( params );
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
+        String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
 
@@ -604,7 +605,7 @@ public class JdbcAnalyticsManager
         }
 
         sql += "row_number() over (" +
-            "partition by dx, ou, co, ao " +
+            "partition by " + partitionColumns + " " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliestDate ) + "' " +
@@ -614,15 +615,33 @@ public class JdbcAnalyticsManager
         return sql;
     }
 
-    String getFirstOrLastPartitionColumns( DataQueryParams params )
+    /**
+     * Returns the partition columns. If query is of "first" or "last"
+     * aggregation type (in all dimensions), the dimensions except the period
+     * dimension of the query are returned. This implies that the sub query
+     * window function will rank data values in all dimensions, and the outer
+     * query will perform the aggregation by filtering on the first ranked
+     * value.
+     * <p>
+     * Otherwise, the four data value composite primary key columns except the
+     * period column are returned, which implies that the sub query window
+     * function will rank data values in time ascending or descending, and the
+     * outer query will filter out all data except for the "first" or "last" in
+     * time.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return the partition columns as a quoted and comma separated string.
+     */
+    private String getFirstOrLastPartitionColumns( DataQueryParams params )
     {
-        if ( params.isAnyAggregationType( AggregationType.LAST, AggregationType.FIRST ) )
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
         {
-            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
+            // TODO Remove period dimension
+            return getCommaDelimitedQuotedColumns( params.getDimensions() );
         }
         else
         {
-            return getCommaDelimitedQuotedColumns( params.getDimensions() ); // Remove period dimension
+            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
         }
     }
 
