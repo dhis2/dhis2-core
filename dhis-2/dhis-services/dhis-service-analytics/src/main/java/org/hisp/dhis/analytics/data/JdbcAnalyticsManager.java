@@ -636,8 +636,7 @@ public class JdbcAnalyticsManager
     {
         if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
         {
-            // TODO Remove period dimension
-            return getCommaDelimitedQuotedColumns( params.getDimensions() );
+            return getCommaDelimitedQuotedColumns( params.getNonPeriodDimensions() );
         }
         else
         {

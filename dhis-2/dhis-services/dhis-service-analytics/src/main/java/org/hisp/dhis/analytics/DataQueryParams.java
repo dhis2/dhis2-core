@@ -1173,6 +1173,16 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all dimensions except any period dimension.
+     */
+    public List<DimensionalObject> getNonPeriodDimensions()
+    {
+        List<DimensionalObject> dims = new ArrayList<>( dimensions );
+        dims.remove( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        return List.copyOf( dims );
+    }
+
+    /**
      * Indicates whether all dimensions and filters have value types among the
      * given set of value types.
      */
@@ -2520,8 +2530,8 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getAllDataDimensionItems()
     {
-        return ImmutableList
-            .copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+        return ImmutableList.copyOf(
+            ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**

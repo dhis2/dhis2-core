@@ -241,6 +241,23 @@ class DataQueryParamsTest extends DhisConvenienceTest
     }
 
     @Test
+    void testGetNonPeriodDimensions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( List.of( deA, deB ) )
+            .withPeriods( List.of( peA, peB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .build();
+
+        assertEquals( 3, params.getDimensions().size() );
+        assertEquals( 2, params.getNonPeriodDimensions().size() );
+        assertTrue( params.getNonPeriodDimensions().contains(
+            new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID ) ) );
+        assertTrue( params.getNonPeriodDimensions().contains(
+            new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ) ) );
+    }
+
+    @Test
     void testIsAggregationType()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
