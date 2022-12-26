@@ -30,9 +30,13 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -129,7 +133,40 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     }
 
     @Test
-    void testGetNumericValueColumn()
+    void testGetValueClause()
+    {
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( SUM, AVERAGE, NUMERIC, false ) )
+            .withDataType( DataType.NUMERIC )
+            .build();
+
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( MIN, MIN, NUMERIC, false ) )
+            .withDataType( DataType.NUMERIC )
+            .build();
+
+        DataQueryParams paramsC = DataQueryParams.newBuilder()
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( NONE, NONE, NUMERIC, false ) )
+            .withDataType( DataType.NUMERIC )
+            .build();
+
+        DataQueryParams paramsD = DataQueryParams.newBuilder()
+            .withPeriods( List.of( createPeriod( "202201" ) ) )
+            .withAggregationType( new AnalyticsAggregationType( LAST, LAST, TEXT, false ) )
+            .withDataType( DataType.TEXT )
+            .build();
+
+        assertEquals( "sum(daysxvalue) / 31 as value ", analyticsManager.getValueClause( paramsA ) );
+        assertEquals( "min(value) as value ", analyticsManager.getValueClause( paramsB ) );
+        assertEquals( "value as value ", analyticsManager.getValueClause( paramsC ) );
+        assertEquals( "value as value ", analyticsManager.getValueClause( paramsD ) );
+    }
+
+    @Test
+    void testGetAggregateValueColumn()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .withPeriods( List.of( createPeriod( "202201" ) ) )
@@ -141,8 +178,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
             .withAggregationType( new AnalyticsAggregationType( MAX, MAX, NUMERIC, false ) )
             .build();
 
-        assertEquals( "sum(daysxvalue) / 31", analyticsManager.getNumericValueColumn( paramsA ) );
-        assertEquals( "max(value)", analyticsManager.getNumericValueColumn( paramsB ) );
+        assertEquals( "sum(daysxvalue) / 31", analyticsManager.getAggregateValueColumn( paramsA ) );
+        assertEquals( "max(value)", analyticsManager.getAggregateValueColumn( paramsB ) );
     }
 
     @Test

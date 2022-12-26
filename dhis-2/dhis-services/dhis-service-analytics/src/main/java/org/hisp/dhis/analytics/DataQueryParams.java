@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -1443,7 +1444,7 @@ public class DataQueryParams
      */
     public boolean hasDateRangeList()
     {
-        return dateRangeList != null && !dateRangeList.isEmpty();
+        return isNotEmpty( dateRangeList );
     }
 
     /**
@@ -2434,9 +2435,7 @@ public class DataQueryParams
 
     public String getValueColumn()
     {
-        return (valueColumn != null)
-            ? valueColumn
-            : VALUE_COLUMN_NAME;
+        return ObjectUtils.firstNonNull( valueColumn, VALUE_COLUMN_NAME );
     }
 
     public String getPeriodType()
