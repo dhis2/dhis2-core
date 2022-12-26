@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -617,7 +618,7 @@ public class JdbcAnalyticsManager
     {
         if ( params.isAnyAggregationType( AggregationType.LAST, AggregationType.FIRST ) )
         {
-            return AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
+            return quoteAliasCommaSeparate( List.of( "dx", "ou", "co", "ao" ) );
         }
         else
         {
