@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
@@ -281,18 +280,36 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the select clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL select clause.
      */
     private String getSelectClause( DataQueryParams params )
     {
         String sql = "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
 
-        if ( params.isDataType( TEXT ) )
+        sql += getValueClause( params );
+
+        return sql;
+    }
+
+    /**
+     * Generates the value clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL value clause.
+     */
+    protected String getValueClause( DataQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isAggregation() )
+        {
+            sql += getAggregateValueColumn( params );
+        }
+        else
         {
             sql += params.getValueColumn();
-        }
-        else // NUMERIC and BOOLEAN
-        {
-            sql += getNumericValueColumn( params );
         }
 
         sql += " as value ";
@@ -301,9 +318,12 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a aggregate clause for the numeric value column.
+     * Returns an aggregate clause for the numeric value column.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL numeric value column.
      */
-    private String getNumericValueColumn( DataQueryParams params )
+    protected String getAggregateValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -343,10 +363,6 @@ public class JdbcAnalyticsManager
         else if ( aggType.isAggregationType( MAX ) )
         {
             sql = "max(" + valueColumn + ")";
-        }
-        else if ( aggType.isAggregationType( NONE ) )
-        {
-            sql = valueColumn;
         }
         else // SUM and no value
         {
@@ -678,7 +694,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
+                + OPERATOR_SQL_MAP.get( filter )
                 + " " + criterion + " ";
         }
 

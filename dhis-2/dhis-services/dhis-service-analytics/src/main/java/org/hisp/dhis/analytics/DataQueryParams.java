@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.CATEGORY_OPTION_GROUP_SET;
@@ -1456,7 +1457,7 @@ public class DataQueryParams
      */
     public boolean hasDateRangeList()
     {
-        return dateRangeList != null && !dateRangeList.isEmpty();
+        return isNotEmpty( dateRangeList );
     }
 
     /**
