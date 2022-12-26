@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests metadata check for potentially duplicated indicator formulas. The check
  * should identify formulas with the same term, regardless of order and spaces.
- *
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicated_terms.yaml}
  *
  * @author Jason P. Pickering
@@ -87,14 +86,14 @@ class DataIntegrityIndicatorsDuplicatedTermsControllerTest extends AbstractDataI
             POST( "/indicatorTypes",
                 "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
 
-        String indicatorA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/indicators",
                 "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
                     + "'}," +
                     " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', " +
                     "'denominatorDescription' : 'One'} }" ) );
 
-        String indicatorB = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/indicators",
                 "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '" + indicatorTypeA
                     + "'}," +
