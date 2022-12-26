@@ -35,8 +35,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests metadata check for indicators with identical formulas.
- *
+ * Tests metadata check for indicators with identical formulas.*
  * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/indicators/indicator_duplicated_terms.yaml}
  *
  * @author Jason P. Pickering
@@ -78,14 +77,14 @@ class DataIntegrityIndicatorsExactDuplicatesControllerTest extends AbstractDataI
             POST( "/indicatorTypes",
                 "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
 
-        String indicatorA = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/indicators",
                 "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '" + indicatorTypeA
                     + "'}," +
                     " 'numerator' : 'abc123 + def456', 'numeratorDescription' : 'One', 'denominator' : '1', " +
                     "'denominatorDescription' : 'One'} }" ) );
 
-        String indicatorB = assertStatus( HttpStatus.CREATED,
+        assertStatus( HttpStatus.CREATED,
             POST( "/indicators",
                 "{ 'name': 'Indicator B', 'shortName': 'Indicator B',  'indicatorType' : {'id' : '" + indicatorTypeA
                     + "'}," +

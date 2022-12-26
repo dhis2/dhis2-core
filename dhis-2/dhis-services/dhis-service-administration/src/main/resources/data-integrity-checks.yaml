@@ -46,4 +46,5 @@ checks:
   - periods/periods_distant_past.yaml
   - validation_rules/validation_rules_undefined_missing_value_strategy.yaml
   - groups/group_size_data_element_groups.yaml
+  - groups/group_size_indicator_groups.yaml
 
