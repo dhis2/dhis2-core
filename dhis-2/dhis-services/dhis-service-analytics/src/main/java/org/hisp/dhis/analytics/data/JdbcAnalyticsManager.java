@@ -368,13 +368,13 @@ public class JdbcAnalyticsManager
             Date earliest = addYears( params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET );
             sql += getFirstOrLastValueSubquerySql( params, earliest );
         }
-        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
-        {
-            sql += getPreMeasureCriteriaSubquerySql( params );
-        }
         else if ( params.getAggregationType().isLastInPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
+        }
+        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        {
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -590,9 +590,9 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null))";
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliest ) + "' " +
+            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
+            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
     }
@@ -739,8 +739,16 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a comma-delimited string based on the dimension names of the
-     * given dimensions where each dimension name is quoted.
+     * <<<<<<< HEAD Generates a comma-delimited string based on the dimension
+     * names of the given dimensions where each dimension name is quoted.
+     * ======= Generates a comma-delimited string with the dimension names of
+     * the given dimensions where each dimension name is quoted. Dimensions
+     * which are considered fixed will be excluded.
+     *
+     * @param dimensions the collection of {@link Dimension}.
+     * @return a comma-delimited string of quoted dimension names. >>>>>>>
+     *         18e6a0d7e3 (fix: Centralize aggregation types [DHIS2-13449]
+     *         (#12641))
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {
