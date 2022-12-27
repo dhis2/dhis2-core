@@ -33,12 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,7 +55,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -347,43 +344,23 @@ class TrackedEntityInstanceServiceTest
     }
 
     @Test
-    void shouldCountOneEntityWhenOneAdded()
+    void shouldCountOneEntityWhenOnePresent()
     {
-        injectSecurityContext( superUser );
-        filtH.setDisplayInListNoProgram( true );
-        attributeService.addTrackedEntityAttribute( filtH );
-
         entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
 
-        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-        trackedEntityAttributeValue.setAttribute( filtH );
-        trackedEntityAttributeValue.setEntityInstance( entityInstanceA1 );
-        trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
-        attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
-
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setTrackedEntityType( trackedEntityTypeA );
-        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
-        params.addAttributes( QueryItem.getQueryItems( List.of( filtH ) ) );
-
         int trackedEntitiesCounter = entityInstanceService.getTrackedEntityInstanceCount( params, true, true );
 
-        Assertions.assertEquals( 1, trackedEntitiesCounter );
+        assertEquals( 1, trackedEntitiesCounter );
     }
 
     @Test
-    void shouldCountZeroEntitiesWhenNoneAdded()
+    void shouldCountZeroEntitiesWhenNonePresent()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        params.setTrackedEntityType( trackedEntityTypeA );
-        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
-        params.addAttributes( QueryItem.getQueryItems( List.of( filtH ) ) );
-
         int trackedEntitiesCounter = entityInstanceService.getTrackedEntityInstanceCount( params, true, true );
 
-        Assertions.assertEquals( 0, trackedEntitiesCounter );
+        assertEquals( 0, trackedEntitiesCounter );
     }
 }
