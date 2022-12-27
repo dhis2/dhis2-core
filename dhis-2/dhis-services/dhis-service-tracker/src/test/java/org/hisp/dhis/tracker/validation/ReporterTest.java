@@ -77,25 +77,6 @@ class ReporterTest
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
     }
 
-    @Test
-    void hasPerfsReturnsFalse()
-    {
-
-        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
-
-        assertFalse( reporter.hasTimings() );
-    }
-
-    @Test
-    void hasPerfsReturnsTrue()
-    {
-        Reporter reporter = new Reporter( TrackerIdSchemeParams.builder().build() );
-
-        reporter.addTiming( new Timing( "1min", "validation" ) );
-
-        assertTrue( reporter.hasTimings() );
-    }
-
     private Error eventError()
     {
         return new Error( "some error", ValidationCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );

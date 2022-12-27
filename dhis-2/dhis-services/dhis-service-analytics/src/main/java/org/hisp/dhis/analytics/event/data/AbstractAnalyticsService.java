@@ -64,6 +64,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords;
+import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -81,8 +82,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -492,7 +491,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                dimensionItems.put( itemUid, Lists.newArrayList() );
+                dimensionItems.put( itemUid, List.of() );
             }
         }
 
@@ -508,7 +507,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList( item.getFiltersAsString() ) );
+                dimensionItems.put( item.getItemId(), List.of( item.getFiltersAsString() ) );
             }
         }
 

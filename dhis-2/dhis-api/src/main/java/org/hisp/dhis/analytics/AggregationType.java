@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
+import java.util.Set;
+
 /**
  * @author Lars Helge Overland
  */
@@ -49,6 +51,12 @@ public enum AggregationType
     NONE( "none", true ), // Aggregatable for text only
     CUSTOM( "custom", false ),
     DEFAULT( "default", false );
+
+    private static final Set<AggregationType> LAST_TYPES = Set.of(
+        LAST, LAST_AVERAGE_ORG_UNIT );
+
+    private static final Set<AggregationType> FIRST_TYPES = Set.of(
+        FIRST, FIRST_AVERAGE_ORG_UNIT );
 
     private final String value;
 
@@ -73,6 +81,16 @@ public enum AggregationType
     public boolean isAggregatable()
     {
         return aggregatable;
+    }
+
+    public boolean isLast()
+    {
+        return LAST_TYPES.contains( this );
+    }
+
+    public boolean isFirst()
+    {
+        return FIRST_TYPES.contains( this );
     }
 
     public static AggregationType fromValue( String value )
