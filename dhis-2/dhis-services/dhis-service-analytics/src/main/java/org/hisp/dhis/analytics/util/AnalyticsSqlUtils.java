@@ -117,7 +117,7 @@ public class AnalyticsSqlUtils
      * Returns a concatenated string of the given collection items separated by
      * comma where each item is quoted and aliased.
      *
-     * @param collection the collection of items.
+     * @param items the collection of items.
      * @return a string.
      */
     public static String quoteAliasCommaSeparate( Collection<String> items )
