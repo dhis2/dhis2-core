@@ -33,8 +33,9 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which are not part of any data element group.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_no_groups.yaml}
+ * Test for metadata check which identifies data element group sets which have
+ * duplicative data elements within one or more of their constituent groups.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_excess_groupset_membership.yaml}
  *
  * @author Jason P. Pickering
  */
