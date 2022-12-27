@@ -74,13 +74,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -248,19 +248,19 @@ public class DefaultTrackedEntityInstanceService
      */
     private void handleSortAttributes( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasAttributeAsOrder() )
-        {
-            // Collecting TEAs for all non static sort order columns.
-            List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
-                .filter( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) ).map( orderParam -> {
-                    return attributeService.getTrackedEntityAttribute( orderParam.getField() );
-                } ).collect( Collectors.toList() );
+        List<String> ordersIdentifier = params.getOrders().stream()
+            .map( OrderParam::getField )
+            .collect( Collectors.toList() );
+        List<QueryItem> sortableAttributes = params.getAttributesAndFilters().stream()
+            .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
+            .collect( Collectors.toList() );
 
-            // adding to attributes conditionally if they are also not present
-            // in filters.
-            params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
-                .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
-        }
+        List<TrackedEntityAttribute> sortAttributes = sortableAttributes.stream()
+            .map( item -> attributeService.getTrackedEntityAttribute( item.getItemId() ) )
+            .collect( Collectors.toList() );
+
+        params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
+            .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
     }
 
     @Override

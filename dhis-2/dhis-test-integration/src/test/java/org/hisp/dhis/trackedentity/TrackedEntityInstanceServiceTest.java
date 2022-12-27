@@ -39,6 +39,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -501,6 +502,7 @@ class TrackedEntityInstanceServiceTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.ASC ) ) );
+        params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
@@ -532,6 +534,7 @@ class TrackedEntityInstanceServiceTest
         params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( filtH.getUid(), OrderParam.SortDirection.DESC ),
             new OrderParam( "inactive", OrderParam.SortDirection.ASC ) ) );
+        params.setAttributes( List.of( new QueryItem( filtH ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 

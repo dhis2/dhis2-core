@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -94,7 +95,7 @@ public class TrackedEntityInstanceQueryParams
 
     public static final int DEFAULT_PAGE_SIZE = 50;
 
-    public static final String MAIN_QUERY_ALIAS = "tei";
+    public static final String MAIN_QUERY_ALIAS = "TEI";
 
     public static final String PROGRAM_INSTANCE_ALIAS = "pi";
 
@@ -751,33 +752,6 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicated whether this params specifies ordering
-     */
-    public boolean hasOrders()
-    {
-        return orders != null && !orders.isEmpty();
-    }
-
-    public boolean hasAttributeAsOrder()
-    {
-        return hasOrders() && getOrders().stream()
-            .anyMatch( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) );
-    }
-
-    public String getFirstAttributeOrder()
-    {
-        if ( hasOrders() )
-        {
-            return getOrders().stream()
-                .map( OrderParam::getField )
-                .filter( field -> !OrderColumn.isStaticColumn( field ) )
-                .findFirst()
-                .orElse( null );
-        }
-        return null;
-    }
-
-    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()
@@ -1277,70 +1251,40 @@ public class TrackedEntityInstanceQueryParams
     @AllArgsConstructor
     public enum OrderColumn
     {
-        TRACKEDENTITY( "trackedEntity", MAIN_QUERY_ALIAS + ".uid" ),
+        TRACKEDENTITY( "trackedEntity", "uid", MAIN_QUERY_ALIAS ),
         // Ordering by id is the same as ordering by created date
-        CREATED( CREATED_ID, MAIN_QUERY_ALIAS + ".trackedentityinstanceid" ),
-        CREATED_AT( "createdAt", MAIN_QUERY_ALIAS + ".trackedentityinstanceid" ),
-        CREATED_AT_CLIENT( "createdAtClient", MAIN_QUERY_ALIAS + ".createdAtClient" ),
-        UPDATED_AT( "updatedAt", MAIN_QUERY_ALIAS + ".lastUpdated" ),
-        UPDATED_AT_CLIENT( "updatedAtClient", MAIN_QUERY_ALIAS + ".lastUpdatedAtClient" ),
-        ENROLLED_AT( "enrolledAt", PROGRAM_INSTANCE_ALIAS + ".enrollmentDate" ),
+        CREATED( CREATED_ID, "trackedentityinstanceid", MAIN_QUERY_ALIAS ),
+        CREATED_AT( "createdAt", "trackedentityinstanceid", MAIN_QUERY_ALIAS ),
+        CREATED_AT_CLIENT( "createdAtClient", "createdAtClient", MAIN_QUERY_ALIAS ),
+        UPDATED_AT( "updatedAt", "lastUpdated", MAIN_QUERY_ALIAS ),
+        UPDATED_AT_CLIENT( "updatedAtClient", "lastUpdatedAtClient", MAIN_QUERY_ALIAS ),
+        ENROLLED_AT( "enrolledAt", "enrollmentDate", PROGRAM_INSTANCE_ALIAS ),
         // this works only for the new endpoint
         // ORGUNIT_NAME( "orgUnitName", MAIN_QUERY_ALIAS+".organisationUnit.name" ),
-        INACTIVE( INACTIVE_ID, MAIN_QUERY_ALIAS + ".inactive" );
+        INACTIVE( INACTIVE_ID, "inactive", MAIN_QUERY_ALIAS );
 
         private final String propName;
 
         private final String column;
 
-        public static boolean isStaticColumn( String propName )
-        {
-            return Arrays.stream( OrderColumn.values() )
-                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
-        }
+        private final String tableAlias;
 
-        public boolean isPropertyEqualTo( String fieldName )
+        public boolean isPropertyEqualTo( String property )
         {
-            return ENROLLED_AT.getPropName().equalsIgnoreCase( fieldName );
+            return propName.equalsIgnoreCase( property );
         }
 
         /**
-         * Gets the column in this enum that matches the property
+         * Get an Optinal of an OrderColumn matching by property name
          *
-         * @param property to match with a column
-         * @return a column matching the provided field or an exception if no
-         *         column is found
+         * @param property
+         * @return
          */
-        public static String getColumn( String property )
+        public static Optional<OrderColumn> getColumn( String property )
         {
-            return getColumn( property, "" );
-        }
-
-        /**
-         * Gets the column in this enum that matches the property and
-         * substitutes the default alias with the one given as a parameter
-         *
-         * @param property to match with a column
-         * @param alias to replace the default with, if empty, the default will
-         *        be kept
-         * @return a column with the provided alias or an exception if no column
-         *         is found
-         */
-        public static String getColumn( String property, String alias )
-        {
-            String column = Arrays.stream( values() )
+            return Arrays.stream( values() )
                 .filter( orderColumn -> orderColumn.getPropName().equals( property ) )
-                .map( OrderColumn::getColumn )
-                .findFirst()
-                .orElseThrow(
-                    () -> new IllegalArgumentException( "Property" + property + " is not defined as order column" ) );
-
-            if ( !alias.isEmpty() )
-            {
-                return column.replace( column.substring( 0, column.indexOf( "." ) ), alias );
-            }
-
-            return column;
+                .findFirst();
         }
     }
 }
