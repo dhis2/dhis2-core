@@ -695,9 +695,8 @@ public class DefaultQueryPlanner
 
     /**
      * Groups the given query in sub queries for each dimension period. This
-     * only applies if the aggregation type is {@link AggregationType#LAST} or
-     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. In this case, each period
-     * must be aggregated individually.
+     * only applies if the aggregation type is "last" or "first". In this case,
+     * each period must be aggregated individually.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
