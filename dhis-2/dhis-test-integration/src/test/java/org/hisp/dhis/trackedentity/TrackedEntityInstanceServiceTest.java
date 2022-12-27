@@ -384,11 +384,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceD1.getId(), entityInstanceC1.getId(), entityInstanceB1.getId(),
+            entityInstanceA1.getId() ), teiIdList );
     }
 
     @Test
@@ -408,11 +405,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceD1.getId(), entityInstanceA1.getId(), entityInstanceB1.getId(),
+            entityInstanceC1.getId() ), teiIdList );
     }
 
     @Test
@@ -432,11 +426,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceB1.getId(), entityInstanceD1.getId(), entityInstanceC1.getId(),
+            entityInstanceA1.getId() ), teiIdList );
     }
 
     @Test
@@ -461,11 +452,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceB1.getId(), entityInstanceA1.getId(), entityInstanceD1.getId(),
+            entityInstanceC1.getId() ), teiIdList );
     }
 
     @Test
@@ -480,10 +468,8 @@ class TrackedEntityInstanceServiceTest
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
         Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceA1.getId(), entityInstanceB1.getId(), entityInstanceC1.getId(),
+            entityInstanceD1.getId() ), teiIdList );
     }
 
     @Test
@@ -504,11 +490,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceB1.getId(), entityInstanceD1.getId(), entityInstanceA1.getId(),
+            entityInstanceC1.getId() ), teiIdList );
     }
 
     @Test
@@ -535,11 +518,8 @@ class TrackedEntityInstanceServiceTest
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
 
-        Assertions.assertEquals( 4, teiIdList.size() );
-        Assertions.assertEquals( entityInstanceB1.getId(), teiIdList.get( 0 ) );
-        Assertions.assertEquals( entityInstanceA1.getId(), teiIdList.get( 1 ) );
-        Assertions.assertEquals( entityInstanceD1.getId(), teiIdList.get( 2 ) );
-        Assertions.assertEquals( entityInstanceC1.getId(), teiIdList.get( 3 ) );
+        assertEquals( List.of( entityInstanceB1.getId(), entityInstanceA1.getId(), entityInstanceD1.getId(),
+            entityInstanceC1.getId() ), teiIdList );
     }
 
     private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
