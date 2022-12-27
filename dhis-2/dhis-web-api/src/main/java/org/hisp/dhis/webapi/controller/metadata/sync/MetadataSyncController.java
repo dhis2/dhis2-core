@@ -135,7 +135,7 @@ public class MetadataSyncController
             }
         }
 
-        return new ResponseEntity<MetadataSyncSummary>( metadataSyncSummary, HttpStatus.OK );
+        return new ResponseEntity<>( metadataSyncSummary, HttpStatus.OK );
     }
 
     private void validateSyncSummaryResponse( MetadataSyncSummary metadataSyncSummary )

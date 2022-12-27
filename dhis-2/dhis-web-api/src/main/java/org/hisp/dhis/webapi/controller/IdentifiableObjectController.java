@@ -66,14 +66,14 @@ public class IdentifiableObjectController
 
     @Override
     public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
 
     @Override
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "POST" );
     }
@@ -81,7 +81,7 @@ public class IdentifiableObjectController
     @Override
     public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "PUT" );
     }
@@ -89,7 +89,7 @@ public class IdentifiableObjectController
     @Override
     public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        throws HttpRequestMethodNotSupportedException
     {
         throw new HttpRequestMethodNotSupportedException( "DELETE" );
     }

@@ -35,7 +35,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -55,8 +54,6 @@ import org.springframework.stereotype.Component;
 public class DefaultEventQueryValidator
     implements EventQueryValidator
 {
-    private final QueryValidator queryValidator;
-
     private final SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
@@ -68,8 +65,6 @@ public class DefaultEventQueryValidator
         throws IllegalQueryException,
         MaintenanceModeException
     {
-        queryValidator.validateMaintenanceMode();
-
         ErrorMessage error = validateForErrorMessage( params );
 
         if ( error != null )

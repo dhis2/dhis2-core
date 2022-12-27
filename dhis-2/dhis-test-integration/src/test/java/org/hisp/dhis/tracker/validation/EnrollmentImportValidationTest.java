@@ -47,7 +47,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -123,7 +122,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 4, TrackerErrorCode.E1000 );
+        assertHasErrors( importReport, 4, ValidationCode.E1000 );
     }
 
     @Test
@@ -134,7 +133,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( params );
 
-        assertHasErrors( importReport, 3, TrackerErrorCode.E1019 );
+        assertHasErrors( importReport, 3, ValidationCode.E1019 );
     }
 
     @Test
@@ -169,7 +168,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         ImportReport trackerImportDeleteReport = trackerImportService.importTracker( params );
 
-        assertHasOnlyErrors( trackerImportDeleteReport, TrackerErrorCode.E1103, TrackerErrorCode.E1091 );
+        assertHasOnlyErrors( trackerImportDeleteReport, ValidationCode.E1103, ValidationCode.E1091 );
     }
 
     protected void importProgramStageInstances()
@@ -199,9 +198,9 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         importReport = trackerImportService.importTracker( trackerImportParams1 );
 
-        ValidationReport validationReport = importReport.getValidationReport();
+        ValidationReport validationResult = importReport.getValidationReport();
 
-        assertHasOnlyErrors( validationReport, TrackerErrorCode.E1015 );
+        assertHasOnlyErrors( validationResult, ValidationCode.E1015 );
     }
 
     @Test

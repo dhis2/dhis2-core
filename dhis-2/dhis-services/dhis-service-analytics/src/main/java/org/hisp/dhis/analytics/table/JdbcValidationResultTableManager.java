@@ -67,8 +67,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -78,7 +76,7 @@ import com.google.common.collect.Sets;
 public class JdbcValidationResultTableManager
     extends AbstractJdbcTableManager
 {
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
@@ -108,7 +106,7 @@ public class JdbcValidationResultTableManager
         AnalyticsTable table = params.isLatestUpdate() ? new AnalyticsTable()
             : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
+        return table.hasPartitionTables() ? List.of( table ) : List.of();
     }
 
     @Override
@@ -140,8 +138,7 @@ public class JdbcValidationResultTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList(
-            "year = " + partition.getYear() + "" );
+        return List.of( "year = " + partition.getYear() );
     }
 
     @Override
@@ -250,7 +247,7 @@ public class JdbcValidationResultTableManager
 
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
+        return List.of( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
     }
 
     @Override

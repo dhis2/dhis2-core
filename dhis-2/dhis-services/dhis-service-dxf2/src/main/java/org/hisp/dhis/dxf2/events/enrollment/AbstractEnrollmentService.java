@@ -64,9 +64,9 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -280,7 +280,7 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
             }
         }
 
@@ -288,27 +288,20 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id )
+    public Enrollment getEnrollment( String id, EnrollmentParams params )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-        return programInstance != null ? getEnrollment( programInstance ) : null;
+        return programInstance != null ? getEnrollment( programInstance, params ) : null;
     }
 
     @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance )
-    {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE,
-            false );
-    }
-
-    @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
         boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();
@@ -384,6 +377,35 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        if ( params.isIncludeAttributes() )
+        {
+            Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+                .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+
+            for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+                .getTrackedEntityAttributeValues() )
+            {
+                if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
+                {
+                    Attribute attribute = new Attribute();
+                    attribute.setCreated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getCreated() ) );
+                    attribute
+                        .setLastUpdated( DateUtils.getIso8601NoTz( trackedEntityAttributeValue.getLastUpdated() ) );
+                    attribute.setDisplayName( trackedEntityAttributeValue.getAttribute()
+                        .getDisplayName() );
+                    attribute.setAttribute( trackedEntityAttributeValue.getAttribute()
+                        .getUid() );
+                    attribute.setValueType( trackedEntityAttributeValue.getAttribute()
+                        .getValueType() );
+                    attribute.setCode( trackedEntityAttributeValue.getAttribute()
+                        .getCode() );
+                    attribute.setValue( trackedEntityAttributeValue.getValue() );
+                    attribute.setStoredBy( trackedEntityAttributeValue.getStoredBy() );
+
+                    enrollment.getAttributes().add( attribute );
+                }
+            }
+        }
         return enrollment;
     }
 

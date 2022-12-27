@@ -120,7 +120,6 @@ public enum SettingKey
         Boolean.FALSE, Boolean.class ),
     CUSTOM_LOGIN_PAGE_LOGO( "keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class ),
     CUSTOM_TOP_MENU_LOGO( "keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class ),
-    ANALYTICS_MAINTENANCE_MODE( "keyAnalyticsMaintenanceMode", Boolean.FALSE, Boolean.class ),
     DATABASE_SERVER_CPUS( "keyDatabaseServerCpus", 0, Integer.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME( "keyLastSuccessfulAnalyticsTablesRuntime" ),
     LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME( "keyLastSuccessfulLatestAnalyticsPartitionRuntime" ),

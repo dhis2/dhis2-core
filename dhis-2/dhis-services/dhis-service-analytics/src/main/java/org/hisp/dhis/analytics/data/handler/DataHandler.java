@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.Math.min;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -129,7 +128,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -185,8 +183,6 @@ public class DataHandler
     private final ExpressionService expressionService;
 
     private final QueryPlanner queryPlanner;
-
-    private final QueryValidator queryValidator;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -363,7 +359,7 @@ public class DataHandler
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
-            : singletonList( (Period) getPeriodItem( dimensionItems ) );
+            : List.of( (Period) getPeriodItem( dimensionItems ) );
 
         OrganisationUnit unit = (OrganisationUnit) getOrganisationUnitItem( dimensionItems );
 
@@ -1227,8 +1223,6 @@ public class DataHandler
     private Map<String, Object> getAggregatedValueMap( DataQueryParams params, AnalyticsTableType tableType,
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
     {
-        queryValidator.validateMaintenanceMode();
-
         int optimalQueries = getWithin( getProcessNo(), 1, MAX_QUERIES );
 
         int maxLimit = params.isIgnoreLimit() ? 0

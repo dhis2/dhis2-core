@@ -72,6 +72,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -88,9 +89,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -118,7 +116,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate, analyticsExportSettings );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -220,12 +218,12 @@ public class JdbcEventAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            List<Integer> dataYears = getDataYears( params, program );
+            List<Integer> dataYears = ListUtils.mutableCopy( getDataYears( params, program ) );
 
             Collections.sort( dataYears );
 
             AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                Lists.newArrayList(), program );
+                List.of(), program );
 
             for ( Integer year : dataYears )
             {
@@ -279,7 +277,7 @@ public class JdbcEventAnalyticsTableManager
             if ( hasUpdatedData )
             {
                 AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                    Lists.newArrayList(), program );
+                    List.of(), program );
                 table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
                 tables.add( table );
 

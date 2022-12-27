@@ -56,8 +56,8 @@ class ImportReportTest
         trackerTypeReportMap.put( TrackerType.ENROLLMENT, createTypeReport( TrackerType.ENROLLMENT, 3, 3, 0 ) );
         PersistenceReport persistenceReport = new PersistenceReport( trackerTypeReportMap );
         // Create validation report with 3 objects
-        ValidationReport validationReport = new ValidationReport();
-        validationReport.addErrors( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) );
+        ValidationReport validationReport = ValidationReport.emptyReport();
+        validationReport.addErrors( rnd.objects( Error.class, 3 ).collect( Collectors.toList() ) );
         // Create empty Timing Stats report
         TimingsStats timingsStats = new TimingsStats();
         // Create payload map

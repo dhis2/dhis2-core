@@ -61,7 +61,7 @@ public class Entity
     @JsonProperty
     private String uid;
 
-    private List<TrackerErrorReport> errorReports = new ArrayList<>();
+    private List<Error> errorReports = new ArrayList<>();
 
     public Entity( TrackerType trackerType )
     {
@@ -78,7 +78,7 @@ public class Entity
     @JsonCreator
     public Entity( @JsonProperty( "trackerType" ) TrackerType trackerType,
         @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
-        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+        @JsonProperty( "errorReports" ) List<Error> errorReports )
     {
         this.trackerType = trackerType;
         this.uid = uid;
@@ -90,7 +90,7 @@ public class Entity
     }
 
     @JsonProperty
-    public List<TrackerErrorReport> getErrorReports()
+    public List<Error> getErrorReports()
     {
         return this.errorReports;
     }

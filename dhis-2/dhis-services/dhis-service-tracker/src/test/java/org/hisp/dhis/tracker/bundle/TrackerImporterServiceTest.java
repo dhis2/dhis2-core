@@ -48,8 +48,8 @@ import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.PersistenceReport;
-import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.TrackerValidationService;
+import org.hisp.dhis.tracker.validation.ValidationResult;
+import org.hisp.dhis.tracker.validation.ValidationService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ class TrackerImporterServiceTest
     private TrackerBundleService trackerBundleService;
 
     @Mock
-    private TrackerValidationService trackerValidationService;
+    private ValidationService validationService;
 
     @Mock
     private TrackerPreprocessService trackerPreprocessService;
@@ -79,6 +79,9 @@ class TrackerImporterServiceTest
     @Mock
     private Notifier notifier;
 
+    @Mock
+    private ValidationResult validationResult;
+
     private DefaultTrackerImportService subject;
 
     private TrackerImportParams params = null;
@@ -88,7 +91,7 @@ class TrackerImporterServiceTest
     @BeforeEach
     public void setUp()
     {
-        subject = new DefaultTrackerImportService( trackerBundleService, trackerValidationService,
+        subject = new DefaultTrackerImportService( trackerBundleService, validationService,
             trackerPreprocessService,
             trackerUserService, notifier );
 
@@ -107,10 +110,10 @@ class TrackerImporterServiceTest
 
         when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( persistenceReport );
 
-        when( trackerValidationService.validate( any( TrackerBundle.class ) ) )
-            .thenReturn( new ValidationReport() );
-        when( trackerValidationService.validateRuleEngine( any( TrackerBundle.class ) ) )
-            .thenReturn( new ValidationReport() );
+        when( validationService.validate( any( TrackerBundle.class ) ) )
+            .thenReturn( validationResult );
+        when( validationService.validateRuleEngine( any( TrackerBundle.class ) ) )
+            .thenReturn( validationResult );
         when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) )
             .thenReturn( ParamsConverter.convert( params ) );
     }

@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -230,7 +230,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.size() );
         assertEquals( ERROR, eventIssues.get( 0 ).getIssueType() );
-        assertEquals( TrackerErrorCode.E1307, eventIssues.get( 0 ).getIssueCode() );
+        assertEquals( ValidationCode.E1307, eventIssues.get( 0 ).getIssueCode() );
     }
 
     @Test
@@ -256,7 +256,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.size() );
-        assertEquals( TrackerErrorCode.E1307, eventIssues.get( 0 ).getIssueCode() );
+        assertEquals( ValidationCode.E1307, eventIssues.get( 0 ).getIssueCode() );
         assertEquals( ERROR, eventIssues.get( 0 ).getIssueType() );
     }
 

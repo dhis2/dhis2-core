@@ -141,7 +141,7 @@ public class MapController
     @ResponseBody
     public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
         HttpServletRequest request )
-        throws Exception
+        throws IOException
     {
         Map map = mappingService.getMap( uid );
 
@@ -228,7 +228,6 @@ public class MapController
 
     @Override
     public void postProcessResponseEntity( Map map, WebOptions options, java.util.Map<String, String> parameters )
-        throws Exception
     {
         I18nFormat format = i18nManager.getI18nFormat();
 

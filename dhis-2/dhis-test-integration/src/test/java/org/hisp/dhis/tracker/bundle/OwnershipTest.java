@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
@@ -251,7 +251,7 @@ class OwnershipTest extends TrackerTest
         enrollmentParams.getEnrollments().get( 0 ).setEnrollment( CodeGenerator.generateUid() );
         updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     @Test
@@ -267,7 +267,7 @@ class OwnershipTest extends TrackerTest
         enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
         ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     @Test
@@ -283,7 +283,7 @@ class OwnershipTest extends TrackerTest
         enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
-        assertHasError( updatedReport, TrackerErrorCode.E1102 );
+        assertHasError( updatedReport, ValidationCode.E1102 );
     }
 
     private void compareEnrollmentBasicProperties( ProgramInstance pi, Enrollment enrollment )

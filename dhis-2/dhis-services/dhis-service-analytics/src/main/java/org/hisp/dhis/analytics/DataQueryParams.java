@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
 import static org.hisp.dhis.common.DimensionType.CATEGORY;
@@ -455,7 +455,7 @@ public class DataQueryParams
 
     /**
      * Applies to reporting rates only. Indicates whether only timely reports
-     * should be returned.
+     * should be returned. Used internally for on time reporting rate metrics.
      */
     protected boolean timely;
 
@@ -903,8 +903,7 @@ public class DataQueryParams
     {
         return orgUnitLevels.stream()
             .map( l -> new BaseDimensionalObject( PREFIX_ORG_UNIT_LEVEL + l.getLevel(),
-                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(),
-                Lists.newArrayList() ) )
+                DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(), List.of() ) )
             .collect( Collectors.toList() );
     }
 
@@ -1299,8 +1298,8 @@ public class DataQueryParams
      * the number of days in the first period. In these cases, queries should
      * contain periods with the same number of days only. If period is filter,
      * use the sum of days in all periods. If the period is defined by
-     * "startDate" and "endDate" params, these two will be considered (default
-     * option).
+     * "startDate" and "endDate" parameters, these two will be considered
+     * (default option).
      */
     public int getDaysForAvgSumIntAggregation()
     {
@@ -1330,7 +1329,7 @@ public class DataQueryParams
             return totalDays;
         }
 
-        // Default to "startDate" and "endDate" URL params
+        // Default to "startDate" and "endDate" URL parameters
         return getStartEndDatesAsPeriod().getDaysInPeriod();
     }
 
@@ -1445,7 +1444,7 @@ public class DataQueryParams
      */
     public boolean hasDateRangeList()
     {
-        return dateRangeList != null && !dateRangeList.isEmpty();
+        return isNotEmpty( dateRangeList );
     }
 
     /**
@@ -1669,6 +1668,42 @@ public class DataQueryParams
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "last" {@link AggregationType}".
+     */
+    public boolean isLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is
+     * "first" {@link AggregationType}.
+     */
+    public boolean isFirstPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first" or "last" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is a
+     * "first", "last" or "last in period" {@link AggregationType}.
+     */
+    public boolean isFirstOrLastOrLastInPeriodAggregationType()
+    {
+        return hasAggregationType() && getAggregationType().isFirstOrLastOrLastInPeriodAggregationType();
+    }
+
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
@@ -1771,7 +1806,7 @@ public class DataQueryParams
     private void setPeriodDimensionWithoutOptions()
     {
         removeDimension( PERIOD_DIM_ID );
-        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, Lists.newArrayList() );
+        setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, PERIOD_DIM_ID, List.of() );
     }
 
     /**
@@ -2400,9 +2435,7 @@ public class DataQueryParams
 
     public String getValueColumn()
     {
-        return (valueColumn != null)
-            ? valueColumn
-            : VALUE_COLUMN_NAME;
+        return ObjectUtils.firstNonNull( valueColumn, VALUE_COLUMN_NAME );
     }
 
     public String getPeriodType()
@@ -2758,7 +2791,7 @@ public class DataQueryParams
             period.setStartDate( getStartDate() );
             period.setEndDate( getEndDate() );
 
-            return singletonList( period );
+            return List.of( period );
         }
 
         return emptyList();

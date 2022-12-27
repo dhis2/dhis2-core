@@ -57,6 +57,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -72,6 +73,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -96,7 +98,6 @@ import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -112,11 +113,9 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Markus Bekken
@@ -229,7 +228,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else
             {
                 // Query returns UIDs but we want sorting on name or shortName
-                // (depending on DisplayProperty) for OUGS and COGS
+                // depending on the display property for OUGS and COGS
                 sql += Optional.ofNullable( extract( params.getDimensions(), item.getItem() ) )
                     .filter( this::isSupported )
                     .filter( DimensionalObject::hasItems )
@@ -245,7 +244,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private String getSortColumnForDataElementDimensionType( QueryItem item )
     {
-        if ( item.getValueType() == ValueType.ORGANISATION_UNIT )
+        if ( ValueType.ORGANISATION_UNIT == item.getValueType() )
         {
             return quote( item.getItemName() + OU_NAME_COL_SUFFIX );
         }
@@ -339,7 +338,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause, boolean isAggregated )
     {
-        List<String> columns = Lists.newArrayList();
+        List<String> columns = new ArrayList<>();
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -454,13 +453,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
     {
         String column = getColumn( queryItem );
+
         if ( !isGroupByClause )
         {
-            return ColumnAndAlias.ofColumnAndAlias(
-                column,
-                getAlias( queryItem )
-                    .orElse( aliasIfMissing ) );
+            return ColumnAndAlias.ofColumnAndAlias( column, getAlias( queryItem ).orElse( aliasIfMissing ) );
         }
+
         return ColumnAndAlias.ofColumn( column );
     }
 
@@ -551,7 +549,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
     {
-        log.debug( "Event analytics aggregate SQL: " + sql );
+        log.debug( "Event analytics aggregate SQL: '{}'", sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -658,11 +656,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasValueDimension() && isParamsValueTypeNumeric( params ) )
+        if ( params.hasNumericValueDimension() )
         {
-            Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
-                "Event query aggregation type must be aggregatable" );
-
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
             String expression = quoteAlias( params.getValue().getUid() );
@@ -752,10 +747,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
             stCentroidFunction = "ST_Centroid";
         }
 
-        return ColumnAndAlias.ofColumnAndAlias(
-            "'[' || round(ST_X(" + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y("
-                + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ']'",
-            colName );
+        return ColumnAndAlias.ofColumnAndAlias( "'[' || round(ST_X(" + stCentroidFunction +
+            "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y(" + stCentroidFunction + "(" +
+            quote( colName ) + "))::numeric, 6) || ']'", colName );
     }
 
     /**
@@ -799,8 +793,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
 
             return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC,
-                programIndicator,
-                startDate, endDate );
+                programIndicator, startDate, endDate );
         }
         else
         {
@@ -818,19 +811,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
         }
-    }
-
-    /**
-     * Checks if the ValueType, in the given parameters, is of type NUMERIC.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @return true if the parameter value type is numeric, false otherwise.
-     */
-    private boolean isParamsValueTypeNumeric( EventQueryParams params )
-    {
-        return params != null &&
-            params.getValue() instanceof ValueTypedDimensionalItemObject &&
-            ((ValueTypedDimensionalItemObject) params.getValue()).getValueType() == ValueType.NUMBER;
     }
 
     /**
@@ -951,6 +931,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * Adds a value from the given row set to the grid.
+     *
+     * @param grid the {@link Grid}.
+     * @param header the {@link GridHeader}.
+     * @param index the row set index.
+     * @param sqlRowSet the {@link SqlRowSet}.
+     * @param params the {@link EventQueryParams}.
+     */
     protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
     {
         if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
@@ -1008,7 +997,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * string interpretation of code coming from Option/Code can vary from
      * Option/value (double) fetched from database ("1" vs "1.0") By the
      * equality (both are converted to double) of both the Option/Code is used
-     * as a value
+     * as a value.
      *
      * @param value the value.
      * @param grid the {@link Grid}.
@@ -1019,19 +1008,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         if ( header.hasOptionSet() )
         {
-            Optional<Option> option = header.getOptionSetObject()
-                .getOptions()
-                .stream()
-                .filter( o -> {
-                    try
-                    {
-                        return Double.parseDouble( o.getCode() ) == value;
-                    }
-                    catch ( Exception ignored )
-                    {
-                        return false;
-                    }
-                } )
+            Optional<Option> option = header.getOptionSetObject().getOptions().stream()
+                .filter( o -> NumberUtils.isCreatable( o.getCode() ) &&
+                    MathUtils.isEqual( NumberUtils.createDouble( o.getCode() ), value ) )
                 .findFirst();
 
             if ( option.isPresent() )
