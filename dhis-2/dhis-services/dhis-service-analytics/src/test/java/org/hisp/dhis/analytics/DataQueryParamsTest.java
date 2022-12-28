@@ -220,8 +220,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
             List.of() );
         DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
             List.of() );
-        DataQueryParams params = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doB )
-            .addDimension( doC ).addDimension( doD ).addDimension( doE ).addDimension( doF ).addDimension( doG )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
             .build();
         List<DimensionalObject> dimensions = params.getDimensions();
         assertEquals( 7, dimensions.size() );
