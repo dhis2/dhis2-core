@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -39,14 +38,18 @@ class AnalyticsSqlUtilsTest
 {
 
     @Test
+    void testQuote()
+    {
+        assertEquals( "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote( "Some \"special\" value" ) );
+        assertEquals( "\"Data element\"", AnalyticsSqlUtils.quote( "Data element" ) );
+    }
+
+    @Test
     void testGetClosingParentheses()
     {
-        assertThat( AnalyticsSqlUtils.getClosingParentheses( null ), is( "" ) );
-        assertThat( AnalyticsSqlUtils.getClosingParentheses( "" ), is( "" ) );
-        assertThat( AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ), is( ")" ) );
-        assertThat( AnalyticsSqlUtils.getClosingParentheses( "((" ), is( "))" ) );
-        assertThat( AnalyticsSqlUtils.getClosingParentheses(
-            "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ),
-            is( ")" ) );
+        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( null ) );
+        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( "" ) );
+        assertEquals( ")", AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ) );
+        assertEquals( "))", AnalyticsSqlUtils.getClosingParentheses( "((" ) );
     }
 }
