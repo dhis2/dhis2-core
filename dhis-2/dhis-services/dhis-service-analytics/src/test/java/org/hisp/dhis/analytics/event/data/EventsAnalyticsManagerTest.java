@@ -513,7 +513,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expectedLastSubquery = " from (select \"psi\",\"yearly\",\"" + programDataElement.getUid()
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
-            + "row_number() over (partition by ax.\"ou\", ax.\"ao\" order by ax.\"executiondate\" "
+            + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " as ax where ax.\"executiondate\" >= '1990-03-31' "
             + "and ax.\"executiondate\" <= '2000-03-31' and ax.\"" + programDataElement.getUid() + "\" is not null)";
