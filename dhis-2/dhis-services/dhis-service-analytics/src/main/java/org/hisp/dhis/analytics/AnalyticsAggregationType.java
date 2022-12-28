@@ -55,7 +55,7 @@ public class AnalyticsAggregationType
         AggregationType.SUM, AggregationType.LAST );
 
     public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType(
-        AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );
+        AggregationType.SUM, AggregationType.LAST_IN_PERIOD );
 
     /**
      * General aggregation type.
