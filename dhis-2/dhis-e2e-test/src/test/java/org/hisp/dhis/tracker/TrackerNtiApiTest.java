@@ -173,6 +173,14 @@ public class TrackerNtiApiTest
         return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
     }
 
+    protected TrackerApiResponse importRelationshipEnrollmentToTei( String enrollment, String teiB )
+    {
+        JsonObject payload = new RelationshipDataBuilder().setFromEntity( "enrollment", enrollment )
+            .setToTrackedEntity( teiB ).setRelationshipType( "fdc6uOvgoji" ).array();
+
+        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+    }
+
     @AfterEach
     public void afterEachNTI()
     {

@@ -204,7 +204,6 @@ class DataQueryServiceDimensionItemKeywordTest
             .thenReturn( 3 );
         when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) )
             .thenReturn( 2 );
-
         when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.anyList(), Mockito.anyList() ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
 

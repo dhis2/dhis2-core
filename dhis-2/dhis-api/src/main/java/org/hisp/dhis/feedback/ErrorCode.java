@@ -36,6 +36,10 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
+    E1003( "API query contains errors" ),
+    E1004( "API query cannot be performed" ),
+    E1005( "API query object not found" ),
+    E1006( "API request not permitted for the current user" ),
 
     /* Basic metadata */
     E1100( "Data element not found or not accessible: `{0}`" ),
@@ -173,6 +177,7 @@ public enum ErrorCode
     E3025( "User must have a secret" ),
     E3026( "Could not generate QR code" ),
     E3027( "No currentUser available" ),
+    E3028( "User `{0}` does not have access to user role" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`" ),
@@ -446,7 +451,7 @@ public enum ErrorCode
     E7638( "Period: `{0}` is not within date range of attribute option combo: `{1}`" ),
     E7639( "Organisation unit: `{0}` is not valid for attribute option combo: `{1}`" ),
     E7640( "Current date is past expiry days for period: `{0}`  and data set: `{1}`" ),
-    E7641( "Period: `{0}` is after latest open future period: `{2}` for data element: `{1}`" ),
+    E7641( "Period: `{0}` is after latest open future period: `{3}` for data element: `{1}` and data set: `{2}`" ),
     E7642( "Data already approved for data set: `{3}` period: `{1}` org unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
