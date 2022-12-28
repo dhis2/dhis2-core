@@ -945,7 +945,8 @@ public class DataQueryParams
 
     /**
      * Indicates whether this query requires aggregation of data. No aggregation
-     * takes place if aggregation type is none or if data type is text.
+     * takes place if aggregation type is none, first or last, or if data type
+     * is text.
      * <p>
      * Note that the check for {@link DataType#TEXT} is for backwards
      * compatibility only and text type data elements should have an appropriate
@@ -953,7 +954,8 @@ public class DataQueryParams
      */
     public boolean isAggregation()
     {
-        return !(isAggregationType( AggregationType.NONE ) || DataType.TEXT == dataType);
+        return !(isAnyAggregationType( AggregationType.NONE, AggregationType.FIRST, AggregationType.LAST ) ||
+            DataType.TEXT == dataType);
     }
 
     /**

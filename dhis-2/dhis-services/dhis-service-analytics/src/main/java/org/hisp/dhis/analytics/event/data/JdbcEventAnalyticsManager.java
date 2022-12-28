@@ -40,6 +40,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAliasCommaSeparate;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -276,7 +277,6 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-
         String sql = "select count(psi) as " + COL_COUNT +
             ", ST_Extent(" + getCoalesce( params.getCoordinateFields() ) + ") as " + COL_EXTENT + " ";
 
@@ -621,6 +621,7 @@ public class JdbcEventAnalyticsManager
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String alias = "iax";
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String partitionColumns = getFirstOrLastPartitionColumns( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
         String valueItem = quote( alias, params.getValue().getDimensionItem() );
@@ -633,7 +634,7 @@ public class JdbcEventAnalyticsManager
         }
 
         sql += "row_number() over (" +
-            "partition by ou, ao " +
+            "partition by " + partitionColumns + " " +
             "order by " + timeCol + " " + order + ") as pe_rank " +
             "from " + params.getTableName() + " " + alias + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
@@ -641,6 +642,18 @@ public class JdbcEventAnalyticsManager
             "and " + valueItem + " is not null)";
 
         return sql;
+    }
+
+    private String getFirstOrLastPartitionColumns( EventQueryParams params )
+    {
+        if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
+        {
+            return ""; //TODO
+        }
+        else
+        {
+            return quoteAliasCommaSeparate( List.of( "ou", "ao" ) );
+        }
     }
 
     /**
@@ -691,7 +704,6 @@ public class JdbcEventAnalyticsManager
      */
     private List<String> resolveCoordinateFieldsColumnNames( List<String> coordinateFields, EventQueryParams params )
     {
-        // possible immutable to mutable
         List<String> coors = new ArrayList<>( coordinateFields );
 
         for ( int i = 0; i < coors.size(); ++i )

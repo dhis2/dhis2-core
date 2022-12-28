@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
@@ -473,9 +474,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String countClause = getAggregateClause( params );
+        String aggregateClause = getAggregateClause( params );
 
-        String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
+        String sql = TextUtils.removeLastComma( "select " + aggregateClause + " as value," +
             StringUtils.join( getSelectColumns( params, true ), "," ) + " " );
 
         // ---------------------------------------------------------------------
@@ -486,16 +487,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        // ---------------------------------------------------------------------
-        // Group by
-        // ---------------------------------------------------------------------
-
-        List<String> selectColumnNames = getGroupByColumnNames( params, true );
-
-        if ( selectColumnNames.size() > 0 )
-        {
-            sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
-        }
+        sql += getGroupByClause( params );
 
         // ---------------------------------------------------------------------
         // Sort order
@@ -545,6 +537,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return grid;
+    }
+
+    /**
+     * Returns a group by SQL clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @return a group by SQL clause.
+     */
+    private String getGroupByClause( EventQueryParams params )
+    {
+        String sql = "";
+
+        List<String> selectColumnNames = getGroupByColumnNames( params, true );
+
+        if ( isNotEmpty( selectColumnNames ) )
+        {
+            sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
+        }
+
+        return sql;
     }
 
     private void getAggregatedEventData( Grid grid, EventQueryParams params, String sql )
@@ -646,7 +658,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the count clause based on value dimension and output type.
+     * Returns the aggregate clause based on value dimension and output type.
      *
      * @param params the {@link EventQueryParams}.
      */
@@ -656,7 +668,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
-        if ( params.hasNumericValueDimension() )
+        if ( !params.isAggregation() )
+        {
+            return quoteAlias( params.getValue().getUid() );
+        }
+        else if ( params.hasNumericValueDimension() )
         {
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
