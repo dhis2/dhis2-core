@@ -414,7 +414,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+            + "' group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
 
         assertThat( sql.getValue(), is( expected ) );
     }
@@ -444,7 +444,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and ax.\"fWIAEtYVEGk\" > '10'"
-            + " group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+            + " group by ax.\"monthly\", ax.\"ou\", ax.\"fWIAEtYVEGk\" limit 200001";
         assertThat( sql.getValue(), is( expected ) );
     }
 
@@ -513,10 +513,10 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         String expectedLastSubquery = " from (select \"psi\",\"yearly\",\"" + programDataElement.getUid()
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
-            + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
+            + "row_number() over (partition by ax.\"ou\", ax.\"ao\" order by ax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
-            + "from " + getTable( programA.getUid() ) + " iax where iax.\"executiondate\" >= '1990-03-31' "
-            + "and iax.\"executiondate\" <= '2000-03-31' and iax.\"" + programDataElement.getUid() + "\" is not null)";
+            + "from " + getTable( programA.getUid() ) + " as ax where ax.\"executiondate\" >= '1990-03-31' "
+            + "and ax.\"executiondate\" <= '2000-03-31' and ax.\"" + programDataElement.getUid() + "\" is not null)";
 
         assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
 

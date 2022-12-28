@@ -39,20 +39,20 @@ import com.google.common.base.MoreObjects;
  */
 public class AnalyticsAggregationType
 {
-    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.SUM );
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.SUM );
 
-    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE,
-        AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType(
+        AggregationType.AVERAGE, AggregationType.AVERAGE );
 
-    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT,
-        AggregationType.COUNT );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType(
+        AggregationType.COUNT, AggregationType.COUNT );
 
-    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST,
-        AggregationType.FIRST );
+    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.FIRST );
 
-    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST,
-        AggregationType.LAST );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType(
+        AggregationType.SUM, AggregationType.LAST );
 
     public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType(
         AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );

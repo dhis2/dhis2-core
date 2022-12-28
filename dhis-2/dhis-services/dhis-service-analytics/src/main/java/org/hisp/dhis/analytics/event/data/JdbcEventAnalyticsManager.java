@@ -633,7 +633,7 @@ public class JdbcEventAnalyticsManager
             sql += col + ",";
         }
 
-        sql += "row_number() over (" + partitionByClause +
+        sql += "row_number() over (" + partitionByClause + " " +
             "order by " + timeCol + " " + order + ") as pe_rank " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
