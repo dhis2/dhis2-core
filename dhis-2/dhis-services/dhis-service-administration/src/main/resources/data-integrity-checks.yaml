@@ -51,4 +51,5 @@ checks:
   - groups/group_size_program_indicator_groups.yaml
   - groups/group_size_indicator_group_sets.yaml
   - groups/group_size_validation_rule_groups.yaml
+  - groups/group_size_organisation_unit_groups.yaml
 
