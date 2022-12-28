@@ -133,15 +133,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private static final String _AND_ = " and ";
+    private static final String AND = " and ";
 
-    private static final String _OR_ = " or ";
+    private static final String OR = " or ";
 
     private static final String LIMIT = "limit";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( OR, "(", ")" );
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( AND );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -1121,7 +1121,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return "";
         }
-        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
+        return hlp.whereAnd() + " " + String.join( AND, sqlConditionByGroup.values() );
     }
 
     /**
@@ -1167,7 +1167,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         return queryItem.getFilters().stream()
             .map( filter -> toSql( queryItem, filter, params ) )
-            .collect( joining( _AND_ ) );
+            .collect( joining( AND ) );
     }
 
     /**
@@ -1225,6 +1225,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 case NLIKE:
                 case NILIKE:
                     return nullAndEmptyMatcher( item, filter, field );
+                default:
+                    break;
                 }
             }
 
