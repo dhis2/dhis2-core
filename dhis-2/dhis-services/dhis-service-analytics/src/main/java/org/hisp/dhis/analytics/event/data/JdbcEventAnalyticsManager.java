@@ -67,6 +67,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -619,12 +620,11 @@ public class JdbcEventAnalyticsManager
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String alias = "iax";
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String partitionColumns = getFirstOrLastPartitionColumns( params );
+        String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
-        String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
-        String valueItem = quote( alias, params.getValue().getDimensionItem() );
+        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+        String valueItem = quoteAlias( params.getValue().getDimensionItem() );
 
         String sql = "(select ";
 
@@ -633,10 +633,9 @@ public class JdbcEventAnalyticsManager
             sql += col + ",";
         }
 
-        sql += "row_number() over (" +
-            "partition by " + partitionColumns + " " +
+        sql += "row_number() over (" + partitionByClause +
             "order by " + timeCol + " " + order + ") as pe_rank " +
-            "from " + params.getTableName() + " " + alias + " " +
+            "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
@@ -644,16 +643,32 @@ public class JdbcEventAnalyticsManager
         return sql;
     }
 
-    private String getFirstOrLastPartitionColumns( EventQueryParams params )
+    /**
+     * Returns the partition columns.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @return the partition columns as a quoted and comma separated string.
+     */
+    private String getFirstOrLastValuePartitionByClause( EventQueryParams params )
     {
         if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
         {
-            return ""; //TODO
+            return getFirstOrLastValuePartitionByColumns( params.getNonPeriodDimensions() );
         }
         else
         {
-            return quoteAliasCommaSeparate( List.of( "ou", "ao" ) );
+            return "partition by " + quoteAliasCommaSeparate( List.of( "ou", "ao" ) );
         }
+    }
+
+    private String getFirstOrLastValuePartitionByColumns( List<DimensionalObject> dimensions )
+    {
+        String partitionColumns = dimensions.stream()
+            .map( DimensionalObject::getDimensionName )
+            .map( AnalyticsSqlUtils::quoteAlias )
+            .collect( Collectors.joining( "," ) );
+
+        return StringUtils.isNotEmpty( partitionColumns ) ? ("partition by " + partitionColumns) : StringUtils.EMPTY;
     }
 
     /**

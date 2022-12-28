@@ -593,7 +593,7 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
-        String partitionColumns = getFirstOrLastPartitionColumns( params );
+        String partitionColumns = getFirstOrLastValuePartitionColumns( params );
         String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
@@ -632,7 +632,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return the partition columns as a quoted and comma separated string.
      */
-    private String getFirstOrLastPartitionColumns( DataQueryParams params )
+    private String getFirstOrLastValuePartitionColumns( DataQueryParams params )
     {
         if ( params.isAnyAggregationType( AggregationType.FIRST, AggregationType.LAST ) )
         {

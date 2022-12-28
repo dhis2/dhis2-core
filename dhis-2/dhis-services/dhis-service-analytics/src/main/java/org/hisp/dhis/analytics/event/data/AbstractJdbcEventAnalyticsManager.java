@@ -55,6 +55,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.text.ParseException;
@@ -308,7 +309,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * group clause, as non default boundaries is defining their own period
      * groups within their where clause.
      */
-    private List<String> getGroupByColumnNames( EventQueryParams params, boolean isAggregated )
+    protected List<String> getGroupByColumnNames( EventQueryParams params, boolean isAggregated )
     {
         return getSelectColumns( params, true, isAggregated );
     }
@@ -549,11 +550,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String sql = "";
 
-        List<String> selectColumnNames = getGroupByColumnNames( params, true );
-
-        if ( isNotEmpty( selectColumnNames ) )
+        if ( params.isAggregation() )
         {
-            sql += "group by " + StringUtils.join( selectColumnNames, "," ) + " ";
+            List<String> selectColumnNames = getGroupByColumnNames( params, true );
+
+            if ( isNotEmpty( selectColumnNames ) )
+            {
+                sql += "group by " + getCommaDelimitedString( selectColumnNames ) + " ";
+            }
         }
 
         return sql;
