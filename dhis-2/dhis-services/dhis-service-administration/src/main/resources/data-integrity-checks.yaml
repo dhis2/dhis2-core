@@ -13,6 +13,7 @@ checks:
   - categories/category_options_no_categories.yaml
   - categories/coc_no_category_combo.yaml
   - categories/category_option_groups_excess_members.yaml
+  - datasets/datasets_empty.yaml
   - orgunits/compulsory_orgunit_groups.yaml
   - orgunits/orgunit_open_date_gt_closed_date.yaml
   - orgunits/orgunits_multiple_spaces.yaml
