@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-<<<<<<< HEAD
 import com.google.gson.JsonObject;
-=======
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
@@ -42,9 +40,7 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
->>>>>>> 181c6ecb78 (fix: integration and e2e tests)
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -56,16 +52,7 @@ import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-<<<<<<< HEAD
-import java.io.File;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-=======
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
->>>>>>> 181c6ecb78 (fix: integration and e2e tests)
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -176,11 +163,7 @@ public class TeiImportTests
             "Nav6inZRw1u", "xLmPUYJX8Ks" );
 
         JsonObjectBuilder.jsonObject( teiPayload )
-<<<<<<< HEAD
-            .addArray( "relationships", new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u", "xLmPUYJX8Ks" ));
-=======
             .addArray( "relationships", teiToTeiRelationship );
->>>>>>> 181c6ecb78 (fix: integration and e2e tests)
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
