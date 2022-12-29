@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import com.google.common.base.Preconditions;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.RedirectHandler;
-import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
-import org.eclipse.jetty.rewrite.handler.RewriteHandler;
-import org.eclipse.jetty.rewrite.handler.RewritePatternRule;
-import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.web.context.request.RequestContextListener;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +34,20 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.springframework.core.io.ClassPathResource;
+
+import com.google.common.base.Preconditions;
 
 @Slf4j
 public abstract class EmbeddedJettyBase
@@ -59,8 +58,7 @@ public abstract class EmbeddedJettyBase
     }
 
     public void startJetty()
-        throws
-        Exception
+        throws Exception
     {
         Integer queueSize = getIntSystemProperty( "jetty.thread.queue", 6000 );
         BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>( queueSize );
@@ -81,14 +79,12 @@ public abstract class EmbeddedJettyBase
         resourceHandler.setDirectoriesListed( false );
         resourceHandler.setResourceBase( "./dhis-web/dhis-web-portal/target/dhis" );
 
-
         RewriteHandler rewrite = new RewriteHandler();
-        rewrite.setHandler(resourceHandler);
+        rewrite.setHandler( resourceHandler );
         RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
         rewritePatternRule.setPattern( "" );
         rewritePatternRule.setLocation( "/index.html" );
         rewrite.addRule( rewritePatternRule );
-
 
         HandlerList handlers = new HandlerList();
         handlers.setHandlers( new Handler[] { rewrite,
@@ -148,7 +144,7 @@ public abstract class EmbeddedJettyBase
         try (
             final InputStream resourceStream = new ClassPathResource( "banner.txt" ).getInputStream();
             final InputStreamReader inputStreamReader = new InputStreamReader( resourceStream, "UTF-8" );
-            final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ))
+            final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ) )
         {
             final String banner = bufferedReader
                 .lines()

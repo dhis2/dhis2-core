@@ -136,13 +136,11 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
             .addMappingForUrlPatterns( null, true, "/*" );
 
-
-
         context.addServlet( "GetModulesServlet", GetModulesServlet.class )
             .addMapping( "/dhis-web-commons/menu/getModules.action" );
 
         context.addServlet( "RootPageServlet", RootPageServlet.class )
-            .addMapping( "/index.html");
+            .addMapping( "/index.html" );
 
         return contextHandler;
     }
