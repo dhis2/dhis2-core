@@ -77,6 +77,7 @@ import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObjectCollection;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
@@ -1058,6 +1059,24 @@ public class DataQueryParams
     }
 
     /**
+     *
+     * @param dimension
+     * @return
+     */
+    public DimensionalItemObjectCollection getDimensionalItemObjectCollection( String dimension )
+    {
+        int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
+
+        if ( index != -1 )
+        {
+            return new DimensionalItemObjectCollection( dimensions.get( index ).getItems(),
+                dimensions.get( index ).isAllItems() );
+        }
+
+        return getFilterBasedDimensionalItemObjectCollection( dimension );
+    }
+
+    /**
      * Retrieves the dimension with the given dimension identifier. Returns null
      * if the dimension is not present.
      */
@@ -1088,6 +1107,24 @@ public class DataQueryParams
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<>();
+    }
+
+    /**
+     *
+     * @param filter
+     * @return
+     */
+    public DimensionalItemObjectCollection getFilterBasedDimensionalItemObjectCollection( String filter )
+    {
+        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
+
+        if ( index != -1 )
+        {
+            return new DimensionalItemObjectCollection( filters.get( index ).getItems(),
+                filters.get( index ).isAllItems() );
+        }
+
+        return new DimensionalItemObjectCollection( new ArrayList<>(), false );
     }
 
     /**

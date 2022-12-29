@@ -68,7 +68,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObjectCollection;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -435,7 +435,7 @@ public class JdbcEventAnalyticsManager
         else // Descendants
         {
             String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+                params.getDimensionalItemObjectCollection( ORGUNIT_DIM_ID ) );
 
             if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
             {
@@ -576,16 +576,18 @@ public class JdbcEventAnalyticsManager
      * descendant level
      */
     private String getOrgDescendantsSqlSnippet( OrgUnitField orgUnitField,
-        List<DimensionalItemObject> dimensionOrFilterItems )
+        DimensionalItemObjectCollection dimensionalItemObjectCollection )
     {
-        Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
+        Map<String, List<OrganisationUnit>> collect = dimensionalItemObjectCollection.getDimensionalItemObjects()
+            .stream()
             .map( object -> (OrganisationUnit) object )
             .collect( Collectors.groupingBy(
                 unit -> orgUnitField.getOrgUnitLevelCol( unit.getLevel(), getAnalyticsType() ) ) );
 
         return collect.keySet()
             .stream()
-            .map( org -> toInCondition( org, collect.get( org ) ) )
+            .map(
+                org -> toInOrNotNullCondition( org, collect.get( org ), dimensionalItemObjectCollection.isAllItems() ) )
             .collect( joining( " and " ) );
     }
 
@@ -596,12 +598,14 @@ public class JdbcEventAnalyticsManager
      * @param organisationUnits the list of {@link OrganisationUnit}.
      * @return a SQL in condition.
      */
-    private String toInCondition( String orgUnit, List<OrganisationUnit> organisationUnits )
+    private String toInOrNotNullCondition( String orgUnit, List<OrganisationUnit> organisationUnits,
+        boolean isAllItems )
     {
-        return organisationUnits.stream()
-            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
-            .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
+        return isAllItems ? orgUnit + " is not null "
+            : organisationUnits.stream()
+                .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+                .map( unit -> "'" + unit.getUid() + "'" )
+                .collect( joining( ",", orgUnit + OPEN_IN, ") " ) );
     }
 
     /**

@@ -197,6 +197,15 @@ public class BaseDimensionalObject
     }
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, List<? extends DimensionalItemObject> items,
+        DimensionItemKeywords dimensionalKeywords, boolean allItems )
+    {
+        this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
+        this.dimensionalKeywords = dimensionalKeywords;
+        this.allItems = allItems;
+    }
+
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
         String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
