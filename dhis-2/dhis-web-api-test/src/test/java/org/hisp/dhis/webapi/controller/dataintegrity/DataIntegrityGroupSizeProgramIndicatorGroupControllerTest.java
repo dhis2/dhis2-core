@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import java.util.Set;
+
 import org.hisp.dhis.program.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +59,24 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     {
 
         setUpTest();
+
+        //Add a group with one indicator
+        ProgramIndicatorGroup programIndicatorGroupB = new ProgramIndicatorGroup( "Test PI Group B" );
+        programIndicatorGroupB.setAutoFields();
+        programIndicatorGroupB.addProgramIndicator( testPIb );
+        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupB );
+
+        //Add a group with zero program indicators
+        ProgramIndicatorGroup programIndicatorGroupC = new ProgramIndicatorGroup( "Test PI Group C" );
+        programIndicatorGroupC.setAutoFields();
+        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupC );
         dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( "group_size", check, 100, programIndicatorGroupA.getUid(), "Test PI Group A",
-            null,
-            true );
+        Set<String> expected_uids = Set.of( programIndicatorGroupC.getUid(), programIndicatorGroupB.getUid() );
+        Set<String> expected_names = Set.of( programIndicatorGroupC.getName(), programIndicatorGroupB.getName() );
 
+        assertHasDataIntegrityIssues( "group_size", check, 66, expected_uids, expected_names,
+            Set.of( "0", "1" ), true );
     }
 
     @Test
@@ -70,8 +84,7 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
     {
 
         setUpTest();
-        programIndicatorGroupA.addProgramIndicator( testPIb );
-        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
+
         dbmsManager.clearSession();
 
         assertHasNoDataIntegrityIssues( "group_size", check, true );
@@ -106,7 +119,6 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         testPIa.setName( "Test PI A" );
         testPIa.setShortName( "Test PI A" );
         testPIa.setProgram( programA );
-
         programIndicatorService.addProgramIndicator( testPIa );
 
         testPIb = new ProgramIndicator();
@@ -116,8 +128,10 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends Abstract
         testPIb.setProgram( programA );
         programIndicatorService.addProgramIndicator( testPIb );
 
-        //Only add one of the indicators to the group
+        //Add two indicators to this group
         programIndicatorGroupA.addProgramIndicator( testPIa );
+        programIndicatorGroupA.addProgramIndicator( testPIb );
+        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
 
     }
 }

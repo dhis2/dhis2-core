@@ -32,30 +32,33 @@ section_order: 3
 summary_uid: iOZtfxbXjoo
 summary_sql: >-
   WITH group_size as (
-  SELECT uid,name, 'programIndicatorGroups' as comment from
+  SELECT uid,name, COALESCE(x.count,0) as count from
   programindicatorgroup
-  INNER JOIN (
-  SELECT programindicatorgroupid, COUNT(programindicatorid) 
+  LEFT OUTER JOIN (
+  SELECT programindicatorgroupid, COUNT(programindicatorid) as count 
   FROM programindicatorgroupmembers
-  GROUP BY programindicatorgroupid HAVING COUNT(*) < 2) x
+  GROUP BY programindicatorgroupid ) x
   USING(programindicatorgroupid)
   ORDER BY name)
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from programindicatorgroup), 0) as percent
-  from group_size;
+  from group_size where count < 2;
 details_uid: rmPoiiAjHNV
 details_sql: >-
-  SELECT uid,name, 'programIndicatorGroups' as comment from
+  WITH group_size as (
+  SELECT uid,name, COALESCE(x.count,0) as count from
   programindicatorgroup
-  INNER JOIN (
-  SELECT programindicatorgroupid, COUNT(programindicatorid)
+  LEFT OUTER JOIN (
+  SELECT programindicatorgroupid, COUNT(programindicatorid) as count 
   FROM programindicatorgroupmembers
-  GROUP BY programindicatorgroupid HAVING COUNT(*) < 2) x
+  GROUP BY programindicatorgroupid ) x
   USING(programindicatorgroupid)
-  ORDER BY name;
+  ORDER BY name)
+  SELECT uid,name,CAST(count as text) as comment
+  FROM group_size where count < 2;
 severity: WARNING
 introduction: >
-  All program indicator groups should be composed of at least two program indicators.
+  Program indicator groups should generally be composed of two or more program indicators.
 recommendation: >
   Considering removing groups with a single member, or alternatively, add additional
   members to the group to make it more useful.
