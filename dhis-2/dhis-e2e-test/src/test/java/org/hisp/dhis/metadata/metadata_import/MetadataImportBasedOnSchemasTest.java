@@ -109,7 +109,7 @@ public class MetadataImportBasedOnSchemasTest
             "programRuleVariables",
             "eventCharts",
             "programStages",
-            "programStageWorkingListDefinition");
+            "programStageWorkingListDefinitions ");
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

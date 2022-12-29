@@ -135,8 +135,6 @@ public class DefaultProgramStageWorkingListDefinitionService
             errors.add( "No name specified for the working list definition." );
         }
 
-        //TODO Add more validations
-
         return errors;
     }
 }
