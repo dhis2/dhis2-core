@@ -173,10 +173,10 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
-            "{'program': {'id': '" + programStageId + "'}, 'name':'" + updatedName + "'}" );
+            "{'program': {'id': '" + programId + "'}, 'name':'" + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program is specified but does not exist", response.error().getMessage() );
+        assertEquals( "[No program stage specified for the working list definition.]", response.error().getMessage() );
     }
 
     @Test
@@ -186,11 +186,11 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
-            "{'program': {'id': '" + programStageId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'"
+            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'"
                 + updatedName + "'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Program is specified but does not exist", response.error().getMessage() );
+        assertContains( "Program stage is specified but does not exist", response.error().getMessage() );
     }
 
     @Test

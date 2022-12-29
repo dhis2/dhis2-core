@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.programstageworkinglistdefinition;
 
+import java.util.Objects;
+
+import lombok.Setter;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -40,6 +44,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+@Setter
 @JacksonXmlRootElement( localName = "programStageWorkingListDefinition", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
     implements MetadataObject
@@ -85,11 +90,6 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
         return program;
     }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
-
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -98,21 +98,11 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
         return programStage;
     }
 
-    public void setProgramStage( ProgramStage programStage )
-    {
-        this.programStage = programStage;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
     }
 
     @JsonProperty
@@ -130,21 +120,11 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
         return style;
     }
 
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getSortOrder()
     {
         return sortOrder;
-    }
-
-    public void setSortOrder( int sortOrder )
-    {
-        this.sortOrder = sortOrder;
     }
 
     @JsonProperty
@@ -154,8 +134,41 @@ public class ProgramStageWorkingListDefinition extends BaseIdentifiableObject
         return programStageQueryCriteria;
     }
 
-    public void setProgramStageQueryCriteria( ProgramStageQueryCriteria programStageQueryCriteria )
+    @Override
+    public boolean equals( Object o )
     {
-        this.programStageQueryCriteria = programStageQueryCriteria;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        if ( !super.equals( o ) )
+            return false;
+
+        ProgramStageWorkingListDefinition that = (ProgramStageWorkingListDefinition) o;
+
+        if ( sortOrder != that.sortOrder )
+            return false;
+        if ( !Objects.equals( program, that.program ) )
+            return false;
+        if ( !Objects.equals( programStage, that.programStage ) )
+            return false;
+        if ( !Objects.equals( description, that.description ) )
+            return false;
+        if ( !Objects.equals( style, that.style ) )
+            return false;
+        return Objects.equals( programStageQueryCriteria, that.programStageQueryCriteria );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = super.hashCode();
+        result = 31 * result + (program != null ? program.hashCode() : 0);
+        result = 31 * result + (programStage != null ? programStage.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + sortOrder;
+        result = 31 * result + (style != null ? style.hashCode() : 0);
+        result = 31 * result + (programStageQueryCriteria != null ? programStageQueryCriteria.hashCode() : 0);
+        return result;
     }
 }

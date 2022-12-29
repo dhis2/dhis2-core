@@ -30,6 +30,8 @@ package org.hisp.dhis.programstageworkinglistdefinition;
 import java.io.Serializable;
 import java.util.List;
 
+import lombok.Setter;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
@@ -42,6 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * Represents the filtering/sorting criteria to be used when querying program
  * stage working lists.
  */
+@Setter
 public class ProgramStageQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
@@ -68,11 +71,6 @@ public class ProgramStageQueryCriteria implements Serializable
         return dataFilters;
     }
 
-    public void setDataFilters( List<EventDataFilter> dataElements )
-    {
-        this.dataFilters = dataElements;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public EventStatus getStatus()
@@ -80,20 +78,10 @@ public class ProgramStageQueryCriteria implements Serializable
         return status;
     }
 
-    public void setStatus( EventStatus status )
-    {
-        this.status = status;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DateFilterPeriod getEventDate()
     {
         return eventDate;
-    }
-
-    public void setEventDate( DateFilterPeriod createdDate )
-    {
-        this.eventDate = createdDate;
     }
 }
