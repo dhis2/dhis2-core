@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -45,20 +47,22 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
 
     private String validationRuleA;
 
-    private String validationRuleB;
-
     @Test
     void testValidationRuleGroupsTooSmall()
     {
 
         setUpTest();
-        String indicatorGroupSetA = assertStatus( HttpStatus.CREATED,
+        String indicatorGroupA = assertStatus( HttpStatus.CREATED,
             POST( "/validationRuleGroups",
-                "{ 'name' : 'A validation rule group', 'shortName' : 'A validation rule group', 'validationRules' : [{'id' : '"
+                "{ 'name' : 'One', 'shortName' : 'One', 'validationRules' : [{'id' : '"
                     + validationRuleA + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 100, indicatorGroupSetA,
-            "A validation rule group", null, true );
+        String indicatorGroupB = assertStatus( HttpStatus.CREATED,
+            POST( "/validationRuleGroups",
+                "{ 'name' : 'None', 'shortName' : 'None'} " ) );
+
+        assertHasDataIntegrityIssues( "group_size", check, 66,
+            Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "One", "None" ), Set.of( "0", "1" ), true );
     }
 
     @Test
@@ -66,11 +70,7 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
     {
 
         setUpTest();
-        assertStatus( HttpStatus.CREATED,
-            POST( "/validationRuleGroups",
-                "{ 'name' : 'A validation rule group', 'shortName' : 'A validation rule group', 'validationRules' : [{'id' : '"
-                    + validationRuleA + "'}, " +
-                    "{'id' : '" + validationRuleB + "'}]}" ) );
+
         assertHasNoDataIntegrityIssues( "group_size", check, true );
     }
 
@@ -90,12 +90,18 @@ class DataIntegrityGroupSizeValidationRuleGroupsControllerTest extends AbstractD
                     "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test2'," +
                     "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule A'}" ) );
 
-        validationRuleB = assertStatus( HttpStatus.CREATED,
+        String validationRuleB = assertStatus( HttpStatus.CREATED,
             POST( "/validationRules",
                 "{'importance':'MEDIUM','operator':'not_equal_to','leftSide':{'missingValueStrategy':'NEVER_SKIP', " +
                     "'description':'Test 3','expression':'abc123'}," +
                     "'rightSide':{'missingValueStrategy': 'NEVER_SKIP', 'description':'Test 4'," +
                     "'expression':'xyz456'},'periodType':'Monthly','name':'Test rule B'}" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/validationRuleGroups",
+                "{ 'name' : 'A validation rule group', 'shortName' : 'A validation rule group', 'validationRules' : [{'id' : '"
+                    + validationRuleA + "'}, " +
+                    "{'id' : '" + validationRuleB + "'}]}" ) );
 
     }
 
