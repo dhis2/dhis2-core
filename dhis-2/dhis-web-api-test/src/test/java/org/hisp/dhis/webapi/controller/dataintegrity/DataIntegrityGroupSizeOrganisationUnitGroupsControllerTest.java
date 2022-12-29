@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -42,30 +44,24 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
 {
     private final String check = "group_size_orgunit_groups";
 
+    private String orgunitB;
+
     @Test
     void testOrgunitGroupSizeTooLow()
     {
 
-        String orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
-        String orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
-
-        String testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
-                    orgunitA + "'}, {'id' : '" + orgunitB + "'}]}" ) );
+        setUpTest();
 
         String testOrgUnitGroupB = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnitGroups",
                 "{'name': 'Type B', 'shortName': 'Type B', 'organisationUnits' : [{'id' : '" + orgunitB
                     + "'}]}" ) );
-        assertHasDataIntegrityIssues( "group_size", check, 50, testOrgUnitGroupB, "Type B",
-            null,
-            true );
+
+        String testOrgUnitGroupC = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups",
+                "{'name': 'Type C', 'shortName': 'Type C' }" ) );
+        assertHasDataIntegrityIssues( "group_size", check, 66, Set.of( testOrgUnitGroupB, testOrgUnitGroupC ),
+            Set.of( "Type B", "Type C" ), Set.of( "0", "1" ), true );
 
     }
 
@@ -73,18 +69,7 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
     void testOrgunitGroupSizeOK()
     {
 
-        String orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
-        String orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
-
-        String testOrgUnitGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
-                    orgunitA + "'}, {'id' : '" + orgunitB + "'}]}" ) );
+        setUpTest();
 
         assertHasNoDataIntegrityIssues( "group_size", check, true );
 
@@ -98,4 +83,19 @@ class DataIntegrityGroupSizeOrganisationUnitGroupsControllerTest extends Abstrac
 
     }
 
+    void setUpTest()
+    {
+        String orgunitA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+
+        orgunitB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" +
+                    orgunitA + "'}, {'id' : '" + orgunitB + "'}]}" ) );
+    }
 }
