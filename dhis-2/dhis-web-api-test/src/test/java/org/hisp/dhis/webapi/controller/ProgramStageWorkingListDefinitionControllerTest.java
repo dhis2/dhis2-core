@@ -203,8 +203,6 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         assertTrue( response.header( "content-type" ).contains( "application/json" ) );
     }
 
-    //TODO Add more tests for other validations
-
     private String createWorkingList( String workingListName )
     {
         return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions?fields=id",
