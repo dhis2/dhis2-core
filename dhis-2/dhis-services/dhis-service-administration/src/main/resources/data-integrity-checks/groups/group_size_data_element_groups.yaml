@@ -32,25 +32,28 @@ section_order: 1
 summary_uid: sup7m0e5Ngc
 summary_sql: >-
   WITH group_size as (
-  SELECT uid,name, 'dataElementGroups' as comment from
+  SELECT uid,name, 'dataElementGroups' as comment, COALESCE(x.count,0) as count from
   dataelementgroup
-  INNER JOIN (
-  SELECT dataelementgroupid, COUNT(dataelementid) from dataelementgroupmembers
-  GROUP BY dataelementgroupid HAVING COUNT(*) < 2) x
+  LEFT OUTER JOIN (
+  SELECT dataelementgroupid, COUNT(dataelementid) as count from dataelementgroupmembers
+  GROUP BY dataelementgroupid) x
   USING(dataelementgroupid)
   ORDER BY name)
   SELECT COUNT(*) as value,
-   100*COUNT(*) / NULLIF( ( select COUNT(*) from dataelement where domaintype = 'AGGREGATE'), 0) as percent
-  from group_size;
+   100*COUNT(*) / NULLIF( ( select COUNT(*) from dataelementgroup), 0) as percent
+  from group_size WHERE count < 2;
 details_uid: b5e4mmhTjQA
 details_sql: >-
-  SELECT uid,name, 'dataElementGroups' as comment from
+  WITH group_size as (
+  SELECT uid,name, 'dataElementGroups' as comment, COALESCE(x.count,0) as count from
   dataelementgroup
-  INNER JOIN (
-  SELECT dataelementgroupid, COUNT(dataelementid) from dataelementgroupmembers
-  GROUP BY dataelementgroupid HAVING COUNT(*) < 2) x
+  LEFT OUTER JOIN (
+  SELECT dataelementgroupid, COUNT(dataelementid) as count from dataelementgroupmembers
+  GROUP BY dataelementgroupid) x
   USING(dataelementgroupid)
-  ORDER BY name;
+  ORDER BY name)
+  SELECT uid,name, CAST(count as text) as comment from group_size
+  where count < 2;
 severity: WARNING
 introduction: >
   All data element groups should be composed of at least two data elements.

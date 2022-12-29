@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -46,8 +48,6 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
 
     private String dataElementB;
 
-    private String dataElementGroupB;
-
     @Test
     void testDataElementGroupSizeTooLow()
     {
@@ -59,11 +59,16 @@ class DataIntegrityGroupSizeDataElementGroupsControllerTest extends AbstractData
                 "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
                     "'dataElements':[{'id':'" + dataElementA + "'},{'id': '" + dataElementB + "'}]}" ) );
 
-        dataElementGroupB = assertStatus( HttpStatus.CREATED,
+        String dataElementGroupB = assertStatus( HttpStatus.CREATED,
             POST( "/dataElementGroups",
                 "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '" + dataElementB + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 50, dataElementGroupB, "ANC", null,
+        String dataElementGroupC = assertStatus( HttpStatus.CREATED,
+            POST( "/dataElementGroups",
+                "{ 'name': 'Morbidity', 'shortName': 'Morbidity' }" ) );
+
+        assertHasDataIntegrityIssues( "group_size", check, 66,
+            Set.of( dataElementGroupB, dataElementGroupC ), Set.of( "ANC", "Morbidity" ), Set.of( "0", "1" ),
             true );
 
     }
