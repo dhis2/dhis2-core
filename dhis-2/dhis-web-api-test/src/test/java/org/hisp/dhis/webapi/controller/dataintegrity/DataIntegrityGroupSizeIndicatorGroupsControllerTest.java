@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +47,6 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
 
     private String indicatorA;
 
-    private String indicatorB;
-
     @Test
     void testIndicatorGroupSizeTooLow()
     {
@@ -57,8 +57,13 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
             POST( "/indicatorGroups",
                 "{ 'name' : 'ANC', 'indicators' : [{'id' : '" + indicatorA + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 100, indicatorGroupA, "ANC", null,
-            true );
+        String indicatorGroupB = assertStatus( HttpStatus.CREATED,
+            POST( "/indicatorGroups",
+                "{ 'name' : 'HIV/AIDS' }" ) );
+
+        assertHasDataIntegrityIssues( "group_size", check, 66,
+            Set.of( indicatorGroupA, indicatorGroupB ), Set.of( "ANC", "HIV/AIDS" ),
+            Set.of( "0", "1" ), true );
 
     }
 
@@ -66,11 +71,6 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
     void testIndicatorGroupSizeOK()
     {
         setUpTest();
-
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroups",
-                "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
-                    "'dataElements':[{'id':'" + indicatorA + "'},{'id': '" + indicatorB + "'}]}" ) );
 
         assertHasNoDataIntegrityIssues( "group_size", check, true );
 
@@ -98,12 +98,16 @@ class DataIntegrityGroupSizeIndicatorGroupsControllerTest extends AbstractDataIn
                     " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
                     "'denominatorDescription' : 'Zero'} }" ) );
 
-        indicatorB = assertStatus( HttpStatus.CREATED,
+        String indicatorB = assertStatus( HttpStatus.CREATED,
             POST( "/indicators",
                 "{ 'name': 'Indicator B', 'shortName': 'Indicator B', 'indicatorType' : {'id' : '" + indicatorTypeA
                     + "'}," +
                     " 'numerator' : 'abc123', 'numeratorDescription' : 'One', 'denominator' : 'abc123', " +
                     "'denominatorDescription' : 'Zero'}" ) );
 
+        assertStatus( HttpStatus.CREATED,
+            POST( "/indicatorGroups",
+                "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
+                    "'indicators':[{'id':'" + indicatorA + "'},{'id': '" + indicatorB + "'}]}" ) );
     }
 }

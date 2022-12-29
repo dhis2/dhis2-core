@@ -32,29 +32,32 @@ section_order: 2
 summary_uid: aQngw1JlEo7
 summary_sql: >-
   WITH group_size as (
-  SELECT uid,name, 'indicatorGroups' as comment from
+  SELECT uid,name, COALESCE(x.count,0) as count from
   indicatorgroup
-  INNER JOIN (
-  SELECT indicatorgroupid, COUNT(indicatorid) from indicatorgroupmembers
-  GROUP BY indicatorgroupid HAVING COUNT(*) < 2) x
+  LEFT OUTER JOIN (
+  SELECT indicatorgroupid, COUNT(indicatorid) as count from indicatorgroupmembers
+  GROUP BY indicatorgroupid) x
   USING(indicatorgroupid)
   ORDER BY name)
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from indicatorgroup), 0) as percent
-  from group_size;
+  from group_size where count < 2;
 details_uid: mjQxyQbpkED
 details_sql: >-
-  SELECT uid,name, 'indicatorGroups' as comment from
+  WITH group_size as (
+  SELECT uid,name, COALESCE(x.count,0) as count from
   indicatorgroup
-  INNER JOIN (
-  SELECT indicatorgroupid, COUNT(indicatorid) from indicatorgroupmembers
-  GROUP BY indicatorgroupid HAVING COUNT(*) < 2) x
+  LEFT OUTER JOIN (
+  SELECT indicatorgroupid, COUNT(indicatorid) as count from indicatorgroupmembers
+  GROUP BY indicatorgroupid) x
   USING(indicatorgroupid)
-  ORDER BY name;
+  ORDER BY name)
+  SELECT uid,name,CAST(count as text) 
+  FROM group_size where count < 2;
 severity: WARNING
 introduction: >
   All indicator groups should be composed of at least two indicators.
 recommendation: >
-  Considering removing groups with a single member, or alternatively, add additional
+  Considering removing groups with zero or one groups, or alternatively, add additional
   members to the group to make it more useful.
 details_id_type: group_size
