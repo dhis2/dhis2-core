@@ -155,6 +155,7 @@ public class DefaultSchemaService
         register( new ProgramStageDataElementSchemaDescriptor() );
         register( new ProgramStageSchemaDescriptor() );
         register( new ProgramStageSectionSchemaDescriptor() );
+        register( new ProgramStageWorkingListDefinitionSchemaDescriptor() );
         register( new ProgramSectionSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeSchemaDescriptor() );
         register( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() );
