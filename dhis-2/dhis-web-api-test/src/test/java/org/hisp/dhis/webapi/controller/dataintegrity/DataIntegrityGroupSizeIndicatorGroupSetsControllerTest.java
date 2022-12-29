@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
+import java.util.Set;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
@@ -46,8 +48,6 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
 
     private String indicatorGroupA;
 
-    private String indicatorGroupB;
-
     @Test
     void testIndicatorGroupSetSizeTooSmall()
     {
@@ -55,11 +55,15 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
         setUpTest();
         String indicatorGroupSetA = assertStatus( HttpStatus.CREATED,
             POST( "/indicatorGroupSets",
-                "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
+                "{ 'name' : 'IGS1', 'shortName' : 'IGS1', 'indicatorGroups' : [{'id' : '"
                     + indicatorGroupA + "'}]}" ) );
 
-        assertHasDataIntegrityIssues( "group_size", check, 100, indicatorGroupSetA,
-            "An indicator group set", null, true );
+        String indicatorGroupSetB = assertStatus( HttpStatus.CREATED,
+            POST( "/indicatorGroupSets",
+                "{ 'name' : 'IGS2', 'shortName' : 'IGS2' }" ) );
+
+        assertHasDataIntegrityIssues( "group_size", check, 66,
+            Set.of( indicatorGroupSetA, indicatorGroupSetB ), Set.of( "IGS1", "IGS2" ), Set.of( "0", "1" ), true );
     }
 
     @Test
@@ -67,11 +71,7 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
     {
 
         setUpTest();
-        assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorGroupSets",
-                "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
-                    + indicatorGroupA + "'}, " +
-                    "{'id' : '" + indicatorGroupB + "'}]}" ) );
+
         assertHasNoDataIntegrityIssues( "group_size", check, true );
     }
 
@@ -107,10 +107,16 @@ class DataIntegrityGroupSizeIndicatorGroupSetsControllerTest extends AbstractDat
                 "{ 'name' : 'An indicator group', 'shortName' : 'An indicator group', 'indicators' : [{'id' : '"
                     + indicatorA + "'}]}" ) );
 
-        indicatorGroupB = assertStatus( HttpStatus.CREATED,
+        String indicatorGroupB = assertStatus( HttpStatus.CREATED,
             POST( "/indicatorGroups",
                 "{ 'name' : 'Another indicator group', 'shortName' : 'Another indicator group', 'indicators' : [{'id' : '"
                     + indicatorB + "'}]}" ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/indicatorGroupSets",
+                "{ 'name' : 'An indicator group set', 'shortName' : 'An indicator group set', 'indicatorGroups' : [{'id' : '"
+                    + indicatorGroupA + "'}, " +
+                    "{'id' : '" + indicatorGroupB + "'}]}" ) );
 
     }
 
