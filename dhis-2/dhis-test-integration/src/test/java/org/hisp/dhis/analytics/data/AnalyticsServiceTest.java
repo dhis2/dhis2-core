@@ -1086,9 +1086,12 @@ class AnalyticsServiceTest
 
         Date tableLastUpdated = systemSettingManager
             .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class );
+        assertTrue( !tableLastUpdated.equals( null ) );
         Date resourceTablesUpdated = systemSettingManager
             .getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class );
+        assertTrue( !resourceTablesUpdated.equals( null ) );
         assertTrue( tableLastUpdated.compareTo( processStartTime ) > 0 );
         assertTrue( resourceTablesUpdated.compareTo( processStartTime ) > 0 );
     }
+
 }
