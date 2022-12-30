@@ -33,10 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.stream.Stream;
+
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConvenienceTest
 {
@@ -124,13 +129,22 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         assertContains( "Program stage is specified but does not exist", response.error().getMessage() );
     }
 
-    @Test
-    void shouldReturnWorkingListIdWhenCreatingWorkingListDefinitionWithEventStatus()
+    @ParameterizedTest
+    @MethodSource( "provideCorrectQueryCriteriaParams" )
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithCorrectQueryCriteria( String queryCriteria )
     {
         String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'status':'ACTIVE'}" ) ) );
+            createPostRequestBody( queryCriteria ) ) );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    private static Stream<Arguments> provideCorrectQueryCriteriaParams()
+    {
+        return Stream.of(
+            Arguments.of( "{'status':'ACTIVE'}" ),
+            Arguments.of( "{'eventDate':{'type':'ABSOLUTE','startDate':'2020-03-01','endDate':'2022-12-30'}}" ),
+            Arguments.of( "{'assignedUsers':['DXyJmlo9rge'], 'assignedUserMode':'PROVIDED'}" ) );
     }
 
     @Test
@@ -142,65 +156,31 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
     }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentOrgUnit()
+    @ParameterizedTest
+    @MethodSource( "provideIncorrectQueryCriteriaParams" )
+    void shouldFailWithErrorMessageWhenCreatingWorkingListDefinitionWithIncorrectQueryCriteria( String queryCriteria,
+        String errorMessage )
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'organisationUnit':'madeUpOrgUnit'}}" ) );
+        HttpResponse response = POST( "/programStageWorkingListDefinitions", createPostRequestBody( queryCriteria ) );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Org unit is specified but does not exist", response.error().getMessage() );
+        assertContains( errorMessage, response.error().getMessage() );
     }
 
-    @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithCorrectAbsoluteDate()
+    private static Stream<Arguments> provideIncorrectQueryCriteriaParams()
     {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody(
-                "{'eventDate':{'type':'ABSOLUTE','startDate':'2020-03-01','endDate':'2022-12-30'}}" ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithStartDateButNoEndDate()
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01'}}}" ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Start date or end date not specified with ABSOLUTE date period",
-            response.error().getMessage() );
-    }
-
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithStartDateAfterEndDate()
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions", createPostRequestBody(
-            "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01','endDate':'2020-12-30'}}}" ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Start date can't be after end date", response.error().getMessage() );
-    }
-
-    @Test
-    void shouldReturnIdWhenCreatingWorkingListDefinitionWithAssignedUserAndUserModeProvided()
-    {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'assignedUsers':['DXyJmlo9rge'], 'assignedUserMode':'PROVIDED'}" ) ) );
-
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithoutAssignedUserAndUserModeProvided()
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{'assignedUserMode':'PROVIDED'}" ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[Assigned Users cannot be empty with PROVIDED assigned user mode]",
-            response.error().getMessage() );
+        return Stream.of(
+            Arguments.of( "{'organisationUnit':'madeUpOrgUnit'}}", "Org unit is specified but does not exist" ),
+            Arguments.of( "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01'}}}",
+                "Start date or end date not specified with ABSOLUTE date period" ),
+            Arguments.of( "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01','endDate':'2020-12-30'}}}",
+                "Start date can't be after end date" ),
+            Arguments.of( "{'dataFilters':[{'dataItem': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}",
+                "No tracked entity attribute found" ),
+            Arguments.of( "{'assignedUserMode':'PROVIDED'}",
+                "Assigned Users cannot be empty with PROVIDED assigned user mode" ),
+            Arguments.of( "{'dataFilters':[{'dataItem': '', 'ge': '10', 'le': '20'}]}",
+                "Attribute Uid is missing in filter" ) );
     }
 
     @Test
@@ -211,26 +191,6 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
                 "{ 'dataFilters':[{'dataItem': '" + attributeId + "', 'ge': '10', 'le': '20'}]}" ) ) );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
-
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithDataFiltersButMissingAttributeId()
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{ 'dataFilters':[{'dataItem': '', 'ge': '10', 'le': '20'}]}" ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "[Attribute Uid is missing in filter]", response.error().getMessage() );
-    }
-
-    @Test
-    void shouldFailWhenCreatingWorkingListDefinitionWithDataFiltersAndNonExistentAttributeId()
-    {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions",
-            createPostRequestBody( "{ 'dataFilters':[{'dataItem': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}" ) );
-
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "No tracked entity attribute found", response.error().getMessage() );
     }
 
     @Test
