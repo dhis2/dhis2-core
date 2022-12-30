@@ -35,9 +35,9 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the metadata check for category option groups which have fewer than two
- * members.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_category_option_groups.yaml}
+ * Tests the metadata check for category option group sets which have fewer than
+ * two members.
+ * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_category_option_group_sets.yaml}
  *
  * @author Jason P. Pickering
  */
