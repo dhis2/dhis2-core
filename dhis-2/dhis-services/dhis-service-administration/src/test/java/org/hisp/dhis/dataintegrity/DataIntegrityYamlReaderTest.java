@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests the {@link DataIntegrityYamlReader}.
  *
- * @author Jan Bernitt/home/jason
+ * @author Jan Bernitt
  */
 class DataIntegrityYamlReaderTest
 {
