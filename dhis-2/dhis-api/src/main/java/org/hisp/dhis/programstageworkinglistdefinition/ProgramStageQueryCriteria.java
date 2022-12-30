@@ -28,12 +28,17 @@
 package org.hisp.dhis.programstageworkinglistdefinition;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import lombok.Setter;
 
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.EventDataFilter;
 
@@ -60,9 +65,56 @@ public class ProgramStageQueryCriteria implements Serializable
     private EventStatus status;
 
     /**
-     * Property to filter events based on event created dates
+     * Property to filter events based on their created dates
      */
     private DateFilterPeriod eventDate;
+
+    /**
+     * Property to filter events based on their scheduled dates
+     */
+    private DateFilterPeriod eventScheduledDate;
+
+    /**
+     * Property indicating which enrollment status types to filter
+     */
+    private ProgramStatus enrollmentStatus;
+
+    /**
+     * Property to filter events based on program created dates
+     */
+    private DateFilterPeriod enrollmentCreatedDate;
+
+    /**
+     * Property to filter events based on enrollment incident dates
+     */
+    private DateFilterPeriod enrollmentIncidentDate;
+
+    /**
+     * Property which contains the order of output columns
+     */
+    private List<String> displayColumnOrder = new ArrayList<>();
+
+    /**
+     * Property indication the OU for the filter.
+     */
+    private String organisationUnit;
+
+    /**
+     * Property indicating the OU selection mode for the event filter
+     */
+    private OrganisationUnitSelectionMode ouMode;
+
+    /**
+     * Property indicating the assigned user selection mode for the event
+     * filter.
+     */
+    private AssignedUserSelectionMode assignedUserMode;
+
+    /**
+     * Property which contains the required assigned user ids to be used in the
+     * event filter.
+     */
+    private Set<String> assignedUsers;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -83,5 +135,68 @@ public class ProgramStageQueryCriteria implements Serializable
     public DateFilterPeriod getEventDate()
     {
         return eventDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DateFilterPeriod getEventScheduledDate()
+    {
+        return eventScheduledDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getEnrollmentStatus()
+    {
+        return enrollmentStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DateFilterPeriod getEnrollmentCreatedDate()
+    {
+        return enrollmentCreatedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DateFilterPeriod getEnrollmentIncidentDate()
+    {
+        return enrollmentIncidentDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getDisplayColumnOrder()
+    {
+        return displayColumnOrder;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitSelectionMode getOuMode()
+    {
+        return ouMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AssignedUserSelectionMode getAssignedUserMode()
+    {
+        return assignedUserMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
     }
 }

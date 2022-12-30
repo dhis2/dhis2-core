@@ -45,6 +45,10 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
     private String programStageId;
 
+    private String ouId;
+
+    private String attributeId;
+
     @BeforeEach
     void setUp()
     {
@@ -53,12 +57,19 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
 
         programStageId = assertStatus( HttpStatus.CREATED,
             POST( "/programStages/", "{'name': 'ProgramStageTest', 'program':" + "{'id': '" + programId + "'}}" ) );
+
+        ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+
+        attributeId = assertStatus( HttpStatus.CREATED,
+            POST( "/trackedEntityAttributes/",
+                "{'name':'attrA', 'shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
     }
 
     @Test
     void shouldReturnWorkingListIdDefinitionWhenWorkingListCreated()
     {
-        String workingListId = createWorkingList( "Test working list" );
+        String workingListId = createWorkingListDefinition( "Test working list" );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
     }
@@ -66,7 +77,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutName()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions?fields=id",
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -76,7 +87,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions?fields=id",
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
             "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -86,7 +97,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions?fields=id",
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -96,7 +107,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithoutProgramStageId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions?fields=id",
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': '" + programId + "'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -106,7 +117,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentProgramStageId()
     {
-        HttpResponse response = POST( "/programStageWorkingListDefinitions?fields=id",
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}" );
 
         assertEquals( HttpStatus.CONFLICT, response.status() );
@@ -114,31 +125,132 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     }
 
     @Test
-    void shouldWorkWhenCreatingWorkingListDefinitionWithEventStatus()
+    void shouldReturnWorkingListIdWhenCreatingWorkingListDefinitionWithEventStatus()
     {
-        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions?fields=id",
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId
-                + "'}, 'name':'Test', 'programStageQueryCriteria':{'status':'ACTIVE'}}" ) );
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'status':'ACTIVE'}" ) ) );
 
         assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
     }
 
     @Test
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithOrgUnit()
+    {
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'organisationUnit':'" + ouId + "'}" ) ) );
+
+        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithNonExistentOrgUnit()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'organisationUnit':'madeUpOrgUnit'}}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertContains( "Org unit is specified but does not exist", response.error().getMessage() );
+    }
+
+    @Test
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithCorrectAbsoluteDate()
+    {
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody(
+                "{'eventDate':{'type':'ABSOLUTE','startDate':'2020-03-01','endDate':'2022-12-30'}}" ) ) );
+
+        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithStartDateButNoEndDate()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01'}}}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertContains( "Start date or end date not specified with ABSOLUTE date period",
+            response.error().getMessage() );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithStartDateAfterEndDate()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions", createPostRequestBody(
+            "{'eventDate':{'type':'ABSOLUTE','startDate':'2023-03-01','endDate':'2020-12-30'}}}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertContains( "Start date can't be after end date", response.error().getMessage() );
+    }
+
+    @Test
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithAssignedUserAndUserModeProvided()
+    {
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'assignedUsers':['DXyJmlo9rge'], 'assignedUserMode':'PROVIDED'}" ) ) );
+
+        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithoutAssignedUserAndUserModeProvided()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{'assignedUserMode':'PROVIDED'}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( "[Assigned Users cannot be empty with PROVIDED assigned user mode]",
+            response.error().getMessage() );
+    }
+
+    @Test
+    void shouldReturnIdWhenCreatingWorkingListDefinitionWithDataFiltersAndExistingAttribute()
+    {
+        String workingListId = assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody(
+                "{ 'dataFilters':[{'dataItem': '" + attributeId + "', 'ge': '10', 'le': '20'}]}" ) ) );
+
+        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithDataFiltersButMissingAttributeId()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{ 'dataFilters':[{'dataItem': '', 'ge': '10', 'le': '20'}]}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( "[Attribute Uid is missing in filter]", response.error().getMessage() );
+    }
+
+    @Test
+    void shouldFailWhenCreatingWorkingListDefinitionWithDataFiltersAndNonExistentAttributeId()
+    {
+        HttpResponse response = POST( "/programStageWorkingListDefinitions",
+            createPostRequestBody( "{ 'dataFilters':[{'dataItem': 'madeUpAttributeId', 'ge': '10', 'le': '20'}]}" ) );
+
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertContains( "No tracked entity attribute found", response.error().getMessage() );
+    }
+
+    @Test
     void shouldReturnAllWorkingListsDefinitionWhenWorkingListsRequested()
     {
-        String workingListId1 = createWorkingList( "Test working list 1" );
-        String workingListId2 = createWorkingList( "Test working list 2" );
+        String workingListId1 = createWorkingListDefinition( "Test working list 1" );
+        String workingListId2 = createWorkingListDefinition( "Test working list 2" );
 
         String response = GET( "/programStageWorkingListDefinitions?fields=id" ).content().toString();
 
-        assertTrue( response.contains( workingListId1 ) );
-        assertTrue( response.contains( workingListId2 ) );
+        assertTrue( response.contains( workingListId1 ),
+            "The working list id: " + workingListId1 + " is not present in the response" );
+        assertTrue( response.contains( workingListId2 ),
+            "The working list id: " + workingListId2 + " is not present in the response" );
     }
 
     @Test
     void shouldUpdateWorkingListDefinitionWhenUpdateRequested()
     {
-        String workingListId = createWorkingList( "Test working list to update" );
+        String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
         assertStatus( HttpStatus.OK, PUT( "/programStageWorkingListDefinitions/" + workingListId,
@@ -146,13 +258,14 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
                 + updatedName + "'}" ) );
 
         String response = GET( "/programStageWorkingListDefinitions/{id}", workingListId ).content().toString();
-        assertTrue( response.contains( updatedName ) );
+        assertTrue( response.contains( updatedName ),
+            "Could not find the working list name: " + updatedName + " in the response" );
     }
 
     @Test
     void shouldFailWhenUpdatingWorkingListDefinitionWithoutProgramId()
     {
-        String workingListId = createWorkingList( "Test working list to update" );
+        String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
@@ -165,7 +278,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenUpdatingWorkingListDefinitionWithNonExistentProgramId()
     {
-        String workingListId = createWorkingList( "Test working list to update" );
+        String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
@@ -179,7 +292,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenUpdatingWorkingListDefinitionWithoutProgramStageId()
     {
-        String workingListId = createWorkingList( "Test working list to update" );
+        String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
@@ -192,7 +305,7 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldFailWhenUpdatingWorkingListDefinitionWithNonExistentProgramStageId()
     {
-        String workingListId = createWorkingList( "Test working list to update" );
+        String workingListId = createWorkingListDefinition( "Test working list to update" );
 
         String updatedName = "Updated working list";
         HttpResponse response = PUT( "/programStageWorkingListDefinitions/" + workingListId,
@@ -206,17 +319,22 @@ class ProgramStageWorkingListDefinitionControllerTest extends DhisControllerConv
     @Test
     void shouldDeleteWorkingListDefinitionWhenDeleteRequested()
     {
-        String workingListId = createWorkingList( "Test working to delete" );
+        String workingListId = createWorkingListDefinition( "Test working to delete" );
 
         HttpResponse response = DELETE( "/programStageWorkingListDefinitions/" + workingListId );
         assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.header( "content-type" ).contains( "application/json" ) );
     }
 
-    private String createWorkingList( String workingListName )
+    private String createWorkingListDefinition( String workingListName )
     {
-        return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions?fields=id",
+        return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingListDefinitions",
             "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
                 + workingListName + "'}" ) );
+    }
+
+    private String createPostRequestBody( String programStageQueryCriteria )
+    {
+        return "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId
+            + "'}, 'name':'wl name', 'programStageQueryCriteria':" + programStageQueryCriteria + "}";
     }
 }

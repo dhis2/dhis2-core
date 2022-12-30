@@ -78,7 +78,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "messageConversation", // needs recipients (not a required field)
         "programRuleAction", // needs DataElement and TrackedEntityAttribute
         "validationRule", // generator insufficient (embedded fields)
-        "programStage", // presumably server errors/bugs
+        "programStage", // body request does not include mandatory field programId
         "programStageWorkingListDefinition", // same reason as programStage
         "dataElement", // non-postgres SQL in deletion handler
         "trackedEntityInstance", // conflict (no details)
