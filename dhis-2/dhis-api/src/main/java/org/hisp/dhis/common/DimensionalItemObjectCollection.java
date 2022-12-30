@@ -33,12 +33,22 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Container for dimension or filter based dimensional items.
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 public class DimensionalItemObjectCollection
 {
+    /**
+     * collection of items
+     */
     private List<DimensionalItemObject> dimensionalItemObjects;
 
+    /**
+     * true if all existing items are in the collection. The property is used by
+     * sql query to avoid very long list inside IN operator.
+     */
     private boolean allItems;
 }

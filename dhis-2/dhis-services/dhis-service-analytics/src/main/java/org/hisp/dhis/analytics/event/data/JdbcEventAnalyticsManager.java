@@ -435,7 +435,7 @@ public class JdbcEventAnalyticsManager
         else // Descendants
         {
             String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitField,
-                params.getDimensionalItemObjectCollection( ORGUNIT_DIM_ID ) );
+                params.getDimensionBasedDimensionalItemObjectCollection( ORGUNIT_DIM_ID ) );
 
             if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
             {

@@ -1059,11 +1059,13 @@ public class DataQueryParams
     }
 
     /**
+     * Retrieves collection of dimensional items based on dimension query
+     * params.
      *
      * @param dimension
      * @return
      */
-    public DimensionalItemObjectCollection getDimensionalItemObjectCollection( String dimension )
+    public DimensionalItemObjectCollection getDimensionBasedDimensionalItemObjectCollection( String dimension )
     {
         int index = dimensions.indexOf( new BaseDimensionalObject( dimension ) );
 
@@ -1074,6 +1076,25 @@ public class DataQueryParams
         }
 
         return getFilterBasedDimensionalItemObjectCollection( dimension );
+    }
+
+    /**
+     * Retrieves collection of dimensional items based on filter query params.
+     *
+     * @param filter
+     * @return
+     */
+    public DimensionalItemObjectCollection getFilterBasedDimensionalItemObjectCollection( String filter )
+    {
+        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
+
+        if ( index != -1 )
+        {
+            return new DimensionalItemObjectCollection( filters.get( index ).getItems(),
+                filters.get( index ).isAllItems() );
+        }
+
+        return new DimensionalItemObjectCollection( new ArrayList<>(), false );
     }
 
     /**
@@ -1107,24 +1128,6 @@ public class DataQueryParams
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
         return index != -1 ? filters.get( index ).getItems() : new ArrayList<>();
-    }
-
-    /**
-     *
-     * @param filter
-     * @return
-     */
-    public DimensionalItemObjectCollection getFilterBasedDimensionalItemObjectCollection( String filter )
-    {
-        int index = filters.indexOf( new BaseDimensionalObject( filter ) );
-
-        if ( index != -1 )
-        {
-            return new DimensionalItemObjectCollection( filters.get( index ).getItems(),
-                filters.get( index ).isAllItems() );
-        }
-
-        return new DimensionalItemObjectCollection( new ArrayList<>(), false );
     }
 
     /**
@@ -1773,7 +1776,8 @@ public class DataQueryParams
 
         if ( index != -1 )
         {
-            dimensions.set( index, new BaseDimensionalObject( dimension, type, dimensionName, null, options ) );
+            dimensions.set( index, new BaseDimensionalObject( dimension, type, dimensionName, null, options,
+                dimensions.get( index ).isAllItems() ) );
         }
         else
         {
