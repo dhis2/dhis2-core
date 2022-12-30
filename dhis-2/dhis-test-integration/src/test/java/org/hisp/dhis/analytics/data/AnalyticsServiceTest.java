@@ -37,7 +37,10 @@ import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -1086,10 +1089,10 @@ class AnalyticsServiceTest
 
         Date tableLastUpdated = systemSettingManager
             .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class );
-        assertTrue( !tableLastUpdated.equals( null ) );
+        assertNotEquals( null, tableLastUpdated );
         Date resourceTablesUpdated = systemSettingManager
             .getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class );
-        assertTrue( !resourceTablesUpdated.equals( null ) );
+        assertNotEquals( null, resourceTablesUpdated );
         assertTrue( tableLastUpdated.compareTo( processStartTime ) > 0 );
         assertTrue( resourceTablesUpdated.compareTo( processStartTime ) > 0 );
     }
