@@ -37,7 +37,7 @@ import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -88,6 +88,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.validation.ValidationResult;
@@ -225,6 +227,11 @@ class AnalyticsServiceTest
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     @Autowired
+    private SystemSettingManager systemSettingManager;
+
+    private Date processStartTime;
+
+    @Autowired
     @Qualifier( "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
@@ -263,6 +270,11 @@ class AnalyticsServiceTest
         Date oneSecondFromNow = Date
             .from( LocalDateTime.now().plusSeconds( 1 ).atZone( ZoneId.systemDefault() ).toInstant() );
 
+        assertNull(
+            systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class ) );
+        assertNull(
+            systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class ) );
+        processStartTime = new Date();
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder()
             .withStartTime( oneSecondFromNow )
@@ -1066,5 +1078,17 @@ class AnalyticsServiceTest
                 .withPeriod( year )
                 .withAggregationType( AnalyticsAggregationType.COUNT )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void resourceTablesTimestampUpdated()
+    {
+
+        Date tableLastUpdated = systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class );
+        Date resourceTablesUpdated = systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, Date.class );
+        assertTrue( tableLastUpdated.compareTo( processStartTime ) > 0 );
+        assertTrue( resourceTablesUpdated.compareTo( processStartTime ) > 0 );
     }
 }
