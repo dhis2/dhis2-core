@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -591,6 +592,7 @@ public class JdbcAnalyticsManager
     {
         Date latest = params.getLatestEndDate();
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
@@ -599,8 +601,6 @@ public class JdbcAnalyticsManager
         {
             sql += col + ",";
         }
-
-        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         sql += "row_number() over (" +
             "partition by dx, ou, co, ao " +
@@ -781,7 +781,7 @@ public class JdbcAnalyticsManager
     {
         StringBuilder builder = new StringBuilder();
 
-        if ( dimensions != null && !dimensions.isEmpty() )
+        if ( isNotEmpty( dimensions ) )
         {
             for ( DimensionalObject dimension : dimensions )
             {
