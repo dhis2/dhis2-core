@@ -89,8 +89,8 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -345,7 +345,7 @@ class DimensionalObjectProducerTest
     }
 
     @Test
-    @Ignore("TODO: Fix this test, new year")
+    @Disabled( "TODO: Fix this test, new year" )
     void testGetPeriodDimensions()
     {
         // Given

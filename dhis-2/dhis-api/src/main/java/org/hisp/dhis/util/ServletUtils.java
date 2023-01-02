@@ -38,6 +38,11 @@ import java.util.stream.Collectors;
  */
 public class ServletUtils
 {
+    private ServletUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     /**
      * Reads given resource file as a string.
      *

@@ -80,7 +80,7 @@ public class WebModuleManager
 
         for ( String moduleUri : getAppUriList( content ) )
         {
-            String key = "dhis-web-" + moduleUri.split( "/" )[4].replaceAll( "-app", "" );
+            String key = "dhis-web-" + moduleUri.split( "/" )[4].replace( "-app", "" );
             String displayName = i18nManager.getI18n().getString( key );
 
             WebModule module = new WebModule( key, "/" + key, "../" + key + "/index.html" );
@@ -110,14 +110,13 @@ public class WebModuleManager
 
     private static List<String> getAppUriList( String content )
     {
-        Gson gson = new Gson();
-        List<String> uriList = gson.fromJson( content, new TypeToken<List<String>>()
+        List<String> uriList = new Gson().fromJson( content, new TypeToken<List<String>>()
         {
         }.getType() );
 
         if ( uriList == null )
         {
-            throw new RuntimeException( "Failed to parse apps-to-bundle.json" );
+            throw new IllegalStateException( "Failed to parse apps-to-bundle.json content" );
         }
 
         return uriList;
@@ -125,7 +124,7 @@ public class WebModuleManager
 
     public List<WebModule> getWebModules( String username )
     {
-        if ( menuModules.size() == 0 )
+        if ( menuModules.isEmpty() )
         {
             try
             {
