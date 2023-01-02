@@ -157,38 +157,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>${maven-antrun-plugin.version}</version>
-        <executions>
-          <execution>
-            <phase>prepare-package</phase>
-            <configuration>
-              <target>
-                <tstamp>
-                  <format property="now" pattern="yyyy-MM-dd HH:mm:ss" />
-                </tstamp>
-                <mkdir dir="${project.build.outputDirectory}" />
-                <exec executable="git" outputproperty="revision"
-                      failifexecutionfails="false">
-                  <arg value="rev-parse" />
-                  <arg value="--short=7" />
-                  <arg value="HEAD" />
-                </exec>
-                <echo
-                        file="${project.basedir}/src/main/resources/build.properties"
-                        message="build.version = ${project.version}&#10;build.time = ${now}&#10;build.revision = ${revision}&#10;jasperreports.version = ${jasperreports.version}&#10;" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
   </build>
 
