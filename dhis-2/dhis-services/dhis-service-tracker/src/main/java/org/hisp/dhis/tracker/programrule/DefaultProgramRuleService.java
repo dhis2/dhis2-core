@@ -103,12 +103,12 @@ class DefaultProgramRuleService
 
     private List<RuleEffects> calculateTrackerEventRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
     {
-        List<ProgramInstance> programInstances = bundle.getEvents()
+        Set<ProgramInstance> programInstances = bundle.getEvents()
             .stream()
             .filter( event -> bundle.findEnrollmentByUid( event.getEnrollment() ).isEmpty() )
             .filter( event -> preheat.getProgram( event.getProgram() ).isRegistration() )
             .map( event -> preheat.getEnrollment( event.getEnrollment() ) )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toSet() );
 
         return programInstances
             .stream()
