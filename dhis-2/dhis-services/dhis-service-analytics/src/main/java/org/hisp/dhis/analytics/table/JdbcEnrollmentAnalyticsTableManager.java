@@ -67,8 +67,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Markus Bekken
  */
@@ -154,7 +152,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         for ( Program program : programs )
         {
             AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                Lists.newArrayList(), program );
+                List.of(), program );
 
             tables.add( table );
         }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,11 +48,6 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 /**
  * Collects {@link Error}s, {@link Warning}s and invalid entities the errors are
  * attributed to.
- * <p>
- * Long-term we would want to remove the responsibility of tracking invalid
- * entities from here. This could allow us to merge this class with
- * {@link ValidationResult}.
- * </p>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -68,8 +62,6 @@ public class Reporter
     boolean isFailFast;
 
     TrackerIdSchemeParams idSchemes;
-
-    List<Timing> timings;
 
     @Getter( AccessLevel.PACKAGE )
     /*
@@ -98,7 +90,6 @@ public class Reporter
             TrackerType.RELATIONSHIP, new HashSet<>() ) );
         this.idSchemes = idSchemes;
         this.isFailFast = failFast;
-        this.timings = new ArrayList<>();
     }
 
     /**
@@ -180,7 +171,7 @@ public class Reporter
      * Add error.
      * <p>
      * If the {@link Reporter} is configured to fail fast an
-     * {@link ValidationFailFastException} is thrown.
+     * {@link FailFastException} is thrown.
      * </p>
      *
      * @param error error
@@ -243,27 +234,5 @@ public class Reporter
     public boolean isInvalid( TrackerType trackerType, String uid )
     {
         return this.invalidDTOs.getOrDefault( trackerType, new HashSet<>() ).contains( uid );
-    }
-
-    public Reporter addTiming( Timing timing )
-    {
-        timings.add( timing );
-        return this;
-    }
-
-    public Reporter addTimings( List<Timing> timings )
-    {
-        this.timings.addAll( timings );
-        return this;
-    }
-
-    public List<Timing> getTimings()
-    {
-        return Collections.unmodifiableList( timings );
-    }
-
-    public boolean hasTimings()
-    {
-        return !timings.isEmpty();
     }
 }

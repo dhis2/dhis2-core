@@ -3182,6 +3182,40 @@
           "id": "OPVIvvXzNTw"
         }
       ]
+    },
+    {
+      "lastUpdated": "2020-11-20T09:06:23.348",
+      "id": "fdc6uOvgoji",
+      "created": "2020-11-20T09:06:23.348",
+      "name": "Person to Case",
+      "code": "Person to Case",
+      "bidirectional": false,
+      "displayName": "Person to Case",
+      "publicAccess": "rw------",
+      "fromToName": "Person to Case",
+      "externalAccess": false,
+      "displayFromToName": "Person to Case",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL",
+          "code": "TA_PERSON_TET"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "f1AyMswryyQ"
+        }
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ]
     }
   ]
 }

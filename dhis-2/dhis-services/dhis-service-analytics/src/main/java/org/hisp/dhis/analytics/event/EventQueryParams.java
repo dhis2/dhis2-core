@@ -73,6 +73,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -845,9 +846,27 @@ public class EventQueryParams
         return isNotEmpty( getEventStatus() );
     }
 
+    /**
+     * Checks if a value dimension exists.
+     *
+     * @return true if a value dimension exists, false if not.
+     */
     public boolean hasValueDimension()
     {
         return value != null;
+    }
+
+    /**
+     * Checks if a value dimension with a numeric value type exists.
+     *
+     * @return true if a value dimension with a numeric value type exists, false
+     *         if not.
+     */
+    public boolean hasNumericValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isNumeric();
     }
 
     @Override

@@ -220,8 +220,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
             List.of() );
         DimensionalObject doG = new BaseDimensionalObject( "Cz3WQznvrCM", DimensionType.ORGANISATION_UNIT_GROUP_SET,
             List.of() );
-        DataQueryParams params = DataQueryParams.newBuilder().addDimension( doA ).addDimension( doB )
-            .addDimension( doC ).addDimension( doD ).addDimension( doE ).addDimension( doF ).addDimension( doG )
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( doA )
+            .addDimension( doB )
+            .addDimension( doC )
+            .addDimension( doD )
+            .addDimension( doE )
+            .addDimension( doF )
+            .addDimension( doG )
             .build();
         List<DimensionalObject> dimensions = params.getDimensions();
         assertEquals( 7, dimensions.size() );
@@ -293,13 +299,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
         assertFalse( params.hasPeriods() );
         List<DimensionalItemObject> periods = new ArrayList<>();
         params = DataQueryParams.newBuilder( params )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
+            .withPeriods( periods )
+            .build();
         assertFalse( params.hasPeriods() );
         params = DataQueryParams.newBuilder().removeDimension( PERIOD_DIM_ID ).build();
         assertFalse( params.hasPeriods() );
         periods.add( new Period() );
         params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, periods ) ).build();
+            .withPeriods( periods )
+            .build();
         assertTrue( params.hasPeriods() );
     }
 
@@ -307,15 +315,9 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testPruneToDimensionType()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject(
-                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, null, null,
-                List.of( createIndicator( 'A', null ), createIndicator( 'B', null ) ) ) )
-            .addDimension( new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, null,
-                List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ) ) ) )
-            .addFilter( new BaseDimensionalObject(
-                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, null, null,
-                List.of( createPeriod( "201201" ), createPeriod( "201202" ) ) ) )
+            .withDataDimensionItems( List.of( createIndicator( 'A', null ), createIndicator( 'B', null ) ) )
+            .withOrganisationUnits( List.of( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ) ) )
+            .withFilterPeriods( List.of( createPeriod( "201201" ), createPeriod( "201202" ) ) )
             .build();
 
         assertEquals( 2, params.getDimensions().size() );
@@ -558,12 +560,10 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetAllTypedOrganisationUnits()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of( ouA, ouB ) ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .addFilter( new BaseDimensionalObject(
-                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of( ouA, ouB ) ) )
+            .withFilterOrganisationUnits( List.of( ouA, ouB ) )
             .build();
         assertEquals( 2, paramsA.getAllTypedOrganisationUnits().size() );
         assertEquals( 2, paramsB.getAllTypedOrganisationUnits().size() );
@@ -668,20 +668,14 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testGetKey()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-                List.of( deA, deB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                List.of( ouA, ouB ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-                List.of( peA ) ) )
+            .withDataDimensionItems( List.of( deA, deB ) )
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withPeriods( List.of( peA ) )
             .build();
         DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-                List.of( deA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT,
-                List.of( ouA ) ) )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-                List.of( peB ) ) )
+            .withDataDimensionItems( List.of( deA ) )
+            .withOrganisationUnits( List.of( ouA ) )
+            .withPeriods( List.of( peB ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE )
             .build();
         assertNotNull( paramsA.getKey() );
@@ -696,7 +690,7 @@ class DataQueryParamsTest extends DhisConvenienceTest
     void testFinancialYearPeriodResultsInTwoAggregationYears()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, List.of( peC ) ) )
+            .withPeriods( List.of( peC ) )
             .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) )
             .build();
         ListMap<DimensionalItemObject, DimensionalItemObject> periodMap = params.getDataPeriodAggregationPeriodMap();
