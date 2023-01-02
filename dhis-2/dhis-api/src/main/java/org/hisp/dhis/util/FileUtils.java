@@ -36,9 +36,9 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ServletUtils
+public class FileUtils
 {
-    private ServletUtils()
+    private FileUtils()
     {
         throw new IllegalStateException( "Utility class" );
     }

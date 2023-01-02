@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.hisp.dhis.util.ServletUtils.getResourceFileAsString;
+import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
 
 import java.io.IOException;
 import java.util.*;
