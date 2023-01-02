@@ -113,7 +113,7 @@
 
     <!-- Jackson -->
     <jackson.version>2.14.1</jackson.version>
-    <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
+    <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
     <!-- JAXB -->
@@ -145,7 +145,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.27.1</artemis.version>
     <netty-all.version>4.1.86.Final</netty-all.version>
-    <classgraph.version>4.8.152</classgraph.version>
+    <classgraph.version>4.8.153</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -214,7 +214,7 @@
     <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.4.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
-    <versions-maven-plugin.version>2.14.1</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.14.2</versions-maven-plugin.version>
     <dependency-check-maven.version>7.4.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.0</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
