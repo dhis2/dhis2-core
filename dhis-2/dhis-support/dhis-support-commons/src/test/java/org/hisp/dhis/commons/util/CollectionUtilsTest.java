@@ -31,9 +31,11 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.addIfNotNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.firstMatch;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -164,5 +166,13 @@ class CollectionUtilsTest
         addIfNotNull( list, "Three" );
 
         assertEquals( 2, list.size() );
+    }
+
+    @Test
+    void testIsEmpty()
+    {
+        assertTrue( isEmpty( List.of() ) );
+        assertTrue( isEmpty( null ) );
+        assertFalse( isEmpty( List.of( "One", "Two" ) ) );
     }
 }
