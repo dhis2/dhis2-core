@@ -281,7 +281,7 @@ public class DefaultSystemService
         else
         {
             log.error( "build.properties is not available in the classpath. " +
-                "Make sure you build the project with maven before you start the embedded Jetty." );
+                "Make sure you build the project with Maven before you start the embedded Jetty server." );
         }
 
         return info;
