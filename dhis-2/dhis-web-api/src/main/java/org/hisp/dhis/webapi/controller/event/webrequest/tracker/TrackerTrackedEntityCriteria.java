@@ -186,6 +186,12 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
      */
     private String attachment;
 
+    /**
+     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
+     * is a potentialDuplicate or not
+     */
+    private Boolean potentialDuplicate;
+
     @Override
     public boolean isLegacy()
     {
