@@ -32,11 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -176,10 +172,6 @@ public class DefaultSystemService
 
         setSystemMetadataVersionInfo( info );
 
-        // TODO: 14092
-        info.setVersion( "2.40-SNAPSHOT" );
-        info.setRevision( "7dda3c9" );
-
         return info;
     }
 
@@ -285,6 +277,11 @@ public class DefaultSystemService
             {
                 // Do nothing
             }
+        }
+        else
+        {
+            log.error( "build.properties is not available in the classpath. " +
+                "Make sure you build the project with maven before you start the embedded Jetty." );
         }
 
         return info;
