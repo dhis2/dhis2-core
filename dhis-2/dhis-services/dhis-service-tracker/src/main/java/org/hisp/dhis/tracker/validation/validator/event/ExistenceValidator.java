@@ -25,56 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1030;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1032;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1082;
 
-import lombok.RequiredArgsConstructor;
-
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
-import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
-import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
+class ExistenceValidator
+    implements Validator<Event>
 {
-
-    private final TrackedEntityValidator trackedEntityValidator;
-
-    private final EnrollmentValidator enrollmentValidator;
-
-    private final EventValidator eventValidator;
-
-    private final RelationshipValidator relationshipValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
+        TrackerImportStrategy importStrategy = bundle.getStrategy( event );
+
+        ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+
+        // If the event is soft-deleted no operation is allowed
+        if ( existingPsi != null && existingPsi.isDeleted() )
+        {
+            reporter.addError( event, E1082, event.getEvent() );
+            return;
+        }
+
+        if ( existingPsi != null && importStrategy.isCreate() )
+        {
+            reporter.addError( event, E1030, event.getEvent() );
+        }
+        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        {
+            reporter.addError( event, E1032, event.getEvent() );
+        }
     }
 
     @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return true;
     }
 
-    @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
-        return true; // this main validator should always run
-    }
 }
