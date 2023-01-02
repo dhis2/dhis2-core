@@ -461,7 +461,9 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
+                // Temporary solution for Struts less login page, will be removed when apps are fully migrated
                 .antMatchers( "/index.html" ).permitAll()
+
                 .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
                 .antMatchers( apiContextPath + "/account/username" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
@@ -473,9 +475,6 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
-
-                // TODO: Remove when Struts getModules request/URL is changed in all the web apps
-                .antMatchers( apiContextPath + "/webModules" ).permitAll()
 
                 .anyRequest()
                 .authenticated()
@@ -534,8 +533,6 @@ public class DhisWebApiWebSecurityConfig
                     .loginProcessingUrl( "/api/authentication/login" )
                     .defaultSuccessUrl( "/dhis-web-dashboard", true )
                     .failureUrl( "/index.html?error=true" )
-                    //                    .failureHandler( authenticationFailureHandler() )
-                    //                    .successHandler( authenticationSuccessHandler() )
                     .permitAll()
                     .and()
 
@@ -544,7 +541,6 @@ public class DhisWebApiWebSecurityConfig
                     .logoutSuccessUrl( "/" )
                     .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                     .deleteCookies( "JSESSIONID" );
-
             }
             else
             {
@@ -556,39 +552,6 @@ public class DhisWebApiWebSecurityConfig
                     .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }
-
-        //        @Bean
-        //        public CustomExceptionMappingAuthenticationFailureHandler authenticationFailureHandler()
-        //        {
-        //            CustomExceptionMappingAuthenticationFailureHandler handler =
-        //                new CustomExceptionMappingAuthenticationFailureHandler(
-        //                i18nManager );
-        //
-        //            // Handles the special case when a user failed to login because it
-        //            // has expired...
-        //            handler.setExceptionMappings(
-        //                ImmutableMap.of(
-        //                    "org.springframework.security.authentication.CredentialsExpiredException",
-        //                    "/dhis-web-commons/security/expired.action" ) );
-        //
-        //            handler.setDefaultFailureUrl( "/dhis-web-commons/security/login.action?failed=true" );
-        //
-        //            return handler;
-        //        }
-        //
-        //        @Bean
-        //        public DefaultAuthenticationSuccessHandler authenticationSuccessHandler()
-        //        {
-        //            DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
-        //            successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-        //            if ( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
-        //            {
-        //                successHandler.setSessionTimeout(
-        //                    Integer.parseInt( configurationProvider.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
-        //            }
-        //
-        //            return successHandler;
-        //        }
 
         private void configureOAuthAuthorizationServer( HttpSecurity http )
             throws Exception
