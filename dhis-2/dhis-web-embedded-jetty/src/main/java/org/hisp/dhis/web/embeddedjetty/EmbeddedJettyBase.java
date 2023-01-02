@@ -52,6 +52,8 @@ import com.google.common.base.Preconditions;
 @Slf4j
 public abstract class EmbeddedJettyBase
 {
+    private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
+
     public EmbeddedJettyBase()
     {
         Thread.currentThread().setUncaughtExceptionHandler( EmbeddedJettyUncaughtExceptionHandler.systemExit( log ) );
@@ -77,7 +79,7 @@ public abstract class EmbeddedJettyBase
 
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed( false );
-        resourceHandler.setResourceBase( "./dhis-web/dhis-web-portal/target/dhis" );
+        resourceHandler.setResourceBase( resourceBase );
 
         RewriteHandler rewrite = new RewriteHandler();
         rewrite.setHandler( resourceHandler );

@@ -474,6 +474,9 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
 
+                // TODO: Remove when Struts getModules request/URL is changed in all the web apps
+                .antMatchers( apiContextPath + "/webModules" ).permitAll()
+
                 .anyRequest()
                 .authenticated()
                 .accessDecisionManager( apiAccessDecisionManager() );
@@ -508,24 +511,11 @@ public class DhisWebApiWebSecurityConfig
             // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
-                // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form) Using the default based
-                // "EmbeddedJettyBasicAuthenticationEntryPoint"
-                //                http.antMatcher( "/**" )
-                //                    .authorizeRequests( this::configureAccessRestrictions )
-                //                    .httpBasic()
-                //                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
-
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
                     .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
 
-                /*
-                 * Setup session handling, this is configured normally in
-                 * DhisWebCommonsWebSecurityConfig when running in non-embedded
-                 * Jetty mode.
-                 */
                 http
                     .sessionManagement()
                     .sessionFixation().migrateSession()

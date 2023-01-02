@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import static org.hisp.dhis.web.embeddedjetty.ServletUtils.getResourceFileAsString;
+import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
 
 import java.io.IOException;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -41,15 +47,35 @@ import javax.servlet.http.HttpServletResponse;
 public class GetModulesServlet
     extends HttpServlet
 {
+
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException
+        throws IOException,
+        ServletException
     {
-        String content = getResourceFileAsString( "modules.json" );
+        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
 
-        resp.setContentType( "application/json" );
-        resp.setStatus( HttpServletResponse.SC_OK );
-        resp.getWriter().println( content );
+        if ( springSecurityContext != null )
+        {
+            SecurityContextImpl context = (SecurityContextImpl) session().getAttribute(
+                "SPRING_SECURITY_CONTEXT" );
+
+            Authentication authentication = context.getAuthentication();
+            CurrentUserDetailsImpl principal = (CurrentUserDetailsImpl) authentication.getPrincipal();
+            String username = principal.getUsername();
+
+            resp.setContentType( "application/json" );
+            resp.setStatus( HttpServletResponse.SC_OK );
+
+            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
+                "/api/webModules" + "?username=" + username );
+
+            dispatcher.include( req, resp );
+        }
+        else
+        {
+            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+        }
+
     }
-
 }

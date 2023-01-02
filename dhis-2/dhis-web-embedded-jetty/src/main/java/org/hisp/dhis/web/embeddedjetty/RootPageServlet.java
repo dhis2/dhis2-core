@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import static org.hisp.dhis.web.embeddedjetty.ServletUtils.getResourceFileAsString;
+import static org.hisp.dhis.util.ServletUtils.getResourceFileAsString;
 
 import java.io.IOException;
 
