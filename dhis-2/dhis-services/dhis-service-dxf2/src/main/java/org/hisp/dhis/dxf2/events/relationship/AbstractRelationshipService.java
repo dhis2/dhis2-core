@@ -537,7 +537,8 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), teiParams );
+                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(),
+                    teiParams.getTeiEnrollmentParams().getEnrollmentParams() );
             }
 
             relationshipItem.setEnrollment( enrollment );
