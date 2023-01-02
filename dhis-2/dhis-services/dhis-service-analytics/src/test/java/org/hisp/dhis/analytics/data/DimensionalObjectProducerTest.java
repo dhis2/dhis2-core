@@ -55,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -367,22 +368,30 @@ class DimensionalObjectProducerTest
         assertEquals( "LAST_YEAR", refDimensionKeywords.getKeywords().get( 0 ).getKey() );
         assertEquals( "LAST_5_YEARS", refDimensionKeywords.getKeywords().get( 1 ).getKey() );
 
+        int currentYear = LocalDate.now().getYear();
+
+        String lastYear = Integer.toString( currentYear - 1 );
+        String twoYearsAgo = Integer.toString( currentYear - 2 );
+        String threeYearsAgo = Integer.toString( currentYear - 3 );
+        String fourYearsAgo = Integer.toString( currentYear - 4 );
+        String fiveYearsAgo = Integer.toString( currentYear - 5 );
+
         List<DimensionalItemObject> refPeriods = dimensionalObject.getItems();
-        assertDailyPeriod( "2017", "SCHEDULED_DATE", "2017-01-01", "2017-12-31", (Period) refPeriods.get( 0 ) );
-        assertDailyPeriod( "2018", "SCHEDULED_DATE", "2018-01-01", "2018-12-31", (Period) refPeriods.get( 1 ) );
-        assertDailyPeriod( "2019", "SCHEDULED_DATE", "2019-01-01", "2019-12-31", (Period) refPeriods.get( 2 ) );
-        assertDailyPeriod( "2020", "SCHEDULED_DATE", "2020-01-01", "2020-12-31", (Period) refPeriods.get( 3 ) );
-        assertDailyPeriod( "2021", "LAST_UPDATED", "2021-01-01", "2021-12-31", (Period) refPeriods.get( 4 ) );
-        assertDailyPeriod( "2021", "SCHEDULED_DATE", "2021-01-01", "2021-12-31", (Period) refPeriods.get( 5 ) );
+        assertDailyPeriod( fiveYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get( 0 ) );
+        assertDailyPeriod( fourYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get( 1 ) );
+        assertDailyPeriod( threeYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get( 2 ) );
+        assertDailyPeriod( twoYearsAgo, "SCHEDULED_DATE", (Period) refPeriods.get( 3 ) );
+        assertDailyPeriod( lastYear, "LAST_UPDATED", (Period) refPeriods.get( 4 ) );
+        assertDailyPeriod( lastYear, "SCHEDULED_DATE", (Period) refPeriods.get( 5 ) );
     }
 
-    private void assertDailyPeriod( String year, String dateField, String startDate, String endDate, Period period )
+    private void assertDailyPeriod( String year, String dateField, Period period )
     {
         assertTrue( period.getPeriodType() instanceof YearlyPeriodType );
         assertEquals( year, period.getIsoDate() );
         assertEquals( dateField, period.getDateField() );
-        assertEquals( startDate, period.getStartDateString() );
-        assertEquals( endDate, period.getEndDateString() );
+        assertEquals( year + "-01-01", period.getStartDateString() );
+        assertEquals( year + "-12-31", period.getEndDateString() );
     }
 
     @Test
