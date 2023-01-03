@@ -236,7 +236,7 @@ public class AnalyticsAggregationType
     }
 
     /**
-     * Returns the {@DataType}.
+     * Returns the {@link DataType}.
      */
     public DataType getDataType()
     {
