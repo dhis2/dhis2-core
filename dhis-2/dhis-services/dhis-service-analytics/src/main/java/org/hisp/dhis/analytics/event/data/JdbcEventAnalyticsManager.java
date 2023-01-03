@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
@@ -644,10 +645,11 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the partition columns.
+     * Returns the partition by clause for the first or last event sub query. If
+     * the aggregation type of the given parameters specifies first or last
      *
      * @param params the {@link EventQueryParams}.
-     * @return the partition columns as a quoted and comma separated string.
+     * @return the partition by clause.
      */
     private String getFirstOrLastValuePartitionByClause( EventQueryParams params )
     {
@@ -661,6 +663,13 @@ public class JdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * Returns the partition by clause for the first or last event sub query.
+     * The columns to partition by are based on the given list of dimensions.
+     *
+     * @param dimensions the list of {@link DimensionalObject}.
+     * @return the partition by clause.
+     */
     private String getFirstOrLastValuePartitionByColumns( List<DimensionalObject> dimensions )
     {
         String partitionColumns = dimensions.stream()
@@ -668,7 +677,14 @@ public class JdbcEventAnalyticsManager
             .map( AnalyticsSqlUtils::quoteAlias )
             .collect( Collectors.joining( "," ) );
 
-        return StringUtils.isNotEmpty( partitionColumns ) ? ("partition by " + partitionColumns) : StringUtils.EMPTY;
+        String sql = "";
+
+        if ( isNotEmpty( partitionColumns ) )
+        {
+            sql += "partition by " + partitionColumns;
+        }
+
+        return sql;
     }
 
     /**

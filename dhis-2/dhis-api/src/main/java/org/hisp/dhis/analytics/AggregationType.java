@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics;
 import java.util.Set;
 
 /**
+ * Enum which represents the aggregation type.
+ *
  * @author Lars Helge Overland
  */
 public enum AggregationType

@@ -35,6 +35,8 @@ import org.hisp.dhis.util.ObjectUtils;
 import com.google.common.base.MoreObjects;
 
 /**
+ * Enum which represents the aggregation type for analytics requests.
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsAggregationType
@@ -81,6 +83,12 @@ public class AnalyticsAggregationType
     // Constructors
     // -------------------------------------------------------------------------
 
+    /**
+     * Constructor.
+     *
+     * @param aggregationType the {@link AggregationType}.
+     * @param periodAggregationType the period {@link AggregationType}.
+     */
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType )
     {
         this.aggregationType = aggregationType;
@@ -89,6 +97,14 @@ public class AnalyticsAggregationType
         Validate.notNull( this.periodAggregationType );
     }
 
+    /**
+     * Constructor.
+     *
+     * @param aggregationType the {@link AggregationType}.
+     * @param periodAggregationType the period {@link AggregationType}.
+     * @param dataType the {@link DataType}.
+     * @param disaggregation indicates whether disaggregation is involved.
+     */
     public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
         DataType dataType, boolean disaggregation )
     {
