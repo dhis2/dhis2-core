@@ -100,8 +100,8 @@ introduction: >
   Age coarse: <15, 15+
   Age fine: <1, 1-10, 10-14,15-19,20-24,25-29,30-34,35-39,40-44,45+
   
-  In many cases, related data elements may be disaggregated at differently. This may be to differences in the way
-  in which the data is collected, or it may have changed over time (which is a very common occurrence). If we 
+  In many cases, related data elements may be disaggregated differently. This may be to differences in the way
+  in which the data is collected, or as is often the case, the disaggregation has changed over time. If we 
   wish to analyze data for two different data elements (one of which uses Age coarse and the other Age fine), we
   can create a category option group set consisting of two category option groups which should consist
   of the following category options from above. 
@@ -119,6 +119,22 @@ introduction: >
   There may exist specific analytical reasons why specific category options are omitted from a category option group set. 
   However,these should usually be special cases. This metadata check will identify cases where category option group
   sets appear to be incomplete, however you should carefully review any groups which appear in the details. 
+  
+  This check may also produce a number of issues which may at first glance appear to be false positives. In some
+  cases, category options may be added to a category by mistake. When category option group sets are created,
+  this extraneous option may be omitted and thus appear as missing from the group set. 
+  
+  Another observed situation is where an option like "Unknown" is used across unrelated categories. Suppose you 
+  have two categories "Age (<15, 15+, Unknown)" and "Sex (Male,Female,Unknown)". Similar to above, we create
+  category option group sets like: 
+  
+  <15: <15
+  15+: 15+
+  Unknown: Unknown
+  
+  This metadata check will report that "Male" and "Female" are missing from the group set. This is because the
+  same "Unknown" option is shared between two different, unrelated categories. It is recommended  that if this 
+  situation occurs, that you create two separate "Unknown" category options like "Unknown sex" and "Unknown age". 
 
 recommendation: >
   Using the maintenance app, assign the missing category options to an appropriate category option group
