@@ -53,7 +53,7 @@ import com.google.gson.reflect.TypeToken;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WebModuleManager
+public class AppMenuManager
 {
     private static final List<String> MODULE_ORDER = List.of( "dhis-web-dashboard-integration",
         "dhis-web-visualizer", "dhis-web-mapping", "dhis-web-event-reports", "dhis-web-event-visualizer",
@@ -122,7 +122,7 @@ public class WebModuleManager
         return uriList;
     }
 
-    public List<WebModule> getWebModules( String username )
+    public List<WebModule> getAppMenu( String username )
     {
         if ( menuModules.isEmpty() )
         {

@@ -44,7 +44,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetModulesServlet
+public class GetAppMenuServlet
     extends HttpServlet
 {
 
@@ -68,7 +68,7 @@ public class GetModulesServlet
             resp.setStatus( HttpServletResponse.SC_OK );
 
             RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-                "/api/webModules" + "?username=" + username );
+                "/api/apps/menu" + "?username=" + username );
 
             dispatcher.include( req, resp );
         }
