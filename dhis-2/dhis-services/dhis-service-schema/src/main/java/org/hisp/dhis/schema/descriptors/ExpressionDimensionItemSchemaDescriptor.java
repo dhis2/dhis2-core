@@ -58,10 +58,8 @@ public class ExpressionDimensionItemSchemaDescriptor
 
         schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
             Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PUBLIC_ADD" ) ) );
-
         schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
             Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PRIVATE_ADD" ) ) );
-
         schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_DELETE" ) ) );
 
         return schema;
