@@ -222,8 +222,8 @@ public class JdbcOwnershipAnalyticsTableManager
             + "' as startdate, null as enddate, o.organisationunitid " +
             "from trackedentityprogramowner o " +
             "where o.programid=" + program.getId() + " " +
-            "and exists (select programid from programownershiphistory p where o.trackedentityinstanceid = p.trackedentityinstanceid "
-            +
+            "and exists (select programid from programownershiphistory p " +
+            "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
             "and p.programid=" + program.getId() + ")" +
             ") a " +
             "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
