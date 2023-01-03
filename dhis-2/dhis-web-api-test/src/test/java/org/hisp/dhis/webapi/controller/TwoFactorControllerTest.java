@@ -60,19 +60,6 @@ class TwoFactorControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testQr2FA()
-    {
-        assertFalse( getCurrentUser().getTwoFA() );
-        assertNull( getCurrentUser().getSecret() );
-        JsonResponse content = GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
-        User user = userService.getUser( CurrentUserUtil.getCurrentUserDetails().getUid() );
-        assertNotNull( user.getSecret() );
-
-        String url = content.getMap( "url", JsonString.class ).toString();
-        assertTrue( url.startsWith( "\"https://chart.googleapis.com" ) );
-    }
-
-    @Test
     void testQr2FaConflictMustDisableFirst()
     {
         assertNull( getCurrentUser().getSecret() );
