@@ -25,42 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.event;
 
 import static org.hisp.dhis.tracker.validation.validator.All.all;
-
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.tracker.validation.validator.Each.each;
+import static org.hisp.dhis.tracker.validation.validator.Field.field;
+import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
 
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventRuleEngineValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityRuleEngineValidator;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
  */
-@RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.RuleEngineValidator" )
-public class RuleEngineValidator implements Validator<TrackerBundle>
+@Component( "org.hisp.dhis.tracker.validation.validator.event.EventValidator" )
+public class EventValidator implements Validator<TrackerBundle>
 {
+    private final Validator<TrackerBundle> validator;
 
-    private final TrackedEntityRuleEngineValidator trackedEntityValidator;
-
-    private final EnrollmentRuleEngineValidator enrollmentValidator;
-
-    private final EventRuleEngineValidator eventValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    public EventValidator( SecurityOwnershipValidator securityOwnershipValidator,
+        CategoryOptValidator categoryOptValidator )
     {
         // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator
+        validator = all(
+                        each( TrackerBundle::getEvents,
+                            seq(
+                                    new UidValidator(),
+                                    new ExistenceValidator(),
+                                    new MandatoryFieldsValidator(),
+                                    new MetaValidator(),
+                                    new UpdatableFieldsValidator(),
+                                    new DataRelationsValidator(),
+                                    securityOwnershipValidator,
+                                    all(
+                                        categoryOptValidator,
+                                        new DateValidator(),
+                                        new GeoValidator(),
+                                        new NoteValidator(),
+                                        new DataValuesValidator(),
+                                        new AssignedUserValidator()
+                                    )
+                            )
+                        ),
+                        field( TrackerBundle::getEvents, new RepeatedEventsValidator() )
         );
         // @formatter:on
     }
@@ -68,7 +79,7 @@ public class RuleEngineValidator implements Validator<TrackerBundle>
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
     {
-        bundleValidator().validate( reporter, bundle, input );
+        validator.validate( reporter, bundle, input );
     }
 
     @Override
