@@ -33,7 +33,6 @@ import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
@@ -281,18 +280,36 @@ public class JdbcAnalyticsManager
 
     /**
      * Generates the select clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL select clause.
      */
     private String getSelectClause( DataQueryParams params )
     {
         String sql = "select " + getCommaDelimitedQuotedColumns( params.getDimensions() ) + ", ";
 
-        if ( params.isDataType( TEXT ) )
+        sql += getValueClause( params );
+
+        return sql;
+    }
+
+    /**
+     * Generates the value clause of the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL value clause.
+     */
+    protected String getValueClause( DataQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isAggregation() )
+        {
+            sql += getAggregateValueColumn( params );
+        }
+        else
         {
             sql += params.getValueColumn();
-        }
-        else // NUMERIC and BOOLEAN
-        {
-            sql += getNumericValueColumn( params );
         }
 
         sql += " as value ";
@@ -301,9 +318,12 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Returns a aggregate clause for the numeric value column.
+     * Returns an aggregate clause for the numeric value column.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a SQL numeric value column.
      */
-    private String getNumericValueColumn( DataQueryParams params )
+    protected String getAggregateValueColumn( DataQueryParams params )
     {
         String sql;
 
@@ -344,10 +364,6 @@ public class JdbcAnalyticsManager
         {
             sql = "max(" + valueColumn + ")";
         }
-        else if ( aggType.isAggregationType( NONE ) )
-        {
-            sql = valueColumn;
-        }
         else // SUM and no value
         {
             sql = "sum(" + valueColumn + ")";
@@ -368,13 +384,13 @@ public class JdbcAnalyticsManager
             Date earliest = addYears( params.getLatestEndDate(), LAST_VALUE_YEARS_OFFSET );
             sql += getFirstOrLastValueSubquerySql( params, earliest );
         }
-        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
-        {
-            sql += getPreMeasureCriteriaSubquerySql( params );
-        }
         else if ( params.getAggregationType().isLastInPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params, params.getEarliestStartDate() );
+        }
+        else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        {
+            sql += getPreMeasureCriteriaSubquerySql( params );
         }
         else
         {
@@ -590,9 +606,9 @@ public class JdbcAnalyticsManager
             "partition by dx, ou, co, ao " +
             "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
-            "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
-            "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
-            "and (value is not null or textvalue is not null))";
+            "where " + quoteAlias( "pestartdate" ) + " >= '" + getMediumDateString( earliest ) + "' " +
+            "and " + quoteAlias( "pestartdate" ) + " <= '" + getMediumDateString( latest ) + "' " +
+            "and (" + quoteAlias( "value" ) + " is not null or " + quoteAlias( "textvalue" ) + " is not null))";
 
         return sql;
     }
@@ -678,7 +694,8 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter )
+            sql += sqlHelper.havingAnd() + " " + getAggregateValueColumn( params ) + " "
+                + OPERATOR_SQL_MAP.get( filter )
                 + " " + criterion + " ";
         }
 
@@ -739,8 +756,12 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a comma-delimited string based on the dimension names of the
-     * given dimensions where each dimension name is quoted.
+     * Generates a comma-delimited string with the dimension names of the given
+     * dimensions where each dimension name is quoted. Dimensions which are
+     * considered fixed will be excluded.
+     *
+     * @param dimensions the collection of {@link Dimension}.
+     * @return a comma-delimited string of quoted dimension names.
      */
     private String getCommaDelimitedQuotedColumns( Collection<DimensionalObject> dimensions )
     {

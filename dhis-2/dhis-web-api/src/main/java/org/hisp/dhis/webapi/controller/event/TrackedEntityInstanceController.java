@@ -540,12 +540,14 @@ public class TrackedEntityInstanceController
 
         if ( joined.contains( "enrollments" ) )
         {
-            params = params.withIncludeEnrollments( true );
+            params = params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEnrollments( true ) );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params = params.withIncludeEvents( true );
+            params.withTeiEnrollmentParams(
+                params.getTeiEnrollmentParams().withIncludeEvents( true ) );
         }
 
         if ( joined.contains( "programOwners" ) )

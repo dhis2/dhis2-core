@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
+import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -80,6 +81,9 @@ class JdbcEnrollmentAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private AnalyticsExportSettings analyticsExportSettings;
+
     private JdbcEnrollmentAnalyticsTableManager subject;
 
     private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
@@ -90,7 +94,8 @@ class JdbcEnrollmentAnalyticsTableManagerTest
         subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, mock( OrganisationUnitService.class ),
             mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
-            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
+            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate,
+            analyticsExportSettings );
     }
 
     @Test

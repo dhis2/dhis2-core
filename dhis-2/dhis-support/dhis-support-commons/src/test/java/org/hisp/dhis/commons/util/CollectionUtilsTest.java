@@ -29,7 +29,10 @@ package org.hisp.dhis.commons.util;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -101,5 +104,13 @@ class CollectionUtilsTest
 
         assertEquals( listA, emptyIfNull( listA ) );
         assertEquals( new ArrayList<>(), emptyIfNull( listB ) );
+    }
+
+    @Test
+    void testIsEmpty()
+    {
+        assertTrue( isEmpty( List.of() ) );
+        assertTrue( isEmpty( null ) );
+        assertFalse( isEmpty( List.of( "One", "Two" ) ) );
     }
 }
