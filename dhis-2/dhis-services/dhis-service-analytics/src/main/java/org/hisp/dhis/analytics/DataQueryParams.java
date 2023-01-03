@@ -2513,8 +2513,8 @@ public class DataQueryParams
      */
     public List<DimensionalItemObject> getAllDataDimensionItems()
     {
-        return ImmutableList
-            .copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+        return ImmutableList.copyOf(
+            ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
     /**
