@@ -64,6 +64,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -75,6 +76,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -107,6 +109,8 @@ import com.google.common.collect.Sets;
 public class EventImportTest
     extends TransactionalIntegrationTest
 {
+    private static final String DUE_DATE = "2022-12-12";
+
     @Autowired
     private EventService eventService;
 
@@ -492,6 +496,39 @@ public class EventImportTest
     }
 
     @Test
+    public void testAddEventWithDueDateForProgramWithoutRegistration()
+    {
+        String eventUid = CodeGenerator.generateUid();
+
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        Event event = createScheduledTrackerEvent( eventUid, programA, programStageA, EventStatus.SCHEDULE,
+            organisationUnitA );
+
+        ImportSummary summary = eventService.addEvent( event, null, false );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( "10" );
+        dataValue.setDataElement( dataElementA.getUid() );
+        event.setDataValues( Sets.newHashSet( dataValue ) );
+        event.setStatus( EventStatus.COMPLETED );
+
+        summary = eventService.updateEvent( event, true, null, false );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
+
+        final SimpleDateFormat format = new SimpleDateFormat();
+        format.applyPattern( Period.DEFAULT_DATE_FORMAT );
+
+        assertEquals( DUE_DATE, format.format( psi.getDueDate() ) );
+    }
+
+    @Test
     public void testAddOneValidAndOneInvalidEvent()
         throws IOException
     {
@@ -835,6 +872,23 @@ public class EventImportTest
         event.setEventDate( "2019-10-24" );
         event.setDeleted( false );
 
+        return event;
+    }
+
+    private Event createScheduledTrackerEvent( String uid, Program program, ProgramStage ps, EventStatus eventStatus,
+        OrganisationUnit organisationUnit )
+    {
+        Event event = new Event();
+        event.setUid( uid );
+        event.setEvent( uid );
+        event.setStatus( eventStatus );
+        event.setProgram( program.getUid() );
+        event.setProgramStage( ps.getUid() );
+        event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event.setOrgUnit( organisationUnit.getUid() );
+        event.setEnrollment( pi.getUid() );
+        event.setDueDate( DUE_DATE );
+        event.setDeleted( false );
         return event;
     }
 }
