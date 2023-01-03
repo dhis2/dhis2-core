@@ -50,7 +50,7 @@ public interface UserService
 {
     String ID = UserService.class.getName();
 
-    Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
+    Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2([ayb])?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
 
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 

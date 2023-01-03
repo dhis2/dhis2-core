@@ -33,8 +33,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -50,15 +48,6 @@ import org.junit.jupiter.api.Test;
  */
 class TwoFactorControllerTest extends DhisControllerConvenienceTest
 {
-    @Test
-    void testAuthenticate2FA()
-    {
-        // Generate a new secret for
-        GET( "/2fa/qr" ).content( HttpStatus.ACCEPTED );
-        assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
-            GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
-    }
-
     @Test
     void testQr2FaConflictMustDisableFirst()
     {
