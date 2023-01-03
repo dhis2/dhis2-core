@@ -477,8 +477,6 @@ public abstract class AbstractJdbcTableManager
             String tableName = partition.getTempTableName();
             List<String> checks = getPartitionChecks( partition );
 
-            dropViewSilentlyIfExists( table );
-
             StringBuilder sqlCreate = new StringBuilder();
 
             sqlCreate.append( "create " ).append( analyticsExportSettings.getTableType() ).append( " table " )
@@ -501,9 +499,9 @@ public abstract class AbstractJdbcTableManager
         }
     }
 
-    private void dropViewSilentlyIfExists( AnalyticsTable table )
+    private void dropViewSilentlyIfExists( String viewName )
     {
-        executeSafely( "drop view if exists " + table.getTempTableName() );
+        executeSafely( "drop view if exists " + viewName + " cascade" );
     }
 
     /**
@@ -720,6 +718,8 @@ public abstract class AbstractJdbcTableManager
      */
     private void swapTable( String tempTableName, String realTableName )
     {
+        dropViewSilentlyIfExists( realTableName );
+
         String[] sqlSteps = {
             "drop table if exists " + realTableName + " cascade",
             "alter table " + tempTableName + " rename to " + realTableName
