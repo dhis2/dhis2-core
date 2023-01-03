@@ -87,7 +87,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest
         // Validate headers
         validateHeader( response, 0, "trackedentityinstanceuid", "Tracked Entity Instance", "TEXT", "java.lang.String",
             false, true );
-        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false, true );
+        validateHeader( response, 1, "lastupdated", "Last Updated", "DATETIME", "java.time.LocalDateTime", false,
+            true );
         validateHeader( response, 2, "createdbydisplayname", "Created by (display name)", "TEXT", "java.lang.String",
             false, true );
         validateHeader( response, 3, "lastupdatedbydisplayname", "Last updated by (display name)", "TEXT",
