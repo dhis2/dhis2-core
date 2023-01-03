@@ -302,12 +302,11 @@ class JdbcOwnershipAnalyticsTableManagerTest
             sqlMasked );
 
         List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 4, writerInvocations.size() );
+        assertEquals( 3, writerInvocations.size() );
 
         assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
         assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
-        assertEquals( "flush", writerInvocations.get( 3 ).getMethod().getName() );
 
         Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
         Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
