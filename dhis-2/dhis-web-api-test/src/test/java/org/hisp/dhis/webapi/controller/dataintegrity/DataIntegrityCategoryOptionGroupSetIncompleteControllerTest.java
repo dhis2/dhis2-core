@@ -29,10 +29,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -74,14 +71,6 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
                 "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '" +
                     warmGroup + "'}, {'id' : '" + coldGroup + "'}]}" ) );
 
-        JsonResponse response = GET(
-            "/categoryOptionGroupSets?fields=id,name,categoryOptionGroups[id,name,categoryOptions[id,name]]" )
-                .content();
-        postSummary( check );
-        JsonDataIntegritySummary summary = getSummary( check );
-        postDetails( check );
-        JsonDataIntegrityDetails details = getDetails( check );
-
         assertHasDataIntegrityIssues( "categories", check, 50, testCatOptionGroupSet, "Color set", "Yellow",
             true );
 
@@ -106,15 +95,6 @@ class DataIntegrityCategoryOptionGroupSetIncompleteControllerTest
             POST( "/categoryOptionGroupSets",
                 "{ 'name': 'Color set', 'shortName': 'Color set', 'categoryOptionGroups' : [{'id': '" +
                     warmGroup + "'}, {'id' : '" + coldGroup + "'}]}" ) );
-
-        JsonResponse reposnse1 = GET( "/categories?fields=id,name,categoryOptions[id,name]" ).content();
-        JsonResponse response = GET(
-            "/categoryOptionGroupSets?fields=id,name,categoryOptionGroups[id,name,categoryOptions[id,name]]" )
-                .content();
-        postSummary( check );
-        JsonDataIntegritySummary summary = getSummary( check );
-        postDetails( check );
-        JsonDataIntegrityDetails details = getDetails( check );
 
         assertHasNoDataIntegrityIssues( "categories", check, true );
 
