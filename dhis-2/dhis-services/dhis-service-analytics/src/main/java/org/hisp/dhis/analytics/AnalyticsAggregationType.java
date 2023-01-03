@@ -218,21 +218,34 @@ public class AnalyticsAggregationType
     // Get methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns the general {@link AggregationType}.
+     */
     public AggregationType getAggregationType()
     {
         return aggregationType;
     }
 
+    /**
+     * Returns the period {@link AggregationType}, with fallback to the general
+     * {@link AggregationType} if not specified.
+     */
     public AggregationType getPeriodAggregationType()
     {
         return ObjectUtils.firstNonNull( periodAggregationType, aggregationType );
     }
 
+    /**
+     * Returns the {@DataType}.
+     */
     public DataType getDataType()
     {
         return dataType;
     }
 
+    /**
+     * Indicates whether disaggregation is involved.
+     */
     public boolean isDisaggregation()
     {
         return disaggregation;
