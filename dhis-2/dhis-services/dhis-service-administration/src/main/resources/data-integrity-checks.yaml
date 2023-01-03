@@ -55,3 +55,4 @@ checks:
   - groups/group_size_organisation_unit_groups.yaml
   - groups/group_size_category_option_groups.yaml
   - groups/group_size_category_option_group_sets.yaml
+  - groups/group_size_user_groups.yaml
