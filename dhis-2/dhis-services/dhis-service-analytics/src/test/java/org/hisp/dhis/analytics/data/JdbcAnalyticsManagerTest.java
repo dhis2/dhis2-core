@@ -97,7 +97,7 @@ class JdbcAnalyticsManagerTest
     {
         QueryPlanner queryPlanner = new DefaultQueryPlanner( partitionManager );
 
-        when( rowSet.next() ).thenReturn( false );
+        mockRowSet();
 
         when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
 
@@ -158,6 +158,12 @@ class JdbcAnalyticsManagerTest
         subject.getAggregatedDataValues( params, AnalyticsTableType.DATA_VALUE, 20000 );
 
         assertExpectedLastInPeriodSql( "desc" );
+    }
+
+    private void mockRowSet()
+    {
+        // Simulate no rows
+        when( rowSet.next() ).thenReturn( false );
     }
 
     private DataQueryParams createParams( AggregationType aggregationType )
