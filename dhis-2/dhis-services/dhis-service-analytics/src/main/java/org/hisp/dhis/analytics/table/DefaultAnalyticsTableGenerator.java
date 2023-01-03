@@ -157,9 +157,6 @@ public class DefaultAnalyticsTableGenerator
             generateResourceTablesInternal( progress );
 
             progress.completedProcess( "Resource tables generated: " + clock.time() );
-
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE,
-                new Date( clock.getStartTime() ) );
         }
         catch ( RuntimeException ex )
         {
@@ -177,6 +174,8 @@ public class DefaultAnalyticsTableGenerator
 
     private void generateResourceTablesInternal( JobProgress progress )
     {
+        final Date startTime = new Date();
+
         resourceTableService.dropAllSqlViews( progress );
 
         Map<String, Runnable> generators = new LinkedHashMap<>();
@@ -201,5 +200,7 @@ public class DefaultAnalyticsTableGenerator
         progress.runStage( generators );
 
         resourceTableService.createAllSqlViews( progress );
+
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE, startTime );
     }
 }
