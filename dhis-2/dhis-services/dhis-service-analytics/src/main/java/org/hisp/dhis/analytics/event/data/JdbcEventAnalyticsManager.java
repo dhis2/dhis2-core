@@ -646,7 +646,17 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns the partition by clause for the first or last event sub query. If
-     * the aggregation type of the given parameters specifies first or last
+     * the aggregation type of the given parameters specifies "first" or "last"
+     * as the general aggregation type, the partition by clause will use the
+     * dimensions from the analytics query as columns in order to rank events in
+     * all dimensions. In this case, the outer query will perform no aggregation
+     * and simply filter by the top ranked events.
+     * <p>
+     * If the aggregation type specifies another aggregation type (i.e. "sum" or
+     * "average") as the general aggregation type, the partition by clause will
+     * use the "ou" and "ao" columns to rank events in the time dimension only,
+     * and have the outer query perform the aggregation in the other dimensions,
+     * as well as filter by the top ranked events.
      *
      * @param params the {@link EventQueryParams}.
      * @return the partition by clause.
