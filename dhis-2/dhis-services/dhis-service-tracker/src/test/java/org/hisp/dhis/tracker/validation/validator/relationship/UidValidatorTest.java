@@ -25,55 +25,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E1048;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentRuleEngineValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventRuleEngineValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityRuleEngineValidator;
-import org.springframework.stereotype.Component;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.RuleEngineValidator" )
-public class RuleEngineValidator implements Validator<TrackerBundle>
+class UidValidatorTest
 {
 
-    private final TrackedEntityRuleEngineValidator trackedEntityValidator;
+    private static final String INVALID_UID = "InvalidUID";
 
-    private final EnrollmentRuleEngineValidator enrollmentValidator;
+    private UidValidator validator;
 
-    private final EventRuleEngineValidator eventValidator;
+    private TrackerBundle bundle;
 
-    private Validator<TrackerBundle> bundleValidator()
+    private Reporter reporter;
+
+    @BeforeEach
+    void setUp()
     {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator
-        );
-        // @formatter:on
+        TrackerPreheat preheat = new TrackerPreheat();
+        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+        preheat.setIdSchemes( idSchemes );
+        reporter = new Reporter( idSchemes );
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
+
+        validator = new UidValidator();
     }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
+    @Test
+    void verifyRelationshipValidationSuccess()
     {
-        bundleValidator().validate( reporter, bundle, input );
+        Relationship relationship = Relationship.builder().relationship( CodeGenerator.generateUid() ).build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertIsEmpty( reporter.getErrors() );
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
+    @Test
+    void verifyRelationshipWithInvalidUidFails()
     {
-        return true; // this main validator should always run
+        Relationship relationship = Relationship.builder().relationship( INVALID_UID ).build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E1048 );
     }
 }

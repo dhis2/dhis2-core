@@ -25,56 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator;
+package org.hisp.dhis.tracker.validation.validator.event;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
+import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssuesToReporter;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
-import org.hisp.dhis.tracker.validation.validator.enrollment.EnrollmentValidator;
-import org.hisp.dhis.tracker.validation.validator.event.EventValidator;
-import org.hisp.dhis.tracker.validation.validator.relationship.RelationshipValidator;
-import org.hisp.dhis.tracker.validation.validator.trackedentity.TrackedEntityValidator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Validator to validate the {@link TrackerBundle}.
+ * @author Enrico Colasante
  */
-@RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
+@Component( "org.hisp.dhis.tracker.validation.validator.event.RuleEngineValidator" )
+class RuleEngineValidator
+    implements Validator<Event>
 {
+    private List<RuleActionImplementer> validators;
 
-    private final TrackedEntityValidator trackedEntityValidator;
-
-    private final EnrollmentValidator enrollmentValidator;
-
-    private final EventValidator eventValidator;
-
-    private final RelationshipValidator relationshipValidator;
-
-    private Validator<TrackerBundle> bundleValidator()
+    @Autowired( required = false )
+    public void setValidators( List<RuleActionImplementer> validators )
     {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
+        this.validators = validators;
     }
 
     @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
-    }
+    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    {
+        List<RuleEffect> ruleEffects = bundle.getEventRuleEffects().get( event.getEvent() );
 
-    @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
-        return true; // this main validator should always run
+        if ( ruleEffects == null || ruleEffects.isEmpty() )
+        {
+            return;
+        }
+
+        List<ProgramRuleIssue> programRuleIssues = validators
+            .stream()
+            .flatMap(
+                v -> v.validateEvent( bundle, ruleEffects, event ).stream() )
+            .collect( Collectors.toList() );
+
+        addIssuesToReporter( reporter, event, programRuleIssues );
     }
 }
