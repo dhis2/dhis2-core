@@ -150,7 +150,7 @@ public class JdbcOwnershipAnalyticsTableManager
             return; // Builds an empty table, but it may be joined in queries.
         }
 
-        String sql = getInputSql( params, program );
+        String sql = getInputSql( program );
 
         log.debug( "Populate {} with SQL: '{}'", partition.getTempTableName(), sql );
 
@@ -186,7 +186,7 @@ public class JdbcOwnershipAnalyticsTableManager
         batchHandler.flush();
     }
 
-    private String getInputSql( AnalyticsTableUpdateParams params, Program program )
+    private String getInputSql( Program program )
     {
         // SELECT clause
 
