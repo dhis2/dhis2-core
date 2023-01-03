@@ -58,11 +58,11 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
     {
         // Given
         final QueryParamsBuilder params = new QueryParamsBuilder();
-        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+        params.add( "dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU" )
             .add( "stage=A03MvHHogjR" )
             .add( "displayProperty=NAME" )
             .add( "outputType=ENROLLMENT" )
-            .add( "desc=enrollmentdate" )
+            .add( "asc=A03MvHHogjR.UXz7xuGCEhU" )
             .add( "totalPages=false" )
             .add( "pageSize=100" )
             .add( "page=1" )
@@ -74,7 +74,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         // Then
         response.validate()
             .statusCode( 200 )
-            .body( "headers", hasSize( equalTo( 15 ) ) )
+            .body( "headers", hasSize( equalTo( 16 ) ) )
             .body( "rows", hasSize( equalTo( 100 ) ) )
             .body( "metaData.pager.page", equalTo( 1 ) )
             .body( "metaData.pager.pageSize", equalTo( 100 ) )
@@ -90,9 +90,10 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .body( "metaData.dimensions.pe", hasSize( equalTo( 0 ) ) )
             .body( "metaData.dimensions.ou", hasSize( equalTo( 1 ) ) )
             .body( "metaData.dimensions.ou", hasItem( "ImspTQPwCqd" ) )
+            .body( "metaData.dimensions.\"A03MvHHogjR.UXz7xuGCEhU\"", hasSize( equalTo( 0 ) ) )
             .body( "height", equalTo( 100 ) )
-            .body( "width", equalTo( 15 ) )
-            .body( "headerWidth", equalTo( 15 ) );
+            .body( "width", equalTo( 16 ) )
+            .body( "headerWidth", equalTo( 16 ) );
 
         // Validate headers
         validateHeader( response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true );
@@ -113,57 +114,62 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateHeader( response, 12, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 13, "programstatus", "Program status", "TEXT", "java.lang.String", false, true );
         validateHeader( response, 14, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 15, "A03MvHHogjR.UXz7xuGCEhU", "MCH Weight (g)", "NUMBER", "java.lang.Double", false,
+            true );
 
         // Validate the first three rows, as samples.
         validateRow( response, 0,
-            List.of( "KfBRggSoGMD",
-                "UMjs5JK5Krn",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "EbRsJr8LSSO",
+                "oi3PMIGYJH8",
+                "2022-07-02 02:00:00.0",
+                "2022-07-08 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:47.024",
+                "2017-07-23 12:45:49.807",
                 "",
                 "",
                 "",
-                "Faala CHP",
-                "OU_222680",
+                "Ngelehun CHC",
+                "OU_559",
                 "ACTIVE",
-                "hKD6hpZUh9v" ) );
+                "DiszpKrYNg8",
+                "1231.0" ) );
 
         validateRow( response, 1,
-            List.of( "Gpb1RPktijN",
-                "thEFEZZAMpa",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "XeuUO4RbQEb",
+                "AivS67mcmKY",
+                "2022-06-01 02:00:00.0",
+                "2022-05-01 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:46.463",
+                "2017-11-15 17:48:49.132",
                 "",
                 "",
                 "",
-                "Fullawahun MCHP",
-                "OU_839",
+                "Ngelehun CHC",
+                "OU_559",
                 "ACTIVE",
-                "eRg3KZyWUSJ" ) );
+                "DiszpKrYNg8",
+                "1234.0" ) );
 
         validateRow( response, 2,
-            List.of( "jVAAsPyd7Tg",
-                "p2F8GoHl2HS",
-                "2022-08-31 12:05:00.0",
-                "2022-08-31 12:05:00.0",
+            List.of( "KxXkjF6buFN",
+                "uhubxsfLanV",
+                "2022-04-02 02:00:00.0",
+                "2022-04-02 02:00:00.0",
                 "",
                 "",
                 "",
-                "2018-08-06 21:20:52.567",
+                "2017-11-16 12:26:42.851",
                 "",
                 "",
                 "",
-                "Manjeihun MCHP",
-                "OU_246998",
-                "ACTIVE",
-                "J3wTSn87RP2" ) );
+                "Ngelehun CHC",
+                "OU_559",
+                "COMPLETED",
+                "DiszpKrYNg8",
+                "2313.0" ) );
     }
 }

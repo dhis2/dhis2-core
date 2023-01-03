@@ -46,6 +46,9 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * This extension is used to prepare/populate the analytics tables, so they can
  * be further used by the analytics e2e tests.
  *
+ * The database used as baseline for all e2e analytics tests is found at
+ * https://databases.dhis2.org/sierra-leone/2.39.0/analytics_be/dhis2-db-sierra-leone.sql.gz
+ * 
  * @author maikel arabori
  */
 public class AnalyticsSetupExtension implements BeforeAllCallback

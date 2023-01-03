@@ -32,6 +32,9 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
+ * Provides tracked entities endpoints/operations associated to the parent
+ * "analytics/trackedEntities".
+ * 
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class AnalyticsTeiActions

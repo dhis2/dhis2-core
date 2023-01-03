@@ -57,7 +57,7 @@ import io.restassured.http.ContentType;
  *
  * All tests are written on top of the database Sierra Leone 2.39.0. It can be
  * downloaded at
- * https://databases.dhis2.org/sierra-leone/2.39.0/dhis2-db-sierra-leone.sql.gz
+ * https://databases.dhis2.org/sierra-leone/2.39.0/analytics_be/dhis2-db-sierra-leone.sql.gz
  *
  * If some test is failing and some investigation is needed, we can simply
  * download the database version above and run the respective WAR of the DHIS2
@@ -74,7 +74,7 @@ public abstract class AnalyticsApiTest
 {
     protected static final int DEFAULT_LIMIT_EXECUTION_TIME_IN_SECONDS = 2;
 
-    protected final String JSON = ContentType.JSON.toString();
+    protected static final String JSON = ContentType.JSON.toString();
 
     @BeforeAll
     public void beforeAll()
